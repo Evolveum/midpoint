@@ -27,6 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.h2.tools.Server;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,6 +51,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private SqlPerformanceMonitorImpl performanceMonitor;
 
+    @NotNull
     public SqlRepositoryConfiguration getSqlConfiguration() {
         Validate.notNull(sqlConfiguration, "Sql repository configuration not available (null).");
         return sqlConfiguration;

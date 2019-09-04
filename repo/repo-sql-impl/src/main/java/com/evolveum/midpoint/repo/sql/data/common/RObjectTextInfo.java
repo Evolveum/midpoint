@@ -57,13 +57,14 @@ public class RObjectTextInfo implements Serializable {
     public static final String COLUMN_OWNER_OID = "owner_oid";
     public static final String F_TEXT = "text";
 
-    public static final int MAX_TEXT_SIZE = 255;
+    private static final int DEFAULT_MAX_TEXT_SIZE = 255;
 
     private RObject owner;
     private String ownerOid;
 
     private String text;
 
+    @SuppressWarnings("unused")
     public RObjectTextInfo() {
     }
 
@@ -99,7 +100,7 @@ public class RObjectTextInfo implements Serializable {
     }
 
 	@Id
-	@Column(name = "text", length = MAX_TEXT_SIZE)
+	@Column(name = "text", length = DEFAULT_MAX_TEXT_SIZE)
     public String getText() {
         return text;
     }
@@ -124,7 +125,7 @@ public class RObjectTextInfo implements Serializable {
 		return Objects.hash(getOwnerOid(), getText());
 	}
 
-	public static <T extends ObjectType> Set<RObjectTextInfo> createItemsSet(@NotNull ObjectType object, @NotNull RObject repo,
+	public static Set<RObjectTextInfo> createItemsSet(@NotNull ObjectType object, @NotNull RObject repo,
 			@NotNull RepositoryContext repositoryContext) {
 
 		FullTextSearchConfigurationType config = repositoryContext.repositoryService.getFullTextSearchConfiguration();
@@ -165,16 +166,18 @@ public class RObjectTextInfo implements Serializable {
 				}
 			}
 		}
-		LOGGER.trace("Indexing {}:\n  items: {}\n  values: {}\n  words:  {}", object, paths, values, allWords);
-		return createItemsSet(repo, allWords);
+		int maxTextSize = repositoryContext.configuration.getTextInfoColumnSize();
+		LOGGER.trace("Indexing {}:\n  items: {}\n  values: {}\n  words:  {}\n  max text size:  {}", object, paths, values,
+				allWords, maxTextSize);
+		return createItemsSet(repo, allWords, maxTextSize);
     }
 
-	private static Set<RObjectTextInfo> createItemsSet(RObject repo, List<String> allWords) {
+	private static Set<RObjectTextInfo> createItemsSet(RObject repo, List<String> allWords, int maxTextSize) {
 		Set<RObjectTextInfo> rv = new HashSet<>();
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < allWords.size(); i++) {
 			String word = allWords.get(i);
-			if (sb.length() + word.length() + 2 <= MAX_TEXT_SIZE) {
+			if (sb.length() + word.length() + 2 <= maxTextSize) {
 				sb.append(" ").append(word);
 			} else {
 				if (sb.length() > 0) {
@@ -185,8 +188,8 @@ public class RObjectTextInfo implements Serializable {
 				} else {
 					// a problem - too large string
 					LOGGER.warn("Word too long to be correctly indexed: {}", word);
-					rv.add(new RObjectTextInfo(repo, " " + word.substring(0, MAX_TEXT_SIZE - 2) + " "));
-					allWords.set(i, word.substring(MAX_TEXT_SIZE - 2));
+					rv.add(new RObjectTextInfo(repo, " " + word.substring(0, maxTextSize - 2) + " "));
+					allWords.set(i, word.substring(maxTextSize - 2));
 					i--;		// to reiterate (with shortened word)
 				}
 			}

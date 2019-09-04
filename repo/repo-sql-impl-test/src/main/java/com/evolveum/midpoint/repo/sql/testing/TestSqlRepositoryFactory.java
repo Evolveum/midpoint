@@ -118,6 +118,8 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MIN_POOL_SIZE);
         updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MAX_POOL_SIZE);
 
+        updateConfigurationIntegerProperty(configuration, properties, PROPERTY_TEXT_INFO_COLUMN_SIZE);
+
         // Dirty hack, in order to make DataSourceTest happy: if none of database, driver, dialect, embedded is
         // present but data source is, let us assume we use H2.
         //
