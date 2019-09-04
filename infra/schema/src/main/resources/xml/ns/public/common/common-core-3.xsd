@@ -5830,6 +5830,7 @@
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
+                    	<a:operational>true</a:operational>
                         <a:displayName>ActivationType.validityStatus</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
