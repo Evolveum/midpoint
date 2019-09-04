@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2018 Evolveum
+ * Copyright (c) 2015-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -215,14 +215,6 @@ public class SecurityHelper implements ModelAuditRecorder {
     		return orgSecurityPolicyType;
     	}
     	
-    	// DEPRECATED, legacy
-    	PrismObject<ValuePolicyType> orgPasswordPolicy = objectResolver.searchOrgTreeWidthFirstReference(user, o -> o.asObjectable().getPasswordPolicyRef(), "security policy", task, result);
-    	LOGGER.trace("Found organization password policy: {}", orgPasswordPolicy);
-    	if (orgPasswordPolicy != null) {
-    		SecurityPolicyType policy = postProcessPasswordPolicy(orgPasswordPolicy.asObjectable());
-    		return policy;
-    	}
-    	
     	return null;
     }
 
@@ -237,26 +229,9 @@ public class SecurityHelper implements ModelAuditRecorder {
 			return globalSecurityPolicy;
 		}
 	
-		// DEPRECATED, legacy
-		SecurityPolicyType globalPasswordPolicy = resolveGlobalPasswordPolicy(user, systemConfigurationType, task, result);
-		if (globalPasswordPolicy != null) {
-			return globalPasswordPolicy;
-		}
-
     	return null;
     }
-
-    public SecurityPolicyType locateGlobalPasswordPolicy(SystemConfigurationType systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-    	if (systemConfiguration != null) {
-			SecurityPolicyType globalPasswordPolicy = resolveGlobalPasswordPolicy(null, systemConfiguration, task, result);
-			if (globalPasswordPolicy != null) {
-				return globalPasswordPolicy;
-			}
-    	}
-
-    	return null;
-    }
-
+  
     private <F extends FocusType> SecurityPolicyType resolveGlobalSecurityPolicy(PrismObject<F> user, SystemConfigurationType systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.getGlobalSecurityPolicyRef();
 		if (globalSecurityPolicyRef != null) {
@@ -275,25 +250,6 @@ public class SecurityHelper implements ModelAuditRecorder {
 
 		return null;
     }
-
-    private <F extends FocusType> SecurityPolicyType resolveGlobalPasswordPolicy(PrismObject<F> user, SystemConfigurationType systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-    	ObjectReferenceType globalPasswordPolicyRef = systemConfiguration.getGlobalPasswordPolicyRef();
-		if (globalPasswordPolicyRef != null) {
-			try {
-				ValuePolicyType globalPasswordPolicyType = objectResolver.resolve(globalPasswordPolicyRef, ValuePolicyType.class, null, "global security policy reference in system configuration", task, result);
-				LOGGER.trace("Using global password policy: {}", globalPasswordPolicyType);
-				SecurityPolicyType policy = postProcessPasswordPolicy(globalPasswordPolicyType);
-				traceSecurityPolicy(policy, user);
-	    		return policy;
-			} catch (ObjectNotFoundException | SchemaException e) {
-				LOGGER.error(e.getMessage(), e);
-				traceSecurityPolicy(null, user);
-				return null;
-			}
-		}
-		return null;
-    }
-
 
 	private <F extends FocusType> void traceSecurityPolicy(SecurityPolicyType securityPolicyType, PrismObject<F> user) {
 		if (LOGGER.isTraceEnabled()) {
@@ -332,22 +288,7 @@ public class SecurityHelper implements ModelAuditRecorder {
 	}
 
 	private void postProcessPasswordCredentialPolicy(SecurityPolicyType securityPolicyType, PasswordCredentialsPolicyType passwd, Task task, OperationResult result) {
-		// Deprecated settings
-		Integer passwordHistoryLength = passwd.getPasswordHistoryLength();
-		if (passwordHistoryLength != null && passwd.getHistoryLength() == null) {
-			passwd.setHistoryLength(passwordHistoryLength);
-		}
-
-		ObjectReferenceType passwordPolicyRef = passwd.getPasswordPolicyRef();
-		if (passwordPolicyRef != null && passwd.getValuePolicyRef() == null) {
-			passwd.setValuePolicyRef(passwordPolicyRef.clone());
-		}
-
-		ValuePolicyType valuePolicyType = postProcessCredentialPolicy(securityPolicyType, passwd, "password credential policy", task, result);
-
-		if (valuePolicyType != null) {
-			setDeprecatedPasswordPolicyProperties(valuePolicyType, passwd);
-		}
+		postProcessCredentialPolicy(securityPolicyType, passwd, "password credential policy", task, result);
 	}
 
 	private ValuePolicyType postProcessCredentialPolicy(SecurityPolicyType securityPolicyType, CredentialPolicyType credPolicy, String credShortDesc, Task task, OperationResult result) {
@@ -375,31 +316,7 @@ public class SecurityHelper implements ModelAuditRecorder {
 		passwd.setValuePolicyRef(passwordPolicyRef);
 		creds.setPassword(passwd);
 		securityPolicyType.setCredentials(creds);
-		setDeprecatedPasswordPolicyProperties(passwordPolicyType, passwd);
 		return securityPolicyType;
-	}
-
-	private void setDeprecatedPasswordPolicyProperties(ValuePolicyType passwordPolicyType,
-			PasswordCredentialsPolicyType passwd) {
-		PasswordLifeTimeType lifetime = passwordPolicyType.getLifetime();
-		if (lifetime != null) {
-			Integer expiration = lifetime.getExpiration();
-			if (expiration != null && expiration != 0 && passwd.getMaxAge() == null) {
-				passwd.setMaxAge(daysToDuration(expiration));
-			}
-			Integer minPasswordAge = lifetime.getMinPasswordAge();
-			if (minPasswordAge != null && minPasswordAge != 0 && passwd.getMinAge() == null) {
-				passwd.setMinAge(daysToDuration(minPasswordAge));
-			}
-			Integer passwordHistoryLength = lifetime.getPasswordHistoryLength();
-			if (passwordHistoryLength != null && passwd.getHistoryLength() == null) {
-				passwd.setHistoryLength(passwordHistoryLength);
-			}
-		}
-		String minOccurs = passwordPolicyType.getMinOccurs();
-		if (minOccurs != null && passwd.getMinOccurs() == null) {
-			passwd.setMinOccurs(minOccurs);
-		}
 	}
 
 	private Duration daysToDuration(int days) {

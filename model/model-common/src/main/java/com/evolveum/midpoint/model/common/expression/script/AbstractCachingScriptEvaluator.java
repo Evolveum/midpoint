@@ -76,11 +76,6 @@ public abstract class AbstractCachingScriptEvaluator<I,C> extends AbstractScript
 			throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
 		}
 
-		boolean allowEmptyValues = false;
-		if (context.getExpressionType().isAllowEmptyValues() != null) {
-			allowEmptyValues = context.getExpressionType().isAllowEmptyValues();
-		}
-
 		C compiledScript = getCompiledScript(codeString, context);
 
 		Object evalRawResult;
@@ -135,17 +130,13 @@ public abstract class AbstractCachingScriptEvaluator<I,C> extends AbstractScript
 		if (evalRawResult instanceof Collection) {
 			for (Object evalRawResultElement : (Collection)evalRawResult) {
 				T evalResult = convertScalarResult(javaReturnType, evalRawResultElement, context);
-				if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
-					pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
-				}
+				pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
 			}
 		} else if (evalRawResult instanceof PrismProperty<?>) {
 			pvals.addAll((Collection<? extends V>) PrismValueCollectionsUtil.cloneCollection(((PrismProperty<T>)evalRawResult).getValues()));
 		} else {
 			T evalResult = convertScalarResult(javaReturnType, evalRawResult, context);
-			if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
-				pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
-			}
+			pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
 		}
 
 		return pvals;

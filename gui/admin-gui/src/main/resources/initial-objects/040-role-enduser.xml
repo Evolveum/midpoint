@@ -250,6 +250,7 @@
     			<q:equal>
     				<q:path>handlerUri</q:path>
     				<q:value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/execute/handler-3</q:value>
+    				<q:value>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</q:value>	<!-- members-related operations -->
     			</q:equal>
     		</filter>
     		<owner>

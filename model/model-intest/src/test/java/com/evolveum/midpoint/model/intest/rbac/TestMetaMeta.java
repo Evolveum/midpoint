@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -122,8 +123,8 @@ public class TestMetaMeta extends AbstractRbacTest {
         assertSuccess(result);
 		PrismObject<RoleType> role = getObject(RoleType.class, ROLE_META_META_WORLD_OID);
 		display("Metametarole after", role);
-		
-		assertObjectSanity(role);
+
+		new PrismObjectAsserter<>(role).assertSanity();
 		RoleType roleType = role.asObjectable();
 		
 		PrismAsserts.assertEqualsPolyString("Wrong "+role+" name", ROLE_META_META_WORLD_NAME, roleType.getName());
@@ -380,8 +381,8 @@ public class TestMetaMeta extends AbstractRbacTest {
         assertSuccess(result);
 		PrismObject<RoleType> role = getObject(RoleType.class, ROLE_META_META_LEGACY_OID);
 		display("Metametarole after", role);
-		
-		assertObjectSanity(role);
+
+		new PrismObjectAsserter<>(role).assertSanity();
 		RoleType roleType = role.asObjectable();
 		
 		PrismAsserts.assertEqualsPolyString("Wrong "+role+" name", ROLE_META_META_LEGACY_NAME, roleType.getName());
@@ -416,8 +417,8 @@ public class TestMetaMeta extends AbstractRbacTest {
         assertSuccess(result);
 		PrismObject<RoleType> role = getObject(RoleType.class, ROLE_META_LEGACY_ONE_OID);
 		display("Metarole after", role);
-		
-		assertObjectSanity(role);
+
+		new PrismObjectAsserter<>(role).assertSanity();
 		RoleType roleType = role.asObjectable();
 		
 		PrismAsserts.assertEqualsPolyString("Wrong "+role+" name", ROLE_META_LEGACY_ONE_NAME, roleType.getName());
@@ -460,7 +461,7 @@ public class TestMetaMeta extends AbstractRbacTest {
         
         PrismObject<RoleType> roleAfter = getObject(RoleType.class, groupOneRoleOid);
 		display("Role after", roleAfter);
-		assertObjectSanity(roleAfter);
+		new PrismObjectAsserter<>(roleAfter).assertSanity();
 		RoleType roleTypeAfter = roleAfter.asObjectable();
 		
 		PrismAsserts.assertEqualsPolyString("Wrong "+roleAfter+" name", GROUP_ONE_NAME, roleTypeAfter.getName());
@@ -560,7 +561,7 @@ public class TestMetaMeta extends AbstractRbacTest {
 	private PrismObject<RoleType> readAndAssertGroupRole(String roleOid, String metaroleOid, String groupName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
 		PrismObject<RoleType> role = getObject(RoleType.class, roleOid);
 		display("Role after", role);
-		assertObjectSanity(role);
+		new PrismObjectAsserter<>(role).assertSanity();
 		RoleType roleType = role.asObjectable();
 		
 		PrismAsserts.assertEqualsPolyString("Wrong "+role+" name", groupName, roleType.getName());
@@ -583,8 +584,8 @@ public class TestMetaMeta extends AbstractRbacTest {
 	private PrismObject<RoleType> assertMetaRole(String metaroleOid, String metaroleName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SchemaViolationException, ConflictException, InterruptedException {
 		PrismObject<RoleType> role = getObject(RoleType.class, metaroleOid);
 		display("Metarole after", role);
-		
-		assertObjectSanity(role);
+
+		new PrismObjectAsserter<>(role).assertSanity();
 		RoleType roleType = role.asObjectable();
 		
 		PrismAsserts.assertEqualsPolyString("Wrong "+role+" name", metaroleName, roleType.getName());

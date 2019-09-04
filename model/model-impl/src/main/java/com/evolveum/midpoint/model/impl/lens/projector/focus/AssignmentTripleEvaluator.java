@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017-2018 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
@@ -213,7 +214,9 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         AssignmentType taskAssignment;
         if (task.hasAssignments()) {
         	taskAssignment = new AssignmentType(prismContext);
-        	taskAssignment.setTarget(task.getUpdatedOrClonedTaskObject().asObjectable());
+        	ObjectReferenceType targetRef = new ObjectReferenceType();
+        	targetRef.asReferenceValue().setObject(task.getUpdatedOrClonedTaskObject());
+			taskAssignment.setTargetRef(targetRef);
         } else {
         	taskAssignment = null;
         }

@@ -22,7 +22,6 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import org.slf4j.spi.LocationAwareLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,8 +33,6 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -47,13 +44,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.HasAssignmentPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintPresentationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstraintType;
 
 /**
  * @author katka

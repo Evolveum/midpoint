@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ public enum TaskWaitingReason {
 		}
         switch (xmlValue) {
             case OTHER_TASKS: return OTHER_TASKS;
-            case WORKFLOW: return OTHER;
             case OTHER: return OTHER;
             default: throw new IllegalArgumentException("Unknown waiting reason type " + xmlValue);
         }

@@ -64,7 +64,7 @@ import java.util.List;
                         matchUrlForSecurity = "/admin/workItemsAttorneySelection")
         },
         action = {
-                @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_APPROVALS_ALL,
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL,
                         label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
                         description = PageAdminWorkItems.AUTH_APPROVALS_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,

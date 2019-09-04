@@ -52,7 +52,7 @@ public class DebugReconciliationTaskResultListener implements
 			long expectedShadowReconCount) {
 		ReconciliationTaskResult result = findResult(resourceOid);
 		assert result != null : "No recon result for resource "+resourceOid;
-		PrismAsserts.assertEquals("Wrong upOpsCount in recon result for resource "+resourceOid,
+		PrismAsserts.assertEquals("Wrong unOpsCount in recon result for resource "+resourceOid,
 				expectedUnOpsCount, result.getUnOpsCount());
 		PrismAsserts.assertEquals("Wrong resourceReconCount in recon result for resource "+resourceOid,
 				expectedResourceReconCount, result.getResourceReconCount());

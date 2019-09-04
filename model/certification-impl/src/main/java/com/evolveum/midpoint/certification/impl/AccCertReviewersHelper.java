@@ -38,7 +38,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -218,11 +217,7 @@ public class AccCertReviewersHelper {
 	private List<ObjectReferenceType> getAssignees(AbstractRoleType role, RelationKindType relationKind, OperationResult result)
 			throws SchemaException {
     	List<ObjectReferenceType> rv = new ArrayList<>();
-		if (relationKind == RelationKindType.OWNER) {
-			CollectionUtils.addIgnoreNull(rv, role.getOwnerRef());
-		} else if (relationKind == RelationKindType.APPROVER) {
-			rv.addAll(role.getApproverRef());
-		} else {
+		if (relationKind != RelationKindType.OWNER && relationKind != RelationKindType.APPROVER) {
 			throw new AssertionError(relationKind);
 		}
 		// TODO in theory, we could look for approvers/owners of UserType, right?

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -207,18 +207,5 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
             repo.getAssignments().add(rInducement);
         }
-
-        for (ObjectReferenceType approverRef : jaxb.getApproverRef()) {
-            RObjectReference ref = RUtil.jaxbRefToRepo(approverRef, repo, RReferenceOwner.ROLE_APPROVER, repositoryContext.relationRegistry);
-            if (ref != null) {
-                repo.getApproverRef().add(ref);
-            }
-        }
-
-        //PrismObjectDefinition<AbstractRoleType> roleDefinition = jaxb.asPrismObject().getDefinition();
-
-        repo.setApprovalProcess(jaxb.getApprovalProcess());
-
-        repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.relationRegistry));
     }
 }

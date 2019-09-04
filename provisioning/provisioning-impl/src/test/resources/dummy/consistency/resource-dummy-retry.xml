@@ -135,10 +135,20 @@
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
 			<protected>
-				<icfs:name>root</icfs:name>
+				<filter>
+					<q:equal>
+						<q:path>attributes/name</q:path>
+						<q:value>root</q:value>
+					</q:equal>
+				</filter>
 			</protected>
 			<protected>
-				<icfs:name>daemon</icfs:name>
+				<filter>
+					<q:equal>
+						<q:path>attributes/name</q:path>
+						<q:value>daemon</q:value>
+					</q:equal>
+				</filter>
 			</protected>
 			<protected>
 				<filter>

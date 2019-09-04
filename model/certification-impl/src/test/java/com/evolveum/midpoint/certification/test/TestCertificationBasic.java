@@ -902,7 +902,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         userJack = getUser(USER_JACK_OID).asObjectable();
         display("jack", userJack);
-        assertEquals("wrong # of jack's assignments", 3, userJack.getAssignment().size());
+        assertEquals("wrong # of jack's assignments", 4, userJack.getAssignment().size());
         assertEquals("wrong target OID", ORG_EROOT_OID, userJack.getAssignment().get(0).getTargetRef().getOid());
 
         assertPercentCompleteAll(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)

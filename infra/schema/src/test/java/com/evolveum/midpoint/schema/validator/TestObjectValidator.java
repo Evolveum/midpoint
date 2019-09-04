@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.schema.validator;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -32,8 +31,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
@@ -91,36 +88,35 @@ public class TestObjectValidator extends AbstractSchemaTest {
 		System.out.println("Validation result:");
 		System.out.println(validationResult.debugDump(1));
 
-		assertWarnings(validationResult, 
-				RoleType.F_ROLE_TYPE, RoleType.F_APPROVER_EXPRESSION, RoleType.F_POLICY_CONSTRAINTS,
-				ItemPath.create(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT));
+		assertWarnings(validationResult, RoleType.F_ROLE_TYPE);
 	}
-	
-	@Test
-	public void testValidateRoleOnePlannedRemoval() throws Exception {
-		final String TEST_NAME = "testValidateRoleOnePlannedRemoval";
-		displayTestTile(TEST_NAME);
 
-		// GIVEN
-		
-		ObjectValidator validator = createValidator();
-		validator.setWarnPlannedRemoval(true);
-		
-		PrismObject<RoleType> object = PrismTestUtil.getPrismContext().parseObject(ROLE_ONE_FILE);
-		System.out.println("Object before validation:");
-		System.out.println(object.debugDump(1));
-		
-		// WHEN
-		ValidationResult validationResult = validator.validate(object);
-
-		// THEN
-		System.out.println("Validation result:");
-		System.out.println(validationResult.debugDump(1));
-
-		assertWarnings(validationResult, 
-				RoleType.F_APPROVER_EXPRESSION, RoleType.F_POLICY_CONSTRAINTS,
-				ItemPath.create(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT));
-	}
+	// We have no planned removal annotations in 4.0. Nothing to test.
+//	@Test
+//	public void testValidateRoleOnePlannedRemoval() throws Exception {
+//		final String TEST_NAME = "testValidateRoleOnePlannedRemoval";
+//		displayTestTile(TEST_NAME);
+//
+//		// GIVEN
+//		
+//		ObjectValidator validator = createValidator();
+//		validator.setWarnPlannedRemoval(true);
+//		
+//		PrismObject<RoleType> object = PrismTestUtil.getPrismContext().parseObject(ROLE_ONE_FILE);
+//		System.out.println("Object before validation:");
+//		System.out.println(object.debugDump(1));
+//		
+//		// WHEN
+//		ValidationResult validationResult = validator.validate(object);
+//
+//		// THEN
+//		System.out.println("Validation result:");
+//		System.out.println(validationResult.debugDump(1));
+//
+//		assertWarnings(validationResult, 
+//				RoleType.F_APPROVER_EXPRESSION, RoleType.F_POLICY_CONSTRAINTS,
+//				ItemPath.create(RoleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_MIN_ASSIGNEES, MultiplicityPolicyConstraintType.F_ENFORCEMENT));
+//	}
 
 
 	private ObjectValidator createValidator() {

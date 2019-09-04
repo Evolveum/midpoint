@@ -31,7 +31,7 @@
         <xsd:documentation>
             TODO
             
-            Version: 3.3
+            Version: 4.0
             Recommended namespace prefix: q
         </xsd:documentation>
     </xsd:annotation>

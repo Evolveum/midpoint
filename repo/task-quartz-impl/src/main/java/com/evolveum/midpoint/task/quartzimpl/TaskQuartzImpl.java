@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
@@ -2549,11 +2550,15 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 			return new ObjectReferenceType()
 					.type(TaskType.COMPLEX_TYPE)
 					.oid(getOid())
-					.relation(getPrismContext().getDefaultRelation())
+					.relation(getDefaultRelation())
 					.targetName(getName());
 		} else {
 			throw new IllegalStateException("Reference cannot be created for a transient task: " + this);
 		}
+	}
+
+	private QName getDefaultRelation() {
+		return getPrismContext().getDefaultRelation();
 	}
 
 	@Override
@@ -2596,7 +2601,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	@Override
 	public void addSubtask(TaskType subtaskBean) {
 		synchronized (PRISM_ACCESS) {
-			taskPrism.asObjectable().getSubtask().add(subtaskBean);
+			taskPrism.asObjectable().getSubtaskRef().add(ObjectTypeUtil.createObjectRef(subtaskBean, getDefaultRelation()));
 		}
 	}
 

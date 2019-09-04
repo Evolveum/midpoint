@@ -98,15 +98,6 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                         StringBuilder sb = new StringBuilder();
                         ResourceObjectPatternType account = item.getModelObject();
                         sb.append("#").append(item.getIndex()+1).append(" - ");
-
-						if (account.getUid() != null) {
-							sb.append(account.getUid()).append(":");
-						}
-
-						if (account.getName() != null) {
-							sb.append(account.getName());
-						}
-
                         return sb.toString();
                     }
                 });

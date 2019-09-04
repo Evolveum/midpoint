@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<account oid="22220000-2200-0000-0000-444400004444"
+<shadow oid="22220000-2200-0000-0000-444400004444"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -31,4 +31,4 @@
 		<ri:fullname>Herman Toothrot</ri:fullname>
 		<ri:location>Monkey Island</ri:location>
 	</attributes>
-</account>
+</shadow>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,4 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
 
 	void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
-	void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger,
-			LocalizationService localizationService) throws PolicyViolationException;
 }

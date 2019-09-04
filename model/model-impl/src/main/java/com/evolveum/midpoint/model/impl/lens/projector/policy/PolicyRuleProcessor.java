@@ -158,8 +158,6 @@ public class PolicyRuleProcessor {
 			policyStateRecorder.applyAssignmentState(context, evaluatedAssignment, mode, globalCtx.rulesToRecord);
 		}
 
-		exclusionConstraintEvaluator.checkExclusionsLegacy(context, evaluatedAssignmentTriple.getPlusSet(),
-				evaluatedAssignmentTriple.getNonNegativeValues());
 	}
 
 	private boolean checkApplicabilityToAssignment(EvaluatedPolicyRule policyRule) {

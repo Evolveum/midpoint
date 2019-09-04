@@ -1336,7 +1336,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
             OperationStatsType stats = task.getOperationStats();
             Integer totalSuccessCount = stats != null && stats.getIterativeTaskInformation() != null ?
                     stats.getIterativeTaskInformation().getTotalSuccessCount() : null;
-            System.out.println((System.currentTimeMillis()-start) + ": subtasks: " + task.getSubtask().size() +
+            System.out.println((System.currentTimeMillis()-start) + ": subtasks: " + task.getSubtaskRef().size() +
                     ", progress = " + task.getProgress() + ", objects = " + totalSuccessCount);
             if (task.getExecutionStatus() != TaskExecutionStatusType.RUNNABLE) {
                 System.out.println("Done. Status = " + task.getExecutionStatus());

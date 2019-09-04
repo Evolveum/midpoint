@@ -173,14 +173,6 @@ public class ModelImplUtils {
 		List<ObjectPolicyConfigurationType> all = new ArrayList<>();
 
 		all.addAll(systemConfigurationType.getDefaultObjectPolicyConfiguration());
-		all.addAll(systemConfigurationType.getObjectTemplate());        // deprecated
-		if (objectClass == UserType.class) {
-			// Deprecated method to specify user template. For compatibility only
-			ObjectReferenceType templateRef = systemConfigurationType.getDefaultUserTemplateRef();
-			if (templateRef != null) {
-				all.add(new ObjectPolicyConfigurationType().objectTemplateRef(templateRef.clone()));
-			}
-		}
 
 		for (ObjectPolicyConfigurationType aPolicyConfigurationType: all) {
 			QName typeQName = aPolicyConfigurationType.getType();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -572,7 +572,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 			@Override
 			public boolean isVisible() {
-				if (!isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET))){
+				if (!isItemAllowed(ItemPath.create(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF))){
 					return false;
 				}
 				AssignmentEditorDto dto = getModel().getObject();
@@ -811,11 +811,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				return attributes;
 			}
 
-			PrismObject<ResourceType> resource = construction.getResource() != null
-					? construction.getResource().asPrismObject() : null;
-			if (resource == null) {
-				resource = getReference(construction.getResourceRef(), result);
-			}
+			PrismObject<ResourceType> resource = getReference(construction.getResourceRef(), result);
 
 			PrismContext prismContext = getPageBase().getPrismContext();
 			RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
@@ -886,6 +882,9 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	private PrismObject getReference(ObjectReferenceType ref, OperationResult result) {
+		if (ref.asReferenceValue().getObject() != null) {
+			return ref.asReferenceValue().getObject();
+		}
 		OperationResult subResult = result.createSubresult(OPERATION_LOAD_RESOURCE);
 		subResult.addParam("targetRef", ref.getOid());
 		PrismObject target = null;

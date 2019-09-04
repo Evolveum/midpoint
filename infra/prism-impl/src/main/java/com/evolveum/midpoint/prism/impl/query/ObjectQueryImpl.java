@@ -24,7 +24,8 @@ import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.DebugUtil;
 
 public class ObjectQueryImpl implements ObjectQuery {
-
+	private static final long serialVersionUID = 1L;
+	
 	private ObjectFilter filter;
 	private ObjectPaging paging;
 	private boolean allowPartialResults = false;

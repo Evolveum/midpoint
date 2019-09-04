@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<account oid="22226666-2200-6666-6666-444400004444"
+<shadow oid="22226666-2200-6666-6666-444400004444"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -32,4 +32,4 @@
 		<ri:fullname>Guybrush Threepwood</ri:fullname>
 		<ri:ship>The Sea Monkey</ri:ship>
 	</attributes>
-</account>
+</shadow>

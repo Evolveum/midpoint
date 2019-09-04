@@ -107,6 +107,7 @@ public class BaseHelper {
 		return session;
 	}
 
+	@NotNull
 	public SqlRepositoryConfiguration getConfiguration() {
 		return repositoryFactory.getSqlConfiguration();
 	}

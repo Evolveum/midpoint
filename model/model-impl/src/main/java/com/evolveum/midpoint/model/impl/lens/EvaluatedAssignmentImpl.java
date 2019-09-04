@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -427,17 +427,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 		return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
 	}
 
-	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
-			AssignmentHolderType directOwner, PrismContext prismContext) {
-		// approximate solution - just add the constraints to all the places; hopefully any misplaced ones would be simply ignored
-		if (constraints == null) {
-			return;
-		}
-		otherTargetsPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
-		thisTargetPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
-		focusPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
-	}
-
 	@NotNull
 	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
 			AssignmentHolderType directOwner, PrismContext prismContext) {
@@ -472,12 +461,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 		if (!hasException) {
 			LensUtil.triggerRule(rule, triggers, policySituations);
 		}
-	}
-
-	@Override
-	public void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger,
-			LocalizationService localizationService) throws PolicyViolationException {
-		LensUtil.triggerConstraintLegacy(trigger, policySituations, localizationService);
 	}
 
 	private boolean processRuleExceptions(EvaluatedAssignmentImpl<AH> evaluatedAssignment, @NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {

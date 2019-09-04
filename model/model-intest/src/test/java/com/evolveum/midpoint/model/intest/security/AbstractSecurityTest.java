@@ -288,11 +288,11 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ROLE_MANAGER_USER_ADMIN_FILE = new File(TEST_DIR, "role-manager-user-admin.xml");
 	protected static final String ROLE_MANAGER_USER_ADMIN_OID = "c545323c-5d68-11e7-acba-2b32ef514121";
 
-	protected static final File ROLE_ROLE_OWNER_FULL_CONTROL_FILE = new File(TEST_DIR, "role-role-owner-full-control.xml");
-	protected static final String ROLE_ROLE_OWNER_FULL_CONTROL_OID = "9c6e597e-dbd7-11e5-a538-97834c1cd5ba";
-
-	protected static final File ROLE_ROLE_OWNER_ASSIGN_FILE = new File(TEST_DIR, "role-role-owner-assign.xml");
-	protected static final String ROLE_ROLE_OWNER_ASSIGN_OID = "91b9e546-ded6-11e5-9e87-171d047c57d1";
+//	protected static final File ROLE_ROLE_OWNER_FULL_CONTROL_FILE = new File(TEST_DIR, "role-role-owner-full-control.xml");
+//	protected static final String ROLE_ROLE_OWNER_FULL_CONTROL_OID = "9c6e597e-dbd7-11e5-a538-97834c1cd5ba";
+//
+//	protected static final File ROLE_ROLE_OWNER_ASSIGN_FILE = new File(TEST_DIR, "role-role-owner-assign.xml");
+//	protected static final String ROLE_ROLE_OWNER_ASSIGN_OID = "91b9e546-ded6-11e5-9e87-171d047c57d1";
 
 	protected static final File ROLE_META_NONSENSE_FILE = new File(TEST_DIR, "role-meta-nonsense.xml");
 	protected static final String ROLE_META_NONSENSE_OID = "602f72b8-2a11-11e5-8dd9-001e8c717e5b";
@@ -394,7 +394,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 75;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 73;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -475,8 +475,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_MODIFY_USER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MANAGER_FULL_CONTROL_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MANAGER_USER_ADMIN_FILE, initResult);
-		repoAddObjectFromFile(ROLE_ROLE_OWNER_FULL_CONTROL_FILE, initResult);
-		repoAddObjectFromFile(ROLE_ROLE_OWNER_ASSIGN_FILE, initResult);
+//		repoAddObjectFromFile(ROLE_ROLE_OWNER_FULL_CONTROL_FILE, initResult);
+//		repoAddObjectFromFile(ROLE_ROLE_OWNER_ASSIGN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_TASK_OWNER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PERSONA_MANAGEMENT_FILE, initResult);
 		repoAddObjectFromFile(ROLE_END_USER_REQUESTABLE_ABSTRACTROLES_FILE, initResult);

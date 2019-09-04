@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -390,7 +390,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         // TODO: better asserts
 		assertNotNull("Null resource", resource);
 
-		assertNotNull("Connector was not resolved", resource.asObjectable().getConnector());
+		assertNotNull("Connector was not resolved", resource.asObjectable().getConnectorRef().asReferenceValue().getObject());
 	}
 
 

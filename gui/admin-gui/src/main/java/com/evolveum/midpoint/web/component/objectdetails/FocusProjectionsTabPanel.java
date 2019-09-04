@@ -108,6 +108,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -522,7 +523,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		for (ResourceType resource : newResources) {
 			try {
 				ShadowType shadow = new ShadowType();
-				shadow.setResource(resource);
+				ObjectReferenceType resourceRef = new ObjectReferenceType();
+				resourceRef.asReferenceValue().setObject(resource.asPrismObject());
+				shadow.setResourceRef(resourceRef);
 				ResourceType usedResource = resource;
 				
 				RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(
@@ -558,7 +561,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				}
 //				shadow.asPrismContainer().findOrCreateContainer(ShadowType.F_ATTRIBUTES).applyDefinition(accountDefinition.toResourceAttributeContainerDefinition());
 				QName objectClass = accountDefinition.getObjectClassDefinition().getTypeName();
-				shadow.setResource(usedResource);
+				ObjectReferenceType usedResourceRef = new ObjectReferenceType();
+				usedResourceRef.asReferenceValue().setObject(usedResource.asPrismObject());
+				shadow.setResourceRef(usedResourceRef);
 				shadow.setObjectClass(objectClass);
 				shadow.setIntent(accountDefinition.getObjectClassDefinition().getIntent());
 				shadow.setKind(accountDefinition.getObjectClassDefinition().getKind());

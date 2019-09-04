@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
-    <objectTemplate>
-        <type>c:UserType</type>
-        <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"></objectTemplateRef>
-    </objectTemplate>
+    <defaultObjectPolicyConfiguration>
+        <type>UserType</type>
+        <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+    </defaultObjectPolicyConfiguration>
     <logging>
     	<rootLoggerAppender>File Appender</rootLoggerAppender>
     	<rootLoggerLevel>INFO</rootLoggerLevel>

@@ -209,10 +209,6 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 		assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
 	}
 
-	protected <T> void assertAttribute(ShadowType shadow, QName attrName, T... expectedValues) {
-		assertAttribute(resource, shadow, attrName, expectedValues);
-	}
-
 	protected ItemName getPrimaryIdentifierQName() {
 		return new ItemName(ResourceTypeUtil.getResourceNamespace(resourceType), OpenDJController.RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
 	}

@@ -64,9 +64,9 @@ resource:
         inbound:
         - strength: "weak"
           expression:
+            allowEmptyValues: true
             script:
             - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
-              allowEmptyValues: true
               code: "\n\t\t\t\t\t\t\t\tif (input?.contains('#')) {\n             \
                 \               \t\treturn null\n                        \t\t} else\
                 \ {\n                            \t\treturn input\n              \
@@ -98,9 +98,9 @@ resource:
         displayName: "Ship"
         inbound:
         - expression:
+            allowEmptyValues: false
             script:
             - !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ScriptExpressionEvaluatorType>
-              allowEmptyValues: false
               code: "'The crew of ' + input"
           target:
             path: "organizationalUnit"
@@ -187,10 +187,16 @@ resource:
       iteration:
         maxIterations: 5
       protected:
-      - '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-        name: "daviejones"
-      - '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-        name: "calypso"
+      - filter:
+          '@ns': "http://prism.evolveum.com/xml/ns/public/query-3"
+          equal:
+            path: "attributes/name"
+            value: "daviejones"
+      - filter:
+          '@ns': "http://prism.evolveum.com/xml/ns/public/query-3"
+          equal:
+            path: "attributes/name"
+            value: "calypso"
       activation:
         existence:
           outbound:

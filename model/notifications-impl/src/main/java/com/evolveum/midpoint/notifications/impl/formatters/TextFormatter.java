@@ -333,12 +333,16 @@ public class TextFormatter {
         String qualifier = "";
         if (object != null && object.asObjectable() instanceof ShadowType) {
             ShadowType shadowType = (ShadowType) object.asObjectable();
-            ResourceType resourceType = shadowType.getResource();
-            if (resourceType == null) {
-                PrismObject<? extends ObjectType> resource = getPrismObject(shadowType.getResourceRef().getOid(), false, result);
+            ObjectReferenceType resourceRef = shadowType.getResourceRef();
+            PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
+            ResourceType resourceType = null;
+            if (resource == null) {
+	            resource = getPrismObject(resourceRef.getOid(), false, result);
                 if (resource != null) {
                     resourceType = (ResourceType) resource.asObjectable();
                 }
+            } else {
+            	resourceType = resource.asObjectable();
             }
             if (resourceType != null) {
                 qualifier = " on " + resourceType.getName();
@@ -366,10 +370,10 @@ public class TextFormatter {
 				: referredObjectIdentification;
     }
 
-    private PrismObject<? extends ObjectType> getPrismObject(String oid, boolean mightBeRemoved, OperationResult result) {
+    private <O extends ObjectType> PrismObject<O> getPrismObject(String oid, boolean mightBeRemoved, OperationResult result) {
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-			return cacheRepositoryService.getObject(ObjectType.class, oid, options, result);
+			return (PrismObject<O>) cacheRepositoryService.getObject(ObjectType.class, oid, options, result);
         } catch (ObjectNotFoundException e) {
             if (!mightBeRemoved) {
                 LoggingUtils.logException(LOGGER, "Couldn't resolve reference when displaying object name within a notification (it might be already removed)", e);

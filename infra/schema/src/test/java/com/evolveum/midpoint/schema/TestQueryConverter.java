@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,8 +71,7 @@ public class TestQueryConverter {
 	private static final QName fooBlaDefinition = new QName(NS_BLA, "foo");
 	private static final QName ICF_NAME = new QName(NS_ICFS, "name");
 
-	private static final QName FAILED_OPERATION_TYPE_QNAME = new QName(SchemaConstantsGenerated.NS_COMMON,
-			"FailedOperationTypeType");
+	private static final QName TAG_QNAME = new QName(SchemaConstantsGenerated.NS_COMMON, "tag");
 
 	private static final File FILTER_AND_GENERIC_FILE = new File(TEST_DIR, "filter-and-generic.xml");
 	private static final File FILTER_ACCOUNT_FILE = new File(TEST_DIR, "filter-account.xml");
@@ -104,9 +103,8 @@ public class TestQueryConverter {
 		PrismAsserts.assertAndFilter(filter, 2);
 
 		ObjectFilter first = getFilterCondition(filter, 0);
-		PrismAsserts.assertEqualsFilter(first, ShadowType.F_FAILED_OPERATION_TYPE, FAILED_OPERATION_TYPE_QNAME,
-				ShadowType.F_FAILED_OPERATION_TYPE);
-		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, FailedOperationTypeType.ADD);
+		PrismAsserts.assertEqualsFilter(first, ShadowType.F_TAG, PrimitiveType.XSD_STRING, ShadowType.F_TAG);
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, "abc");
 
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, ShadowType.F_NAME, PolyStringType.COMPLEX_TYPE, ShadowType.F_NAME);
@@ -136,7 +134,7 @@ public class TestQueryConverter {
 		Element firstSubelement = DOMUtil.getChildElement(filterClauseElement, 0);
 		DomAsserts.assertElementQName(firstSubelement, EqualFilter.ELEMENT_NAME);
 		Element firstValueElement = DOMUtil.getChildElement(firstSubelement, PrismConstants.Q_VALUE);
-		DomAsserts.assertTextContent(firstValueElement, "add");
+		DomAsserts.assertTextContent(firstValueElement, "abc");
 
 		Element secondSubelement = DOMUtil.getChildElement(filterClauseElement, 1);
 		DomAsserts.assertElementQName(secondSubelement, EqualFilter.ELEMENT_NAME);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -233,17 +233,6 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
 		PrismObject<F> owner = null;
 		if (object.canRepresent(ShadowType.class)) {
 			owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(MidPointPrincipalManagerMock.class+".resolveOwner"));
-		} else if (object.canRepresent(AbstractRoleType.class)) {
-			ObjectReferenceType ownerRef = ((AbstractRoleType)(object.asObjectable())).getOwnerRef();
-			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
-				OperationResult result = new OperationResult(MidPointPrincipalManager.class.getName() + ".resolveOwner");
-				try {
-					owner = (PrismObject<F>) repositoryService.getObject(ObjectTypes.getObjectTypeFromTypeQName(ownerRef.getType()).getClassDefinition(),
-							ownerRef.getOid(), null, result);
-				} catch (ObjectNotFoundException | SchemaException e) {
-					LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
-				}
-			}
 		}
 		if (owner == null) {
 			return null;

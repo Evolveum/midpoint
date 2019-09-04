@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -812,13 +812,8 @@ public class WebModelServiceUtils {
 	}
 	
 	public static PrismObject<SystemConfigurationType> loadSystemConfigurationAsPrismObject(PageBase pageBase, Task task, OperationResult result) {
-
-		Collection<SelectorOptions<GetOperationOptions>> options = pageBase.getOperationOptionsBuilder()
-				.items(SystemConfigurationType.F_DEFAULT_USER_TEMPLATE, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY).resolve()
-				.build();
-
 		PrismObject<SystemConfigurationType> systemConfig = loadObject(
-			SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
+			SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
 			pageBase, task, result);
 		
 		return systemConfig;

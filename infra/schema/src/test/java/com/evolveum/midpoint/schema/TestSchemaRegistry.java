@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -45,9 +46,11 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -125,6 +128,7 @@ public class TestSchemaRegistry {
 
     @Test
 	public void testUserType() throws Exception {
+    	System.out.println("===[ testUserType ]===");
 
 		MidPointPrismContextFactory factory = getContextFactory();
 		PrismContext context = factory.createInitializedPrismContext();
@@ -165,6 +169,7 @@ public class TestSchemaRegistry {
 
     @Test
 	public void testRoleType() throws Exception {
+    	System.out.println("\n\n===[ testRoleType ]===");
 
 		MidPointPrismContextFactory factory = getContextFactory();
 		PrismContext context = factory.createInitializedPrismContext();
@@ -172,6 +177,10 @@ public class TestSchemaRegistry {
 
 		PrismObjectDefinition<RoleType> roleDefinition = schemaRegistry.findObjectDefinitionByCompileTimeClass(RoleType.class);
 		assertNotNull("No role definition", roleDefinition);
+		System.out.println("\nRole definition");
+		System.out.println(roleDefinition.debugDump(1));
+		System.out.println("\nRole definition CTD");
+		System.out.println(roleDefinition.getComplexTypeDefinition().debugDump(1));
 
 		assertFalse("Role definition is marked as runtime", roleDefinition.isRuntimeSchema());
 
@@ -185,14 +194,55 @@ public class TestSchemaRegistry {
 		PrismPropertyDefinition identifierDef = roleDefinition.findPropertyDefinition(RoleType.F_IDENTIFIER);
 		assertNotNull("No identifier definition", identifierDef);
 
+		List<SchemaMigration> schemaMigrations = roleDefinition.getSchemaMigrations();
+		assertNull("Unexpected schema migrations in role definition", schemaMigrations);
+
 		// Just make sure this does not end with NPE or stack overflow
 		PrismObjectDefinition<RoleType> shallowClone = roleDefinition.clone();
 		PrismObjectDefinition<RoleType> deepClone = roleDefinition.deepClone(false, null);
 		PrismObjectDefinition<RoleType> ultraDeepClone = roleDefinition.deepClone(true, null);
 	}
+    
+    @Test
+	public void testAbstractRoleType() throws Exception {
+    	System.out.println("\n\n===[ testAbstractRoleType ]===");
+
+		MidPointPrismContextFactory factory = getContextFactory();
+		PrismContext context = factory.createInitializedPrismContext();
+		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
+
+		PrismObjectDefinition<AbstractRoleType> abstractRoleDefinition = schemaRegistry.findObjectDefinitionByCompileTimeClass(AbstractRoleType.class);
+		assertNotNull("No role definition", abstractRoleDefinition);
+		System.out.println("\nAbstractRole definition");
+		System.out.println(abstractRoleDefinition.debugDump(1));
+		System.out.println("\nAbstractRole definition CTD");
+		System.out.println(abstractRoleDefinition.getComplexTypeDefinition().debugDump(1));
+
+		assertFalse("Role definition is marked as runtime", abstractRoleDefinition.isRuntimeSchema());
+
+		PrismPropertyDefinition nameDef = abstractRoleDefinition.findPropertyDefinition(ObjectType.F_NAME);
+		assertNotNull("No name definition", nameDef);
+
+		PrismContainerDefinition extensionDef = abstractRoleDefinition.findContainerDefinition(ObjectType.F_EXTENSION);
+		assertNotNull("Unexpected 'extension' definition", extensionDef);
+		assertTrue("Extension definition is NOT marked as runtime", extensionDef.isRuntimeSchema());
+		assertTrue("Extension definition is NOT empty", extensionDef.isEmpty());
+
+		PrismPropertyDefinition identifierDef = abstractRoleDefinition.findPropertyDefinition(AbstractRoleType.F_IDENTIFIER);
+		assertNotNull("No identifier definition", identifierDef);
+
+		List<SchemaMigration> schemaMigrations = abstractRoleDefinition.getSchemaMigrations();
+		assertEquals("Wrong number of schema migrations in role definition", 8, schemaMigrations.size());
+
+		// Just make sure this does not end with NPE or stack overflow
+		PrismObjectDefinition<AbstractRoleType> shallowClone = abstractRoleDefinition.clone();
+		PrismObjectDefinition<AbstractRoleType> deepClone = abstractRoleDefinition.deepClone(false, null);
+		PrismObjectDefinition<AbstractRoleType> ultraDeepClone = abstractRoleDefinition.deepClone(true, null);
+	}
 
     @Test
 	public void testCommonSchemaAccountType() throws SchemaException, SAXException, IOException {
+    	System.out.println("===[ testCommonSchemaAccountType ]===");
 
 		MidPointPrismContextFactory factory = getContextFactory();
 		PrismContext context = factory.createInitializedPrismContext();

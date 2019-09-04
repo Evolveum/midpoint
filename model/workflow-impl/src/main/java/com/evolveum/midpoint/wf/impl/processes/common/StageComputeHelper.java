@@ -143,21 +143,6 @@ public class StageComputeHelper {
 			return variables;
 		};
 
-		if (stageDef.getAutomaticallyApproved() != null) {
-			try {
-				expressionVariables = enhancedVariablesProvider.get();
-				boolean preApproved = evaluationHelper.evaluateBooleanExpression(stageDef.getAutomaticallyApproved(), expressionVariables,
-						"automatic approval expression", opTask, opResult);
-				LOGGER.trace("Pre-approved = {} for stage {}", preApproved, stageDef);
-				if (preApproved) {
-					rv.predeterminedOutcome = APPROVE;
-					rv.automatedCompletionReason = AUTO_COMPLETION_CONDITION;
-				}
-			} catch (Exception e) {     // todo
-				throw new SystemException("Couldn't evaluate auto-approval expression", e);
-			}
-		}
-
 		if (rv.predeterminedOutcome == null && stageDef.getAutomaticallyCompleted() != null) {
 			try {
 				if (expressionVariables == null) {

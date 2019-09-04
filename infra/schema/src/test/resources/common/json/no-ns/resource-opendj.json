@@ -229,9 +229,15 @@
             }
           }
         } ],
-        "protected" : [ {
-          "name" : "uid=idm,ou=Administrators,dc=example,dc=com"
-        } ],
+        "protected" : [ 
+        	{
+        		"filter" : {
+			        "equal" : {
+          				"path" : "attributes/name",
+				        "value" : "uid=idm,ou=Administrators,dc=example,dc=com"
+				     }
+				}
+        	} ],
         "activation" : {
           "administrativeStatus" : {
             "outbound" : [ { } ],
@@ -307,15 +313,12 @@
         }, {
           "situation" : "unlinked",
           "action" : [ {
-            "ref" : "linkAccount"
+            "handlerUri" : "linkAccount"
           } ]
         }, {
           "situation" : "unmatched",
           "action" : [ {
-            "userTemplateRef" : {
-              "oid" : "c0c010c0-d34d-b33f-f00d-777111111111"
-            },
-            "ref" : "addUser"
+            "handlerUri" : "addUser"
           } ]
         } ]
       } ]

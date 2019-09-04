@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,8 +128,12 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
 
 	@NotNull
 	MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem) {
+		ItemDefinition itemDefinition = filterItem.getDefinition();
+		if (itemDefinition == null) {
+			throw new IllegalArgumentException("No definition in item "+filterItem);
+		}
 		try {
-			return matchingRuleRegistry.getMatchingRule(matchingRule, filterItem.getDefinition().getTypeName());
+			return matchingRuleRegistry.getMatchingRule(matchingRule, itemDefinition.getTypeName());
 		} catch (SchemaException ex){
 			throw new IllegalArgumentException(ex.getMessage(), ex);
 		}

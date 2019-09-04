@@ -83,7 +83,6 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManagerException;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
@@ -99,7 +98,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
@@ -2619,9 +2617,4 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName,  T... expectedValues) {
 		assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
 	}
-    
-    protected <T> void assertAttribute(ShadowType shadowType, QName attrName,  T... expectedValues) {
-		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
-	}
-
 }

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -450,10 +451,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 
 	@Override
 	public String debugDump(int indent, IdentityHashMap<Definition, Object> seen) {
-		StringBuilder sb = new StringBuilder();
-		for (int i=0; i<indent; i++) {
-			sb.append(DebugDumpable.INDENT_STRING);
-		}
+		StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
 		sb.append(toString());
 		if (extensionForType != null) {
 			sb.append(",ext:");
@@ -485,17 +483,13 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 			for (ItemDefinition def : getDefinitions()) {
 				sb.append("\n");
 				sb.append(def.debugDump(indent + 1));
-				extendDumpDefinition(sb, def);
+				extendItemDumpDefinition(sb, def);
 			}
 		}
 		return sb.toString();
 	}
 
-	protected void extendDumpHeader(StringBuilder sb) {
-		// Do nothing
-	}
-
-	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
+	protected void extendItemDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
 		// Do nothing
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -170,11 +170,6 @@ public class RConnector extends RObject<ConnectorType> {
         repo.setConnectorVersion(jaxb.getConnectorVersion());
         repo.setFramework(jaxb.getFramework());
         repo.setConnectorHostRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorHostRef(), repositoryContext.relationRegistry));
-
-        if (jaxb.getConnectorHost() != null) {
-            LOGGER.warn("Connector host from connector type won't be saved. It should be " +
-                    "translated to connector host reference.");
-        }
 
         try {
             repo.setTargetSystemType(RUtil.listToSet(jaxb.getTargetSystemType()));
