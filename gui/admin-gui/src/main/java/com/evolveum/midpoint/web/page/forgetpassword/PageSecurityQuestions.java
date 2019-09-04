@@ -393,12 +393,7 @@ public class PageSecurityQuestions extends PageBase {
 			if (credentialsPolicy != null && credentialsPolicy.getPassword() != null) {
 				if (credentialsPolicy.getPassword().getValuePolicyRef() != null) {
 					policyOid = credentialsPolicy.getPassword().getValuePolicyRef().getOid();
-				} else if (credentialsPolicy.getPassword().getPasswordPolicyRef() != null) {    // deprecated
-					policyOid = credentialsPolicy.getPassword().getPasswordPolicyRef().getOid();
 				}
-			}
-			if (policyOid == null && systemConfig.asObjectable().getGlobalPasswordPolicyRef() != null) {  // deprecated
-				policyOid = systemConfig.asObjectable().getGlobalPasswordPolicyRef().getOid();
 			}
 			if (policyOid == null) {
 				warn(getString("pageSecurityQuestions.message.noPolicySet"));

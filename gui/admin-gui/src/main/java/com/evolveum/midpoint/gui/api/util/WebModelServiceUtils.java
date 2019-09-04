@@ -812,13 +812,8 @@ public class WebModelServiceUtils {
 	}
 	
 	public static PrismObject<SystemConfigurationType> loadSystemConfigurationAsPrismObject(PageBase pageBase, Task task, OperationResult result) {
-
-		Collection<SelectorOptions<GetOperationOptions>> options = pageBase.getOperationOptionsBuilder()
-				.items(SystemConfigurationType.F_DEFAULT_USER_TEMPLATE_REF, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF).resolve()
-				.build();
-
 		PrismObject<SystemConfigurationType> systemConfig = loadObject(
-			SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
+			SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
 			pageBase, task, result);
 		
 		return systemConfig;
