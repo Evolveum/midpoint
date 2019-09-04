@@ -401,29 +401,4 @@ public class ManualResourceTest extends AbstractWfTest {
 		assertNoShadowPassword(shadow);
 	}
 
-	private void assertManual(AbstractWriteCapabilityType cap) {
-		assertEquals("Manual flag not set in capability "+cap, Boolean.TRUE, cap.isManual());
-	}
-	protected void assertCase(String oid, String expectedState, PendingOperationExecutionStatusType executionStage) throws ObjectNotFoundException, SchemaException {
-		assertCaseState(oid, expectedState);
-	}
-
-	protected void assertHasModification(ObjectDeltaType deltaType, ItemPath itemPath) {
-		for (ItemDeltaType itemDelta: deltaType.getItemDelta()) {
-			if (itemPath.equivalent(itemDelta.getPath().getItemPath())) {
-				return;
-			}
-		}
-		fail("No modification for "+itemPath+" in delta");
-	}
-
-	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
-			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd, PendingOperationExecutionStatusType executionStage) {
-		assertPendingOperationDeltas(shadow, 1);
-		return assertPendingOperation(shadow, shadow.asObjectable().getPendingOperation().get(0), 
-				requestStart, requestEnd,
-				PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS,
-				null, null);
-	}
-
 }
