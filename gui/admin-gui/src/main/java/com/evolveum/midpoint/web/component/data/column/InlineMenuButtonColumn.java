@@ -304,7 +304,12 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 						public InlineMenuItemAction initAction() {
 							return clonedAction;
 						}
-					};
+
+                        public IModel<String> getConfirmationMessageModel() {
+                            return item.getConfirmationMessageModel();
+                        }
+
+                    };
     			}
     			clonedItem.setId(item.getId());
     			clonedItem.setVisibilityChecker(item.getVisibilityChecker());
