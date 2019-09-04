@@ -21,6 +21,5 @@
     <assignment>
     	<targetRef oid="32073084-65d0-11e9-baff-bbb479bb05b7" type="ArchetypeType"/> <!-- Application Role -->
     </assignment>
-    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
     <subtype>application</subtype>
 </role>

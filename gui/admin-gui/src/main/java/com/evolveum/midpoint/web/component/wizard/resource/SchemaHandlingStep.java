@@ -84,8 +84,9 @@ import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
  *  @author shood
  */
 public class SchemaHandlingStep extends WizardStep {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlingStep.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlingStep.class);
 
     private static final String DOT_CLASS = SchemaHandlingStep.class.getName() + ".";
     private static final String OPERATION_SAVE_SCHEMA_HANDLING = DOT_CLASS + "saveSchemaHandling";
@@ -1036,9 +1037,6 @@ public class SchemaHandlingStep extends WizardStep {
 					if (protectedObject.getFilter() != null && !protectedObject.getFilter().containsFilterClause()) {
 						// we know that we lose description for empty filters ... but such filters (description + no clause) cause problems in prisms
 						protectedObject.setFilter(null);
-					}
-					if (protectedObject.getName() != null || protectedObject.getUid() != null || protectedObject.getFilter() != null) {
-						newProtectedList.add(protectedObject);
 					}
 				}
 				replace(objectType.getProtected(), newProtectedList);

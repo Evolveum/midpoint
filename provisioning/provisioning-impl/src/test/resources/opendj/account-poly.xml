@@ -17,7 +17,7 @@
 
 <!-- MID-5210 -->
 
-<account oid="cef31578-5493-11e9-bbed-17f032005a6b"
+<shadow oid="cef31578-5493-11e9-bbed-17f032005a6b"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -43,4 +43,4 @@
 			</t:lang>
 		</ri:description>
 	</attributes>
-</account>
+</shadow>

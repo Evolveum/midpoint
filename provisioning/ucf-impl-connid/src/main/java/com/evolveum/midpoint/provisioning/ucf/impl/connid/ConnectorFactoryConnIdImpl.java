@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -237,7 +237,13 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			LOGGER.debug("Connector key: {}, host: {}", getConnectorKey(connectorType),
 					ObjectTypeUtil.toShortString(connectorType));
 			LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorType));
-			LOGGER.trace("Connector host object: {}", ObjectTypeUtil.dump(connectorType.getConnectorHost()));
+			if (connectorType.getConnectorHostRef() != null) {
+				if (connectorType.getConnectorHostRef().asReferenceValue().getObject() == null) {
+					LOGGER.trace("Connector host ref: {}", connectorType.getConnectorHostRef());
+				} else {
+					LOGGER.trace("Connector host object:\n{}", connectorType.getConnectorHostRef().asReferenceValue().getObject().debugDump(1));
+				}
+			}
 			throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
 					+ " were not found by the ICF framework; bundle="+connectorType.getConnectorBundle()+" connector type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
 		}
@@ -361,16 +367,12 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		connectorType.setConnectorVersion(key.getBundleVersion());
 		connectorType.setConnectorBundle(key.getBundleName());
 		if (hostType != null) {
-			if (hostType.getOid() != null) {
-				// bind using connectorHostRef and OID
-				ObjectReferenceType ref = new ObjectReferenceType();
-				ref.setOid(hostType.getOid());
-				ref.setType(ObjectTypes.CONNECTOR_HOST.getTypeQName());
-				connectorType.setConnectorHostRef(ref);
-			} else {
-				// Embed the object
-				connectorType.setConnectorHost(hostType);
-			}
+			// bind using connectorHostRef and OID
+			ObjectReferenceType ref = new ObjectReferenceType();
+			ref.setOid(hostType.getOid());
+			ref.setType(ObjectTypes.CONNECTOR_HOST.getTypeQName());
+			ref.asReferenceValue().setObject(hostType.asPrismObject());
+			connectorType.setConnectorHostRef(ref);
 		}
 
 		PrismSchema connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
@@ -785,16 +787,16 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 					+ " cannot be found in framework " + SchemaConstants.ICF_FRAMEWORK_URI);
 		}
 		ConnectorKey key = getConnectorKey(connectorType);
-		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() == null) {
+		if (connectorType.getConnectorHostRef() == null) {
 			// Local connector
 			return getLocalConnectorInfoManager().findConnectorInfo(key);
 		}
-		ConnectorHostType host = connectorType.getConnectorHost();
+		PrismObject<ConnectorHostType> host = connectorType.getConnectorHostRef().asReferenceValue().getObject();
 		if (host == null) {
 			throw new ObjectNotFoundException(
 					"Attempt to use remote connector without ConnectorHostType resolved (there is only ConnectorHostRef");
 		}
-		return getRemoteConnectorInfoManager(host).findConnectorInfo(key);
+		return getRemoteConnectorInfoManager(host.asObjectable()).findConnectorInfo(key);
 	}
 
 	private ConnectorKey getConnectorKey(ConnectorType connectorType) {

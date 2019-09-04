@@ -34,5 +34,4 @@
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="RoleType" />        <!-- superuser -->
     </inducement>
     <riskLevel>critical</riskLevel>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType" />     <!-- administrator -->
 </role>

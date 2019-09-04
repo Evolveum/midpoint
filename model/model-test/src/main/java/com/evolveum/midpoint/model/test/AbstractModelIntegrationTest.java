@@ -2370,6 +2370,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertInducements(role, expectedNumber);
 	}
 
+	protected <R extends AbstractRoleType> void assertInducedRoles(PrismObject<R> role, String... roleOids) {
+		assertInducements(role, roleOids.length);
+		for (String roleOid : roleOids) {
+			assertInducedRole(role, roleOid);
+		}
+	}
+
 	protected <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedType, expectedNumber);
 	}
@@ -3042,7 +3049,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void dumpTaskAndSubtasks(TaskType task, int level) throws SchemaException {
 		String xml = prismContext.xmlSerializer().serialize(task.asPrismObject());
 		display("Task (level " + level + ")", xml);
-		for (TaskType subtask : task.getSubtask()) {
+		for (TaskType subtask : TaskTypeUtil.getResolvedSubtasks(task)) {
 			dumpTaskAndSubtasks(subtask, level + 1);
 		}
 	}
@@ -5330,9 +5337,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void assertNoPostponedOperation(PrismObject<ShadowType> shadow) {
-		Item<PrismValue, ItemDefinition> objectChangeItem = shadow.findItem(ShadowType.F_OBJECT_CHANGE);
-		if (objectChangeItem != null) {
-			AssertJUnit.fail("Expected no postponed operation in "+shadow+", but found one: "+objectChangeItem);
+		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
+		if (!pendingOperations.isEmpty()) {
+			AssertJUnit.fail("Expected no pending operations in "+shadow+", but found one: "+pendingOperations);
 		}
 	}
 

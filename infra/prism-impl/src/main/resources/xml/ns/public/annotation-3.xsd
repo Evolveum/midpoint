@@ -29,7 +29,7 @@
         <xsd:documentation>
             Common Prism annotations used in various XSD schemas.
 
-			Version: 3.4
+			Version: 4.0
             Default prefix: a
         </xsd:documentation>
     </xsd:annotation>
@@ -562,6 +562,91 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:complexType name="SchemaMigrationType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	<p>
+	                Annotation that describes schema changes that need to be migrated. 
+                	I.e. incompatible schema changes.
+                </p>
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+	        <xsd:element name="element" type="xsd:QName" minOccurs="1">
+	            <xsd:annotation>
+	                <xsd:documentation>
+	                	<p>
+		                    Name of the element that was changed. This is the original name
+		                    used in previous schema versions.
+	                    </p>
+	                </xsd:documentation>
+	            </xsd:annotation>
+	        </xsd:element>
+	        <xsd:element name="version" type="xsd:string" minOccurs="1">
+	            <xsd:annotation>
+	                <xsd:documentation>
+	                	<p>
+	                    	Version of the schema in which the change was applied.
+	                    </p>
+	                </xsd:documentation>
+	            </xsd:annotation>
+	        </xsd:element>
+	        <xsd:element name="operation" type="tns:SchemaMigrationOperationType" minOccurs="1">
+	            <xsd:annotation>
+	                <xsd:documentation>
+	                	<p>
+	                    	Operation that needs to be done to migrate old schema to new schema.
+	                    </p>
+	                </xsd:documentation>
+	            </xsd:annotation>
+	        </xsd:element>
+	        <xsd:element name="replacement" type="xsd:QName" minOccurs="0">
+	            <xsd:annotation>
+	                <xsd:documentation>
+	                	<p>
+		                    Name of the element that replaced removed or deprecated element.
+		                    EXPERIMENTAL. May be changed to a path later on.
+	                    </p>
+	                </xsd:documentation>
+	            </xsd:annotation>
+	        </xsd:element>
+	        <!-- TODO: replacement element -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:element name="schemaMigration" type="tns:SchemaMigrationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Annotation that describes schema changes that need to be migrated. 
+                I.e. incompatible schema changes.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:simpleType name="SchemaMigrationOperationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Operation that needs to be done to migrate old schema to new schema.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="removed">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Element was removed. There is no replacement.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REMOVED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: moved, deprecated -->
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>
 

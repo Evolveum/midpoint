@@ -4156,9 +4156,4 @@ public class TestSanity extends AbstractModelIntegrationTest {
     protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName,  T... expectedValues) {
 		assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
 	}
-
-    protected <T> void assertAttribute(ShadowType shadowType, QName attrName,  T... expectedValues) {
-		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
-	}
-
 }

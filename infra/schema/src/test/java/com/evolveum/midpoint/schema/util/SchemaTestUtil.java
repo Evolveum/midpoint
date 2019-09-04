@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public class SchemaTestUtil {
 		PrismContainerDefinition<AssignmentType> assignmentContainer = complexTypeDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
 		PrismAsserts.assertDefinition(assignmentContainer, UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
 		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
-		assertEquals("Assignment definition size", 24, assignmentContainer.getDefinitions().size());
+		assertEquals("Assignment definition size", 23, assignmentContainer.getDefinitions().size());
 
 		PrismContainerDefinition<ConstructionType> constructionContainer = assignmentContainer.findContainerDefinition(AssignmentType.F_CONSTRUCTION);
 		PrismAsserts.assertDefinition(constructionContainer, AssignmentType.F_CONSTRUCTION, ConstructionType.COMPLEX_TYPE, 0, 1);
@@ -95,7 +95,6 @@ public class SchemaTestUtil {
 		PrismReferenceDefinition accountRefDef = complexTypeDefinition.findItemDefinition(UserType.F_LINK_REF, PrismReferenceDefinition.class);
 		PrismAsserts.assertDefinition(accountRefDef, UserType.F_LINK_REF, ObjectReferenceType.COMPLEX_TYPE, 0, -1);
 		assertEquals("Wrong target type in accountRef", ShadowType.COMPLEX_TYPE, accountRefDef.getTargetTypeName());
-		assertEquals("Wrong composite object element name in accountRef", UserType.F_LINK, accountRefDef.getCompositeObjectElementName());
 
 		PrismContainerDefinition<MetadataType> metadataContainer = complexTypeDefinition.findContainerDefinition(UserType.F_METADATA);PrismAsserts.assertDefinition(extensionContainer, UserType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
 		assertFalse("Metadata is runtime", metadataContainer.isRuntimeSchema());

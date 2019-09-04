@@ -92,6 +92,8 @@ public class SchemaProcessor implements Processor {
     public static final String METHOD_SETUP_CONTAINER_VALUE = "setupContainerValue";
     public static final String METHOD_SETUP_CONTAINER = "setupContainer";
     public static final String METHOD_AS_REFERENCE_VALUE = "asReferenceValue";
+    public static final String METHOD_GET_OBJECT = "getObject";
+    public static final String METHOD_GET_OBJECTABLE = "getObjectable";
     public static final String METHOD_SETUP_REFERENCE_VALUE = "setupReferenceValue";
 
     // Internal fields and methods. Although some of these fields needs to be public (so they can be used by
@@ -112,6 +114,7 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_UTIL_SET_FIELD_CONTAINER_VALUE = "setFieldContainerValue";
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE = "getReference";
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE_VALUE = "getReferenceValue";
+    private static final String METHOD_PRISM_UTIL_GET_REFERENCE_OBJECTABLE = "getReferenceObjectable";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_REF = "setReferenceValueAsRef";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_OBJECT = "setReferenceValueAsObject";
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE_FILTER_CLAUSE_XNODE = "getReferenceFilterClauseXNode";
@@ -231,9 +234,9 @@ public class SchemaProcessor implements Processor {
 
         //add prism reference and get/set method for it
         JVar reference = definedClass.field(JMod.PRIVATE, PrismReferenceValue.class, REFERENCE_VALUE_FIELD_NAME);
-        JMethod getReference = definedClass.method(JMod.PUBLIC, PrismReferenceValue.class, METHOD_AS_REFERENCE_VALUE);
+        JMethod asReferenceValueMethod = definedClass.method(JMod.PUBLIC, PrismReferenceValue.class, METHOD_AS_REFERENCE_VALUE);
 //        getReference.annotate(CLASS_MAP.get(XmlTransient.class));
-        JBlock body = getReference.body();
+        JBlock body = asReferenceValueMethod.body();
         JBlock then = body._if(reference.eq(JExpr._null()))._then();
         JInvocation newReference = JExpr._new(CLASS_MAP.get(PrismReferenceValueImpl.class));
         then.assign(reference, newReference);
@@ -246,13 +249,15 @@ public class SchemaProcessor implements Processor {
         body._return(JExpr._this());
 
         //update for oid methods
-        updateObjectReferenceOid(definedClass, getReference);
+        updateObjectReferenceOid(definedClass, asReferenceValueMethod);
         //update for type methods
-        updateObjectReferenceType(definedClass, getReference);
-        updateObjectReferenceRelation(definedClass, getReference);
-        updateObjectReferenceDescription(definedClass, getReference);
-        updateObjectReferenceFilter(definedClass, getReference);
-        updateObjectReferenceResolutionTime(definedClass, getReference);
+        updateObjectReferenceType(definedClass, asReferenceValueMethod);
+        updateObjectReferenceRelation(definedClass, asReferenceValueMethod);
+        updateObjectReferenceDescription(definedClass, asReferenceValueMethod);
+        updateObjectReferenceFilter(definedClass, asReferenceValueMethod);
+        updateObjectReferenceResolutionTime(definedClass, asReferenceValueMethod);
+        updateObjectReferenceGetObject(definedClass, asReferenceValueMethod);
+        updateObjectReferenceGetObjectable(definedClass, asReferenceValueMethod);
 
 		createReferenceFluentEnd(objectReferenceOutline);
     }
@@ -289,17 +294,17 @@ public class SchemaProcessor implements Processor {
         setTagetNameInvocation.arg(setTargetName.listParams()[0]);
     }
 
-    private void updateObjectReferenceRelation(JDefinedClass definedClass, JMethod getReference) {
+    private void updateObjectReferenceRelation(JDefinedClass definedClass, JMethod asReferenceMethod) {
         JFieldVar typeField = definedClass.fields().get("relation");
         JMethod getType = recreateMethod(findMethod(definedClass, "getRelation"), definedClass);
         copyAnnotations(getType, typeField);
         JBlock body = getType.body();
-        body._return(JExpr.invoke(JExpr.invoke(getReference), "getRelation"));
+        body._return(JExpr.invoke(JExpr.invoke(asReferenceMethod), "getRelation"));
 
         definedClass.removeField(typeField);
         JMethod setType = recreateMethod(findMethod(definedClass, "setRelation"), definedClass);
         body = setType.body();
-        JInvocation invocation = body.invoke(JExpr.invoke(getReference), "setRelation");
+        JInvocation invocation = body.invoke(JExpr.invoke(asReferenceMethod), "setRelation");
         invocation.arg(setType.listParams()[0]);
     }
 
@@ -354,18 +359,33 @@ public class SchemaProcessor implements Processor {
         body.add(invocation);
     }
 
-    private void updateObjectReferenceResolutionTime(JDefinedClass definedClass, JMethod getReference) {
+    private void updateObjectReferenceResolutionTime(JDefinedClass definedClass, JMethod asReferenceMethod) {
         JFieldVar typeField = definedClass.fields().get("resolutionTime");
         JMethod getType = recreateMethod(findMethod(definedClass, "getResolutionTime"), definedClass);
         copyAnnotations(getType, typeField);
         JBlock body = getType.body();
-        body._return(JExpr.invoke(JExpr.invoke(getReference), "getResolutionTime"));
+        body._return(JExpr.invoke(JExpr.invoke(asReferenceMethod), "getResolutionTime"));
 
         definedClass.removeField(typeField);
         JMethod setType = recreateMethod(findMethod(definedClass, "setResolutionTime"), definedClass);
         body = setType.body();
-        JInvocation invocation = body.invoke(JExpr.invoke(getReference), "setResolutionTime");
+        JInvocation invocation = body.invoke(JExpr.invoke(asReferenceMethod), "setResolutionTime");
         invocation.arg(setType.listParams()[0]);
+    }
+    
+    
+    private void updateObjectReferenceGetObject(JDefinedClass definedClass, JMethod asReferenceMethod) {
+    	JMethod method = definedClass.method(JMod.PUBLIC, PrismObject.class, METHOD_GET_OBJECT);
+        JBlock body = method.body();
+        body._return(JExpr.invoke(JExpr.invoke(asReferenceMethod), "getObject"));
+    }
+    
+    private void updateObjectReferenceGetObjectable(JDefinedClass definedClass, JMethod asReferenceMethod) {
+    	JMethod method = definedClass.method(JMod.PUBLIC, Objectable.class, METHOD_GET_OBJECTABLE);
+        JBlock body = method.body();
+        JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE_OBJECTABLE);
+        invocation.arg(JExpr.invoke(asReferenceMethod));
+        body._return(invocation);
     }
 
     private JMethod findMethod(JDefinedClass definedClass, String methodName) {

@@ -387,8 +387,8 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		assertAttribute(getDummyResourceObject(RESOURCE_DUMMY_SCRIPTY_NAME), accountShadow.asObjectable(), 
-				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME), 
+		assertAttribute(accountShadow.asObjectable(),
+				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
 				"Dummy Resource: Scripty");
 		lastDummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 
 				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
@@ -420,7 +420,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		assertAttribute(getDummyResourceObject(RESOURCE_DUMMY_SCRIPTY_NAME), accountShadow.asObjectable(), 
+		assertAttribute(accountShadow.asObjectable(),
 				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME), 
 				"Dummy Resource: Scripty");
 		Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 

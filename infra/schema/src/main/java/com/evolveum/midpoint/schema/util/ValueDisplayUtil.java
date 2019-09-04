@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class ValueDisplayUtil {
             return approvalSchemaType.getName() + (approvalSchemaType.getDescription() != null ? (": " + approvalSchemaType.getDescription()) : "") + " (...)";
         } else if (value instanceof ConstructionType) {
             ConstructionType ct = (ConstructionType) value;
-            Object resource = (ct.getResource() != null ? ct.getResource().getName() : (ct.getResourceRef() != null ? ct.getResourceRef().getOid() : null));
+            Object resource = (ct.getResourceRef() != null ? ct.getResourceRef().getOid() : null);
             return "resource object" + (resource != null ? " on " + resource : "") + (ct.getDescription() != null ? ": " + ct.getDescription() : "");
         } else if (value instanceof Enum) {
             return value.toString();

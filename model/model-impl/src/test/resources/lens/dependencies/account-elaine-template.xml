@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<account oid="c0c010c0-d34d-b33f-f00d-22220004000e"
+<shadow oid="c0c010c0-d34d-b33f-f00d-22220004000e"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -29,4 +29,4 @@
 		<icfs:uid>elaine</icfs:uid>
 		<ri:fullname>Elaine Marley</ri:fullname>
 	</attributes>
-</account>
+</shadow>

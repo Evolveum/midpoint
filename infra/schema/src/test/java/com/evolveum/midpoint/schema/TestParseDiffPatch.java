@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -715,100 +715,6 @@ public class TestParseDiffPatch {
         }
 
 
-    }
-
-    /**
-     * This test illustrates MID-2174.
-     *
-     * We take a shadow having objectChange set.
-     * We delete it via asObjectable().setObjectChange(null).
-     * Then we compute the delta via diff.
-     * All these operations are done on a shadow that contains PARSED values in objectChange property.
-     *
-     * The problem of MID-2174 is that (in reality) we then try to apply the delta to the shadow as stored in repository,
-     * i.e. to shadow with RAW values in objectChange property.
-     *
-     * MidPoint uses an approximation there - it compares XNode serializations of values. Sometimes they match,
-     * sometimes they do not. In this particular case they fail to match on serialization of c:ObjectReferenceType,
-     * because BeanMarshaller is used, and ObjectReferenceType.getFilter() returns empty filter instead of null.
-     * This could be fixed; however, it would not help much, because it is almost sure that other similar problems
-     * would sooner or later emerge.
-     */
-    @Test(enabled = false)
-    public void testShadowObjectChange() throws SchemaException, SAXException, IOException, JAXBException {
-        System.out.println("===[ testShadowObjectChange ]===");
-
-        // WHEN
-
-        PrismContext prismContext = getPrismContext();
-        PrismObject<ShadowType> oldObject = getParsedShadowBefore(prismContext);
-        PrismObject<ShadowType> newObject = getShadowAfter(oldObject);
-
-        ObjectDelta<ShadowType> diffDelta = DiffUtil.diff(oldObject, newObject);
-
-        // THEN
-
-        System.out.println("DELTA:");
-        System.out.println(diffDelta.debugDump());
-
-        diffDelta.checkConsistence();
-        assertEquals("Wrong delta OID", "19a27a9d-c7f0-4e41-bcbf-5fa9fc229b10", diffDelta.getOid());
-        assertEquals("Wrong change type", ChangeType.MODIFY, diffDelta.getChangeType());
-        // ... (not important now) ...
-
-        // ROUNDTRIP
-
-        // without resolving RawTypes!
-        PrismObject<ShadowType> shadow = getRawShadowBefore(prismContext);
-        shadow.checkConsistence();
-        PrismObject<ShadowType> shadowAfter = getShadowAfter(shadow);
-        shadowAfter.checkConsistence();
-
-        // patch
-        diffDelta.applyTo(shadow);
-
-        System.out.println("Shadow after roundtrip patching");
-        System.out.println(shadow.debugDump());
-
-        diffDelta.checkConsistence();
-        shadow.checkConsistence();
-
-        assertTrue("Not equivalent", shadow.equivalent(shadowAfter));
-
-        diffDelta.checkConsistence();
-        shadow.checkConsistence();
-        shadowAfter.checkConsistence();
-
-        ObjectDelta<ShadowType> roundTripDelta = DiffUtil.diff(shadow, shadowAfter);
-        System.out.println("roundtrip DELTA:");
-        System.out.println(roundTripDelta.debugDump());
-
-        assertTrue("Roundtrip delta is not empty", roundTripDelta.isEmpty());
-
-        roundTripDelta.checkConsistence();
-        diffDelta.checkConsistence();
-        shadow.checkConsistence();
-        shadowAfter.checkConsistence();
-    }
-
-    protected PrismObject<ShadowType> getShadowAfter(PrismObject<ShadowType> oldObject) {
-        PrismObject<ShadowType> newObject = oldObject.clone();
-        newObject.asObjectable().setObjectChange(null);
-        return newObject;
-    }
-
-    protected PrismObject<ShadowType> getParsedShadowBefore(PrismContext prismContext) throws SchemaException, IOException {
-        PrismObject<ShadowType> oldObject = getRawShadowBefore(prismContext);
-        // resolve rawtypes
-        ObjectDeltaType objectChange = oldObject.asObjectable().getObjectChange();
-        for (ItemDeltaType itemDeltaType : objectChange.getItemDelta()) {
-            for (RawType rawType : itemDeltaType.getValue()) {
-                rawType.getParsedItem(
-                        prismContext.definitionFactory().createPropertyDefinition(itemDeltaType.getPath().getItemPath().lastName(),
-                                rawType.getXnode().getTypeQName()));
-            }
-        }
-        return oldObject;
     }
 
     protected PrismObject<ShadowType> getRawShadowBefore(PrismContext prismContext) throws SchemaException, IOException {

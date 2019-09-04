@@ -78,22 +78,7 @@ Superuser-Dummy:          - -> A                        jack:A,administrator:nul
         <number>1</number>
         <duration>P14D</duration>
         <reviewerSpecification>
-            <reviewerExpression>
-                <script>
-                    <code>
-                        import com.evolveum.midpoint.schema.util.ObjectTypeUtil
-                        import com.evolveum.midpoint.schema.constants.ObjectTypes
-
-                        role = midpoint.resolveReference(certificationCase.objectRef)
-                        if (role.oid != '00000000-d34d-b33f-f00d-000000000001') {
-                            role.ownerRef?.oid
-                        } else {
-                            // hack: elaine's ownership of CEO role is defined by assignment[owner], not by ownerRef
-                            'c0c010c0-d34d-b33f-f00d-11111111111e'
-                        }
-                    </code>
-                </script>
-            </reviewerExpression>
+            <useObjectOwner>true</useObjectOwner>
         </reviewerSpecification>
         <outcomeStrategy>acceptedIfNotDenied</outcomeStrategy>
         <outcomeIfNoReviewers>accept</outcomeIfNoReviewers>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,12 +113,6 @@ public class Migrator {
 	}
 
 	private SynchronizationActionType migrateAction(SynchronizationActionType action){
-		if (action.getUserTemplateRef() == null){
-			return action;
-		}
-
-		action.setObjectTemplateRef(action.getUserTemplateRef());
-
 		return action;
 	}
 
@@ -131,41 +125,7 @@ public class Migrator {
 	}
 
 	public <F extends ObjectType> void executeAfterOperationMigration(LensContext<F> context, OperationResult result) {
-		removeEvaluatedTriggers(context, result);           // from 3.6 to 3.7
+		
 	}
 
-	private <F extends ObjectType> void removeEvaluatedTriggers(LensContext<F> context, OperationResult result) {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null || focusContext.getObjectNew() == null) {
-			return;
-		}
-		F objectNew = focusContext.getObjectNew().asObjectable();
-		if (!(objectNew instanceof FocusType) || objectNew.getOid() == null) {
-			return;
-		}
-		try {
-			List<ItemDelta<?, ?>> deltas = new ArrayList<>();
-			for (AssignmentType assignment : ((FocusType) objectNew).getAssignment()) {
-				if (!assignment.getTrigger().isEmpty()) {
-					Long id = assignment.getId();
-					if (id == null) {
-						LOGGER.warn("Couldn't remove evaluated triggers from an assignment because the assignment has no ID. "
-								+ "Object: {}, assignment: {}", objectNew, assignment);
-					} else {
-						deltas.add(
-								prismContext.deltaFor(FocusType.class)
-										.item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_TRIGGER)
-										.replace()
-										.asItemDelta());
-					}
-				}
-			}
-			if (!deltas.isEmpty()) {
-				LOGGER.info("Removing old-style evaluated triggers from {}", objectNew);
-				repositoryService.modifyObject(objectNew.getClass(), objectNew.getOid(), deltas, result);
-			}
-		} catch (ObjectNotFoundException|SchemaException|ObjectAlreadyExistsException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove old-style evaluated triggers from object {}", e, objectNew);
-		}
-	}
 }

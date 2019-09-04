@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -238,7 +238,6 @@ class ApprovalSchemaBuilder {
 		int i = from;
 		for (ApprovalStageDefinitionType stageDef : fragmentStageDefs) {
 			stageDef.asPrismContainerValue().setId(null);       // to avoid ID collision
-			stageDef.setOrder(null);
 			stageDef.setNumber(i++);
 			approvalSchemaHelper.prepareStage(stageDef, relationResolver, referenceResolver);
 			resultingSchemaType.getStage().add(stageDef);
@@ -258,7 +257,7 @@ class ApprovalSchemaBuilder {
 	}
 
 	private Integer getNumber(ApprovalStageDefinitionType s) {
-		return s.getNumber() != null ? s.getNumber() : s.getOrder();
+		return s.getNumber();
 	}
 
 	private void appendAddOnFragments(List<Fragment> fragments) {
@@ -275,7 +274,7 @@ class ApprovalSchemaBuilder {
 	}
 
 	private List<ApprovalStageDefinitionType> getStages(ApprovalSchemaType schema) {
-		return !schema.getStage().isEmpty() ? schema.getStage() : schema.getLevel();
+		return schema.getStage();
 	}
 
 	private List<ApprovalStageDefinitionType> cloneAndMergeStages(List<Fragment> fragments) throws SchemaException {

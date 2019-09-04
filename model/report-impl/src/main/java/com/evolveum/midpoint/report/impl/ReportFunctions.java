@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,8 +185,6 @@ public class ReportFunctions {
             if (assignment.getTargetRef() != null) {
                 clazz = getClassForType(assignment.getTargetRef().getType());
                 oid = assignment.getTargetRef().getOid();
-            } else if (assignment.getTarget() != null) {
-                clazz = assignment.getTarget().getClass();
             } else if (assignment.getTenantRef() != null) {
                 clazz = getClassForType(assignment.getTenantRef().getType());
                 oid = assignment.getTenantRef().getOid();
@@ -202,8 +200,8 @@ public class ReportFunctions {
                 continue;
             }
 
-            if (assignment.getTarget() != null) {
-                resolvedAssignments.add((PrismObject<O>) assignment.getTarget().asPrismObject());
+            if (assignment.getTargetRef() != null && assignment.getTargetRef().asReferenceValue().getObject() != null) {
+                resolvedAssignments.add((PrismObject<O>) assignment.getTargetRef().asReferenceValue().getObject());
                 continue;
             }
 

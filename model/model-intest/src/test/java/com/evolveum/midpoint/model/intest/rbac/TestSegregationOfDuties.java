@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -223,31 +223,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
 
-	@Test
-    public void test112SimpleExclusion1Deprecated() throws Exception {
-		final String TEST_NAME = "test112SimpleExclusion1Deprecated";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
-        // This should go well
-        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-
-        try {
-	        // This should die
-	        assignRole(USER_JACK_OID, ROLE_JUDGE_DEPRECATED_OID, task, result);
-
-	        AssertJUnit.fail("Expected policy violation after adding judge role, but it went well");
-        } catch (PolicyViolationException e) {
-	        System.out.println("Got expected exception: " + e.getMessage());
-        }
-
-        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-
-        assertAssignedNoRole(USER_JACK_OID, task, result);
-	}
-
 	/**
 	 * Same thing as before but other way around
 	 */
@@ -273,33 +248,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         }
 
         unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
-        assertAssignedNoRole(USER_JACK_OID, task, result);
-	}
-
-	/**
-	 * Same thing as before but other way around
-	 */
-	@Test
-    public void test122SimpleExclusion2Deprecated() throws Exception {
-		final String TEST_NAME = "test122SimpleExclusion2Deprecated";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
-        // This should go well
-        assignRole(USER_JACK_OID, ROLE_JUDGE_DEPRECATED_OID, task, result);
-
-        try {
-	        // This should die
-	        assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-
-	        AssertJUnit.fail("Expected policy violation after adding pirate role, but it went well");
-        } catch (PolicyViolationException e) {
-	        System.out.println("Got expected exception: " + e.getMessage());
-        }
-
-        unassignRole(USER_JACK_OID, ROLE_JUDGE_DEPRECATED_OID, task, result);
         assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
 
@@ -329,31 +277,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	}
 
 	@Test
-    public void test132SimpleExclusionBoth1Deprecated() throws Exception {
-		final String TEST_NAME = "test132SimpleExclusionBoth1Deprecated";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
-				.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
-
-        try {
-        	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
-
-	        AssertJUnit.fail("Expected policy violation, but it went well");
-        } catch (PolicyViolationException e) {
-	        System.out.println("Got expected exception: " + e.getMessage());
-        }
-
-        assertAssignedNoRole(USER_JACK_OID, task, result);
-	}
-
-	@Test
     public void test140SimpleExclusionBoth2() throws Exception {
 		final String TEST_NAME = "test140SimpleExclusionBoth2";
         displayTestTitle(TEST_NAME);
@@ -364,31 +287,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
 		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		modifications.add((createAssignmentModification(ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
-				.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
-
-        try {
-        	modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
-
-	        AssertJUnit.fail("Expected policy violation, but it went well");
-        } catch (PolicyViolationException e) {
-	        System.out.println("Got expected exception: " + e.getMessage());
-        }
-
-        assertAssignedNoRole(USER_JACK_OID, task, result);
-	}
-
-	@Test
-    public void test142SimpleExclusionBoth2Deprecated() throws Exception {
-		final String TEST_NAME = "test142SimpleExclusionBoth2Deprecated";
-        displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-
-        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
 		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
 				.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
 
@@ -605,54 +503,6 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		} finally {
 			unassignRole(USER_JACK_OID, ROLE_JUDGE_OID, SchemaConstants.ORG_APPROVER, task, result);
 			unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-		}
-
-		assertAssignedNoRole(USER_JACK_OID, task, result);
-	}
-
-	@Test
-	public void test191DifferentRelationsDeprecatedCase1() throws Exception {
-		final String TEST_NAME = "test191DifferentRelationsCase1";
-		displayTestTitle(TEST_NAME);
-
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
-		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
-				.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
-
-		try {
-			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
-		} finally {
-			unassignRole(USER_JACK_OID, ROLE_JUDGE_DEPRECATED_OID, SchemaConstants.ORG_APPROVER, task, result);
-			unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
-		}
-
-		assertAssignedNoRole(USER_JACK_OID, task, result);
-	}
-
-	@Test
-	public void test192DifferentRelationsDeprecatedCase2() throws Exception {
-		final String TEST_NAME = "test191DifferentRelationsCase1";
-		displayTestTitle(TEST_NAME);
-
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		modifications.add((createAssignmentModification(ROLE_JUDGE_DEPRECATED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		modifications.add((createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, SchemaConstants.ORG_APPROVER, null, null, true)));
-		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
-				.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
-
-		try {
-			modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
-		} finally {
-			unassignRole(USER_JACK_OID, ROLE_JUDGE_DEPRECATED_OID, task, result);
-			unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, SchemaConstants.ORG_APPROVER, task, result);
 		}
 
 		assertAssignedNoRole(USER_JACK_OID, task, result);

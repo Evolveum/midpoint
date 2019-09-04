@@ -18,6 +18,7 @@
       xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
       xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
       xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
       xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
     <name>jack</name>
@@ -35,6 +36,9 @@
     </assignment>
     <assignment id="3">
         <targetRef oid="00000000-d34d-b33f-f00d-ffffffff0000" type="c:RoleType"/>		<!-- reviewer -->
+    </assignment>
+    <assignment id="4">
+        <targetRef oid="00000000-d34d-b33f-f00d-000000000001" type="c:RoleType" relation="org:approver"/>   <!-- CEO -->
     </assignment>
 
     <activation>

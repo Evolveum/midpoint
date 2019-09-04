@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -124,7 +125,9 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		ShadowType accountType = account.asObjectable();
 		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(TEST_FOLDER_COMMON, "resource-dummy.xml"));
 		ResourceType resourceType = resource.asObjectable();
-		accountType.setResource(resourceType);
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.asReferenceValue().setObject(resource);
+		accountType.setResourceRef(resourceRef);
 
 		ObjectSynchronizationType synchronization = resourceType.getSynchronization().getObjectSynchronization().get(0);
 		for (ConditionalSearchFilterType filter : synchronization.getCorrelation()){

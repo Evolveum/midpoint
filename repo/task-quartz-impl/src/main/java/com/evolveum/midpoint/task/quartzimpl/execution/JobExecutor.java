@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -264,12 +264,6 @@ public class JobExecutor implements InterruptableJob {
 			}
 		}
 
-		// node restrictions (deprecated)
-		List<String> allowedNodes = executionConstraints.getAllowedNode();
-		List<String> disallowedNodes = executionConstraints.getDisallowedNode();
-		if (!allowedNodes.isEmpty() || !disallowedNodes.isEmpty()) {
-			LOGGER.warn("Items allowedNodes and disallowedNodes in task/executionConstraints are no longer supported and are ignored. Please use node/taskExecutionLimitations instead. Task: {}", task);
-		}
 		return true;
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -341,18 +341,19 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void addGetSystemConfigFile() throws Exception {
-        LOGGER.info("===[ addGetPasswordPolicy ]===");
-        File file = new File(FOLDER_BASIC, "password-policy.xml");
-        PrismObject<ValuePolicyType> filePasswordPolicy = prismContext.parseObject(new File(FOLDER_BASIC, "password-policy.xml"));
+    public void testAddGetSystemConfigFile() throws Exception {
+    	final String TEST_NAME = "testAddGetSystemConfigFile";
+        LOGGER.info("===[ {} ]===", TEST_NAME);
+        
+        PrismObject<SecurityPolicyType> securityPolicy = prismContext.parseObject(new File(FOLDER_BASIC, "security-policy-special.xml"));
 
-        OperationResult result = new OperationResult("ADD");
-        String pwdPolicyOid = "00000000-0000-0000-0000-000000000003";
-        String oid = repositoryService.addObject(filePasswordPolicy, null, result);
+        OperationResult result = new OperationResult(TEST_NAME);
+        String securityPolicyOid = "ce74cb86-c8e8-11e9-bee8-b37bf7a7ab4a";
+        String oid = repositoryService.addObject(securityPolicy, null, result);
         AssertJUnit.assertNotNull(oid);
-        AssertJUnit.assertEquals(pwdPolicyOid, oid);
-        PrismObject<ValuePolicyType> repoPasswordPolicy = repositoryService.getObject(ValuePolicyType.class, oid, null, result);
-        AssertJUnit.assertNotNull(repoPasswordPolicy);
+        AssertJUnit.assertEquals(securityPolicyOid, oid);
+        PrismObject<SecurityPolicyType> repoSecurityPolicy = repositoryService.getObject(SecurityPolicyType.class, oid, null, result);
+        AssertJUnit.assertNotNull(repoSecurityPolicy);
 
         String systemCongigOid = "00000000-0000-0000-0000-000000000001";
         PrismObject<SystemConfigurationType> fileSystemConfig = prismContext.parseObject(new File(FOLDER_BASIC, "systemConfiguration.xml"));
@@ -362,27 +363,27 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(systemCongigOid, oid);
 
         PrismObject<SystemConfigurationType> repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, null, result);
-//		AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable().getGlobalPasswordPolicy());
         LOGGER.info("System config from repo: {}", repoSystemConfig.debugDump());
-        AssertJUnit.assertNull("global password policy not null", repoSystemConfig.asObjectable()
-                .getGlobalPasswordPolicyRef());
+        AssertJUnit.assertNull("global security policy not null", repoSystemConfig.asObjectable()
+                .getGlobalSecurityPolicyRef());
 
         ReferenceDelta refDelta = prismContext.deltaFactory().reference().createModificationAdd(
-                SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, repoSystemConfig.getDefinition(),
-                prismContext.itemFactory().createReferenceValue(repoPasswordPolicy));
+                SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF, repoSystemConfig.getDefinition(),
+                prismContext.itemFactory().createReferenceValue(repoSecurityPolicy));
         List<ReferenceDelta> refDeltas = new ArrayList<>();
         refDeltas.add(refDelta);
+        
+        // WHEN
         repositoryService.modifyObject(SystemConfigurationType.class, systemCongigOid, refDeltas, result);
+        
+        // THEN
         repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, null, result);
         LOGGER.info("system config after modify: {}", repoSystemConfig.debugDump());
-        AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable()
-                .getGlobalPasswordPolicyRef());
-        AssertJUnit.assertNull("default user template not null", repoSystemConfig.asObjectable()
-                .getDefaultUserTemplateRef());
+        AssertJUnit.assertNotNull("global security policy null", repoSystemConfig.asObjectable().getGlobalSecurityPolicyRef());
     }
 
     @Test
-    public void addGetSyncDescription() throws Exception {
+    public void testAddGetSyncDescription() throws Exception {
         PrismObjectDefinition accDef = prismContext.getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(ShadowType.class);
         PrismObject<ShadowType> shadow = accDef.instantiate();

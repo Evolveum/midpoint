@@ -16,9 +16,14 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -32,6 +37,24 @@ public class TaskTypeUtil {
 	@NotNull
 	public static Stream<TaskType> getAllTasksStream(TaskType root) {
 		return Stream.concat(Stream.of(root),
-				root.getSubtask().stream().flatMap(TaskTypeUtil::getAllTasksStream));
+				getResolvedSubtasks(root).stream().flatMap(TaskTypeUtil::getAllTasksStream));
+	}
+
+	public static List<TaskType> getResolvedSubtasks(TaskType parent) {
+		List<TaskType> rv = new ArrayList<>();
+		for (ObjectReferenceType childRef : parent.getSubtaskRef()) {
+			//noinspection unchecked
+			PrismObject<TaskType> child = childRef.getObject();
+			if (child != null) {
+				rv.add(child.asObjectable());
+			} else {
+				throw new IllegalStateException("Unresolved subtaskRef in " + parent + ": " + childRef);
+			}
+		}
+		return rv;
+	}
+
+	public static void addSubtask(TaskType parent, TaskType child, QName relation) {
+		parent.getSubtaskRef().add(ObjectTypeUtil.createObjectRef(child, relation));
 	}
 }

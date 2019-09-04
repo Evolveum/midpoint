@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -685,13 +685,6 @@ public class SynchronizationStep extends WizardStep {
     private void reactionEditPerformed(AjaxRequestTarget target, SynchronizationReactionType reaction){
 		WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER, new Model<>(reaction), this, parentPage);
 		getThirdRowContainer().replaceWith(newContainer);
-
-		for (SynchronizationActionType action : reaction.getAction()) {
-			if (action.getRef() != null) {
-				warn(getString("SynchronizationStep.message.unsupportedActionFormat"));
-				break;
-			}
-		}
 
 		resetSelections(target);
 		syncDtoModel.getObject().setSelectedReaction(reaction);

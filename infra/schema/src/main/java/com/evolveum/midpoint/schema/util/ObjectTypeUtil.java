@@ -149,9 +149,6 @@ public class ObjectTypeUtil {
             sb.append("construction");
             // TODO
         }
-        if (assignment.getTarget() != null) {
-            sb.append(toShortString(assignment.getTarget()));
-        }
         if (assignment.getTargetRef() != null) {
             sb.append(toShortString(assignment.getTargetRef()));
         }

@@ -753,7 +753,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	}
 
 	private void validateResourceInShadow(ShadowType shadow, ResourceType resource) {
-		if (shadow.getResource() != null || shadow.getResourceRef() != null) {
+		if (shadow.getResourceRef() != null) {
 			return;
 		}
 
@@ -1114,9 +1114,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 					|| (actionDef.getOrder() != null && actionDef.getOrder() == order)) {
 
 				String handlerUri = actionDef.getHandlerUri();
-				if (handlerUri == null) {
-					handlerUri = actionDef.getRef();
-				}
 				if (handlerUri == null) {
 					LOGGER.error("Action definition in resource {} doesn't contain handler URI", syncCtx.getResource());
 					throw new ConfigurationException(

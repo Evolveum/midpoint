@@ -225,8 +225,6 @@ public class TestParseUserPolyString extends AbstractObjectParserTest<UserType> 
 		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_3_OID);
 
 		PrismReferenceValue accountRef1Val = accountRef.findValueByOid(USER_ACCOUNT_REF_1_OID);
-		assertNotNull("No object in ref1 (prism)", accountRef1Val.getObject());
-		assertNotNull("No object definition in ref1 (prism)", accountRef1Val.getObject().getDefinition());
 		assertEquals("Wrong ref1 oid (prism)", USER_ACCOUNT_REF_1_OID, accountRef1Val.getOid());
 		assertEquals("Wrong ref1 type (prism)", ShadowType.COMPLEX_TYPE, accountRef1Val.getTargetType());
 

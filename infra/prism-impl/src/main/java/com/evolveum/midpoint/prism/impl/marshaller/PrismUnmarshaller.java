@@ -39,6 +39,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
+
+import java.util.List;
 import java.util.Map.Entry;
 
 public class PrismUnmarshaller {
@@ -267,8 +269,20 @@ public class PrismUnmarshaller {
                     (QNameUtil.match(itemName, XNodeImpl.KEY_OID) || QNameUtil.match(itemName, XNodeImpl.KEY_VERSION))) {
                 continue;
             }
+            
             ItemDefinition itemDef = locateItemDefinition(itemName, complexTypeDefinition, entry.getValue());
-
+            if (itemDef == null) {
+            	SchemaMigration migration = determineSchemaMigration(complexTypeDefinition, itemName, pc);
+            	if (migration != null) {
+            		if (migration.getOperation() == SchemaMigrationOperation.REMOVED) {
+            			LOGGER.warn("Item {} was removed from the schema, skipping", itemName);
+            			continue;
+            		} else {
+            			pc.warnOrThrow(LOGGER, "Unsupported migration operation " + migration.getOperation() + " for item " + itemName + " (in container "
+                                + containerDef + ")" + "while parsing " + map.debugDump());
+            		}
+            	}
+            }
             if (itemDef == null) {
                 if (complexTypeDefinition == null || complexTypeDefinition.isXsdAnyMarker() || complexTypeDefinition.isRuntimeSchema()) {
                     PrismSchema itemSchema = getSchemaRegistry().findSchemaByNamespace(itemName.getNamespaceURI());
@@ -289,6 +303,7 @@ public class PrismUnmarshaller {
                     continue;   // don't even attempt to parse it
                 }
             }
+            
             Item<?, ?> item;
             if (entry.getValue() == null) {
                 if (itemDef != null) {
@@ -308,7 +323,30 @@ public class PrismUnmarshaller {
         return cval;
     }
 
-    @NotNull
+    private SchemaMigration determineSchemaMigration(ComplexTypeDefinition complexTypeDefinition, QName itemName, @NotNull ParsingContext pc) {
+    	if (complexTypeDefinition == null) {
+    		return null;
+    	}
+    	List<SchemaMigration> schemaMigrations = complexTypeDefinition.getSchemaMigrations();
+    	if (schemaMigrations != null) {
+    		for (SchemaMigration schemaMigration : schemaMigrations) {
+    			if (QNameUtil.match(schemaMigration.getElementQName(), itemName)) {
+    				return schemaMigration;
+    			}
+    		}
+    	}
+		QName superTypeQName = complexTypeDefinition.getSuperType();
+		if (superTypeQName == null) {
+			return null;
+		}
+		ComplexTypeDefinition superTypeDef = prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(superTypeQName);
+		if (superTypeDef == null) {
+			return null;
+		}
+		return determineSchemaMigration(superTypeDef, itemName, pc);
+	}
+
+	@NotNull
     private <T> PrismProperty<T> parseProperty(@NotNull XNodeImpl node, @NotNull QName itemName,
             @Nullable PrismPropertyDefinition<T> itemDefinition, @NotNull ParsingContext pc) throws SchemaException {
         Validate.isTrue(!(node instanceof RootXNodeImpl));

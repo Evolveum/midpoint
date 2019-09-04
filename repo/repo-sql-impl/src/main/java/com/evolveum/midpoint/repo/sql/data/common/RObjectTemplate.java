@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RObjectTemplateType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -49,7 +48,6 @@ import java.util.Set;
 public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     private RPolyString nameCopy;
-    private RObjectTemplateType type;
     private Set<RObjectReference<RObjectTemplate>> includeRef;
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 7")
@@ -61,15 +59,6 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
             includeRef = new HashSet<>();
         }
         return includeRef;
-    }
-
-    @Enumerated(EnumType.ORDINAL)
-    public RObjectTemplateType getType() {
-        return type;
-    }
-
-    public void setType(RObjectTemplateType type) {
-        this.type = type;
     }
 
     @JaxbName(localPart = "name")
@@ -99,11 +88,8 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         RObjectTemplate that = (RObjectTemplate) o;
 
         if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null)
-            return false;
         if (includeRef != null ? !includeRef.equals(that.includeRef) : that.includeRef != null)
             return false;
-
 
         return true;
     }
@@ -112,7 +98,6 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
 
@@ -121,7 +106,6 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getElementName(), RObjectTemplateType.class));
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
         repo.getIncludeRef().addAll(RUtil.safeListReferenceToSet(

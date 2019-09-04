@@ -16,30 +16,14 @@
   -->
 <user oid="00000000-0000-0000-0000-000000000002" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
     <name>administrator</name>
     <parentOrgRef oid="00000000-8888-6666-0000-300000000000" type="c:OrgType"/>
     <fullName>midPoint Administrator</fullName>
     <givenName>midPoint</givenName>
     <familyName>Administrator</familyName>
     <emailAddress>administrator@evolveum.com</emailAddress>
-    <credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-        <password>
-            <c:value>
-                <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-                    <t:encryptionMethod>
-                        <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
-                    </t:encryptionMethod>
-                    <t:keyInfo>
-                        <t:keyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</t:keyName>
-                    </t:keyInfo>
-                    <t:cipherData>
-                        <t:cipherValue>Q27VymuHR348Vb9Ln5p06RT667FqZPSijEMxVDWw7D8=</t:cipherValue>
-                    </t:cipherData>
-                </t:encryptedData>
-            </c:value>
-        </password>
-    </credentials>
     <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>       <!-- Superuser -->
     </assignment>
@@ -51,5 +35,8 @@
     </assignment>
     <assignment id="4">
         <targetRef oid="00000000-8888-6666-0000-300000000000" type="c:OrgType"/>        <!-- ERoot -->
+    </assignment>
+    <assignment id="5">
+        <targetRef oid="00000000-d34d-b33f-f00d-000000000002" type="c:RoleType" relation="org:owner"/>   <!-- COO -->
     </assignment>
 </user>

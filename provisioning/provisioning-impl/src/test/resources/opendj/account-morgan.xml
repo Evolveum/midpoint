@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2018 Evolveum
+  ~ Copyright (c) 2014-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
   -->
 
 
-<account oid="8dfcf05e-c571-11e3-abbd-001e8c717e5b"
+<shadow oid="8dfcf05e-c571-11e3-abbd-001e8c717e5b"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -36,4 +36,4 @@
 		<name>ri:group</name>
 		<shadowRef oid="3d96846e-c570-11e3-a80f-001e8c717e5b"/>
 	</association>
-</account>
+</shadow>

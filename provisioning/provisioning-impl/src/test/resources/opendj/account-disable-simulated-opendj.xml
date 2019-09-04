@@ -16,17 +16,17 @@
   -->
 
  
-<c:account oid="dbb0c37d-9ee6-44a4-8d39-016dbce1aaaa"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<shadow oid="dbb0c37d-9ee6-44a4-8d39-016dbce1aaaa"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<c:name>uid=monk,ou=People,dc=example,dc=com</c:name>
-	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<c:objectClass>ri:inetOrgPerson</c:objectClass>
-	<c:attributes>
+	<name>uid=monk,ou=People,dc=example,dc=com</name>
+	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+	<objectClass>ri:inetOrgPerson</objectClass>
+	<attributes>
 		<ri:dn>uid=monk,ou=People,dc=example,dc=com</ri:dn>
 		<ri:sn>Adrian Monk</ri:sn>
 		<ri:cn>Adrian</ri:cn>
-	</c:attributes>
-</c:account>
+	</attributes>
+</shadow>

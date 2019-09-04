@@ -24,30 +24,6 @@
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
     <name>capsize</name>
 
-    <link>
-        <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-        <objectClass>ridummy:AccountObjectClass</objectClass>
-        <attributes>
-            <ridummy:fullname>Captain Kate Capsize</ridummy:fullname>
-        </attributes>
-    </link>
-
-    <link>
-        <resourceRef oid="10000000-0000-0000-0000-000000000104"/>
-        <objectClass>ri:AccountObjectClass</objectClass>
-        <attributes>
-            <ri:fullname>Captain Kate Capsize</ri:fullname>
-        </attributes>
-    </link>
-
-    <link>
-        <resourceRef oid="10000000-0000-0000-0000-000000000204"/>
-        <objectClass>ri:AccountObjectClass</objectClass>
-        <attributes>
-            <ri:fullname>Captain Kate Capsize</ri:fullname>
-        </attributes>
-    </link>
-
     <assignment>
         <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000000004"/>

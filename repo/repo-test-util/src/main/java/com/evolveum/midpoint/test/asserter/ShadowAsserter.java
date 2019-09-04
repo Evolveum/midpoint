@@ -289,10 +289,7 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 	}
 	
 	public ShadowAsserter<RA> assertNoLegacyConsistency() {
-		PrismAsserts.assertNoItem(getObject(), ShadowType.F_RESULT);
-		PrismAsserts.assertNoItem(getObject(), ShadowType.F_ATTEMPT_NUMBER);
-		PrismAsserts.assertNoItem(getObject(), ShadowType.F_FAILED_OPERATION_TYPE);
-		PrismAsserts.assertNoItem(getObject(), ShadowType.F_OBJECT_CHANGE);
+		// Nothing to do. Those are gone in midPoint 4.0.
 		return this;
 	}
 	

@@ -364,6 +364,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaMigration>
+            		<a:element>tns:enforcement</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -408,14 +413,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-            <xsd:element name="enforcement" type="tns:PolicyConstraintEnforcementType" minOccurs="0" default="enforce">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -509,53 +506,6 @@
 	</xsd:complexType>
 	<xsd:element name="policyConstraintPresentation" type="tns:PolicyConstraintPresentationType" />
 
-	<xsd:simpleType name="PolicyConstraintExpectedUseType">
-		<xsd:annotation>
-			<xsd:documentation>
-				How is this constraint to be used? E.g. also for reporting or for certification? This determines
-				if its triggers and/or related policy situation should be stored into repository.
-				EXPERIMENTAL
-			</xsd:documentation>
-			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
-				<a:deprecated>true</a:deprecated>
-				<a:plannedRemoval>4.0</a:plannedRemoval>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="certification">
-				<xsd:annotation>
-					<xsd:documentation>
-						Situation and triggers will be stored.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="CERTIFICATION"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-			<xsd:enumeration value="briefReport">
-				<xsd:annotation>
-					<xsd:documentation>
-						Situation will be stored but no triggers.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="BRIEF_REPORT"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-			<xsd:enumeration value="fullReport">
-				<xsd:annotation>
-					<xsd:documentation>
-						Situation and triggers will be stored.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="FULL_REPORT"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-		</xsd:restriction>
-	</xsd:simpleType>
-
 	<xsd:simpleType name="TriggeredPolicyRulesStorageStrategyType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -646,6 +596,11 @@
             <xsd:appinfo>
                 <a:container/>
 				<a:displayName>ExclusionPolicyConstraintType.details</a:displayName>
+				<a:schemaMigration>
+            		<a:element>tns:policy</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -702,15 +657,6 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="policy" type="tns:ExclusionPolicyType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-								<a:displayName>ExclusionPolicyConstraintType.policy</a:displayName>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -890,26 +836,6 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="assignmentModificationPolicyConstraint" type="tns:AssignmentModificationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
-
-	<xsd:complexType name="AssignmentPolicyConstraintType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Original (3.6) name for AssignmentModificationPolicyConstraintType.
-				Provided here for migration purposes.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:container/>
-				<a:since>3.5</a:since>
-				<a:deprecated>true</a:deprecated>
-				<a:deprecatedSince>3.7</a:deprecatedSince>
-				<a:plannedRemoval>4.0</a:plannedRemoval>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AssignmentModificationPolicyConstraintType">
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
 
 	<xsd:complexType name="HasAssignmentPolicyConstraintType">
         <xsd:annotation>
@@ -1378,103 +1304,6 @@
         </xsd:sequence>
     </xsd:complexType>
 
-
-    <xsd:simpleType name="PolicyConstraintEnforcementType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Enumeration of exclusion policy enforcement types.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-                <a:deprecated>true</a:deprecated>
-                <a:plannedRemoval>4.0</a:plannedRemoval>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="enforce">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Strictly enforce the policy. Any operation that attempts to violate
-                        the policy will fail.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ENFORCE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="remediate">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The operation that attempts to violate the policy will be suspended.
-                        Remediation action will take place. This may be used e.g. to approve the
-                        exceptions from the policy.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="REMEDIATE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="report">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Policy will not be enforced in any way, the violations will only
-                        be reported.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="REPORT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="ExclusionPolicyType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Enumeration of exclusion policy enforcement types.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-                <a:deprecated>true</a:deprecated>
-                <a:plannedRemoval>4.0</a:plannedRemoval>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="enforce">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Enforce the policy. Excluded entities must not be assigned together.
-                        Attempt to do so will result in an error.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ENFORCE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="approve">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Exceptions to the policy are possible but are subject to an approval.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="APPROVE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="report">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Policy will not be enforced in any way, the violations will only
-                        be reported.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="REPORT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
     <xsd:complexType name="PolicyActionsType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1723,6 +1552,11 @@
                 <a:since>3.5</a:since>
                 <a:experimental>true</a:experimental>
 				<a:displayName>ApprovalPolicyActionType.details</a:displayName>
+				<a:schemaMigration>
+            		<a:element>tns:automaticallyApproved</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1840,24 +1674,6 @@
                             </xsd:annotation>
                         </xsd:element>
                     </xsd:choice>
-                    <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    Condition specifying when the approval is automatically granted (e.g.
-                                    "user is from Board of Directors"). This is an expression that should yield a
-                                    boolean value.
-
-                                    DEPRECATED. Use automaticallyCompleted in approval level definition.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>3.6</a:deprecatedSince>
-                                <a:plannedRemoval>4.0</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

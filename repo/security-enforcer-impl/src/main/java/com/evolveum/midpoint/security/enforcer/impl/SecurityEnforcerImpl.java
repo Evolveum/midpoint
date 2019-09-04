@@ -1446,10 +1446,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								}
 								// TODO: MID-3899
 								// TODO what if owner is specified not as "self" ?
-								if (AbstractRoleType.class.isAssignableFrom(objectType)) {
-									// TODO beware, role.ownerRef is deprecated
-									objSpecSecurityFilter = applyOwnerFilterOwnerRef(AbstractRoleType.F_OWNER_REF, objSpecSecurityFilter,  principal, objectDefinition);
-								} else if (TaskType.class.isAssignableFrom(objectType)) {
+								if (TaskType.class.isAssignableFrom(objectType)) {
 									objSpecSecurityFilter = applyOwnerFilterOwnerRef(TaskType.F_OWNER_REF, objSpecSecurityFilter,  principal, objectDefinition);
 								} else {
 									LOGGER.trace("      Authorization not applicable for object because it has owner specification (this is not applicable for search)");

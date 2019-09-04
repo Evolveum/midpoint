@@ -1172,8 +1172,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		assertPropertyValues(user, UserType.F_ADDITIONAL_NAME, (propDef, name) -> {
 			assertNotNull("No definition for additionalName in user", propDef);
@@ -1259,8 +1258,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
 		PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
 		assertNotNull("No definition for name in shadow", nameDef);
@@ -1303,8 +1301,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
 		PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
 		assertNotNull("No definition for name in shadow", nameDef);
@@ -1337,8 +1334,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
 		PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
 		assertNotNull("No definition for name in shadow", nameDef);
@@ -1366,8 +1362,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
 		PrismPropertyDefinition<PolyString> nameDef = editDef.findPropertyDefinition(ShadowType.F_NAME);
 		assertNotNull("No definition for name in shadow", nameDef);

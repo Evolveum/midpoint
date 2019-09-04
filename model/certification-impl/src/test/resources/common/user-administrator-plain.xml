@@ -22,23 +22,6 @@
     <givenName>midPoint</givenName>
     <familyName>Administrator</familyName>
     <emailAddress>administrator@evolveum.com</emailAddress>
-    <credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-        <password>
-            <c:value>
-                <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-                    <t:encryptionMethod>
-                        <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
-                    </t:encryptionMethod>
-                    <t:keyInfo>
-                        <t:keyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</t:keyName>
-                    </t:keyInfo>
-                    <t:cipherData>
-                        <t:cipherValue>Q27VymuHR348Vb9Ln5p06RT667FqZPSijEMxVDWw7D8=</t:cipherValue>
-                    </t:cipherData>
-                </t:encryptedData>
-            </c:value>
-        </password>
-    </credentials>
     <assignment id="1">
         <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>       <!-- Superuser -->
     </assignment>

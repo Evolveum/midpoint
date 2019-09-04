@@ -43,7 +43,9 @@
 							</expression>
 						</q:equal>
 					</filter>
-					<relation>manager</relation>
+					<assignmentProperties>
+						<relation>manager</relation>
+					</assignmentProperties>
 				</assignmentTargetSearch>
 			</expression>
 			<target>
