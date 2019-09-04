@@ -1131,9 +1131,6 @@ public class BeanUnmarshaller {
 	private Object unmarshalPolyStringFromMap(MapXNodeImpl map, Class<?> beanClass, ParsingContext pc) throws SchemaException {
 		
 		String orig = map.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_ORIG), DOMUtil.XSD_STRING);
-		if (orig == null) {
-			throw new SchemaException("Null polystring orig in "+map);
-		}
 		
 		String norm = map.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
 		
@@ -1145,6 +1142,10 @@ public class BeanUnmarshaller {
 		
 		XNodeImpl xLang = map.get(QNameUtil.nullNamespace(PolyString.F_LANG));
 		Map<String,String> lang = unmarshalLang(xLang, pc);
+		
+		if (orig == null && translation == null && lang == null) {
+			throw new SchemaException("Null polystring orig (no translation nor lang) in "+map);
+		}
 		
 		Object value = new PolyStringType(new PolyString(orig, norm, translation, lang));
 		return toCorrectPolyStringClass(value, beanClass, map);

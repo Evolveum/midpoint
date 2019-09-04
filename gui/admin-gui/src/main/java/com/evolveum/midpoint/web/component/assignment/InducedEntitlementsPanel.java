@@ -19,6 +19,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -49,11 +53,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Created by honchar.
@@ -107,10 +106,10 @@ public class InducedEntitlementsPanel extends InducementsPanel{
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId,
                                      final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-              
-				
-	  
-					List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(WebComponentUtil.getAssociationExpression(rowModel.getObject(), getPageBase()),
+
+                    ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
+					List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
+					        expressionType,
 					        InducedEntitlementsPanel.this.getPageBase().getPrismContext()),
 					        OPERATION_LOAD_SHADOW_OBJECT, InducedEntitlementsPanel.this.getPageBase());
 				
@@ -137,8 +136,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                     protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
                         ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
                         if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())){
-                            ExpressionType expression = WebComponentUtil.getAssociationExpression(rowModel.getObject(), true,
-                                    InducedEntitlementsPanel.this.getPageBase().getPrismContext(), getPageBase());
+                            ExpressionType expression = getExpressionFromRowModel(rowModel, true);
                             ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid(),
                                     InducedEntitlementsPanel.this.getPageBase().getPrismContext());
                         }
@@ -228,5 +226,41 @@ public class InducedEntitlementsPanel extends InducementsPanel{
             }
         });
         return filteredAssignments;
+    }
+
+    private ExpressionType getExpressionFromRowModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel, boolean createIfNotExist) {
+        PrismContainerValueWrapper<AssignmentType> assignment = rowModel.getObject();
+        try {
+            PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper = assignment.findContainer(ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION));
+            List<PrismContainerValue<ResourceObjectAssociationType>> associationValueList = associationWrapper.getItem().getValues();
+            PrismContainerValue<ResourceObjectAssociationType> associationValue = null;
+            if (CollectionUtils.isEmpty(associationValueList)) {
+                if (createIfNotExist) {
+                    associationValue = associationWrapper.createValue();
+                } else {
+                    return null;
+                }
+            } else {
+                associationValue = associationValueList.get(0);
+            }
+
+            ResourceObjectAssociationType association = associationValue.getRealValue();
+            MappingType outbound = association.getOutbound();
+            if (outbound == null){
+                if (createIfNotExist){
+                    outbound = association.beginOutbound();
+                } else {
+                    return null;
+                }
+            }
+            ExpressionType expressionType = outbound.getExpression();
+            if (expressionType == null && createIfNotExist){
+                expressionType = outbound.beginExpression();
+            }
+            return expressionType;
+        } catch (SchemaException ex) {
+            LOGGER.error("Unable to find association container in the construction, ", ex.getLocalizedMessage());
+        }
+        return null;
     }
 }

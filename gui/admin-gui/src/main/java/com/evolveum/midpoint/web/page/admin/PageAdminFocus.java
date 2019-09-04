@@ -258,6 +258,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
 		for (PrismReferenceValue reference : references) {
+			if(reference == null || (reference.getOid() == null && reference.getTargetType() == null)) {
+				LOGGER.trace("Skiping reference for shadow with null oid");
+				continue; // default value
+			}
 			OperationResult subResult = task.getResult().createMinorSubresult(OPERATION_LOAD_SHADOW);
 			PrismObject<ShadowType> projection = getPrismObjectForWrapper(ShadowType.class, reference.getOid(),
 					noFetch, task, subResult, createLoadOptionForShadowWrapper());

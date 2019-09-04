@@ -112,7 +112,7 @@ SELECT @sql = 'ALTER TABLE m_case_wi_reference DROP CONSTRAINT ' + name + ';'
     FROM sys.key_constraints
     WHERE [type] = 'PK'
         AND [parent_object_id] = OBJECT_ID('m_case_wi_reference');
-EXEC sp_executeSQL @sql;
+EXEC sp_executesql @sql;
 
 ALTER TABLE m_case_wi_reference ADD PRIMARY KEY(owner_owner_oid, owner_id, reference_type, targetOid, relation);
 
@@ -155,3 +155,9 @@ DROP TABLE act_ge_bytearray;
 DROP TABLE act_re_deployment;
 DROP TABLE act_ru_execution;
 DROP TABLE act_re_procdef;
+
+-- 2019-09-04 10:25
+
+ALTER TABLE m_case DROP CONSTRAINT uc_case_name;
+
+COMMIT;

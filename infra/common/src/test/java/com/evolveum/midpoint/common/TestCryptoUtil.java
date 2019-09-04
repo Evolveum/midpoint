@@ -32,7 +32,6 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.apache.xml.security.encryption.XMLCipher;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
@@ -274,7 +273,7 @@ public class TestCryptoUtil {
 		return KeyStoreBasedProtectorBuilder.create(getPrismContext())
 				.keyStorePassword(KEYSTORE_PASSWORD)
 				.keyStorePath(KEYSTORE_PATH)
-				.encryptionAlgorithm(XMLCipher.AES_256)
+				.encryptionAlgorithm(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC)
 				.initialize();
 	}
 
@@ -283,7 +282,7 @@ public class TestCryptoUtil {
 				.keyStorePassword(KEYSTORE_PASSWORD)
 				.keyStorePath(KEYSTORE_PATH)
 				.encryptionKeyAlias("compromised")
-				.encryptionAlgorithm(XMLCipher.AES_256)
+				.encryptionAlgorithm(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC)
 				.initialize();
 	}
 

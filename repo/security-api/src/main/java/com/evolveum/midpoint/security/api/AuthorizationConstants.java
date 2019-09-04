@@ -178,7 +178,6 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_CONNECTOR_HOSTS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorHostsAll");
 	public static final String AUTZ_UI_CONNECTOR_HOSTS_ALL_URL = NS_AUTHORIZATION_UI + "#connectorHostsAll";
 
-
 	// Resource XML editor
 	public static final QName AUTZ_UI_RESOURCE_QNAME = new QName(NS_AUTHORIZATION_UI, "resource");
 	public static final String AUTZ_UI_RESOURCE_URL = NS_AUTHORIZATION_UI + "#resource";
@@ -198,7 +197,6 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_RESOURCES_CONTENT_ENTITLEMENTS_QNAME = new QName(NS_AUTHORIZATION_UI, "resourcesContentEntitlements");
 	public static final String AUTZ_UI_RESOURCES_CONTENT_ENTITLEMENTS_URL = NS_AUTHORIZATION_UI + "#resourcesContentEntitlements";
-
 
 	//Configuration
 	public static final QName AUTZ_UI_CONFIGURATION_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "configurationAll");
@@ -246,7 +244,6 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_ROLE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "roleDetails");
 	public static final String AUTZ_UI_ROLE_DETAILS_URL = NS_AUTHORIZATION_UI + "#roleDetails";
-
 
 	//Approvals (workflows)
 	public static final String AUTZ_UI_APPROVALS_ALL_URL = NS_AUTHORIZATION_UI + "#approvalsAll";

@@ -204,7 +204,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertNotNull("No async reference in result", willLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		
 		assertSteadyResources();
 	}
@@ -291,8 +291,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertNotNull("No async reference in result", willSecondLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		
 		assertSteadyResources();
 	}
@@ -384,8 +384,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		
 		assertSteadyResources();
 	}
@@ -475,8 +475,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		
 		assertSteadyResources();
 	}
@@ -530,8 +530,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		
 		assertSteadyResources();
 	}
@@ -634,8 +634,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModelFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -738,8 +738,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModelFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -794,8 +794,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -880,8 +880,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModelFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -954,8 +954,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModelFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1020,8 +1020,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModelFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1095,7 +1095,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertNotNull("No async reference in result", willLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		
 		assertSteadyResources();
 	}
@@ -1162,7 +1162,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertNotNull("No async reference in result", willLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		
 		assertSteadyResources();
 	}
@@ -1228,7 +1228,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1285,7 +1285,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1345,7 +1345,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertUnassignedShadow(assertModelShadowFuture(accountWillOid), true, ActivationStatusType.DISABLED);
 		assertUnassignedShadow(assertModelShadowFutureNoFetch(accountWillOid), true, ActivationStatusType.DISABLED);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1391,7 +1391,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 					.end();
 		assertUnassignedShadow(shadowRepoAsserter, true, null);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1430,7 +1430,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 					.end();
 		assertUnassignedShadow(shadowRepoAsserter, true, null);
 		
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1460,7 +1460,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		UserAsserter<Void> userAfterAsserter = assertUserAfter(userWillOid);
 		assertDeprovisionedTimedOutUser(userAfterAsserter, accountWillOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1569,8 +1569,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertNotNull("No async reference in result", willSecondLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	/**
@@ -1633,8 +1633,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 			.assignments()
 				.assertNone();
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	/**
@@ -1703,8 +1703,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 			.singleLink()
 				.assertOid(accountWillOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	protected void assertWillUnassignPendingOperationExecuting(ShadowAsserter<Void> shadowRepoAsserter) {
@@ -1775,8 +1775,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 					.pendingOperations()
 						.assertOperations(2);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 	
 	/**
@@ -1812,8 +1812,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 				.pendingOperations()
 					.assertNone();
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 	
 	/**
@@ -1846,8 +1846,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertNoShadow(accountWillOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	/**
@@ -1980,8 +1980,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertNotNull("No async reference in result", willSecondLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	/**
@@ -2017,8 +2017,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertPendingOperationDeltas(shadowRepo, 2);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	/**
@@ -2056,7 +2056,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertNotNull("No async reference in result", willLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	protected void assertTest526Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {
@@ -2114,7 +2114,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertTest528Deltas(shadowRepo, result);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	protected void assertTest528Deltas(PrismObject<ShadowType> shadowRepo, OperationResult result) {

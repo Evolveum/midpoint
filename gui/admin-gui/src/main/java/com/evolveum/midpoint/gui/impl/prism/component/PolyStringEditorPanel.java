@@ -337,12 +337,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
     }
 
     private String getLocalizedPolyStringValue(){
-        return WebComponentUtil.getLocalizedPolyStringValue(getModelObject());
-    }
-
-    private String getKeyValue(){
-        return getModelObject() != null && getModelObject().getTranslation() != null ?
-                getModelObject().getTranslation().getKey() : "";
+    	return getPageBase().getLocalizationService().translate(getModelObject(), false);
     }
 
     private IModel<List<String>> getLanguageChoicesModel(){

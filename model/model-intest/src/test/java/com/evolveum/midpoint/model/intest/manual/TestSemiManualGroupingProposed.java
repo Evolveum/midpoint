@@ -231,7 +231,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 		
 		String pendingOperationRef = pendingOperationType.getAsynchronousOperationReference();
 		assertNotNull("No async reference in pending operation", pendingOperationRef);
-		assertCase(pendingOperationRef, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(pendingOperationRef, SchemaConstants.CASE_STATE_OPEN);
 	}
 	
 	// Note: we have left bigmouth here half-created with open case. If should not do any harm. 

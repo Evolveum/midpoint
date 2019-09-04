@@ -195,10 +195,10 @@ public class PageReports extends PageAdmin {
 
     }
     
-    private void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam,
-    		Task task, OperationResult result) {
+    private void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
+        OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
+        Task task = createSimpleTask(OPERATION_RUN_REPORT);
         try {
-
             getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
@@ -213,10 +213,9 @@ public class PageReports extends PageAdmin {
 	}
 
     protected void runReportPerformed(AjaxRequestTarget target, ReportType report) {
-    	OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
-    	Task task = createSimpleTask(OPERATION_RUN_REPORT);
+
     	if(report.getReportEngine() != null && report.getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
-    		runConfirmPerformed(target, report, null, task, result);
+    		runConfirmPerformed(target, report, null);
     		return;
     	}
     	
@@ -225,7 +224,7 @@ public class PageReports extends PageAdmin {
     		private static final long serialVersionUID = 1L;
 
 			protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
-    	        PageReports.this.runConfirmPerformed(target, reportType, reportParam, task, result);
+    	        PageReports.this.runConfirmPerformed(target, reportType, reportParam);
     	        hideMainPopup(target);
 
     		};

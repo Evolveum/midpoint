@@ -5931,6 +5931,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
+	protected CaseAsserter<Void> assertCase(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<CaseType> acase = getObject(CaseType.class, oid);
+		CaseAsserter<Void> asserter = CaseAsserter.forCase(acase, message);
+		initializeAsserter(asserter);
+		asserter.assertOid(oid);
+		return asserter;
+	}
+	
+	protected CaseAsserter<Void> assertCaseAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		CaseAsserter<Void> asserter = assertCase(oid, "after");
+		asserter.display();
+		asserter.assertOid(oid);
+		return asserter;
+	}
+	
 	protected ShadowAsserter<Void> assertModelShadow(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<ShadowType> repoShadow = getShadowModel(oid);
 		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model");

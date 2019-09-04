@@ -432,7 +432,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 		assertNotNull("No async reference in result", willLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 
@@ -520,7 +520,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowProvisioning, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 
-		assertCase(pendingOperation.getAsynchronousOperationReference(), SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(pendingOperation.getAsynchronousOperationReference(), SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	protected void backingStoreAddWill() throws IOException {
@@ -712,7 +712,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	/**
@@ -761,7 +761,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				.assertResultStatus(OperationResultStatusType.SUCCESS)
 				.assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNoNotifcations();
@@ -814,7 +814,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				.assertResultStatus(OperationResultStatusType.SUCCESS)
 				.assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNoNotifcations();
@@ -858,7 +858,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 			.pendingOperations()
 				.assertNone();
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 
 		syncServiceMock.assertNoNotifyChange();
 		syncServiceMock.assertNoNotifcations();
@@ -944,7 +944,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 		assertNotNull("No async reference in result", willLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	@Test
@@ -1021,7 +1021,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 				.assertValue(ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 
 	}
 
@@ -1111,7 +1111,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 
 		// In this case check notifications at the end. There were some reads that
 		// internally triggered refresh. Maku sure no extra notifications were sent.
@@ -1184,7 +1184,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	protected void backingStoreUpdateWill(String newFullName, ActivationStatusType newAdministrativeStatus, String password) throws IOException {
@@ -1249,7 +1249,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 
@@ -1333,7 +1333,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 		assertNotNull("No async reference in result", willLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	/**
@@ -1421,8 +1421,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 		assertNotNull("No async reference in result", willSecondLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	/**
@@ -1535,8 +1535,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 	
 
@@ -1627,8 +1627,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	@Test
@@ -1689,8 +1689,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	/**
@@ -1789,8 +1789,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	/**
@@ -1889,8 +1889,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	/**
@@ -1988,8 +1988,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	@Test
@@ -2050,8 +2050,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	/**
@@ -2139,8 +2139,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	/**
@@ -2208,8 +2208,8 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	@Test
@@ -2279,7 +2279,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
 		assertNotNull("No async reference in result", willLastCaseOid);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	@Test
@@ -2402,7 +2402,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowDead(shadowProvisioningFuture);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	/**
@@ -2465,7 +2465,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowDead(shadowProvisioningFuture);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	// TODO: create, close case, then update backing store.

@@ -892,7 +892,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			timeVariables.addVariableDefinitions(variables);
 			timeVariables.addVariableDefinition(ExpressionConstants.VAR_REFERENCE_TIME, referenceTime, timeDefinition);
 			
-			PrismPropertyValue<XMLGregorianCalendar> timePropVal = ExpressionUtil.evaluateExpression(timeVariables, timeDefinition, expressionType, expressionProfile, expressionFactory, "time expression in "+contextDescription, task, result);
+			PrismPropertyValue<XMLGregorianCalendar> timePropVal = ExpressionUtil.evaluateExpression(sources, timeVariables, timeDefinition, expressionType, expressionProfile, expressionFactory, "time expression in "+contextDescription, task, result);
 			
 			if (timePropVal == null) {
 				return null;

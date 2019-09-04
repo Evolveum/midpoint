@@ -3464,6 +3464,8 @@ public final class WebComponentUtil {
 		result.recomputeStatus();
 	}
 
+	// TODO: use LocalizationService.translate(polyString) instead
+	@Deprecated
 	public static String getLocalizedOrOriginPolyStringValue(PolyString polyString){
 		String value = getLocalizedPolyStringValue(polyString);
 		if(value == null) {
@@ -3472,7 +3474,8 @@ public final class WebComponentUtil {
 		return value;
 	}
 
-	public static String getLocalizedPolyStringValue(PolyString polyString){
+	@Deprecated
+	private static String getLocalizedPolyStringValue(PolyString polyString){
 		if (polyString == null){
 			return null;
 		}

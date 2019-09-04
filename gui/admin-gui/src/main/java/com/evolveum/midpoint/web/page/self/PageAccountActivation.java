@@ -162,15 +162,15 @@ public class PageAccountActivation extends PageBase {
 
 		Label usernamePanel = new Label(ID_NAME, createStringResource("PageAccountActivation.activate.accounts.label",
 				userModel != null && userModel.getObject() != null && userModel.getObject().getName() != null ?
-						WebComponentUtil.getLocalizedOrOriginPolyStringValue(userModel.getObject().getName().toPolyString()) : ""));
-		usernamePanel.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isEnabled() {
-				return false;
-			}
-		});
+						getLocalizationService().translate(userModel.getObject().getName().toPolyString()) : ""));
+			usernamePanel.add(new VisibleEnableBehaviour() {
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public boolean isEnabled() {
+					return false;
+				}
+			});
 		form.add(usernamePanel);
 
 		PasswordTextField passwordPanel = new PasswordTextField(ID_PASSWORD, Model.of(new String()));

@@ -26,6 +26,7 @@ import ch.qos.logback.classic.LoggerContext;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.common.LocalizationServiceImpl;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -211,6 +212,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			InternalMonitor.reset();
 			InternalsConfig.setPrismMonitoring(true);
 			prismContext.setMonitor(new InternalMonitor());
+			
+			((LocalizationServiceImpl)localizationService).setOverrideLocale(Locale.US);
 			
 			initSystem(initTask, result);
 
@@ -1956,7 +1959,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Wrong number of pending operations in "+shadow, 0, pendingOperations.size());
 	}
 	
-	protected void assertCase(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
+	protected void assertCaseState(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertCase");
 		PrismObject<CaseType> acase = repositoryService.getObject(CaseType.class, oid, null, result);
 		display("Case", acase);

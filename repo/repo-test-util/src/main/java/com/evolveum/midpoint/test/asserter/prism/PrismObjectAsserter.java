@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
+import com.evolveum.midpoint.test.asserter.CaseAsserter;
 import com.evolveum.midpoint.test.asserter.ExtensionAsserter;
 import com.evolveum.midpoint.test.asserter.OrgAsserter;
 import com.evolveum.midpoint.test.asserter.ParentOrgRefsAsserter;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.test.asserter.TriggersAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -132,6 +134,12 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 	public PrismObjectAsserter<O,RA> assertName(String expectedOrig) {
 		PrismAsserts.assertEqualsPolyString("Wrong name in "+desc(), expectedOrig, getObject().getName());
 		return this;
+	}
+	
+	public PolyStringAsserter<? extends PrismObjectAsserter<O,RA>> name() {
+		PolyStringAsserter<PrismObjectAsserter<O,RA>> asserter = new PolyStringAsserter<>(getPolyStringPropertyValue(ObjectType.F_NAME), this, "name in "+desc());
+		copySetupTo(asserter);
+		return asserter;
 	}
 	
 	public PrismObjectAsserter<O,RA> assertDescription(String expected) {

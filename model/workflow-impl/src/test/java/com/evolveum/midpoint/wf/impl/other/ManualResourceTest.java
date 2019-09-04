@@ -309,7 +309,7 @@ public class ManualResourceTest extends AbstractWfTest {
 		String pendingOperationRef = pendingOperation.getAsynchronousOperationReference();
 		// Case number should be in willLastCaseOid. It will get there from operation result.
 		assertNotNull("No async reference in pending operation", willLastCaseOid);
-		assertCase(willLastCaseOid, expectedCaseState);
+		assertCaseState(willLastCaseOid, expectedCaseState);
 		assertEquals("Wrong case ID in pending operation", willLastCaseOid, pendingOperationRef);
 	}
 	
@@ -353,7 +353,7 @@ public class ManualResourceTest extends AbstractWfTest {
 		assertAttributeFromBackingStore(shadowModelAsserter, ATTR_DESCRIPTION_QNAME);
 		assertShadowPassword(shadowModelAsserter);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	private <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
@@ -399,6 +399,31 @@ public class ManualResourceTest extends AbstractWfTest {
 	private void assertShadowPassword(PrismObject<ShadowType> shadow) {
 		// pure manual resource should never "read" password
 		assertNoShadowPassword(shadow);
+	}
+
+	private void assertManual(AbstractWriteCapabilityType cap) {
+		assertEquals("Manual flag not set in capability "+cap, Boolean.TRUE, cap.isManual());
+	}
+	protected void assertCase(String oid, String expectedState, PendingOperationExecutionStatusType executionStage) throws ObjectNotFoundException, SchemaException {
+		assertCaseState(oid, expectedState);
+	}
+
+	protected void assertHasModification(ObjectDeltaType deltaType, ItemPath itemPath) {
+		for (ItemDeltaType itemDelta: deltaType.getItemDelta()) {
+			if (itemPath.equivalent(itemDelta.getPath().getItemPath())) {
+				return;
+			}
+		}
+		fail("No modification for "+itemPath+" in delta");
+	}
+
+	protected PendingOperationType assertSinglePendingOperation(PrismObject<ShadowType> shadow,
+			XMLGregorianCalendar requestStart, XMLGregorianCalendar requestEnd, PendingOperationExecutionStatusType executionStage) {
+		assertPendingOperationDeltas(shadow, 1);
+		return assertPendingOperation(shadow, shadow.asObjectable().getPendingOperation().get(0), 
+				requestStart, requestEnd,
+				PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS,
+				null, null);
 	}
 
 }

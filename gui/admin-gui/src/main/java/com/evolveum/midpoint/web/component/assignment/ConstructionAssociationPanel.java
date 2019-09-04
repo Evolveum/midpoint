@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -283,23 +284,19 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                 try {
                     PrismContainerWrapper<ConstructionType> constructionContainerWrapper = ConstructionAssociationPanel.this.getModelObject();
                     PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper = constructionContainerWrapper.findContainer(ConstructionType.F_ASSOCIATION);
-                    PrismContainerValue newAssociation = associationWrapper.getItem().createNewValue();
+                    List<PrismContainerValue<ResourceObjectAssociationType>> associationValueList = associationWrapper.getItem().getValues();
+                    PrismContainerValue<ResourceObjectAssociationType> associationValue = null;
+                    if (CollectionUtils.isEmpty(associationValueList)){
+                        associationValue = associationWrapper.getItem().createNewValue();
+                    } else {
+                        associationValue = associationValueList.get(0);
+                    }
                     ItemName associationRefPath = def.getName();
-                    ((ResourceObjectAssociationType) newAssociation.asContainerable())
+                    ((ResourceObjectAssociationType) associationValue.asContainerable())
                             .setRef(new ItemPathType(associationRefPath));
-                    ExpressionType newAssociationExpression = ((ResourceObjectAssociationType) newAssociation.asContainerable()).beginOutbound().beginExpression();
+                    ExpressionType newAssociationExpression = ((ResourceObjectAssociationType) associationValue.asContainerable()).beginOutbound().beginExpression();
                     ExpressionUtil.addShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
                             getPageBase().getPrismContext());
-//                    ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
-//                    Task task = getPageBase().createAnonymousTask("Adding new shadow");
-//                    getPageBase().createValueWrapper(associationWrapper, newAssociation, ValueStatus.ADDED, null);
-//                    ContainerValueWrapper<ResourceObjectAssociationType> valueWrapper =
-//                            factory.createContainerValueWrapper(associationWrapper, newAssociation,
-//                                    associationWrapper.getObjectStatus(), ValueStatus.ADDED, associationWrapper.getPath(), task);
-
-                    Task task = ConstructionAssociationPanel.this.getPageBase().createSimpleTask("Create new association value wrapper");
-                    WrapperContext context = new WrapperContext(task, task.getResult());
-                    associationWrapper.getValues().add(getPageBase().createValueWrapper(associationWrapper, newAssociation, ValueStatus.ADDED, context));
                 } catch (SchemaException ex){
                     LOGGER.error("Couldn't find association container, ", ex.getLocalizedMessage());
                 }

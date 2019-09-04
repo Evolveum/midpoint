@@ -261,11 +261,15 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		// Services
 		repoAddObjectFromFile(SERVICE_SHIP_SEA_MONKEY_FILE, initResult);
 		
-		//Custom function libraries
+		// Custom function libraries
 		repoAddObjectFromFile(CUSTOM_LIBRARY_FILE, initResult);
 
-		//Password policy
+		// Password policy
 		repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
+		
+		// Archetypes
+		repoAddObjectFromFile(ARCHETYPE_APPROVAL_CASE_FILE, initResult);
+
 	}
 
 	protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
