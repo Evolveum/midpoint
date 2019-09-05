@@ -213,7 +213,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public String getIntent() {
 		return structuralObjectClassDefinition.getIntent();
 	}
-
+	
 	@Override
 	public ShadowKindType getKind() {
 		return structuralObjectClassDefinition.getKind();
@@ -369,6 +369,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@Override
 	public boolean matches(ShadowType shadowType) {
 		return structuralObjectClassDefinition.matches(shadowType);
+	}
+	
+	@Override
+	public boolean matchesWithoutIntent(ShadowType shadowType) {
+		return structuralObjectClassDefinition.matchesWithoutIntent(shadowType);
 	}
 
 	@Override

@@ -45,6 +45,7 @@ import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -300,9 +301,18 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		long beforeResourceReconTimestamp = clock.currentTimeMillis();
 		long afterResourceReconTimestamp;
 		long afterShadowReconTimestamp;
+		
+		boolean intentIsNull = false;
+	    PrismProperty<String> intentProperty = localCoordinatorTask.getExtensionPropertyOrClone(ModelConstants.INTENT_PROPERTY_NAME);
+	    String intent = null;
+	    if (intentProperty != null) {
+	    	intent = intentProperty.getValue().getValue();
+	    }
+	    intentIsNull = (intent == null);
+		
 		try {
 			if (isStage(stage, Stage.SECOND) && !performResourceReconciliation(resource, objectclassDef, reconResult,
-					localCoordinatorTask, partitionDefinition, workBucket, opResult)) {
+					localCoordinatorTask, partitionDefinition, workBucket, opResult, intentIsNull)) {
                 processInterruption(runResult, resource, localCoordinatorTask, opResult);
                 return runResult;
             }
@@ -511,7 +521,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	private boolean performResourceReconciliation(PrismObject<ResourceType> resource,
 			ObjectClassComplexTypeDefinition objectclassDef, 
 			ReconciliationTaskResult reconResult, RunningTask localCoordinatorTask,
-			TaskPartitionDefinitionType partitionDefinition, WorkBucketType workBucket, OperationResult result)
+			TaskPartitionDefinitionType partitionDefinition, WorkBucketType workBucket, OperationResult result, boolean intentIsNull)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 
@@ -527,6 +537,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		handler.setStopOnError(false);
 		handler.setEnableSynchronizationStatistics(true);
 		handler.setEnableActionsExecutedStatistics(true);
+		handler.setIntentIsNull(intentIsNull);
 		
 		localCoordinatorTask.setExpectedTotal(null);
 
