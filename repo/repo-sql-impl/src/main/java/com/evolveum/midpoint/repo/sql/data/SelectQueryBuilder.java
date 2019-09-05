@@ -127,7 +127,7 @@ public class SelectQueryBuilder {
 			}
 			sb.append(query).append(" OFFSET ").append(firstResult).append(" ROWS ");
 		}  else {
-			throw new IllegalArgumentException("Unsoported type of database: " + database);
+			throw new IllegalArgumentException("Unsupported type of database: " + database);
 		}
 		query = sb.toString();
 	}
@@ -148,12 +148,13 @@ public class SelectQueryBuilder {
 			}
 			sb.append(" FETCH NEXT ").append(maxResult).append(" ROWS ONLY ");
 		} else if(Database.ORACLE.equals(database)) {
+			sb.setLength(0);
 			sb.append("SELECT * FROM" + 
 					"( ") 
 							.append(query)
 						.append(") WHERE rownum <= ").append(maxResult).append(" ");
 		} else {
-			throw new IllegalArgumentException("Unsoported type of database: " + database);
+			throw new IllegalArgumentException("Unsupported type of database: " + database);
 		}
 		query = sb.toString();
 	}
