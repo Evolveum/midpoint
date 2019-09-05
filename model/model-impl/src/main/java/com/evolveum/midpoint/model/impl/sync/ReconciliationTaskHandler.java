@@ -318,7 +318,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
             }
 			afterResourceReconTimestamp = clock.currentTimeMillis();
 			if (isStage(stage, Stage.THIRD) && !performShadowReconciliation(resource, objectclassDef, reconStartTimestamp,
-					afterResourceReconTimestamp, reconResult, localCoordinatorTask, workBucket, opResult)) {
+					afterResourceReconTimestamp, reconResult, localCoordinatorTask, workBucket, opResult, intentIsNull)) {
                 processInterruption(runResult, resource, localCoordinatorTask, opResult);
                 return runResult;
             }
@@ -593,7 +593,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	private boolean performShadowReconciliation(final PrismObject<ResourceType> resource,
 			final ObjectClassComplexTypeDefinition objectclassDef,
 			long startTimestamp, long endTimestamp, ReconciliationTaskResult reconResult, RunningTask localCoordinatorTask,
-			WorkBucketType workBucket, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
+			WorkBucketType workBucket, OperationResult result, boolean intentIsNull) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
         boolean interrupted;
 
 		// find accounts
@@ -620,7 +620,14 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		final Holder<Long> countHolder = new Holder<>(0L);
 
 		ResultHandler<ShadowType> handler = (shadow, parentResult) -> {
-			if ((objectclassDef instanceof RefinedObjectClassDefinition) && !objectclassDef.matches(shadow.asObjectable())) {
+			boolean isMatches;
+			if (intentIsNull && objectclassDef instanceof RefinedObjectClassDefinition) {
+				isMatches = ((RefinedObjectClassDefinition)objectclassDef).matchesWithoutIntent(shadow.asObjectable());
+			} else {
+				isMatches = objectclassDef.matches(shadow.asObjectable());
+			}
+			
+			if ((objectclassDef instanceof RefinedObjectClassDefinition) && !isMatches) {
 				return true;
 			}
 
