@@ -54,7 +54,7 @@ public class TextAreaPanelFactory<T extends Serializable> extends AbstractGuiCom
 	protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
 		int size = 10;
 		if (FocusType.F_DESCRIPTION.equals(panelCtx.getDefinitionName())) {
-			size = 1;
+			size = 2;
 		}
 		return new TextAreaPanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), size);
 	}
