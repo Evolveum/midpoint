@@ -20,14 +20,10 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -50,8 +46,8 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/workItemsClaimable", action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL,
+@PageDescriptor(url = "/admin/claimableWorkItems", action = {
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                 label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
                 description = PageAdminWorkItems.AUTH_APPROVALS_ALL_DESCRIPTION),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL,

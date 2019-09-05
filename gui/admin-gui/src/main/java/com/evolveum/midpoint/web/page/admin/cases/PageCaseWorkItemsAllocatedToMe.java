@@ -30,11 +30,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkI
 /**
  * @author bpowers
  */
-@PageDescriptor(url = "/admin/caseWorkItemsAllocatedToMe", action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL,
+@PageDescriptor(url = "/admin/myWorkItems", action = {
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
                 label = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALLOCATED_TO_ME_LABEL,
                 description = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALLOCATED_TO_ME_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL,
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                 label = "PageCaseWorkItems.auth.caseWorkItemsAllocatedToMe.label",
                 description = "PageCaseWorkItems.auth.caseWorkItemsAllocatedToMe.description")})
 public class PageCaseWorkItemsAllocatedToMe extends PageCaseWorkItems {

@@ -207,7 +207,7 @@
                 <display>
                     <label>Manual cases</label> <!-- "Manual provisioning cases" is too long for the menu -->
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
-                    <pluralLabel>Manual cases</pluralLabel>
+                    <pluralLabel>All manual cases</pluralLabel>
                     <singularLabel>Manual case</singularLabel>
                     <tooltip>Manual provisioning cases</tooltip>
                 </display>
@@ -223,7 +223,7 @@
                 <display>
                     <label>Requests</label> <!-- "Operation requests" is too long for the menu -->
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
-                    <pluralLabel>Requests</pluralLabel>
+                    <pluralLabel>All requests</pluralLabel>
                     <singularLabel>Request</singularLabel>
                     <tooltip>Operation requests</tooltip>
                 </display>
@@ -239,7 +239,7 @@
                 <display>
                     <label>Approvals</label> <!-- "Approval cases" is too long for the menu -->
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
-                    <pluralLabel>Approvals</pluralLabel>
+                    <pluralLabel>All approvals</pluralLabel>
                     <singularLabel>Approval</singularLabel>
                     <tooltip>Approval cases</tooltip>
                 </display>

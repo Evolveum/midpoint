@@ -19,7 +19,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -35,20 +34,15 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.CaseWorkItemSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,14 +53,14 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OB
  */
 @PageDescriptor(
 		urls = {
-				@Url(mountUrl = "/admin/caseWorkItem", matchUrlForSecurity = "/admin/caseWorkItem")
+				@Url(mountUrl = "/admin/workItem", matchUrlForSecurity = "/admin/workItem")
 		},
 		encoder = OnePageParameterEncoder.class,
 		action = {
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALL_URL,
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
 				label = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_LABEL,
 				description = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_DESCRIPTION),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEM_URL,
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
 				label = "PageCaseWorkItem.auth.caseWorkItem.label",
 				description = "PageCaseWorkItem.auth.caseWorkItem.description")})
 public class PageCaseWorkItem extends PageAdminCaseWorkItems {

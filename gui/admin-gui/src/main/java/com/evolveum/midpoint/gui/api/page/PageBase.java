@@ -54,7 +54,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CounterManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -1724,9 +1723,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
-                AuthorizationConstants.AUTZ_UI_CASES_ALLOCATED_TO_ME_URL, AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL, AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_ALL_WORK_ITEMS_URL,
+                AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL,
+                AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_URL,
+                AuthorizationConstants.AUTZ_UI_CASE_URL,
+                AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_CASES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             if (getWorkflowManager().isEnabled()) {
                 items.add(createWorkItemsItems());
