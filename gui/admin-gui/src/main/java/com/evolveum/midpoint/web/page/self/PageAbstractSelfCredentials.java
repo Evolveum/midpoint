@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -162,7 +162,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                 }
 
                 final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-                        .item(ShadowType.F_RESOURCE).resolve()
+                        .item(ShadowType.F_RESOURCE_REF).resolve()
                         .build();
                 List<PrismReferenceValue> values = reference.getValues();
                 for (PrismReferenceValue value : values) {
@@ -406,7 +406,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         try {
             RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
-                    shadow.asObjectable().getResource().asPrismObject(),
+                    shadow.asObjectable().getResourceRef().asReferenceValue().getObject(),
                     AuthorizationPhaseType.REQUEST, task, result);
 
             if (rOCDef != null && !CollectionUtils.isEmpty(rOCDef.getPasswordOutbound())){
@@ -422,7 +422,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     private boolean hasPasswordCapability(PrismObject<ShadowType> shadow) {
 
     	ShadowType shadowType = shadow.asObjectable();
-    	ResourceType resource = shadowType.getResource();
+    	ResourceType resource = (ResourceType) shadowType.getResourceRef().asReferenceValue().getObject().asObjectable();
     	ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
     	
          return ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType);

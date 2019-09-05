@@ -20,13 +20,16 @@ import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.MutableDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SchemaMigration;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -69,6 +72,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
     protected boolean experimental = false;
     protected boolean elaborate = false;
     private Map<QName,Object> annotations;
+    private List<SchemaMigration> schemaMigrations = null;
 
     /**
      * whether an item is inherited from a supertype (experimental feature)
@@ -286,6 +290,17 @@ public abstract class DefinitionImpl implements MutableDefinition {
 		annotations.put(qname, value);
 	}
 
+	public List<SchemaMigration> getSchemaMigrations() {
+		return schemaMigrations;
+	}
+
+	public void addSchemaMigration(SchemaMigration schemaMigration) {
+		if (schemaMigrations == null) {
+			schemaMigrations = new ArrayList<>();
+		}
+		schemaMigrations.add(schemaMigration);
+	}
+
 	public abstract void revive(PrismContext prismContext);
 
 	protected void copyDefinitionData(DefinitionImpl clone) {
@@ -305,6 +320,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
 		if (this.annotations != null) {
 			clone.annotations = new HashMap<>(this.annotations);
 		}
+		clone.schemaMigrations = this.schemaMigrations;
     }
 
 	@SuppressWarnings("ConstantConditions")
@@ -346,9 +362,16 @@ public abstract class DefinitionImpl implements MutableDefinition {
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
 		sb.append(toString());
+		extendDumpHeader(sb);
 		return sb.toString();
 	}
 
+	protected void extendDumpHeader(StringBuilder sb) {
+		if (getSchemaMigrations() != null && !getSchemaMigrations().isEmpty()) {
+			sb.append(", ").append(getSchemaMigrations().size()).append(" schema migrations");
+		}
+	}
+	
 	/**
 	 * Return a human readable name of this class suitable for logs. (e.g. "PPD")
 	 */

@@ -72,7 +72,7 @@ public class TestParseObjectTemplate {
 	@Test
 	public void testParseUserTemplateFileSingle() throws Exception {
 		single("testParseUserTemplateFileSingle", USER_TEMPLATE_FILE,
-				new QName(SchemaConstantsGenerated.NS_COMMON, "userTemplate"));
+				new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
 	}
 
 	@Test
@@ -129,7 +129,7 @@ public class TestParseObjectTemplate {
 	@Test
 	public void testParseUserTemplateFileRoundTrip() throws Exception {
 		roundTrip("testParseUserTemplateFileRoundTrip", USER_TEMPLATE_FILE,
-				new QName(SchemaConstantsGenerated.NS_COMMON, "userTemplate"));
+				new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
 	}
 	
 	@Test

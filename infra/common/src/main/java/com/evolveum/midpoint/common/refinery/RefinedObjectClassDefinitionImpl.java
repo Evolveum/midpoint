@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -514,7 +514,17 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		return password.getFetchStrategy();
 	}
 
+	
 	@Override
+	public ObjectReferenceType getSecurityPolicyRef() {
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			return null;
+		}
+		return schemaHandlingObjectTypeDefinitionType.getSecurityPolicyRef();
+	}
+	
+	@Override
+	@Deprecated
 	public ObjectReferenceType getPasswordPolicy() {
 		ResourcePasswordDefinitionType password = getPasswordDefinition();
 		if (password == null || password.getPasswordPolicyRef() == null){
@@ -802,11 +812,14 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		return originalObjectClassDefinition.isIgnored();
 	}
 	
-	
-
 	@Override
 	public ItemProcessing getProcessing() {
 		return originalObjectClassDefinition.getProcessing();
+	}
+
+	@Override
+	public List<SchemaMigration> getSchemaMigrations() {
+		return originalObjectClassDefinition.getSchemaMigrations();
 	}
 
 	@Override
@@ -911,9 +924,6 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		RefinedObjectClassDefinition rObjectClassDef = parseRefinedObjectClass(entTypeDefType,
 				resourceType, rSchema, prismContext, kind, intent, kind.value(), kind.value() + " type definition '"+intent+"' in " + contextDescription);
 
-        if (entTypeDefType.getPagedSearches() != null) {
-            LOGGER.warn("PagedSearches element is no more supported and is ignored. Use PagedSearchCapabilityType instead. In {}", resourceType);
-        }
 		return rObjectClassDef;
 	}
 
@@ -929,33 +939,13 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 			RefinedObjectClassDefinition rAccountDef, PrismContext prismContext) throws SchemaException {
 		ResourceObjectPattern resourceObjectPattern = new ResourceObjectPattern(rAccountDef);
 		SearchFilterType filterType = patternType.getFilter();
-		if (filterType != null) {
+		if (filterType == null) {
+			throw new SchemaException("No filter in resource object pattern");
+		} else {
 			ObjectFilter filter = prismContext.getQueryConverter().parseFilter(filterType, rAccountDef.getObjectDefinition());
 			resourceObjectPattern.addFilter(filter);
 			return resourceObjectPattern;
 		}
-
-		// Deprecated
-		if (patternType.getName() != null) {
-			RefinedAttributeDefinition attributeDefinition = rAccountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
-			if (attributeDefinition == null) {
-				throw new SchemaException("No ICF NAME attribute in schema as specified in the definition of protected objects (this is deprecated syntax anyway, convert it to filter)");
-			}
-			ResourceAttribute<String> attr = attributeDefinition.instantiate();
-			attr.setRealValue(patternType.getName());
-			resourceObjectPattern.addIdentifier(attr);
-		} else if (patternType.getUid() != null) {
-			RefinedAttributeDefinition attributeDefinition = rAccountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"uid"));
-			if (attributeDefinition == null) {
-				throw new SchemaException("No ICF UID attribute in schema as specified in the definition of protected objects (this is deprecated syntax anyway, convert it to filter)");
-			}
-			ResourceAttribute<String> attr = attributeDefinition.instantiate();
-			attr.setRealValue(patternType.getUid());
-			resourceObjectPattern.addIdentifier(attr);
-		} else {
-			throw new SchemaException("No filter and no deprecated name/uid in resource object pattern");
-		}
-		return resourceObjectPattern;
 	}
 
 	public static RefinedObjectClassDefinition parseFromSchema(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,

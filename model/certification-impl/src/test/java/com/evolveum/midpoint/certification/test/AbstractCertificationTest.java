@@ -219,6 +219,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		recomputeUser(USER_JACK_OID, initTask, initResult);
 		recomputeUser(USER_ELAINE_OID, initTask, initResult);
 		recomputeUser(USER_GUYBRUSH_OID, initTask, initResult);
+		recomputeUser(USER_ADMINISTRATOR_OID, initTask, initResult);
 		recomputeFocus(RoleType.class, ROLE_CEO_OID, initTask, initResult);
 		recomputeFocus(RoleType.class, ROLE_COO_OID, initTask, initResult);
 		recomputeFocus(RoleType.class, ROLE_CTO_OID, initTask, initResult);

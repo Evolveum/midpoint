@@ -1416,6 +1416,11 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:schemaMigration>
+            		<a:element>tns:markedAsDelegate</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1425,15 +1430,6 @@
             <xsd:element name="markedAsReduce" type="xsd:int" minOccurs="1" default="0"/>
             <xsd:element name="markedAsReduceAndRemedied" type="xsd:int" minOccurs="1" default="0"/>
             <xsd:element name="markedAsNotDecide" type="xsd:int" minOccurs="1" default="0"/>
-            <xsd:element name="markedAsDelegate" type="xsd:int" minOccurs="1" default="0">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.6</a:deprecatedSince>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
             <xsd:element name="withoutResponse" type="xsd:int" minOccurs="1" default="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>

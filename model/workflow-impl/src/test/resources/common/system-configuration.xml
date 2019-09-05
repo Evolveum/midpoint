@@ -32,103 +32,58 @@
             <append>true</append>
         </appender>
     </logging>
-    <notificationConfiguration>
-        <handler>
-            <simpleUserNotifier>
-                <recipientExpression>
-                    <value>recipient@evolveum.com</value>
-                </recipientExpression>
-                <transport>dummy:simpleUserNotifier</transport>
-            </simpleUserNotifier>
-        </handler>
-        <handler>
-            <simpleWorkflowNotifier>
-                <category>workflowProcessEvent</category>
-                <recipientExpression>
-                    <value>recipient@evolveum.com</value>
-                </recipientExpression>
-                <showTechnicalInformation>true</showTechnicalInformation>
-                <transport>dummy:simpleWorkflowNotifier-Processes</transport>
-            </simpleWorkflowNotifier>
-        </handler>
-        <handler>
-            <simpleWorkflowNotifier>
-                <category>workItemEvent</category>
-                <recipientExpression>
-                    <value>recipient@evolveum.com</value>
-                </recipientExpression>
-                <transport>dummy:simpleWorkflowNotifier-WorkItems</transport>
-            </simpleWorkflowNotifier>
-        </handler>
-        <mail>
-            <redirectToFile>target/mail-notifications.log</redirectToFile>
-        </mail>
-    </notificationConfiguration>
-    <workflowConfiguration>
-        <approverCommentsFormatting>
-            <value>
-                <script>
-                    <code>performer.name + ' :: ' + output.comment</code>
-                </script>
-            </value>
-            <condition>
-                <script>
-                    <code>output.comment != null &amp;&amp; !output.comment.isEmpty()</code>
-                </script>
-            </condition>
-        </approverCommentsFormatting>
-        <primaryChangeProcessor>
-            <enabled>true</enabled>
-            <policyRuleBasedAspect>
-                <enabled>true</enabled>			<!-- changed depending on test configuration -->
-            </policyRuleBasedAspect>
-            <addAssociationAspect>
-                <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
-                <applicabilityCondition>
-                    <script>
-                        <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-                            import com.evolveum.midpoint.schema.*
+	<notificationConfiguration>
+		<handler>
+			<simpleWorkflowNotifier>
+				<category>workflowProcessEvent</category>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:simpleWorkflowNotifier-Processes</transport>
+			</simpleWorkflowNotifier>
+		</handler>
+		<handler>
+			<simpleWorkflowNotifier>
+				<category>workItemEvent</category>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:simpleWorkflowNotifier-WorkItems</transport>
+			</simpleWorkflowNotifier>
+		</handler>
+		<handler>
+			<simpleTaskNotifier>
+				<expressionFilter>
+					<script>
+						<!-- MID-4121 -->
+						<code>import com.evolveum.midpoint.wf.impl.assignments.TestAssignmentsAdvanced
 
-                            log.info('@@@ applicability condition evaluated for:', itemToApprove)
-                            log.info('@@@ itemToApprove = {}', itemToApprove)
-                            log.info('@@@ association = {}', association)
-                            log.info('@@@ shadowDiscriminator = {}', shadowDiscriminator)
-                            log.info('@@@ modelContext = {}', modelContext)
-
-                            noFetch = SelectorOptions.createCollection(GetOperationOptions.createNoFetch())
-                            shadow = midpoint.getObject(ShadowType.class, association.shadowRef.oid)
-                            shadowName = basic.stringify(shadow.name)
-                            log.info('@@@ associated object name = {}', shadowName)
-
-                            return !shadowName.contains("guests")
-                        </code>
-                    </script>
-                </applicabilityCondition>
-            </addAssociationAspect>
+						try {
+							return event.isSuccess()
+						} catch (Exception e) {
+							TestAssignmentsAdvanced.exception = e
+							throw e
+						}
+						</code>
+					</script>
+				</expressionFilter>
+			</simpleTaskNotifier>
+		</handler>
+	</notificationConfiguration>
+	<workflowConfiguration>
+		<approverCommentsFormatting>
+			<value>
+				<script>
+					<code>performer.name + ' :: ' + output.comment</code>
+				</script>
+			</value>
+			<condition>
+				<script>
+					<code>output.comment != null &amp;&amp; !output.comment.isEmpty()</code>
+				</script>
+			</condition>
+		</approverCommentsFormatting>
+		<primaryChangeProcessor>
         </primaryChangeProcessor>
-        <generalChangeProcessor>
-            <enabled>false</enabled>
-            <scenario>
-                <name>primaryScenario</name>
-                <activationCondition>
-                    <script><code>context.getState() == com.evolveum.midpoint.model.api.context.ModelState.PRIMARY</code></script>
-                </activationCondition>
-                <processName>MyGreatPrimaryProcess</processName>
-            </scenario>
-            <scenario>
-                <name>secondaryScenario</name>
-                <activationCondition>
-                    <script>
-                        <code><![CDATA[
-                                        context.getState() == com.evolveum.midpoint.model.api.context.ModelState.SECONDARY &&
-                                        context.findProjectionContext(new com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator("10000000-0000-0000-0000-000000000004", com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT, null)) != null
-                                        ]]></code>
-                    </script>
-                </activationCondition>
-                <processName>ApprovingDummyResourceChangesProcess</processName>
-                <beanName>approvingDummyResourceChangesScenarioBean</beanName>
-            </scenario>
-        </generalChangeProcessor>
     </workflowConfiguration>
 </systemConfiguration>

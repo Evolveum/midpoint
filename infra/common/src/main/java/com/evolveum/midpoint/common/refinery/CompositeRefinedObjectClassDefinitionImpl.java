@@ -118,6 +118,10 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return structuralObjectClassDefinition.getProcessing();
 	}
 
+	public List<SchemaMigration> getSchemaMigrations() {
+		return structuralObjectClassDefinition.getSchemaMigrations();
+	}
+
 	@Override
 	public boolean isEmphasized() {
 		return structuralObjectClassDefinition.isEmphasized();
@@ -347,8 +351,13 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
+	@Deprecated
 	public ObjectReferenceType getPasswordPolicy() {
 		return structuralObjectClassDefinition.getPasswordPolicy();
+	}
+
+	public ObjectReferenceType getSecurityPolicyRef() {
+		return structuralObjectClassDefinition.getSecurityPolicyRef();
 	}
 
 	@Override

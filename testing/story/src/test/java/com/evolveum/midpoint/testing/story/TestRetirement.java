@@ -567,13 +567,13 @@ public class TestRetirement extends AbstractStoryTest {
 	private void assertGroupMembers(PrismObject<OrgType> org, String... members) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-		assertAttribute(resourceOpenDj, groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
+		assertAttribute(groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
 	}
 
 	private void assertNoGroupMembers(PrismObject<OrgType> org) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-		assertNoAttribute(resourceOpenDj, groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"));
+		assertNoAttribute(groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"));
 	}
 
 	private void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {

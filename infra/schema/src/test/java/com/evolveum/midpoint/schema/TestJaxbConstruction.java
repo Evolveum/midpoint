@@ -164,14 +164,15 @@ public class TestJaxbConstruction {
         ShadowType accountShadowType = new ShadowType();
         prismContext.adopt(accountShadowType);
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
-        userType.getLink().add(accountShadowType);
+        ObjectReferenceType accountRef1 = new ObjectReferenceType();
+        accountRef1.asReferenceValue().setObject(accountShadowType.asPrismObject());
+		userType.getLinkRef().add(accountRef1);
         //value still should be only one... (reference was only resolved)
         assertEquals("2/ Wrong accountRef values", 1, user.findReference(UserType.F_LINK_REF).getValues().size());
 
-		accountShadowType = new ShadowType();
-        prismContext.adopt(accountShadowType);
-		accountShadowType.setOid(USER_ACCOUNT_REF_2_OID);
-		userType.getLink().add(accountShadowType);
+		ObjectReferenceType accountRef2 = new ObjectReferenceType();
+		accountRef2.setOid(USER_ACCOUNT_REF_2_OID);
+		userType.getLinkRef().add(accountRef2);
 
         assertEquals("3/ Wrong accountRef values", 2, user.findReference(UserType.F_LINK_REF).getValues().size());
 
@@ -219,12 +220,15 @@ public class TestJaxbConstruction {
 
 
 		ShadowType accountShadowType = new ShadowType();
+        prismContext.adopt(accountShadowType);
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
-        userType.getLink().add(accountShadowType);
+        ObjectReferenceType accountRef1 = new ObjectReferenceType();
+        accountRef1.asReferenceValue().setObject(accountShadowType.asPrismObject());
+		userType.getLinkRef().add(accountRef1);
 
-		accountShadowType = new ShadowType();
-		accountShadowType.setOid(USER_ACCOUNT_REF_2_OID);
-		userType.getLink().add(accountShadowType);
+		ObjectReferenceType accountRef2 = new ObjectReferenceType();
+		accountRef2.setOid(USER_ACCOUNT_REF_2_OID);
+		userType.getLinkRef().add(accountRef2);
 
 		// WHEN
 		prismContext.adopt(userType);

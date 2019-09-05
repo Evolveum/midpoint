@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.IdentityHashMap;
+import java.util.List;
 
 /**
  *
@@ -197,6 +198,8 @@ public interface Definition extends Serializable, DebugDumpable, Revivable, Clon
 	 */
 	<A> A getAnnotation(QName qname);
 	<A> void setAnnotation(QName qname, A value);
+	
+	List<SchemaMigration> getSchemaMigrations();
 
 	@NotNull
 	Definition clone();

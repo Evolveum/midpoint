@@ -336,14 +336,13 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         if (config == null) {
             return new ApprovalSchemaType();
         } else {
-            return getSchema(config.getApprovalSchema(), config.getApproverRef(), config.getApproverExpression(),
-                    config.getAutomaticallyApproved(), prismContext);
+            return getSchema(config.getApprovalSchema(), config.getApproverRef(), config.getApproverExpression(), prismContext);
         }
     }
 
     @NotNull
     private ApprovalSchemaType getSchema(ApprovalSchemaType schema, List<ObjectReferenceType> approverRef,
-            List<ExpressionType> approverExpression, ExpressionType automaticallyApproved, @NotNull PrismContext prismContext) {
+            List<ExpressionType> approverExpression, @NotNull PrismContext prismContext) {
         if (schema != null) {
             return schema;
         } else {
@@ -351,7 +350,6 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             ApprovalStageDefinitionType stageDef = new ApprovalStageDefinitionType(prismContext);
             stageDef.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approverRef));
             stageDef.getApproverExpression().addAll(approverExpression);
-            stageDef.setAutomaticallyApproved(automaticallyApproved);
             schema.getStage().add(stageDef);
             return schema;
         }

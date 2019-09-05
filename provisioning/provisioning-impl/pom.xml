@@ -167,6 +167,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint</groupId>
+			<artifactId>midpoint-localization</artifactId>
+			<version>4.0-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-quartz-impl</artifactId>
 			<version>4.0-SNAPSHOT</version>

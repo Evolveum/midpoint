@@ -103,6 +103,14 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationStringProperty(configuration, properties, PROPERTY_JDBC_URL);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_JDBC_USERNAME);
 
+        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_SKIP_EXPLICIT_SCHEMA_VALIDATION);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_MISSING_SCHEMA_ACTION);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_UPGRADEABLE_SCHEMA_ACTION);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_INCOMPATIBLE_SCHEMA_ACTION);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_SCHEMA_VERSION_IF_MISSING);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_SCHEMA_VERSION_OVERRIDE);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_SCHEMA_VARIANT);
+
         updateConfigurationStringProperty(configuration, properties, PROPERTY_TRANSACTION_ISOLATION);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_LOCK_FOR_UPDATE_VIA_SQL);
@@ -117,6 +125,8 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_USE_ZIP);
         updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MIN_POOL_SIZE);
         updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MAX_POOL_SIZE);
+
+        updateConfigurationIntegerProperty(configuration, properties, PROPERTY_TEXT_INFO_COLUMN_SIZE);
 
         // Dirty hack, in order to make DataSourceTest happy: if none of database, driver, dialect, embedded is
         // present but data source is, let us assume we use H2.

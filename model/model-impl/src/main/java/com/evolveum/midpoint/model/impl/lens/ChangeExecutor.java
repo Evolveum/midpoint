@@ -592,11 +592,6 @@ public class ChangeExecutor {
 				}
 			}
 
-			// deprecated
-			if (BooleanUtils.isTrue(archetypePolicy.isOidNameBoundMode())) {
-				String name = objectNew.asObjectable().getName().getOrig();
-				focusContext.setOid(name);
-			}
 		}
 	}
 

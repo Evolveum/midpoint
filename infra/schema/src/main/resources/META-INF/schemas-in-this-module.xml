@@ -64,9 +64,6 @@ Notes:
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/audit-3" uri="../xml/ns/public/common/audit-3.xsd" />
 
-    <!-- gui -->
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1" uri="../xml/ns/public/gui/admin-1.xsd" />
-
     <!-- provisioning -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" uri="../xml/ns/public/connector/icf-1/resource-schema-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" uri="../xml/ns/public/connector/icf-1/connector-schema-3.xsd" />
@@ -76,13 +73,6 @@ Notes:
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-3" uri="../xml/ns/public/model/import/extension-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3" uri="../xml/ns/public/model/scripting/extension-3.xsd" />
-
-    <!-- Experimental XSD schema file locations -->
-    <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />
-
-    <system systemId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd" />
-    <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd" />
 
     <!-- Bundled standard schemas (duplicated in prism catalog files) -->
     <public publicId="datatypes" uri="../xml/ns/standard/datatypes.dtd" />

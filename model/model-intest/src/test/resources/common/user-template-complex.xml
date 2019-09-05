@@ -153,9 +153,9 @@
 				<path>givenName</path>
 			</source>
 			<expression>
+				<allowEmptyValues>true</allowEmptyValues>
 				<script>
 					<relativityMode>absolute</relativityMode>
-					<allowEmptyValues>true</allowEmptyValues>
 					<code>
 						if (basic.stringify(givenName) == 'JACKIE') {
 							[ 123L ]

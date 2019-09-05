@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<account oid="20000000-0000-0000-3333-000000000047"
+<shadow oid="20000000-0000-0000-3333-000000000047"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -29,4 +29,4 @@
 		<icfs:uid>jdoe</icfs:uid>
 		<icfs:name>jdoe</icfs:name>
 	</attributes>
-</account>
+</shadow>

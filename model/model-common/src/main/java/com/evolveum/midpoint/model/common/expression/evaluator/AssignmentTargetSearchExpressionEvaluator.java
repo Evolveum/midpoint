@@ -91,7 +91,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 		if (assignmentProperties != null) {
 			return assignmentProperties.getRelation();
 		} else {
-			return expressionEvaluatorType.getRelation();
+			return null;
 		}
 	}
 

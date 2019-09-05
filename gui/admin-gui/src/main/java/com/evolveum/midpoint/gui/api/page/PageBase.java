@@ -54,7 +54,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CounterManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -1682,7 +1681,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
                 AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+                AuthorizationConstants.AUTZ_UI_USERS_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createUsersItems());
         }
 
@@ -1694,25 +1693,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
                 AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+                AuthorizationConstants.AUTZ_UI_ROLES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createRolesItems());
         }
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_URL,
                 AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+                AuthorizationConstants.AUTZ_UI_SERVICES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createServicesItems());
         }
         
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
-                AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+                AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_ARCHETYPES_VIEW_URL)) {
             items.add(createArchetypesItems());
         }
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
                 AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL, AuthorizationConstants.AUTZ_UI_RESOURCE_URL,
-                AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL)) {
+                AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL)) {
             items.add(createResourcesItems());
         }
         //TODO uncomment after ValuePolicies pages are finished
@@ -1723,10 +1723,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL,
-                AuthorizationConstants.AUTZ_UI_CASES_ALLOCATED_TO_ME_URL, AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL, AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
-                AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
+                AuthorizationConstants.AUTZ_UI_ALL_WORK_ITEMS_URL,
+                AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL,
+                AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_URL,
+                AuthorizationConstants.AUTZ_UI_CASE_URL,
+                AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_VIEW_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             if (getWorkflowManager().isEnabled()) {
                 items.add(createWorkItemsItems());
             }
@@ -1862,8 +1867,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        addMenuItem(item, "PageAdmin.menu.top.cases.listAll", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class);
-        addCollectionsMenuItems(item.getItems(), CaseType.COMPLEX_TYPE, PageCases.class);
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_UI_CASES_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            addMenuItem(item, "PageAdmin.menu.top.cases.listAll", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class);
+        }
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_UI_CASES_VIEW_URL,
+                AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            addCollectionsMenuItems(item.getItems(), CaseType.COMPLEX_TYPE, PageCases.class);
+        }
 
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
@@ -1897,24 +1908,28 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.resources"), null);
 
-        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"),
-                GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResources.class){
-            private static final long serialVersionUID = 1L;
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
+                AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"),
+                    GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON, PageResources.class) {
+                private static final long serialVersionUID = 1L;
 
-            @Override
-            public boolean isMenuActive(WebPage page) {
-                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
-                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
-                    return false;
-                } else {
-                    return super.isMenuActive(page);
+                @Override
+                public boolean isMenuActive(WebPage page) {
+                    if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                            && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null) {
+                        return false;
+                    } else {
+                        return super.isMenuActive(page);
+                    }
                 }
-            }
-        };
-        item.getItems().add(menu);
-
-        addCollectionsMenuItems(item.getItems(), ResourceType.COMPLEX_TYPE, PageResources.class);
-
+            };
+            item.getItems().add(menu);
+        }
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL,
+                AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            addCollectionsMenuItems(item.getItems(), ResourceType.COMPLEX_TYPE, PageResources.class);
+        }
         createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.resources.view", PageResource.class);
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.resources.new",
                 "PageAdmin.menu.top.resources.edit", PageResourceWizard.class, false);
@@ -2067,23 +2082,30 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.users"), null);
 
-        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.users.list"),
-                GuiStyleConstants.CLASS_OBJECT_USER_ICON, PageUsers.class){
-            private static final long serialVersionUID = 1L;
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
+                AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
 
-            @Override
-            public boolean isMenuActive(WebPage page) {
-                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
-                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
-                    return false;
-                } else {
-                    return super.isMenuActive(page);
+            MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.users.list"),
+                    GuiStyleConstants.CLASS_OBJECT_USER_ICON, PageUsers.class) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isMenuActive(WebPage page) {
+                    if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                            && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null) {
+                        return false;
+                    } else {
+                        return super.isMenuActive(page);
+                    }
                 }
-            }
-        };
-        item.getItems().add(menu);
-        addCollectionsMenuItems(item.getItems(), UserType.COMPLEX_TYPE, PageUsers.class);
+            };
+            item.getItems().add(menu);
+        }
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_USERS_VIEW_URL)) {
 
+            addCollectionsMenuItems(item.getItems(), UserType.COMPLEX_TYPE, PageUsers.class);
+        }
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.new",
                 "PageAdmin.menu.top.users.edit", PageUser.class, true);
         return item;
@@ -2213,22 +2235,29 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.roles"), null);
 
-        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"),
-                GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, PageRoles.class){
-            private static final long serialVersionUID = 1L;
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
+                AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
 
-            @Override
-            public boolean isMenuActive(WebPage page) {
-                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
-                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
-                    return false;
-                } else {
-                    return super.isMenuActive(page);
+            MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"),
+                    GuiStyleConstants.CLASS_OBJECT_ROLE_ICON, PageRoles.class) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isMenuActive(WebPage page) {
+                    if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                            && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null) {
+                        return false;
+                    } else {
+                        return super.isMenuActive(page);
+                    }
                 }
-            }
-        };
-        item.getItems().add(menu);
-        addCollectionsMenuItems(item.getItems(), RoleType.COMPLEX_TYPE, PageRoles.class);
+            };
+            item.getItems().add(menu);
+        }
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_ROLES_VIEW_URL)) {
+            addCollectionsMenuItems(item.getItems(), RoleType.COMPLEX_TYPE, PageRoles.class);
+        }
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.roles.new", "PageAdmin.menu.top.roles.edit",
                 PageRole.class, true);
@@ -2240,23 +2269,28 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON_COLORED,
                 createStringResource("PageAdmin.menu.top.services"), null);
 
-        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.services.list"),
-                GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, PageServices.class){
-            private static final long serialVersionUID = 1L;
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_URL,
+                AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.services.list"),
+                    GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON, PageServices.class) {
+                private static final long serialVersionUID = 1L;
 
-            @Override
-            public boolean isMenuActive(WebPage page) {
-                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
-                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
-                    return false;
-                } else {
-                    return super.isMenuActive(page);
+                @Override
+                public boolean isMenuActive(WebPage page) {
+                    if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                            && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null) {
+                        return false;
+                    } else {
+                        return super.isMenuActive(page);
+                    }
                 }
-            }
-        };
-        item.getItems().add(menu);
-        addCollectionsMenuItems(item.getItems(), ServiceType.COMPLEX_TYPE, PageServices.class);
-
+            };
+            item.getItems().add(menu);
+        }
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_SERVICES_VIEW_URL)) {
+            addCollectionsMenuItems(item.getItems(), ServiceType.COMPLEX_TYPE, PageServices.class);
+        }
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
                 PageService.class, true);
 
@@ -2266,23 +2300,28 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private MainMenuItem createArchetypesItems() {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON,
                 createStringResource("PageAdmin.menu.top.archetypes"), null);
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
+                AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.archetypes.list"),
+                    GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class) {
+                private static final long serialVersionUID = 1L;
 
-        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.archetypes.list"),
-                GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isMenuActive(WebPage page) {
-                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
-                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
-                    return false;
-                } else {
-                    return super.isMenuActive(page);
+                @Override
+                public boolean isMenuActive(WebPage page) {
+                    if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                            && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null) {
+                        return false;
+                    } else {
+                        return super.isMenuActive(page);
+                    }
                 }
-            }
-        };
-        item.getItems().add(menu);
-        addCollectionsMenuItems(item.getItems(), ArchetypeType.COMPLEX_TYPE, PageArchetypes.class);
+            };
+            item.getItems().add(menu);
+        }
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_ARCHETYPES_VIEW_URL)) {
+            addCollectionsMenuItems(item.getItems(), ArchetypeType.COMPLEX_TYPE, PageArchetypes.class);
+        }
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.archetypes.new", "PageAdmin.menu.top.archetypes.edit",
                 PageArchetype.class, true);

@@ -279,6 +279,7 @@ public final class PrismForJAXBUtil {
                 reference.getValue().setTargetType(value.getTargetType());
                 reference.getValue().setFilter(value.getFilter());
                 reference.getValue().setDescription(value.getDescription());
+                reference.getValue().setObject(value.getObject());
             }
         }
     }
@@ -350,6 +351,14 @@ public final class PrismForJAXBUtil {
 			// This should not happen. Code generator and compiler should take care of that.
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
+	}
+	
+	public static Objectable getReferenceObjectable(PrismReferenceValue rval) {
+		PrismObject object = rval.getObject();
+		if (object == null) {
+			return null;
+		}
+		return object.asObjectable();
 	}
 
     public static void setReferenceFilterClauseXNode(PrismReferenceValue rval, SearchFilterType filterType) {

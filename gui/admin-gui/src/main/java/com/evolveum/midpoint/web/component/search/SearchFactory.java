@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,8 +115,7 @@ public class SearchFactory {
                 ItemPath.create(ShadowType.F_DEAD),
                 ItemPath.create(ShadowType.F_INTENT),
                 ItemPath.create(ShadowType.F_EXISTS),
-                ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION),
-                ItemPath.create(ShadowType.F_FAILED_OPERATION_TYPE)
+                ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)
         ));
         SEARCHABLE_OBJECTS.put(TaskType.class, Arrays.asList(
                 ItemPath.create(TaskType.F_TASK_IDENTIFIER),

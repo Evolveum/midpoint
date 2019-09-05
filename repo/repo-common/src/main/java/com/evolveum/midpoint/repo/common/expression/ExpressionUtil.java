@@ -1260,6 +1260,10 @@ public class ExpressionUtil {
 	}
 
 	public static <T, V extends PrismValue> V convertToPrismValue(T value, ItemDefinition definition, String contextDescription, PrismContext prismContext) throws ExpressionEvaluationException {
+		if (value == null) {
+			return null;
+		}
+		
 		if (definition instanceof PrismReferenceDefinition) {
 			return (V) ((ObjectReferenceType) value).asReferenceValue();
 			

@@ -50,7 +50,10 @@ import java.util.List;
                 description = "PageAdminRoles.auth.roleAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_URL,
                 label = "PageRoles.auth.roles.label",
-                description = "PageRoles.auth.roles.description")})
+                description = "PageRoles.auth.roles.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_VIEW_URL,
+                label = "PageRoles.auth.roles.view.label",
+                description = "PageRoles.auth.roles.view.description")})
 public class PageRoles extends PageAdminObjectList<RoleType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRoles.class);

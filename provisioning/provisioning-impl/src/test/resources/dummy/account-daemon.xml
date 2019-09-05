@@ -18,7 +18,7 @@
 <!-- This simulates shadow of a protected account "daemon" that somehow sneaked
      into the repository. -->
 
-<account oid="c0c010c0-dddd-dddd-dddd-dddddddae604"
+<shadow oid="c0c010c0-dddd-dddd-dddd-dddddddae604"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -32,4 +32,4 @@
 		<icfs:uid>daemon</icfs:uid>
 		<icfs:name>daemon</icfs:name>
 	</attributes>
-</account>
+</shadow>

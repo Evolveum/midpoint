@@ -44,7 +44,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
@@ -77,6 +76,8 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
 	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
+	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	protected static final String USER_JACK_USERNAME = "jack";
 
 	protected static final File ROLE_APPROVER_FILE = new File(COMMON_DIR, "041-role-approver.xml");
 	protected static final File ARCHETYPE_MANUAL_PROVISIONING_CASE_FILE = new File(COMMON_DIR, "023-archetype-manual-provisioning-case.xml");

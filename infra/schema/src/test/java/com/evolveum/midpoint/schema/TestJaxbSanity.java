@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -317,7 +317,7 @@ public class TestJaxbSanity {
         getPrismContext().adopt(config);
 
         //WHEN
-        config.setGlobalPasswordPolicyRef(null);
+        config.setGlobalSecurityPolicyRef(null);
 
         //THEN
         SystemConfigurationType configNew = new SystemConfigurationType();
@@ -326,8 +326,8 @@ public class TestJaxbSanity {
         ref.setOid("1234");
         ref.setType(ValuePolicyType.COMPLEX_TYPE);
 
-        configNew.setGlobalPasswordPolicyRef(ref);
-        configNew.setGlobalPasswordPolicyRef(null);
+        configNew.setGlobalSecurityPolicyRef(ref);
+        configNew.setGlobalSecurityPolicyRef(null);
 
         getPrismContext().adopt(configNew);
 

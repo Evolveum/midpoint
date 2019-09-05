@@ -1,0 +1,45 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	  oid="00000001-d34d-b33f-f00d-M00000000001">
+	<name>Metarole 1 'default'</name>
+	<description>Treats assignments and modifications in the default way (but with specific approver/owner relations)</description>
+	<inducement>
+		<policyRule>
+			<policyConstraints>
+				<assignment>
+					<operation>add</operation>		<!-- applies to all "add assignment" operations of this metarole-bearer as the target -->
+					<relation>q:any</relation>
+				</assignment>
+			</policyConstraints>
+			<policyActions>
+				<approval>
+					<compositionStrategy>
+						<order>1</order>
+					</compositionStrategy>
+					<approvalSchema>
+						<stage>
+							<approverRelation>special-approver</approverRelation>
+							<outcomeIfNoApprovers>skip</outcomeIfNoApprovers>		<!-- so e.g. for role4b no approval process is started -->
+						</stage>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+		</policyRule>
+	</inducement>
+</role>

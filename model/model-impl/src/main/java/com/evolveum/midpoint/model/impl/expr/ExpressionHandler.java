@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -38,6 +39,8 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +56,8 @@ import java.util.Collection;
  */
 @Component
 public class ExpressionHandler {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandler.class);
 
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 	@Autowired private ExpressionFactory expressionFactory;
@@ -128,15 +133,14 @@ public class ExpressionHandler {
 	}
 
 	// TODO: refactor - this method is also in SchemaHandlerImpl
-	private ResourceType resolveResource(ShadowType shadow, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException
-			 {
-		if (shadow.getResource() != null) {
-			return shadow.getResource();
-		}
-
+	private ResourceType resolveResource(ShadowType shadow, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ObjectReferenceType ref = shadow.getResourceRef();
 		if (ref == null) {
 			throw new ExpressionEvaluationException("Resource shadow object " + shadow + " doesn't have defined resource.");
+		}
+		PrismObject<ResourceType> resource = ref.getObject();
+		if (resource != null) {
+			return resource.asObjectable();
 		}
 		if (ref.getOid() == null) {
 			throw new ExpressionEvaluationException("Resource shadow object " + shadow + " defines null resource OID.");

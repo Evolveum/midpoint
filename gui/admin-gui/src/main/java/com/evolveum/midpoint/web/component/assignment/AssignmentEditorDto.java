@@ -1,5 +1,5 @@
 /*
-\ * Copyright (c) 2010-2017 Evolveum
+\ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,9 +209,10 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	private AssignmentEditorDtoType getType(AssignmentType assignment) {
-		if (assignment.getTarget() != null) {
+		ObjectReferenceType targetRef = assignment.getTargetRef();
+		if (targetRef.asReferenceValue().getObject() != null) {
 			// object assignment
-			return AssignmentEditorDtoType.getType(assignment.getTarget().getClass());
+			return AssignmentEditorDtoType.getType(targetRef.asReferenceValue().getObject().getCompileTimeClass());
 		} else if (assignment.getTargetRef() != null) {
 			return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
 		}
@@ -260,8 +261,8 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		OperationResult result = new OperationResult(OPERATION_LOAD_ATTRIBUTES);
 		ConstructionType construction = assignment.getConstruction();
 
-		PrismObject<ResourceType> resource = construction.getResource() != null
-				? construction.getResource().asPrismObject() : null;
+		ObjectReferenceType resourceRef = construction.getResourceRef();
+		PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
 		if (resource == null) {
 			resource = getReference(construction.getResourceRef(), result, pageBase);
 		}
@@ -338,22 +339,20 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	private boolean isRole(AssignmentType assignment) {
-		if (assignment.getTarget() != null) {
+		ObjectReferenceType targetRef = assignment.getTargetRef();
+		if (targetRef == null) {
+			return false;
+		}
+		if (targetRef.asReferenceValue().getObject() != null) {
 			// object assignment
-			return RoleType.class.equals(assignment.getTarget().getClass());
-		} else if (assignment.getTargetRef() != null) {
+			return targetRef.asReferenceValue().getObject().canRepresent(RoleType.class);
+		} else {
 			// object assignment through reference
 			if (assignment.getTargetRef().getType() != null) {
 				return RoleType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
 			}
 			return false;
-		} else if (assignment.getConstruction() != null) {
-			// account assignment through account construction
-			return false;
 		}
-
-		return false;
-
 	}
 
 	private ObjectViewDto loadTenantOrgReference(AssignmentType assignment, ObjectReferenceType ref) {
@@ -404,21 +403,19 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		if (assignment.getConstruction() != null) {
 			// account assignment through account construction
 			ConstructionType construction = assignment.getConstruction();
-			if (construction.getResource() != null) {
-				sb.append(WebComponentUtil.getName(construction.getResource()));
-			} else if (construction.getResourceRef() != null) {
+			if (construction.getResourceRef() != null) {
 				sb.append(WebComponentUtil.getName(construction.getResourceRef()));
 			}
 			return sb.toString();
 		}
 
-		if (assignment.getTarget() != null) {
-			sb.append(WebComponentUtil.getEffectiveName(assignment.getTarget(), OrgType.F_DISPLAY_NAME));
-			appendTenantAndOrgName(sb);
-		} else if (assignment.getTargetRef() != null) {
-			Task task = pageBase.createSimpleTask("Load assignment name");
-			PrismObject<FocusType> target = WebModelServiceUtils.loadObject(FocusType.class,
-					assignment.getTargetRef().getOid(), pageBase, task, task.getResult());
+		if (assignment.getTargetRef() != null) {
+			PrismObject<FocusType> target = assignment.getTargetRef().asReferenceValue().getObject();
+			if (target == null) {
+				Task task = pageBase.createSimpleTask("Load assignment name");
+				target = WebModelServiceUtils.loadObject(FocusType.class,
+						assignment.getTargetRef().getOid(), pageBase, task, task.getResult());
+			}
 			if (target != null) {
 				sb.append(WebComponentUtil.getEffectiveName(target, OrgType.F_DISPLAY_NAME));
 			} else {

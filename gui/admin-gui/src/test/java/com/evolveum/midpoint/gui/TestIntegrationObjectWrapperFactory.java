@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +112,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 			OrgType.F_AUTHORIZATION,
 //			OrgType.F_EXCLUSION,
 			OrgType.F_CONDITION,
-			OrgType.F_POLICY_CONSTRAINTS,
 			OrgType.F_ADMIN_GUI_CONFIGURATION,
 			OrgType.F_DATA_PROTECTION,
 			OrgType.F_AUTOASSIGN);

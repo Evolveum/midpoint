@@ -204,7 +204,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private transient Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
     private transient CompositeRefinedObjectClassDefinition compositeObjectClassDefinition;
 
-    private ValuePolicyType accountPasswordPolicy;
+    private SecurityPolicyType projectionSecurityPolicy;
 
     /**
      * Resource that hosts this projection.
@@ -736,9 +736,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		}
 		return dependencies;
 	}
+	
+	public SecurityPolicyType getProjectionSecurityPolicy() {
+		return projectionSecurityPolicy;
+	}
 
-	public ValuePolicyType getAccountPasswordPolicy() {
-		return accountPasswordPolicy;
+	public void setProjectionSecurityPolicy(SecurityPolicyType projectionSecurityPolicy) {
+		this.projectionSecurityPolicy = projectionSecurityPolicy;
 	}
 
 	public void setCanProject(boolean canProject) {
@@ -747,10 +751,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
 	public boolean isCanProject() {
 		return canProject;
-	}
-
-	public void setAccountPasswordPolicy(ValuePolicyType accountPasswordPolicy) {
-		this.accountPasswordPolicy = accountPasswordPolicy;
 	}
 
 	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() throws SchemaException {
@@ -1425,8 +1425,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	        lensProjectionContextType.setIsActive(isActive);
 	        lensProjectionContextType.setIsLegal(isLegal);
 	        lensProjectionContextType.setIsLegalOld(isLegalOld);
-	        if (exportType != LensContext.ExportType.REDUCED) {
-		        lensProjectionContextType.setAccountPasswordPolicy(CloneUtil.clone(accountPasswordPolicy));
+	        if (exportType != LensContext.ExportType.REDUCED && projectionSecurityPolicy != null) {
+	        	ObjectReferenceType secRef = new ObjectReferenceType();
+	        	secRef.asReferenceValue().setObject(projectionSecurityPolicy.asPrismObject());
+				lensProjectionContextType.setProjectionSecurityPolicyRef(secRef);
 	        }
 	        lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
         }
@@ -1467,7 +1469,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         projectionContext.doReconciliation = projectionContextType.isDoReconciliation() != null ? projectionContextType.isDoReconciliation() : false;
         projectionContext.synchronizationSituationDetected = projectionContextType.getSynchronizationSituationDetected();
         projectionContext.synchronizationSituationResolved = projectionContextType.getSynchronizationSituationResolved();
-        projectionContext.accountPasswordPolicy = projectionContextType.getAccountPasswordPolicy();
+        ObjectReferenceType projectionSecurityPolicyRef = projectionContextType.getProjectionSecurityPolicyRef();
+        if (projectionSecurityPolicyRef != null) {
+        	projectionContext.projectionSecurityPolicy = (SecurityPolicyType) projectionSecurityPolicyRef.getObjectable();
+        }
         projectionContext.syncAbsoluteTrigger = projectionContextType.isSyncAbsoluteTrigger();
 
         return projectionContext;
@@ -1483,8 +1488,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	OperationResultType fetchResult = shadowType.getFetchResult();
         if (fetchResult != null
                 && (fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR
-                    || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)
-                    && (getObjectAny().asObjectable().getFailedOperationType() == null || getObjectAny().asObjectable().getFailedOperationType() != FailedOperationTypeType.ADD)) {                 // todo what about other kinds of status? [e.g. in-progress]
+                    || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)) {  // todo what about other kinds of status? [e.g. in-progress]
            	setFullShadow(false);
         } else {
             setFullShadow(true);
