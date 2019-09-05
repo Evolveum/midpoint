@@ -556,6 +556,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public boolean matches(ShadowType shadowType) {
 		return refinedObjectClassDefinition.matches(shadowType);
 	}
+    
+    @Override
+	public boolean matchesWithoutIntent(ShadowType shadowType) {
+		return refinedObjectClassDefinition.matchesWithoutIntent(shadowType);
+	}
 
 	@Override
 	public int hashCode() {

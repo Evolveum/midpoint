@@ -303,7 +303,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	public String getIntent() {
 		return intent;
 	}
-
+	
 	public void setIntent(String intent) {
 		this.intent = intent;
 	}
@@ -401,6 +401,23 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 	@Override
 	public boolean matches(ShadowType shadowType) {
+		if (!matchesWithoutIntent(shadowType)) {
+			return false;
+		}
+		if (shadowType.getIntent() != null) {
+			//			if (isDefault) {
+			//				return true;
+			//			} else {
+			//				return false;
+			//			}
+			//		} else {
+			return MiscUtil.equals(intent, shadowType.getIntent());
+		}
+		return true;
+	}
+	
+	@Override
+	public boolean matchesWithoutIntent(ShadowType shadowType) {
 		if (shadowType == null) {
 			return false;
 		}
@@ -415,15 +432,6 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 			if (!MiscUtil.equals(kind, shadowType.getKind())) {
 				return false;
 			}
-		}
-		if (shadowType.getIntent() != null) {
-			//			if (isDefault) {
-			//				return true;
-			//			} else {
-			//				return false;
-			//			}
-			//		} else {
-			return MiscUtil.equals(intent, shadowType.getIntent());
 		}
 		return true;
 	}
