@@ -176,8 +176,15 @@ public class BeanUnmarshaller {
 				//       but it contains an expression (so it is not PrimitiveXNode but MapXNode).
 				// TODO: more robust implementation
 				// TODO: look for "value" subnode with primitive value and try that.
+				
 				// This is most likely attempt to parse primitive value with dynamic expression.
 				// Therefore just ignore entire map content.
+				
+				// This may also happen when schema elements are renamed. E.g. in 4.0 the complex "iteration" element of
+				// object template was replaced by s primitive int "iteration" element from AssignmentHolderType.
+				// Currently we do not have any good idea how to graciously handle such situation. Therefore we have
+				// to live with that, just make sure it is clearly documented in the release notes.
+				// MID-5198
 				return null;
 			}
 
