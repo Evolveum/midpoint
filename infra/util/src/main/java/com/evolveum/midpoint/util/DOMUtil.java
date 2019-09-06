@@ -16,9 +16,26 @@
 
 package com.evolveum.midpoint.util;
 
-import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
-import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.xerces.util.XMLChar;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.*;
+import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,35 +43,9 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.*;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.xerces.util.XMLChar;
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Comment;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
-import org.xml.sax.SAXException;
-
-import com.evolveum.midpoint.util.exception.SystemException;
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
  * @author Igor Farinic
@@ -191,8 +182,26 @@ public class DOMUtil {
 			try {
 				//setTransformerFactoryIfPresent("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");            // too many whitespaces in Java11
 				//setTransformerFactoryIfPresent("org.apache.xalan.xsltc.trax.TransformerFactoryImpl");                             // too few whitespaces
-				setTransformerFactoryIfPresent("org.apache.xalan.processor.TransformerFactoryImpl");                               // a bit slower
-				TransformerFactory transformerFactory = TransformerFactory.newInstance();
+
+				String className = "org.apache.xalan.processor.TransformerFactoryImpl";
+				setTransformerFactoryIfPresent(className);                               											// a bit slower
+
+				ClassLoader cl = null;
+				try {
+					Class clazz = Class.forName(className);
+					if (clazz != null) {
+						cl = clazz.getClassLoader();
+					}
+				} catch (Exception ex) {
+				}
+
+				TransformerFactory transformerFactory;
+				if (cl != null) {
+					transformerFactory = TransformerFactory.newInstance(className, cl);
+				} else {
+					transformerFactory = TransformerFactory.newInstance();
+				}
+
 				//System.out.println("TF = " + transformerFactory.getClass().getName());
 				Transformer trans = transformerFactory.newTransformer();
 				trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");      // XALAN-specific
