@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -30,6 +31,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.LocalizationMessageSource;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.access.AccessDeniedException;
@@ -166,7 +168,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
 			//TODO test maybe later?
 			@Override
-			public List<MidPointUserProfilePrincipal> getAllLoggedPrincipals() {
+			public List<UserSessionManagementType> getAllLoggedPrincipals() {
 				return null;
 			}
 

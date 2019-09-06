@@ -17,8 +17,11 @@
 package com.evolveum.midpoint.repo.api;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public interface CacheDispatcher {
 
@@ -34,4 +37,5 @@ public interface CacheDispatcher {
 	 */
 	<O extends ObjectType> void dispatchInvalidation(@Nullable Class<O> type, @Nullable String oid, boolean clusterwide,
 			@Nullable CacheInvalidationContext context);
+
 }

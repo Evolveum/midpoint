@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.impl.rest;
+package com.evolveum.midpoint.common.rest;
 
 import org.jetbrains.annotations.NotNull;
 

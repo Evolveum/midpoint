@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.impl.rest;
+package com.evolveum.midpoint.common.rest;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -77,6 +77,7 @@ import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -335,6 +336,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     
     @SpringBean private CounterManager counterManager;
 
+    @SpringBean private ClusterExecutionHelper clusterExecutionHelper;
+
     private List<Breadcrumb> breadcrumbs;
 
     private boolean initialized = false;
@@ -566,6 +569,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return auditService;
     }
 
+    public ClusterExecutionHelper getClusterExecutionHelper() {
+        return clusterExecutionHelper;
+    }
 
     public AccessCertificationService getCertificationService() {
         return certficationService;

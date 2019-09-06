@@ -22,17 +22,13 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.commons.io.IOUtils;
 
-import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
-import com.evolveum.midpoint.model.impl.rest.MidpointXmlProvider;
-import com.evolveum.midpoint.model.impl.rest.MidpointYamlProvider;
+import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
