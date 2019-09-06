@@ -293,8 +293,8 @@ public class NodeRegistrar {
     private BuildInformationType getBuildInformation() {
         BuildInformationType info = new BuildInformationType();
         LocalizationService localizationService = taskManager.getLocalizationService();
-        info.setVersion(localizationService.translate(LocalizableMessageBuilder.buildKey("midPointVersion"), Locale.getDefault()));
-        info.setRevision(localizationService.translate(LocalizableMessageBuilder.buildKey("midPointRevision"), Locale.getDefault()));
+        info.setVersion(localizationService.translate(LocalizableMessageBuilder.buildKey("midpoint.system.version"), Locale.getDefault()));
+        info.setRevision(localizationService.translate(LocalizableMessageBuilder.buildKey("midpoint.system.build"), Locale.getDefault()));
         return info;
     }
 
