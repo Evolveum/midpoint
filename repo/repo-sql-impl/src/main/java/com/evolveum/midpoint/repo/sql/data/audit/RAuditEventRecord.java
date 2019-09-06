@@ -685,7 +685,7 @@ public class RAuditEventRecord implements Serializable {
             audit.addPropertyValue(rPropertyValue.getName(), rPropertyValue.getValue());
         }
         for (RAuditReferenceValue rRefValue : repo.getReferenceValues()) {
-            audit.addReferenceValue(rRefValue.getName(), rRefValue.fromRepo());
+            audit.addReferenceValue(rRefValue.getName(), rRefValue.fromRepo(prismContext));
         }
 
         audit.setRepoId(repo.getId());

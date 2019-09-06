@@ -665,7 +665,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName(), prismContext));
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Integer.toString(repo.getVersion()));
         jaxb.setLifecycleState(repo.getLifecycleState());
