@@ -145,7 +145,7 @@ public class LookupTableHelper {
                 QName name = ItemPath.toName(deltaPath.getSegment(2));
 
                 RLookupTableRow row = session.get(RLookupTableRow.class, new RContainerId(RUtil.toInteger(rowId), tableOid));
-                LookupTableRowType rowType = row.toJAXB();
+                LookupTableRowType rowType = row.toJAXB(prismContext);
                 delta.setParentPath(ItemPath.EMPTY_PATH);
                 delta.applyTo(rowType.asPrismContainerValue());
                 if (!QNameUtil.match(name, LookupTableRowType.F_LAST_CHANGE_TIMESTAMP)) {
@@ -219,7 +219,7 @@ public class LookupTableHelper {
         LookupTableType lookup = (LookupTableType) object.asObjectable();
         List<LookupTableRowType> jaxbRows = lookup.getRow();
         for (RLookupTableRow row : rows) {
-            LookupTableRowType jaxbRow = row.toJAXB();
+            LookupTableRowType jaxbRow = row.toJAXB(prismContext);
             jaxbRows.add(jaxbRow);
         }
     }

@@ -37,7 +37,7 @@ MidPoint is dual licensed under Apache License 2.0 and European Union Public Lic
 
 But the situation is more complicated for the contributors. While midPoint was single-licensed, the intent of a contributor to contribute under that license was quite clear. However, if users may to choose which license to use, contributors might be able to choose as well. And that may lead to confusion and uncertainty about midPoint licensing and other legal issues.
 
-Therefore it is necessary to require contributor license agreements (CLA) from midPoint contributors. The purpose of the license agreements is to make licensing of midPoint code completely clear. Now we are working on the legal issues of dual licensing and CLAs. The situation should be clear in next few months.
+Therefore it is necessary to require contributor license agreements (CLA) from midPoint contributors. The purpose of the license agreements is to make licensing of midPoint code completely clear. Therefore if you submit a contribution to midPoint you will be asked to sign a CLA before the contribution can be accepted.
 
 
 Credit

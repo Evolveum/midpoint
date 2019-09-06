@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
 import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
@@ -171,8 +172,8 @@ public class RAuditReferenceValue implements EntityState {
     	return queryBuilder.build();
     }
 
-	public AuditReferenceValue fromRepo() {
-		return new AuditReferenceValue(oid, RUtil.stringToQName(type), RPolyString.fromRepo(targetName));
+	public AuditReferenceValue fromRepo(PrismContext prismContext) {
+		return new AuditReferenceValue(oid, RUtil.stringToQName(type), RPolyString.fromRepo(targetName, prismContext));
 	}
 	
 	public static AuditReferenceValue fromRepo(ResultSet resultSet) throws SQLException {

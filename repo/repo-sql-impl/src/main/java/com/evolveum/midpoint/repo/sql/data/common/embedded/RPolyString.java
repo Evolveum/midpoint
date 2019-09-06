@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -99,23 +100,32 @@ public class RPolyString implements Serializable {
         return new RPolyString(string.getOrig(), string.getNorm());
     }
 
-    public static PolyStringType copyToJAXB(RPolyString string) {
+    public static PolyStringType copyToJAXB(RPolyString string, PrismContext ctx) {
         if (string == null) {
             return null;
         }
 
+        String orig = string.getOrig();
+        String norm = string.getNorm();
+
         PolyStringType poly = new PolyStringType();
-        poly.setOrig(string.getOrig());
-        poly.setNorm(string.getNorm());
+        poly.setOrig(orig);
+
+        if (orig != null && norm == null) {
+            norm = ctx.getDefaultPolyStringNormalizer().normalize(orig);
+            poly.setNorm(norm);
+        } else {
+            poly.setNorm(norm);
+        }
 
         return poly;
     }
 
-    public static PolyString fromRepo(RPolyString string) {
+    public static PolyString fromRepo(RPolyString string, PrismContext prismContext) {
         if (string == null) {
             return null;
         }
 
-        return new PolyString(string.getOrig(), string.getNorm());
+        return copyToJAXB(string, prismContext).toPolyString();
     }
 }
