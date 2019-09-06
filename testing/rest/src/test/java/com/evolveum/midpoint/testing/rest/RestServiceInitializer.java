@@ -23,6 +23,9 @@ import java.util.Arrays;
 
 import javax.ws.rs.core.Response;
 
+import com.evolveum.midpoint.common.rest.MidpointJsonProvider;
+import com.evolveum.midpoint.common.rest.MidpointXmlProvider;
+import com.evolveum.midpoint.common.rest.MidpointYamlProvider;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
@@ -119,9 +122,9 @@ public abstract class RestServiceInitializer {
 	private ProvisioningService provisioning;
 	protected DummyAuditService dummyAuditService;
 
-	protected TestXmlProvider xmlProvider;
-	protected TestJsonProvider jsonProvider;
-	protected TestYamlProvider yamlProvider;
+	protected MidpointXmlProvider xmlProvider;
+	protected MidpointJsonProvider jsonProvider;
+	protected MidpointYamlProvider yamlProvider;
 
 	protected abstract String getAcceptHeader();
 	protected abstract String getContentType();
@@ -153,9 +156,9 @@ public abstract class RestServiceInitializer {
 		provisioning = (ProvisioningServiceImpl) applicationContext.getBean("provisioningService");
 		taskManager = (TaskManager) applicationContext.getBean("taskManager");
 		modelService = (ModelService) applicationContext.getBean("modelController");
-		xmlProvider = (TestXmlProvider) applicationContext.getBean("testXmlProvider");
-		jsonProvider = (TestJsonProvider) applicationContext.getBean("testJsonProvider");
-		yamlProvider = (TestYamlProvider) applicationContext.getBean("testYamlProvider");
+		xmlProvider = (MidpointXmlProvider) applicationContext.getBean("jaxbProvider");
+		jsonProvider = (MidpointJsonProvider) applicationContext.getBean("jsonProvider");
+		yamlProvider = (MidpointYamlProvider) applicationContext.getBean("yamlProvider");
 
 		InternalsConfig.encryptionChecks = false;
 
@@ -259,15 +262,15 @@ public abstract class RestServiceInitializer {
 		return dummyAuditService;
 	}
 
-	public TestXmlProvider getXmlProvider() {
+	public MidpointXmlProvider getXmlProvider() {
 		return xmlProvider;
 	}
 
-	public TestJsonProvider getJsonProvider() {
+	public MidpointJsonProvider getJsonProvider() {
 		return jsonProvider;
 	}
 
-	public TestYamlProvider getYamlProvider() {
+	public MidpointYamlProvider getYamlProvider() {
 		return yamlProvider;
 	}
 
