@@ -177,8 +177,7 @@ public class RestServiceUtil {
 	}
 
 	public static void createAbortMessage(ContainerRequestContext requestCtx){
-		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
-				.header("WWW-Authenticate", RestAuthenticationMethod.BASIC.getMethod() + " realm=\"midpoint\", " + RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod()).build());
+		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).build());
 	}
 
 	public static void createSecurityQuestionAbortMessage(ContainerRequestContext requestCtx, String secQChallenge){
