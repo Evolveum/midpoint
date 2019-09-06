@@ -109,7 +109,7 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 
 			if (answerNode instanceof MissingNode) {
 				SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken("restapi", "REST", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
-				SearchResultList<PrismObject<UserType>> users = null;
+				SearchResultList<PrismObject<UserType>> users;
 				try {
 					users = searchUser(userName);
 				} finally {
@@ -117,19 +117,19 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 				}
 
 				if (users.size() != 1) {
-					requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Security question authentication failed. Incorrect username and/or password").build());
+					requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).build());
 					return null;
 				}
 
 				PrismObject<UserType> user = users.get(0);
 				PrismContainer<SecurityQuestionAnswerType> questionAnswerContainer = user.findContainer(SchemaConstants.PATH_SECURITY_QUESTIONS_QUESTION_ANSWER);
-				if (questionAnswerContainer == null || questionAnswerContainer.isEmpty()){
-					requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Security question authentication failed. Incorrect username and/or password").build());
+				if (questionAnswerContainer == null || questionAnswerContainer.isEmpty()) {
+					requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).build());
 					return null;
 				}
 
 				String questionChallenge = "";
-				List<SecurityQuestionDefinitionType> questions = null;
+				List<SecurityQuestionDefinitionType> questions;
 				try {
 					SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken("restapi", "REST", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
 					questions = getQuestions(user);
