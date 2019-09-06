@@ -30,11 +30,21 @@ Tips and Best Practice
 * Also write tests (e.g. integration tests) not just the main code. If you are fixing a bug try to write a test for the bug first and fix the bug second. For larger pieces of functionality try to create a fair amount of test code. Submit the tests as part of your contribution. You write the tests for your own good. As there is no code ownership anyone might (unintentionally) break your code. If you have good tests for the code the problem will be detected soon after the modification while it is still easy to fix. If you have no tests then you code will break without anyone noticing it for quite a long time. This will cause that your contribution might "corrode" over time and it may even be removed from the main code if its quality drops too low.
 * For more details about contributing using git please see the "Distributed Git - Contributing to a Project" chapter of the Git book. In fact the whole book is more than worth reading.
 
-Licence and Credit
-==================
-MidPoint is developed under Apache Licence. By submitting your contribution to the main midPoint repository you agree to the terms of the Licence and you contribute your work under this licence. There is no other contributor agreement and we do not ask for copyright assignment. All work is licensed under the Apache licence. That's the only rule. We are very strict about maintaining midPoint open source character and therefore we will not accept any contribution under a different licence (using publicly available third-party open source libraries is OK as long as they are available under any compatible OSI-approved licence - except for hard copyleft licenses such as GPL). Each new contributed file must have appropriate header declaring licensing under Apache Licence otherwise the contribution might be refused.
+
+Contributor License Agreements
+==============================
+MidPoint is dual licensed under Apache License 2.0 and European Union Public License 1.2. MidPoint users may choose any of those two licenses for their use of midPoint.
+
+But the situation is more complicated for the contributors. While midPoint was single-licensed, the intent of a contributor to contribute under that license was quite clear. However, if users may to choose which license to use, contributors might be able to choose as well. And that may lead to confusion and uncertainty about midPoint licensing and other legal issues.
+
+Therefore it is necessary to require contributor license agreements (CLA) from midPoint contributors. The purpose of the license agreements is to make licensing of midPoint code completely clear. Therefore if you submit a contribution to midPoint you will be asked to sign a CLA before the contribution can be accepted.
+
+
+Credit
+======
 
 Git maintains the commit meta-data of the original commit. And this is what will be recorded in the history trail of main midPoint repository. Therefore the original contributor will be recorded in each commit. Apart from this the contributors are free to add their names to the appropriate place in the file header (e.g. Java @author annotation) if they feel their contribution is big enough to justify it.
+
 
 Development Guidelines
 ======================

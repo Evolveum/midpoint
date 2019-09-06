@@ -1,5 +1,12 @@
+/**
+ * Copyright (c) 2010-2019 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0 
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RLookupTable;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -163,13 +170,13 @@ public class RLookupTableRow implements Container<RLookupTable> {
         return result;
     }
 
-    public LookupTableRowType toJAXB() {
+    public LookupTableRowType toJAXB(PrismContext prismContext) {
         LookupTableRowType row = new LookupTableRowType();
         row.setId(Long.valueOf(id));
         row.setKey(key);
         row.setLastChangeTimestamp(lastChangeTimestamp);
         row.setValue(value);
-        row.setLabel(RPolyString.copyToJAXB(label));
+        row.setLabel(RPolyString.copyToJAXB(label, prismContext));
 
         return row;
     }
