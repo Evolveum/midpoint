@@ -123,7 +123,7 @@ public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFact
 	@Override
 	public Integer getOrder() {
 		// TODO Auto-generated method stub
-		return null;
+		return Integer.MAX_VALUE;
 	}
 	
 	protected abstract Panel getPanel(PrismPropertyPanelContext<T> panelCtx);
