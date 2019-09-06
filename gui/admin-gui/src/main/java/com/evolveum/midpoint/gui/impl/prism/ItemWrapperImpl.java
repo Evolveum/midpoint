@@ -691,6 +691,11 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	public <A> void setAnnotation(QName qname, A value) {
 		getItemDefinition().setAnnotation(qname, value);
 	}
+	
+	@Override
+	public List<SchemaMigration> getSchemaMigrations() {
+		return getItemDefinition().getSchemaMigrations();
+	}
 
 	@Override
 	public void accept(Visitor visitor) {

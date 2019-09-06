@@ -453,7 +453,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 					} 
 				}
 			}
-			if (assignmentType.getTarget() != null || assignmentType.getTargetRef() != null) {
+			if (assignmentType.getTargetRef() != null) {
 				QName relation = getRelation(assignmentType);
 				if (loginMode && !relationRegistry.isProcessedOnLogin(relation)) {
 					LOGGER.trace("Skipping processing of assignment target {} because relation {} is configured for login skip", assignmentType.getTargetRef().getOid(), relation);
@@ -661,9 +661,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 	@NotNull
 	private <O extends ObjectType> List<PrismObject<O>> getTargets(AssignmentPathSegmentImpl segment, EvaluationContext ctx) throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
-		if (assignmentType.getTarget() != null) {
-			return Collections.singletonList((PrismObject<O>) assignmentType.getTarget().asPrismObject());
-		} else if (assignmentType.getTargetRef() != null) {
+		if (assignmentType.getTargetRef() != null) {
 			try {
 				return resolveTargets(segment, ctx);
 			} catch (ObjectNotFoundException ex) {
@@ -863,10 +861,6 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 			AdminGuiConfigurationType adminGuiConfiguration = ((AbstractRoleType) targetType).getAdminGuiConfiguration();
 			if (adminGuiConfiguration != null && !ctx.evalAssignment.getAdminGuiConfigurations().contains(adminGuiConfiguration)) {
 				ctx.evalAssignment.addAdminGuiConfiguration(adminGuiConfiguration);
-			}
-			PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
-			if (policyConstraints != null) {
-				ctx.evalAssignment.addLegacyPolicyConstraints(policyConstraints, ctx.assignmentPath.clone(), targetType, prismContext);
 			}
 		}
 		

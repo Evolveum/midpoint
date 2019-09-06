@@ -71,7 +71,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 
 	private static final int NUMBER_OF_IMPORTED_USERS = 5;
-	private static final int NUMBER_OF_IMPORTED_ROLES = 16;
+	private static final int NUMBER_OF_IMPORTED_ROLES = 15;
 
 	@Autowired protected MappingFactory mappingFactory;
 	@Autowired protected Clockwork clockwork;
@@ -245,7 +245,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_NICE_PIRATE_FILENAME, initResult);
 		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, initResult);
 		repoAddObjectFromFile(ROLE_JUDGE_FILE, initResult);
-		repoAddObjectFromFile(ROLE_JUDGE_DEPRECATED_FILE, initResult);
 		repoAddObjectFromFile(ROLE_THIEF_FILE, initResult);
 		repoAddObjectFromFile(ROLE_EMPTY_FILE, initResult);
 		repoAddObjectFromFile(ROLE_USELESS_FILE, initResult);
@@ -262,11 +261,15 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		// Services
 		repoAddObjectFromFile(SERVICE_SHIP_SEA_MONKEY_FILE, initResult);
 		
-		//Custom function libraries
+		// Custom function libraries
 		repoAddObjectFromFile(CUSTOM_LIBRARY_FILE, initResult);
 
-		//Password policy
+		// Password policy
 		repoAddObjectFromFile(PASSWORD_POLICY_BENEVOLENT_FILE, initResult);
+		
+		// Archetypes
+		repoAddObjectFromFile(ARCHETYPE_APPROVAL_CASE_FILE, initResult);
+
 	}
 
 	protected ConflictResolutionActionType getDefaultConflictResolutionAction() {

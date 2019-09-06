@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1420,9 +1421,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     	if (task instanceof Task) {
 		    ((InternalTaskInterface) task).addSubtask(subtaskBean);
 	    } else if (task instanceof TaskType) {
-		    ((TaskType) task).getSubtask().add(subtaskBean);
+    		TaskTypeUtil.addSubtask((TaskType) task, subtaskBean, relationRegistry.getDefaultRelation());
 	    } else if (task instanceof PrismObject<?>) {
-	    	((PrismObject<TaskType>) task).asObjectable().getSubtask().add(subtaskBean);
+		    //noinspection unchecked
+		    TaskTypeUtil.addSubtask(((PrismObject<TaskType>) task).asObjectable(), subtaskBean, relationRegistry.getDefaultRelation());
 	    } else {
 		    throw new IllegalArgumentException("task: " + task);
 	    }

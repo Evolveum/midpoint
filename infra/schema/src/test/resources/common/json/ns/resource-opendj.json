@@ -233,10 +233,16 @@
             }
           }
         } ],
-        "protected" : [ {
-          "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3",
-          "name" : "uid=idm,ou=Administrators,dc=example,dc=com"
-        } ],
+        "protected" : [ 
+        	{
+        		"filter" : {
+        			"@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+			        "equal" : {
+          				"path" : "declare namespace icfs=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\"; attributes/icfs:name",
+				        "value" : "uid=idm,ou=Administrators,dc=example,dc=com"
+				     }
+				}
+        	} ],
         "activation" : {
           "administrativeStatus" : {
             "outbound" : [ { } ],
@@ -314,15 +320,12 @@
         }, {
           "situation" : "unlinked",
           "action" : [ {
-            "ref" : "http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"
+            "handlerUri" : "http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"
           } ]
         }, {
           "situation" : "unmatched",
           "action" : [ {
-            "userTemplateRef" : {
-              "oid" : "c0c010c0-d34d-b33f-f00d-777111111111"
-            },
-            "ref" : "http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"
+            "handlerUri" : "http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"
           } ]
         } ]
       } ]

@@ -124,3 +124,9 @@ ALTER TABLE m_object DROP COLUMN IF EXISTS longsCount;
 ALTER TABLE m_object DROP COLUMN IF EXISTS polysCount;
 ALTER TABLE m_object DROP COLUMN IF EXISTS referencesCount;
 ALTER TABLE m_object DROP COLUMN IF EXISTS stringsCount;
+
+-- 2019-09-04 10:25
+
+ALTER TABLE m_case DROP CONSTRAINT uc_case_name;
+
+COMMIT;

@@ -322,6 +322,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_CONTRACT_DIR, "user-blackbeard-account-dummy.xml"));
+        addAccountLinkRef(user, new File(TEST_CONTRACT_DIR, "account-blackbeard-dummy.xml"));
 
 		// WHEN
         modelCrudService.addObject(user , null, task, result);

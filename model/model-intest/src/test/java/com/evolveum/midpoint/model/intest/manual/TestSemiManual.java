@@ -240,7 +240,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 
 		assertUnassignedFuture(assertModelShadowFuture(accountJackOid), true);
 
-		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	/**
@@ -298,7 +298,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 
 		assertUnassignedFuture(assertModelShadowFuture(accountJackOid), false);
 
-		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	/**
@@ -328,7 +328,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 		userAfterAsserter.displayWithProjections();
 		assertDeprovisionedTimedOutUser(userAfterAsserter, accountJackOid);
 
-		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	/**

@@ -29,6 +29,10 @@ public class CacheInvalidationContext {
 	private boolean fromRemoteNode;
 	private CacheInvalidationDetails details;
 
+	//TODO very experimental, probably we need different invalidationEvents to describe actions and objects
+	private boolean terminateSession;
+	private boolean listUsersSession;
+
 	public CacheInvalidationContext(boolean fromRemoteNode, CacheInvalidationDetails details) {
 		this.fromRemoteNode = fromRemoteNode;
 		this.details = details;
@@ -50,10 +54,29 @@ public class CacheInvalidationContext {
 		this.details = details;
 	}
 
+	public boolean isTerminateSession() {
+		return terminateSession;
+	}
+
+	public void setTerminateSession(boolean terminateSession) {
+		this.terminateSession = terminateSession;
+	}
+
+	public boolean isListUsersSession() {
+		return listUsersSession;
+	}
+
+	public void setListUsersSession(boolean listUsersSession) {
+		this.listUsersSession = listUsersSession;
+	}
+
+
 	@Override
 	public String toString() {
 		return "CacheInvalidationContext{" +
 				"fromRemoteNode=" + fromRemoteNode +
+				", terminateSession=" + terminateSession +
+				", listUsersSession=" + listUsersSession +
 				", details=" + details +
 				'}';
 	}

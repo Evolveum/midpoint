@@ -144,7 +144,12 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 
 	@Override
 	protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
-		List<OrgType> parentOrgs = getModelObject().getParentOrg();
+		List<OrgType> parentOrgs = new ArrayList<>();
+		for (ObjectReferenceType parentOrgRef : getModelObject().getParentOrgRef()) {
+			if (parentOrgRef != null && parentOrgRef.asReferenceValue().getObject() != null) {
+				parentOrgs.add((OrgType) parentOrgRef.asReferenceValue().getObject().asObjectable());
+			}
+		}
 		variables.putList(ExpressionConstants.VAR_ORGS, parentOrgs);
 	}
 

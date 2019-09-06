@@ -1,6 +1,6 @@
 /*
 
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -258,58 +258,5 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 		return ObjectTypeUtil.createDisplayInformationWithPath(last, startsWithUppercase, pathString);
 	}
 
-	// ================== legacy
-
-	public <F extends AssignmentHolderType> void checkExclusionsLegacy(LensContext<F> context, Collection<EvaluatedAssignmentImpl<F>> assignmentsA,
-			Collection<EvaluatedAssignmentImpl<F>> assignmentsB) throws PolicyViolationException {
-		for (EvaluatedAssignmentImpl<F> assignmentA: assignmentsA) {
-			for (EvaluatedAssignmentImpl<F> assignmentB: assignmentsB) {
-				if (assignmentA == assignmentB) {
-					continue;	// Same thing, this cannot exclude itself
-				}
-				for (EvaluatedAssignmentTargetImpl eRoleA : assignmentA.getRoles().getAllValues()) {
-					if (eRoleA.appliesToFocus()) {
-						for (EvaluatedAssignmentTargetImpl eRoleB : assignmentB.getRoles().getAllValues()) {
-							if (eRoleB.appliesToFocus()) {
-								checkExclusionLegacy(assignmentA, assignmentB, eRoleA, eRoleB);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	private <F extends AssignmentHolderType> void checkExclusionLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
-			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		checkExclusionOneWayLegacy(assignmentA, assignmentB, roleA, roleB);
-		checkExclusionOneWayLegacy(assignmentB, assignmentA, roleB, roleA);
-	}
-
-	private <F extends AssignmentHolderType> void checkExclusionOneWayLegacy(EvaluatedAssignmentImpl<F> assignmentA, EvaluatedAssignmentImpl<F> assignmentB,
-			EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB) throws PolicyViolationException {
-		for (ExclusionPolicyConstraintType exclusionA : roleA.getExclusions()) {
-			checkAndTriggerExclusionConstraintViolationLegacy(assignmentA, assignmentB, roleA, roleB, exclusionA);
-		}
-	}
-
-	private <F extends AssignmentHolderType> void checkAndTriggerExclusionConstraintViolationLegacy(EvaluatedAssignmentImpl<F> assignmentA,
-			@NotNull EvaluatedAssignmentImpl<F> assignmentB, EvaluatedAssignmentTargetImpl roleA, EvaluatedAssignmentTargetImpl roleB,
-			ExclusionPolicyConstraintType constraint)
-			throws PolicyViolationException {
-		ObjectReferenceType targetRef = constraint.getTargetRef();
-		if (roleB.getOid().equals(targetRef.getOid())) {
-			EvaluatedExclusionTrigger trigger = new EvaluatedExclusionTrigger(
-					constraint,
-					buildFallbackMessage("Violation of SoD policy: " + roleA.getTarget() + " excludes " + roleB.getTarget() +
-							", they cannot be assigned at the same time"),
-					buildFallbackMessage(roleA.getTarget().getName() + " excludes " + roleB.getTarget().getName()),
-					assignmentB,
-					roleA.getTarget() != null ? roleA.getTarget().asObjectable() : null,
-					roleB.getTarget() != null ? roleB.getTarget().asObjectable() : null,
-					roleA.getAssignmentPath(), roleB.getAssignmentPath());
-			assignmentA.triggerConstraintLegacy(trigger, localizationService);
-		}
-	}
 
 }

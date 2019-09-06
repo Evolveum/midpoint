@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,10 +221,11 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
             return null;
         }
         AssignmentType assignment = assignmentValue.asContainerable();
-        if (assignment.getTarget() == null || !(assignment.getTarget() instanceof AbstractRoleType)){
+        PrismObject target = assignment.getTargetRef().asReferenceValue().getObject();
+        if (target == null || !(target.canRepresent(AbstractRoleType.class))) {
             return null;
         }
-        ActivationType activation = ((AbstractRoleType)assignment.getTarget()).getActivation();
+        ActivationType activation = ((AbstractRoleType)target.asObjectable()).getActivation();
         return activation != null ? activation.getEffectiveStatus() : null;
     }
 

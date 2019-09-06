@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -827,10 +827,6 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         ActivationType activation = shadow.asObjectable().getActivation();
         if (activation == null) {
             return;
-        }
-        FailedOperationTypeType failedOperation = shadow.asObjectable().getFailedOperationType();
-        if (failedOperation == FailedOperationTypeType.ADD) {
-            return;		// in this case it's ok to have activation present
         }
 
         checkOrFixActivationItem(checkResult, shadow, activation.asPrismContainerValue(), ActivationType.F_ADMINISTRATIVE_STATUS);

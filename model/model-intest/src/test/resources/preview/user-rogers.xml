@@ -25,23 +25,6 @@
     <name>rogers</name>
 	<subtype>pirate</subtype>
 	
-    <link>
-        <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-        <objectClass>ridummy:AccountObjectClass</objectClass>
-        <attributes>
-            <ridummy:fullname>Rum Rogers Sr.</ridummy:fullname>
-            <ridummy:ship>The Sea Monkey</ridummy:ship>
-        </attributes>
-    </link>
-
-    <link>
-        <resourceRef oid="10000000-0000-0000-0000-000000000504"/>
-        <objectClass>ri:AccountObjectClass</objectClass>
-        <attributes>
-            <ri:fullname>Rum Rogers Sr.</ri:fullname>
-        </attributes>
-    </link>
-
     <activation>
     	<administrativeStatus>enabled</administrativeStatus>
     </activation>

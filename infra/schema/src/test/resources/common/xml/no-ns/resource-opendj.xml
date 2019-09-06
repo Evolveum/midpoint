@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -242,8 +242,6 @@ This is now the only account type that midPoint can work with. -->
             In our case ICF will put DN in the __NAME__ attribute.
             Althouhg DN can be theoretically changes, this definition
             will make it immutable. -->
-<!--                 <access>create</access> -->
-<!--                 <access>read</access> -->
  				<limitations>
 					<access>
 						<read>true</read>
@@ -297,12 +295,9 @@ This is now the only account type that midPoint can work with. -->
        Entry UUID is created by the directory server itelf
        and it is immutable. We can only read it. -->
 
-<!--                 <access>read</access> -->
                 <limitations>
 					<access>
-<!-- 						<add>true</add> -->
 						<read>true</read>
-<!-- 						<modify>true</modify> -->
 					</access>
 				</limitations>
                 
@@ -319,9 +314,6 @@ This is now the only account type that midPoint can work with. -->
 
                 <ref>cn</ref>
                 <displayName>Common Name</displayName>
-<!--                 <access>create</access> -->
-<!--                 <access>read</access> -->
-<!--                 <access>update</access> -->
                  <limitations>
 					<access>
 						<read>true</read>
@@ -448,39 +440,6 @@ This is now the only account type that midPoint can work with. -->
                 <!-- No inbound expression for description. We don't want to synchronize that -->
             </attribute>
 
-
-<!--             <attribute> -->
-<!--                 <ref>ri:carLicense</ref> -->
-
-<!-- 				<description> -->
-<!-- 					This attibute definition is used to test tolerance of empty values. -->
-<!-- 				</description> -->
-				
-<!--                 <outbound> -->
-<!--                     <description> -->
-<!--                     	The expression will produce empty value. OpenDJ will die if empty value -->
-<!--                     	is provided for an attribute. midPoint should filter out the empty value -->
-<!--                     	and do not sent it to OpenDJ. -->
-<!--                     </description> -->
-<!-- 					<strength>weak</strength> -->
-<!--                     <expression> -->
-<!--                     	<script> -->
-<!--                     		<code>concat('','')</code> -->
-<!--                     	</script> -->
-<!--                     </expression> -->
-<!--                 </outbound> -->
-
-<!--                 <inbound> -->
-<!--                     <target> -->
-<!--                     	<path> -->
-<!-- 	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3"; -->
-<!-- 	                        declare namespace my="http://whatever.com/my"; -->
-<!-- 	                        $i:user/i:extension/my:description -->
-<!--                         </path> -->
-<!--                     </target> -->
-<!--                 </inbound> -->
-<!--                 No inbound expression for description. We don't want to synchronize that -->
-<!--             </attribute> -->
 			<attribute>
 				<ref>employeeType</ref>
 				<displayName>Employee Type</displayName>
@@ -560,8 +519,13 @@ This is now the only account type that midPoint can work with. -->
             </activation>
             
             <protected>
-		    	<name>uid=idm,ou=Administrators,dc=example,dc=com</name>
-		    </protected>
+				<filter>
+					<equal>
+						<path>attributes/name</path>
+						<value>uid=idm,ou=Administrators,dc=example,dc=com</value>
+					</equal>
+				</filter>
+			</protected>
         </objectType>
     </schemaHandling>
 
@@ -640,15 +604,14 @@ This is now the only account type that midPoint can work with. -->
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="linkAccount"/>
+	            <action>
+	            	<handlerUri>linkAccount</handlerUri>
+	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <action ref="addUser">
-	                <!-- Reference to the User Template is here. If the user would be
-	             created as a result of this action, it will be created according
-	             to this template. -->
-	                <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+	            <action>
+	            	<handlerUri>addUser</handlerUri>
 	            </action>
 	        </reaction>
 		</objectSynchronization>

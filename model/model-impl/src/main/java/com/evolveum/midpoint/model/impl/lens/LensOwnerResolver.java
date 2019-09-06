@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2018 Evolveum
+ * Copyright (c) 2016-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,20 +117,8 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 			}
 			return (PrismObject<FO>) owners.get(0);
 		} else if (object.canRepresent(AbstractRoleType.class)) {
-			ObjectReferenceType ownerRef = ((AbstractRoleType)(object.asObjectable())).getOwnerRef();
-			if (ownerRef == null) {
-				return null;
-			}
-			try {
-				ObjectType ownerType = objectResolver.resolve(ownerRef, ObjectType.class, null, "resolving owner of "+object, task, result);
-				if (ownerType == null) {
-					return null;
-				}
-				return (PrismObject<FO>) ownerType.asPrismObject();
-			} catch (ObjectNotFoundException | SchemaException e) {
-				LOGGER.error("Error resolving owner of {}: {}", object, e.getMessage(), e);
-				return null;
-			}
+			// TODO: get owner from roleMembershipRef;relation=owner (MID-5689)
+			return null;
 		} else if (object.canRepresent(TaskType.class)) {
 			ObjectReferenceType ownerRef = ((TaskType)(object.asObjectable())).getOwnerRef();
 			if (ownerRef == null) {

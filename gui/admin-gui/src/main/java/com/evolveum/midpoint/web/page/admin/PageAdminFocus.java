@@ -258,6 +258,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
 		for (PrismReferenceValue reference : references) {
+			if(reference == null || (reference.getOid() == null && reference.getTargetType() == null)) {
+				LOGGER.trace("Skiping reference for shadow with null oid");
+				continue; // default value
+			}
 			OperationResult subResult = task.getResult().createMinorSubresult(OPERATION_LOAD_SHADOW);
 			PrismObject<ShadowType> projection = getPrismObjectForWrapper(ShadowType.class, reference.getOid(),
 					noFetch, task, subResult, createLoadOptionForShadowWrapper());
@@ -290,7 +294,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	
 	private Collection<SelectorOptions<GetOperationOptions>> createLoadOptionForShadowWrapper(){
 		return getSchemaHelper().getOperationOptionsBuilder()
-					.item(ShadowType.F_RESOURCE).resolve().readOnly()
+					.item(ShadowType.F_RESOURCE_REF).resolve().readOnly()
 					.build();
 	}
 	
@@ -482,9 +486,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		// handle added accounts
 
 		List<ShadowType> shadowsToAdd = prepareShadowObject(getFocusShadows());
-		if (!shadowsToAdd.isEmpty()) {
-			shadowsToAdd.forEach(shadowType -> addDefaultKindAndIntent(shadowType.asPrismObject()));
-			focusType.getLink().addAll(shadowsToAdd);
+		for (ShadowType shadowToAdd : shadowsToAdd) {
+			addDefaultKindAndIntent(shadowToAdd.asPrismObject());
+			ObjectReferenceType linkRef = new ObjectReferenceType();
+			linkRef.asReferenceValue().setObject(shadowToAdd.asPrismObject());
+			focusType.getLinkRef().add(linkRef);
 		}
 
 //		List<OrgType> orgsToAdd = prepareSubobject(getParentOrgs());
@@ -754,15 +760,14 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	@Deprecated
 	private void removeResourceFromAccConstruction(AssignmentType assignment) {
 		ConstructionType accConstruction = assignment.getConstruction();
-		if (accConstruction == null || accConstruction.getResource() == null) {
+		if (accConstruction == null || accConstruction.getResourceRef() == null || accConstruction.getResourceRef().asReferenceValue().getObject() == null) {
 			return;
 		}
 
 		ObjectReferenceType ref = new ObjectReferenceType();
-		ref.setOid(assignment.getConstruction().getResource().getOid());
+		ref.setOid(assignment.getConstruction().getResourceRef().getOid());
 		ref.setType(ResourceType.COMPLEX_TYPE);
 		assignment.getConstruction().setResourceRef(ref);
-		assignment.getConstruction().setResource(null);
 	}
 
 	private ReferenceDelta prepareUserAccountsDeltaForModify(PrismReferenceDefinition refDef)

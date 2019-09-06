@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -854,7 +854,6 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 			targetType = targetRef.getType();
 		}
 		pathsToHide.add(assignmentPath.append(AssignmentType.F_TARGET_REF));
-		pathsToHide.add(assignmentPath.append(AssignmentType.F_TARGET));
 
 		if (OrgType.COMPLEX_TYPE.equals(targetType) || AssignmentsUtil.isPolicyRuleAssignment(assignment)) {
 			pathsToHide.add(assignmentPath.append(AssignmentType.F_TENANT_REF));

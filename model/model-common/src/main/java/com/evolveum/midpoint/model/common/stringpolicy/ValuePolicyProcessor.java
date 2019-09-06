@@ -196,13 +196,6 @@ public class ValuePolicyProcessor {
 		result.addArbitraryObjectAsParam("policyName", pp.getName());
 		normalize(pp);
 
-		if (newValue == null &&
-				defaultIfNull(XsdTypeMapper.multiplicityToInteger(pp.getMinOccurs()), 0) == 0) {
-			// No value is allowed
-			result.recordSuccess();
-			return true;
-		}
-
 		if (newValue == null) {
 			newValue = "";
 		}
@@ -265,15 +258,6 @@ public class ValuePolicyProcessor {
 			pp.setStringPolicy(StringPolicyUtils.normalize(sp));
 		} else {
 			pp.setStringPolicy(StringPolicyUtils.normalize(pp.getStringPolicy()));
-		}
-
-		if (null == pp.getLifetime()) {
-			PasswordLifeTimeType lt = new PasswordLifeTimeType();
-			lt.setExpiration(-1);
-			lt.setWarnBeforeExpiration(0);
-			lt.setLockAfterExpiration(0);
-			lt.setMinPasswordAge(0);
-			lt.setPasswordHistoryLength(0);
 		}
 	}
 	

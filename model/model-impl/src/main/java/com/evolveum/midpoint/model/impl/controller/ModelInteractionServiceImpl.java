@@ -35,6 +35,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.StringUtils;
@@ -179,11 +180,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemTargetType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
@@ -857,7 +853,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public List<MidPointUserProfilePrincipal> getLoggedInUsers() {
+	public List<UserSessionManagementType> getLoggedInUsers() {
 		return userProfileService.getAllLoggedPrincipals();
 	}
 
@@ -1222,42 +1218,28 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException,
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		// user-level policy
-		CredentialsPolicyType policy = null;
+		CredentialsPolicyType credentialsPolicy = null;
 		PrismObject<UserType> user = null;
 		if (object != null && object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
 			LOGGER.trace("Start to resolve policy for user");
 			user = (PrismObject<UserType>) object;
-			policy = getCredentialsPolicy(user, task, parentResult);
-			LOGGER.trace("Resolved user policy: {}", policy);
+			credentialsPolicy = getCredentialsPolicy(user, task, parentResult);
+			LOGGER.trace("Resolved user policy: {}", credentialsPolicy);
 		}
-		
-		
 
 		SystemConfigurationType systemConfigurationType = getSystemConfiguration(parentResult);
-		if (!containsValuePolicyDefinition(policy)) {
+		if (!containsValuePolicyDefinition(credentialsPolicy)) {
 			SecurityPolicyType securityPolicy = securityHelper.locateGlobalSecurityPolicy(user, systemConfigurationType.asPrismObject(), task, parentResult);
 			if (securityPolicy != null) {
-				policy = securityPolicy.getCredentials();
-				LOGGER.trace("Resolved policy from global security policy: {}", policy);
+				credentialsPolicy = securityPolicy.getCredentials();
+				LOGGER.trace("Resolved policy from global security policy: {}", credentialsPolicy);
 			}
 		}
 
-		if (!containsValuePolicyDefinition(policy)) {
-			SecurityPolicyType securityPolicy = securityHelper.locateGlobalPasswordPolicy(systemConfigurationType, task, parentResult);
-			if (securityPolicy != null) {
-				policy = securityPolicy.getCredentials();
-				LOGGER.trace("Resolved global password policy: {}", policy);
+		if (containsValuePolicyDefinition(credentialsPolicy)) {
+			if (credentialsPolicy.getPassword().getValuePolicyRef() != null) {
+				return objectResolver.resolve(credentialsPolicy.getPassword().getValuePolicyRef(), ValuePolicyType.class, null, "valuePolicyRef in password credential policy", task, parentResult);
 			}
-		}
-
-		if (containsValuePolicyDefinition(policy)){
-
-				if (policy.getPassword().getValuePolicyRef() != null) {
-					return objectResolver.resolve(policy.getPassword().getValuePolicyRef(), ValuePolicyType.class, null, "valuePolicyRef in password credential policy", task, parentResult);
-				} else if (policy.getPassword().getPasswordPolicyRef() != null) {
-					// DEPRECATED
-					return objectResolver.resolve(policy.getPassword().getPasswordPolicyRef(), ValuePolicyType.class, null, "valuePolicyRef in password credential policy", task, parentResult);
-				}
 		}
 
 		return null;
@@ -1273,10 +1255,6 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 
 		if (policy.getPassword().getValuePolicyRef() != null) {
-			return true;
-		}
-
-		if (policy.getPassword().getPasswordPolicyRef() != null) {
 			return true;
 		}
 

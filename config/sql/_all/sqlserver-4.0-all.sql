@@ -1531,3 +1531,5 @@ ALTER TABLE [dbo].[QRTZ_TRIGGERS] ADD
     [JOB_GROUP]
   );
 -- GO;
+
+COMMIT;

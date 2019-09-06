@@ -27,13 +27,10 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import org.apache.commons.lang.StringUtils;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -41,6 +38,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
+import com.evolveum.midpoint.test.asserter.CaseAsserter;
 import com.evolveum.midpoint.test.asserter.ExtensionAsserter;
 import com.evolveum.midpoint.test.asserter.OrgAsserter;
 import com.evolveum.midpoint.test.asserter.ParentOrgRefsAsserter;
@@ -49,6 +47,7 @@ import com.evolveum.midpoint.test.asserter.TriggersAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -109,7 +108,24 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		return this;
 	}
 
-	
+	public PrismObjectAsserter<O,RA> assertConsistence() {
+		object.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
+		return this;
+	}
+
+	public PrismObjectAsserter<O, RA> assertDefinition() {
+		assertTrue("Incomplete definition in "+object, object.hasCompleteDefinition());
+		return this;
+	}
+
+	public PrismObjectAsserter<O,RA> assertSanity() {
+		assertConsistence();
+		assertDefinition();
+		assertOid();
+		assertName();
+		return this;
+	}
+
 	public PrismObjectAsserter<O,RA> assertName() {
 		assertNotNull("No name in "+desc(), getObject().getName());
 		return this;
@@ -118,6 +134,12 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 	public PrismObjectAsserter<O,RA> assertName(String expectedOrig) {
 		PrismAsserts.assertEqualsPolyString("Wrong name in "+desc(), expectedOrig, getObject().getName());
 		return this;
+	}
+	
+	public PolyStringAsserter<? extends PrismObjectAsserter<O,RA>> name() {
+		PolyStringAsserter<PrismObjectAsserter<O,RA>> asserter = new PolyStringAsserter<>(getPolyStringPropertyValue(ObjectType.F_NAME), this, "name in "+desc());
+		copySetupTo(asserter);
+		return asserter;
 	}
 	
 	public PrismObjectAsserter<O,RA> assertDescription(String expected) {

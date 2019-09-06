@@ -18,21 +18,16 @@ package com.evolveum.midpoint.testing.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.commons.io.IOUtils;
 
-import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
-import com.evolveum.midpoint.model.impl.rest.MidpointJsonProvider;
-import com.evolveum.midpoint.model.impl.rest.MidpointXmlProvider;
+import com.evolveum.midpoint.common.rest.MidpointJsonProvider;
 import com.evolveum.midpoint.prism.PrismObject;
 
 public class TestJsonProvider<T> extends MidpointJsonProvider<T> {

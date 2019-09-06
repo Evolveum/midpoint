@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<account
+<shadow
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -29,4 +29,4 @@
 		<icfs:name>pirate</icfs:name>
 		<ri:description>Scurvy pirates</ri:description>
 	</attributes>
-</account>
+</shadow>

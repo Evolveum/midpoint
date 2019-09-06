@@ -114,10 +114,6 @@ public class CaseDto extends Selectable {
         return caseInstance.getOutcome();
     }
 
-    public ObjectDeltaType getObjectChange() {
-        return caseInstance.getObjectChange();
-    }
-
     public XMLGregorianCalendar getOpenTimestamp() {
         if (caseInstance.getMetadata() != null) {
             return caseInstance.getMetadata().getCreateTimestamp();

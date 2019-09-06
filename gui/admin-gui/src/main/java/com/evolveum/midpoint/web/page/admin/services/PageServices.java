@@ -58,7 +58,10 @@ import java.util.List;
                 description = "PageAdminServices.auth.servicesAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_URL,
                 label = "PageServices.auth.services.label",
-                description = "PageServices.auth.services.description")})
+                description = "PageServices.auth.services.description"),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_VIEW_URL,
+                label = "PageServices.auth.services.view.label",
+                description = "PageServices.auth.services.view.description")})
 public class PageServices extends PageAdminObjectList<ServiceType> {
 	private static final long serialVersionUID = 1L;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -535,9 +535,9 @@ public class TreeTablePanel extends BasePanel<String> {
 				);
 
 		try {
-			for (OrgType parentOrg : toMove.getParentOrg()) {
+			for ( ObjectReferenceType parentOrgRef : toMove.getParentOrgRef()) {
 				AssignmentType oldRoot = new AssignmentType();
-				oldRoot.setTargetRef(ObjectTypeUtil.createObjectRef(parentOrg, getPageBase().getPrismContext()));
+				oldRoot.setTargetRef(ObjectTypeUtil.createObjectRef(parentOrgRef.asReferenceValue().getObject(), getPageBase().getPrismContext()));
 
 				moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationDelete(OrgType.F_ASSIGNMENT,
 						OrgType.class, oldRoot.asPrismContainerValue()));

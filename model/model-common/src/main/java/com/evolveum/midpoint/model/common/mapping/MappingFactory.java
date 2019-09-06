@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.common.mapping;
 
-import com.evolveum.midpoint.common.filter.Filter;
-import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -39,7 +37,6 @@ public class MappingFactory {
 	private ObjectResolver objectResolver;
 	private Protector protector;						// not used for now
 	private PrismContext prismContext;
-	private FilterManager<Filter> filterManager;
     private SecurityContextManager securityContextManager;
 	private boolean profiling = false;
 
@@ -67,10 +64,6 @@ public class MappingFactory {
 		this.prismContext = prismContext;
 	}
 
-	public void setFilterManager(FilterManager<Filter> filterManager) {
-		this.filterManager = filterManager;
-	}
-
     public SecurityContextManager getSecurityEnforcer() {
         return securityContextManager;
     }
@@ -93,7 +86,6 @@ public class MappingFactory {
 				.expressionFactory(expressionFactory)
 				.securityContextManager(securityContextManager)
 				.variables(new ExpressionVariables())
-				.filterManager(filterManager)
 				.profiling(profiling);
 	}
 

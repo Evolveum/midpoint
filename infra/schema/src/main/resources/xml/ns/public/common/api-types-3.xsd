@@ -564,7 +564,62 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="executeCredentialResetResponse" type="tns:ExecuteCredentialResetResponseType"/>
-	
+
+
+    <xsd:complexType name="TerminateSessionEventType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describe terminate session event cluster-wide. Strongly experimental.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.0</a:since>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="principal" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="terminateSessionEvent" type="tns:TerminateSessionEventType"/>
+
+    <xsd:complexType name="UserSessionManagementListType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describe list of sessions.
+
+                Be aware: EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="session" type="tns:UserSessionManagementType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="sessionManagement" type="tns:UserSessionManagementListType"/>
+
+    <xsd:complexType name="UserSessionManagementType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describe session - user, active sessions, nodes where the user is active
+
+                Be aware: EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="user" type="c:UserType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="activeSessions" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="node" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="userSessionManagement" type="tns:UserSessionManagementType"/>
 
 </xsd:schema>
 

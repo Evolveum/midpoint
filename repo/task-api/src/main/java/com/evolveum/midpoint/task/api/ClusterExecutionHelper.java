@@ -19,11 +19,14 @@ package com.evolveum.midpoint.task.api;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.jetbrains.annotations.NotNull;
 
 import javax.ws.rs.core.Response;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
@@ -55,8 +58,10 @@ public interface ClusterExecutionHelper {
 	 */
 	void execute(@NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult);
 
+
 	/**
 	 * Extracts the result from the REST response.
 	 */
 	<T> T extractResult(Response response, Class<T> expectedClass) throws SchemaException;
+
 }

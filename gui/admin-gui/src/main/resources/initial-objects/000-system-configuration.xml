@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -186,15 +186,17 @@
         <objectCollectionViews>
             <objectCollectionView>
                 <identifier>my-cases</identifier>
-                <displayOrder>1000</displayOrder>
-                <type>CaseType</type>
                 <display>
-                    <label>Case</label>
-                    <pluralLabel>My Cases</pluralLabel>
+                    <label>My cases</label>
+                    <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
+                    <pluralLabel>My cases</pluralLabel>
+                    <singularLabel>My case</singularLabel>
                     <icon>
                         <cssClass>fe fe-case-object</cssClass>
                     </icon>
                 </display>
+                <displayOrder>1000</displayOrder>
+                <type>CaseType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000344" relation="org:default" type="c:ObjectCollectionType">
                     </collectionRef>
@@ -202,7 +204,14 @@
             </objectCollectionView>
             <objectCollectionView>
                 <identifier>manual-case-view</identifier>
-                <displayOrder>1001</displayOrder>
+                <display>
+                    <label>Manual cases</label> <!-- "Manual provisioning cases" is too long for the menu -->
+                    <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
+                    <pluralLabel>All manual cases</pluralLabel>
+                    <singularLabel>Manual case</singularLabel>
+                    <tooltip>Manual provisioning cases</tooltip>
+                </display>
+                <displayOrder>1010</displayOrder>
                 <type>CaseType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000340" relation="org:default" type="c:ArchetypeType">
@@ -211,7 +220,14 @@
             </objectCollectionView>
             <objectCollectionView>
                 <identifier>operation-request-case-view</identifier>
-                <displayOrder>1002</displayOrder>
+                <display>
+                    <label>Requests</label> <!-- "Operation requests" is too long for the menu -->
+                    <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
+                    <pluralLabel>All requests</pluralLabel>
+                    <singularLabel>Request</singularLabel>
+                    <tooltip>Operation requests</tooltip>
+                </display>
+                <displayOrder>1020</displayOrder>
                 <type>CaseType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000341" relation="org:default" type="c:ArchetypeType">
@@ -220,7 +236,14 @@
             </objectCollectionView>
             <objectCollectionView>
                 <identifier>approval-case-view</identifier>
-                <displayOrder>1003</displayOrder>
+                <display>
+                    <label>Approvals</label> <!-- "Approval cases" is too long for the menu -->
+                    <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
+                    <pluralLabel>All approvals</pluralLabel>
+                    <singularLabel>Approval</singularLabel>
+                    <tooltip>Approval cases</tooltip>
+                </display>
+                <displayOrder>1030</displayOrder>
                 <type>CaseType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000342" relation="org:default" type="c:ArchetypeType">

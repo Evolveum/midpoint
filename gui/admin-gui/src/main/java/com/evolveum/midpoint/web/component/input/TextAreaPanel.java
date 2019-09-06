@@ -36,6 +36,7 @@ public class TextAreaPanel<T> extends InputPanel {
                 return false;
             }
         };
+        text.add(AttributeModifier.append("style", "max-width: 100%"));
 
 		if (rowsOverride != null) {
 			text.add(new AttributeModifier("rows", rowsOverride));

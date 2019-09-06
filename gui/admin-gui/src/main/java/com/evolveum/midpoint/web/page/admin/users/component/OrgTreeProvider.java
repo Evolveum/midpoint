@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -233,8 +234,10 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
         //todo relation [lazyman]
         OrgType org = unit.asObjectable();
         if (parent != null) {
-        	org.getParentOrg().clear();
-            org.getParentOrg().add(parent.getValue());
+        	org.getParentOrgRef().clear();
+        	ObjectReferenceType parentOrgRef = new ObjectReferenceType();
+        	parentOrgRef.asReferenceValue().setObject(parent.getValue().asPrismObject());
+			org.getParentOrgRef().add(parentOrgRef);
         }
         TreeSelectableBean<OrgType> orgDto = new TreeSelectableBean<>(org);
         orgDto.getMenuItems().addAll(createInlineMenuItems(orgDto));

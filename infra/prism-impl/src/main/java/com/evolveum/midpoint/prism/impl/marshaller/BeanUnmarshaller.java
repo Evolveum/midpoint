@@ -176,8 +176,15 @@ public class BeanUnmarshaller {
 				//       but it contains an expression (so it is not PrimitiveXNode but MapXNode).
 				// TODO: more robust implementation
 				// TODO: look for "value" subnode with primitive value and try that.
+				
 				// This is most likely attempt to parse primitive value with dynamic expression.
 				// Therefore just ignore entire map content.
+				
+				// This may also happen when schema elements are renamed. E.g. in 4.0 the complex "iteration" element of
+				// object template was replaced by s primitive int "iteration" element from AssignmentHolderType.
+				// Currently we do not have any good idea how to graciously handle such situation. Therefore we have
+				// to live with that, just make sure it is clearly documented in the release notes.
+				// MID-5198
 				return null;
 			}
 
@@ -875,38 +882,16 @@ public class BeanUnmarshaller {
 		}
 	}
 
-	private QName getRealElementName(XNodeImpl node, QName key, ParsingContext pc) throws SchemaException {
-		if (node.getElementName() == null) {
-			return key;
-		}
-		String elementNS = node.getElementName().getNamespaceURI();
-		String keyNS = key.getNamespaceURI();
-		if (StringUtils.isNotEmpty(elementNS) && StringUtils.isNotEmpty(keyNS) && !elementNS.equals(keyNS)) {
-			pc.warnOrThrow(LOGGER, "Namespaces for actual element (" + node.getElementName()
-					+ ") and it's place in schema (" + key + " are different.");
-			return key;		// fallback
-		} else {
-			return node.getElementName();
-		}
-	}
-
 	private <T> void unmarshalToAnyUsingGetterIfExists(@NotNull T bean, @NotNull QName key, @NotNull XNodeImpl node,
 			@NotNull ParsingContext pc, String propName) throws SchemaException {
 		Method elementMethod = inspector.findAnyMethod(bean.getClass());
 		if (elementMethod != null) {
 			unmarshallToAnyUsingGetter(bean, elementMethod, key, node, pc);
 		} else {
-			pc.warnOrThrow(LOGGER, "No field "+propName+" in class "+bean.getClass()+" (and no element method in object factory too)");
+			pc.warnOrThrow(LOGGER, "No field '"+propName+"' in class "+bean.getClass()+" (and no element method in object factory too)");
 		}
 	}
-//
-//		if (prismContext != null && bean instanceof Revivable) {
-//			((Revivable)bean).revive(prismContext);
-//		}
-//
-//		return bean;
-//	}
-//
+
 	// Prepares value to be stored into the bean - e.g. converts PolyString->PolyStringType, wraps a value to JAXB if specified, ...
 	private Object wrapInJaxbElement(Object propVal, Object objectFactory, Method factoryMethod, String propName,
 			Class beanClass, ParsingContext pc) {
@@ -1153,9 +1138,6 @@ public class BeanUnmarshaller {
 	private Object unmarshalPolyStringFromMap(MapXNodeImpl map, Class<?> beanClass, ParsingContext pc) throws SchemaException {
 		
 		String orig = map.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_ORIG), DOMUtil.XSD_STRING);
-		if (orig == null) {
-			throw new SchemaException("Null polystring orig in "+map);
-		}
 		
 		String norm = map.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
 		
@@ -1167,6 +1149,10 @@ public class BeanUnmarshaller {
 		
 		XNodeImpl xLang = map.get(QNameUtil.nullNamespace(PolyString.F_LANG));
 		Map<String,String> lang = unmarshalLang(xLang, pc);
+		
+		if (orig == null && translation == null && lang == null) {
+			throw new SchemaException("Null polystring orig (no translation nor lang) in "+map);
+		}
 		
 		Object value = new PolyStringType(new PolyString(orig, norm, translation, lang));
 		return toCorrectPolyStringClass(value, beanClass, map);

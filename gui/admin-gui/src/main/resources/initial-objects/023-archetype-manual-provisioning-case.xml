@@ -18,14 +18,14 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
-    <name>Manual Provisioning Case</name>
+    <name>Manual provisioning case</name>
     <description>
     	Archetype for cases that describe manual provisioning operations.
     </description>
     <archetypePolicy>
     	<display>
-    		<label>Manual Provisioning Case</label>
-    		<pluralLabel>Manual Provisioning Cases</pluralLabel>
+    		<label>Manual provisioning case</label>
+    		<pluralLabel>Manual provisioning cases</pluralLabel>
     		<icon>
     			<cssClass>fa fa-hand-paper-o</cssClass>
     		</icon>

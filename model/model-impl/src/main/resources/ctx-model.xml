@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -222,7 +222,6 @@
         <property name="objectResolver" ref="modelObjectResolver"/>
         <property name="protector" ref="protector"/>
         <property name="prismContext" ref="prismContext"/>
-        <property name="filterManager" ref="filterManager"/>
         <property name="securityContextManager" ref="securityContextManager"/>
     </bean>
     
@@ -310,22 +309,6 @@
         <property name="contextFactory" ref="contextFactory"/>
     </bean>
 
-    <bean id="filterManager" class="com.evolveum.midpoint.common.filter.FilterManagerImpl">
-        <property name="filterMapping">
-            <map>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#emptyFilter">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.impl.filter.EmptyFilter</value>
-                </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.impl.filter.PatternFilter</value>
-                </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#diacriticsFilter">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.impl.filter.DiacriticsFilter</value>
-                </entry>
-            </map>
-        </property>
-    </bean>
-
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
@@ -397,9 +380,9 @@
     <bean id="clusterRestService" class="com.evolveum.midpoint.model.impl.ClusterRestService"/>
     <bean id="modelRestService" class="com.evolveum.midpoint.model.impl.ModelRestService"/>
 
-    <bean id="jaxbProvider" class="com.evolveum.midpoint.model.impl.rest.MidpointXmlProvider"/>
-    <bean id="yamlProvider" class="com.evolveum.midpoint.model.impl.rest.MidpointYamlProvider"/>
-    <bean id="jsonProvider" class="com.evolveum.midpoint.model.impl.rest.MidpointJsonProvider"/>
+    <bean id="jaxbProvider" class="com.evolveum.midpoint.common.rest.MidpointXmlProvider"/>
+    <bean id="yamlProvider" class="com.evolveum.midpoint.common.rest.MidpointYamlProvider"/>
+    <bean id="jsonProvider" class="com.evolveum.midpoint.common.rest.MidpointJsonProvider"/>
     <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler"/>
 
     <bean id="authenticationInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">

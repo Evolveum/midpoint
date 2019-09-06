@@ -184,8 +184,6 @@
                 <tolerant>true</tolerant>
                 <inbound>
 					<name>gossip-inbound</name>
-                	<!-- Make this mapping tolerant. We so not want to remove existing assignments. -->
-                	<tolerant>true</tolerant>
                 	<expression>
                 		<script>
                 			<code>
@@ -194,7 +192,6 @@
                 				if (input == null) {
                 					return null;
                 				}
-                				
                 				
                 				def targetRef = new ObjectReferenceType()
                 				targetRef.setOid(input);
@@ -208,6 +205,10 @@
                 	</expression>
                 	<target>
                 		<path>assignment</path>
+                		<set>
+                			<!-- Make this mapping "tolerant". We so not want to remove existing assignments. -->
+                			<predefined>none</predefined>
+                		</set>
                 	</target>
                 </inbound>
             </attribute>
@@ -255,11 +256,21 @@
 			</iteration>
             
             <protected>
-            	<icfs:name>daviejones</icfs:name>
-            </protected>
-            <protected>
-            	<icfs:name>calypso</icfs:name>
-            </protected>
+				<filter>
+					<q:equal>
+						<q:path>attributes/name</q:path>
+						<q:value>daviejones</q:value>
+					</q:equal>
+				</filter>
+			</protected>
+			<protected>
+				<filter>
+					<q:equal>
+						<q:path>attributes/name</q:path>
+						<q:value>calypso</q:value>
+					</q:equal>
+				</filter>
+			</protected>
             
             <activation>
             	<!-- Explicit existence mapping, but does the same as the default one -->

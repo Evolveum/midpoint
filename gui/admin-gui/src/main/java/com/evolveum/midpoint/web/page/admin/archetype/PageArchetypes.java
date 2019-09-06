@@ -29,7 +29,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 						description = "PageArchetypes.auth.archetypesAll.description"),
 				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
 						label = "PageArchetypes.auth.archetypes.label",
-						description = "PageArchetypes.auth.archetypes.description")
+						description = "PageArchetypes.auth.archetypes.description"),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_VIEW_URL,
+						label = "PageArchetypes.auth.archetypes.view.label",
+						description = "PageArchetypes.auth.archetypes.view.description")
 		})
 public class PageArchetypes extends PageAdminObjectList<ArchetypeType> {
 

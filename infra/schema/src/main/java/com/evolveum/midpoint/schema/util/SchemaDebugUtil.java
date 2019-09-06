@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -330,10 +330,6 @@ public class SchemaDebugUtil {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("AssignmentType(");
-		if (assignmentType.getTarget() != null) {
-			sb.append("target:");
-			sb.append(prettyPrint(assignmentType.getTarget()));
-		}
 		if (assignmentType.getTargetRef() != null) {
 			sb.append("target:");
 			sb.append(prettyPrint(assignmentType.getTargetRef()));
@@ -354,9 +350,6 @@ public class SchemaDebugUtil {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("ConstructionType(");
-		if (act.getResource() != null) {
-			sb.append(prettyPrint(act.getResource()));
-		}
 		if (act.getResourceRef() != null) {
 			sb.append(prettyPrint(act.getResourceRef()));
 		}

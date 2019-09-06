@@ -50,6 +50,11 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
+				<a:schemaMigration>
+            		<a:element>tns:level</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -66,18 +71,6 @@
 						<a:displayName>ApprovalSchemaType.description</a:displayName>
 			        </xsd:appinfo>
                 </xsd:annotation>
-			</xsd:element>
-			<xsd:element name="level" type="c:ApprovalStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						Levels, or stages, of the approval process.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.6</a:deprecatedSince>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-					</xsd:appinfo>
-				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="stage" type="c:ApprovalStageDefinitionType" minOccurs="1" maxOccurs="unbounded">
 				<xsd:annotation>
@@ -101,22 +94,21 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
+				<a:schemaMigration>
+            		<a:element>tns:order</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            		<a:replacement>number</a:replacement>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:automaticallyApproved</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            		<a:replacement>automaticallyCompleted</a:replacement>
+            	</a:schemaMigration>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="order" type="xsd:int" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Order of this approval stage. DEPRECATED. Use "number" instead.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.6</a:deprecatedSince>
-						<a:displayName>ApprovalStageDefinitionType.order</a:displayName>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
 			<xsd:element name="number" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -243,22 +235,6 @@
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
 						<a:displayName>ApprovalStageDefinitionType.additionalInformation</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Condition specifying when this stage is automatically approved (e.g. "user is
-						from Board of Directors"). This is an expression that should yield a boolean value.
-
-						DEPRECATED. Use automaticallyCompleted instead.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.6</a:deprecatedSince>
-						<a:displayName>ApprovalStageDefinitionType.automaticallyApproved</a:displayName>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>

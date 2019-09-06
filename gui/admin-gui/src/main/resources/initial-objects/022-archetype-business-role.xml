@@ -35,7 +35,7 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
-    <name>Business Role</name>
+    <name>Business role</name>
     <description>
     	Archetype for roles that have meaning from the business perspective.
     	Business roles are usually assigned directly to users, often by using
@@ -44,8 +44,8 @@
     </description>
     <archetypePolicy>
     	<display>
-    		<label>Business Role</label>
-    		<pluralLabel>Business Roles</pluralLabel>
+    		<label>Business role</label>
+    		<pluralLabel>Business roles</pluralLabel>
     		<icon>
     			<cssClass>fe fe-role_icon</cssClass>
     			<color>green</color>

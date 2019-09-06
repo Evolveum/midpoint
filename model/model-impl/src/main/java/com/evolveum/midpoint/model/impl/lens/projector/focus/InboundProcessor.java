@@ -39,8 +39,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.filter.Filter;
-import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -99,7 +97,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -118,7 +115,6 @@ public class InboundProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(InboundProcessor.class);
 
     @Autowired private PrismContext prismContext;
-    @Autowired private FilterManager<Filter> filterManager;
     @Autowired private MappingFactory mappingFactory;
     @Autowired private ContextLoader contextLoader;
     @Autowired private CredentialsProcessor credentialsProcessor;
@@ -807,7 +803,6 @@ public class InboundProcessor {
     	
     	Set<Entry<ItemPath,List<InboundMappingStruct<V,D>>>> mappingsToTargeEntrySet = (Set)mappingsToTarget.entrySet();
     	for (Entry<ItemPath, List<InboundMappingStruct<V, D>>> mappingsToTargeEntry : mappingsToTargeEntrySet) {
-			checkTolerant(mappingsToTargeEntry.getValue());
 			
 			D outputDefinition = null;
 			boolean rangeCompletelyDefined = true;
@@ -1177,25 +1172,6 @@ public class InboundProcessor {
 		}
     	return false;
     }
-    
-    private <V extends PrismValue, D extends ItemDefinition> void checkTolerant(List<InboundMappingStruct<V,D>> mappingStructs)  throws SchemaException {
-    	int tolerantCount = 0;
-    	int intolerantCount = 0;
-    	for (InboundMappingStruct<V,D> mappingStuct : mappingStructs) {
-    		MappingImpl<V, D> mapping = mappingStuct.getMapping();
-    		if (mapping.isTolerant() == Boolean.TRUE) {
-    			tolerantCount++;
-    		}
-    		if (mapping.isTolerant() == null || mapping.isTolerant() == Boolean.FALSE) {
-    			intolerantCount++;
-    		}
-    	}
-    	
-    	if (tolerantCount > 0 && intolerantCount > 0) {
-    		throw new SchemaException("Incorrect configuration. There cannot be different 'tolerant' settings for the target item " + mappingStructs.iterator().next().getMapping().getOutputDefinition());
-    	}
-    	
-    }
 
 	private void resolveEntitlementsIfNeeded(ContainerDelta<ShadowAssociationType> attributeAPrioriDelta, PrismContainer<ShadowAssociationType> oldAccountProperty, LensProjectionContext projCtx, Task task, OperationResult result) {
 		Collection<PrismContainerValue<ShadowAssociationType>> shadowAssociations = new ArrayList<>();
@@ -1264,22 +1240,6 @@ public class InboundProcessor {
 		};
 		return stringPolicyResolver;
 	}
-
-	private <T> PrismPropertyValue<T> filterValue(PrismPropertyValue<T> propertyValue, List<ValueFilterType> filters) {
-        PrismPropertyValue<T> filteredValue = propertyValue.clone();
-        filteredValue.setOriginType(OriginType.INBOUND);
-
-        if (filters == null || filters.isEmpty()) {
-            return filteredValue;
-        }
-
-        for (ValueFilterType filter : filters) {
-            Filter filterInstance = filterManager.getFilterInstance(filter.getType(), filter.getAny());
-            filterInstance.apply(filteredValue);
-        }
-
-        return filteredValue;
-    }
 
 	/**
      * Processing for special (fixed-schema) properties such as credentials and activation.

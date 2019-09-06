@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -622,7 +622,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         int THREADS = 4;
         long DURATION = 30000L;
-        final String APPROVER_REF_FORMAT = "oid-%d-%s";
+        final String DELEGATED_REF_FORMAT = "oid-%d-%s";
 
         RoleType role = new RoleType(prismContext).name("judge");
 
@@ -641,8 +641,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 @Override
                 Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception {
                     return prismContext.deltaFor(RoleType.class)
-                            .item(RoleType.F_APPROVER_REF).add(
-                                    ObjectTypeUtil.createObjectRef(String.format(APPROVER_REF_FORMAT, threadIndex, counter), ObjectTypes.USER))
+                            .item(RoleType.F_DELEGATED_REF).add(
+                                    ObjectTypeUtil.createObjectRef(String.format(DELEGATED_REF_FORMAT, threadIndex, counter), ObjectTypes.USER))
                             .asItemDeltas();
                 }
             };
@@ -655,15 +655,15 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         display("role after", roleAfter);
 
         int totalExecutions = threads.stream().mapToInt(t -> t.counter.get()).sum();
-        int totalApprovers = roleAfter.asObjectable().getApproverRef().size();
+        int totalApprovers = roleAfter.asObjectable().getDelegatedRef().size();
         System.out.println("Total executions: " + totalExecutions);
         System.out.println("Approvers: " + totalApprovers);
 
         List<String> failures = new ArrayList<>();
         for (DeltaExecutionThread thread : threads) {
             for (int i = 1; i <= thread.counter.get(); i++) {
-                String expected = String.format(APPROVER_REF_FORMAT, thread.id, i);
-                List<String> matchingOids = roleAfter.asObjectable().getApproverRef().stream()
+                String expected = String.format(DELEGATED_REF_FORMAT, thread.id, i);
+                List<String> matchingOids = roleAfter.asObjectable().getDelegatedRef().stream()
                         .map(ObjectReferenceType::getOid)
                         .filter(refOid -> refOid.equals(expected))
                         .collect(Collectors.toList());

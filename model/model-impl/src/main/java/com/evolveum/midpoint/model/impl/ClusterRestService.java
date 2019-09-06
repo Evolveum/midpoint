@@ -16,7 +16,10 @@
 package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
@@ -29,6 +32,9 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.TerminateSessionEventType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
 import org.apache.commons.io.IOUtils;
@@ -46,6 +52,10 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.StreamingOutput;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * REST service used for inter-cluster communication.
@@ -63,6 +73,7 @@ public class ClusterRestService {
 	public static final String CLASS_DOT = ClusterRestService.class.getName() + ".";
 
 	private static final String OPERATION_EXECUTE_CLUSTER_CACHE_INVALIDATION_EVENT = CLASS_DOT + "executeClusterCacheInvalidationEvent";
+	private static final String OPERATION_EXECUTE_CLUSTER_TERMINATE_SESSION_EVENT = CLASS_DOT + "executeClusterTerminateSessionEvent";
 	private static final String OPERATION_GET_LOCAL_SCHEDULER_INFORMATION = CLASS_DOT + "getLocalSchedulerInformation";
 	private static final String OPERATION_STOP_LOCAL_SCHEDULER = CLASS_DOT + "stopLocalScheduler";
 	private static final String OPERATION_START_LOCAL_SCHEDULER = CLASS_DOT + "startLocalScheduler";
@@ -74,12 +85,16 @@ public class ClusterRestService {
 	private static final String EXPORT_DIR = "export/";
 
 	public static final String EVENT_INVALIDATION = "/event/invalidation/";
+	public static final String EVENT_TERMINATE_SESSION = "/event/terminateSession/";
+	public static final String EVENT_LIST_USER_SESSION = "event/listUserSession";
 
 	@Autowired private SecurityHelper securityHelper;
 	@Autowired private TaskManager taskManager;
 	@Autowired private MidpointConfiguration midpointConfiguration;
 
 	@Autowired private CacheDispatcher cacheDispatcher;
+
+	@Autowired private ModelInteractionService modelInteractionService;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ClusterRestService.class);
 
@@ -119,6 +134,60 @@ public class ClusterRestService {
 		} catch (Throwable t) {
 			response = RestServiceUtil.handleException(result, t);
 		}
+		finishRequest(task);
+		return response;
+	}
+
+	@POST
+	@Path(EVENT_TERMINATE_SESSION)
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@SuppressWarnings("RSReferenceInspection")
+	public Response executeClusterTerminateSessionEvent(TerminateSessionEventType event, @Context MessageContext mc) {
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = new OperationResult(OPERATION_EXECUTE_CLUSTER_TERMINATE_SESSION_EVENT);
+
+		Response response;
+		try {
+			checkNodeAuthentication();
+
+			// clusterwide is false: we got this from another node so we don't need to redistribute it
+			CacheInvalidationContext ctx = new CacheInvalidationContext(true, TerminateSessionEvent.fromEventType(event));
+			ctx.setTerminateSession(true);
+
+			LOGGER.trace("Terminate session event - context created: {}", ctx);
+			cacheDispatcher.dispatchInvalidation(null, null, false, ctx);
+
+			result.recordSuccess();
+			response = RestServiceUtil.createResponse(Status.OK, result);
+		} catch (Throwable t) {
+			response = RestServiceUtil.handleException(result, t);
+		}
+		finishRequest(task);
+		return response;
+	}
+
+	@GET
+	@Path(EVENT_LIST_USER_SESSION)
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	public Response listUserSession(@Context MessageContext mc) {
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = new OperationResult(OPERATION_GET_LOCAL_SCHEDULER_INFORMATION);
+
+		Response response;
+		try {
+			checkNodeAuthentication();
+			List<UserSessionManagementType> principals = modelInteractionService.getLoggedInUsers();
+
+			UserSessionManagementListType list = new UserSessionManagementListType();
+			list.getSession().addAll(principals);
+
+			response = RestServiceUtil.createResponse(Status.OK, list, result);
+		} catch (Throwable t) {
+			response = RestServiceUtil.handleException(result, t);
+		}
+		result.computeStatus();
 		finishRequest(task);
 		return response;
 	}

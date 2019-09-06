@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -631,41 +631,6 @@ public abstract class ResourceContentPanel extends Panel {
 		};
 		columns.add(ownerColumn);
 
-		columns.add(new LinkColumn<SelectableBean<ShadowType>>(
-				createStringResource("PageAccounts.accounts.result")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected IModel<String> createLinkModel(final IModel<SelectableBean<ShadowType>> rowModel) {
-				return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject() {
-						return getResultLabel(rowModel);
-					}
-				};
-			}
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<ShadowType>> rowModel) {
-                return Model.of(getResultLabel(rowModel));
-            }
-
-			@Override
-			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel) {
-				OperationResultType resultType = getResult(rowModel);
-				OperationResult result = OperationResult.createOperationResult(resultType);
-
-				OperationResultPanel body = new OperationResultPanel(
-						ResourceContentPanel.this.getPageBase().getMainPopupBodyId(),
-                    new Model<>(OpResult.getOpResult(pageBase, result)), getPage());
-				body.setOutputMarkupId(true);
-				ResourceContentPanel.this.getPageBase().showMainPopup(body, target);
-
-			}
-		});
-
 		columns.add(new AbstractColumn<SelectableBean<ShadowType>, String>(
 				createStringResource("PageAccounts.accounts.pendingOperations")) {
 
@@ -678,34 +643,6 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 		});
 		return columns;
-	}
-
-	private OperationResultType getResult(IModel<SelectableBean<ShadowType>> model) {
-		ShadowType shadow = getShadow(model);
-		if (shadow == null) {
-			return null;
-		}
-		OperationResultType result = shadow.getResult();
-		if (result == null) {
-			return null;
-		}
-		return result;
-	}
-
-	private String getResultLabel(IModel<SelectableBean<ShadowType>> model) {
-
-		OperationResultType result = getResult(model);
-		if (result == null) {
-			return "";
-		}
-
-		StringBuilder b = new StringBuilder(
-				createStringResource("FailedOperationTypeType." + getShadow(model).getFailedOperationType())
-						.getObject());
-		b.append(":");
-		b.append(createStringResource("OperationResultStatusType." + result.getStatus()).getObject());
-
-		return b.toString();
 	}
 
 	private ShadowType getShadow(IModel<SelectableBean<ShadowType>> model) {

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -219,7 +220,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			TaskDtoProviderOptions options, Task opTask, OperationResult parentResult, PageBase pageBase)
 			throws SchemaException {
 		TaskType thisTaskWithChildren = null;
-		for (TaskType child : taskType.getSubtask()) {
+		for (TaskType child : TaskTypeUtil.getResolvedSubtasks(taskType)) {
 			TaskDto childTaskDto = new TaskDto(child, thisTaskWithChildren, modelService, taskService, modelInteractionService,
 					taskManager, workflowManager, options, false, opTask, parentResult, pageBase);
 			addChildTaskDto(childTaskDto);

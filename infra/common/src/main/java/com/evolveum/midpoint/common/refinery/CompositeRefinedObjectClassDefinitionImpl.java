@@ -118,6 +118,10 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return structuralObjectClassDefinition.getProcessing();
 	}
 
+	public List<SchemaMigration> getSchemaMigrations() {
+		return structuralObjectClassDefinition.getSchemaMigrations();
+	}
+
 	@Override
 	public boolean isEmphasized() {
 		return structuralObjectClassDefinition.isEmphasized();
@@ -213,7 +217,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public String getIntent() {
 		return structuralObjectClassDefinition.getIntent();
 	}
-
+	
 	@Override
 	public ShadowKindType getKind() {
 		return structuralObjectClassDefinition.getKind();
@@ -347,8 +351,13 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
+	@Deprecated
 	public ObjectReferenceType getPasswordPolicy() {
 		return structuralObjectClassDefinition.getPasswordPolicy();
+	}
+
+	public ObjectReferenceType getSecurityPolicyRef() {
+		return structuralObjectClassDefinition.getSecurityPolicyRef();
 	}
 
 	@Override
@@ -369,6 +378,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@Override
 	public boolean matches(ShadowType shadowType) {
 		return structuralObjectClassDefinition.matches(shadowType);
+	}
+	
+	@Override
+	public boolean matchesWithoutIntent(ShadowType shadowType) {
+		return structuralObjectClassDefinition.matchesWithoutIntent(shadowType);
 	}
 
 	@Override

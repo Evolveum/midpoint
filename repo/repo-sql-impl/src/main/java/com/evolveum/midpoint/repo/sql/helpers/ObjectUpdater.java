@@ -602,7 +602,7 @@ public class ObjectUpdater {
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz,
                     RepositoryContext.class, IdGeneratorResult.class);
             method.invoke(clazz, object, rObject, new RepositoryContext(repositoryService, prismContext, relationRegistry,
-                    extItemDictionary), generatorResult);
+                    extItemDictionary, baseHelper.getConfiguration()), generatorResult);
         } catch (Exception ex) {
             SerializationRelatedException serializationException = ExceptionUtil.findCause(ex, SerializationRelatedException.class);
             if (serializationException != null) {

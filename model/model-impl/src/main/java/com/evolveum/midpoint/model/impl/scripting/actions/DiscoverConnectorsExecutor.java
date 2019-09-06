@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
@@ -164,18 +165,16 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
         for (PrismObject<ConnectorType> foundConnector : foundConnectors) {
             ConnectorType foundConnectorType = foundConnector.asObjectable();
             // TODO temporary hack. fix it after MID-3355 is implemented.
-            if (connectorType.getConnectorHost() != null) {
-            	if (foundConnectorType.getConnectorHost() == null) {
-            		connectorType.setConnectorHostRef(ObjectTypeUtil.createObjectRef(connectorType.getConnectorHost().getOid(), ObjectTypes.CONNECTOR_HOST));
-                	connectorType.setConnectorHost(null);
-            	}
-
+            if (connectorType.getConnectorHostRef() != null && connectorType.getConnectorHostRef().asReferenceValue().getObject() != null) {
+            	String connectorHostOid = connectorType.getConnectorHostRef().getOid();
+            	connectorType.getConnectorHostRef().asReferenceValue().setObject(null);
+            	connectorType.getConnectorHostRef().setOid(connectorHostOid);
             }
             if (connectorType.getConnectorHostRef().equals(foundConnectorType.getConnectorHostRef()) &&
                     foundConnectorType.getConnectorVersion() != null &&
                     !foundConnectorType.getConnectorVersion().equals(connectorType.getConnectorVersion())) {
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Found obsolete connector: {}", foundConnectorType.asPrismObject().debugDump());
+                    LOGGER.trace("Found obsolete connector:\n{}", foundConnectorType.asPrismObject().debugDump(1));
                 }
                 rebindMap.put(foundConnectorType.getOid(), connectorType.getOid());
             }

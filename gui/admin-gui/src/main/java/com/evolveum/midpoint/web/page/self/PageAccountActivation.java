@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -161,15 +162,15 @@ public class PageAccountActivation extends PageBase {
 
 		Label usernamePanel = new Label(ID_NAME, createStringResource("PageAccountActivation.activate.accounts.label",
 				userModel != null && userModel.getObject() != null && userModel.getObject().getName() != null ?
-						WebComponentUtil.getLocalizedOrOriginPolyStringValue(userModel.getObject().getName().toPolyString()) : ""));
-		usernamePanel.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isEnabled() {
-				return false;
-			}
-		});
+						getLocalizationService().translate(userModel.getObject().getName().toPolyString()) : ""));
+			usernamePanel.add(new VisibleEnableBehaviour() {
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public boolean isEnabled() {
+					return false;
+				}
+			});
 		form.add(usernamePanel);
 
 		PasswordTextField passwordPanel = new PasswordTextField(ID_PASSWORD, Model.of(new String()));
@@ -317,11 +318,14 @@ public class PageAccountActivation extends PageBase {
 
 	private List<ShadowType> getShadowsToActivate(){
 		UserType userType = userModel.getObject();
-		List<ShadowType> shadowsToActivate = userType.getLink();
-		if (shadowsToActivate == null || shadowsToActivate.isEmpty()) {
-			return new ArrayList<>();
+		List<ShadowType> shadowsToActivate = new ArrayList<>();
+		for (ObjectReferenceType linkRef : userType.getLinkRef()) {
+			ShadowType shadow = (ShadowType) linkRef.asReferenceValue().getObject().asObjectable();
+			if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadow.getLifecycleState())) {
+				shadowsToActivate.add(shadow);
+			}
 		}
-		return shadowsToActivate.parallelStream().filter(shadow -> SchemaConstants.LIFECYCLE_PROPOSED.equals(shadow.getLifecycleState())).collect(Collectors.toList());
+		return shadowsToActivate;
 	}
 
 }

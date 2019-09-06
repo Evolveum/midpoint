@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -38,10 +38,10 @@
             <append>true</append>
         </appender>
     </logging>
-    <objectTemplate>
+    <defaultObjectPolicyConfiguration>
     	<type>c:RoleType</type>
     	<objectTemplateRef oid="fc0ace70-688f-11e3-ab09-001e8c717e5b"/>
-    </objectTemplate>
+    </defaultObjectPolicyConfiguration>
     <roleManagement>
     	<relations>
     		<!-- MID-4660, MID-4491, MID-3581 -->

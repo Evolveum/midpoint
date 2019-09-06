@@ -217,32 +217,6 @@ public class ArchetypeManager {
 			return applicablePolicyConfigurationType;
 		}
 
-		// Deprecated
-		for (ObjectPolicyConfigurationType aPolicyConfigurationType: systemConfigurationType.getObjectTemplate()) {
-			QName typeQName = aPolicyConfigurationType.getType();
-			if (typeQName == null) {
-				continue;
-			}
-			ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
-			if (objectType == null) {
-				throw new ConfigurationException("Unknown type "+typeQName+" in object template definition in system configuration");
-			}
-			if (objectType.getClassDefinition() == objectClass) {
-				return aPolicyConfigurationType;
-			}
-		}
-
-		// Deprecated method to specify user template. For compatibility only
-		if (objectClass == UserType.class) {
-			ObjectReferenceType templateRef = systemConfigurationType.getDefaultUserTemplateRef();
-			if (templateRef == null) {
-				return null;
-			}
-			ObjectPolicyConfigurationType policy = new ObjectPolicyConfigurationType();
-			policy.setObjectTemplateRef(templateRef.clone());
-			return policy;
-		}
-
 		return null;
 	}
 

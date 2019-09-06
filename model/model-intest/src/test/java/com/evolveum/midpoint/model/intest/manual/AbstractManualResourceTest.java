@@ -1025,7 +1025,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 					.assertResultStatus(OperationResultStatusType.SUCCESS)
 					.assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1068,7 +1068,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 					.assertResultStatus(OperationResultStatusType.SUCCESS)
 					.assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1103,7 +1103,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 			.pendingOperations()
 				.assertNone();
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1273,7 +1273,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1337,7 +1337,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModelFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -1392,7 +1392,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModelFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
 	}
@@ -2188,12 +2188,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		if (isDirect()) {
 			// Case number should be in willLastCaseOid. It will get there from operation result.
 			assertNotNull("No async reference in pending operation", willLastCaseOid);
-			assertCase(willLastCaseOid, expectedCaseState);
+			assertCaseState(willLastCaseOid, expectedCaseState);
 			assertEquals("Wrong case ID in pending operation", willLastCaseOid, pendingOperationRef);
 		} else {
 			if (caseShouldExist(propagationExecutionStage)) {
 				assertNotNull("No async reference in pending operation", pendingOperationRef);
-				assertCase(pendingOperationRef, expectedCaseState);
+				assertCaseState(pendingOperationRef, expectedCaseState);
 			}
 			willLastCaseOid = pendingOperationRef;
 		}
@@ -2243,7 +2243,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 		assertNotNull("No async reference in result", jackLastCaseOid);
 
-		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 
 	protected void assertWillAfterCreateCaseClosed(final String TEST_NAME, boolean backingStoreUpdated) throws Exception {
@@ -2301,7 +2301,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 				.assertGestation();
 		}
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	protected void assertWillUnassignedFuture(ShadowAsserter<?> shadowModelAsserterFuture, boolean assertPassword) {
@@ -2320,11 +2320,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 
 	protected <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrName, T... expectedValues) {
-		assertAttribute(resource, shadow.asObjectable(), attrName, expectedValues);
+		assertAttribute(shadow.asObjectable(), attrName, expectedValues);
 	}
 
 	protected <T> void assertNoAttribute(PrismObject<ShadowType> shadow, QName attrName) {
-		assertNoAttribute(resource, shadow.asObjectable(), attrName);
+		assertNoAttribute(shadow.asObjectable(), attrName);
 	}
 
 	protected void assertAttributeFromCache(ShadowAsserter<?> shadowAsserter, QName attrQName,
@@ -2390,7 +2390,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 	protected void assertCase(String oid, String expectedState, PendingOperationExecutionStatusType executionStage) throws ObjectNotFoundException, SchemaException {
 		if (caseShouldExist(executionStage)) {
-			assertCase(oid, expectedState);
+			assertCaseState(oid, expectedState);
 		}
 	}
 

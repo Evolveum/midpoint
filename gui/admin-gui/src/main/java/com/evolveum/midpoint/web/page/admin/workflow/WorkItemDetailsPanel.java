@@ -29,7 +29,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -44,28 +43,20 @@ import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.upload.FileUpload;
-import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by honchar
@@ -78,6 +69,9 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     private static final String OPERATION_PREPARE_DELTA_VISUALIZATION = DOT_CLASS + "prepareDeltaVisualization";
     private static final String OPERATION_LOAD_CUSTOM_FORM = DOT_CLASS + "loadCustomForm";
     private static final String OPERATION_LOAD_CASE_FOCUS_OBJECT = DOT_CLASS + "loadCaseFocusObject";
+    private static final String OPERATION_CHECK_SUBMIT_AUTHORIZATION = DOT_CLASS + "checkApproveRejectAuthorization";
+    private static final String OPERATION_CHECK_DELEGATE_AUTHORIZATION = DOT_CLASS + "checkDelegateAuthorization";
+    private static final String OPERATION_CHECK_CLAIM_AUTHORIZATION = DOT_CLASS + "checkClaimAuthorization";
 
     private static final String ID_DISPLAY_NAME_PANEL = "displayNamePanel";
     private static final String ID_REQUESTED_BY = "requestedBy";
@@ -88,6 +82,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     private static final String ID_COMMENT = "requesterCommentMessage";
     private static final String ID_DELTAS_TO_APPROVE = "deltasToBeApproved";
     private static final String ID_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
+    private static final String ID_APPROVER_CONTAINER = "commentContainer";
     private static final String ID_APPROVER_COMMENT = "approverComment";
     private static final String ID_CUSTOM_FORM = "customForm";
     private static final String ID_CASE_WORK_ITEM_EVIDENCE = "caseWorkItemEvidence";
@@ -230,6 +225,11 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         });
         evidenceForm.add(evidencePanel);
 
+        WebMarkupContainer commentContainer = new WebMarkupContainer(ID_APPROVER_CONTAINER);
+        commentContainer.setOutputMarkupId(true);
+        commentContainer.add(new VisibleBehaviour(() -> isAuthorizedForActions()));
+        add(commentContainer);
+
         TextArea<String> approverComment = new TextArea<String>(ID_APPROVER_COMMENT, new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
@@ -245,8 +245,24 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         });
         approverComment.setOutputMarkupId(true);
         approverComment.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        add(approverComment);
+        commentContainer.add(approverComment);
 
+    }
+
+    private boolean isAuthorizedForActions(){
+        Task checkApproveRejectAuthTask = getPageBase().createSimpleTask(OPERATION_CHECK_SUBMIT_AUTHORIZATION);
+        Task checkDelegateAuthTask = getPageBase().createSimpleTask(OPERATION_CHECK_DELEGATE_AUTHORIZATION);
+        try {
+            boolean isAuthorizedToSubmit = getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(),
+                    checkApproveRejectAuthTask, checkApproveRejectAuthTask.getResult());
+            boolean isAuthorizedToDelegate = getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(),
+                    checkDelegateAuthTask, checkDelegateAuthTask.getResult());
+            boolean isAuthorizedToClaim = getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject());
+            return isAuthorizedToSubmit || isAuthorizedToClaim || isAuthorizedToDelegate;
+        } catch (Exception ex){
+            LOGGER.error("Unable to check user authorization for workitem actions, ", ex.getLocalizedMessage());
+        }
+        return false;
     }
 
     // Expects that we deal with primary changes of the focus (i.e. not of projections)

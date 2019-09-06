@@ -215,14 +215,14 @@
     	<description>
     		Authorization that allows to read approval status of cases. This is used to display requests
     		to the end users, especially in the "My Requests" box in user dashboard.
-    		This authorization is a temporary solution. It will be replaced by a finer-grained
-    		permissions in the future.
     	</description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-        <object>
-            <type>CaseType</type>
-        </object>
-        <item>approvalContext</item>
+		<object>
+			<type>CaseType</type>
+			<requester>
+				<special>self</special>
+			</requester>
+		</object>
     </authorization>
     <authorization>
     	<name>self-owned-task-read</name>
@@ -250,6 +250,7 @@
     			<q:equal>
     				<q:path>handlerUri</q:path>
     				<q:value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/execute/handler-3</q:value>
+    				<q:value>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</q:value>	<!-- members-related operations -->
     			</q:equal>
     		</filter>
     		<owner>

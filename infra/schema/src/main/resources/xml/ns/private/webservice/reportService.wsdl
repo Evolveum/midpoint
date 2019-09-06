@@ -31,8 +31,6 @@
             <!-- this is to compile all XSDs for midPoint (see explanation in pom.xml) -->
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                         schemaLocation="../../public/connector/icf-1/connector-schema-3.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1"
-                        schemaLocation="../../public/gui/admin-1.xsd"/>
         </xsd:schema>
     </types>
 

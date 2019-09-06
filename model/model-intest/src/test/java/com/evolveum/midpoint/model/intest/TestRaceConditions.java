@@ -68,7 +68,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        @SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({"raw"})
 		ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(ROLE_PIRATE_OID, ObjectTypes.ROLE, prismContext),
@@ -112,9 +112,12 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 		List<AssignmentType> assignments = userJack.asObjectable().getAssignment();
 		assertEquals("Wrong # of assignments", 2, assignments.size());
 
+		OperationResult subresult1 = result.createSubresult("thread1");
+		OperationResult subresult2 = result.createSubresult("thread1");
+
 		// WHEN
-		Thread t1 = new Thread(() -> deleteAssignment(userJack, 0, task, result));
-		Thread t2 = new Thread(() -> deleteAssignment(userJack, 1, task, result));
+		Thread t1 = new Thread(() -> deleteAssignment(userJack, 0, task, subresult1));
+		Thread t2 = new Thread(() -> deleteAssignment(userJack, 1, task, subresult2));
 		t1.start();
 		t2.start();
 		t1.join(30000L);
@@ -129,7 +132,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
     private void deleteAssignment(PrismObject<UserType> user, int index, Task task, OperationResult result) {
 		try {
 			login(userAdministrator.clone());       // without cloning there are conflicts on login->getPrincipal->recompute
-			@SuppressWarnings({ "unchecked", "raw" })
+			@SuppressWarnings({ "raw" })
 			ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
 					.item(FocusType.F_ASSIGNMENT).delete(user.asObjectable().getAssignment().get(index).clone())
 					.asObjectDelta(USER_JACK_OID);
@@ -139,5 +142,4 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 			throw new SystemException(t);
 		}
     }
-
 }

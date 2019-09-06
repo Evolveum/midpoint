@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -338,11 +338,11 @@ public class ConnectorManager implements Cacheable {
 		}
 
 		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
-		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() != null) {
+		if (connectorType.getConnectorHostRef() != null) {
 			// We need to resolve the connector host
 			String connectorHostOid = connectorType.getConnectorHostRef().getOid();
 			PrismObject<ConnectorHostType> connectorHost = repositoryService.getObject(ConnectorHostType.class, connectorHostOid, null, result);
-			connector.modifyUnfrozen( c -> ((PrismObject<ConnectorType>) c).asObjectable().setConnectorHost(connectorHost.asObjectable()));
+			connector.modifyUnfrozen( c -> ((PrismObject<ConnectorType>) c).asObjectable().getConnectorHostRef().asReferenceValue().setObject(connectorHost));
 		}
 
 		Object userDataEntry = connector.getUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA);
@@ -483,8 +483,8 @@ public class ConnectorManager implements Cacheable {
 					
 					// We need to "embed" connectorHost to the connectorType. The UCF does not
 					// have access to repository, therefore it cannot resolve it for itself
-					if (hostType != null && foundConnector.getConnectorHost() == null) {
-						foundConnector.setConnectorHost(hostType);
+					if (hostType != null) {
+						foundConnector.getConnectorHostRef().asReferenceValue().setObject(hostType.asPrismObject());
 					}
 					
 					discoveredConnectors.add(foundConnector);
@@ -635,6 +635,11 @@ public class ConnectorManager implements Cacheable {
 
 	@Override
 	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+		if (context != null && context.isTerminateSession()) {
+			LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for connector cache invalidation.");
+			return;
+		}
+
 		if (type == null || ConnectorType.class.isAssignableFrom(type)) {
 			if (StringUtils.isEmpty(oid)) {
 				dispose();
