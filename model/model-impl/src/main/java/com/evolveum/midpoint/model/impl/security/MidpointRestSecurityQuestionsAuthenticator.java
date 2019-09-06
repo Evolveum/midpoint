@@ -117,14 +117,14 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 				}
 
 				if (users.size() != 1) {
-					requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).build());
+					RestServiceUtil.createAbortMessage(requestCtx);
 					return null;
 				}
 
 				PrismObject<UserType> user = users.get(0);
 				PrismContainer<SecurityQuestionAnswerType> questionAnswerContainer = user.findContainer(SchemaConstants.PATH_SECURITY_QUESTIONS_QUESTION_ANSWER);
 				if (questionAnswerContainer == null || questionAnswerContainer.isEmpty()) {
-					requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).build());
+					RestServiceUtil.createAbortMessage(requestCtx);
 					return null;
 				}
 
