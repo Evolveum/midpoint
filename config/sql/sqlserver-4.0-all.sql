@@ -269,6 +269,7 @@ CREATE TABLE m_case_wi (
   id                            INT                                   NOT NULL,
   owner_oid                     NVARCHAR(36) COLLATE database_default NOT NULL,
   closeTimestamp                DATETIME2,
+  createTimestamp               DATETIME2,
   deadline                      DATETIME2,
   originalAssigneeRef_relation  NVARCHAR(157) COLLATE database_default,
   originalAssigneeRef_targetOid NVARCHAR(36) COLLATE database_default,

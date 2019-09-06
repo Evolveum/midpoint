@@ -269,6 +269,7 @@ CREATE TABLE m_case_wi (
   id                            NUMBER(10, 0)     NOT NULL,
   owner_oid                     VARCHAR2(36 CHAR) NOT NULL,
   closeTimestamp                TIMESTAMP,
+  createTimestamp               TIMESTAMP,
   deadline                      TIMESTAMP,
   originalAssigneeRef_relation  VARCHAR2(157 CHAR),
   originalAssigneeRef_targetOid VARCHAR2(36 CHAR),

@@ -160,4 +160,8 @@ DROP TABLE ACT_RE_PROCDEF;
 
 ALTER TABLE m_case DROP CONSTRAINT uc_case_name;
 
+-- 2019-09-06 20:00
+
+ALTER TABLE m_case_wi ADD createTimestamp DATETIME2;
+
 COMMIT;

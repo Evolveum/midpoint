@@ -1718,6 +1718,7 @@
 		<name>case-2</name>
 		<state>open</state>
 		<workItem id="1">
+			<createTimestamp>2013-05-07T10:38:21.350+02:00</createTimestamp>
 			<assigneeRef oid="5905f321-630f-4de3-abc9-ba3a614aac36" type="UserType"/>
 			<candidateRef oid="5905f321-630f-4de3-abc9-ba3a614aac36" type="UserType"/>		<!-- intentionally the same as assignee -->
 			<candidateRef oid="d2bda14f-8571-4c99-bbe4-25c132650998" type="UserType"/>
