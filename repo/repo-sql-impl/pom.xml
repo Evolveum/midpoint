@@ -39,7 +39,7 @@
                             <outputDirectory>${project.build.directory}/classes/sql</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.basedir}/../../config/sql/_all</directory>
+                                    <directory>${project.basedir}/../../config/sql</directory>
                                     <includes>
                                         <include>*.sql</include>
                                     </includes>
