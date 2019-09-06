@@ -112,7 +112,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     public PageAdminFocus(final PrismObject<F> unitToEdit, boolean isNewObject)  {
         initialize(unitToEdit, isNewObject);
     }
-	
+
+	public PageAdminFocus(final PrismObject<F> unitToEdit, boolean isNewObject, boolean isReadonly)  {
+        initialize(unitToEdit, isNewObject, isReadonly);
+    }
+
 
 	@Override
 	protected void initializeModel(final PrismObject<F> objectToEdit, boolean isNewObject, boolean isReadonly) {

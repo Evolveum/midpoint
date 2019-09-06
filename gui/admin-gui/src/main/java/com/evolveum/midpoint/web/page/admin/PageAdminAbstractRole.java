@@ -39,7 +39,7 @@ public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends 
 	
 	
 	public PageAdminAbstractRole(final PrismObject<T> abstractRole, boolean isNewObject, boolean isReadonly) {
-		initialize(abstractRole, isNewObject, isReadonly);
+		super(abstractRole, isNewObject, isReadonly);
 	}
 
 	@Override
