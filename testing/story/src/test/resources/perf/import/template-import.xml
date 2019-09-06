@@ -1,3 +1,9 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
 <objectTemplate 
 	oid="e84d7b5a-4634-4b75-a17c-df0b8b49b593"
 	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' 

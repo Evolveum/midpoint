@@ -55,6 +55,5 @@ https://github.com/Evolveum/midpoint.git
 
 git@github.com:Evolveum/midpoint.git
 
-This project is developed under Apache license (version 2.0) You may get copy
-of licence in LICENSE file. Please also see NOTICE file for additional
-copyright statements.
+This project is dual-licensed under Apache License 2.0 
+and European Union Public License. See LICENSE file for details.
