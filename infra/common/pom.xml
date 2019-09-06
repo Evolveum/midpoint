@@ -160,10 +160,5 @@
 			<version>4.0-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.santuario</groupId>
-			<artifactId>xmlsec</artifactId>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 </project>

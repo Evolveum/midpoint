@@ -69,7 +69,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
  * @author mederly
  */
 @PageDescriptor(url = "/admin/workItem", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_APPROVALS_ALL,
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL,
                 label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
                 description = PageAdminWorkItems.AUTH_APPROVALS_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,

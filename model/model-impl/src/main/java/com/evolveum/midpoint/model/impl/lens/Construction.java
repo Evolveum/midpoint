@@ -70,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
@@ -288,36 +289,39 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 	public ResourceType getResource(Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 		if (resource == null) {
-			if (getConstructionType().getResource() != null) {
-				resource = getConstructionType().getResource();
-			} else if (getConstructionType().getResourceRef() != null) {
-				try {
-
-					if (getConstructionType().getResourceRef().getOid() == null) {
-						resource = resolveTarget(" resolving resource ", task, result);
-					} else {
-						resource = LensUtil.getResourceReadOnly(getLensContext(),
-								getConstructionType().getResourceRef().getOid(), getObjectResolver(), task, result);
+			ObjectReferenceType resourceRef = getConstructionType().getResourceRef();
+			if (resourceRef != null) {
+				PrismObject<ResourceType> resourceFromRef = resourceRef.asReferenceValue().getObject();
+				if (resourceFromRef != null) {
+					resource = resourceFromRef.asObjectable();
+				} else {
+					try {
+	
+						if (getConstructionType().getResourceRef().getOid() == null) {
+							resource = resolveTarget(" resolving resource ", task, result);
+						} else {
+							resource = LensUtil.getResourceReadOnly(getLensContext(),
+									getConstructionType().getResourceRef().getOid(), getObjectResolver(), task, result);
+						}
+					} catch (ObjectNotFoundException e) {
+						throw new ObjectNotFoundException(
+								"Resource reference seems to be invalid in account construction in " + getSource()
+										+ ": " + e.getMessage(),
+								e);
+					} catch (SecurityViolationException | CommunicationException | ConfigurationException e) {
+						throw new SystemException("Couldn't fetch the resource in account construction in "
+								+ getSource() + ": " + e.getMessage(), e);
+					} catch (ExpressionEvaluationException e) {
+						throw new SystemException(
+								"Couldn't evaluate filter expression for the resource in account construction in "
+										+ getSource() + ": " + e.getMessage(),
+								e);
 					}
-				} catch (ObjectNotFoundException e) {
-					throw new ObjectNotFoundException(
-							"Resource reference seems to be invalid in account construction in " + getSource()
-									+ ": " + e.getMessage(),
-							e);
-				} catch (SecurityViolationException | CommunicationException | ConfigurationException e) {
-					throw new SystemException("Couldn't fetch the resource in account construction in "
-							+ getSource() + ": " + e.getMessage(), e);
-				} catch (ExpressionEvaluationException e) {
-					throw new SystemException(
-							"Couldn't evaluate filter expression for the resource in account construction in "
-									+ getSource() + ": " + e.getMessage(),
-							e);
 				}
 			}
 			if (resource == null) {
 				throw new SchemaException("No resource set in account construction in " + getSource()
-						+ ", resource : " + getConstructionType().getResource() + ", resourceRef: "
-						+ getConstructionType().getResourceRef());
+						+ ", resourceRef: " + getConstructionType().getResourceRef());
 			}
 			getConstructionType().getResourceRef().setOid(resource.getOid());
 		}
@@ -346,9 +350,6 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 		String resourceOid = null;
 		if (getConstructionType().getResourceRef() != null) {
 			resourceOid = getConstructionType().getResourceRef().getOid();
-		}
-		if (getConstructionType().getResource() != null) {
-			resourceOid = getConstructionType().getResource().getOid();
 		}
 		ResourceType resource = getResource(task, result);
 		if (resourceOid != null && !resource.getOid().equals(resourceOid)) {

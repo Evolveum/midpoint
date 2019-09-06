@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<account oid="20b46da4-2bad-11e9-b807-7b7672a5eebe"
+<shadow oid="20b46da4-2bad-11e9-b807-7b7672a5eebe"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -35,4 +35,4 @@
 			</value>
 		</password>
 	</credentials>
-</account>
+</shadow>

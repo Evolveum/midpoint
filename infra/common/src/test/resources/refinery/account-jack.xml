@@ -17,7 +17,7 @@
 
 <!-- Object modification description that is changing user "jack" by adding a new account -->
 
-<account oid="10000000-0000-0000-0000-000000000003" 
+<shadow oid="10000000-0000-0000-0000-000000000003" 
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
@@ -39,4 +39,4 @@
 		<ri:sn>Sparrow</ri:sn>
 		<ri:userPassword>ZGVhZCBtZW4gdGVsbCBubyB0YWxlcwo=</ri:userPassword>
 	</attributes>
-</account>
+</shadow>

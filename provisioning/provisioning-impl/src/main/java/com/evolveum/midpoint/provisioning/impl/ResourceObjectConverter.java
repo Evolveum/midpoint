@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -382,13 +382,7 @@ public class ResourceObjectConverter {
 			result.recordFatalError(e);
 			throw e;
 		}
-		
-		//check idetifier if it is not null
-		if (identifiers.isEmpty() && shadow.asObjectable().getFailedOperationType()!= null){
-			throw new GenericConnectorException(
-					"Unable to delete object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
-		}
-		
+				
 		// Execute entitlement modification on other objects (if needed)
 		executeEntitlementChangesDelete(ctx, shadow, scripts, connOptions, result);
 
@@ -549,14 +543,6 @@ public class ResourceObjectConverter {
 			PrismObject<ShadowType> preReadShadow = null;
 			Collection<PropertyModificationOperation> sideEffectOperations = null;
 			AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyAsyncRet = null;
-			
-			//check identifier if it is not null
-			if ((primaryIdentifiers == null || primaryIdentifiers.isEmpty()) && repoShadow.asObjectable().getFailedOperationType() != null){
-				GenericConnectorException e = new GenericConnectorException(
-						"Unable to modify object in the resource. Probably it has not been created yet because of previous unavailability of the resource.");
-				result.recordFatalError(e);
-				throw e;
-			}
 			
 			if (hasVolatilityTriggerModification || ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource()) || isRename(ctx, operations)) {
 				// We need to filter out the deltas that add duplicate values or remove values that are not there

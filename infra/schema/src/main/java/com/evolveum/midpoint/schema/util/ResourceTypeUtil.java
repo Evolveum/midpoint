@@ -80,8 +80,6 @@ public class ResourceTypeUtil {
 	public static String getConnectorOid(ResourceType resource) {
 		if (resource.getConnectorRef() != null) {
 			return resource.getConnectorRef().getOid();
-		} else if (resource.getConnector() != null) {
-			return resource.getConnector().getOid();
 		} else {
 			return null;
 		}

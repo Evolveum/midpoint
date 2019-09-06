@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
 import com.evolveum.midpoint.model.common.stringpolicy.ShadowValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
@@ -70,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
@@ -119,17 +121,17 @@ public class ProjectionCredentialsProcessor {
 			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 					SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		ValuePolicyType passwordPolicy = determinePasswordPolicy(context, projectionContext, now, task, result);
+		SecurityPolicyType securityPolicy = determineSecurityPolicy(context, projectionContext, now, task, result);
 
-		processProjectionPasswordMapping(context, projectionContext, passwordPolicy, now, task, result);
+		processProjectionPasswordMapping(context, projectionContext, securityPolicy, now, task, result);
 
-		validateProjectionPassword(context, projectionContext, passwordPolicy, now, task, result);
+		validateProjectionPassword(context, projectionContext, securityPolicy, now, task, result);
 
 		applyMetadata(context, projectionContext, now, task, result);
 	}
 
 	private <F extends FocusType> void processProjectionPasswordMapping(LensContext<F> context,
-			final LensProjectionContext projCtx, final ValuePolicyType passwordPolicy, XMLGregorianCalendar now, Task task, OperationResult result)
+			final LensProjectionContext projCtx, final SecurityPolicyType securityPolicy, XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 
@@ -188,7 +190,7 @@ public class ProjectionCredentialsProcessor {
 			}
 			@Override
 			public ValuePolicyType resolve() {
-				return passwordPolicy;
+				return SecurityUtil.getPasswordPolicy(securityPolicy);
 			}
 		};
 
@@ -327,11 +329,11 @@ public class ProjectionCredentialsProcessor {
 	}
 
 	private <F extends FocusType> void validateProjectionPassword(LensContext<F> context,
-			final LensProjectionContext projectionContext, final ValuePolicyType passwordPolicy, XMLGregorianCalendar now, Task task, OperationResult result)
+			final LensProjectionContext projectionContext, final SecurityPolicyType securityPolicy, XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		if (passwordPolicy == null) {
-			LOGGER.trace("Skipping processing password policies. Password policy not specified.");
+		if (securityPolicy == null) {
+			LOGGER.trace("Skipping processing password policies. Security policy not specified.");
 			return;
 		}
 
@@ -374,16 +376,29 @@ public class ProjectionCredentialsProcessor {
 		}
 
         String passwordValue = determinePasswordValue(password);
+        
+        ObjectValuePolicyEvaluator objectValuePolicyEvaluator = new ObjectValuePolicyEvaluator(prismContext);
+		objectValuePolicyEvaluator.setNow(now);
+		objectValuePolicyEvaluator.setOriginResolver(getOriginResolver(accountShadow));
+		objectValuePolicyEvaluator.setProtector(protector);
+		objectValuePolicyEvaluator.setSecurityPolicy(securityPolicy);
+		objectValuePolicyEvaluator.setShortDesc("password for " + accountShadow);
+		objectValuePolicyEvaluator.setTask(task);
+		objectValuePolicyEvaluator.setValueItemPath(SchemaConstants.PATH_PASSWORD_VALUE);
+		objectValuePolicyEvaluator.setValuePolicyProcessor(valuePolicyProcessor);
+		
+		OperationResult validationResult = objectValuePolicyEvaluator.validateStringValue(passwordValue);
 
-        boolean isValid = valuePolicyProcessor.validateValue(passwordValue, passwordPolicy, getOriginResolver(accountShadow), "projection password policy", task, result);
+//        boolean isValid = valuePolicyProcessor.validateValue(passwordValue, securityPolicy, getOriginResolver(accountShadow), "projection password policy", task, result);
 
-		if (!isValid) {
+		if (!validationResult.isSuccess()) {
+			LOGGER.debug("Password for projection {} is not valid (policy={}): {}", projectionContext.getHumanReadableName(), securityPolicy, validationResult.getUserFriendlyMessage());
 			result.computeStatus();
 			throw new PolicyViolationException(
 					new LocalizableMessageBuilder()
 							.key("PolicyViolationException.message.projectionPassword")
 							.arg(projectionContext.getHumanReadableName())
-							.arg(result.getUserFriendlyMessage())
+							.arg(validationResult.getUserFriendlyMessage())
 							.build());
 		}
 	}
@@ -436,13 +451,13 @@ public class ProjectionCredentialsProcessor {
 
 	}
 
-	private <F extends FocusType> ValuePolicyType determinePasswordPolicy(LensContext<F> context,
+	private <F extends FocusType> SecurityPolicyType determineSecurityPolicy(LensContext<F> context,
 			final LensProjectionContext projCtx, XMLGregorianCalendar now, Task task, OperationResult result) {
-		ValuePolicyType passwordPolicy = projCtx.getAccountPasswordPolicy();
-		if (passwordPolicy != null) {
-			return passwordPolicy;
+		SecurityPolicyType securityPolicy = projCtx.getProjectionSecurityPolicy();
+		if (securityPolicy != null) {
+			return securityPolicy;
 		}
-		return SecurityUtil.getPasswordPolicy(context.getGlobalSecurityPolicy());
+		return context.getGlobalSecurityPolicy();
 	}
 
 	// On missing password this returns empty string (""). It is then up to password policy whether it allows empty passwords or not.

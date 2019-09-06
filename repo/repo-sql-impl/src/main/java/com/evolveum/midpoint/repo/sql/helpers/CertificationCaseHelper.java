@@ -81,6 +81,7 @@ public class CertificationCaseHelper {
     @Autowired private ObjectRetriever objectRetriever;
     @Autowired private RepositoryService repositoryService;
     @Autowired private ExtItemDictionary extItemDictionary;
+    @Autowired private BaseHelper baseHelper;
 
     public void addCertificationCampaignCases(Session session, RObject object, boolean deleteBeforeAdd) {
         if (!(object instanceof RAccessCertificationCampaign)) {
@@ -121,7 +122,7 @@ public class CertificationCaseHelper {
 
     @NotNull
     private RepositoryContext createRepositoryContext() {
-        return new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary);
+        return new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary, baseHelper.getConfiguration());
     }
 
     public void deleteCertificationCampaignCases(Session session, String oid) {

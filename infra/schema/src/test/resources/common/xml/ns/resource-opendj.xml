@@ -288,7 +288,6 @@ This is now the only account type that midPoint can work with. -->
                     <expression>
                     	<script>
 	                        <code>
-<!-- 	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3"; -->
 	                            'uid=' +name+ ',ou=people,dc=example,dc=com'
 	                        </code>
                         </script>
@@ -315,12 +314,9 @@ This is now the only account type that midPoint can work with. -->
        Entry UUID is created by the directory server itelf
        and it is immutable. We can only read it. -->
 
-<!--                 <access>read</access> -->
                 <limitations>
 					<access>
-<!-- 						<add>true</add> -->
 						<read>true</read>
-<!-- 						<modify>true</modify> -->
 					</access>
 				</limitations>
                 
@@ -337,9 +333,6 @@ This is now the only account type that midPoint can work with. -->
 
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
-<!--                 <access>create</access> -->
-<!--                 <access>read</access> -->
-<!--                 <access>update</access> -->
                  <limitations>
 					<access>
 						<read>true</read>
@@ -404,17 +397,13 @@ This is now the only account type that midPoint can work with. -->
                 <ref>ri:givenName</ref>
                 <displayName>Given Name</displayName>
                 <limitations>
-<!-- 					<minOccurs>0</minOccurs> -->
 					<access>
 						<read>true</read>
 						<add>true</add>
 						<modify>true</modify>
 					</access>
 				</limitations>
-<!--                 <access>create</access> -->
-<!--                 <access>read</access> -->
 
-<!--                 <access>update</access> -->
                 <outbound>
 					<source>
 						<!-- Full namespace prefixes can be used in the path -->
@@ -466,39 +455,6 @@ This is now the only account type that midPoint can work with. -->
                 <!-- No inbound expression for description. We don't want to synchronize that -->
             </attribute>
 
-
-<!--             <attribute> -->
-<!--                 <ref>ri:carLicense</ref> -->
-
-<!-- 				<description> -->
-<!-- 					This attibute definition is used to test tolerance of empty values. -->
-<!-- 				</description> -->
-				
-<!--                 <outbound> -->
-<!--                     <description> -->
-<!--                     	The expression will produce empty value. OpenDJ will die if empty value -->
-<!--                     	is provided for an attribute. midPoint should filter out the empty value -->
-<!--                     	and do not sent it to OpenDJ. -->
-<!--                     </description> -->
-<!-- 					<strength>weak</strength> -->
-<!--                     <expression> -->
-<!--                     	<script> -->
-<!--                     		<code>concat('','')</code> -->
-<!--                     	</script> -->
-<!--                     </expression> -->
-<!--                 </outbound> -->
-
-<!--                 <inbound> -->
-<!--                     <target> -->
-<!--                     	<path> -->
-<!-- 	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3"; -->
-<!-- 	                        declare namespace my="http://whatever.com/my"; -->
-<!-- 	                        $i:user/i:extension/my:description -->
-<!--                         </path> -->
-<!--                     </target> -->
-<!--                 </inbound> -->
-<!--                 No inbound expression for description. We don't want to synchronize that -->
-<!--             </attribute> -->
 			<attribute>
 				<ref>ri:employeeType</ref>
 				<displayName>Employee Type</displayName>
@@ -578,8 +534,14 @@ This is now the only account type that midPoint can work with. -->
             </activation>
             
             <protected>
-		    	<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
-		    </protected>
+				<filter>
+					<q:equal>
+						<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+							    attributes/icfs:name</q:path>
+						<q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
+					</q:equal>
+				</filter>
+			</protected>
         </objectType>
     </schemaHandling>
 
@@ -660,15 +622,14 @@ This is now the only account type that midPoint can work with. -->
 	        </reaction>
 	        <c:reaction>
 	            <c:situation>unlinked</c:situation>
-	            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	            <c:action>
+	                <c:handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</c:handlerUri>
+	            </c:action>
 	        </c:reaction>
 	        <c:reaction>
 	            <c:situation>unmatched</c:situation>
-	            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
-	                <!-- Reference to the User Template is here. If the user would be
-	             created as a result of this action, it will be created according
-	             to this template. -->
-	                <c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+	            <c:action>
+	            	<c:handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</c:handlerUri>
 	            </c:action>
 	        </c:reaction>
 		</objectSynchronization>

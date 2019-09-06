@@ -16,7 +16,7 @@
   -->
 
 <!-- MID-5076 -->
-<account oid="34132742-2085-11e9-a956-17770b09881b"
+<shadow oid="34132742-2085-11e9-a956-17770b09881b"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -46,4 +46,4 @@
 		<icfs:name>murray</icfs:name>
 		<icfs:uid>murray</icfs:uid>
 	</attributes>
-</account>
+</shadow>

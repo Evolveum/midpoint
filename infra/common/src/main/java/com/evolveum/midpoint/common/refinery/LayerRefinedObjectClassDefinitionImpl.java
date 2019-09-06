@@ -95,6 +95,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public ItemProcessing getProcessing() {
     	return refinedObjectClassDefinition.getProcessing();
 	}
+    
+    @Override
+	public List<SchemaMigration> getSchemaMigrations() {
+		return refinedObjectClassDefinition.getSchemaMigrations();
+	}
 
 	public boolean isEmphasized() {
 		return refinedObjectClassDefinition.isEmphasized();
@@ -350,8 +355,13 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
     @Override
+    @Deprecated
 	public ObjectReferenceType getPasswordPolicy() {
 		return refinedObjectClassDefinition.getPasswordPolicy();
+	}
+
+	public ObjectReferenceType getSecurityPolicyRef() {
+		return refinedObjectClassDefinition.getSecurityPolicyRef();
 	}
 
 	@Override
@@ -545,6 +555,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
     @Override
 	public boolean matches(ShadowType shadowType) {
 		return refinedObjectClassDefinition.matches(shadowType);
+	}
+    
+    @Override
+	public boolean matchesWithoutIntent(ShadowType shadowType) {
+		return refinedObjectClassDefinition.matchesWithoutIntent(shadowType);
 	}
 
 	@Override

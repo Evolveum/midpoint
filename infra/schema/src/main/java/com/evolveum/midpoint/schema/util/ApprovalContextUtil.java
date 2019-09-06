@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -259,7 +259,7 @@ public class ApprovalContextUtil {
 	}
 
 	public static List<ApprovalStageDefinitionType> getStages(ApprovalSchemaType approvalSchema) {
-		return !approvalSchema.getStage().isEmpty() ? approvalSchema.getStage() : approvalSchema.getLevel();
+		return !approvalSchema.getStage().isEmpty() ? approvalSchema.getStage() : null;
 	}
 
 	// we must be strict here; in case of suspicion, throw an exception
@@ -329,10 +329,8 @@ public class ApprovalContextUtil {
 		// Sorting uses set(..) method which is not available on prism structures. So we do sort on a copy (ArrayList).
 		List<ApprovalStageDefinitionType> stages = getSortedStages(schema);
 		for (int i = 0; i < stages.size(); i++) {
-			stages.get(i).setOrder(null);
 			stages.get(i).setNumber(i+1);
 		}
-		schema.getLevel().clear();
 		schema.getStage().clear();
 		schema.getStage().addAll(CloneUtil.cloneCollectionMembers(stages));
 	}
@@ -352,36 +350,15 @@ public class ApprovalContextUtil {
 			if (number == null || number != i+1) {
 				throw new IllegalArgumentException("Missing or wrong number of stage #" + (i+1) + ": " + number);
 			}
-			stage.setOrder(null);
 			stage.setNumber(number);
 		}
 		return stages;
 	}
 
 	private static Integer getNumber(ApprovalStageDefinitionType stage) {
-		return stage.getNumber() != null ? stage.getNumber() : stage.getOrder();
+		return stage.getNumber();
 	}
 
-	//	public static void checkLevelsOrdering(ApprovalSchemaType schema) {
-//		for (int i = 0; i < schema.getLevel().size(); i++) {
-//			ApprovalStageDefinitionType level = schema.getLevel().get(i);
-//			if (level.getOrder() == null) {
-//				throw new IllegalStateException("Level without order: " + level);
-//			}
-//			if (i > 0 && schema.getLevel().get(i-1).getOrder() >= level.getOrder()) {
-//				throw new IllegalStateException("Level #" + i + " is not before level #" + (i+1) + " in " + schema);
-//			}
-//		}
-//	}
-//
-//	public static void checkLevelsOrderingStrict(ApprovalSchemaType schema) {
-//		for (int i = 0; i < schema.getLevel().size(); i++) {
-//			Integer order = schema.getLevel().get(i).getOrder();
-//			if (order == null || order != i+1) {
-//				throw new IllegalStateException("Level #" + (i+1) + " has an incorrect order: " + order + " in " + schema);
-//			}
-//		}
-//	}
 
 	public static OperationBusinessContextType getBusinessContext(CaseType aCase) {
 		if (aCase == null) {
@@ -400,23 +377,8 @@ public class ApprovalContextUtil {
 		return getStageInfo(stageNumber, null, null, null);
 	}
 
-//	public static String getProcessInstanceId(WorkItemType workItem) {
-//		return getApprovalContext(workItem).getCaseOid();
-//	}
-
 	public static ApprovalContextType getApprovalContext(CaseWorkItemType workItem) {
 		return CaseWorkItemUtil.getCaseRequired(workItem).getApprovalContext();
-//		PrismContainerValue<?> parent = PrismValueUtil.getParentContainerValue(workItem.asPrismContainerValue());
-//		if (parent == null) {
-//			LOGGER.error("No workflow context for workItem {}", workItem);
-//			// this is only a workaround, FIXME MID-4030
-//			return new WfContextType(workItem.asPrismContainerValue().getPrismContext());
-//		}
-//		Containerable parentReal = parent.asContainerable();
-//		if (!(parentReal instanceof CaseType)) {
-//			throw new IllegalStateException("WorkItem's parent is not a CaseType; it is " + parentReal);
-//		}
-//		return (WfContextType) parentReal;
 	}
 
 	public static CaseType getCase(ApprovalSchemaExecutionInformationType info) {

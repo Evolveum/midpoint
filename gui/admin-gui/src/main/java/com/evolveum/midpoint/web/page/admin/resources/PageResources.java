@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,10 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 						description = "PageAdminResources.auth.resourcesAll.description"),
 				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
 						label = "PageResources.auth.resources.label",
-						description = "PageResources.auth.resources.description")
+						description = "PageResources.auth.resources.description"),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL,
+						label = "PageResources.auth.resources.view.label",
+						description = "PageResources.auth.resources.view.description")
 		})
 public class PageResources extends PageAdminObjectList<ResourceType> {
 
@@ -98,7 +101,6 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TABLE = "table";
-	private static final String ID_CONNECTOR_TABLE = "connectorTable";
 
 	private ResourceType singleDelete;
 
@@ -157,15 +159,15 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 	}
 
 	@Override
-	protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions(){
+	protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions() {
 		return getOperationOptionsBuilder()
 				.noFetch()
-				.item(ResourceType.F_CONNECTOR).resolve()
+				.item(ResourceType.F_CONNECTOR_REF).resolve()
 				.build();
 	}
 
 	@Override
-	protected UserProfileStorage.TableId getTableId(){
+	protected UserProfileStorage.TableId getTableId() {
 		return UserProfileStorage.TableId.TABLE_RESOURCES;
 	}
 
@@ -328,9 +330,9 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 		List<IColumn<SelectableBean<ResourceType>, String>> columns = new ArrayList<>();
 
 		columns.add(new PropertyColumn(createStringResource("pageResources.connectorType"),
-				SelectableBean.F_VALUE + ".connector.connectorType"));
+				SelectableBean.F_VALUE + ".connectorRef.objectable.connectorType"));
 		columns.add(new PropertyColumn(createStringResource("pageResources.version"),
-				SelectableBean.F_VALUE + ".connector.connectorVersion"));
+				SelectableBean.F_VALUE + ".connectorRef.objectable.connectorVersion"));
 
 		return columns;
 	}

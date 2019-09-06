@@ -60,7 +60,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     private static final String ID_TABLE = "table";
 
 
-    public PageAdminObjectList(){
+    public PageAdminObjectList() {
         this(null);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -167,6 +167,11 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	@Override
 	public List<String> getIgnoredNamespaces() {
 		return complexTypeDefinition != null ? complexTypeDefinition.getIgnoredNamespaces() : null;
+	}
+	
+	@Override
+	public List<SchemaMigration> getSchemaMigrations() {
+		return complexTypeDefinition != null ? complexTypeDefinition.getSchemaMigrations() : null;
 	}
 
     public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
@@ -503,9 +508,9 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     @Override
     public String debugDump(int indent, IdentityHashMap<Definition, Object> seen) {
-        StringBuilder sb = new StringBuilder();
-        DebugUtil.indentDebugDump(sb, indent);
+        StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
         sb.append(toString());
+        extendDumpHeader(sb);
         if (isRuntimeSchema()) {
             sb.append(" dynamic");
         }
@@ -523,7 +528,6 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         }
         return sb.toString();
     }
-
 
     @Override
 	public boolean isEmpty() {

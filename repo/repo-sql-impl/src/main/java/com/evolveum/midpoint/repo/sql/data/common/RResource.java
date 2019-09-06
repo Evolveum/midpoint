@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -153,10 +153,6 @@ public class RResource extends RObject<ResourceType> {
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), repositoryContext.relationRegistry));
-
-        if (jaxb.getConnector() != null) {
-            LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");
-        }
 
         try {
             if (jaxb.getBusiness() != null) {

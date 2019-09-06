@@ -27,13 +27,10 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import org.apache.commons.lang.StringUtils;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -111,7 +108,24 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		return this;
 	}
 
-	
+	public PrismObjectAsserter<O,RA> assertConsistence() {
+		object.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
+		return this;
+	}
+
+	public PrismObjectAsserter<O, RA> assertDefinition() {
+		assertTrue("Incomplete definition in "+object, object.hasCompleteDefinition());
+		return this;
+	}
+
+	public PrismObjectAsserter<O,RA> assertSanity() {
+		assertConsistence();
+		assertDefinition();
+		assertOid();
+		assertName();
+		return this;
+	}
+
 	public PrismObjectAsserter<O,RA> assertName() {
 		assertNotNull("No name in "+desc(), getObject().getName());
 		return this;

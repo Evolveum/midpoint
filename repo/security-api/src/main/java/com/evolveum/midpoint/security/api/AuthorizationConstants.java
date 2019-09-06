@@ -178,7 +178,6 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_CONNECTOR_HOSTS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "connectorHostsAll");
 	public static final String AUTZ_UI_CONNECTOR_HOSTS_ALL_URL = NS_AUTHORIZATION_UI + "#connectorHostsAll";
 
-
 	// Resource XML editor
 	public static final QName AUTZ_UI_RESOURCE_QNAME = new QName(NS_AUTHORIZATION_UI, "resource");
 	public static final String AUTZ_UI_RESOURCE_URL = NS_AUTHORIZATION_UI + "#resource";
@@ -198,7 +197,6 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_RESOURCES_CONTENT_ENTITLEMENTS_QNAME = new QName(NS_AUTHORIZATION_UI, "resourcesContentEntitlements");
 	public static final String AUTZ_UI_RESOURCES_CONTENT_ENTITLEMENTS_URL = NS_AUTHORIZATION_UI + "#resourcesContentEntitlements";
-
 
 	//Configuration
 	public static final QName AUTZ_UI_CONFIGURATION_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "configurationAll");
@@ -246,7 +244,6 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_ROLE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "roleDetails");
 	public static final String AUTZ_UI_ROLE_DETAILS_URL = NS_AUTHORIZATION_UI + "#roleDetails";
-
 
 	//Approvals (workflows)
 	public static final String AUTZ_UI_APPROVALS_ALL_URL = NS_AUTHORIZATION_UI + "#approvalsAll";
@@ -299,8 +296,8 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_CASES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "casesAll");
 	public static final String AUTZ_UI_CASES_ALL_URL = NS_AUTHORIZATION_UI + "#casesAll";
 
-	public static final QName AUTZ_UI_CASES_ALLOCATED_TO_ME_QNAME = new QName(NS_AUTHORIZATION_UI, "casesAllocatedToMe");
-	public static final String AUTZ_UI_CASES_ALLOCATED_TO_ME_URL = NS_AUTHORIZATION_UI + "#casesAllocatedToMe";
+	public static final QName AUTZ_UI_CASES_QNAME = new QName(NS_AUTHORIZATION_UI, "cases");
+	public static final String AUTZ_UI_CASES_URL = NS_AUTHORIZATION_UI + "#cases";
 
     public static final QName AUTZ_UI_CASE_QNAME = new QName(NS_AUTHORIZATION_UI, "case");
     public static final String AUTZ_UI_CASE_URL = NS_AUTHORIZATION_UI + "#case";
@@ -308,12 +305,7 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_CASE_DETAILS_QNAME = new QName(NS_AUTHORIZATION_UI, "caseDetails");
     public static final String AUTZ_UI_CASE_DETAILS_URL = NS_AUTHORIZATION_UI + "#caseDetails";
 
-	public static final QName AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_QNAME = new QName(NS_AUTHORIZATION_UI, "caseWorkItemsAllocatedToMe");
-	public static final String AUTZ_UI_CASE_WORK_ITEMS_ALLOCATED_TO_ME_URL = NS_AUTHORIZATION_UI + "#caseWorkItemsAllocatedToMe";
-
-	public static final QName AUTZ_UI_CASE_WORK_ITEMS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "caseWorkItemsAll");
-	public static final String AUTZ_UI_CASE_WORK_ITEMS_ALL_URL = NS_AUTHORIZATION_UI + "#caseWorkItemsAll";
-	public static final String AUTZ_UI_CASE_WORK_ITEM_URL = NS_AUTHORIZATION_UI + "#caseWorkItem";
+	public static final String AUTZ_UI_WORK_ITEMS_ALL_URL = NS_AUTHORIZATION_UI + "#workItemsAll";
 
 
     //Certification
@@ -480,6 +472,21 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_ADMIN_ASSIGN_ARCHETYPE_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminAssignArchetypeMember");
 	public static final String AUTZ_UI_ADMIN_ASSIGN_ARCHETYPE_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ASSIGN_ARCHETYPE_MEMBER_ACTION_QNAME);
 
+	//Archetype object list pages for different object types
+	public static final QName AUTZ_UI_ROLES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "rolesView");
+	public static final String AUTZ_UI_ROLES_VIEW_URL = NS_AUTHORIZATION_UI + "#rolesView";
+
+	public static final QName AUTZ_UI_SERVICES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "servicesView");
+	public static final String AUTZ_UI_SERVICES_VIEW_URL = NS_AUTHORIZATION_UI + "#servicesView";
+
+	public static final QName AUTZ_UI_ARCHETYPES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "archetypesView");
+	public static final String AUTZ_UI_ARCHETYPES_VIEW_URL = NS_AUTHORIZATION_UI + "#archetypesView";
+
+	public static final QName AUTZ_UI_CASES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "casesView");
+	public static final String AUTZ_UI_CASES_VIEW_URL = NS_AUTHORIZATION_UI + "#casesView";
+
+	public static final QName AUTZ_UI_RESOURCES_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "resourcesView");
+	public static final String AUTZ_UI_RESOURCES_VIEW_URL = NS_AUTHORIZATION_UI + "#resourcesView";
 
 	//ui authorization for CSV export button (will be applied everywhere over mp)
 	public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");

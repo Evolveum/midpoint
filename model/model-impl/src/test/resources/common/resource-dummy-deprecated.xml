@@ -219,11 +219,21 @@
 			</iteration>
             
             <protected>
-            	<icfs:name>daviejones</icfs:name>
-            </protected>
-            <protected>
-            	<icfs:name>calypso</icfs:name>
-            </protected>
+				<filter>
+					<q:equal>
+						<q:path>attributes/name</q:path>
+						<q:value>daviejones</q:value>
+					</q:equal>
+				</filter>
+			</protected>
+			<protected>
+				<filter>
+					<q:equal>
+						<q:path>attributes/name</q:path>
+						<q:value>calypso</q:value>
+					</q:equal>
+				</filter>
+			</protected>
             
             <activation>
             	<existence>

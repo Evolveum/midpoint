@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceConsistencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -207,19 +208,15 @@ public abstract class ErrorHandler {
 	}
 	
 	protected boolean isOperationRetryEnabled(ResourceType resource) {
-		if (resource.getConsistency() == null) {
+		ResourceConsistencyType consistency = resource.getConsistency();
+		if (consistency == null) {
 			return true;
 		}
-		
-		if (resource.getConsistency().isPostpone() == null) {
-			Integer operationRetryMaxAttempts = resource.getConsistency().getOperationRetryMaxAttempts();
-			if (operationRetryMaxAttempts == null) {
-				return true;
-			}
-			return operationRetryMaxAttempts != 0;
+		Integer operationRetryMaxAttempts = consistency.getOperationRetryMaxAttempts();
+		if (operationRetryMaxAttempts == null) {
+			return true;
 		}
-		
-		return resource.getConsistency().isPostpone();
+		return operationRetryMaxAttempts != 0;
 	}
 	
 	protected boolean isCompletePostponedOperations(ProvisioningOperationOptions options) {

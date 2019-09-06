@@ -39,8 +39,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.filter.Filter;
-import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -110,7 +108,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
     private final SecurityContextManager securityContextManager;          // in order to get c:actor variable
 	private final OriginType originType;
 	private final ObjectType originObject;
-	private final FilterManager<Filter> filterManager;
 	private final ValuePolicyResolver stringPolicyResolver;
 	private final boolean conditionMaskOld;
 	private final boolean conditionMaskNew;
@@ -177,7 +174,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		sources = builder.sources;
 		originType = builder.originType;
 		originObject = builder.originObject;
-		filterManager = builder.filterManager;
 		stringPolicyResolver = builder.valuePolicyResolver;
 		variableProducer = builder.variableProducer;
 		mappingPreExpression = builder.mappingPreExpression;
@@ -317,15 +313,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return value;
 	}
 
-	public Boolean isTolerant() {
-		if (mappingType == null) {
-			return null;
-		}
-		return mappingType.isTolerant();
-	}
-
 	public boolean hasTargetRange() {
-		return mappingType.getTarget().getSet() != null || mappingType.getRange() != null;
+		return mappingType.getTarget().getSet() != null;
 	}
 	
 	@SuppressWarnings("unused")
@@ -340,11 +329,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	private PrismContext getPrismContext() {
 		return prismContext;
-	}
-
-	@SuppressWarnings("unused")
-	public FilterManager<Filter> getFilterManager() {
-		return filterManager;
 	}
 
 	@SuppressWarnings("unused")
@@ -597,9 +581,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		if (target != null && target.getSet() != null) {
 			checkRangeTarget(task, result);
 		}
-		if (mappingType.getRange() != null) {
-			checkRangeLegacy(task, result);
-		}
 	}
 
 	private void checkRangeTarget(Task task, OperationResult result)
@@ -636,44 +617,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 		LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
 		outputTriple.addToMinusSet((V)originalValue.clone());
-	}
-
-	private void checkRangeLegacy(Task task, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		if (originalTargetValues == null) {
-			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
-		}
-		for (V originalValue : originalTargetValues) {
-			if (!isInRange(originalValue, task, result)) {
-				continue;
-			}
-			addToMinusIfNecessary(originalValue);
-		}
-	}
-
-	private boolean isInRange(V value, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		@NotNull ValueSetSpecificationType range = mappingType.getRange();
-		if (range.getIsInSetExpression() == null) {
-			return false;
-		}
-		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinitions(this.variables);			// TODO is this ok?
-
-		if (value instanceof PrismContainerValue) {
-			// artificially create parent for PCV in order to pass it to expression
-			PrismContainer.createParentIfNeeded((PrismContainerValue) value, outputDefinition);
-		}
-		variables.addVariableDefinition(ExpressionConstants.VAR_VALUE, value, value.getParent().getDefinition());
-
-		PrismPropertyDefinition<Boolean> outputDef = getPrismContext().definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, null, false);
-		PrismPropertyValue<Boolean> rv = ExpressionUtil.evaluateExpression(variables, outputDef, range.getIsInSetExpression(), expressionProfile, expressionFactory, "isInSet expression in " + contextDescription, task, result);
-
-		// but now remove the parent! TODO: PM: why???
-//		if (value.getParent() != null) {
-//			value.setParent(null);
-//		}
-
-		return rv != null && rv.getValue() != null ? rv.getValue() : Boolean.FALSE;
 	}
 
 	@SuppressWarnings("unused")         // todo is this externally used?
@@ -949,7 +892,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			timeVariables.addVariableDefinitions(variables);
 			timeVariables.addVariableDefinition(ExpressionConstants.VAR_REFERENCE_TIME, referenceTime, timeDefinition);
 			
-			PrismPropertyValue<XMLGregorianCalendar> timePropVal = ExpressionUtil.evaluateExpression(timeVariables, timeDefinition, expressionType, expressionProfile, expressionFactory, "time expression in "+contextDescription, task, result);
+			PrismPropertyValue<XMLGregorianCalendar> timePropVal = ExpressionUtil.evaluateExpression(sources, timeVariables, timeDefinition, expressionType, expressionProfile, expressionFactory, "time expression in "+contextDescription, task, result);
 			
 			if (timePropVal == null) {
 				return null;
@@ -1555,7 +1498,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		private Collection<Source<?,?>> sources = new ArrayList<>();
 		private OriginType originType;
 		private ObjectType originObject;
-		private FilterManager<Filter> filterManager;
 		private ValuePolicyResolver valuePolicyResolver;
 		private VariableProducer variableProducer;
 		private MappingPreExpression mappingPreExpression;
@@ -1645,11 +1587,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 		public Builder<V,D> originObject(ObjectType val) {
 			originObject = val;
-			return this;
-		}
-
-		public Builder<V,D> filterManager(FilterManager<Filter> val) {
-			filterManager = val;
 			return this;
 		}
 
@@ -1771,10 +1708,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 		public ObjectType getOriginObject() {
 			return originObject;
-		}
-
-		public FilterManager<Filter> getFilterManager() {
-			return filterManager;
 		}
 
 		public ValuePolicyResolver getValuePolicyResolver() {
@@ -1992,12 +1925,6 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		@Deprecated
 		public void setOriginObject(ObjectType originObject) {
 			this.originObject = originObject;
-		}
-
-		@Deprecated
-		public void setFilterManager(
-				FilterManager<Filter> filterManager) {
-			this.filterManager = filterManager;
 		}
 
 		@Deprecated

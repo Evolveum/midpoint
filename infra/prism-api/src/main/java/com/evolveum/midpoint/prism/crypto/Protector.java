@@ -30,6 +30,10 @@ import org.jetbrains.annotations.NotNull;
 
 public interface Protector {
 	
+	static final String XMLSEC_ENCRYPTION_NS = "http://www.w3.org/2001/04/xmlenc";
+    static final String XMLSEC_ENCRYPTION_ALGORITHM_AES128_CBC = XMLSEC_ENCRYPTION_NS + "#aes128-cbc";
+    static final String XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC = XMLSEC_ENCRYPTION_NS + "#aes256-cbc";
+	
 	<T> void decrypt(ProtectedData<T> protectedData) throws EncryptionException, SchemaException;
 	
 	<T> void encrypt(ProtectedData<T> protectedData) throws EncryptionException;

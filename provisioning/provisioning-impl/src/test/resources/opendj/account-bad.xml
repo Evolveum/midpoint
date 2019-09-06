@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,16 +17,16 @@
 
 <!--  This account points to an object that does not exists in LDAP -->
  
-<c:account oid="dbb0c37d-9ee6-44a4-8d39-016dbce1ffff"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<shadow oid="dbb0c37d-9ee6-44a4-8d39-016dbce1ffff"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<c:name>drno</c:name>
-	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<c:objectClass>ri:inetOrgPerson</c:objectClass>
-	<c:attributes>
+	<name>drno</name>
+	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+	<objectClass>ri:inetOrgPerson</objectClass>
+	<attributes>
 		<ri:entryUUID>ffffffff-eeee-ffff-eeee-ffffffffffff</ri:entryUUID>
 		<ri:dn>uid=drno,ou=People,dc=example,dc=com</ri:dn>
-	</c:attributes>
-</c:account>
+	</attributes>
+</shadow>

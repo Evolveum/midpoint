@@ -17,7 +17,7 @@
 
 <!-- Account that is in old format. Incomplete. Used in migration tests. -->
 
-<account oid="3689fda4-5c4c-11e9-b144-43a245ea74a9"
+<shadow oid="3689fda4-5c4c-11e9-b144-43a245ea74a9"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -31,4 +31,4 @@
 		<icfs:uid>relic</icfs:uid>
 		<icfs:name>relic</icfs:name>
 	</attributes>
-</account>
+</shadow>

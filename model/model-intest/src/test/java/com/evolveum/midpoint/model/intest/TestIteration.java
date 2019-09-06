@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -176,6 +177,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	private static final File USER_ALFRED_FILE = new File(TEST_DIR, "user-alfred.xml");
 	private static final String USER_ALFRED_NAME = "alfred";
 
+	private static final File ACCOUNT_ALFRED_FILE = new File(TEST_DIR, "account-alfred.xml");
+	
 	private static final String USER_BOB_NAME = "bob";
 
 	private static final String USER_ALFREDO_FETTUCINI_USERNAME = "afettucini";
@@ -507,7 +510,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		PrismObject<UserType> userScrooge = createUser("scrooge", "Scrooge McDuck", true);
 		PrismObject<ShadowType> newPinkyShadow = createShadow(getDummyResourceType(RESOURCE_DUMMY_PINK_NAME).asPrismObject(), null, null);
-		userScrooge.asObjectable().getLink().add(newPinkyShadow.asObjectable());
+		ObjectReferenceType linkRef = new ObjectReferenceType();
+		linkRef.asReferenceValue().setObject(newPinkyShadow);
+		userScrooge.asObjectable().getLinkRef().add(linkRef);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -551,7 +556,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		PrismObject<UserType> userJoeHacker = createUser("hacker", "Joe Hacker", true);
 		PrismObject<ShadowType> newPinkyShadow = createShadow(getDummyResourceObject(RESOURCE_DUMMY_PINK_NAME), null, null);
-		userJoeHacker.asObjectable().getLink().add(newPinkyShadow.asObjectable());
+		ObjectReferenceType linkRef = new ObjectReferenceType();
+		linkRef.asReferenceValue().setObject(newPinkyShadow);
+		userJoeHacker.asObjectable().getLinkRef().add(linkRef);
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		deltas.add(DeltaFactory.Object.createAddDelta(userJoeHacker));
@@ -1056,8 +1063,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		getDummyResource(RESOURCE_DUMMY_FUCHSIA_NAME).addAccount(account);
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-		PrismObject<UserType> userJupiter = PrismTestUtil.parseObject(USER_ALFRED_FILE);			// there is a linked account
-		ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(userJupiter);
+		PrismObject<UserType> userAlfred = PrismTestUtil.parseObject(USER_ALFRED_FILE);
+		PrismObject<ShadowType> accountAlfred = PrismTestUtil.parseObject(ACCOUNT_ALFRED_FILE);
+		ObjectReferenceType linkRef = new ObjectReferenceType();
+        linkRef.asReferenceValue().setObject(accountAlfred);
+        userAlfred.asObjectable().getLinkRef().add(linkRef);
+		ObjectDelta<UserType> delta = DeltaFactory.Object.createAddDelta(userAlfred);
 
 		// WHEN
 		displayWhen(TEST_NAME);

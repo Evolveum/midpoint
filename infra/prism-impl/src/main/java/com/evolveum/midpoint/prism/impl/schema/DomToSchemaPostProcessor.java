@@ -181,13 +181,12 @@ class DomToSchemaPostProcessor {
 					if (explicitContent == null || content == explicitContent) {
 						inherited = false;
 					}
-					addPropertyDefinitionListFromGroup(term.asModelGroup(), ctd, inherited, explicitContent);
+					addItemDefinitionListFromGroup(term.asModelGroup(), ctd, inherited, explicitContent);
 				}
 			}
 
 			XSAnnotation annotation = complexType.getAnnotation();
-			Element extensionAnnotationElement = SchemaProcessorUtil.getAnnotationElement(annotation,
-					A_EXTENSION);
+			Element extensionAnnotationElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_EXTENSION);
 			if (extensionAnnotationElement != null) {
 				QName extensionType = DOMUtil.getQNameAttribute(extensionAnnotationElement,
 						A_EXTENSION_REF.getLocalPart());
@@ -198,6 +197,8 @@ class DomToSchemaPostProcessor {
 				}
 				ctd.setExtensionForType(extensionType);
 			}
+			
+			parseSchemaMigrations(ctd, annotation);
 		}
 
 		markRuntime(ctd);
@@ -337,7 +338,7 @@ class DomToSchemaPostProcessor {
 	 *            Explicit (i.e. non-inherited) content of the type being parsed
 	 *            - filled-in only for subtypes!
 	 */
-	private void addPropertyDefinitionListFromGroup(XSModelGroup group, MutableComplexTypeDefinition ctd,
+	private void addItemDefinitionListFromGroup(XSModelGroup group, MutableComplexTypeDefinition ctd,
 			Boolean inherited, XSContentType explicitContent) throws SchemaException {
 
 		XSParticle[] particles = group.getChildren();
@@ -345,7 +346,7 @@ class DomToSchemaPostProcessor {
 			boolean particleInherited = inherited != null ? inherited : (p != explicitContent);
 			XSTerm pterm = p.getTerm();
 			if (pterm.isModelGroup()) {
-				addPropertyDefinitionListFromGroup(pterm.asModelGroup(), ctd, particleInherited,
+				addItemDefinitionListFromGroup(pterm.asModelGroup(), ctd, particleInherited,
 						explicitContent);
 			}
 
@@ -802,8 +803,7 @@ class DomToSchemaPostProcessor {
 	}
 
 	/**
-	 * Returns true if provides XSD type is an object definition. It looks for a
-	 * ObjectType supertype.
+	 * Returns true if provides XSD type is an object definition.
 	 */
 	private boolean isObjectDefinition(XSType xsType) {
 		return SchemaProcessorUtil.hasAnnotation(xsType, A_OBJECT);
@@ -1126,6 +1126,33 @@ class DomToSchemaPostProcessor {
 		if (heterogeneousListItem != null) {
 			itemDef.setHeterogeneousListItem(heterogeneousListItem);
 		}
+		
+		// schemaMigration
+		parseSchemaMigrations(itemDef, annotation);
+	}
+
+	private void parseSchemaMigrations(MutableDefinition def, XSAnnotation annotation) throws SchemaException {
+		for (Element schemaMigrationElement : SchemaProcessorUtil.getAnnotationElements(annotation, A_SCHEMA_MIGRATION)) {
+			def.addSchemaMigration(parseSchemaMigration(def, schemaMigrationElement));
+		}
+	}
+
+	private SchemaMigration parseSchemaMigration(MutableDefinition def, Element schemaMigrationElement) throws SchemaException {
+		Element elementElement = DOMUtil.getChildElement(schemaMigrationElement, A_SCHEMA_MIGRATION_ELEMENT);
+		if (elementElement == null) {
+			throw new SchemaException("Missing schemaMigration element in "+def);
+		}
+		QName elementName = DOMUtil.getQNameValue(elementElement);
+		Element versionElement = DOMUtil.getChildElement(schemaMigrationElement, A_SCHEMA_MIGRATION_VERSION);
+		if (versionElement == null) {
+			throw new SchemaException("Missing schemaMigration version in "+def);
+		}
+		Element operationElement = DOMUtil.getChildElement(schemaMigrationElement, A_SCHEMA_MIGRATION_OPERATION);
+		if (operationElement == null) {
+			throw new SchemaException("Missing schemaMigration operation in "+def);
+		}
+		SchemaMigrationOperation op = SchemaMigrationOperation.parse(org.apache.commons.lang3.StringUtils.trim(operationElement.getTextContent()));
+		return new SchemaMigration(elementName, org.apache.commons.lang3.StringUtils.trim(versionElement.getTextContent()), op);
 	}
 
 	private boolean isDeprecated(XSElementDecl xsElementDecl) throws SchemaException {

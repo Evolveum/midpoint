@@ -321,12 +321,16 @@ public class SqlRepositoryConfiguration {
 	public static final String PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_DELETION = "enableNoFetchExtensionValuesDeletion";
 	public static final String PROPERTY_ENABLE_INDEX_ONLY_ITEMS = "enableIndexOnlyItems";
 
+	public static final String PROPERTY_TEXT_INFO_COLUMN_SIZE = "textInfoColumnSize";
+
     private static final String DRIVER_H2 = Driver.class.getName();
     private static final String DRIVER_MYSQL = "com.mysql.cj.jdbc.Driver";
     private static final String DRIVER_MARIADB = "org.mariadb.jdbc.Driver";
     private static final String DRIVER_SQLSERVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     private static final String DRIVER_POSTGRESQL = "org.postgresql.Driver";
     private static final String DRIVER_ORACLE = "oracle.jdbc.OracleDriver";
+
+    private static final String UTF8MB4 = "utf8mb4";
 
     /*
      * Most of the properties below is final to make the code clean and readable.
@@ -399,6 +403,8 @@ public class SqlRepositoryConfiguration {
 	private boolean enableNoFetchExtensionValuesInsertion;
 	private boolean enableNoFetchExtensionValuesDeletion;
 	private boolean enableIndexOnlyItems;
+
+	private int textInfoColumnSize;
 
 	/*
 	 * Notes:
@@ -521,6 +527,9 @@ public class SqlRepositoryConfiguration {
 	    enableNoFetchExtensionValuesInsertion = configuration.getBoolean(PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_INSERTION, true);
 	    enableNoFetchExtensionValuesDeletion = configuration.getBoolean(PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_DELETION, false);
 	    enableIndexOnlyItems = configuration.getBoolean(PROPERTY_ENABLE_INDEX_ONLY_ITEMS, false);
+
+	    int maxTextSize = (database == MYSQL || database == MARIADB) && UTF8MB4.equalsIgnoreCase(schemaVariant) ? 191 : 255;
+	    textInfoColumnSize = configuration.getInt(PROPERTY_TEXT_INFO_COLUMN_SIZE, maxTextSize);
     }
 
 	private boolean isAutoUpdate(String hbm2ddl) {
@@ -998,6 +1007,10 @@ public class SqlRepositoryConfiguration {
 
 	public boolean isEnableIndexOnlyItems() {
 		return enableIndexOnlyItems;
+	}
+
+	public int getTextInfoColumnSize() {
+		return textInfoColumnSize;
 	}
 
 	// for testing only

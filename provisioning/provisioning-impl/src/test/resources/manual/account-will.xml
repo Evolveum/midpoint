@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2017 Evolveum
+  ~ Copyright (c) 2017-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<account oid="c1add81e-1df7-11e7-bbb7-5731391ba751"
+<shadow oid="c1add81e-1df7-11e7-bbb7-5731391ba751"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<resourceRef oid="8a8e19de-1a14-11e7-965f-6f995b457a8b" />
@@ -35,4 +35,4 @@
 			</value>
 		</password>
 	</credentials>
-</account>
+</shadow>

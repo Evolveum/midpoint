@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,6 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 			stageDef.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(approvalAction.getApproverRef()));
 			stageDef.getApproverRelation().addAll(approvalAction.getApproverRelation());
 			stageDef.getApproverExpression().addAll(approvalAction.getApproverExpression());
-			stageDef.setAutomaticallyApproved(approvalAction.getAutomaticallyApproved());
 			// TODO maybe use name + description as well
 			rv.getStage().add(stageDef);
 			return rv;

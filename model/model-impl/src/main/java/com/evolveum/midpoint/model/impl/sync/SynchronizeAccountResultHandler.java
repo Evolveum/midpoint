@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -66,6 +67,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	private ObjectClassComplexTypeDefinition objectClassDef;
 	private QName sourceChannel;
 	private boolean forceAdd;
+	private boolean intentIsNull;
 
 	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDef,
 			String processShortName, RunningTask coordinatorTask, ResourceObjectChangeListener objectChangeListener,
@@ -78,6 +80,10 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		forceAdd = false;
 		setRecordIterationStatistics(false);		// we do statistics ourselves in handler, because in case of reconciliation
 													// we are not called via AbstractSearchIterativeResultHandler.processRequest
+	}
+	
+	public void setIntentIsNull(boolean intentIsNull) {
+		this.intentIsNull = intentIsNull;
 	}
 	
 	public boolean isForceAdd() {
@@ -151,7 +157,15 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			return workerTask.canRun();
 		}
 
-		if (objectClassDef != null && !isShadowUnknown(newShadowType) && !objectClassDef.matches(newShadowType)) {
+		boolean isMatches;
+		if (intentIsNull && objectClassDef instanceof RefinedObjectClassDefinition) {
+			isMatches = ((RefinedObjectClassDefinition)objectClassDef).matchesWithoutIntent(newShadowType);
+		} else {
+			isMatches = objectClassDef.matches(newShadowType);
+		}
+		
+		
+		if (objectClassDef != null && !isShadowUnknown(newShadowType) && !isMatches) {
 			LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent specified in {}",
 					getProcessShortNameCapitalized(), accountShadow, objectClassDef);
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");

@@ -32,7 +32,6 @@
             <class name="com.evolveum.midpoint.model.impl.controller.ControllerModifyObjectTest"/>
             <class name="com.evolveum.midpoint.model.impl.controller.ControllerSearchObjectsTest"/>
             <class name="com.evolveum.midpoint.model.impl.controller.ControllerTestResourceTest"/>
-            <class name="com.evolveum.midpoint.model.impl.controller.FilterManagerImplTest"/>
             <class name="com.evolveum.midpoint.model.impl.controller.ModelUtilsTest"/>
         </classes>
     </test>
@@ -41,13 +40,6 @@
             <class name="com.evolveum.midpoint.model.impl.expr.ExpressionHandlerImplTest"/>
             <class name="com.evolveum.midpoint.model.impl.expr.TestFilterExpression" />
             <class name="com.evolveum.midpoint.model.impl.expr.TestModelExpressions"/>
-        </classes>
-    </test>
-    <test name="Filters" preserve-order="true" parallel="false" verbose="10">
-        <classes>
-            <class name="com.evolveum.midpoint.model.impl.filter.DiacriticsFilterTest"/>
-            <class name="com.evolveum.midpoint.model.impl.filter.EmptyFilterTest"/>
-            <class name="com.evolveum.midpoint.model.impl.filter.PatternFilterTest"/>
         </classes>
     </test>
     <test name="Synchronization" preserve-order="true" parallel="false" verbose="10">

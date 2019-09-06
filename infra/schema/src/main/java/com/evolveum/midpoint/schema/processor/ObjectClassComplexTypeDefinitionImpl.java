@@ -368,8 +368,8 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	}
 
 	@Override
-	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
-		super.extendDumpDefinition(sb, def);
+	protected void extendItemDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
+		super.extendItemDumpDefinition(sb, def);
 		if (getPrimaryIdentifiers().contains(def)) {
 			sb.append(",primID");
 		}

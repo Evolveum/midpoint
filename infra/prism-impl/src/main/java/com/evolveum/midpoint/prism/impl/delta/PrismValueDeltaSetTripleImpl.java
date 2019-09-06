@@ -170,7 +170,7 @@ public class PrismValueDeltaSetTripleImpl<V extends PrismValue> extends DeltaSet
 		Iterator<V> iterator = set.iterator();
 		while (iterator.hasNext()) {
 			V val = iterator.next();
-			if (val.isEmpty()) {
+			if (val == null || val.isEmpty()) {
 				iterator.remove();
 				continue;
 			}

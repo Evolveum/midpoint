@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.apache.xml.security.encryption.XMLCipher;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -55,7 +54,7 @@ public class TestProtectedString {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-        Protector protector = PrismInternalTestUtil.createProtector(XMLCipher.AES_128);
+        Protector protector = PrismInternalTestUtil.createProtector(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC);
         ProtectedStringType protectedStringType = protector.encryptString("salalala");
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -80,7 +79,7 @@ public class TestProtectedString {
 		// GIVEN
 		ProtectedStringType protectedStringType = new ProtectedStringType();
 		protectedStringType.setClearValue("blabla");
-        Protector protector = PrismInternalTestUtil.createProtector(XMLCipher.AES_128);
+        Protector protector = PrismInternalTestUtil.createProtector(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC);
         protector.hash(protectedStringType);
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();

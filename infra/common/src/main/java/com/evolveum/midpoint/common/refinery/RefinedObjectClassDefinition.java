@@ -136,7 +136,6 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	ProjectionPolicyType getProjection();
 	//endregion
 
-
 	//region Generating and matching artifacts ========================================================
 	PrismObjectDefinition<ShadowType> getObjectDefinition();
 
@@ -150,6 +149,8 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	@Override
 	boolean matches(ShadowType shadowType);
+	
+	boolean matchesWithoutIntent(ShadowType shadowType);
 	//endregion
 
 	//region Accessing parts of schema handling ========================================================
@@ -171,7 +172,10 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	AttributeFetchStrategyType getPasswordFetchStrategy();
 
+	@Deprecated
 	ObjectReferenceType getPasswordPolicy();
+	
+	ObjectReferenceType getSecurityPolicyRef();
 
 	ResourceActivationDefinitionType getActivationSchemaHandling();
 

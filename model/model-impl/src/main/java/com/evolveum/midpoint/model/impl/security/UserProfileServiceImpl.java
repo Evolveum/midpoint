@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -331,6 +331,8 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		PrismObject<F> owner = null;
 		OperationResult result = new OperationResult(UserProfileServiceImpl.class + ".resolveOwner");
 
+		// TODO: what about using LensOwnerResolver here?
+		
 		if (object.canRepresent(ShadowType.class)) {
 			owner = repositoryService.searchShadowOwner(object.getOid(), null, result);
 
@@ -352,15 +354,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			}
 
 		} else if (object.canRepresent(AbstractRoleType.class)) {
-			ObjectReferenceType ownerRef = ((AbstractRoleType) (object.asObjectable())).getOwnerRef();
-			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
-				try {
-					owner = (PrismObject<F>) repositoryService.getObject(ObjectTypes.getObjectTypeFromTypeQName(ownerRef.getType()).getClassDefinition(),
-							ownerRef.getOid(), null, result);
-				} catch (ObjectNotFoundException | SchemaException e) {
-					LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
-				}
-			}
+			// TODO: get owner from roleMembershipRef;relation=owner (MID-5689)
 
 		} else if (object.canRepresent(TaskType.class)) {
 			ObjectReferenceType ownerRef = ((TaskType) (object.asObjectable())).getOwnerRef();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -408,7 +408,6 @@ public class TestDiffEquals {
     			.findObjectDefinitionByCompileTimeClass(ShadowType.class).instantiate();
     	ShadowType shadow1Type = shadow1.asObjectable();
     	shadow1Type.setName(new PolyStringType("Whatever"));
-    	shadow1Type.setFailedOperationType(FailedOperationTypeType.ADD);
     	shadow1Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "foo"));
     	PrismContainer<Containerable> shadow1Attrs = shadow1.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 
@@ -448,21 +447,18 @@ public class TestDiffEquals {
     	System.out.println(delta.debugDump(1));
 
     	PrismAsserts.assertIsModify(delta);
-    	PrismAsserts.assertPropertyDelete(delta, ShadowType.F_FAILED_OPERATION_TYPE, FailedOperationTypeType.ADD);
     	PrismAsserts.assertPropertyAdd(delta, ShadowType.F_AUXILIARY_OBJECT_CLASS, new QName(NS_TEST_RI, "bar"));
     	PrismAsserts.assertContainerAdd(delta, ShadowType.F_ATTRIBUTES, shadow2Attrs.getValue().clone());
-    	PrismAsserts.assertModifications(delta, 3);
+    	PrismAsserts.assertModifications(delta, 2);
     }
 
 	@Test
 	public void testTriggerCollectionsEqual() throws Exception {
 		EvaluatedPolicyRuleTriggerType trigger1 = new EvaluatedPolicyRuleTriggerType()
 				.triggerId(100)
-				.directOwnerDisplayName("owner100")
 				.ruleName("rule100");
 		EvaluatedPolicyRuleTriggerType trigger2 = new EvaluatedPolicyRuleTriggerType()
 				.triggerId(200)
-				.directOwnerDisplayName("owner200")
 				.ruleName("rule200");
 		EvaluatedPolicyRuleType sourceRule1 = new EvaluatedPolicyRuleType()
 				.trigger(trigger1);
@@ -471,7 +467,7 @@ public class TestDiffEquals {
 		List<EvaluatedPolicyRuleTriggerType> triggerListA = Arrays.asList(
 				new EvaluatedSituationTriggerType()
 						.triggerId(1)
-						.directOwnerDisplayName("owner1")
+						.ruleName("rule1")
 						.sourceRule(sourceRule1)
 						.sourceRule(sourceRule2),
 				trigger1,
@@ -481,7 +477,7 @@ public class TestDiffEquals {
 				trigger2,
 				new EvaluatedSituationTriggerType()
 						.triggerId(1)
-						.directOwnerDisplayName("owner1")
+						.ruleName("rule1")
 						.sourceRule(sourceRule2)
 						.sourceRule(sourceRule1)
 				);
@@ -490,7 +486,7 @@ public class TestDiffEquals {
 				trigger2,
 				new EvaluatedSituationTriggerType()
 						.triggerId(1)
-						.directOwnerDisplayName("owner123")
+						.ruleName("rule123")
 						.sourceRule(sourceRule2)
 						.sourceRule(sourceRule1)
 				);

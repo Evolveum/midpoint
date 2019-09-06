@@ -31,13 +31,11 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
-
+import org.apache.commons.codec.binary.Base64;
 import com.evolveum.midpoint.prism.JaxbVisitable;
 import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import org.apache.commons.lang.StringUtils;
-import org.apache.xml.security.exceptions.Base64DecodingException;
-import org.apache.xml.security.utils.Base64;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.crypto.ProtectedData;
@@ -256,12 +254,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 			Element eCipherValue = DOMUtil.getChildElement(eCipherData, F_XML_ENC_CIPHER_VALUE);
 			if (eCipherValue != null) {
 				String cipherValue = eCipherValue.getTextContent();
-				byte[] cipherValueBytes;
-				try {
-					cipherValueBytes = Base64.decode(cipherValue);
-				} catch (Base64DecodingException e) {
-					throw new IllegalArgumentException("Bad base64 encoding in CipherValue element: "+e.getMessage(),e);
-				}
+				byte[] cipherValueBytes = Base64.decodeBase64(cipherValue);
 				cipherDataType.setCipherValue(cipherValueBytes);
 			}
     	}

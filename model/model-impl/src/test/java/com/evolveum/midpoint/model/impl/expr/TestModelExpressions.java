@@ -344,7 +344,11 @@ public class TestModelExpressions extends AbstractInternalModelIntegrationTest {
         }
 
         assertEquals("Unexpected number of script outputs", 1, scriptOutputs.size());
-        return scriptOutputs.get(0).getValue();
+        PrismPropertyValue<String> scriptOutput = scriptOutputs.get(0);
+        if (scriptOutput == null) {
+        	return null;
+        }
+        return scriptOutput.getValue();
 
     }
 

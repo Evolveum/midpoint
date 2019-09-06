@@ -207,7 +207,7 @@ public class SimpleSmsTransport implements Transport {
             try {
 	            ExpressionVariables variables = getDefaultVariables(from, to, message);
             	HttpMethodType method = defaultIfNull(smsGatewayConfigurationType.getMethod(), HttpMethodType.GET);
-	            ExpressionType urlExpression = defaultIfNull(smsGatewayConfigurationType.getUrlExpression(), smsGatewayConfigurationType.getUrl());
+	            ExpressionType urlExpression = defaultIfNull(smsGatewayConfigurationType.getUrlExpression(), null);
 	            String url = evaluateExpressionChecked(urlExpression, variables, "sms gateway request url", task, result);
 	            String proxyHost = smsGatewayConfigurationType.getProxyHost();
                 String proxyPort = smsGatewayConfigurationType.getProxyPort();

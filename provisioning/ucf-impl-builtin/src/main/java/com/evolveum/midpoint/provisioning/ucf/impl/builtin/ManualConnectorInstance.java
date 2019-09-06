@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -267,9 +267,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
 		caseType.setTargetRef(new ObjectReferenceType().oid(shadowOid).targetName(shadowName).type(ShadowType.COMPLEX_TYPE));
 
-		if (objectDelta != null) {
-			caseType.setObjectChange(objectDelta);
-		}
+		// deprecated "objectChange" element was removed in midPoint 4.0.
+		// TODO: record operation as pending operation delta
 
 		ObjectReferenceType archetypeRef = ObjectTypeUtil
 				.createObjectRef(SystemObjectsType.ARCHETYPE_MANUAL_CASE.value(), ObjectTypes.ARCHETYPE);

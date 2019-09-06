@@ -2,23 +2,19 @@ package com.evolveum.midpoint.web.page.admin.roles.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MultiplicityPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintEnforcementType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -33,11 +29,12 @@ import org.apache.wicket.validation.IValidator;
  * popup window from the PageBase class
  */
 public class MultiplicityPolicyPanel extends Panel implements Popupable {
+	private static final long serialVersionUID = 1L;
+
 	private static final Trace LOGGER = TraceManager.getTrace(MultiplicityPolicyPanel.class);
 
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_DESCRIPTION = "description";
-	private static final String ID_ENFORCEMENT = "enforcement";
 	private static final String ID_MULTIPLICITY_CONTAINER = "multiplicityContainer";
 	private static final String ID_MULTIPLICITY = "multiplicity";
 	private static final String ID_MULTIPLICITY_UNBOUND = "multiplicityUnbounded";
@@ -104,15 +101,6 @@ public class MultiplicityPolicyPanel extends Panel implements Popupable {
 				createStringResource("multiplicityContainer.label.description"), ID_LABEL_SIZE,
 				ID_INPUT_SIZE);
 		form.add(description);
-
-		DropDownFormGroup enforcement = new DropDownFormGroup<>(ID_ENFORCEMENT,
-            new PropertyModel<>(model,
-                MultiplicityPolicyConstraintType.F_ENFORCEMENT.getLocalPart()),
-				WebComponentUtil.createReadonlyModelFromEnum(PolicyConstraintEnforcementType.class),
-            new EnumChoiceRenderer<>(),
-				createStringResource("multiplicityContainer.label.enforcement"), ID_LABEL_SIZE, ID_INPUT_SIZE,
-				false);
-		form.add(enforcement);
 
 		WebMarkupContainer multiplicityContainer = new WebMarkupContainer(ID_MULTIPLICITY_CONTAINER);
 		multiplicityContainer.setOutputMarkupId(true);

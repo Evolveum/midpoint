@@ -486,7 +486,7 @@ public class PageSelfDashboard extends PageSelf {
         callableResult.setResult(result);
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
                 .root().resolveNames().noFetch()
-                .item(ShadowType.F_RESOURCE).resolve().noFetch()
+                .item(ShadowType.F_RESOURCE_REF).resolve().noFetch()
                 .build();
         List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
@@ -504,8 +504,7 @@ public class PageSelfDashboard extends PageSelf {
                 callableResult.getFetchResults().add(OperationResult.createOperationResult(fetchResult));
             }
 
-            ResourceType resource = accountType.getResource();
-            String resourceName = WebComponentUtil.getName(resource);
+            String resourceName = WebComponentUtil.getName(accountType.getResourceRef());
             list.add(new SimpleAccountDto(WebComponentUtil.getOrigStringFromPoly(accountType.getName()), resourceName));
         }
         result.recordSuccessIfUnknown();

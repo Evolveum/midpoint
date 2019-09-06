@@ -246,13 +246,6 @@
 				<maxIterations>5</maxIterations>
 			</iteration>
             
-            <protected>
-            	<icfs:name>daviejones</icfs:name>
-            </protected>
-            <protected>
-            	<icfs:name>calypso</icfs:name>
-            </protected>
-            
             <activation>
             	<!-- Explicit existence mapping, but does the same as the default one -->
             	<existence>

@@ -24,61 +24,61 @@
 	<org oid="00000000-8888-6666-0000-100000000001">
 		<name>F0001</name>
 		<description>The office of the most respectful Governor.</description>
-		<displayName>Governor Office</displayName>
-		<identifier>0001</identifier>
 		<subtype>functional</subtype>
 		<costCenter>CC0</costCenter>
 		<locality>The Governor's Mansion</locality>
+		<displayName>Governor Office</displayName>
+		<identifier>0001</identifier>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-100000000002">
 		<name>F0002</name>
 		<description>Defending the scum since the ancient times.</description>
+		<subtype>functional</subtype>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
+		<locality>The towers, bastions and bars</locality>
 		<displayName>Ministry of Defense</displayName>
 		<identifier>0002</identifier>
-		<subtype>functional</subtype>
-		<locality>The towers, bastions and bars</locality>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-100000000003">
 		<name>F0003</name>
 		<description>Offending. Anyone. Anywhere.</description>
+		<subtype>functional</subtype>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
+		<costCenter>CC666</costCenter>
 		<displayName>Ministry of Offense</displayName>
 		<identifier>0003</identifier>
-		<subtype>functional</subtype>
-		<costCenter>CC666</costCenter>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-100000000004">
 		<name>F0004</name>
 		<description>Why is the rum always gone?</description>
+		<subtype>functional</subtype>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
+		<costCenter>CCRUM</costCenter>
 		<displayName>Ministry of Rum</displayName>
 		<identifier>0004</identifier>
-		<subtype>functional</subtype>
-		<costCenter>CCRUM</costCenter>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-100000000005">
 		<name>F0005</name>
 		<description>Swashing, buckling and insulting. Hard.</description>
+		<subtype>functional</subtype>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000003" type="c:OrgType"/>
 		<displayName>Swashbuckler Section</displayName>
 		<identifier>0005</identifier>
-		<subtype>functional</subtype>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-100000000006">
 		<name>F0006</name>
 		<description>Hosting the worst scumm of the Caribbean.</description>
+		<subtype>functional</subtype>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000003" type="c:OrgType"/>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType"/>
+		<locality>Mêlée Island</locality>
 		<displayName>Scumm Bar</displayName>
 		<identifier>0006</identifier>
-		<subtype>functional</subtype>
-		<locality>Mêlée Island</locality>
 	</org>
 
 	<!-- Project organizational structure -->
@@ -86,24 +86,24 @@
 	<org oid="00000000-8888-6666-0000-200000000000">
 		<name>PRoot</name>
 		<description>Project organizational structure root</description>
-		<displayName>Projects</displayName>
 		<subtype>project</subtype>
+		<displayName>Projects</displayName>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-200000000001">
 		<name>P0001</name>
+		<subtype>project</subtype>
 		<parentOrgRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
 		<displayName>Save Elaine</displayName>
 		<identifier>0001</identifier>
-		<subtype>project</subtype>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-200000000002">
 		<name>P0002</name>
+		<subtype>project</subtype>
 		<parentOrgRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
 		<displayName>Kidnap and marry Elaine</displayName>
 		<identifier>0002</identifier>
-		<subtype>project</subtype>
 	</org>
 
 	<!-- Extra organizational structure -->
@@ -111,8 +111,8 @@
 	<org oid="00000000-8888-6666-0000-300000000000">
 		<name>ERoot</name>
 		<description>Extra organizational structure root</description>
-		<displayName>Extra structure root</displayName>
 		<subtype>extra</subtype>
+		<displayName>Extra structure root</displayName>
 	</org>
 
 	<!-- Users -->
@@ -129,6 +129,9 @@
 		</assignment>
 		<assignment>
 			<targetRef oid="00000000-d34d-b33f-f00d-000000000001" type="c:RoleType"/>		<!-- CEO -->
+		</assignment>
+		<assignment>
+			<targetRef oid="00000000-d34d-b33f-f00d-000000000001" type="c:RoleType" relation="org:approver"/>		<!-- CEO -->
 		</assignment>
 		<assignment>
 			<targetRef oid="00000000-d34d-b33f-f00d-000000000001" type="c:RoleType" relation="owner"/>		<!-- CEO (intentionally without 'org' prefix) -->

@@ -274,9 +274,6 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		if (evaluator.getSearchStrategy() != null) {
 			return evaluator.getSearchStrategy();
 		}
-		if (BooleanUtils.isTrue(evaluator.isSearchOnResource())) {
-			return ObjectSearchStrategyType.ON_RESOURCE;
-		}
 		return ObjectSearchStrategyType.IN_REPOSITORY;
 	}
 

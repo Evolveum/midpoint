@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
@@ -710,10 +711,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	 */
 	@Deprecated
 	protected void assertObjectSanity(PrismObject<? extends ObjectType> object) {
-		object.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
-		assertTrue("Incomplete definition in "+object, object.hasCompleteDefinition());
-		assertFalse("No OID", StringUtils.isEmpty(object.getOid()));
-		assertNotNull("Null name in "+object, object.asObjectable().getName());
+		new PrismObjectAsserter<>(object).assertSanity();
 	}
 
 	protected void assertUser(PrismObject<UserType> user, String oid, String name, String fullName, String givenName, String familyName) {
@@ -1920,8 +1918,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		IntegrationTestTools.assertTestResourceNotApplicable(testResult, operation);
 	}
 
-	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname,
-			T... expectedValues) {
+	protected <T> void assertAttribute(ShadowType shadow, QName attrQname, T... expectedValues) {
 		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
 	}
@@ -1931,15 +1928,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertAttribute(resourceType.asPrismObject(), shadowType, attrName, expectedValues);
 	}
 
-	protected <T> void assertAttribute(ResourceType resourceType, ShadowType shadowType, QName attrName,
-			T... expectedValues) {
-		assertAttribute(resourceType.asPrismObject(), shadowType, attrName, expectedValues);
-	}
-
 	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName,
 			T... expectedValues) {
 		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-		assertAttribute(resource, shadow, attrQname, expectedValues);
+		assertAttribute(shadow, attrQname, expectedValues);
 	}
 
 	protected <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, MatchingRule<T> matchingRule,
@@ -1948,7 +1940,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, matchingRule, actualValues, expectedValues);
 	}
 
-	protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname) {
+	protected void assertNoAttribute(ShadowType shadow, QName attrQname) {
 		PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
 			return;
@@ -1959,7 +1951,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName) {
 		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-		assertNoAttribute(resource, shadow, attrQname);
+		assertNoAttribute(shadow, attrQname);
 	}
 
 	protected void assertNoPendingOperation(PrismObject<ShadowType> shadow) {
@@ -1999,6 +1991,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 		PrismObject<CaseType> caseClosed = repositoryService.getObject(CaseType.class, caseOid, null, result);
 		display("Case closed", caseClosed);
+	}
+	
+	/**
+	 * Parses and adds full account into user as an object in linkRef.
+	 */
+	protected void addAccountLinkRef(PrismObject<UserType> user, File accountFile) throws SchemaException, IOException {
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(accountFile);
+        ObjectReferenceType linkRef = new ObjectReferenceType();
+        linkRef.asReferenceValue().setObject(account);
+		user.asObjectable().getLinkRef().add(linkRef);
 	}
 
 	protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int expectedNumLinks) throws ObjectNotFoundException, SchemaException {

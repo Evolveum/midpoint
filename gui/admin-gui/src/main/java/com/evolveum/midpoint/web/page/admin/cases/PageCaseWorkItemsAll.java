@@ -22,24 +22,20 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CREATE_TIMESTAMP;
 
 /**
  * @author bpowers
  */
-@PageDescriptor(url = "/admin/caseWorkItemsAll", action = {
-        @AuthorizationAction(actionUri = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL,
-                label = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_LABEL,
-                description = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASE_WORK_ITEMS_ALL_URL,
-                label = "PageCaseWorkItems.auth.caseWorkItemsAll.label",
-                description = "PageCaseWorkItems.auth.caseWorkItemsAll.description")})
+@PageDescriptor(url = "/admin/allWorkItems", action = {
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ALL_WORK_ITEMS_URL,
+                label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
+                description = PageAdminWorkItems.AUTH_APPROVALS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+                label = "PageWorkItemsAll.auth.allWorkItems.label",
+                description = "PageWorkItemsAll.auth.allWorkItems.description")})
 public class PageCaseWorkItemsAll extends PageCaseWorkItems {
     private static final long serialVersionUID = 1L;
 

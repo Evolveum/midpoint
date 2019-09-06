@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -284,8 +284,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         repo.setKind(RUtil.getRepoEnumValue(jaxb.getKind(), RShadowKind.class));
         repo.setFullSynchronizationTimestamp(jaxb.getFullSynchronizationTimestamp());
 
-        RUtil.copyResultFromJAXB(ShadowType.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
-
         if (jaxb.getSynchronizationSituation() != null) {
             repo.setSynchronizationSituation(RUtil.getRepoEnumValue(jaxb.getSynchronizationSituation(),
                     RSynchronizationSituation.class));
@@ -294,15 +292,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         repo.setSynchronizationTimestamp(jaxb.getSynchronizationTimestamp());
         repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), repositoryContext.relationRegistry));
 
-        repo.setAttemptNumber(jaxb.getAttemptNumber());
         repo.setExists(jaxb.isExists());
         repo.setDead(jaxb.isDead());
-        repo.setFailedOperationType(RUtil.getRepoEnumValue(jaxb.getFailedOperationType(), RFailedOperationType.class));
-
-        if (jaxb.getResource() != null) {
-            LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +
-                    "translated to resource reference.");
-        }
 
         if (jaxb.getAttributes() != null) {
             copyExtensionOrAttributesFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES, generatorResult);

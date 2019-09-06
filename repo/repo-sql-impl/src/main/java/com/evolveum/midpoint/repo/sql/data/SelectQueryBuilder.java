@@ -77,30 +77,30 @@ public class SelectQueryBuilder {
 		Validate.notNull(database, "Database is null");
 		StringBuilder sb = new StringBuilder();
 		String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
-		if(Database.SQLSERVER.equals(database)) {
-			if(queryWithoutStringValue.toLowerCase().contains(" offset ")
-					|| queryWithoutStringValue.contains(" fetch ")) {
+		if (Database.SQLSERVER.equals(database)) {
+			if (queryWithoutStringValue.toLowerCase().contains(" offset ") || queryWithoutStringValue.contains(" fetch ")) {
 				throw new IllegalArgumentException("query already contains offset or fetch");
 			}
-			sb.append(query).append(" OFFSET ").append(firstResult).append(" ROWS FETCH NEXT ")
-			.append(maxResult).append(" ROWS ONLY ");
-		} else if(Database.ORACLE.equals(database)) {
-			sb.append("SELECT * FROM" + 
+			sb.append(query)
+					.append(" OFFSET ").append(firstResult).append(" ROWS")
+					.append(" FETCH NEXT ").append(maxResult).append(" ROWS ONLY ");
+		} else if (Database.ORACLE.equals(database)) {
+			sb.append("SELECT * FROM" +
 					"( "+ 
 						"SELECT a.*, rownum r__ FROM (")
 							.append(query)
 						.append(") a WHERE rownum < ").append(firstResult + maxResult+1)
 					.append(") WHERE r__ >= ").append(firstResult+1).append(" ");
-		} else if(Database.H2.equals(database) || Database.MARIADB.equals(database)
+		} else if (Database.H2.equals(database) || Database.MARIADB.equals(database)
 				|| Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
-			if(queryWithoutStringValue.toLowerCase().contains(" limit ")
-					|| queryWithoutStringValue.contains(" offset ")) {
+			if (queryWithoutStringValue.toLowerCase().contains(" limit ") || queryWithoutStringValue.contains(" offset ")) {
 				throw new IllegalArgumentException("query already contains offset or fetch");
 			}
-			sb.append(query).append(" LIMIT ").append(maxResult).append(" OFFSET ")
-			.append(firstResult).append(" ");
+			sb.append(query)
+					.append(" LIMIT ").append(maxResult)
+					.append(" OFFSET ").append(firstResult).append(" ");
 		} else {
-			throw new IllegalArgumentException("Unsoported type of database: " + database);
+			throw new IllegalArgumentException("Unsupported type of database: " + database);
 		}
 		query = sb.toString();
 	}
@@ -110,50 +110,52 @@ public class SelectQueryBuilder {
 		
 		StringBuilder sb = new StringBuilder();
 		String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
-		if(Database.H2.equals(database) || Database.MARIADB.equals(database)
+		if (Database.H2.equals(database) || Database.MARIADB.equals(database)
 				|| Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
-			if(queryWithoutStringValue.contains(" offset ")) {
+			if (queryWithoutStringValue.contains(" offset ")) {
 				throw new IllegalArgumentException("query already contains offset");
 			}
 			sb.append(query).append(" OFFSET ").append(firstResult).append(" ");
-		} else if(Database.ORACLE.equals(database)) {
+		} else if (Database.ORACLE.equals(database)) {
 			sb.append("SELECT * FROM" + 
 					"( ") 
 							.append(query)
 						.append(") WHERE rownum > ").append(firstResult).append(" ");
-		} else if(Database.SQLSERVER.equals(database)) {
-			if(queryWithoutStringValue.toLowerCase().contains(" offset ")) {
+		} else if (Database.SQLSERVER.equals(database)) {
+			if (queryWithoutStringValue.toLowerCase().contains(" offset ")) {
 				throw new IllegalArgumentException("query already contains offset");
 			}
 			sb.append(query).append(" OFFSET ").append(firstResult).append(" ROWS ");
 		}  else {
-			throw new IllegalArgumentException("Unsoported type of database: " + database);
+			throw new IllegalArgumentException("Unsupported type of database: " + database);
 		}
 		query = sb.toString();
 	}
 	
 	private void addMaxResult(int maxResult) {
 		Validate.notNull(database, "Database is null");
-		StringBuilder sb = new StringBuilder(query);
+		StringBuilder sb = new StringBuilder();
 		String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
-		if(Database.H2.equals(database) || Database.MARIADB.equals(database)
+		if (Database.H2.equals(database) || Database.MARIADB.equals(database)
 				|| Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
-			if(queryWithoutStringValue.toLowerCase().contains(" limit ")) {
+			if (queryWithoutStringValue.toLowerCase().contains(" limit ")) {
 				throw new IllegalArgumentException("query already contains limit");
 			}
-			sb.append(" LIMIT ").append(maxResult).append(" ");
-		} else if(Database.SQLSERVER.equals(database)) {
-			if(queryWithoutStringValue.toLowerCase().contains(" fetch ")) {
+			sb.append(query).append(" LIMIT ").append(maxResult).append(" ");
+		} else if (Database.SQLSERVER.equals(database)) {
+			if (queryWithoutStringValue.toLowerCase().contains(" fetch ")) {
 				throw new IllegalArgumentException("query already contains fetch");
 			}
-			sb.append(" FETCH NEXT ").append(maxResult).append(" ROWS ONLY ");
-		} else if(Database.ORACLE.equals(database)) {
-			sb.append("SELECT * FROM" + 
+			sb.append(query)
+					.append(" OFFSET 0 ROWS")           // looks like FETCH NEXT does not work without OFFSET clause
+					.append(" FETCH NEXT ").append(maxResult).append(" ROWS ONLY ");
+		} else if (Database.ORACLE.equals(database)) {
+			sb.append("SELECT * FROM" +
 					"( ") 
 							.append(query)
 						.append(") WHERE rownum <= ").append(maxResult).append(" ");
 		} else {
-			throw new IllegalArgumentException("Unsoported type of database: " + database);
+			throw new IllegalArgumentException("Unsupported type of database: " + database);
 		}
 		query = sb.toString();
 	}
@@ -214,10 +216,10 @@ public class SelectQueryBuilder {
 	}
 	
 	public SingleSqlQuery build() {
-		if(firstResult != null && maxResult != null) {
+		if (firstResult != null && maxResult != null) {
 			addPaging(firstResult, maxResult);
 		} else if (firstResult != null || maxResult != null) {
-			if(firstResult != null) {
+			if (firstResult != null) {
 				addFirstResult(firstResult);
 			} else {
 				addMaxResult(maxResult);

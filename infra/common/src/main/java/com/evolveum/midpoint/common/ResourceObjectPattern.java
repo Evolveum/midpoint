@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,24 +42,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class ResourceObjectPattern implements Serializable {
-
+	private static final long serialVersionUID = 1L;
+	
 	private Collection<ResourceAttribute<?>> identifiers;
 	private RefinedObjectClassDefinition rOcDef;
 	private ObjectFilter objectFilter;
 
 	public ResourceObjectPattern(RefinedObjectClassDefinition rOcDef) {
 		this.rOcDef = rOcDef;
-	}
-
-	public Collection<ResourceAttribute<?>> getIdentifiers() {
-		if (identifiers == null) {
-			identifiers = new ArrayList<>();
-		}
-		return identifiers;
-	}
-
-	public void addIdentifier(ResourceAttribute<?> identifier) {
-		getIdentifiers().add(identifier);
 	}
 
 	public static boolean matches(PrismObject<ShadowType> shadowToMatch,
@@ -113,6 +103,10 @@ public class ResourceObjectPattern implements Serializable {
 		}
 		MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
 		return matchingRule.match(identifier.getRealValue(), attributeToMatch.getRealValue());
+	}
+
+	public ObjectFilter getObjectFilter() {
+		return objectFilter;
 	}
 
 	public void addFilter(ObjectFilter filter) {

@@ -89,7 +89,10 @@ import javax.xml.namespace.QName;
 						description = "PageAdminUsers.auth.usersAll.description"),
 				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_URL,
 						label = "PageUsers.auth.users.label",
-						description = "PageUsers.auth.users.description")
+						description = "PageUsers.auth.users.description"),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_VIEW_URL,
+						label = "PageUsers.auth.users.view.label",
+						description = "PageUsers.auth.users.view.description")
 		})
 public class PageUsers extends PageAdminObjectList<UserType> {
 	private static final long serialVersionUID = 1L;

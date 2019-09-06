@@ -111,8 +111,8 @@
 				<inbound>
 					<strength>weak</strength>
 					<expression>
+						<allowEmptyValues>true</allowEmptyValues>
 						<script>
-							<allowEmptyValues>true</allowEmptyValues>
 							<code>
 								if (input?.contains('#')) {
                             		return null
@@ -160,8 +160,8 @@
 				<displayName>Ship</displayName>
 				<inbound>
 					<expression>
+						<allowEmptyValues>false</allowEmptyValues>
 						<script>
-							<allowEmptyValues>false</allowEmptyValues>
 							<code>'The crew of ' + input</code>
 						</script>
 					</expression>
@@ -274,11 +274,21 @@
 			</iteration>
             
             <protected>
-            	<icfs:name>daviejones</icfs:name>
-            </protected>
-            <protected>
-            	<icfs:name>calypso</icfs:name>
-            </protected>
+				<filter>
+					<q:equal>
+						<q:path>attributes/name</q:path>
+						<q:value>daviejones</q:value>
+					</q:equal>
+				</filter>
+			</protected>
+			<protected>
+				<filter>
+					<q:equal>
+						<q:path>attributes/name</q:path>
+						<q:value>calypso</q:value>
+					</q:equal>
+				</filter>
+			</protected>
             
             <activation>
             	<!-- Explicit existence mapping, but does the same as the default one -->

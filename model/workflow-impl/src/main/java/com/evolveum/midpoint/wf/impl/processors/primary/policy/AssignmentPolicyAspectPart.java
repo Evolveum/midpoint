@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -263,30 +263,7 @@ public class AssignmentPolicyAspectPart {
 		PrismObject<?> targetObject = evaluatedAssignment.getTarget();
 		ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
 
-		// (1) legacy approvers (only if adding)
-		LegacyApproversSpecificationUsageType configuredUseLegacyApprovers =
-				configurationHelper.getUseLegacyApproversSpecification(ctx.wfConfiguration);
-		boolean useLegacyApprovers = configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.ALWAYS
-				|| configuredUseLegacyApprovers == LegacyApproversSpecificationUsageType.IF_NO_EXPLICIT_APPROVAL_POLICY_ACTION
-				&& triggeredApprovalRules.isEmpty();
-
-		if (assignmentMode == PLUS && useLegacyApprovers && targetObject.asObjectable() instanceof AbstractRoleType) {
-			AbstractRoleType abstractRole = (AbstractRoleType) targetObject.asObjectable();
-			if (abstractRole.getApprovalSchema() != null) {
-				builder.addPredefined(targetObject, abstractRole.getApprovalSchema().clone());
-				LOGGER.trace("Added legacy approval schema for {}", evaluatedAssignment);
-			} else if (!abstractRole.getApproverRef().isEmpty() || !abstractRole.getApproverExpression().isEmpty()) {
-				ApprovalStageDefinitionType level = new ApprovalStageDefinitionType(prismContext);
-				level.getApproverRef().addAll(CloneUtil.cloneCollectionMembers(abstractRole.getApproverRef()));
-				level.getApproverExpression().addAll(CloneUtil.cloneCollectionMembers(abstractRole.getApproverExpression()));
-				level.setAutomaticallyApproved(abstractRole.getAutomaticallyApproved());
-				// consider default (if expression returns no approvers) -- currently it is "reject"; it is probably correct
-				builder.addPredefined(targetObject, level);
-				LOGGER.trace("Added legacy approval schema (from approverRef, approverExpression, automaticallyApproved) for {}", evaluatedAssignment);
-			}
-		}
-
-		// (2) default policy action (only if adding)
+		// default policy action (only if adding)
 		if (triggeredApprovalRules.isEmpty() && assignmentMode == PLUS
 				&& configurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
 			if (builder.addPredefined(targetObject, RelationKindType.APPROVER, result)) {

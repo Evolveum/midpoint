@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonTyp
 public enum RTaskWaitingReason implements SchemaEnum<TaskWaitingReasonType> {
 
     OTHER_TASKS(TaskWaitingReasonType.OTHER_TASKS),
-
-    // DEPRECATED
-    WORKFLOW(TaskWaitingReasonType.WORKFLOW),
 
     OTHER(TaskWaitingReasonType.OTHER);
 
