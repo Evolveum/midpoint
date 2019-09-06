@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
@@ -141,7 +142,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void selectTreeItemPerformed(SelectableBean<OrgType> selected,
+			protected void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected,
 					AjaxRequestTarget target) {
 				TreeTablePanel.this.selectTreeItemPerformed(selected, target);
 			}
@@ -151,7 +152,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			}
 
 			@Override
-			protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
+			protected List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org) {
 				return TreeTablePanel.this.createTreeChildrenMenu(org);
 			}
 
@@ -235,8 +236,11 @@ public class TreeTablePanel extends BasePanel<String> {
 		return items;
 	}
 
-	private List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
+	private List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org) {
 		List<InlineMenuItem> items = new ArrayList<>();
+
+		boolean isAllowModify = isAllowModify(org.getValue());
+		boolean isAllowRead = isAllowRead(org.getValue());
 		InlineMenuItem item;
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_MOVE_ACTION_URI)) {
 			item = new InlineMenuItem(createStringResource("TreeTablePanel.move")) {
@@ -249,7 +253,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							moveRootPerformed(getRowModel().getObject(), target);
+							moveRootPerformed(org, target);
 						}
 					};
 				}
@@ -267,7 +271,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							makeRootPerformed(getRowModel().getObject(), target);
+							makeRootPerformed(org, target);
 						}
 					};
 				}
@@ -285,14 +289,14 @@ public class TreeTablePanel extends BasePanel<String> {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						deleteNodePerformed(getRowModel().getObject(), target);
+						deleteNodePerformed(org, target);
 					}
 				};
 			}
 
 			@Override
 			public IModel<Boolean> getVisible() {
-				return Model.of(isAllowDelete(org));
+				return Model.of(isAllowDelete(org.getValue()));
 			}
 
 		};
@@ -308,14 +312,14 @@ public class TreeTablePanel extends BasePanel<String> {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						recomputeRootPerformed(getRowModel().getObject(), target);
+						recomputeRootPerformed(org, target);
 					}
 				};
 			}
 
 			@Override
 			public IModel<Boolean> getVisible() {
-				return Model.of(isAllowModify(org));
+				return Model.of(isAllowModify);
 			}
 		};
 		items.add(item);
@@ -330,14 +334,14 @@ public class TreeTablePanel extends BasePanel<String> {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						editRootPerformed(getRowModel().getObject(), target);
+						editRootPerformed(org, target);
 					}
 				};
 			}
 
 			@Override
 			public IModel<Boolean> getVisible() {
-				return Model.of(isAllowModify(org));
+				return Model.of(isAllowModify);
 			}
 		};
 		items.add(editMenuItem);
@@ -359,7 +363,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 			@Override
 			public IModel<Boolean> getVisible() {
-				return Model.of(!editMenuItem.getVisible().getObject() && isAllowRead(org));
+				return Model.of(!editMenuItem.getVisible().getObject() && isAllowRead);
 			}
 		};
 		items.add(item);
@@ -387,7 +391,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 			@Override
 			public IModel<Boolean> getVisible() {
-				return Model.of(isAllowRead(org) && isAllowAddNew());
+				return Model.of(isAllowRead && isAllowAddNew());
 			}
 		};
 		items.add(item);
@@ -482,7 +486,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 	}
 
-	private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+	private void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected, AjaxRequestTarget target) {
 		if (selected.getValue() == null) {
 			return;
 		}
@@ -491,7 +495,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		target.add(addOrReplace(createManagerPanel(selected.getValue())));
 	}
 
-	private void moveRootPerformed(final SelectableBean<OrgType> root, AjaxRequestTarget target) {
+	private void moveRootPerformed(final TreeSelectableBean<OrgType> root, AjaxRequestTarget target) {
 
 		final SelectableBean<OrgType> orgToMove = root;
 

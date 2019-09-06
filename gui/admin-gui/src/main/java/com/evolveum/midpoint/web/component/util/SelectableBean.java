@@ -48,6 +48,7 @@ public class SelectableBean<T extends Serializable> extends Selectable<T> implem
 
     //TODO probably this should not be here. find better place if needed, e.g. subclass with specific behaviour and attributes.
     private int activeSessions;
+    private List<String> nodes;
 
     /**
      * Result of object retrieval (or attempt of object retrieval). It case that it is not error the result is optional.
@@ -89,6 +90,14 @@ public class SelectableBean<T extends Serializable> extends Selectable<T> implem
 
 	public int getActiveSessions() {
 		return activeSessions;
+	}
+
+	public List<String> getNodes() {
+		return nodes;
+	}
+
+	public void setNodes(List<String> nodes) {
+		this.nodes = nodes;
 	}
 
 	public List<InlineMenuItem> getMenuItems() {

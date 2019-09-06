@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
+import com.evolveum.midpoint.web.page.admin.orgs.MidpointNestedTree;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
@@ -96,17 +98,17 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
 
     protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList( SEARCH_SCOPE_SUBTREE, SEARCH_SCOPE_ONE);
 
-    protected IModel<SelectableBean<OrgType>> selected;
+    protected IModel<TreeSelectableBean<OrgType>> selected;
 
     public AbstractTreeTablePanel(String id, IModel<String> rootOid) {
         super(id, rootOid);
     }
 
 
-    protected SelectableBean<OrgType> getRootFromProvider() {
-        TableTree<SelectableBean<OrgType>, String> tree = getTree();
-        ITreeProvider<SelectableBean<OrgType>> provider = tree.getProvider();
-        Iterator<? extends SelectableBean<OrgType>> iterator = provider.getRoots();
+    protected TreeSelectableBean<OrgType> getRootFromProvider() {
+        MidpointNestedTree tree = getTree();
+        ITreeProvider<TreeSelectableBean<OrgType>> provider = tree.getProvider();
+        Iterator<? extends TreeSelectableBean<OrgType>> iterator = provider.getRoots();
 
         return iterator.hasNext() ? iterator.next() : null;
     }
@@ -129,8 +131,8 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
         target.add(page.getFeedbackPanel());
     }
 
-    protected TableTree<SelectableBean<OrgType>, String> getTree() {
-        return (TableTree<SelectableBean<OrgType>, String>) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
+    protected MidpointNestedTree getTree() {
+        return (MidpointNestedTree) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
     }
 
     protected WebMarkupContainer getOrgChildContainer() {

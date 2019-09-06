@@ -235,6 +235,11 @@ public class ScriptExpressionFactory implements Cacheable {
 
 	@Override
 	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+		if (context != null && context.isTerminateSession()) {
+			LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for script cache invalidation.");
+			return;
+		}
+
 		if (type == null || FunctionLibraryType.class.isAssignableFrom(type)) {
 			// Currently we don't try to select entries to be cleared based on OID
 			customFunctionLibraryCache = null;

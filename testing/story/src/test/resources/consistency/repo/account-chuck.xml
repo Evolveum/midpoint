@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<c:account oid="a0c010c0-d34d-b33f-f00d-111111111666"
+<c:shadow oid="a0c010c0-d34d-b33f-f00d-111111111666"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
@@ -32,4 +32,4 @@
 		<ri:givenName>Chuck</ri:givenName>
 		<ri:sn>Norris</ri:sn>
 	</c:attributes>
-</c:account>
+</c:shadow>

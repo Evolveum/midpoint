@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<c:userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111" 
+<c:objectTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111"
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -53,4 +53,4 @@
 			</target>
 		</c:mapping>
 
-	</c:userTemplate>
+	</c:objectTemplate>

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.testing.rest;
 
-import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
+import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 
 import java.io.File;
 

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.self;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
@@ -61,7 +62,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void selectTreeItemPerformed(SelectableBean<OrgType> selected,
+            protected void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected,
                                                    AjaxRequestTarget target) {
                 RoleCatalogTabPanel.this.selectTreeItemPerformed(selected, target);
             }
@@ -71,7 +72,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
             }
 
             @Override
-            protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
+            protected List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org) {
                 return new ArrayList<>();
             }
 

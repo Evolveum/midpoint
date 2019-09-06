@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.session.OrgStructurePanelStorage;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
@@ -85,7 +86,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					protected IModel<Boolean> getCheckBoxValueModel(IModel<SelectableBean<OrgType>> rowModel){
+					protected IModel<Boolean> getCheckBoxValueModel(IModel<TreeSelectableBean<OrgType>> rowModel){
 						return new LoadableModel<Boolean>(true) {
 
 							@Override
@@ -101,7 +102,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 					}
 
 					@Override
-					protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
+					protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel){
 							if (rowModel != null && rowModel.getObject() != null) {
 								boolean isAlreadyInList = false;
 								Iterator<OrgType> it = allTabsSelectedOrgs.iterator();
@@ -120,7 +121,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 					}
 
 					@Override
-					protected void selectTreeItemPerformed(SelectableBean<OrgType> selected,
+					protected void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected,
 														   AjaxRequestTarget target) {
 						onItemSelect(selected, target);
 					}
@@ -242,7 +243,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 		return null;
 	}
 
-	protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){}
+	protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel){}
 
 	@Override
 	public int getWidth() {

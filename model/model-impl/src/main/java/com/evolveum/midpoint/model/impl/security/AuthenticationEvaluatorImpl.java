@@ -437,8 +437,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		return clock.isPast(lockedUntilTimestamp);
 	}
 
-	public void recordPasswordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv,
-			C passwordType) {
+	public void recordPasswordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv, C passwordType) {
 		UserType userBefore = principal.getUser().clone();
 		Integer failedLogins = passwordType.getFailedLogins();
 		if (failedLogins != null && failedLogins > 0) {

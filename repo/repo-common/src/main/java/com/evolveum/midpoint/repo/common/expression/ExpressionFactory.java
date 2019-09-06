@@ -37,6 +37,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
@@ -49,6 +51,8 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class ExpressionFactory implements Cacheable {
+
+	private static final transient Trace LOGGER = TraceManager.getTrace(ExpressionFactory.class);
 
 	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<>();
 	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
@@ -204,6 +208,11 @@ public class ExpressionFactory implements Cacheable {
 	
 	@Override
 	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+		if (context != null && context.isTerminateSession()) {
+			LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for expression cache invalidation.");
+			return;
+		}
+
 		if (type == null || FunctionLibraryType.class.isAssignableFrom(type)) {
 			// Currently we don't attempt to select entries to be cleared based on function library OID
 			cache = new HashMap<>();

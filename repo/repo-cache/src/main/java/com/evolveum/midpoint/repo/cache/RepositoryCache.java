@@ -1119,6 +1119,11 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 	// This is what is called from cache dispatcher (on local node with the full context; on remote nodes with reduced context)
 	@Override
 	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+		if (context != null && context.isTerminateSession()) {
+			LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for repo cache invalidation.");
+			return;
+		}
+
 		if (type == null) {
 			globalObjectCache.clear();
 			globalVersionCache.clear();

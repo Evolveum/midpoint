@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -51,8 +52,8 @@ public class OrgTreeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
             private static final long serialVersionUID = 1L;
 
            @Override
-            protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel) {
-               onSelectionPerformed(target, rowModel);
+            protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel) {
+               onSelectionPerformed(target, (IModel) rowModel);
             }
 
             @Override

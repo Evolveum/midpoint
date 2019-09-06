@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.impl.rest;
+package com.evolveum.midpoint.common.rest;
 
 import java.io.InputStream;
 
@@ -25,19 +25,19 @@ import javax.ws.rs.ext.Provider;
 import com.evolveum.midpoint.prism.PrismParser;
 import com.evolveum.midpoint.prism.PrismSerializer;
 
-@Produces({"application/yaml", "application/x-yaml", "text/yaml", "text/x-yaml"})
-@Consumes({"application/yaml", "application/x-yaml", "text/yaml", "text/x-yaml"})
+@Produces({"application/json"})
+@Consumes({"application/json"})
 @Provider
-public class MidpointYamlProvider<T> extends MidpointAbstractProvider<T> {
+public class MidpointJsonProvider<T> extends MidpointAbstractProvider<T>{
 
 	@Override
 	protected PrismSerializer<String> getSerializer() {
-		return prismContext.yamlSerializer();
+		return prismContext.jsonSerializer();
 	}
 
 	@Override
 	protected PrismParser getParser(InputStream entityStream) {
-		return prismContext.parserFor(entityStream).yaml();
+		return prismContext.parserFor(entityStream).json();
 	}
 
 }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -34,9 +35,9 @@ public class OrgTabPanelStorage implements PageStorage, DebugDumpable, OrgTreeSt
 
     private static final long serialVersionUID = 1L;
 
-    private SelectableBean<OrgType> selectedItem;                //selected tree item on the Org. structure page
-    private TreeStateSet<SelectableBean<OrgType>> expandedItems; //expanded tree items on the Org. structure page
-    private SelectableBean<OrgType> collapsedItem = null;                 //selected tab id on the Org. structure page
+    private TreeSelectableBean<OrgType> selectedItem;                //selected tree item on the Org. structure page
+    private TreeStateSet<TreeSelectableBean<OrgType>> expandedItems; //expanded tree items on the Org. structure page
+    private TreeSelectableBean<OrgType> collapsedItem = null;                 //selected tab id on the Org. structure page
     private boolean inverse = false;
     private int selectedTabId = 0;                 //selected tab id on the Org. structure page
 
@@ -64,33 +65,33 @@ public class OrgTabPanelStorage implements PageStorage, DebugDumpable, OrgTreeSt
     }
 
     @Override
-    public Set<SelectableBean<OrgType>> getExpandedItems() {
+    public Set<TreeSelectableBean<OrgType>> getExpandedItems() {
         return expandedItems;
     }
 
     @Override
-    public void setExpandedItems(TreeStateSet<SelectableBean<OrgType>> expandedItems) {
+    public void setExpandedItems(TreeStateSet<TreeSelectableBean<OrgType>> expandedItems) {
         this.expandedItems = expandedItems != null ? expandedItems.clone() : null;
     }
 
 
     @Override
-    public SelectableBean<OrgType> getSelectedItem() {
+    public TreeSelectableBean<OrgType> getSelectedItem() {
         return selectedItem;
     }
 
     @Override
-    public void setSelectedItem(SelectableBean<OrgType> selectedItem) {
+    public void setSelectedItem(TreeSelectableBean<OrgType> selectedItem) {
         this.selectedItem = selectedItem;
     }
 
     @Override
-    public SelectableBean<OrgType> getCollapsedItem() {
+    public TreeSelectableBean<OrgType> getCollapsedItem() {
         return collapsedItem;
     }
 
     @Override
-    public void setCollapsedItem(SelectableBean<OrgType> collapsedItem) {
+    public void setCollapsedItem(TreeSelectableBean<OrgType> collapsedItem) {
         this.collapsedItem = collapsedItem;
     }
 

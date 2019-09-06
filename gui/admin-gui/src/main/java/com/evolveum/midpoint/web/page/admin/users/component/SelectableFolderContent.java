@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.util.Optional;
 
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.tree.AbstractTree;
 import org.apache.wicket.extensions.markup.html.repeater.tree.content.Folder;
@@ -30,14 +31,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 /**
  * @author lazyman
  */
-public class SelectableFolderContent extends Folder<SelectableBean<OrgType>> {
+public class SelectableFolderContent extends Folder<TreeSelectableBean<OrgType>> {
 	private static final long serialVersionUID = 1L;
 
     private AbstractTree tree;
-    private IModel<SelectableBean<OrgType>> selected;
+    private IModel<TreeSelectableBean<OrgType>> selected;
 
-    public SelectableFolderContent(String id, AbstractTree<SelectableBean<OrgType>> tree, IModel<SelectableBean<OrgType>> model,
-                                   IModel<SelectableBean<OrgType>> selected) {
+    public SelectableFolderContent(String id, AbstractTree<TreeSelectableBean<OrgType>> tree, IModel<TreeSelectableBean<OrgType>> model,
+                                   IModel<TreeSelectableBean<OrgType>> selected) {
         super(id, tree, model);
 
         this.tree = tree;
@@ -45,13 +46,13 @@ public class SelectableFolderContent extends Folder<SelectableBean<OrgType>> {
     }
 
     @Override
-    protected IModel<?> newLabelModel(final IModel<SelectableBean<OrgType>> model) {
+    protected IModel<?> newLabelModel(final IModel<TreeSelectableBean<OrgType>> model) {
         return new IModel<String>() {
         	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-            	SelectableBean<OrgType> dto = model.getObject();
+                TreeSelectableBean<OrgType> dto = model.getObject();
             	return WebComponentUtil.getEffectiveName(dto.getValue(), OrgType.F_DISPLAY_NAME);
 
             }
@@ -64,7 +65,7 @@ public class SelectableFolderContent extends Folder<SelectableBean<OrgType>> {
             tree.updateNode(selected.getObject(), optionalTarget.get());
         }
 
-        SelectableBean<OrgType> dto = getModelObject();
+        TreeSelectableBean<OrgType> dto = getModelObject();
         selected.setObject(dto);
         tree.updateNode(dto, optionalTarget.get());
     }
