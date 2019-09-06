@@ -1143,7 +1143,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 					// --> we should either skip this, or fetch the fresh definition from the prism context
 					ComplexTypeDefinition freshCtd = prismContext.getSchemaRegistry().findComplexTypeDefinitionByType(complexTypeDefinition.getTypeName());
 					if (freshCtd != null) {
-						System.out.println("Using " + freshCtd + " instead of " + definitionToUse);
+						//System.out.println("Using " + freshCtd + " instead of " + definitionToUse);
 						definitionToUse = freshCtd;
 					}
 				} else {
