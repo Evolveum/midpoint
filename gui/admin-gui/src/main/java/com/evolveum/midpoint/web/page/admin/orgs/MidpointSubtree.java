@@ -178,7 +178,8 @@ public class MidpointSubtree extends Panel {
                 target.add(MidpointSubtree.this);
             }
         };
-        paging.add(new VisibleBehaviour(() -> getModelObject() != null));
+
+        paging.add(new VisibleBehaviour(() -> getModelObject() != null && view.getItemCount() > 20));
 
         return paging;
     }
