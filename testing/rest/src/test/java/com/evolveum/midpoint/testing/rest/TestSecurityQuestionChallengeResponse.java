@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.testing.rest;
 
-import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
+import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -35,7 +35,7 @@ import java.util.List;
 
 import static org.testng.AssertJUnit.*;
 
-public class TestSecurityQuestionChallengeResponse extends RestServiceInitializer{
+public class TestSecurityQuestionChallengeResponse extends RestServiceInitializer {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestSecurityQuestionChallengeResponse.class);
 

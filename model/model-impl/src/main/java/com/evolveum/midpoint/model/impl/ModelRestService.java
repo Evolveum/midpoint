@@ -20,8 +20,8 @@ import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.model.impl.rest.Converter;
-import com.evolveum.midpoint.model.impl.rest.ConverterInterface;
+import com.evolveum.midpoint.common.rest.Converter;
+import com.evolveum.midpoint.common.rest.ConverterInterface;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
@@ -67,7 +67,6 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.namespace.QName;
 import java.net.URI;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**

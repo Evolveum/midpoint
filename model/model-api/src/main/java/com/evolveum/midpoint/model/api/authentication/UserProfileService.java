@@ -27,16 +27,20 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author semancik
  *
  */
 public interface UserProfileService extends MidPointPrincipalManager {
+
+	public static final String EVENT_LIST_USER_SESSION = "event/listUserSession";
 
 	@Override
 	MidPointUserProfilePrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
@@ -53,7 +57,7 @@ public interface UserProfileService extends MidPointPrincipalManager {
 	@Override
     void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas);
 
-	List<MidPointUserProfilePrincipal> getAllLoggedPrincipals();
+	List<UserSessionManagementType> getAllLoggedPrincipals();
 
 	void expirePrincipals(List<String> principalsOid);
 	

@@ -19,9 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import javax.ws.rs.core.Response;
 
@@ -39,7 +37,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
+import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;

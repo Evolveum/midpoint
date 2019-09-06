@@ -20,9 +20,7 @@ import java.io.File;
 
 import javax.ws.rs.core.MediaType;
 
-import org.apache.cxf.jaxrs.client.WebClient;
-
-import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
+import com.evolveum.midpoint.common.rest.MidpointAbstractProvider;
 
 //@ContextConfiguration(locations = { "classpath:ctx-rest-test.xml" })
 //@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
