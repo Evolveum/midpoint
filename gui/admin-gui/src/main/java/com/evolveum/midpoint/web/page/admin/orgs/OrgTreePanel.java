@@ -258,6 +258,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
 		};
 		tree.setItemReuseStrategy(new ReuseIfModelsEqualStrategy());
+		tree.setOutputMarkupId(true);
 //		tree.getTable().add(AttributeModifier.replace("class", "table table-striped table-condensed"));
 		tree.add(new WindowsTheme());
 //		tree.add(AttributeModifier.replace("class", "tree-midpoint"));
