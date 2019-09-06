@@ -109,7 +109,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 				CredentialsExpiredException | AccessDeniedException | AuthenticationCredentialsNotFoundException |
 				AuthenticationServiceException e) {
 			LOGGER.trace("Exception while authenticating username '{}' to REST service: {}", enteredUsername, e.getMessage(), e);
-			requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).build());
+			RestServiceUtil.createAbortMessage(requestCtx);
 			return;
 		}
 
@@ -137,11 +137,9 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 			} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
 					| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 				LOGGER.trace("Exception while authenticating user identified with '{}' to REST service: {}", oid, e.getMessage(), e);
-				requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).build());
+				RestServiceUtil.createAbortMessage(requestCtx);
 				return;
 			}
-
-
 		}
 
 		m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
