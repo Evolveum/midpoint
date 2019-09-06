@@ -19,6 +19,8 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -123,6 +125,10 @@ public class CloneUtil {
 		if (orig instanceof Duration) {
 			//noinspection unchecked
 			return (T) XmlTypeConverter.createDuration(((Duration) orig));
+		}
+		if (orig instanceof BigInteger || orig instanceof BigDecimal) {
+			// todo could we use "instanceof Number" here instead?
+			return (T) orig;
 		}
 		if (orig instanceof Cloneable) {
 			T clone = javaLangClone(orig);
