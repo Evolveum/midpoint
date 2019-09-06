@@ -59,7 +59,8 @@ public class TextAreaPanelFactory<T extends Serializable> extends AbstractGuiCom
 		return new TextAreaPanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), size);
 	}
 
-
-
-	
+	@Override
+	public Integer getOrder() {
+		return super.getOrder() - 2;
+	}
 }
