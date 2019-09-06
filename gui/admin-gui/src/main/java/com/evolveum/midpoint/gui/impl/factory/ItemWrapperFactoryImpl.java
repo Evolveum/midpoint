@@ -146,6 +146,11 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	}
 	
 	private boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+		if (QNameUtil.match(FocusType.F_LINK_REF, def.getItemName()) || QNameUtil.match(FocusType.F_PERSONA_REF, def.getItemName())) {
+			LOGGER.trace("Skip creating wrapper for {}, it is not supported", def);
+			return false;
+		}
+
 		if (ItemProcessing.IGNORE == def.getProcessing()) {
 			LOGGER.trace("Skip creating wrapper for {}, because item processig is set to IGNORE.", def);
 			return false;
@@ -174,7 +179,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 			}
 			
 		}
-		
+
 		return canCreateWrapper(def, status, context, isEmptyValue);
 	}
 	
