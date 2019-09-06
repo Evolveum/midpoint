@@ -16,18 +16,11 @@
 
 package com.evolveum.midpoint.testing.rest;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.apache.commons.io.IOUtils;
+import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.cxf.common.util.Base64Exception;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
@@ -35,11 +28,12 @@ import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.transport.local.LocalConduit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.testng.AssertJUnit.*;
 
 public class TestSecurityQuestionChallengeResponse extends RestServiceInitializer{
 
@@ -63,7 +57,7 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
 
 		response = getUserAdministrator("SecQ " + Base64Utility.encode(secQusernameChallenge.getBytes()));
 		challengeBase64 = assertAndGetChallenge(response);
-		String answerChallenge = null;
+		String answerChallenge;
 		try {
 			answerChallenge = new String(Base64Utility.decode(challengeBase64));
 			LOGGER.info("Answer challenge: " +answerChallenge);
@@ -98,11 +92,11 @@ public class TestSecurityQuestionChallengeResponse extends RestServiceInitialize
 
 	private String assertAndGetChallenge(Response response){
 		assertEquals("Unexpected status code. Expected 401 but was "+ response.getStatus(), 401, response.getStatus());
-		assertNotNull("Headers null. Somthing very strange happened", response.getHeaders());
+		assertNotNull("Headers null. Something very strange happened", response.getHeaders());
 
 		List<Object> wwwAuthenticateHeaders = response.getHeaders().get("WWW-Authenticate");
-		assertNotNull("WWW-Authenticate headers null. Somthing very strange happened", wwwAuthenticateHeaders);
-		LOGGER.info("WWW-Atuhenticate header: " + wwwAuthenticateHeaders);
+		assertNotNull("WWW-Authenticate headers null. Something very strange happened", wwwAuthenticateHeaders);
+		LOGGER.info("WWW-Authenticate header: " + wwwAuthenticateHeaders);
 		assertEquals("Expected WWW-Authenticate header, but the actual size is " + wwwAuthenticateHeaders.size(), 1, wwwAuthenticateHeaders.size());
 		String secQHeader = (String) wwwAuthenticateHeaders.iterator().next();
 

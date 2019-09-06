@@ -256,10 +256,30 @@
 	        <groupId>org.apache.cxf</groupId>
 	        <artifactId>cxf-rt-transports-http-jetty</artifactId>
 	        <scope>runtime</scope>
-	        <exclusions> 
+	        <exclusions>
 	        	<exclusion>
 	        		<groupId>org.eclipse.jetty</groupId>
 	        		<artifactId>jetty-server</artifactId>
+	        	</exclusion>
+	        	<exclusion>
+	        		<groupId>org.eclipse.jetty</groupId>
+	        		<artifactId>jetty-util</artifactId>
+	        	</exclusion>
+	        	<exclusion>
+	        		<groupId>org.eclipse.jetty</groupId>
+	        		<artifactId>jetty-io</artifactId>
+	        	</exclusion>
+	        	<exclusion>
+	        		<groupId>org.eclipse.jetty</groupId>
+	        		<artifactId>jetty-security</artifactId>
+	        	</exclusion>
+	        	<exclusion>
+	        		<groupId>org.eclipse.jetty</groupId>
+	        		<artifactId>jetty-continuation</artifactId>
+	        	</exclusion>
+	        	<exclusion>
+	        		<groupId>org.eclipse.jetty</groupId>
+	        		<artifactId>jetty-http</artifactId>
 	        	</exclusion>
 	        </exclusions>
 	    </dependency>
@@ -290,8 +310,44 @@
 			<groupId>org.eclipse.jetty</groupId>
 	       	<artifactId>jetty-server</artifactId>
 	       	<scope>runtime</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-http</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-util</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-io</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-	</dependencies>
+	  <dependency>
+		  <groupId>org.eclipse.jetty</groupId>
+		  <artifactId>jetty-http</artifactId>
+		  <scope>runtime</scope>
+		  <exclusions>
+			  <exclusion>
+				  <groupId>org.eclipse.jetty</groupId>
+				  <artifactId>jetty-util</artifactId>
+			  </exclusion>
+		  </exclusions>
+	  </dependency>
+	  <dependency>
+		  <groupId>org.eclipse.jetty</groupId>
+		  <artifactId>jetty-io</artifactId>
+		  <scope>runtime</scope>
+	  </dependency>
+	  <dependency>
+		  <groupId>org.eclipse.jetty</groupId>
+		  <artifactId>jetty-util</artifactId>
+		  <scope>runtime</scope>
+	  </dependency>
+
+  </dependencies>
   	<profiles>
 		<profile>
 			<id>extratest</id>

@@ -1,6 +1,6 @@
 {
   "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
-  "account" : {
+  "shadow" : {
     "oid" : "a0c010c0-d34d-b33f-f00d-111111111666",
     "version" : "1",
     "name" : "uid=chuck,ou=people,dc=example,dc=com",
