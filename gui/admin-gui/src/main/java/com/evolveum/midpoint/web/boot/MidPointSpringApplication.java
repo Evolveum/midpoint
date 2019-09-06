@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.catalina.Context;
 import org.apache.catalina.Valve;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryCustomizer;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.ErrorPage;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
@@ -45,6 +47,8 @@ import org.springframework.stereotype.Component;
 
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -147,6 +151,8 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
     	
     	@Value("${server.servlet.session.timeout}")
     	private int sessionTimeout;
+		@Value("${server.tomcat.background-processor-delay:10}")
+		private int backgroundProcessorDelay;
     	@Value("${server.servlet.context-path}")
 		private String servletPath;
     	
@@ -180,6 +186,17 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
     	}
     
     	private void customizeTomcat(TomcatServletWebServerFactory tomcatFactory) {
+			// Set background-processor-delay property.
+			TomcatContextCustomizer contextCustomizer = new TomcatContextCustomizer() {
+				@Override
+				public void customize(Context context) {
+					context.setBackgroundProcessorDelay(backgroundProcessorDelay);
+				}
+			};
+			List<TomcatContextCustomizer> contextCustomizers = new ArrayList<TomcatContextCustomizer>();
+			contextCustomizers.add(contextCustomizer);
+			tomcatFactory.setTomcatContextCustomizers(contextCustomizers);
+            
     		// Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
     		// See comments in TomcatRootValve
     		Valve rootValve = new TomcatRootValve(servletPath);
