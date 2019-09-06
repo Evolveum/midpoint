@@ -48,9 +48,9 @@ public class AuditTest extends BaseSQLRepoTest {
 		record.addPropertyValue("prop1", "val1.2");
 		record.addPropertyValue("prop2", "val2");
 		record.addPropertyValue("prop3", null);
-		AuditReferenceValue refVal1_1 = new AuditReferenceValue("oid1.1", UserType.COMPLEX_TYPE, new PolyString("user1.1"));
-		AuditReferenceValue refVal1_2 = new AuditReferenceValue("oid1.2", RoleType.COMPLEX_TYPE, new PolyString("role1.2"));
-		AuditReferenceValue refVal2 = new AuditReferenceValue("oid2", null, new PolyString("object2"));
+		AuditReferenceValue refVal1_1 = new AuditReferenceValue("oid1.1", UserType.COMPLEX_TYPE, poly("user1.1"));
+		AuditReferenceValue refVal1_2 = new AuditReferenceValue("oid1.2", RoleType.COMPLEX_TYPE, poly("role1.2"));
+		AuditReferenceValue refVal2 = new AuditReferenceValue("oid2", null, poly("object2"));
 		AuditReferenceValue refVal3 = new AuditReferenceValue();
 		record.addReferenceValue("ref1", refVal1_1);
 		record.addReferenceValue("ref1", refVal1_2);
@@ -76,7 +76,11 @@ public class AuditTest extends BaseSQLRepoTest {
 
 	}
 
-    @Test
+	private PolyString poly(String orig) {
+		return new PolyString(orig, prismContext.getDefaultPolyStringNormalizer().normalize(orig));
+	}
+
+	@Test
     public void test110AuditSecond() throws Exception {
         LOGGER.info("===[ test110AuditSecond ]===");
 
