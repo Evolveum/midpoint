@@ -159,9 +159,10 @@ public class BasicValidatorTest {
 
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
-        AssertJUnit.assertTrue(result.getMessage().contains("Unexpected close tag"));
+        String message = result.getMessage();
+        AssertJUnit.assertTrue(message.contains("Unexpected close tag"));
         // Check if line number is in the error
-        AssertJUnit.assertTrue("Line number not found in error message", result.getMessage().contains("35"));
+        AssertJUnit.assertTrue("Line number not found in error message: " + message, message.contains("26"));
 
     }
 
@@ -175,9 +176,10 @@ public class BasicValidatorTest {
 
         System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
-        AssertJUnit.assertTrue(result.getMessage().contains("Undeclared namespace prefix"));
+        String message = result.getMessage();
+        AssertJUnit.assertTrue(message.contains("Undeclared namespace prefix"));
         // Check if line number is in the error
-        AssertJUnit.assertTrue("Line number not found in error message", result.getMessage().contains("37"));
+        AssertJUnit.assertTrue("Line number not found in error message: " + message, message.contains("28"));
 
     }
 
