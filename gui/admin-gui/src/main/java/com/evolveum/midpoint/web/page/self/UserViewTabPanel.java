@@ -213,6 +213,9 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
             if (relation != null && !relation.equals(assignment.getTargetRef().getRelation())){
                 return;
             }
+            if (ArchetypeType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())){
+                return;
+            }
             oidsList.add(assignment.getTargetRef().getOid());
         });
         return oidsList;
