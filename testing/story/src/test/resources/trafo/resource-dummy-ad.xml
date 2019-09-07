@@ -411,9 +411,9 @@ return midpoint.isUniqueAccountValue(resource, shadow, 'sAMAccountName', login)
 				</postIterationCondition>
 			</iteration>
 <!-- cat accounts-2013-11-08-13-34-31.xml | grep icfs:name | sed 's/ xmlns:icfs="http:\/\/midpoint.evolveum.com\/xml\/ns\/public\/connector\/icf-1\/resource-schema-2">/>/' | sed 's/ \+//'|grep -v -i ou=ps | grep -v -i ou=ext | sed 's/\(.*\)/<protected>\n\1\n<\/protected>/' -->
-		<protected>
-                <icfs:name>CN=Administrator,CN=Users,O=Trafo</icfs:name>
-            </protected>
+<!--		<protected>-->
+<!--                <icfs:name>CN=Administrator,CN=Users,O=Trafo</icfs:name>-->
+<!--            </protected>-->
             
             <activation>
                 <existence>
@@ -531,17 +531,20 @@ return midpoint.isUniqueAccountValue(resource, shadow, 'sAMAccountName', login)
 	
 	            <reaction>
 	                <situation>linked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+					<synchronize>true</synchronize>
 	            </reaction>
 	            <reaction>
 	                <situation>deleted</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+					<action>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+					</action>
 	            </reaction>
 	            <reaction>
 	                <situation>unlinked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+					<action>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+					</action>
 	            </reaction>
-
 	            <reaction>
 	                <situation>unmatched</situation>
 	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">

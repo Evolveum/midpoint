@@ -283,7 +283,9 @@
          <reaction>
             <situation>unlinked</situation>
             <synchronize>true</synchronize>
-            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
+            <action>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+            </action>
          </reaction>
       </objectSynchronization>
    </synchronization>
