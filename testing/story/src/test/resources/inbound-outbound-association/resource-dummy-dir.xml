@@ -92,7 +92,7 @@
 				<inbound>
 					<trace>true</trace>
 					<authoritative>true</authoritative>
-               		<tolerant>false</tolerant>
+               		<tolerant>false</tolerant>			<!-- FIXME -->
 					<strength>strong</strength>
 					<expression>
 						<assignmentTargetSearch>

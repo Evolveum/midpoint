@@ -25,7 +25,7 @@
                            <q:value>CN=StatsUsers,OU=groups,DC=example,DC=com</q:value>
                         </q:equal>
                      </filter>
-                     <searchOnResource>true</searchOnResource>
+                     <searchStrategy>onResourceIfNeeded</searchStrategy>
                   </associationTargetSearch>
                </expression>
             </outbound>
