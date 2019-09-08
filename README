@@ -1,4 +1,4 @@
-MidPoint 4.0 development branch
+MidPoint 4.0 "Gutenberg"
 ------------------------------------
 
 General information:
@@ -23,7 +23,8 @@ The most important features of midPoint are:
    - Password reset
    - Organizational structure management
    - Entitlements
-   - Support for ConnId and OpenICF connectors
+   - Archetypes
+   - Support for ConnId connectors
    - Provisioning consistency and error handling
    - Support for security auditing and reporting
    - Data protection (experimental)

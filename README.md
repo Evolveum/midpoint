@@ -1,8 +1,4 @@
-Status: [![Build Status](https://travis-ci.org/Evolveum/midpoint.svg?branch=master)](https://travis-ci.org/Evolveum/midpoint)
-
-Gitter: [![Gitter](https://badges.gitter.im/JoinChat.svg)](https://gitter.im/Evolveum/midpoint)
-
-MidPoint 4.0 development branch
+MidPoint 4.0 "Gutenberg"
 ------------------------------------
 
 General information:
@@ -32,7 +28,8 @@ Other features:
 - Password policies
 - Password reset
 - Entitlements
-- Support for ConnId and OpenICF connectors
+- Archetypes
+- Support for ConnId connectors
 - Provisioning consistency and error handling
 - Data protection (experimental)
 - Reporting
