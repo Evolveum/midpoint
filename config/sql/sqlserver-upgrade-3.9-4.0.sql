@@ -30,6 +30,7 @@ ALTER TABLE m_generic_object
   ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
 
 ALTER TABLE m_shadow ADD primaryIdentifierValue NVARCHAR(255) COLLATE database_default;
+GO
 
 CREATE UNIQUE NONCLUSTERED INDEX iPrimaryIdentifierValueWithOC
   ON m_shadow(primaryIdentifierValue, objectClass, resourceRef_targetOid)
@@ -82,7 +83,9 @@ ALTER TABLE m_case ADD
 CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
 CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
 
+BEGIN TRANSACTION
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
+COMMIT;
 
 -- 2019-06-25 09:00
 
@@ -163,5 +166,4 @@ ALTER TABLE m_case DROP CONSTRAINT uc_case_name;
 -- 2019-09-06 20:00
 
 ALTER TABLE m_case_wi ADD createTimestamp DATETIME2;
-
-COMMIT;
+GO

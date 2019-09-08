@@ -1180,7 +1180,9 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
 
+BEGIN TRANSACTION
 INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.0');
+COMMIT;
 
 --# thanks to George Papastamatopoulos for submitting this ... and Marko Lahma for
 --# updating it.
@@ -1532,5 +1534,3 @@ ALTER TABLE [dbo].[QRTZ_TRIGGERS] ADD
     [JOB_GROUP]
   );
 -- GO;
-
-COMMIT;
