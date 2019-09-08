@@ -15,7 +15,7 @@
 	<parent>
 		<artifactId>infra</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>4.0-SNAPSHOT</version>
+		<version>4.0</version>
 	</parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -80,7 +80,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>4.0-SNAPSHOT</version>
+			<version>4.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

@@ -11,12 +11,11 @@
 	<name>Dummy Connector Fake</name>
 	<groupId>com.evolveum.icf</groupId>
 	<artifactId>dummy-connector-fake</artifactId>
-<!-- 	<version>3.7-SNAPSHOT</version> -->
 	<packaging>jar</packaging>
 	<parent>
 		<artifactId>icf-connectors</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>4.0-SNAPSHOT</version>
+		<version>4.0</version>
 	</parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -41,7 +40,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>4.0-SNAPSHOT</version>
+			<version>4.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
