@@ -1,5 +1,5 @@
-MidPoint 4.0 "Gutenberg"
-------------------------------------
+MidPoint 4.0 "Gutenberg" support branch
+---------------------------------------
 
 General information:
 

@@ -13,7 +13,7 @@
   <parent>
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>parent</artifactId>
-    <version>4.0</version>
+    <version>4.0.1-SNAPSHOT</version>
     <relativePath>../../build-system/pom.xml</relativePath>
   </parent>
   <artifactId>wstest</artifactId>
@@ -92,13 +92,13 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>4.0</version>
+			<version>4.0.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>test-util</artifactId>
-			<version>4.0</version>
+			<version>4.0.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -109,7 +109,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
-			<version>4.0</version>
+			<version>4.0.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
