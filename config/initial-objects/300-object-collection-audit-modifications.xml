@@ -8,10 +8,10 @@
 
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 				  oid="00000000-0000-0000-0001-000000000002">
-    <name>Modification audit record</name>
+    <name>Modification audit records</name>
     <auditSearch>
-        <recordQuery>from RAuditEventRecord as aer where aer.eventType=2 and aer.eventStage=1</recordQuery>
-        <domainQuery>from RAuditEventRecord as aer where aer.eventStage=1</domainQuery>
+        <recordQuery>select * from m_audit_event as aer where aer.eventType=2 and aer.eventStage=1</recordQuery>
+        <domainQuery>select * from m_audit_event as aer where aer.eventStage=1</domainQuery>
         <interval>P1D</interval>
     </auditSearch>
 </objectCollection>
