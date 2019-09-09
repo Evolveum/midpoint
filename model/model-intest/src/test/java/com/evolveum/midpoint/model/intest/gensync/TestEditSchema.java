@@ -1028,6 +1028,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		PrismPropertyDefinition<PolyString> additionalNameDef = editDef.findPropertyDefinition(UserType.F_ADDITIONAL_NAME);
 		assertNotNull("No definition for additionalName in user", additionalNameDef);
 		assertEquals("Wrong additionalName displayName", "Middle Name", additionalNameDef.getDisplayName());
+        assertEquals("Wrong additionalName help", "Just a plain old middle name", additionalNameDef.getHelp()); // MID-5736
 		assertTrue("additionalName not readable", additionalNameDef.canRead());
 		PrismAsserts.assertEmphasized(additionalNameDef, false);
 
