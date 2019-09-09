@@ -307,7 +307,9 @@
 				<situation>unmatched</situation>
 				<synchronize>true</synchronize>
 				<objectTemplateRef oid="e84d7b5a-4634-4b75-a17c-df0b8b49b593" type="c:ObjectTemplateType"/>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+				</action>
 			</reaction>
 			<reaction>
 				<situation>linked</situation>

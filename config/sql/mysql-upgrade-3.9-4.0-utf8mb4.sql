@@ -1,15 +1,21 @@
 CREATE TABLE m_archetype (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+  name_norm VARCHAR(191),
+  name_orig VARCHAR(191),
+  oid       VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
-);
+)
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 CREATE TABLE m_dashboard (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+  name_norm VARCHAR(191),
+  name_orig VARCHAR(191),
+  oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
-);
+)
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
 
 CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
 CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
@@ -18,32 +24,33 @@ CREATE INDEX iDashboardNameOrig
   ON m_dashboard (name_orig);
 ALTER TABLE m_dashboard
   ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
-
+  
 ALTER TABLE m_dashboard
-  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
+  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object (oid);
 
 ALTER TABLE m_archetype
-  ADD CONSTRAINT fk_archetype FOREIGN KEY (oid) REFERENCES m_abstract_role;
+  ADD CONSTRAINT fk_archetype FOREIGN KEY (oid) REFERENCES m_abstract_role(oid);
 
-ALTER TABLE m_generic_object DROP CONSTRAINT fk_generic_object;
+ALTER TABLE m_generic_object DROP FOREIGN KEY fk_generic_object;
 ALTER TABLE m_generic_object
-  ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
+  ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus(oid);
 
-ALTER TABLE m_shadow ADD primaryIdentifierValue NVARCHAR(255) COLLATE database_default;
+ALTER TABLE m_shadow ADD COLUMN primaryIdentifierValue VARCHAR(191);
 
-CREATE UNIQUE NONCLUSTERED INDEX iPrimaryIdentifierValueWithOC
-  ON m_shadow(primaryIdentifierValue, objectClass, resourceRef_targetOid)
-  WHERE primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL;
+ALTER TABLE m_shadow
+    ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
 
-ALTER TABLE m_audit_event ADD requestIdentifier NVARCHAR(255) COLLATE database_default;
+ALTER TABLE m_audit_event ADD COLUMN requestIdentifier VARCHAR(255);
 
-ALTER TABLE m_case ADD
-  parentRef_relation  NVARCHAR(157) COLLATE database_default,
-  parentRef_targetOid NVARCHAR(36) COLLATE database_default,
-  parentRef_type      INT,
-  targetRef_relation  NVARCHAR(157) COLLATE database_default,
-  targetRef_targetOid NVARCHAR(36) COLLATE database_default,
-  targetRef_type      INT;
+ALTER TABLE m_case ADD COLUMN
+  (
+  parentRef_relation  VARCHAR(157),
+  parentRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  parentRef_type      INTEGER,
+  targetRef_relation  VARCHAR(157),
+  targetRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  targetRef_type      INTEGER
+  );
 
 CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
 CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
@@ -73,11 +80,12 @@ ALTER TABLE m_task DROP COLUMN wfTargetRef_relation;
 ALTER TABLE m_task DROP COLUMN wfTargetRef_targetOid;
 ALTER TABLE m_task DROP COLUMN wfTargetRef_type;
 
-ALTER TABLE m_case ADD
-  closeTimestamp         DATETIME2,
-  requestorRef_relation  NVARCHAR(157) COLLATE database_default,
-  requestorRef_targetOid NVARCHAR(36) COLLATE database_default,
-  requestorRef_type      INT;
+ALTER TABLE m_case ADD COLUMN (
+  closeTimestamp         DATETIME(6),
+  requestorRef_relation  VARCHAR(157),
+  requestorRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  requestorRef_type      INTEGER
+  );
 
 CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
 CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
@@ -87,34 +95,25 @@ UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
 -- 2019-06-25 09:00
 
 CREATE TABLE m_audit_resource (
-  resourceOid     NVARCHAR(255) COLLATE database_default NOT NULL,
-  record_id       BIGINT                                 NOT NULL,
+  resourceOid 	  VARCHAR(255) CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  record_id       BIGINT       NOT NULL,
   PRIMARY KEY (record_id, resourceOid)
-);
+) DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
+
 CREATE INDEX iAuditResourceOid
   ON m_audit_resource (resourceOid);
 CREATE INDEX iAuditResourceOidRecordId
   ON m_audit_resource (record_id);
 ALTER TABLE m_audit_resource
-  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;
-
--- 2019-07-30 11:30
-
-ALTER TABLE m_audit_item ALTER COLUMN changedItemPath nvarchar(442) NOT NULL;
+  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event (id);
 
 -- 2019-08-30 12:32
 
-ALTER TABLE m_case_wi_reference ADD reference_type INT DEFAULT 0 NOT NULL;
+ALTER TABLE m_case_wi_reference ADD COLUMN reference_type  INTEGER NOT NULL DEFAULT 0;
 
--- This will delete the primary key for M_CASE_WI_REFERENCE table
-DECLARE @sql NVARCHAR(MAX);
-SELECT @sql = 'ALTER TABLE m_case_wi_reference DROP CONSTRAINT ' + name + ';'
-    FROM sys.key_constraints
-    WHERE [type] = 'PK'
-        AND [parent_object_id] = OBJECT_ID('m_case_wi_reference');
-EXEC sp_executesql @sql;
-
-ALTER TABLE m_case_wi_reference ADD PRIMARY KEY(owner_owner_oid, owner_id, reference_type, targetOid, relation);
+ALTER TABLE m_case_wi_reference DROP PRIMARY KEY, ADD PRIMARY KEY(owner_owner_oid, owner_id, reference_type, targetOid, relation);
 
 ALTER TABLE m_assignment_extension DROP COLUMN booleansCount;
 ALTER TABLE m_assignment_extension DROP COLUMN datesCount;
@@ -158,6 +157,10 @@ DROP TABLE ACT_RE_PROCDEF;
 
 -- 2019-09-04 10:25
 
-ALTER TABLE m_case DROP CONSTRAINT uc_case_name;
+ALTER TABLE m_case DROP INDEX uc_case_name;
+
+-- 2019-09-06 20:00
+
+ALTER TABLE m_case_wi ADD COLUMN createTimestamp DATETIME(6);
 
 COMMIT;

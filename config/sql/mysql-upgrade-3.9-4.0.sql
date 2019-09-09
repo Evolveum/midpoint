@@ -1,20 +1,20 @@
 CREATE TABLE m_archetype (
-  name_norm VARCHAR(191),
-  name_orig VARCHAR(191),
-  oid       VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 )
-  DEFAULT CHARACTER SET utf8mb4
-  COLLATE utf8mb4_bin
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
   ENGINE = InnoDB;
 CREATE TABLE m_dashboard (
-  name_norm VARCHAR(191),
-  name_orig VARCHAR(191),
-  oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 )
-  DEFAULT CHARACTER SET utf8mb4
-  COLLATE utf8mb4_bin
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
   ENGINE = InnoDB;
 
 CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
@@ -35,7 +35,7 @@ ALTER TABLE m_generic_object DROP FOREIGN KEY fk_generic_object;
 ALTER TABLE m_generic_object
   ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus(oid);
 
-ALTER TABLE m_shadow ADD COLUMN primaryIdentifierValue VARCHAR(191);
+ALTER TABLE m_shadow ADD COLUMN primaryIdentifierValue VARCHAR(255);
 
 ALTER TABLE m_shadow
     ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
@@ -45,10 +45,10 @@ ALTER TABLE m_audit_event ADD COLUMN requestIdentifier VARCHAR(255);
 ALTER TABLE m_case ADD COLUMN
   (
   parentRef_relation  VARCHAR(157),
-  parentRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  parentRef_targetOid VARCHAR(36),
   parentRef_type      INTEGER,
   targetRef_relation  VARCHAR(157),
-  targetRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  targetRef_targetOid VARCHAR(36),
   targetRef_type      INTEGER
   );
 
@@ -83,7 +83,7 @@ ALTER TABLE m_task DROP COLUMN wfTargetRef_type;
 ALTER TABLE m_case ADD COLUMN (
   closeTimestamp         DATETIME(6),
   requestorRef_relation  VARCHAR(157),
-  requestorRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  requestorRef_targetOid VARCHAR(36),
   requestorRef_type      INTEGER
   );
 
@@ -95,11 +95,11 @@ UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
 -- 2019-06-25 09:00
 
 CREATE TABLE m_audit_resource (
-  resourceOid 	  VARCHAR(255) CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  resourceOid 	  VARCHAR(255) NOT NULL,
   record_id       BIGINT       NOT NULL,
   PRIMARY KEY (record_id, resourceOid)
-) DEFAULT CHARACTER SET utf8mb4
-  COLLATE utf8mb4_bin
+) DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
   ENGINE = InnoDB;
 
 CREATE INDEX iAuditResourceOid
@@ -158,5 +158,9 @@ DROP TABLE ACT_RE_PROCDEF;
 -- 2019-09-04 10:25
 
 ALTER TABLE m_case DROP INDEX uc_case_name;
+
+-- 2019-09-06 20:00
+
+ALTER TABLE m_case_wi ADD COLUMN createTimestamp DATETIME(6);
 
 COMMIT;

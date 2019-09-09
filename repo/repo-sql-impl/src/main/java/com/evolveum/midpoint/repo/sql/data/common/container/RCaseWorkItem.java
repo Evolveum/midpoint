@@ -59,6 +59,7 @@ public class RCaseWorkItem implements Container<RCase> {
     private Set<RCaseWorkItemReference> candidateRef = new HashSet<>();
     private REmbeddedReference performerRef;
     private String outcome;
+    private XMLGregorianCalendar createTimestamp;
     private XMLGregorianCalendar closeTimestamp;
     private XMLGregorianCalendar deadline;
 
@@ -177,6 +178,15 @@ public class RCaseWorkItem implements Container<RCase> {
     }
 
     @Column
+    public XMLGregorianCalendar getCreateTimestamp() {
+        return createTimestamp;
+    }
+
+    public void setCreateTimestamp(XMLGregorianCalendar createTimestamp) {
+        this.createTimestamp = createTimestamp;
+    }
+
+    @Column
     public XMLGregorianCalendar getDeadline() {
         return deadline;
     }
@@ -199,13 +209,14 @@ public class RCaseWorkItem implements Container<RCase> {
                 Objects.equals(performerRef, that.performerRef) &&
                 Objects.equals(outcome, that.outcome) &&
                 Objects.equals(closeTimestamp, that.closeTimestamp) &&
+                Objects.equals(createTimestamp, that.createTimestamp) &&
                 Objects.equals(deadline, that.deadline);
     }
 
     @Override
     public int hashCode() {
         return Objects
-                .hash(ownerOid, id, stageNumber, assigneeRef, performerRef, outcome, closeTimestamp, deadline);
+                .hash(ownerOid, id, stageNumber, assigneeRef, performerRef, outcome, closeTimestamp, createTimestamp, deadline);
     }
 
     @Transient
@@ -245,6 +256,7 @@ public class RCaseWorkItem implements Container<RCase> {
         rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.relationRegistry));
         rWorkItem.setOutcome(WorkItemTypeUtil.getOutcome(workItem));
         rWorkItem.setCloseTimestamp(workItem.getCloseTimestamp());
+        rWorkItem.setCreateTimestamp(workItem.getCreateTimestamp());
         rWorkItem.setDeadline(workItem.getDeadline());
     }
 }

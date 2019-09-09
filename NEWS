@@ -1,63 +1,10 @@
-midPoint 3.9 "Galileo"
+midPoint 4.0 "Gutenberg"
 ----------------------------------
 
-Release 3.9 is a twenty seventh midPoint release code-named Galileo.
-The 3.9 release brings broad assortment of improvements and new features in
-almost all areas of midPoint functionality.
+Release 4.0 is a twenty eight midPoint release code-named Gutenberg. The 4.0 release in a major milestone in midPoint development. It brings long-awaited features such as archetypes and support for multiple equivalent accounts. Many internal mechanisms were significantly improved. There is also a number of exciting experimental features. However, perhaps the most important aspect of midPoint 4.0 is the long-term support (LTS). Gutenberg will be supported for many years to come.
 
-Release date: 9th November 2018
+Release date: 8th September 2019
 
-Changes with respect to version 3.8:
-    User interface improvements
-        Improved assignment/inducement target selection popup
-        Additional registration form based on object lifecycle
-        Form validation expressions
-        New system configuration page
-        Custom actions for object lists ("user" tasks that can be launched from GUI)
-        Custom pre-registration form
-        Shopping cart improvements
-        Organization tree page performance improvements
-        Miscellaneous user experience improvements
-    Governance improvements
-        Certification campaigns can be run only for non-decided cases
-        Improved certification and workitems reports
-    Customization Improvements
-        Relation Configuration
-        Service Account Management
-        Minor expression evaluation improvements
-        Support for subtype in assignment and inducement
-        Minor improvements to midPoint script libraries
-    Security improvements
-        Separate authorizations for get and search operations.
-        Multitenancy authorizations improvements
-        Authorization zone of control
-        Authorization improvements to handle assignments and inducements
-        Minor security questions improvement.
-    Provisioning
-        Full use of improved ConnId framework (1.5.0.0)
-        Minor improvements to connector paging support
-        Full support for capabilities per object type
-        Major update of consistency mechanism
-    Connectors
-        Support for native timestamps in ConnId framework, LDAP and Active Directory connectors.
-        Full support for ConnId updateDelta() operation in LDAP and AD connectors.
-        Additional search filter support in LDAP and AD connectors.
-        Active directory connector may use user's own identity when changing password
-        Support for connector instance name (InstanceNameAware)
-        Minor improvements to CSV connector (contributed)
-    Miscellaneous improvements
-        Improved documentation
-        Error criticality handling improvement
-        Legacy support for XPath2 was removed, expression processing code was cleaned up.
-        Improved Maven overlay support
-        Run bulk action from policy rules.
-        Docker containerization improvements.
-        User interface testing framework (a.k.a. "Schroedinger")
-        Automatic detection of database schema version and compatibility
-        Support for listing of object items that are deprecated or planned for removal
-        Minor improvements to REST interface
+Please see the release notes for detailed list of changes:
+https://wiki.evolveum.com/display/midPoint/Release+4.0
 
-PostgreSQL 9.4 and earlier is no longer supported.
-Microsoft SQL Server 2012 is no longer supported.
-Tomcat 8.0.x is no longer supported (Tomcat 8.0.x is EOL).
-XPath2 is no longer supported. Please migrate your XPath2 scripts to Groovy, JavaScript or Python.

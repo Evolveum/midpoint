@@ -4,6 +4,7 @@ CREATE TABLE m_acc_cert_campaign (
   definitionRef_type      INT,
   endTimestamp            DATETIME2,
   handlerUri              NVARCHAR(255) COLLATE database_default,
+  iteration               INT                                   NOT NULL,
   name_norm               NVARCHAR(255) COLLATE database_default,
   name_orig               NVARCHAR(255) COLLATE database_default,
   ownerRef_relation       NVARCHAR(157) COLLATE database_default,
@@ -30,6 +31,7 @@ CREATE TABLE m_acc_cert_case (
   validityStatus           INT,
   currentStageOutcome      NVARCHAR(255) COLLATE database_default,
   fullObject               VARBINARY(MAX),
+  iteration                INT                                   NOT NULL,
   objectRef_relation       NVARCHAR(157) COLLATE database_default,
   objectRef_targetOid      NVARCHAR(36) COLLATE database_default,
   objectRef_type           INT,
@@ -66,6 +68,7 @@ CREATE TABLE m_acc_cert_wi (
   owner_id               INT                                   NOT NULL,
   owner_owner_oid        NVARCHAR(36) COLLATE database_default NOT NULL,
   closeTimestamp         DATETIME2,
+  iteration              INT                                   NOT NULL,
   outcome                NVARCHAR(255) COLLATE database_default,
   outputChangeTimestamp  DATETIME2,
   performerRef_relation  NVARCHAR(157) COLLATE database_default,
@@ -173,12 +176,6 @@ CREATE TABLE m_assignment_ext_string (
 CREATE TABLE m_assignment_extension (
   owner_id        INT                                   NOT NULL,
   owner_owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
-  booleansCount   SMALLINT,
-  datesCount      SMALLINT,
-  longsCount      SMALLINT,
-  polysCount      SMALLINT,
-  referencesCount SMALLINT,
-  stringsCount    SMALLINT,
   PRIMARY KEY (owner_owner_oid, owner_id)
 );
 CREATE TABLE m_assignment_policy_situation (
@@ -227,6 +224,7 @@ CREATE TABLE m_audit_event (
   outcome           INT,
   parameter         NVARCHAR(255) COLLATE database_default,
   remoteHostAddress NVARCHAR(255) COLLATE database_default,
+  requestIdentifier NVARCHAR(255) COLLATE database_default,
   result            NVARCHAR(255) COLLATE database_default,
   sessionIdentifier NVARCHAR(255) COLLATE database_default,
   targetName        NVARCHAR(255) COLLATE database_default,
@@ -241,7 +239,7 @@ CREATE TABLE m_audit_event (
   PRIMARY KEY (id)
 );
 CREATE TABLE m_audit_item (
-  changedItemPath NVARCHAR(255) COLLATE database_default NOT NULL,
+  changedItemPath NVARCHAR(442) COLLATE database_default NOT NULL,    -- because of max. index size of 900 bytes
   record_id       BIGINT                                 NOT NULL,
   PRIMARY KEY (record_id, changedItemPath)
 );
@@ -262,10 +260,16 @@ CREATE TABLE m_audit_ref_value (
   type            NVARCHAR(255) COLLATE database_default,
   PRIMARY KEY (id)
 );
+CREATE TABLE m_audit_resource (
+  resourceOid     NVARCHAR(255) COLLATE database_default NOT NULL,
+  record_id       BIGINT                                 NOT NULL,
+  PRIMARY KEY (record_id, resourceOid)
+);
 CREATE TABLE m_case_wi (
   id                            INT                                   NOT NULL,
   owner_oid                     NVARCHAR(36) COLLATE database_default NOT NULL,
   closeTimestamp                DATETIME2,
+  createTimestamp               DATETIME2,
   deadline                      DATETIME2,
   originalAssigneeRef_relation  NVARCHAR(157) COLLATE database_default,
   originalAssigneeRef_targetOid NVARCHAR(36) COLLATE database_default,
@@ -280,10 +284,11 @@ CREATE TABLE m_case_wi (
 CREATE TABLE m_case_wi_reference (
   owner_id        INT                                    NOT NULL,
   owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
+  reference_type  INT                                    NOT NULL,
   relation        NVARCHAR(157) COLLATE database_default NOT NULL,
   targetOid       NVARCHAR(36) COLLATE database_default  NOT NULL,
   targetType      INT,
-  PRIMARY KEY (owner_owner_oid, owner_id, targetOid, relation)
+  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, targetOid, relation)
 );
 CREATE TABLE m_connector_target_system (
   connector_oid    NVARCHAR(36) COLLATE database_default NOT NULL,
@@ -307,16 +312,13 @@ CREATE TABLE m_focus_policy_situation (
 );
 CREATE TABLE m_object (
   oid                   NVARCHAR(36) COLLATE database_default NOT NULL,
-  booleansCount         SMALLINT,
   createChannel         NVARCHAR(255) COLLATE database_default,
   createTimestamp       DATETIME2,
   creatorRef_relation   NVARCHAR(157) COLLATE database_default,
   creatorRef_targetOid  NVARCHAR(36) COLLATE database_default,
   creatorRef_type       INT,
-  datesCount            SMALLINT,
   fullObject            VARBINARY(MAX),
   lifecycleState        NVARCHAR(255) COLLATE database_default,
-  longsCount            SMALLINT,
   modifierRef_relation  NVARCHAR(157) COLLATE database_default,
   modifierRef_targetOid NVARCHAR(36) COLLATE database_default,
   modifierRef_type      INT,
@@ -325,9 +327,6 @@ CREATE TABLE m_object (
   name_norm             NVARCHAR(255) COLLATE database_default,
   name_orig             NVARCHAR(255) COLLATE database_default,
   objectTypeClass       INT,
-  polysCount            SMALLINT,
-  referencesCount       SMALLINT,
-  stringsCount          SMALLINT,
   tenantRef_relation    NVARCHAR(157) COLLATE database_default,
   tenantRef_targetOid   NVARCHAR(36) COLLATE database_default,
   tenantRef_type        INT,
@@ -435,6 +434,7 @@ CREATE TABLE m_shadow (
   name_orig                    NVARCHAR(255) COLLATE database_default,
   objectClass                  NVARCHAR(157) COLLATE database_default,
   pendingOperationCount        INT,
+  primaryIdentifierValue       NVARCHAR(255) COLLATE database_default,
   resourceRef_relation         NVARCHAR(157) COLLATE database_default,
   resourceRef_targetOid        NVARCHAR(36) COLLATE database_default,
   resourceRef_type             INT,
@@ -446,7 +446,6 @@ CREATE TABLE m_shadow (
 );
 CREATE TABLE m_task (
   binding                  INT,
-  canRunOnNode             NVARCHAR(255) COLLATE database_default,
   category                 NVARCHAR(255) COLLATE database_default,
   completionTimestamp      DATETIME2,
   executionStatus          INT,
@@ -469,18 +468,6 @@ CREATE TABLE m_task (
   taskIdentifier           NVARCHAR(255) COLLATE database_default,
   threadStopAction         INT,
   waitingReason            INT,
-  wfEndTimestamp           DATETIME2,
-  wfObjectRef_relation     NVARCHAR(157) COLLATE database_default,
-  wfObjectRef_targetOid    NVARCHAR(36) COLLATE database_default,
-  wfObjectRef_type         INT,
-  wfProcessInstanceId      NVARCHAR(255) COLLATE database_default,
-  wfRequesterRef_relation  NVARCHAR(157) COLLATE database_default,
-  wfRequesterRef_targetOid NVARCHAR(36) COLLATE database_default,
-  wfRequesterRef_type      INT,
-  wfStartTimestamp         DATETIME2,
-  wfTargetRef_relation     NVARCHAR(157) COLLATE database_default,
-  wfTargetRef_targetOid    NVARCHAR(36) COLLATE database_default,
-  wfTargetRef_type         INT,
   oid                      NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -516,13 +503,29 @@ CREATE TABLE m_abstract_role (
   oid                NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
+CREATE TABLE m_archetype (
+  name_norm NVARCHAR(255) COLLATE database_default,
+  name_orig NVARCHAR(255) COLLATE database_default,
+  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
+);
 CREATE TABLE m_case (
+  closeTimestamp         DATETIME2,
   name_norm           NVARCHAR(255) COLLATE database_default,
   name_orig           NVARCHAR(255) COLLATE database_default,
   objectRef_relation  NVARCHAR(157) COLLATE database_default,
   objectRef_targetOid NVARCHAR(36) COLLATE database_default,
   objectRef_type      INT,
+  parentRef_relation  NVARCHAR(157) COLLATE database_default,
+  parentRef_targetOid NVARCHAR(36) COLLATE database_default,
+  parentRef_type      INT,
+  requestorRef_relation  NVARCHAR(157) COLLATE database_default,
+  requestorRef_targetOid NVARCHAR(36) COLLATE database_default,
+  requestorRef_type      INT,
   state               NVARCHAR(255) COLLATE database_default,
+  targetRef_relation  NVARCHAR(157) COLLATE database_default,
+  targetRef_targetOid NVARCHAR(36) COLLATE database_default,
+  targetRef_type      INT,
   oid                 NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -544,6 +547,12 @@ CREATE TABLE m_connector_host (
   name_norm NVARCHAR(255) COLLATE database_default,
   name_orig NVARCHAR(255) COLLATE database_default,
   port      NVARCHAR(255) COLLATE database_default,
+  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
+);
+CREATE TABLE m_dashboard (
+  name_norm NVARCHAR(255) COLLATE database_default,
+  name_orig NVARCHAR(255) COLLATE database_default,
   oid       NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -589,6 +598,11 @@ CREATE TABLE m_generic_object (
   oid        NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
+CREATE TABLE m_global_metadata (
+  name  NVARCHAR(255) COLLATE database_default NOT NULL,
+  value NVARCHAR(255) COLLATE database_default,
+  PRIMARY KEY (name)
+);
 CREATE TABLE m_lookup_table (
   name_norm NVARCHAR(255) COLLATE database_default,
   name_orig NVARCHAR(255) COLLATE database_default,
@@ -610,6 +624,12 @@ CREATE TABLE m_node (
   name_orig      NVARCHAR(255) COLLATE database_default,
   nodeIdentifier NVARCHAR(255) COLLATE database_default,
   oid            NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
+);
+CREATE TABLE m_object_collection (
+  name_norm NVARCHAR(255) COLLATE database_default,
+  name_orig NVARCHAR(255) COLLATE database_default,
+  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_object_template (
@@ -785,6 +805,10 @@ CREATE INDEX iAuditPropValRecordId
   ON m_audit_prop_value (record_id);
 CREATE INDEX iAuditRefValRecordId
   ON m_audit_ref_value (record_id);
+CREATE INDEX iAuditResourceOid
+  ON m_audit_resource (resourceOid);
+CREATE INDEX iAuditResourceOidRecordId
+  ON m_audit_resource (record_id);
 CREATE INDEX iCaseWorkItemRefTargetOid
   ON m_case_wi_reference (targetOid);
 
@@ -848,20 +872,13 @@ CREATE INDEX iShadowNameOrig
   ON m_shadow (name_orig);
 CREATE INDEX iShadowNameNorm
   ON m_shadow (name_norm);
+-- manually created (the default does not work with null values)
+CREATE UNIQUE NONCLUSTERED INDEX iPrimaryIdentifierValueWithOC
+    ON m_shadow(primaryIdentifierValue, objectClass, resourceRef_targetOid)
+    WHERE primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL;
 CREATE INDEX iParent
   ON m_task (parent);
-CREATE INDEX iTaskWfProcessInstanceId
-  ON m_task (wfProcessInstanceId);
-CREATE INDEX iTaskWfStartTimestamp
-  ON m_task (wfStartTimestamp);
-CREATE INDEX iTaskWfEndTimestamp
-  ON m_task (wfEndTimestamp);
-CREATE INDEX iTaskWfRequesterOid
-  ON m_task (wfRequesterRef_targetOid);
-CREATE INDEX iTaskWfObjectOid
-  ON m_task (wfObjectRef_targetOid);
-CREATE INDEX iTaskWfTargetOid
-  ON m_task (wfTargetRef_targetOid);
+CREATE INDEX iTaskObjectOid ON m_task(objectRef_targetOid);
 CREATE INDEX iTaskNameOrig
   ON m_task (name_orig);
 ALTER TABLE m_task
@@ -870,12 +887,16 @@ CREATE INDEX iAbstractRoleIdentifier
   ON m_abstract_role (identifier);
 CREATE INDEX iRequestable
   ON m_abstract_role (requestable);
-CREATE INDEX iAutoassignEnabled
-  ON m_abstract_role (autoassign_enabled);
+CREATE INDEX iAutoassignEnabled ON m_abstract_role(autoassign_enabled);
+CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
+CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
 CREATE INDEX iCaseNameOrig
   ON m_case (name_orig);
-ALTER TABLE m_case
-  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
+CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
+CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
+CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
+CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
 CREATE INDEX iConnectorNameOrig
   ON m_connector (name_orig);
 CREATE INDEX iConnectorNameNorm
@@ -884,6 +905,10 @@ CREATE INDEX iConnectorHostNameOrig
   ON m_connector_host (name_orig);
 ALTER TABLE m_connector_host
   ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
+CREATE INDEX iDashboardNameOrig
+  ON m_dashboard (name_orig);
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
@@ -916,6 +941,10 @@ CREATE INDEX iNodeNameOrig
   ON m_node (name_orig);
 ALTER TABLE m_node
   ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
+CREATE INDEX iObjectCollectionNameOrig
+  ON m_object_collection (name_orig);
+ALTER TABLE m_object_collection
+  ADD CONSTRAINT uc_object_collection_name UNIQUE (name_norm);
 CREATE INDEX iObjectTemplateNameOrig
   ON m_object_template (name_orig);
 ALTER TABLE m_object_template
@@ -992,32 +1021,35 @@ ALTER TABLE m_assignment
   ADD CONSTRAINT fk_assignment_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_assignment_ext_boolean
   ADD CONSTRAINT fk_a_ext_boolean_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE m_assignment_ext_boolean
-  ADD CONSTRAINT fk_a_ext_boolean_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_ext_date
   ADD CONSTRAINT fk_a_ext_date_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE m_assignment_ext_date
-  ADD CONSTRAINT fk_a_ext_date_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_ext_long
   ADD CONSTRAINT fk_a_ext_long_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE m_assignment_ext_long
-  ADD CONSTRAINT fk_a_ext_long_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_ext_poly
   ADD CONSTRAINT fk_a_ext_poly_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE m_assignment_ext_poly
-  ADD CONSTRAINT fk_a_ext_poly_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_ext_reference
   ADD CONSTRAINT fk_a_ext_reference_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE m_assignment_ext_reference
-  ADD CONSTRAINT fk_a_ext_boolean_reference FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_ext_string
   ADD CONSTRAINT fk_a_ext_string_owner FOREIGN KEY (anyContainer_owner_owner_oid, anyContainer_owner_id) REFERENCES m_assignment_extension;
-ALTER TABLE m_assignment_ext_string
-  ADD CONSTRAINT fk_a_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_assignment_policy_situation
   ADD CONSTRAINT fk_assignment_policy_situation FOREIGN KEY (assignment_oid, assignment_id) REFERENCES m_assignment;
 ALTER TABLE m_assignment_reference
   ADD CONSTRAINT fk_assignment_reference FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_assignment;
+
+-- These are created manually
+ALTER TABLE m_assignment_ext_boolean
+  ADD CONSTRAINT fk_a_ext_boolean_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+ALTER TABLE m_assignment_ext_date
+  ADD CONSTRAINT fk_a_ext_date_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+ALTER TABLE m_assignment_ext_long
+  ADD CONSTRAINT fk_a_ext_long_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+ALTER TABLE m_assignment_ext_poly
+  ADD CONSTRAINT fk_a_ext_poly_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+ALTER TABLE m_assignment_ext_reference
+  ADD CONSTRAINT fk_a_ext_reference_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+ALTER TABLE m_assignment_ext_string
+  ADD CONSTRAINT fk_a_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+
 ALTER TABLE m_audit_delta
   ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_item
@@ -1026,6 +1058,8 @@ ALTER TABLE m_audit_prop_value
   ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_ref_value
   ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
+ALTER TABLE m_audit_resource
+  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_case_wi
   ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case;
 ALTER TABLE m_case_wi_reference
@@ -1038,28 +1072,31 @@ ALTER TABLE m_focus_policy_situation
   ADD CONSTRAINT fk_focus_policy_situation FOREIGN KEY (focus_oid) REFERENCES m_focus;
 ALTER TABLE m_object_ext_boolean
   ADD CONSTRAINT fk_o_ext_boolean_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
+ALTER TABLE m_object_ext_date
+  ADD CONSTRAINT fk_o_ext_date_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
+ALTER TABLE m_object_ext_long
+  ADD CONSTRAINT fk_object_ext_long FOREIGN KEY (owner_oid) REFERENCES m_object;
+ALTER TABLE m_object_ext_poly
+  ADD CONSTRAINT fk_o_ext_poly_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
+ALTER TABLE m_object_ext_reference
+  ADD CONSTRAINT fk_o_ext_reference_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
+ALTER TABLE m_object_ext_string
+  ADD CONSTRAINT fk_object_ext_string FOREIGN KEY (owner_oid) REFERENCES m_object;
+
+-- These are created manually
 ALTER TABLE m_object_ext_boolean
   ADD CONSTRAINT fk_o_ext_boolean_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_object_ext_date
-  ADD CONSTRAINT fk_o_ext_date_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE m_object_ext_date
   ADD CONSTRAINT fk_o_ext_date_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_object_ext_long
-  ADD CONSTRAINT fk_object_ext_long FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_object_ext_long
   ADD CONSTRAINT fk_o_ext_long_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_object_ext_poly
-  ADD CONSTRAINT fk_o_ext_poly_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE m_object_ext_poly
   ADD CONSTRAINT fk_o_ext_poly_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
-ALTER TABLE m_object_ext_reference
-  ADD CONSTRAINT fk_o_ext_reference_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_object_ext_reference
   ADD CONSTRAINT fk_o_ext_reference_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 ALTER TABLE m_object_ext_string
-  ADD CONSTRAINT fk_object_ext_string FOREIGN KEY (owner_oid) REFERENCES m_object;
-ALTER TABLE m_object_ext_string
   ADD CONSTRAINT fk_o_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
+
 ALTER TABLE m_object_subtype
   ADD CONSTRAINT fk_object_subtype FOREIGN KEY (object_oid) REFERENCES m_object;
 ALTER TABLE m_object_text_info
@@ -1090,12 +1127,16 @@ ALTER TABLE m_user_organizational_unit
   ADD CONSTRAINT fk_user_org_unit FOREIGN KEY (user_oid) REFERENCES m_user;
 ALTER TABLE m_abstract_role
   ADD CONSTRAINT fk_abstract_role FOREIGN KEY (oid) REFERENCES m_focus;
+ALTER TABLE m_archetype
+  ADD CONSTRAINT fk_archetype FOREIGN KEY (oid) REFERENCES m_abstract_role;
 ALTER TABLE m_case
   ADD CONSTRAINT fk_case FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_connector
   ADD CONSTRAINT fk_connector FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_connector_host
   ADD CONSTRAINT fk_connector_host FOREIGN KEY (oid) REFERENCES m_object;
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_focus
   ADD CONSTRAINT fk_focus FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_form
@@ -1103,13 +1144,15 @@ ALTER TABLE m_form
 ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_generic_object
-  ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_object;
+  ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_lookup_table
   ADD CONSTRAINT fk_lookup_table FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_lookup_table_row
   ADD CONSTRAINT fk_lookup_table_owner FOREIGN KEY (owner_oid) REFERENCES m_lookup_table;
 ALTER TABLE m_node
   ADD CONSTRAINT fk_node FOREIGN KEY (oid) REFERENCES m_object;
+ALTER TABLE m_object_collection
+  ADD CONSTRAINT fk_object_collection FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_object_template
   ADD CONSTRAINT fk_object_template FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_org
@@ -1136,3 +1179,358 @@ ALTER TABLE m_user
   ADD CONSTRAINT fk_user FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
+
+BEGIN TRANSACTION
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.0');
+COMMIT;
+
+--# thanks to George Papastamatopoulos for submitting this ... and Marko Lahma for
+--# updating it.
+--#
+--# In your Quartz properties file, you'll need to set
+--# org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.MSSQLDelegate
+--#
+--# you shouse enter your DB instance's name on the next line in place of "enter_db_name_here"
+--#
+--#
+--# From a helpful (but anonymous) Quartz user:
+--#
+--# Regarding this error message:
+--#
+--#     [Microsoft][SQLServer 2000 Driver for JDBC]Can't start a cloned connection while in manual transaction mode.
+--#
+--#
+--#     I added "SelectMethod=cursor;" to my Connection URL in the config file.
+--#     It Seems to work, hopefully no side effects.
+--#
+--#		example:
+--#		"jdbc:microsoft:sqlserver://dbmachine:1433;SelectMethod=cursor";
+--#
+--# Another user has pointed out that you will probably need to use the
+--# JTDS driver
+--#
+--#
+--# USE [enter_db_name_here]
+--# GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[FK_QRTZ_TRIGGERS_QRTZ_JOB_DETAILS]') AND OBJECTPROPERTY(id, N'ISFOREIGNKEY') = 1)
+ALTER TABLE [dbo].[QRTZ_TRIGGERS] DROP CONSTRAINT FK_QRTZ_TRIGGERS_QRTZ_JOB_DETAILS;
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[FK_QRTZ_CRON_TRIGGERS_QRTZ_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISFOREIGNKEY') = 1)
+ALTER TABLE [dbo].[QRTZ_CRON_TRIGGERS] DROP CONSTRAINT FK_QRTZ_CRON_TRIGGERS_QRTZ_TRIGGERS;
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[FK_QRTZ_SIMPLE_TRIGGERS_QRTZ_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISFOREIGNKEY') = 1)
+ALTER TABLE [dbo].[QRTZ_SIMPLE_TRIGGERS] DROP CONSTRAINT FK_QRTZ_SIMPLE_TRIGGERS_QRTZ_TRIGGERS;
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[FK_QRTZ_SIMPROP_TRIGGERS_QRTZ_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISFOREIGNKEY') = 1)
+ALTER TABLE [dbo].[QRTZ_SIMPROP_TRIGGERS] DROP CONSTRAINT FK_QRTZ_SIMPROP_TRIGGERS_QRTZ_TRIGGERS;
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_CALENDARS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_CALENDARS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_CRON_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_CRON_TRIGGERS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_BLOB_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_BLOB_TRIGGERS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_FIRED_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_FIRED_TRIGGERS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_PAUSED_TRIGGER_GRPS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_PAUSED_TRIGGER_GRPS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_SCHEDULER_STATE]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_SCHEDULER_STATE];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_LOCKS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_LOCKS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_JOB_DETAILS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_JOB_DETAILS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_SIMPLE_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_SIMPLE_TRIGGERS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_SIMPROP_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_SIMPROP_TRIGGERS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_TRIGGERS];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_CALENDARS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [CALENDAR_NAME] [VARCHAR] (200)  NOT NULL ,
+  [CALENDAR] [IMAGE] NOT NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_CRON_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [CRON_EXPRESSION] [VARCHAR] (120)  NOT NULL ,
+  [TIME_ZONE_ID] [VARCHAR] (80)
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_FIRED_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [ENTRY_ID] [VARCHAR] (95)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [INSTANCE_NAME] [VARCHAR] (200)  NOT NULL ,
+  [FIRED_TIME] [BIGINT] NOT NULL ,
+  [SCHED_TIME] [BIGINT] NOT NULL ,
+  [PRIORITY] [INTEGER] NOT NULL ,
+  [EXECUTION_GROUP] [VARCHAR] (200) NULL ,
+  [STATE] [VARCHAR] (16)  NOT NULL,
+  [JOB_NAME] [VARCHAR] (200)  NULL ,
+  [JOB_GROUP] [VARCHAR] (200)  NULL ,
+  [IS_NONCONCURRENT] [VARCHAR] (1)  NULL ,
+  [REQUESTS_RECOVERY] [VARCHAR] (1)  NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_PAUSED_TRIGGER_GRPS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_SCHEDULER_STATE] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [INSTANCE_NAME] [VARCHAR] (200)  NOT NULL ,
+  [LAST_CHECKIN_TIME] [BIGINT] NOT NULL ,
+  [CHECKIN_INTERVAL] [BIGINT] NOT NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_LOCKS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [LOCK_NAME] [VARCHAR] (40)  NOT NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_JOB_DETAILS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [JOB_NAME] [VARCHAR] (200)  NOT NULL ,
+  [JOB_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [DESCRIPTION] [VARCHAR] (250) NULL ,
+  [JOB_CLASS_NAME] [VARCHAR] (250)  NOT NULL ,
+  [IS_DURABLE] [VARCHAR] (1)  NOT NULL ,
+  [IS_NONCONCURRENT] [VARCHAR] (1)  NOT NULL ,
+  [IS_UPDATE_DATA] [VARCHAR] (1)  NOT NULL ,
+  [REQUESTS_RECOVERY] [VARCHAR] (1)  NOT NULL ,
+  [JOB_DATA] [IMAGE] NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_SIMPLE_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [REPEAT_COUNT] [BIGINT] NOT NULL ,
+  [REPEAT_INTERVAL] [BIGINT] NOT NULL ,
+  [TIMES_TRIGGERED] [BIGINT] NOT NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_SIMPROP_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [STR_PROP_1] [VARCHAR] (512) NULL,
+  [STR_PROP_2] [VARCHAR] (512) NULL,
+  [STR_PROP_3] [VARCHAR] (512) NULL,
+  [INT_PROP_1] [INT] NULL,
+  [INT_PROP_2] [INT] NULL,
+  [LONG_PROP_1] [BIGINT] NULL,
+  [LONG_PROP_2] [BIGINT] NULL,
+  [DEC_PROP_1] [NUMERIC] (13,4) NULL,
+  [DEC_PROP_2] [NUMERIC] (13,4) NULL,
+  [BOOL_PROP_1] [VARCHAR] (1) NULL,
+  [BOOL_PROP_2] [VARCHAR] (1) NULL,
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_BLOB_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [BLOB_DATA] [IMAGE] NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [JOB_NAME] [VARCHAR] (200)  NOT NULL ,
+  [JOB_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [DESCRIPTION] [VARCHAR] (250) NULL ,
+  [NEXT_FIRE_TIME] [BIGINT] NULL ,
+  [PREV_FIRE_TIME] [BIGINT] NULL ,
+  [PRIORITY] [INTEGER] NULL ,
+  [EXECUTION_GROUP] [VARCHAR] (200) NULL ,
+  [TRIGGER_STATE] [VARCHAR] (16)  NOT NULL ,
+  [TRIGGER_TYPE] [VARCHAR] (8)  NOT NULL ,
+  [START_TIME] [BIGINT] NOT NULL ,
+  [END_TIME] [BIGINT] NULL ,
+  [CALENDAR_NAME] [VARCHAR] (200)  NULL ,
+  [MISFIRE_INSTR] [SMALLINT] NULL ,
+  [JOB_DATA] [IMAGE] NULL
+) ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_CALENDARS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_CALENDARS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [CALENDAR_NAME]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_CRON_TRIGGERS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_CRON_TRIGGERS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_FIRED_TRIGGERS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_FIRED_TRIGGERS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [ENTRY_ID]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_PAUSED_TRIGGER_GRPS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_PAUSED_TRIGGER_GRPS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [TRIGGER_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_SCHEDULER_STATE] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_SCHEDULER_STATE] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [INSTANCE_NAME]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_LOCKS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_LOCKS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [LOCK_NAME]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_JOB_DETAILS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_JOB_DETAILS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [JOB_NAME],
+    [JOB_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_SIMPLE_TRIGGERS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_SIMPLE_TRIGGERS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_SIMPROP_TRIGGERS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_SIMPROP_TRIGGERS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_TRIGGERS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_TRIGGERS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_CRON_TRIGGERS] ADD
+  CONSTRAINT [FK_QRTZ_CRON_TRIGGERS_QRTZ_TRIGGERS] FOREIGN KEY
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) REFERENCES [dbo].[QRTZ_TRIGGERS] (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) ON DELETE CASCADE;
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_SIMPLE_TRIGGERS] ADD
+  CONSTRAINT [FK_QRTZ_SIMPLE_TRIGGERS_QRTZ_TRIGGERS] FOREIGN KEY
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) REFERENCES [dbo].[QRTZ_TRIGGERS] (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) ON DELETE CASCADE;
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_SIMPROP_TRIGGERS] ADD
+  CONSTRAINT [FK_QRTZ_SIMPROP_TRIGGERS_QRTZ_TRIGGERS] FOREIGN KEY
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) REFERENCES [dbo].[QRTZ_TRIGGERS] (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) ON DELETE CASCADE;
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_TRIGGERS] ADD
+  CONSTRAINT [FK_QRTZ_TRIGGERS_QRTZ_JOB_DETAILS] FOREIGN KEY
+  (
+    [SCHED_NAME],
+    [JOB_NAME],
+    [JOB_GROUP]
+  ) REFERENCES [dbo].[QRTZ_JOB_DETAILS] (
+    [SCHED_NAME],
+    [JOB_NAME],
+    [JOB_GROUP]
+  );
+-- GO;

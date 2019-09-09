@@ -45,4 +45,8 @@
             <ref bean="midpointConfiguration"/>
         </property>
     </bean>
+
+    <bean id="jaxbProvider" class="com.evolveum.midpoint.common.rest.MidpointXmlProvider"/>
+    <bean id="yamlProvider" class="com.evolveum.midpoint.common.rest.MidpointYamlProvider"/>
+    <bean id="jsonProvider" class="com.evolveum.midpoint.common.rest.MidpointJsonProvider"/>
 </beans>

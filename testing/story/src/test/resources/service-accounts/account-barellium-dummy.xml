@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<account oid="fe0d6d9a-a77d-11e8-a144-0bbeb63fd26b"
+<shadow oid="fe0d6d9a-a77d-11e8-a144-0bbeb63fd26b"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -23,4 +23,4 @@
 	<activation>
 		<administrativeStatus>enabled</administrativeStatus>
 	</activation>
-</account>
+</shadow>

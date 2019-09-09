@@ -334,6 +334,7 @@ CREATE TABLE m_case_wi (
   id                            INTEGER     NOT NULL,
   owner_oid                     VARCHAR(36) NOT NULL,
   closeTimestamp                DATETIME(6),
+  createTimestamp               DATETIME(6),
   deadline                      DATETIME(6),
   originalAssigneeRef_relation  VARCHAR(157),
   originalAssigneeRef_targetOid VARCHAR(36),

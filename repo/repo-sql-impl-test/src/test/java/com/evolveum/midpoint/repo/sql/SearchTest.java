@@ -34,9 +34,7 @@ import java.util.*;
 
 import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createExecuteIfNoChanges;
 import static java.util.Collections.emptySet;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author lazyman
@@ -1123,5 +1121,18 @@ public class SearchTest extends BaseSQLRepoTest {
         result.recomputeStatus();
         assertTrue(result.isSuccess());
         assertEquals("Wrong # of work items found", 1, workItems.size());
+    }
+
+    @Test
+    public void testWorkItemWithCreateTimestamp() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
+                .not().item(CaseWorkItemType.F_CREATE_TIMESTAMP).isNull()
+                .build();
+        OperationResult result = new OperationResult("search");
+        SearchResultList<CaseWorkItemType> workItems = repositoryService.searchContainers(CaseWorkItemType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Wrong # of work items found", 1, workItems.size());
+        assertNotNull("Null createTimestamp", workItems.get(0).getCreateTimestamp());
     }
 }

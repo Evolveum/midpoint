@@ -287,6 +287,7 @@ public class PageAbout extends PageAdminConfiguration {
 //                checkWorkflowProcessesPerformed(target);
             }
         };
+        checkWorkflowProcesses.setVisible(false);
         add(checkWorkflowProcesses);
 
         AjaxButton clearCssJsCache = new AjaxButton(ID_CLEAR_CSS_JS_CACHE,

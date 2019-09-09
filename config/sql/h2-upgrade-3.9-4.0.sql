@@ -129,4 +129,8 @@ ALTER TABLE m_object DROP COLUMN IF EXISTS stringsCount;
 
 ALTER TABLE m_case DROP CONSTRAINT uc_case_name;
 
+-- 2019-09-06 20:00
+
+ALTER TABLE m_case_wi ADD COLUMN createTimestamp TIMESTAMP;
+
 COMMIT;
