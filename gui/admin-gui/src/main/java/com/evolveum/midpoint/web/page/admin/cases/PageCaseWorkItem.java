@@ -146,8 +146,8 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		OperationResult result = task.getResult();
 		CaseType caseInstance = null;
 		try {
-			GetOperationOptionsBuilder optionsBuilder = getOperationOptionsBuilder().item(F_OBJECT_REF).resolve();
-			PrismObject<CaseType> caseObject = WebModelServiceUtils.loadObject(CaseType.class, workItemId.getCaseOid(), optionsBuilder.build(),
+			//GetOperationOptionsBuilder optionsBuilder = getOperationOptionsBuilder().item(F_OBJECT_REF).resolve();
+			PrismObject<CaseType> caseObject = WebModelServiceUtils.loadObject(CaseType.class, workItemId.getCaseOid(), null,//optionsBuilder.build(),
 					PageCaseWorkItem.this, task, result);
 			caseInstance = caseObject.asObjectable();
 			result.recordSuccessIfUnknown();

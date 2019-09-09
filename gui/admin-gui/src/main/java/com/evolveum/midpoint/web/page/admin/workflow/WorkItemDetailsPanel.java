@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -113,8 +114,20 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         add(requestedBy);
 
         //todo fix what is requested for object ?
-        IconedObjectNamePanel requestedFor = new IconedObjectNamePanel(ID_REQUESTED_FOR,
-                WorkItemTypeUtil.getObjectReference(getModelObject()));
+        IconedObjectNamePanel requestedFor;
+        AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(CaseTypeUtil.getCase(getModelObject()));
+        if (object == null) {
+        	requestedFor = new IconedObjectNamePanel(ID_REQUESTED_FOR,
+                    WorkItemTypeUtil.getObjectReference(getModelObject()));
+        } else {
+        	requestedFor = new IconedObjectNamePanel(ID_REQUESTED_FOR, new IModel<AssignmentHolderType>() {
+
+				@Override
+				public AssignmentHolderType getObject() {
+					return object;
+				}
+			});
+        }
         requestedFor.setOutputMarkupId(true);
         add(requestedFor);
 
@@ -307,5 +320,4 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     public Component getCustomForm(){
         return get(createComponentPath(ID_ADDITIONAL_ATTRIBUTES, ID_CUSTOM_FORM));
     }
-
 }
