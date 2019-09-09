@@ -83,28 +83,38 @@ ALTER TABLE m_case ADD (
 CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid) INITRANS 30;
 CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp) INITRANS 30;
 
-CREATE INDEX iUserEmployeeTypeOid ON M_USER_EMPLOYEE_TYPE(USER_OID) INITRANS 30;
-CREATE INDEX iUserOrganizationOid ON M_USER_ORGANIZATION(USER_OID) INITRANS 30;
-CREATE INDEX iUserOrganizationalUnitOid ON M_USER_ORGANIZATIONAL_UNIT(USER_OID) INITRANS 30;
-CREATE INDEX iAssignmentExtBooleanItemId ON M_ASSIGNMENT_EXT_BOOLEAN(ITEM_ID) INITRANS 30;
-CREATE INDEX iAssignmentExtDateItemId ON M_ASSIGNMENT_EXT_DATE(ITEM_ID) INITRANS 30;
-CREATE INDEX iAssignmentExtLongItemId ON M_ASSIGNMENT_EXT_LONG(ITEM_ID) INITRANS 30;
-CREATE INDEX iAssignmentExtPolyItemId ON M_ASSIGNMENT_EXT_POLY(ITEM_ID) INITRANS 30;
-CREATE INDEX iAssignmentExtReferenceItemId ON M_ASSIGNMENT_EXT_REFERENCE(ITEM_ID) INITRANS 30;
-CREATE INDEX iAssignmentExtStringItemId ON M_ASSIGNMENT_EXT_STRING(ITEM_ID) INITRANS 30;
-CREATE INDEX iAssignmentPolicySituationId ON M_ASSIGNMENT_POLICY_SITUATION(ASSIGNMENT_OID, ASSIGNMENT_ID) INITRANS 30;
-CREATE INDEX iConnectorTargetSystemOid ON M_CONNECTOR_TARGET_SYSTEM(CONNECTOR_OID) INITRANS 30;
-CREATE INDEX iFocusPolicySituationOid ON M_FOCUS_POLICY_SITUATION(FOCUS_OID) INITRANS 30;
-CREATE INDEX iObjectExtBooleanItemId ON M_OBJECT_EXT_BOOLEAN(ITEM_ID) INITRANS 30;
-CREATE INDEX iObjectExtDateItemId ON M_OBJECT_EXT_DATE(ITEM_ID) INITRANS 30;
-CREATE INDEX iObjectExtLongItemId ON M_OBJECT_EXT_LONG(ITEM_ID) INITRANS 30;
-CREATE INDEX iObjectExtPolyItemId ON M_OBJECT_EXT_POLY(ITEM_ID) INITRANS 30;
-CREATE INDEX iObjectExtReferenceItemId ON M_OBJECT_EXT_REFERENCE(ITEM_ID) INITRANS 30;
-CREATE INDEX iObjectExtStringItemId ON M_OBJECT_EXT_STRING(ITEM_ID) INITRANS 30;
-CREATE INDEX iObjectSubtypeOid ON M_OBJECT_SUBTYPE(OBJECT_OID) INITRANS 30;
-CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID) INITRANS 30;
-CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID) INITRANS 30;
-CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID) INITRANS 30;
+declare
+  already_exists  exception;
+  columns_indexed exception;
+  pragma exception_init( already_exists, -955 );
+  pragma exception_init(columns_indexed, -1408);
+begin
+  execute immediate 'CREATE INDEX iUserEmployeeTypeOid ON M_USER_EMPLOYEE_TYPE(USER_OID) INITRANS 30';
+  execute immediate 'CREATE INDEX iUserOrganizationOid ON M_USER_ORGANIZATION(USER_OID) INITRANS 30';
+  execute immediate 'CREATE INDEX iUserOrganizationalUnitOid ON M_USER_ORGANIZATIONAL_UNIT(USER_OID) INITRANS 30';
+  execute immediate 'CREATE INDEX iAssignmentExtBooleanItemId ON M_ASSIGNMENT_EXT_BOOLEAN(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iAssignmentExtDateItemId ON M_ASSIGNMENT_EXT_DATE(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iAssignmentExtLongItemId ON M_ASSIGNMENT_EXT_LONG(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iAssignmentExtPolyItemId ON M_ASSIGNMENT_EXT_POLY(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iAssignmentExtReferenceItemId ON M_ASSIGNMENT_EXT_REFERENCE(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iAssignmentExtStringItemId ON M_ASSIGNMENT_EXT_STRING(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iAssignmentPolicySituationId ON M_ASSIGNMENT_POLICY_SITUATION(ASSIGNMENT_OID, ASSIGNMENT_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iConnectorTargetSystemOid ON M_CONNECTOR_TARGET_SYSTEM(CONNECTOR_OID) INITRANS 30';
+  execute immediate 'CREATE INDEX iFocusPolicySituationOid ON M_FOCUS_POLICY_SITUATION(FOCUS_OID) INITRANS 30';
+  execute immediate 'CREATE INDEX iObjectExtBooleanItemId ON M_OBJECT_EXT_BOOLEAN(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iObjectExtDateItemId ON M_OBJECT_EXT_DATE(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iObjectExtLongItemId ON M_OBJECT_EXT_LONG(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iObjectExtPolyItemId ON M_OBJECT_EXT_POLY(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iObjectExtReferenceItemId ON M_OBJECT_EXT_REFERENCE(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iObjectExtStringItemId ON M_OBJECT_EXT_STRING(ITEM_ID) INITRANS 30';
+  execute immediate 'CREATE INDEX iObjectSubtypeOid ON M_OBJECT_SUBTYPE(OBJECT_OID) INITRANS 30';
+  execute immediate 'CREATE INDEX iOrgOrgTypeOid ON M_ORG_ORG_TYPE(ORG_OID) INITRANS 30';
+  execute immediate 'CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID) INITRANS 30';
+  execute immediate 'CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID) INITRANS 30';
+exception
+  when already_exists or columns_indexed then
+    dbms_output.put_line('Index creation skipped; they probably already exist');
+end;
 
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
 

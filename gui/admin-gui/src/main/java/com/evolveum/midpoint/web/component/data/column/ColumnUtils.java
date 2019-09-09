@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.cases.PageCases;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -491,7 +490,14 @@ public class ColumnUtils {
 			protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
 				CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
 				CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-				return Model.of(WebModelServiceUtils.resolveReferenceName(caseType.getObjectRef(), pageBase));
+				String name;
+				AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(caseType);
+				if (object == null) {
+					name = WebModelServiceUtils.resolveReferenceName(caseType.getObjectRef(), pageBase);
+				} else {
+					name = WebComponentUtil.getEffectiveName(object, AbstractRoleType.F_DISPLAY_NAME);
+				}
+				return Model.of(name);
 			}
 
 			@Override
@@ -505,11 +511,18 @@ public class ColumnUtils {
 			@Override
 			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
 									 final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-				super.populateItem(cellItem, componentId, rowModel);
-				Component c = cellItem.get(componentId);
-
 				CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
 				CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+				AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(caseType);
+				if (object == null) {
+					super.populateItem(cellItem, componentId, rowModel);
+				} else {
+					IModel model = createLinkModel(rowModel);
+			        cellItem.add(new Label(componentId, model));
+				}
+				
+				Component c = cellItem.get(componentId);
+
 				PrismReferenceValue refVal = caseType.getObjectRef().asReferenceValue();
 				String descriptionValue = refVal.getObject() != null ?
 						refVal.getObject().asObjectable().getDescription() : "";

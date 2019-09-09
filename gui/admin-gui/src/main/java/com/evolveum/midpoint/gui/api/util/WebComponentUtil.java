@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -3803,6 +3804,22 @@ public final class WebComponentUtil {
             return SessionStorage.KEY_OBJECT_LIST;
         }
         return SessionStorage.KEY_OBJECT_LIST + "." + additionalKeyValue;
+    }
+    
+    public static AssignmentHolderType getObjectFromAddDeltyForCase(CaseType aCase) {
+    	if (aCase != null && aCase.getApprovalContext() != null
+    			&& aCase.getApprovalContext().getDeltasToApprove() != null) {
+    		ObjectTreeDeltasType deltaTree = aCase.getApprovalContext().getDeltasToApprove();
+			if(deltaTree != null && deltaTree.getFocusPrimaryDelta() != null) {
+				ObjectDeltaType primaryDelta = deltaTree.getFocusPrimaryDelta();
+				if(primaryDelta != null && (primaryDelta.getItemDelta() == null || primaryDelta.getItemDelta().isEmpty())
+						&& primaryDelta.getObjectToAdd() != null && primaryDelta.getObjectToAdd() instanceof AssignmentHolderType
+						&& ChangeType.ADD.equals(ChangeType.toChangeType(primaryDelta.getChangeType()))) {
+					return (AssignmentHolderType) primaryDelta.getObjectToAdd();
+				}
+			}
+    	}
+		return null;
     }
 
 }

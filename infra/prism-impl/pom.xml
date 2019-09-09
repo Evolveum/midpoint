@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0 
   ~ and European Union Public License. See LICENSE file for details.
@@ -15,7 +15,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>4.0-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.0-SNAPSHOT</version>
+            <version>4.0.1-SNAPSHOT</version>
 	    <exclusions>
 		<exclusion>
 		    <groupId>javax.xml.bind</groupId>
@@ -37,7 +37,7 @@
 	<dependency>
 	    <groupId>com.evolveum.midpoint.infra</groupId>
 	    <artifactId>prism-api</artifactId>
-	    <version>4.0-SNAPSHOT</version>
+	    <version>4.0.1-SNAPSHOT</version>
 	    <exclusions>
 		<exclusion>
 		    <groupId>javax.xml.bind</groupId>
@@ -138,47 +138,10 @@
 			<artifactId>staxmate</artifactId>
 		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>org.glassfish.jaxb</groupId>-->
-<!--			<artifactId>jaxb-runtime</artifactId>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>jakarta.xml.bind</groupId>-->
-<!--			<artifactId>jakarta.xml.bind-api</artifactId>-->
-<!--		</dependency>-->
-
-        <!-- Xtext for schema IDE tooling (experimental) -->
-<!--        <dependency>
-            <groupId>com.evolveum.midpoint.msl</groupId>
-            <artifactId>com.evolveum.midpoint.msl</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.xtend</groupId>
-            <artifactId>org.eclipse.xtend.lib</artifactId>
-            <version>2.5.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.xtext</groupId>
-            <artifactId>org.eclipse.xtext.dependencies</artifactId>
-            <version>2.5.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.xtext</groupId>
-            <artifactId>org.eclipse.xtext</artifactId>
-            <version>2.5.1</version>
-        </dependency>
-        -->
 		<dependency>
 		  <groupId>com.fasterxml.jackson.core</groupId>
 		  <artifactId>jackson-databind</artifactId>
 		</dependency>
-		<!-- Uncomment for JSON support (experimental) -->
-<!--  <groupId>com.fasterxml.jackson.datatype</groupId>
-  <artifactId>jackson-module-jsonSchema</artifactId>
-  <version>2.3.0</version>
-</dependency>
-<dependency> -->
 	<dependency>
 	    <groupId>com.fasterxml.jackson.module</groupId>
 	    <artifactId>jackson-module-jaxb-annotations</artifactId>
