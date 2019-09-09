@@ -98,6 +98,15 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 	private WorkItemId workItemId;
 	private PageParameters pageParameters;
 
+    public PageCaseWorkItem(CaseWorkItemType workItem) {
+		caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
+			@Override
+			protected CaseWorkItemType load() {
+				return workItem;
+			}
+		};
+	}
+
     public PageCaseWorkItem(PageParameters parameters) {
 		this.pageParameters = parameters;
 

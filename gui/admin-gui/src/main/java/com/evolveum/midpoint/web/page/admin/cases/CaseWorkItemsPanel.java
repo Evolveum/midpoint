@@ -156,21 +156,16 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                //TODO should we check any authorization?
+                if (rowModel.getObject() == null || rowModel.getObject().getRealValue() == null){
+                    return false;
+                }
                 return true;
             }
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                PageParameters workItemPageParameters = new PageParameters();
-                CaseWorkItemType caseWorkItemType = rowModel.getObject().getRealValue();
-                CaseType parentCase = CaseTypeUtil.getCase(caseWorkItemType);
-                WorkItemId workItemId = WorkItemId.create(parentCase != null ? parentCase.getOid() : "", caseWorkItemType.getId());
-                workItemPageParameters.add(OnePageParameterEncoder.PARAMETER, workItemId.asString());
-                if (StringUtils.isNotEmpty(getPowerDonorOidParameterValue())){
-                    workItemPageParameters.add(PageAttorneySelection.PARAMETER_DONOR_OID, getPowerDonorOidParameterValue());
-                }
-                CaseWorkItemsPanel.this.getPageBase().navigateToNext(PageCaseWorkItem.class, workItemPageParameters);
+                PageCaseWorkItem pageCaseWorkItem = new PageCaseWorkItem(rowModel.getObject() != null ? rowModel.getObject().getRealValue() : null);
+                CaseWorkItemsPanel.this.getPageBase().navigateToNext(pageCaseWorkItem);
             }
         });
 
