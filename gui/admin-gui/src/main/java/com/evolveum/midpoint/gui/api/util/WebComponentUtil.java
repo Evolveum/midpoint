@@ -524,6 +524,7 @@ public final class WebComponentUtil {
 		// TODO: move this to schema component
 		LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),
 		RECONCILIATION(SchemaConstants.CHANGE_CHANNEL_RECON_URI),
+		RECOMPUTATION(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI),
 		DISCOVERY(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI),
 		WEB_SERVICE(SchemaConstants.CHANNEL_WEB_SERVICE_URI),
 		IMPORT(SchemaConstants.CHANNEL_OBJECT_IMPORT_URI),
