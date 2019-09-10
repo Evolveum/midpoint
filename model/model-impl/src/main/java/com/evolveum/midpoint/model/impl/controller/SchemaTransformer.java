@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -722,6 +723,11 @@ public class SchemaTransformer {
 		String displayName = templateItemDefType.getDisplayName();
 		if (displayName != null) {
 			mutableDef.setDisplayName(displayName);
+		}
+
+		String help = templateItemDefType.getHelp();
+		if (help != null) {
+			mutableDef.setHelp(help);
 		}
 
 		Integer displayOrder = templateItemDefType.getDisplayOrder();

@@ -133,7 +133,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
 
 
         IconedObjectNamePanel approver = new IconedObjectNamePanel(ID_APPROVER,
-                getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
+                getModelObject() != null && getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
                 getModelObject().getAssigneeRef().get(0) : null);
         approver.setOutputMarkupId(true);
         add(approver);
@@ -194,7 +194,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
                 (!SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState()) || WorkItemTypeUtil.getEvidence(getModelObject()) != null)));
         add(evidenceForm);
 
-        UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE,
+        UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, parentCase != null &&
                 SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState()) && WorkItemTypeUtil.getEvidence(getModelObject()) != null){
             private static final long serialVersionUID = 1L;
 
