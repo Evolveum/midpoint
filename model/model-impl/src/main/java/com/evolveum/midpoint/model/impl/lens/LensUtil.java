@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
@@ -547,7 +548,15 @@ public class LensUtil {
      */
     public static boolean isAssignmentValid(AssignmentHolderType focus, AssignmentType assignmentType, XMLGregorianCalendar now, 
     		ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
-    	String focusLifecycleState = focus.getLifecycleState();
+		ObjectReferenceType targetRef = assignmentType.getTargetRef();
+		if (targetRef != null) {
+			if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
+				// Archetype assignments are always valid, even in non-valid lifecycle states.
+				// The object cannot lose its (arche)type.
+				return true;
+			}
+		}
+		String focusLifecycleState = focus.getLifecycleState();
     
     	if (!activationComputer.lifecycleHasActiveAssignments(focusLifecycleState, focusStateModel)) {
 			return false;
