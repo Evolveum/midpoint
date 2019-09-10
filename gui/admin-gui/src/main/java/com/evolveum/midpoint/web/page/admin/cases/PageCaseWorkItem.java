@@ -98,6 +98,15 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 	private WorkItemId workItemId;
 	private PageParameters pageParameters;
 
+    public PageCaseWorkItem(CaseWorkItemType workItem) {
+		caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
+			@Override
+			protected CaseWorkItemType load() {
+				return workItem;
+			}
+		};
+	}
+
     public PageCaseWorkItem(PageParameters parameters) {
 		this.pageParameters = parameters;
 
@@ -146,8 +155,8 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		OperationResult result = task.getResult();
 		CaseType caseInstance = null;
 		try {
-			GetOperationOptionsBuilder optionsBuilder = getOperationOptionsBuilder().item(F_OBJECT_REF).resolve();
-			PrismObject<CaseType> caseObject = WebModelServiceUtils.loadObject(CaseType.class, workItemId.getCaseOid(), optionsBuilder.build(),
+			//GetOperationOptionsBuilder optionsBuilder = getOperationOptionsBuilder().item(F_OBJECT_REF).resolve();
+			PrismObject<CaseType> caseObject = WebModelServiceUtils.loadObject(CaseType.class, workItemId.getCaseOid(), null,//optionsBuilder.build(),
 					PageCaseWorkItem.this, task, result);
 			caseInstance = caseObject.asObjectable();
 			result.recordSuccessIfUnknown();

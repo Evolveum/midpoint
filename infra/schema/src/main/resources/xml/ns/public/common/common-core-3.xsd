@@ -7446,6 +7446,24 @@
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="help" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Help text for the displayed item. Help text is usually
+                            displayed when the user clicks on help/information icon.
+                            This may be a longer text (several sentences).
+                        </p>
+                        <p>
+                            This is equivalent to "help" schema annotation and can be used
+                            to override it.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ItemRefinedDefinitionType.help</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:appinfo>

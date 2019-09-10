@@ -37,7 +37,7 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
     private static final String OPERATION_LOAD_REFERENCED_OBJECT = DOT_CLASS + "loadReferencedObject";
 
     ObjectReferenceType objectReference;
-    LoadableModel<AHT> referencedObjectModel = null;
+    IModel<AHT> referencedObjectModel = null;
 
     public IconedObjectNamePanel(String id, ObjectReferenceType objectReference){
         super(id);
@@ -46,6 +46,7 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
 
     public IconedObjectNamePanel(String id, IModel<AHT> assignmentHolder){
         super(id, assignmentHolder);
+        this.referencedObjectModel = assignmentHolder;
     }
 
     @Override
@@ -56,20 +57,22 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
     }
 
     public void initReferencedObjectModel() {
-        referencedObjectModel = new LoadableModel<AHT>() {
-            @Override
-            protected AHT load() {
-                PageBase pageBase = IconedObjectNamePanel.this.getPageBase();
-                OperationResult result = new OperationResult(OPERATION_LOAD_REFERENCED_OBJECT);
-                if (objectReference != null) {
-                    PrismObject<AHT> assignmentHolder = WebModelServiceUtils.resolveReferenceNoFetch(objectReference, pageBase,
-                            pageBase.createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT), result);
-                    return assignmentHolder != null ? assignmentHolder.asObjectable() : null;
-                } else {
-                    return null;
+    	if (referencedObjectModel == null) {
+    		referencedObjectModel = new LoadableModel<AHT>() {
+                @Override
+                protected AHT load() {
+                    if (objectReference != null) {
+                    	PageBase pageBase = IconedObjectNamePanel.this.getPageBase();
+                        OperationResult result = new OperationResult(OPERATION_LOAD_REFERENCED_OBJECT);
+                        PrismObject<AHT> assignmentHolder = WebModelServiceUtils.resolveReferenceNoFetch(objectReference, pageBase,
+                                pageBase.createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT), result);
+                        return assignmentHolder != null ? assignmentHolder.asObjectable() : null;
+                    } else {
+                        return null;
+                    }
                 }
-            }
-        };
+            };
+    	}
     }
 
     private void initLayout(){
