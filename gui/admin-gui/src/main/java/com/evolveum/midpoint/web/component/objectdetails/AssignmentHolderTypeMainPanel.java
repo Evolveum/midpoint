@@ -109,7 +109,7 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
         PrismObject<AHT> focus = getObjectModel().getObject().getObject();
         List<AssignmentType> assignments = focus.asObjectable().getAssignment();
         for (AssignmentType assignment : assignments) {
-            if (!AssignmentsUtil.isPolicyRuleAssignment(assignment) && !AssignmentsUtil.isConsentAssignment(assignment)
+            if (!AssignmentsUtil.isConsentAssignment(assignment)
                     && AssignmentsUtil.isAssignmentRelevant(assignment) && !AssignmentsUtil.isArchetypeAssignment(assignment)) {
                 rv++;
             }

@@ -84,6 +84,9 @@ public class TestArchetypes extends AbstractArchetypesTest {
 	
 	public static final File USER_MEATHOOK_FILE = new File(TEST_DIR, "user-meathook.xml");
 	protected static final String USER_MEATHOOK_OID = "f79fc10e-78a8-11e9-92ec-cf427cb6e7a0";
+
+	public static final File USER_WANNABE_FILE = new File(TEST_DIR, "user-wannabe.xml");
+	protected static final String USER_WANNABE_OID = "28038d88-d3eb-11e9-87fb-cff5e050b6f9";
 	
 	public static final File ROLE_EMPLOYEE_BASE_FILE = new File(TEST_DIR, "role-employee-base.xml");
 	protected static final String ROLE_EMPLOYEE_BASE_OID = "e869d6c4-f6ef-11e8-b51f-df3e51bba129";
@@ -747,6 +750,42 @@ public class TestArchetypes extends AbstractArchetypesTest {
         		.end()
         	.assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);        
     }
+
+	/**
+	 * Add "Wanabe" user with an contractor archetype, but in DRAFT lifecycle state.
+	 * Even though assignments are not active in draft state, archetype assignment should be active anyway.
+	 * MID-5583
+	 */
+	@Test
+	public void test150AddWannabe() throws Exception {
+		final String TEST_NAME = "test150AddWannabe";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		addObject(USER_WANNABE_FILE, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_WANNABE_OID)
+				.assertLifecycleState(SchemaConstants.LIFECYCLE_DRAFT)
+				.assignments()
+				.assertAssignments(1)
+				.assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+				.end()
+				.assertArchetypeRef(ARCHETYPE_CONTRACTOR_OID)
+				.roleMembershipRefs()
+				.assertRoleMemberhipRefs(1)
+				.assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+				.end()
+				.assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
+	}
 	
 	@Test
     public void test200AssignJackBarbossaArchetypeEmployee() throws Exception {

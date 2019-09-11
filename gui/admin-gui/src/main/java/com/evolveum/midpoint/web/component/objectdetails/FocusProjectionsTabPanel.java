@@ -278,36 +278,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			protected DisplayNamePanel<ShadowType> createDisplayNamePanel(String displayNamePanelId) {
 				ItemRealValueModel<ShadowType> displayNameModel = 
 						new ItemRealValueModel<ShadowType>(item.getModel());
-				return new ProjectionDisplayNamePanel(displayNamePanelId, displayNameModel) {
-					
-					@Override
-					protected IModel<String> getKindIntentLabelModel() {
-						return WebComponentUtil.getResourceLabelModel(getModelObject(), getPageBase());
-					}
-					
-					@Override
-					protected IModel<List<String>> getDescriptionLabelsModel() {
-						List<String> descriptionLabels = new ArrayList<String>();
-						descriptionLabels.add(WebComponentUtil.getResourceAttributesLabelModel(getModelObject(), getPageBase()).getObject());
-						return new IModel<List<String>>() {
-
-							@Override
-							public List<String> getObject() {
-								return descriptionLabels;
-							}
-							
-						};
-					}
-					
-					@Override
-					protected String createImageModel() {
-						if (getModelObject() == null){
-							return "";
-						}
-						return WebComponentUtil.createShadowIcon(getModelObject().asPrismObject());
-					}
-					
-				};
+				return new ProjectionDisplayNamePanel(displayNamePanelId, displayNameModel);
 			}
 			
 			@Override

@@ -249,7 +249,9 @@ public class AssignmentsUtil {
 			if (property != null && !property.getValues().isEmpty()) {
 				for (PrismPropertyValueWrapper<String> value : property.getValues()) {
 					ItemRealValueModel<String> name = new ItemRealValueModel<String>(Model.of(value));
-					sbName.append(name.getObject()).append("\n");
+					if (StringUtils.isNotEmpty(name.getObject())) {
+                        sbName.append(name.getObject()).append("\n");
+                    }
 				}
 			}
 			if (StringUtils.isNotEmpty(sbName.toString())){

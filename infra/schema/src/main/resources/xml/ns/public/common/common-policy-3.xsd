@@ -2286,6 +2286,7 @@
                     		those hardcoded lifecycle states need to be explicitly defined in the state model
                     		and the forcedActivationStatus property shoule be left undefined.
                     	</p>
+						<!-- TODO: should be replaced by assignmentSelector later -->
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.8</a:since>
@@ -2293,6 +2294,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+			<!-- TODO: MID-5741: assignmentSelector that can be used to selectively activate/deactivate assignments based on their targetType, targetArchetype, relation, subtype and so on -->
             <!-- TODO: activationStatus -->
             <xsd:element name="entryAction" type="tns:LifecycleStateActionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>

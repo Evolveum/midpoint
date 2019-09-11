@@ -1672,7 +1672,8 @@ public class ShadowManager {
 		for (ItemDelta itemDelta : objectChange) {
 			if (ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
 				QName attrName = itemDelta.getElementName();
-				if (objectClassDefinition.isSecondaryIdentifier(attrName)) {
+				if (objectClassDefinition.isSecondaryIdentifier(attrName)
+						|| (objectClassDefinition.getAllIdentifiers().size() == 1 && objectClassDefinition.isPrimaryIdentifier(attrName))) {
 					// Change of secondary identifier means object rename. We also need to change $shadow/name
 					// TODO: change this to displayName attribute later
 					String newName = null;
