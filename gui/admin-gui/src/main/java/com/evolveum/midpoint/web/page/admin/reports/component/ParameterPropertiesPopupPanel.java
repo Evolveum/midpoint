@@ -13,6 +13,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.TextPanel;
@@ -26,6 +27,7 @@ public class ParameterPropertiesPopupPanel extends BasePanel<JasperReportParamet
   private static final String ID_KEY = "propertyKey";
   private static final String ID_LABEL = "propertyLabel";
   private static final String ID_TARGET_TYPE = "propertyTargetType";
+  private static final String ID_REQUIRED = "propertyRequired";
 //  private static final String ID_MULTIVALUE = "propertyMultivalue";
 
   private static final String ID_BUTTON_UPDATE = "update";
@@ -42,6 +44,8 @@ public class ParameterPropertiesPopupPanel extends BasePanel<JasperReportParamet
 	  addTextPanel(ID_KEY, "key");
 	  addTextPanel(ID_LABEL, "label");
 	  addTextPanel(ID_TARGET_TYPE, "targetType");
+	  CheckBoxPanel multivalue = new CheckBoxPanel(ID_REQUIRED, new PropertyModel<>(getModel(), "mandatory"));
+	  add(multivalue);
 //	  CheckBoxPanel multivalue = new CheckBoxPanel(ID_MULTIVALUE, new PropertyModel<>(getModel(), "multivalue"), Model.of(Boolean.TRUE));
 //	  add(multivalue);
 

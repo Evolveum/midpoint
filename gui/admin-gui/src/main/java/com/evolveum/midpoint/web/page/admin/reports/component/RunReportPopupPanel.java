@@ -63,6 +63,7 @@ import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -180,6 +181,12 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
         paramPanel.add(new Label("name", paramDisplay)); // use display name rather than property name
 
+        WebMarkupContainer required = new WebMarkupContainer("required");
+        JasperReportParameterPropertiesDto properties = parameterModel.getObject().getProperties();
+        boolean mandatory = (properties != null && properties.getMandatory());
+		required.add(new VisibleBehaviour(() -> mandatory));
+		paramPanel.add(required);
+        
         String paramClass = new PropertyModel<String>(parameterModel, "nestedTypeAsString").getObject();
         if (StringUtils.isBlank(paramClass)) {
         	paramClass = new PropertyModel<String>(parameterModel, "typeAsString").getObject();
@@ -193,7 +200,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 
 			@Override
     		protected void populateItem(ListItem<JasperReportValueDto> item) {
-    			item.add(createInputMarkup(item.getModel(), parameterModel.getObject()));
+    			item.add(createInputMarkup(item.getModel(), parameterModel.getObject(), mandatory, paramDisplay));
 
     		}
 
@@ -204,12 +211,14 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 		return paramPanel;
     }
 
-	private WebMarkupContainer createInputMarkup(final IModel<JasperReportValueDto> valueModel, JasperReportParameterDto param) {
+	private WebMarkupContainer createInputMarkup(final IModel<JasperReportValueDto> valueModel, JasperReportParameterDto param, boolean required, IModel<String> name) {
 		param.setEditing(true);
 		WebMarkupContainer paramValueMarkup = new WebMarkupContainer("valueMarkup");
 		paramValueMarkup.setOutputMarkupId(true);
 
 		InputPanel input = createTypedInputPanel("inputValue", valueModel, "value", param);
+		input.getBaseFormComponent().setRequired(required);
+		input.getBaseFormComponent().setLabel(name);
 		paramValueMarkup.add(input);
 
 		//buttons
