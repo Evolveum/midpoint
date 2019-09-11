@@ -598,8 +598,9 @@ public class ShadowManager {
 
 		// We have all the data, we can construct the filter now
 		try {
-			// TODO TODO TODO TODO: set matching rule instead of null
+			// If the query is to be used against the repository, we should not provide matching rules here. See MID-5547.
 			PrismPropertyDefinition def = identifier.getDefinition();
+			//noinspection unchecked
 			return prismContext.queryFor(ShadowType.class)
 					.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getItemName()).eq(getNormalizedValue(identifier, ctx.getObjectClassDefinition()))
 					.and().item(ShadowType.F_OBJECT_CLASS).eq(resourceShadow.getPropertyRealValue(ShadowType.F_OBJECT_CLASS, QName.class))
@@ -651,7 +652,8 @@ public class ShadowManager {
 		if (!(filter instanceof EqualFilter)) {
 			return;
 		}
-		EqualFilter<T> eqFilter = (EqualFilter)filter;
+		//noinspection unchecked
+		EqualFilter<T> eqFilter = (EqualFilter<T>)filter;
 		ItemPath parentPath = eqFilter.getParentPath();
 		if (!parentPath.equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
 			return;
@@ -1816,7 +1818,6 @@ public class ShadowManager {
 	 *
 	 * @return repository shadow as it should look like after the update
 	 */
-	@SuppressWarnings({ "unchecked", "WeakerAccess" })
 	public PrismObject<ShadowType> updateShadow(@NotNull ProvisioningContext ctx,
 			@NotNull PrismObject<ShadowType> resourceShadowNew,
 			@NotNull PrismObject<ShadowType> repoShadowOld, ShadowState shadowState, OperationResult parentResult) throws SchemaException,
@@ -1825,9 +1826,7 @@ public class ShadowManager {
 		ObjectDelta<ShadowType> shadowDelta = computeShadowDelta(ctx, repoShadowOld, resourceShadowNew, shadowState);
 
 		if (!shadowDelta.isEmpty()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadowOld, shadowDelta.debugDump(1));
-			}
+			LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadowOld, shadowDelta.debugDumpLazily(1));
 			ConstraintsChecker.onShadowModifyOperation(shadowDelta.getModifications());
 			try {
 				repositoryService.modifyObject(ShadowType.class, repoShadowOld.getOid(), shadowDelta.getModifications(), parentResult);

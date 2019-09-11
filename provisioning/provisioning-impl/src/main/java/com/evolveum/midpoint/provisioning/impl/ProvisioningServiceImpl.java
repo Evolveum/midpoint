@@ -477,9 +477,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Start of (non-iterative) search objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
-		}
+		LOGGER.trace("Start of (non-iterative) search objects. Query:\n{}", query != null ? query.debugDumpLazily(1) : "  (null)");
 
 		query = simplifyQueryFilter(query);
 		ObjectFilter filter = query != null ? query.getFilter() : null;
@@ -541,8 +539,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
 		SearchResultList<PrismObject<T>> newObjListType = new SearchResultList(new ArrayList<PrismObject<T>>());
 		for (PrismObject<T> repoObject : repoObjects) {
-			OperationResult objResult = new OperationResult(ProvisioningService.class.getName()
-					+ ".searchObjects.object");
+			OperationResult objResult = new OperationResult(ProvisioningService.class.getName() + ".searchObjects.object");
 
 			try {
 
@@ -565,13 +562,10 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 				result.recordPartialError(e);
 
 			} catch (RuntimeException e) {
-				// FIXME: Strictly speaking, the runtime exception should
-				// not be handled here.
-				// The runtime exceptions should be considered fatal anyway
-				// ... but some of the
-				// ICF exceptions are still translated to system exceptions.
-				// So this provides
-				// a better robustness now.
+				// FIXME: Strictly speaking, the runtime exception should not be handled here.
+				//  The runtime exceptions should be considered fatal anyway ... but some of the
+				//  ICF exceptions are still translated to system exceptions. So this provides
+				//  a better robustness now.
 				LOGGER.error("System error while completing {}: {}-{}. Using non-complete object.", repoObject, e.getMessage(), e);
 				objResult.recordFatalError(e);
 				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
@@ -896,16 +890,10 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(resourceOid, objectClass, prismContext);
 
 		final List<PrismObject<? extends ShadowType>> objectList = new ArrayList<>();
-		final ResultHandler<ShadowType> shadowHandler = new ResultHandler<ShadowType>() {
-			@Override
-			public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("listResourceObjects: processing shadow: {}", SchemaDebugUtil.prettyPrint(shadow));
-				}
-
-				objectList.add(shadow);
-				return true;
-			}
+		final ResultHandler<ShadowType> shadowHandler = (shadow, objResult) -> {
+			LOGGER.trace("listResourceObjects: processing shadow: {}", SchemaDebugUtil.prettyPrintLazily(shadow));
+			objectList.add(shadow);
+			return true;
 		};
 
 		try {
@@ -980,12 +968,12 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "unchecked" })
 	@Override
-	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(final Class<T> type, ObjectQuery query,
-																			  final Collection<SelectorOptions<GetOperationOptions>> options,
-																			  final ResultHandler<T> handler, Task task, final OperationResult parentResult) throws SchemaException,
-				ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<T> handler, Task task,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
+			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		Validate.notNull(parentResult, "Operation result must not be null.");
 		Validate.notNull(handler, "Handler must not be null.");
@@ -994,8 +982,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 			LOGGER.trace("Start of (iterative) search objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
 		}
 
-		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
-				+ ".searchObjectsIterative");
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".searchObjectsIterative");
         result.setSummarizeSuccesses(true);
         result.setSummarizeErrors(true);
         result.setSummarizePartialErrors(true);

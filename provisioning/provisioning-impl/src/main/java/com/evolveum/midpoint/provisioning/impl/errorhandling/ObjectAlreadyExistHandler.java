@@ -130,7 +130,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 			}
 			
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}",  ShadowUtil.shortDumpShadow(newShadow));
+				LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}", ShadowUtil.shortDumpShadow(newShadow));
 			}
 			
 			final List<PrismObject<ShadowType>> conflictingResourceShadows = findConflictingShadowsOnResource(query, task, result);
@@ -177,8 +177,9 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 	}
 
 
-	private ObjectQuery createQueryBySecondaryIdentifier(ShadowType shadow) throws SchemaException {
-		// TODO TODO TODO set matching rule instead of null in equlas filter
+	private ObjectQuery createQueryBySecondaryIdentifier(ShadowType shadow) {
+		// TODO ensure that the identifiers are normalized here
+		// Note that if the query is to be used against the repository, we should not provide matching rules here. See MID-5547.
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
 		S_AtomicFilterEntry q = prismContext.queryFor(ShadowType.class);
 		q = q.block();

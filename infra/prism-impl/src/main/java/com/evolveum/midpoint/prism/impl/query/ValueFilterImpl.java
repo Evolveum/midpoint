@@ -399,18 +399,18 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
 		}
 	}
 
-	protected String toString(StringBuilder sb){
+	protected String toString(StringBuilder sb) {
 		sb.append(getFullPath().toString());
 		sb.append(",");
-		if (getValues() != null){
-			for (int i = 0; i< getValues().size() ; i++){
+		if (getValues() != null) {
+			for (int i = 0; i< getValues().size() ; i++) {
 				PrismValue value = getValues().get(i);
 				if (value == null) {
 					sb.append("null");
 				} else {
 					sb.append(value.toString());
 				}
-				if ( i != getValues().size() -1){
+				if (i != getValues().size() -1) {
 					sb.append(",");
 				}
 			}
