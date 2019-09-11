@@ -257,45 +257,51 @@ public class BaseHelper {
 			return true;
 		}
 
-		// these error codes / SQL states we consider related to locking:
-		//  code 50200 [table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code]
-		//  code 40001 [DEADLOCK_1 in H2]
-		//  state 40001 [serialization failure in PostgreSQL - http://www.postgresql.org/docs/9.1/static/transaction-iso.html - and probably also in other systems]
-		//  state 40P01 [deadlock in PostgreSQL]
-		//  code ORA-08177: can't serialize access for this transaction in Oracle
-		//  code ORA-01466 ["unable to read data - table definition has changed"] in Oracle
-		//  code ORA-01555: snapshot too old: rollback segment number  with name "" too small
-		//  code ORA-22924: snapshot too old
-		//
-		// sql states should be somewhat standardized; sql error codes are vendor-specific
-		// todo: so it is probably not very safe to test for codes without testing for specific database (h2, oracle)
-		// but the risk of problem is quite low here, so let it be...
+		// error messages / error codes / SQL states listed below we consider related to locking
+		// (sql states should be somewhat standardized; sql error codes are vendor-specific)
 
-		// strange exception occurring in MySQL when doing multithreaded org closure maintenance
-		// alternatively we might check for error code = 1030, sql state = HY000
-		// but that would cover all cases of "Got error XYZ from storage engine"
-		if (getConfiguration().isUsingMySqlCompatible()
-				&& sqlException.getMessage() != null
-				&& sqlException.getMessage().contains("Got error -1 from storage engine")) {
-			return true;
-		}
+		boolean mySqlCompatible = getConfiguration().isUsingMySqlCompatible();
+		boolean h2 = getConfiguration().isUsingH2();
+		boolean oracle = getConfiguration().isUsingOracle();
 
-		// this is some recent H2 weirdness (MID-3969)
-		if (getConfiguration().isUsingH2() && sqlException.getMessage() != null
-				&& sqlException.getMessage().contains("Referential integrity constraint violation: \"FK_AUDIT_ITEM: PUBLIC.M_AUDIT_ITEM FOREIGN KEY(RECORD_ID) REFERENCES PUBLIC.M_AUDIT_EVENT(ID)")) {
-			return true;
-		}
-
-		return sqlException.getErrorCode() == 50200
-				|| sqlException.getErrorCode() == 40001
-				|| "40001".equals(sqlException.getSQLState())
-				|| "40P01".equals(sqlException.getSQLState())
-				|| sqlException.getErrorCode() == 8177
-				|| sqlException.getErrorCode() == 1466
-				|| sqlException.getErrorCode() == 1555
-				|| sqlException.getErrorCode() == 22924
-				|| sqlException.getErrorCode() == 3960;         // Snapshot isolation transaction aborted due to update conflict.
+		return "40001".equals(sqlException.getSQLState())           // serialization failure in PostgreSQL - http://www.postgresql.org/docs/9.1/static/transaction-iso.html - and probably also in other systems
+				|| "40P01".equals(sqlException.getSQLState())           // deadlock in PostgreSQL
+				|| mySqlCompatible && messageContains(sqlException.getMessage(), mySqlSerializationErrors)
+				|| h2 && messageContains(sqlException.getMessage(), h2SerializationErrors)
+				|| h2 && sqlException.getErrorCode() == 50200           // table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code
+				|| h2 && sqlException.getErrorCode() == 40001           // DEADLOCK_1 in H2
+				|| oracle && sqlException.getErrorCode() == 8177        // ORA-08177: can't serialize access for this transaction in Oracle
+				|| oracle && sqlException.getErrorCode() == 1466        // ORA-01466 ["unable to read data - table definition has changed"] in Oracle
+				|| oracle && sqlException.getErrorCode() == 1555        // ORA-01555: snapshot too old: rollback segment number  with name "" too small
+				|| oracle && sqlException.getErrorCode() == 22924       // ORA-22924: snapshot too old
+				|| sqlException.getErrorCode() == 3960;                 // Snapshot isolation transaction aborted due to update conflict. (todo which db?)
 	}
+
+	private boolean messageContains(String message, String[] substrings) {
+		if (message != null) {
+			for (String substring : substrings) {
+				if (message.contains(substring)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static final String[] mySqlSerializationErrors = {
+			// strange exception occurring in MySQL when doing multithreaded org closure maintenance
+			// alternatively we might check for error code = 1030, sql state = HY000
+			// but that would cover all cases of "Got error XYZ from storage engine"
+			"Got error -1 from storage engine",
+
+			// Another error that cannot be detected using standard mechanisms (MID-5561)
+			"Lock wait timeout exceeded"
+	};
+
+	private static final String[] h2SerializationErrors = {
+			// this is some recent H2 weirdness (MID-3969)
+			"Referential integrity constraint violation: \"FK_AUDIT_ITEM: PUBLIC.M_AUDIT_ITEM FOREIGN KEY(RECORD_ID) REFERENCES PUBLIC.M_AUDIT_EVENT(ID)"
+	};
 
 	private static final Pattern[] okPatterns = new Pattern[] {
 			Pattern.compile(".*Duplicate entry '.*' for key 'iExtItemDefinition'.*"),               // MySQL

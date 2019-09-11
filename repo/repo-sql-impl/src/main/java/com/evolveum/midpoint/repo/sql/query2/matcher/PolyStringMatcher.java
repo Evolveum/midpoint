@@ -38,24 +38,6 @@ public class PolyStringMatcher extends Matcher<PolyString> {
     public static final String ORIG_IGNORE_CASE = "origIgnoreCase";
     public static final String NORM_IGNORE_CASE = "normIgnoreCase";
 
-	private static final List<QName> SUPPORTED_MATCHING_RULES = Arrays
-			.asList(PrismConstants.DEFAULT_MATCHING_RULE_NAME,
-					PrismConstants.POLY_STRING_STRICT_MATCHING_RULE_NAME,
-					PrismConstants.POLY_STRING_ORIG_MATCHING_RULE_NAME,
-					PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME,
-					new QName(STRICT_IGNORE_CASE),
-					new QName(ORIG_IGNORE_CASE),
-					new QName(NORM_IGNORE_CASE));
-	private static final Map<QName, QName> MATCHING_RULES_CONVERGENCE_MAP = new HashMap<>();
-	static {
-		// Nothing here - the below (String-specific) matching rules should NOT be used for polystrings
-		// TODO think again ... currently the approximate matching rule is the same as original one
-//		MATCHING_RULES_CONVERGENCE_MAP.put(DistinguishedNameMatchingRule.NAME, PolyStringNormMatchingRule.NAME);	//ok?
-//		MATCHING_RULES_CONVERGENCE_MAP.put(ExchangeEmailAddressesMatchingRule.NAME, PolyStringNormMatchingRule.NAME); //ok?
-//		MATCHING_RULES_CONVERGENCE_MAP.put(UuidMatchingRule.NAME, PolyStringNormMatchingRule.NAME);
-//		MATCHING_RULES_CONVERGENCE_MAP.put(XmlMatchingRule.NAME, DefaultMatchingRule.NAME);		//ok?
-	}
-
 	@Override
     public Condition match(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value, String matcher)
             throws QueryException {
@@ -92,8 +74,4 @@ public class PolyStringMatcher extends Matcher<PolyString> {
         String realValue = value != null ? value.getOrig() : null;
         return basicMatch(hibernateQuery, operation, propertyName + '.' + RPolyString.F_ORIG, realValue, ignoreCase);
     }
-
-	public static QName getApproximateSupportedMatchingRule(QName originalMatchingRule) {
-		return Matcher.getApproximateSupportedMatchingRule(originalMatchingRule, SUPPORTED_MATCHING_RULES, MATCHING_RULES_CONVERGENCE_MAP);
-	}
 }

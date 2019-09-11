@@ -116,21 +116,16 @@ public class ResourceObjectReferenceResolver {
 
 		// TODO: implement "repo" search strategies, don't forget to apply definitions
 
-		Collection<SelectorOptions<GetOperationOptions>> options = null;
-
 		final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
-		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-			@Override
-			public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
-				if (shadowHolder.getValue() != null) {
-					throw new IllegalStateException("More than one search results for " + desc);
-				}
-				shadowHolder.setValue(shadow);
-				return true;
+		ResultHandler<ShadowType> handler = (shadow, objResult) -> {
+			if (shadowHolder.getValue() != null) {
+				throw new IllegalStateException("More than one search results for " + desc);
 			}
+			shadowHolder.setValue(shadow);
+			return true;
 		};
 
-		shadowCache.searchObjectsIterative(subctx, query, options, handler, true, result);
+		shadowCache.searchObjectsIterative(subctx, query, null, handler, true, result);
 
 		// TODO: implement storage of OID (ONCE search frequency)
 

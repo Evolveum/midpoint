@@ -43,7 +43,7 @@ public interface ValueFilter<V extends PrismValue, D extends ItemDefinition> ext
 
 	void setMatchingRule(@Nullable QName matchingRule);
 
-	@NotNull
+	//@NotNull
 	//MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem);
 
 	@Nullable

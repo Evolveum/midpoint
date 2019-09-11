@@ -149,11 +149,15 @@ public class PrismValueCollectionsUtil {
 	}
 
 	public static <T> Set<T> getRealValuesOfCollection(Collection<? extends PrismValue> collection) {
-	    Set<T> retval = new HashSet<>(collection.size());
-	    for (PrismValue value : collection) {
-	        retval.add(value.getRealValue());
-	    }
-	    return retval;
+		if (collection != null) {
+			Set<T> retval = new HashSet<>(collection.size());
+			for (PrismValue value : collection) {
+				retval.add(value.getRealValue());
+			}
+			return retval;
+		} else {
+			return Collections.emptySet();
+		}
 	}
 
 

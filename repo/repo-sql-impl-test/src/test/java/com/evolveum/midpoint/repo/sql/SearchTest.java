@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -16,6 +17,8 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -31,6 +34,7 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createExecuteIfNoChanges;
 import static java.util.Collections.emptySet;
@@ -1134,5 +1138,38 @@ public class SearchTest extends BaseSQLRepoTest {
         assertTrue(result.isSuccess());
         assertEquals("Wrong # of work items found", 1, workItems.size());
         assertNotNull("Null createTimestamp", workItems.get(0).getCreateTimestamp());
+    }
+
+    /**
+     * See MID-5474 (just a quick attempt to replicate)
+     */
+    @Test
+    public void iterateAndModify() throws Exception {
+        OperationResult result = new OperationResult("iterateAndModify");
+
+        AtomicInteger count = new AtomicInteger(0);
+        ResultHandler<UserType> handler = (object, parentResult) -> {
+            try {
+                System.out.println("Modifying " + object);
+                List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_DESCRIPTION).replace("desc1")
+                        .asItemDeltas();
+                repositoryService.modifyObject(UserType.class, object.getOid(), itemDeltas, parentResult);
+                System.out.println("OK");
+                count.incrementAndGet();
+                return true;
+            } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+                throw new SystemException(e.getMessage(), e);
+            }
+        };
+
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(UserType.F_NAME).eqPoly("atestuserX00002").matchingOrig()
+                .build();
+        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
+        result.recomputeStatus();
+
+        assertTrue(result.isSuccess());
+        assertEquals(1, count.get());
     }
 }

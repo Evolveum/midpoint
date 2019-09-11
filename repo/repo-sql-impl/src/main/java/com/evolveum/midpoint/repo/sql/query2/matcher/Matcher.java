@@ -29,19 +29,6 @@ public abstract class Matcher<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(Matcher.class);
 
-    /**
-     * Create hibernate {@link Criterion} based on matcher defined in filter.
-     *
-     *
-     * @param hibernateQuery
-     * @param operation
-     * @param propertyPath
-     * @param value
-     * @param matcher      Now type of {@link String}, but will be updated to {@link javax.xml.namespace.QName}
-     *                     type after query-api update
-     * @return
-     * @throws QueryException
-     */
     public abstract Condition match(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyPath, T value, String matcher)
             throws QueryException;
 

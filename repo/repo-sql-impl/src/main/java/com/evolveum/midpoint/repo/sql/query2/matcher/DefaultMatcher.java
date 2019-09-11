@@ -25,8 +25,4 @@ public class DefaultMatcher<T> extends Matcher<T> {
 
         return basicMatch(hibernateQuery, operation, propertyName, value, false);
     }
-
-    public static QName getApproximateSupportedMatchingRule(QName originalMatchingRule) {
-        return originalMatchingRule;    // TODO ok?
-    }
 }
