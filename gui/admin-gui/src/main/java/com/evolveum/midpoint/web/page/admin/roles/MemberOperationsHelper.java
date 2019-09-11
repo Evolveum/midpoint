@@ -30,6 +30,8 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -102,7 +104,7 @@ public class MemberOperationsHelper {
 //			operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
 //		}
 		
-		executeMemberOperation(pageBase, operationalTask, type, query, script, target);
+		executeMemberOperation(pageBase, operationalTask, type, query, script, null, target);
 
 	}
 	
@@ -131,7 +133,7 @@ public class MemberOperationsHelper {
 //			operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
 //		}
 		
-		executeMemberOperation(pageBase, operationalTask, type, query, script, target);
+		executeMemberOperation(pageBase, operationalTask, type, query, script, null, target);
 	}
 	
 	public static <R extends AbstractRoleType> void deleteMembersPerformed(PageBase pageBase, QueryScope scope,
@@ -163,7 +165,7 @@ public class MemberOperationsHelper {
 //			operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
 //		}
 		
-		executeMemberOperation(pageBase, operationalTask, defaultType, query, script, target);
+		executeMemberOperation(pageBase, operationalTask, defaultType, query, script, SelectorOptions.createCollection(GetOperationOptions.createDistinct()), target);
 
 	}
 	
@@ -335,11 +337,11 @@ public class MemberOperationsHelper {
 	}
 	
 	protected static void executeMemberOperation(PageBase modelServiceLocator, Task operationalTask, QName type, ObjectQuery memberQuery,
-			ExecuteScriptType script, AjaxRequestTarget target) {
+			ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, AjaxRequestTarget target) {
 
 		OperationResult parentResult = operationalTask.getResult();
 		try {
-			WebComponentUtil.executeMemberOperation(operationalTask, type, memberQuery, script, parentResult, modelServiceLocator);
+			WebComponentUtil.executeMemberOperation(operationalTask, type, memberQuery, script, option, parentResult, modelServiceLocator);
 		} catch (SchemaException e) {
 			parentResult.recordFatalError(parentResult.getOperation(), e);
 			LoggingUtils.logUnexpectedException(LOGGER,

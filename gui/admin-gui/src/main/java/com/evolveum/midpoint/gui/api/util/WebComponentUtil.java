@@ -635,7 +635,7 @@ public final class WebComponentUtil {
 	}
 	
 	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
-			ExecuteScriptType script, OperationResult parentResult, PageBase pageBase) throws SchemaException {
+			ExecuteScriptType script, Collection<SelectorOptions<GetOperationOptions>> option, OperationResult parentResult, PageBase pageBase) throws SchemaException {
 
 		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
 		operationalTask.setOwner(owner.getUser().asPrismObject());
@@ -660,6 +660,14 @@ public final class WebComponentUtil {
 		PrismProperty<QName> typeProperty = propertyDefType.instantiate();
 		typeProperty.setRealValue(type);
 		operationalTask.addExtensionProperty(typeProperty);
+		
+		if (option != null) {
+			PrismPropertyDefinition propertyDefOption = pageBase.getPrismContext().getSchemaRegistry()
+	                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS);
+			PrismProperty<SelectorQualifiedGetOptionsType> optionProperty = propertyDefOption.instantiate();
+			optionProperty.setRealValue(MiscSchemaUtil.optionsToOptionsType(option));
+			operationalTask.addExtensionProperty(optionProperty);
+		}
 		
 		try {
 			iterativeExecuteBulkAction(pageBase, script, operationalTask, parentResult);
