@@ -216,10 +216,8 @@ public class ConstraintsChecker {
 			return true;
 		}
 
-		// Here was an attempt to call cacheRepositoryService.searchObjects directly (because we use noFetch, so the net result is searching in repo anyway).
-		// The idea was that it is faster and cacheable. However, it is not correct. We have to apply definition to query before execution, e.g.
-		// because there could be a matching rule; see ShadowManager.processQueryMatchingRuleFilter.
-		// Besides that, now the constraint checking is cached at a higher level, so this is not a big issue any more.
+		// Note that we should not call repository service directly here. The query values need to be normalized according to
+		// attribute matching rules.
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 		List<PrismObject<ShadowType>> foundObjects = shadowCache.searchObjects(query, options, task, result);
 		LOGGER.trace("Uniqueness check of {} resulted in {} results:\n{}\nquery:\n{}",

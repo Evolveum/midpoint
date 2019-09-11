@@ -68,9 +68,6 @@ import com.evolveum.midpoint.repo.sql.helpers.ObjectRetriever;
 import com.evolveum.midpoint.repo.sql.helpers.ObjectUpdater;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
 import com.evolveum.midpoint.repo.sql.helpers.SequenceHelper;
-import com.evolveum.midpoint.repo.sql.query2.matcher.DefaultMatcher;
-import com.evolveum.midpoint.repo.sql.query2.matcher.PolyStringMatcher;
-import com.evolveum.midpoint.repo.sql.query2.matcher.StringMatcher;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -1214,18 +1211,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		return isAnySubordinate(object.getOid(), oidList);
 	}
 
-	@Override
-	public QName getApproximateSupportedMatchingRule(Class<?> dataType, QName originalMatchingRule) {
-		if (String.class.equals(dataType)) {
-			return StringMatcher.getApproximateSupportedMatchingRule(originalMatchingRule);
-		} else if (PolyString.class.equals(dataType) || PolyStringType.class.equals(dataType)) {
-			return PolyStringMatcher.getApproximateSupportedMatchingRule(originalMatchingRule);
-		} else {
-			return DefaultMatcher.getApproximateSupportedMatchingRule(originalMatchingRule);
-		}
-	}
-
-	@Override
+    @Override
 	public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
 		LOGGER.info("Applying full text search configuration ({} entries)",
 				fullTextSearch != null ? fullTextSearch.getIndexed().size() : 0);

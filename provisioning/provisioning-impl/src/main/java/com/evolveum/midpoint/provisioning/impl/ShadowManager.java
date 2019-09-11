@@ -685,13 +685,6 @@ public class ShadowManager {
 			LOGGER.trace("Replacing values for attribute {} in search filter with normalized values because there is a matching rule, normalized values: {}",
 					attrName, newValues);
 		}
-		if (eqFilter.getMatchingRule() == null) {
-			QName supportedMatchingRule = valueClass != null ?
-					repositoryService.getApproximateSupportedMatchingRule(valueClass, matchingRuleQName) : matchingRuleQName;
-			eqFilter.setMatchingRule(supportedMatchingRule);
-			LOGGER.trace("Setting matching rule to {} (supported by repo as a replacement for {} to search for {})",
-					supportedMatchingRule, matchingRuleQName, valueClass);
-		}
 	}
 
 	// Used when new resource object is discovered
