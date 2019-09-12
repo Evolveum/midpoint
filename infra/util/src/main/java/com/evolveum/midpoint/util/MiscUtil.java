@@ -406,6 +406,10 @@ public class MiscUtil {
 		return "("+object.getClass().getSimpleName() + ")"  + object;
 	}
 
+	public static String getClass(Object object) {
+		return object != null ? object.getClass().getName() : "null";
+	}
+
 	public static boolean isNoValue(Collection<?> collection) {
 		if (collection == null)
 			return true;

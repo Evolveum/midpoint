@@ -14,7 +14,10 @@ import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -23,6 +26,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -59,7 +63,7 @@ public class ExpressionUtil {
         }
     }
 
-    public final static QName SHADOW_REF_KEY = new QName("shadowRef");
+    public final static QName SHADOW_REF_KEY = new QName(SchemaConstants.NS_C, "shadowRef");
     private final static QName SHADOW_OID_KEY = new QName("oid");
     private final static QName SHADOW_TYPE_KEY = new QName("type");
 
@@ -445,32 +449,17 @@ public class ExpressionUtil {
         expression.getExpressionEvaluator().add(evaluator);
     }
 
+    @NotNull
     public static List<ObjectReferenceType> getShadowRefValue(ExpressionType expressionType, PrismContext prismContext) {
-        if (expressionType == null) {
-            return null;
-        }
-        List<ObjectReferenceType> shadowRefList = null;
-        ListXNode shadowRefNodes = getShadowRefNodesList(expressionType, false, prismContext);
-
-        if (shadowRefNodes != null) {
-            for (XNode shadowRefNode : shadowRefNodes.asList()) {
-                if (shadowRefNode instanceof MapXNode) {
-                    if (shadowRefNode != null && ((MapXNode) shadowRefNode).containsKey(SHADOW_OID_KEY)) {
-                        ObjectReferenceType shadowRef = new ObjectReferenceType();
-                        PrimitiveXNode shadowOidNode = (PrimitiveXNode) ((MapXNode) shadowRefNode).get(SHADOW_OID_KEY);
-                        String oid = shadowOidNode != null && shadowOidNode.getValueParser() != null ? shadowOidNode.getValueParser().getStringValue() :
-                                (shadowOidNode != null && shadowOidNode.getValue() != null ? (String) shadowOidNode.getValue() : null);
-                        shadowRef.setOid(oid);
-                        shadowRef.setType(ShadowType.COMPLEX_TYPE);
-                        if (shadowRefList == null){
-                            shadowRefList =  new ArrayList<>();
-                        }
-                        shadowRefList.add(shadowRef);
-                    }
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        if (expressionType != null) {
+            for (ShadowAssociationType association : getAssociationList(expressionType)) {
+                if (association.getShadowRef() != null) {
+                    rv.add(association.getShadowRef().clone());
                 }
             }
         }
-        return shadowRefList;
+        return rv;
     }
 
     public static boolean isShadowRefNodeExists(ExpressionType expression) {
@@ -494,68 +483,41 @@ public class ExpressionUtil {
         return false;
     }
 
-    public static ListXNode getShadowRefNodesList(ExpressionType expression, boolean createIfNotExist, PrismContext prismContext){
+    /**
+     * @return Immutable list of associations.
+     */
+    @NotNull
+    private static List<ShadowAssociationType> getAssociationList(ExpressionType expression) {
         if (expression == null) {
-            return null;
+            return Collections.emptyList();
         }
-        if (createIfNotExist && prismContext == null) {
-            throw new IllegalArgumentException("createIfNotExist is true but prismContext is null");
-        }
-        JAXBElement element = ExpressionUtil.findFirstEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
-        ListXNode shadowRefNodes = null;
-        if (element == null && createIfNotExist){
-            element =  new JAXBElement(SchemaConstantsGenerated.C_VALUE, RawType.class, new RawType(prismContext));
-            expression.getExpressionEvaluator().add(element);
-        }
-        if (element != null && element.getValue() instanceof RawType) {
-            RawType raw = (RawType) element.getValue();
-            XNode node = raw.getXnode();
-            if (node == null && createIfNotExist) {
-                raw = new RawType(prismContext.xnodeFactory().map(), prismContext);
-                node = raw.getXnode();
-                element.setValue(raw);
-            }
-            if (node instanceof MapXNode) {
-                if (((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
-                    if (((MapXNode) node).get(SHADOW_REF_KEY) instanceof ListXNode) {
-                        shadowRefNodes = (ListXNode) ((MapXNode) node).get(SHADOW_REF_KEY);
-                    } else if (((MapXNode) node).get(SHADOW_REF_KEY) instanceof MapXNode) {
-                        MapXNode shadowRef = (MapXNode) ((MapXNode) node).get(SHADOW_REF_KEY);
-                        shadowRefNodes = prismContext.xnodeFactory().list(shadowRef);
-                        prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
+        List<ShadowAssociationType> rv = new ArrayList<>();
+        try {
+            for (JAXBElement<?> evaluatorJaxbElement : expression.getExpressionEvaluator()) {
+                if (QNameUtil.match(evaluatorJaxbElement.getName(), SchemaConstantsGenerated.C_VALUE)) {
+                    Object evaluatorValue = evaluatorJaxbElement.getValue();
+                    if (evaluatorValue instanceof ShadowAssociationType) {
+                        rv.add((ShadowAssociationType) evaluatorValue);
+                    } else if (evaluatorValue instanceof RawType) {
+                        rv.add(((RawType) evaluatorValue).getParsedRealValue(ShadowAssociationType.class));
+                    } else if (evaluatorValue == null) {
+                        // just ignore it
+                    } else {
+                        throw new SchemaException("Expected ShadowAssociationType, got " + MiscUtil.getClass(evaluatorValue));
                     }
-                } else if (createIfNotExist) {
-                    shadowRefNodes = prismContext.xnodeFactory().list();
-                    prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
                 }
-            } else if (createIfNotExist) {
-                shadowRefNodes = prismContext.xnodeFactory().list();
-                node = prismContext.xnodeFactory().map();
-                prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, shadowRefNodes);
-                raw = new RawType(node, prismContext);
-                element.setValue(raw);
             }
+        } catch (SchemaException e) {
+            throw new SystemException(e.getMessage(), e);   // todo
         }
-        return shadowRefNodes;
+        return Collections.unmodifiableList(rv);
     }
 
     public static void addShadowRefEvaluatorValue(ExpressionType expression, String oid, PrismContext prismContext) {
-        XNodeFactory factory = prismContext.xnodeFactory();
-
-        if (expression == null) {
-            expression = new ExpressionType();      // TODO ??? this value is thrown away
-        }
-        JAXBElement valueElement = findFirstEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
-        if (valueElement == null) {
-           valueElement = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, new RawType(prismContext));
-           expression.getExpressionEvaluator().add(valueElement);
-        }
-        ListXNode shadowRefNodes = getShadowRefNodesList(expression, true, prismContext);
         if (StringUtils.isNotEmpty(oid)) {
-            Map<QName, XNode> shadowRefNodeSource = new HashMap<>();
-            shadowRefNodeSource.put(SHADOW_OID_KEY, factory.primitive(oid));
-            shadowRefNodeSource.put(SHADOW_TYPE_KEY, factory.primitive(ShadowType.COMPLEX_TYPE.getLocalPart()));
-            prismContext.xnodeMutator().addToListXNode(shadowRefNodes, factory.map(shadowRefNodeSource));
+            expression.getExpressionEvaluator().add(
+                    new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationType.class,
+                            new ShadowAssociationType(prismContext).shadowRef(oid, ShadowType.COMPLEX_TYPE)));
         }
     }
 
