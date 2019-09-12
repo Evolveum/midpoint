@@ -59,7 +59,7 @@ public class ExpressionUtil {
         }
     }
 
-    public final static QName SHADOW_REF_KEY = new QName("shadowRef");
+    public final static QName SHADOW_REF_KEY = new QName(SchemaConstants.NS_C, "shadowRef");
     private final static QName SHADOW_OID_KEY = new QName("oid");
     private final static QName SHADOW_TYPE_KEY = new QName("type");
 
@@ -553,8 +553,8 @@ public class ExpressionUtil {
         ListXNode shadowRefNodes = getShadowRefNodesList(expression, true, prismContext);
         if (StringUtils.isNotEmpty(oid)) {
             Map<QName, XNode> shadowRefNodeSource = new HashMap<>();
-            shadowRefNodeSource.put(SHADOW_OID_KEY, factory.primitive(oid));
-            shadowRefNodeSource.put(SHADOW_TYPE_KEY, factory.primitive(ShadowType.COMPLEX_TYPE.getLocalPart()));
+            shadowRefNodeSource.put(SHADOW_OID_KEY, factory.primitiveAttribute(oid));
+            shadowRefNodeSource.put(SHADOW_TYPE_KEY, factory.primitiveAttribute(ShadowType.COMPLEX_TYPE));
             prismContext.xnodeMutator().addToListXNode(shadowRefNodes, factory.map(shadowRefNodeSource));
         }
     }
