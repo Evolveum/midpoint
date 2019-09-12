@@ -100,7 +100,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         actionButtonsContainer.add(workItemRejectButton);
 
         AjaxButton workItemDelegateButton = new AjaxButton(ID_WORK_ITEM_DELEGATE_BUTTON,
-                createStringResource("pageWorkItem.button.delegate")) {
+                createStringResource("pageWorkItem.button.forward")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -161,7 +161,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             List<ObjectReferenceType> delegates = Collections.singletonList(ObjectTypeUtil.createObjectRef(delegate, getPrismContext()));
             try {
                 WebComponentUtil.assumePowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
-                getPageBase().getWorkflowService().delegateWorkItem(WorkItemId.of(getModelObject()), delegates, WorkItemDelegationMethodType.ADD_ASSIGNEES,
+                getPageBase().getWorkflowService().delegateWorkItem(WorkItemId.of(getModelObject()), delegates, WorkItemDelegationMethodType.REPLACE_ASSIGNEES,
                         task, result);
             } finally {
                 WebComponentUtil.dropPowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
