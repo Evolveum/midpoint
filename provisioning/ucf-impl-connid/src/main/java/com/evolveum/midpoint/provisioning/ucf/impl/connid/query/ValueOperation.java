@@ -72,7 +72,7 @@ public class ValueOperation extends Operation {
 				} else if (objectFilter instanceof SubstringFilter) {
 					SubstringFilter substring = (SubstringFilter) objectFilter;
                     Collection<Object> convertedValues = convertValues(propName, substring.getValues());
-                    if (convertedValues.isEmpty()) {
+                    if (convertedValues == null || convertedValues.isEmpty()) {
                         throw new IllegalArgumentException("Substring filter with null value makes no sense");
                     } else {
                         if (convertedValues.size() != 1) {
@@ -93,7 +93,7 @@ public class ValueOperation extends Operation {
 				} else if (objectFilter instanceof ComparativeFilter) {
 					ComparativeFilter comparativeFilter = (ComparativeFilter) objectFilter;
 					Collection<Object> convertedValues = convertValues(propName, comparativeFilter.getValues());
-					if (convertedValues.isEmpty()) {
+					if (convertedValues == null || convertedValues.isEmpty()) {
 						throw new IllegalArgumentException("Comparative filter with null value makes no sense");
 					} else {
 						if (convertedValues.size() != 1) {
@@ -129,7 +129,7 @@ public class ValueOperation extends Operation {
 				QName propName = valueFilter.getDefinition().getItemName();
 				EqualFilter<T> eq = (EqualFilter<T>) objectFilter;
 				List<PrismPropertyValue<T>> values = eq.getValues();
-				if (values.size() != 1) {
+				if (values == null || values.size() != 1) {
 					throw new SchemaException("Unexpected number of values in filter "+objectFilter);
 				}
 				PrismPropertyValue<T> pval = values.get(0);

@@ -16,12 +16,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.xml.namespace.QName;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author lazyman
  */
@@ -32,17 +26,6 @@ public class StringMatcher extends Matcher<String> {
     //todo will be changed to QName later (after query api update)
     public static final String IGNORE_CASE = PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME.getLocalPart();
     public static final String DEFAULT = PrismConstants.DEFAULT_MATCHING_RULE_NAME.getLocalPart();
-
-    private static final List<QName> SUPPORTED_MATCHING_RULES = Arrays.asList(PrismConstants.DEFAULT_MATCHING_RULE_NAME, PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME);
-	private static final Map<QName, QName> MATCHING_RULES_CONVERGENCE_MAP = new HashMap<>();
-    static {
-    	MATCHING_RULES_CONVERGENCE_MAP.put(PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME, PrismConstants.DEFAULT_MATCHING_RULE_NAME);	// temporary code (TODO change in 3.6)
-		MATCHING_RULES_CONVERGENCE_MAP.put(PrismConstants.UUID_MATCHING_RULE_NAME, PrismConstants.DEFAULT_MATCHING_RULE_NAME);				// temporary code (TODO change in 3.6)
-    	//MATCHING_RULES_CONVERGENCE_MAP.put(DistinguishedNameMatchingRule.NAME, StringIgnoreCaseMatchingRule.NAME);
-		//MATCHING_RULES_CONVERGENCE_MAP.put(UuidMatchingRule.NAME, StringIgnoreCaseMatchingRule.NAME);
-    	MATCHING_RULES_CONVERGENCE_MAP.put(PrismConstants.EXCHANGE_EMAIL_ADDRESSES_MATCHING_RULE_NAME, PrismConstants.DEFAULT_MATCHING_RULE_NAME);	// prefix is case sensitive
-    	MATCHING_RULES_CONVERGENCE_MAP.put(PrismConstants.XML_MATCHING_RULE_NAME, PrismConstants.DEFAULT_MATCHING_RULE_NAME);
-	}
 
     @Override
     public Condition match(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, String value, String matcher)
@@ -64,8 +47,4 @@ public class StringMatcher extends Matcher<String> {
 
         return basicMatch(hibernateQuery, operation, propertyName, value, ignoreCase);
     }
-
-	public static QName getApproximateSupportedMatchingRule(QName originalMatchingRule) {
-		return Matcher.getApproximateSupportedMatchingRule(originalMatchingRule, SUPPORTED_MATCHING_RULES, MATCHING_RULES_CONVERGENCE_MAP);
-	}
 }

@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
-import javax.xml.namespace.QName;
 import java.util.Objects;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -1647,16 +1646,6 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			throw t;
 		} finally {
 			result.computeStatusIfUnknown();
-		}
-	}
-
-	@Override
-	public QName getApproximateSupportedMatchingRule(Class<?> dataType, QName originalMatchingRule) {
-		Long startTime = repoOpStart();
-		try {
-			return repositoryService.getApproximateSupportedMatchingRule(dataType, originalMatchingRule);
-		} finally {
-			repoOpEnd(startTime);
 		}
 	}
 

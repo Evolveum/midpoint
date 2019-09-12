@@ -15,6 +15,7 @@ public class JasperReportParameterPropertiesDto implements Serializable{
 	private static final String PROPERTY_LABEL = "label";
 	private static final String PROPERTY_TARGET_TYPE = "targetType";
 	private static final String PROPERTY_MULTIVALUE = "multivalue";
+	private static final String MANDATORY_KEY = "mandatory";
 
 
 	private JRPropertiesMap propertiesMap;
@@ -86,6 +87,25 @@ public class JasperReportParameterPropertiesDto implements Serializable{
 		}
 
 		propertiesMap.setProperty(PROPERTY_KEY, key);
+	}
+	
+	public boolean getMandatory() {
+		if (propertiesMap == null) {
+			return false;
+		}
+		String isMandatory = propertiesMap.getProperty(MANDATORY_KEY);
+		if (isMandatory != null && Boolean.valueOf(isMandatory)) {
+			return true;
+		}
+		return false;
+	}
+
+	public void setMandatory(boolean isMandatory) {
+		if (propertiesMap == null) {
+			propertiesMap = new JRPropertiesMap();
+		}
+
+		propertiesMap.setProperty(MANDATORY_KEY, String.valueOf(isMandatory));
 	}
 
 	public JRPropertiesMap getPropertiesMap() {

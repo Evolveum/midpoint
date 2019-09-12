@@ -1896,17 +1896,13 @@ public class ShadowCache {
 		ObjectQuery attributeQuery = createAttributeQuery(query);
 
 		ResultHandler<ShadowType> resultHandler = (PrismObject<ShadowType> resourceShadow, OperationResult objResult) -> {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Found resource object\n{}", resourceShadow.debugDump(1));
-				}
+			LOGGER.trace("Found resource object\n{}", resourceShadow.debugDumpLazily(1));
 			PrismObject<ShadowType> resultShadow;
 				try {
-					// The shadow does not have any kind or intent at this
-					// point.
+					// The shadow does not have any kind or intent at this point.
 					// But at least locate the definition using object classes.
 					ProvisioningContext estimatedShadowCtx = shadowCaretaker.reapplyDefinitions(ctx, resourceShadow);
-					// Try to find shadow that corresponds to the resource
-					// object.
+					// Try to find shadow that corresponds to the resource object.
 					if (readFromRepository) {
 						PrismObject<ShadowType> repoShadow = acquireRepositoryShadow(
 								estimatedShadowCtx, resourceShadow, true, isDoDiscovery, parentResult);
@@ -1915,8 +1911,7 @@ public class ShadowCache {
 						// shadow should have proper kind/intent
 						ProvisioningContext shadowCtx = shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 						// TODO: shadowState
-						repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repoShadow,
-								null, parentResult);
+						repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repoShadow, null, parentResult);
 						
 						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, isDoDiscovery, objResult);
 						
@@ -1965,7 +1960,7 @@ public class ShadowCache {
                 	objResult.computeStatus();
                 	objResult.recordSuccessIfUnknown();
                     // FIXME: hack. Hardcoded ugly summarization of successes. something like
-                    // AbstractSummarizingResultHandler [lazyman]
+                    //  AbstractSummarizingResultHandler [lazyman]
                     if (objResult.isSuccess()) {
                     	objResult.getSubresults().clear();
                     }

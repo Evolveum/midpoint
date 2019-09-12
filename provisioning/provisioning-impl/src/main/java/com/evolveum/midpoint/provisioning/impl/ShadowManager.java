@@ -598,8 +598,9 @@ public class ShadowManager {
 
 		// We have all the data, we can construct the filter now
 		try {
-			// TODO TODO TODO TODO: set matching rule instead of null
+			// If the query is to be used against the repository, we should not provide matching rules here. See MID-5547.
 			PrismPropertyDefinition def = identifier.getDefinition();
+			//noinspection unchecked
 			return prismContext.queryFor(ShadowType.class)
 					.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getItemName()).eq(getNormalizedValue(identifier, ctx.getObjectClassDefinition()))
 					.and().item(ShadowType.F_OBJECT_CLASS).eq(resourceShadow.getPropertyRealValue(ShadowType.F_OBJECT_CLASS, QName.class))
@@ -651,7 +652,8 @@ public class ShadowManager {
 		if (!(filter instanceof EqualFilter)) {
 			return;
 		}
-		EqualFilter<T> eqFilter = (EqualFilter)filter;
+		//noinspection unchecked
+		EqualFilter<T> eqFilter = (EqualFilter<T>)filter;
 		ItemPath parentPath = eqFilter.getParentPath();
 		if (!parentPath.equivalent(SchemaConstants.PATH_ATTRIBUTES)) {
 			return;
@@ -682,13 +684,6 @@ public class ShadowManager {
 			eqFilter.getValues().addAll((Collection) newValues);
 			LOGGER.trace("Replacing values for attribute {} in search filter with normalized values because there is a matching rule, normalized values: {}",
 					attrName, newValues);
-		}
-		if (eqFilter.getMatchingRule() == null) {
-			QName supportedMatchingRule = valueClass != null ?
-					repositoryService.getApproximateSupportedMatchingRule(valueClass, matchingRuleQName) : matchingRuleQName;
-			eqFilter.setMatchingRule(supportedMatchingRule);
-			LOGGER.trace("Setting matching rule to {} (supported by repo as a replacement for {} to search for {})",
-					supportedMatchingRule, matchingRuleQName, valueClass);
 		}
 	}
 
@@ -1674,7 +1669,7 @@ public class ShadowManager {
 				QName attrName = itemDelta.getElementName();
 				if (objectClassDefinition.isSecondaryIdentifier(attrName)
 						|| (objectClassDefinition.getAllIdentifiers().size() == 1 && objectClassDefinition.isPrimaryIdentifier(attrName))) {
-					// Change of secondary identifier means object rename. We also need to change $shadow/name
+					// Change of secondary identifier, or primary identifier when it is only one, means object rename. We also need to change $shadow/name
 					// TODO: change this to displayName attribute later
 					String newName = null;
 					if (itemDelta.getValuesToReplace() != null && !itemDelta.getValuesToReplace().isEmpty()) {
@@ -1816,7 +1811,6 @@ public class ShadowManager {
 	 *
 	 * @return repository shadow as it should look like after the update
 	 */
-	@SuppressWarnings({ "unchecked", "WeakerAccess" })
 	public PrismObject<ShadowType> updateShadow(@NotNull ProvisioningContext ctx,
 			@NotNull PrismObject<ShadowType> resourceShadowNew,
 			@NotNull PrismObject<ShadowType> repoShadowOld, ShadowState shadowState, OperationResult parentResult) throws SchemaException,
@@ -1825,9 +1819,7 @@ public class ShadowManager {
 		ObjectDelta<ShadowType> shadowDelta = computeShadowDelta(ctx, repoShadowOld, resourceShadowNew, shadowState);
 
 		if (!shadowDelta.isEmpty()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadowOld, shadowDelta.debugDump(1));
-			}
+			LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadowOld, shadowDelta.debugDumpLazily(1));
 			ConstraintsChecker.onShadowModifyOperation(shadowDelta.getModifications());
 			try {
 				repositoryService.modifyObject(ShadowType.class, repoShadowOld.getOid(), shadowDelta.getModifications(), parentResult);
