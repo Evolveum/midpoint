@@ -208,15 +208,15 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                         }
                         PrismContainerValue associationValue = (PrismContainerValue)((PrismContainerValueWrapper) associationValueWrapper).getNewValue();
                         ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
-                        if (assoc == null || assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null
-                                || (ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(),
-                                ConstructionAssociationPanel.this.getPageBase().getPrismContext()) == null
-                                && !ValueStatus.ADDED.equals(((PrismContainerValueWrapper) associationValueWrapper).getStatus()))) {
+                        if (assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null
+                                || ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(),
+                                ConstructionAssociationPanel.this.getPageBase().getPrismContext()) == null && !ValueStatus.ADDED
+                                .equals(associationValueWrapper.getStatus())) {
                             return;
                         }
                         QName assocRef = ItemPathTypeUtil.asSingleNameOrFailNullSafe(assoc.getRef());
                         if ((defName != null && defName.equals(assocRef))
-                                || (assocRef == null && ValueStatus.ADDED.equals(((PrismContainerValueWrapper) associationValueWrapper).getStatus()))) {
+                                || (assocRef == null && ValueStatus.ADDED.equals(associationValueWrapper.getStatus()))) {
                             shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(),
                                     ConstructionAssociationPanel.this.getPageBase().getPrismContext()));
                         }
