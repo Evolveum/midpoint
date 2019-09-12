@@ -143,6 +143,7 @@
         <!--<classes>-->
             <!--<class name="com.evolveum.midpoint.model.intest.security.TestSecurityPrincipal"/>-->
             <!--<class name="com.evolveum.midpoint.model.intest.security.TestSecurityBasic"/>-->
+            <!-- <class name="com.evolveum.midpoint.model.intest.security.TestSecurityMedium"/>-->
             <!--<class name="com.evolveum.midpoint.model.intest.security.TestSecurityAdvanced"/>-->
             <!--<class name="com.evolveum.midpoint.model.intest.security.TestSecurityMultitenant"/>-->
         <!--</classes>-->

@@ -66,11 +66,6 @@ public class TestArchetypes extends AbstractArchetypesTest {
 	public static final String VIEW_BUSINESS_ROLES_IDENTIFIER = "business-roles-view";
 	public static final String VIEW_BUSINESS_ROLES_LABEL = "Business";
 	
-	public static final File ARCHETYPE_EMPLOYEE_FILE = new File(TEST_DIR, "archetype-employee.xml");
-	protected static final String ARCHETYPE_EMPLOYEE_OID = "7135e68c-ee53-11e8-8025-170b77da3fd6";
-	private static final String ARCHETYPE_EMPLOYEE_DISPLAY_LABEL = "Employee";
-	private static final String ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL = "Employees";
-	
 	public static final File ARCHETYPE_CONTRACTOR_FILE = new File(TEST_DIR, "archetype-contractor.xml");
 	protected static final String ARCHETYPE_CONTRACTOR_OID = "3911cac2-78a6-11e9-8b5e-4b5bdb0c81d5";
 	

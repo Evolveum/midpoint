@@ -57,11 +57,6 @@ public class AbstractArchetypesTest extends AbstractInitializedModelIntegrationT
 	public static final String VIEW_BUSINESS_ROLES_IDENTIFIER = "business-roles-view";
 	public static final String VIEW_BUSINESS_ROLES_LABEL = "Business";
 	
-	public static final File ARCHETYPE_EMPLOYEE_FILE = new File(TEST_DIR, "archetype-employee.xml");
-	protected static final String ARCHETYPE_EMPLOYEE_OID = "7135e68c-ee53-11e8-8025-170b77da3fd6";
-	private static final String ARCHETYPE_EMPLOYEE_DISPLAY_LABEL = "Employee";
-	private static final String ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL = "Employees";
-	
 	public static final File ARCHETYPE_TEST_FILE = new File(TEST_DIR, "archetype-test.xml");
 	protected static final String ARCHETYPE_TEST_OID = "a8df34a8-f6f0-11e8-b98e-eb03652d943f";
 	
