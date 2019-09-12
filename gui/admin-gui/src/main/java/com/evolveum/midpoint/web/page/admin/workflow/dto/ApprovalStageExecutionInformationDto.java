@@ -17,6 +17,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -115,7 +116,13 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 		for (CaseEventType event : executionRecord.getEvent()) {
 			if (event instanceof WorkItemEventType) {
 				WorkItemEventType workItemEvent = (WorkItemEventType) event;
-				ObjectReferenceType approver = workItemEvent.getOriginalAssigneeRef();
+				ObjectReferenceType approver;
+				if (event instanceof WorkItemDelegationEventType){
+					List<ObjectReferenceType> delegateToList = ((WorkItemDelegationEventType)event).getDelegatedTo();
+					approver = CollectionUtils.isNotEmpty(delegateToList) ? delegateToList.get(0) : null;
+				} else {
+					approver = workItemEvent.getOriginalAssigneeRef();
+				}
 				if (approver == null) {
 					LOGGER.warn("No original assignee in work item event {} -- ignoring it", workItemEvent);
 					continue;
@@ -152,7 +159,8 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 			if (workItem.getStageNumber() == null || workItem.getStageNumber() != currentStageNumber){
 				continue;
 			}
-			ObjectReferenceType approver = workItem.getOriginalAssigneeRef();
+			ObjectReferenceType approver = CollectionUtils.isNotEmpty(workItem.getAssigneeRef()) ?
+					workItem.getAssigneeRef().get(0) : workItem.getOriginalAssigneeRef();
 			if (approver == null) {
 				LOGGER.warn("No original assignee in work item {} -- ignoring it", workItem);
 				continue;
