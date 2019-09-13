@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
@@ -68,9 +69,9 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     private static final String ID_FORM = "form";
 
     private List<OrgType> selectedOrgsList = new ArrayList<>();
-    protected List<QName> availableRelationList;
+    protected AvailableRelationDto availableRelationList;
 
-    public ChooseMemberPopup(String id, List<QName> availableRelationList){
+    public ChooseMemberPopup(String id, AvailableRelationDto availableRelationList){
         super(id);
         this.availableRelationList = availableRelationList;
     }
