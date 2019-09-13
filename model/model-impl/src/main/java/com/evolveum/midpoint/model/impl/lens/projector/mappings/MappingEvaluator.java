@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0 
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens.projector;
+package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -14,6 +14,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.projector.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -324,9 +325,9 @@ public class MappingEvaluator {
 				if (outputTriple != null) {
 					// Previous mapping produced output. We do not need to evaluate weak mapping.
 					// TODO: this is not entirely correct. Previous mapping might have deleted all
-					// values. Also we may need the output of the weak mapping to correctly process
-					// non-tolerant values (to avoid removing the value that weak mapping produces).
-					// MID-3847
+					//  values. Also we may need the output of the weak mapping to correctly process
+					//  non-tolerant values (to avoid removing the value that weak mapping produces).
+					//  MID-3847
 					continue;
 				}
 
@@ -361,7 +362,8 @@ public class MappingEvaluator {
 							continue;
 						}
 
-						if (outputTriple == null) {
+						//noinspection ConstantConditions
+						if (outputTriple == null) {     // this is currently always true (see above)
 							mappingOutputStruct.setOutputTriple(mappingOutputTriple);
 						} else {
 							outputTriple.merge(mappingOutputTriple);

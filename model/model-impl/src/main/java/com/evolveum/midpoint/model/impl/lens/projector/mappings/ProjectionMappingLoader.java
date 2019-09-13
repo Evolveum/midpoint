@@ -1,14 +1,15 @@
-/**
- * Copyright (c) 2017 Evolveum and contributors
+/*
+ * Copyright (c) 2017-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0 
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens.projector;
+package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -48,15 +49,15 @@ public class ProjectionMappingLoader<F extends ObjectType> implements MappingLoa
 	}
 
 	@Override
-	public PrismObject load(String loadReason, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	public PrismObject<ShadowType> load(String loadReason, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		contextLoader.loadFullShadow(context, projectionContext, loadReason, task, result);
 		if (SynchronizationPolicyDecision.BROKEN.equals(projectionContext.getSynchronizationPolicyDecision())) {
 			LOGGER.debug("Attempt to load full object for {} failed, projection context is broken", projectionContext.getHumanReadableName());
 			throw new ObjectNotFoundException("Projection loading failed, projection broken");
 		}
 		if (projectionContext.isTombstone()) {
-			LOGGER.debug("Projection {} got thombstoned", projectionContext.getHumanReadableName());
-			throw new ObjectNotFoundException("Projection loading failed, projection thombstoned");
+			LOGGER.debug("Projection {} got tombstoned", projectionContext.getHumanReadableName());
+			throw new ObjectNotFoundException("Projection loading failed, projection tombstoned");
 		}
 		return projectionContext.getObjectCurrent();
 	}

@@ -8,11 +8,9 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,7 +24,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -40,13 +37,12 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluatorParams;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingInitializer;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingOutputProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingTimeEval;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluatorParams;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingInitializer;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingOutputProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingTimeEval;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.InboundProcessor.InboundMappingStruct;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -73,7 +69,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
@@ -90,8 +85,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * Processor that takes changes from accounts and synchronization deltas and updates user attributes if necessary

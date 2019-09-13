@@ -1,10 +1,10 @@
-/**
- * Copyright (c) 2014-2017 Evolveum and contributors
+/*
+ * Copyright (c) 2014-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0 
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.impl.lens.projector;
+package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -19,9 +19,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public interface MappingOutputProcessor<V extends PrismValue> {
 
 	/**
-	 *
-	 * @return if true is returned then the detaul processing will take place
-	 *         after the processor is finished. If false then the defaul processing
+	 * @return if true is returned then the default processing will take place
+	 *         after the processor is finished. If false then the default processing
 	 *         will be skipped.
 	 */
 	boolean process(ItemPath mappingOutputPath, MappingOutputStruct<V> outputStruct) throws SchemaException, ExpressionEvaluationException;
