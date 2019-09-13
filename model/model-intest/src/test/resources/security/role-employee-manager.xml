@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (c) 2017-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+  <!-- MID-5581 -->
+<role oid="5549cb8e-d573-11e9-a61e-7f2eff22715a"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Employee manager</name>
+    <authorization>
+    	<name>read-some-roles</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+    	<object>
+    		<type>UserType</type>
+    		<archetypeRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6"/> <!-- Emplooyee -->
+    	</object>
+    </authorization>
+</role>
