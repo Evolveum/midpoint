@@ -44,10 +44,10 @@
         <cxf-xjc.version>3.3.0</cxf-xjc.version>
         <wss4j.version>2.2.0</wss4j.version>
         <dbunit.version>2.4.7</dbunit.version>
-        <jaxb-api.version>2.2.10</jaxb-api.version>
-        <jaxb.version>2.2.10</jaxb.version> <!-- 2.2.10 -->
-        <jaxb-xjc.version>2.2.10</jaxb-xjc.version>
-        <jaxb-runtime.version>2.3.2</jaxb-runtime.version>
+        <jaxb-api.version>2.3.1</jaxb-api.version>
+        <jaxb.version>2.3.1</jaxb.version> <!-- 2.2.10 -->
+        <jaxb-xjc.version>2.3.1</jaxb-xjc.version>
+        <jaxb-runtime.version>2.3.1</jaxb-runtime.version>
         <junit.version>4.8.2</junit.version>
         <opendj.version>2.6.2</opendj.version>
         <mockito.version>1.10.8</mockito.version>
@@ -55,9 +55,9 @@
         <selenium.version>3.6.0</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <spring.boot.version>2.0.3.RELEASE</spring.boot.version>
-        <spring.version>5.0.13.RELEASE</spring.version>
-        <spring.security.version>5.0.12.RELEASE</spring.security.version>
+        <spring.boot.version>2.1.8.RELEASE</spring.boot.version>
+        <spring.version>5.1.9.RELEASE</spring.version>
+        <spring.security.version>5.1.6.RELEASE</spring.security.version>
         <cache2k.version>1.2.1.Final</cache2k.version>
         <cas.client.version>3.5.0</cas.client.version>
         <testng.version>6.14.3</testng.version>
@@ -71,7 +71,7 @@
         <jdbc.mariadb>2.3.0</jdbc.mariadb>
         <jdbc.mysql>6.0.6</jdbc.mysql>
         <wicket.version>8.3.0</wicket.version>
-        <groovy.version>2.5.6</groovy.version>
+        <groovy.version>2.5.8</groovy.version>
         <commons-email.version>1.3</commons-email.version>
         <xmlsec.version>2.1.4</xmlsec.version>
         <connid.version>1.5.0.10</connid.version>
@@ -93,8 +93,7 @@
 		<jaxws-api.version>2.3.1</jaxws-api.version>
 		<stax-api.version>1.0-2</stax-api.version>
 		<geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
-		<activation.version>1.1.1</activation.version>
-		<javax.activation.version>1.2.0</javax.activation.version>
+		<activation.version>1.2.0</activation.version>
 		<jetty.version>9.4.20.v20190813</jetty.version>
     </properties>
     <dependencyManagement>
@@ -119,7 +118,7 @@
 			<dependency>
 				<groupId>com.sun.activation</groupId>
 				<artifactId>javax.activation</artifactId>
-				<version>${javax.activation.version}</version>
+				<version>${activation.version}</version>
 			</dependency>
 		
 			<dependency>
@@ -221,16 +220,10 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <dependency> <!-- Explicit version -->
-                <groupId>javax.activation</groupId>
-                <artifactId>activation</artifactId>
-                <version>${activation.version}</version>
-            </dependency>
             <dependency>
 				<groupId>org.codehaus.groovy</groupId>
 				<artifactId>groovy-all</artifactId>
 				<version>${groovy.version}</version>
-				<type>pom</type>
 			</dependency>
 			<dependency>
 				<groupId>org.python</groupId>
@@ -505,6 +498,10 @@
                         <groupId>org.apache.geronimo.specs</groupId>
                         <artifactId>geronimo-activation_1.1_spec</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -536,6 +533,12 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-wsdl</artifactId>
                 <version>${cxf.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -662,7 +665,13 @@
 	        <dependency>
 	            <groupId>org.apache.cxf.xjc-utils</groupId>
 	            <artifactId>cxf-xjc-runtime</artifactId>
-		    <version>${cxf-xjc.version}</version>
+		        <version>${cxf-xjc.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>activation</artifactId>
+                    </exclusion>
+                </exclusions>
         	</dependency>
         	<dependency>
 	            <groupId>org.apache.wss4j</groupId>
@@ -1588,8 +1597,11 @@
 							<failOnWarning>true</failOnWarning>
 							<ignoreNonCompile>true</ignoreNonCompile>
 							<ignoredUnusedDeclaredDependencies>
+                                <!-- Unreliable detection -->
+                                <ignoredUnusedDeclaredDependency>javax.xml.bind:jaxb-api</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>com.sun.activation:javax.activation</ignoredUnusedDeclaredDependency>
 
-								<!-- There are dependencies in this master POM. So they are projected 
+								<!-- There are dependencies in this master POM. So they are projected
 									everywhere, used or unused. -->
 								<ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>org.springframework.boot</ignoredUnusedDeclaredDependency>
@@ -1614,6 +1626,10 @@
 								<ignoredUnusedDeclaredDependency>commons-beanutils:commons-beanutils-core</ignoredUnusedDeclaredDependency>
 							</ignoredUnusedDeclaredDependencies>
 							<ignoredUsedUndeclaredDependencies>
+                                <!-- Unreliable detection -->
+                                <ignoredUsedUndeclaredDependency>javax.xml.bind:jaxb-api</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>com.sun.activation:javax.activation</ignoredUsedUndeclaredDependency>
+
 								<!-- There is some kind of conflict between these. TODO: clean up -->
 								<ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
 								<ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>

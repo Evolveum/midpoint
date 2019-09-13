@@ -110,14 +110,14 @@
     		<groupId>javax.xml.soap</groupId>
     		<artifactId>javax.xml.soap-api</artifactId>
 		</dependency> 
-	<dependency>
-            <groupId>javax.activation</groupId>
-	    <artifactId>activation</artifactId>
+        <dependency>
+            <groupId>com.sun.activation</groupId>
+            <artifactId>javax.activation</artifactId>
         </dependency>
-	<dependency>
-	    <groupId>javax.xml.bind</groupId>
-	    <artifactId>jaxb-api</artifactId>
-	</dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
