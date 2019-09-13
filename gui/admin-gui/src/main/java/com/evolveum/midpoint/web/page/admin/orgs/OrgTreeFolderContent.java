@@ -16,9 +16,11 @@ import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 public class OrgTreeFolderContent extends BasePanel<TreeSelectableBean<OrgType>> {
@@ -68,11 +70,23 @@ public class OrgTreeFolderContent extends BasePanel<TreeSelectableBean<OrgType>>
             }
         };
         folder.setOutputMarkupId(true);
-        add(folder);
+        addOrReplace(folder);
+        if (selected.getObject().equals(getModelObject())) {
+        	getParent().add(AttributeAppender.append("class", "success"));
+        } else {
+        	getParent().add(new AttributeAppender("class", "success", " ") {
+        		@Override
+        		protected Serializable newValue(String currentValue, String removeValue) {
+        			currentValue = getSeparator() + currentValue + getSeparator();
+        			removeValue = getSeparator() + removeValue + getSeparator();
+        			return currentValue.replace(removeValue, getSeparator());
+        		}
+        	});
+        }
 
         MenuMultiButtonPanel<OrgType> menuButtons = new MenuMultiButtonPanel<>(ID_MENU, new PropertyModel<>(getModel(), TreeSelectableBean.F_VALUE), 2, new PropertyModel<>(getModel(), TreeSelectableBean.F_MENU_ITEMS));
         menuButtons.setOutputMarkupId(true);
-        add(menuButtons);
+        addOrReplace(menuButtons);
 
         CheckBoxPanel checkBoxPanel = new CheckBoxPanel(ID_CHECK, getCheckboxModel(getModel())) {
 
@@ -84,7 +98,7 @@ public class OrgTreeFolderContent extends BasePanel<TreeSelectableBean<OrgType>>
         };
         checkBoxPanel.add(new VisibleBehaviour(() -> selectable));
 
-        add(checkBoxPanel);
+        addOrReplace(checkBoxPanel);
     }
 
     protected void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected, AjaxRequestTarget target) {

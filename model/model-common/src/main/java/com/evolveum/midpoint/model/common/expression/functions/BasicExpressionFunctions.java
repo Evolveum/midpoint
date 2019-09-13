@@ -34,6 +34,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -1019,14 +1020,14 @@ public class BasicExpressionFunctions {
         String attrName = null;
         for (Object component : components) {
             if (attrName != null && !(component instanceof String || component instanceof PolyString || component instanceof PolyStringType)) {
-                throw new InvalidNameException("Invalid input to composeDn() function: expected string after '" + attrName + "' argument, but got " + component.getClass());
+                throw new InvalidNameException("Invalid input to composeDn() function: expected string after '" + attrName + "' argument, but got " + MiscUtil.getClass(component));
             }
             if (component instanceof Rdn) {
                 rdns.addFirst((Rdn) component);
             } else if (component instanceof PolyString) {
-                component = ((PolyString) component).toString();
+                component = component.toString();
             } else if (component instanceof PolyStringType) {
-                component = ((PolyStringType) component).toString();
+                component = component.toString();
             }
             if (component instanceof String) {
                 if (attrName == null) {

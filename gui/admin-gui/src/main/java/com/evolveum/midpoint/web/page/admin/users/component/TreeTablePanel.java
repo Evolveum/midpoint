@@ -482,6 +482,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			return;
 		}
 		getTreePanel().setSelected(selected);
+		getTreePanel().refreshContentPannels();
 		target.add(addOrReplace(createMemberPanel(selected.getValue())));
 		target.add(addOrReplace(createManagerPanel(selected.getValue())));
 	}

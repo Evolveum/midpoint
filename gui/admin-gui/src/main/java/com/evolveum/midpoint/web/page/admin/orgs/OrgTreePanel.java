@@ -71,6 +71,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 	private boolean selectable;
     private String treeTitleKey = "";
 	List<OrgType> preselecteOrgsList = new ArrayList<>();
+	private List<OrgTreeFolderContent> contentPannels = new ArrayList<OrgTreeFolderContent>();
 
 
 	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator) {
@@ -199,12 +200,14 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			}
 		};
 
+		contentPannels = new ArrayList<OrgTreeFolderContent>();
+		
 		MidpointNestedTree tree = new MidpointNestedTree(ID_TREE, provider, treeStateMode) {
 
 
 			@Override
 			protected Component newContentComponent(String id, IModel<TreeSelectableBean<OrgType>> model) {
-				return new OrgTreeFolderContent(id, model, selectable, selected, this, getOrgTreeStateStorage()) {
+				OrgTreeFolderContent contentPannel = new OrgTreeFolderContent(id, model, selectable, selected, this, getOrgTreeStateStorage()) {
 
 					@Override
 					protected void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected, AjaxRequestTarget target) {
@@ -222,6 +225,8 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 						onOrgTreeCheckBoxSelectionPerformed(target, selected);
 					}
 				};
+				contentPannels.add(contentPannel);
+				return contentPannel;
 			}
 
 			@Override
@@ -454,6 +459,14 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
 	protected IModel<Boolean> getCheckBoxValueModel(IModel<TreeSelectableBean<OrgType>> rowModel){
 		return new PropertyModel<>(rowModel, TreeSelectableBean.F_SELECTED);
+	}
+	
+	public void refreshContentPannels() {
+		if (contentPannels != null) {
+			for (OrgTreeFolderContent contentPannel : contentPannels) {
+				contentPannel.onInitialize();
+			}
+		}
 	}
 
 	protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel){}

@@ -23,6 +23,8 @@ public interface XNodeFactory {
 
 	<T> PrimitiveXNode<T> primitive(T value);
 
+	<T> PrimitiveXNode<T> primitiveAttribute(T value);
+
 	<T> PrimitiveXNode<T> primitive(ValueParser<T> valueParser);
 
 	<T> PrimitiveXNode<T> primitive(ValueParser<T> valueParser, QName typeName, boolean explicitTypeDeclaration);
