@@ -70,12 +70,6 @@
 				<module>schrodingertest</module>
 			</modules>
 		</profile>
-		<profile>
-			<id>wstest</id>
-			<modules>
-				<module>wstest</module>
-			</modules>
-		</profile>
 	</profiles>
 
     <dependencies> 
