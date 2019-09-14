@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.constants.RelationTypes;
 
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -30,7 +31,7 @@ import java.util.List;
 public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseMemberPopup<O, OrgType> {
     private static final long serialVersionUID = 1L;
 
-    public ChooseOrgMemberPopup(String id, List<QName> availableRelationList){
+    public ChooseOrgMemberPopup(String id, AvailableRelationDto availableRelationList){
         super(id, availableRelationList);
     }
 

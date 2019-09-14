@@ -97,6 +97,10 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 
 		if (isObject) {
 			assertEquals("Wrong oid", "88519fca-3f4a-44ca-91c8-dc9be5bf3d03", shadow.getOid());
+			if (!SchemaConstants.C_SHADOW.equals(shadow.getElementName()) && !shadow.getElementName().getLocalPart().equals("dummy")
+				&& !SchemaConstants.C_USER.equals(shadow.getElementName())) {
+				fail("Wrong object element name: "+shadow.getElementName());
+			}
 		}
 		PrismObjectDefinition<ShadowType> usedDefinition = shadow.getDefinition();
 		assertNotNull("No object definition", usedDefinition);
@@ -143,4 +147,10 @@ public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 		assertEquals("Wrong resourceRef type (jaxb)", ResourceType.COMPLEX_TYPE, resourceRef.getType());
 	}
 
+	@Override
+	protected void assertSerializedObject(String serialized) {
+		if (!serialized.startsWith("<shadow") && !serialized.startsWith("<dummy") && !serialized.startsWith("<user")) {
+			fail("Wrong start of serialized value, was:\n"+serialized);
+		}
+	}
 }

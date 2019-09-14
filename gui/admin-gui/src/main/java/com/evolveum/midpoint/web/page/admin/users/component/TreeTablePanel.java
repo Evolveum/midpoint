@@ -64,6 +64,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
+import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -162,8 +163,8 @@ public class TreeTablePanel extends BasePanel<String> {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected List<QName> getSupportedRelations() {
-				return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase());
+			protected AvailableRelationDto getSupportedRelations() {
+				return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase()));
 			}
 		};
 		memberPanel.setOutputMarkupId(true);

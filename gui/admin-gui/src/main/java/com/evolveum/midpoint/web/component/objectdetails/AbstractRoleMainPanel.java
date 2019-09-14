@@ -47,6 +47,7 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
@@ -234,7 +235,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected List<QName> getSupportedRelations() {
+			protected AvailableRelationDto getSupportedRelations() {
 				return getSupportedMembersTabRelations();
 			}
 			
@@ -249,8 +250,10 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected List<QName> getSupportedRelations() {
-				return getSupportedGovernanceTabRelations();
+			protected AvailableRelationDto getSupportedRelations() {
+				AvailableRelationDto avariableRelations = getSupportedGovernanceTabRelations();
+				avariableRelations.setDefaultRelation(getDefaultGovernanceRelation());
+				return avariableRelations;
 			}
 			
 			@Override
@@ -261,15 +264,19 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 		};
 	}
 
-	protected List<QName> getSupportedMembersTabRelations(){
+	protected AvailableRelationDto getSupportedMembersTabRelations(){
 		List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
 		List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
 		governance.forEach(r -> relations.remove(r));
-		return relations;
+		return new AvailableRelationDto(relations);
 	}
 
-	protected List<QName> getSupportedGovernanceTabRelations(){
-		return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
+	protected AvailableRelationDto getSupportedGovernanceTabRelations(){
+		return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage()));
+	}
+	
+	protected QName getDefaultGovernanceRelation(){
+		return WebComponentUtil.getCategoryDefaultRelation(AreaCategoryType.GOVERNANCE);
 	}
 
 	protected Map<String, String> getGovernanceTabAuthorizations(){

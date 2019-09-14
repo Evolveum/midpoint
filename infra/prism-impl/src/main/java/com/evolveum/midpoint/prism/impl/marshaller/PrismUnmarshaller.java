@@ -59,6 +59,9 @@ public class PrismUnmarshaller {
     @SuppressWarnings("unchecked")
     <O extends Objectable> PrismObject<O> parseObject(@NotNull RootXNodeImpl root, ItemDefinition<?> itemDefinition, QName itemName,
             QName typeName, Class<?> typeClass, @NotNull ParsingContext pc) throws SchemaException {
+        if (itemDefinition != null && !(itemDefinition instanceof PrismObjectDefinition)) {
+            throw new SchemaException("Cannot parse object from element " + itemName + ", the element does not define an object, it is defined as "+itemDefinition);
+        }
         ItemInfo itemInfo = ItemInfo.determine(itemDefinition,
                 root.getRootElementName(), itemName, ARTIFICIAL_OBJECT_NAME,
                 root.getTypeQName(), typeName,
@@ -66,7 +69,13 @@ public class PrismUnmarshaller {
 
         XNodeImpl child = root.getSubnode();
         if (!(child instanceof MapXNodeImpl)) {
-            throw new IllegalArgumentException("Cannot parse object from " + child.getClass().getSimpleName() + ", we need a map");
+            throw new IllegalArgumentException("Cannot parse object from element " + child.getClass().getSimpleName() + ", we need a map");
+        }
+        if (itemInfo.getItemDefinition() == null) {
+            throw new SchemaException("Cannot parse object from element " + itemInfo.getItemName() + ", there is no definition for that element");
+        }
+        if (!(itemInfo.getItemDefinition() instanceof PrismObjectDefinition)) {
+            throw new SchemaException("Cannot parse object from element " + itemInfo.getItemName() + ", the element does not define an object, it is defined as "+itemInfo.getItemDefinition());
         }
         return (PrismObject<O>) (Item) parseItemInternal(child, itemInfo.getItemName(), itemInfo.getItemDefinition(), pc);
     }

@@ -38,6 +38,7 @@ public abstract class AbstractObjectParserTest<O extends Objectable> extends Abs
 
 			String serialized = serializer.apply(value);
 			System.out.println("Serialized:\n" + serialized);
+			assertSerializedObject(serialized);
 
 			PrismObject<O> reparsed = parser.apply(prismContext.parserFor(serialized));
 			assertResolvableRawValues(reparsed);		// should be right here before getValue method is called
@@ -55,6 +56,9 @@ public abstract class AbstractObjectParserTest<O extends Objectable> extends Abs
 			}
 			assertTrue("Values not equal", value.asObjectable().equals(reparsed.asObjectable()));
 		}
+	}
+
+	protected void assertSerializedObject(String serialized) {
 	}
 
 	@SuppressWarnings("Convert2MethodRef")

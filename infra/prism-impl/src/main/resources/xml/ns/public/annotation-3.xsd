@@ -635,6 +635,29 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="moved">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Element was moved or renamed.
+                        NOT SUPPORTED NOW
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MOVED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="renamedParent">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Parent (root) element was renamed, e.g. top-level element of the object.
+                        This is different than "moved" as "moved" refers to child elements.
+                        The "renamedParent" refers to parent element.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RENAMED_PARENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <!-- TODO: moved, deprecated -->
         </xsd:restriction>
     </xsd:simpleType>

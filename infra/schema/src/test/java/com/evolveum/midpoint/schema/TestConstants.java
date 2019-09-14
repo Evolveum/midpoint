@@ -49,6 +49,7 @@ public class TestConstants {
 	public static final File ROLE_FILE = new File(TestConstants.COMMON_DIR, "role.xml");
 
 	public static final String SHADOW_FILE_BASENAME = "shadow-hbarbossa";
+	public static final String SHADOW_FILE_BASENAME_LEGACY = "shadow-hbarbossa-legacy";
 	public static final String CERTIFICATION_CASE_FILE_BASENAME = "certification-case-1";
 
 	public static final String METAROLE_FILE_BASENAME = "metarole";

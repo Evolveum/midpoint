@@ -14,7 +14,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public enum SchemaMigrationOperation {
 	
-	REMOVED;
+	REMOVED, MOVED, RENAMED_PARENT;
 	
 	public static SchemaMigrationOperation parse(String s) throws SchemaException {
 		if (s == null) {
@@ -23,6 +23,10 @@ public enum SchemaMigrationOperation {
 		switch (s) {
 			case "removed":
 				return REMOVED;
+			case "moved":
+				return MOVED;
+			case "renamedParent":
+				return RENAMED_PARENT;
 			default:
 				throw new SchemaException("Unknown schema migration operation "+s);
 		}

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 
 public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
@@ -89,7 +90,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList, List<QName> objectTypes) {
+	protected void assignMembers(AjaxRequestTarget target, AvailableRelationDto availableRelationList, List<QName> objectTypes) {
 		MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, availableRelationList, objectTypes);
 	}
 
@@ -136,8 +137,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected List<QName> getSupportedRelations() {
-		return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase());
+	protected AvailableRelationDto getSupportedRelations() {
+		return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase()));
 	}
 
 	@Override
