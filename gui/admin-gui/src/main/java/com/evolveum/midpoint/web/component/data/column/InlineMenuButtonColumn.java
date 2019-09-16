@@ -287,6 +287,80 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 						public String getButtonIconCssClass() {
 							return ((ButtonInlineMenuItem) item).getButtonIconCssClass();
 						}
+						
+						public IModel<String> getConfirmationMessageModel() {
+                            return item.getConfirmationMessageModel();
+                        }
+                        
+                        @Override
+                        public IModel<Boolean> getEnabled() {
+                        	return item.getEnabled();
+                        }
+                        
+                        @Override
+                        public void setEnabled(IModel<Boolean> enabled) {
+                        	item.setEnabled(enabled);
+                        }
+                        
+                        @Override
+                        public IModel<String> getLabel() {
+                        	return item.getLabel();
+                        }
+                        
+                        @Override
+                        public boolean isSubmit() {
+                        	return item.isSubmit();
+                        }
+                        
+                        @Override
+                        public IModel<Boolean> getVisible() {
+                        	return item.getVisible();
+                        }
+                        
+                        @Override
+                        public void setVisible(IModel<Boolean> visible) {
+                        	item.setVisible(visible);
+                        }
+                        
+                        @Override
+                        public boolean isDivider() {
+                        	return item.isDivider();
+                        }
+                        
+                        @Override
+                        public boolean isHeaderMenuItem() {
+                        	return item.isHeaderMenuItem();
+                        }
+                        
+                        @Override
+                        public boolean isMenuHeader() {
+                        	return item.isMenuHeader();
+                        }
+                        
+                        @Override
+                        public int getId() {
+                        	return item.getId();
+                        }
+                        
+                        @Override
+                        public void setId(int id) {
+                        	item.setId(id);
+                        }
+                        
+                        @Override
+                        public boolean showConfirmationDialog() {
+                        	return item.showConfirmationDialog();
+                        }
+                        
+                        @Override
+                        public VisibilityChecker getVisibilityChecker() {
+                        	return item.getVisibilityChecker();
+                        }
+                        
+                        @Override
+                        public void setVisibilityChecker(VisibilityChecker visibilityChecker) {
+                        	item.setVisibilityChecker(visibilityChecker);
+                        }
 					};
     			} else {
     				clonedItem = new InlineMenuItem(item.getLabel(), item.isSubmit()) {
@@ -298,6 +372,76 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
                         public IModel<String> getConfirmationMessageModel() {
                             return item.getConfirmationMessageModel();
+                        }
+                        
+                        @Override
+                        public IModel<Boolean> getEnabled() {
+                        	return item.getEnabled();
+                        }
+                        
+                        @Override
+                        public void setEnabled(IModel<Boolean> enabled) {
+                        	item.setEnabled(enabled);
+                        }
+                        
+                        @Override
+                        public IModel<String> getLabel() {
+                        	return item.getLabel();
+                        }
+                        
+                        @Override
+                        public boolean isSubmit() {
+                        	return item.isSubmit();
+                        }
+                        
+                        @Override
+                        public IModel<Boolean> getVisible() {
+                        	return item.getVisible();
+                        }
+                        
+                        @Override
+                        public void setVisible(IModel<Boolean> visible) {
+                        	item.setVisible(visible);
+                        }
+                        
+                        @Override
+                        public boolean isDivider() {
+                        	return item.isDivider();
+                        }
+                        
+                        @Override
+                        public boolean isHeaderMenuItem() {
+                        	return item.isHeaderMenuItem();
+                        }
+                        
+                        @Override
+                        public boolean isMenuHeader() {
+                        	return item.isMenuHeader();
+                        }
+                        
+                        @Override
+                        public int getId() {
+                        	return item.getId();
+                        }
+                        
+                        @Override
+                        public void setId(int id) {
+                        	item.setId(id);
+                        }
+                        
+                        @Override
+                        public boolean showConfirmationDialog() {
+                        	return item.showConfirmationDialog();
+                        }
+                        
+                        @Override
+                        public VisibilityChecker getVisibilityChecker() {
+                        	return item.getVisibilityChecker();
+                        }
+                        
+                        @Override
+                        public void setVisibilityChecker(VisibilityChecker visibilityChecker) {
+                        	item.setVisibilityChecker(visibilityChecker);
                         }
 
                     };
