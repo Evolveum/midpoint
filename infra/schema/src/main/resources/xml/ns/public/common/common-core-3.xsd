@@ -24205,6 +24205,16 @@
 	       					</xsd:appinfo>
 	       				</xsd:annotation>
 	       			</xsd:element>
+					<xsd:element name="disableCounting" type="xsd:boolean" default="false" minOccurs="0">
+						<xsd:annotation>
+                            <xsd:documentation>
+                                Configures the possibility of the objects counting while object list loading
+                            </xsd:documentation>
+	       					<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.disableCounting</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
 	           		<!-- TODO: number of results per page (MID-1931) -->
 	           		<!-- TODO: later: export settings (GuiExportSettingsType) -->
 	           	</xsd:sequence>
