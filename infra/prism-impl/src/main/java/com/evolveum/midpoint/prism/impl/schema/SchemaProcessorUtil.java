@@ -118,4 +118,18 @@ public class SchemaProcessorUtil {
 		return getAnnotationConverted(annotation, qname, Integer.class);
 	}
 
+	public static String dumpAnnotation(XSAnnotation annotation) {
+		if (annotation == null) {
+			return null;
+		}
+		Element xsdAnnotation = (Element) annotation.getAnnotation();
+		if (xsdAnnotation == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (Element element : DOMUtil.listChildElements(xsdAnnotation)) {
+			sb.append(element.getLocalName()).append(", ");
+		}
+		return sb.toString();
+	}
 }

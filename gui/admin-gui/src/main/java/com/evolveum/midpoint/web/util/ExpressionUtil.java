@@ -7,7 +7,9 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.xnode.*;
@@ -472,18 +474,19 @@ public class ExpressionUtil {
         }
         if (element.getValue() instanceof RawType) {
             RawType raw = (RawType) element.getValue();
-            XNode node = raw.getXnode();
-            if (node == null) {
-                return false;
-            }
-            if (node instanceof MapXNode && ((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
+            PrismValue prismValue = raw.getAlreadyParsedValue();
+            if (prismValue != null && prismValue instanceof PrismContainerValue &&
+                    ((PrismContainerValue)prismValue).getComplexTypeDefinition() != null &&
+                    ShadowAssociationType.class.equals(((PrismContainerValue)prismValue).getComplexTypeDefinition().getCompileTimeClass())){
                 return true;
             }
+        } else if (element.getValue() instanceof ShadowAssociationType) {
+            return true;
         }
-        return false;
+            return false;
     }
 
-    /**
+    /**((PrismContainerValue)prismValue).getComplexTypeDefinition()
      * @return Immutable list of associations.
      */
     @NotNull
@@ -518,6 +521,10 @@ public class ExpressionUtil {
             expression.getExpressionEvaluator().add(
                     new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationType.class,
                             new ShadowAssociationType(prismContext).shadowRef(oid, ShadowType.COMPLEX_TYPE)));
+        } else {
+            expression.getExpressionEvaluator().add(
+                    new JAXBElement<>(SchemaConstants.C_VALUE, ShadowAssociationType.class,
+                            new ShadowAssociationType(prismContext)));
         }
     }
 
