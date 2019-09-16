@@ -95,7 +95,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
     protected List<IColumn<SelectableBean<CaseType>, String>> initColumns() {
         LOGGER.trace("initColumns()");
 
-        return ColumnUtils.getDefaultCaseColumns(PageCases.this);
+        return ColumnUtils.getDefaultCaseColumns(PageCases.this, false);
     }
 
     @Override

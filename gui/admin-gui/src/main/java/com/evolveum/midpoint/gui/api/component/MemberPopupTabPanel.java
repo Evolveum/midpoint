@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -37,9 +38,9 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     private static final String ID_RELATION = "relation";
 
     private PageBase pageBase;
-    private List<QName> supportedRelationList = new ArrayList<>();
+    private AvailableRelationDto supportedRelationList = new AvailableRelationDto();
 
-    public MemberPopupTabPanel(String id, List<QName> supportedRelationList){
+    public MemberPopupTabPanel(String id, AvailableRelationDto supportedRelationList){
         super(id);
         this.supportedRelationList = supportedRelationList;
     }
@@ -59,17 +60,18 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
 
             @Override
             public boolean isVisible(){
-                return CollectionUtils.isNotEmpty(supportedRelationList);
+                return CollectionUtils.isNotEmpty(supportedRelationList.getAvailableRelationList());
             }
 
             @Override
             public boolean isEnabled(){
-                return CollectionUtils.isNotEmpty(supportedRelationList) && supportedRelationList.size() > 1;
+                return CollectionUtils.isNotEmpty(supportedRelationList.getAvailableRelationList())
+                		&& supportedRelationList.getAvailableRelationList().size() > 1;
             }
         });
         parametersPanel.add(relationContainer);
 
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, supportedRelationList, false));
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, supportedRelationList.getDefaultRelation(), supportedRelationList.getAvailableRelationList(), false));
     }
 
     protected ObjectDelta prepareDelta(){

@@ -14,6 +14,8 @@ import com.evolveum.midpoint.prism.schema.DefinitionStoreUtils;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -27,6 +29,8 @@ public class ItemInfo<ID extends ItemDefinition> {
 	private ID itemDefinition;
 	private QName typeName;
 	private ComplexTypeDefinition complexTypeDefinition;
+
+	private static final Trace LOGGER = TraceManager.getTrace(ItemInfo.class);
 
 	/**
 	 * This method is to be called ONLY on the root level, i.e. when unmarshalling starts.
@@ -89,6 +93,22 @@ public class ItemInfo<ID extends ItemDefinition> {
 			info.itemName = definition.getItemName();
 		} else {
 			info.itemName = itemNameDefault;
+		}
+
+		// Schema migration
+		if (definition != null) {
+			if (!info.itemName.equals(definition.getItemName())) {
+				List<SchemaMigration> schemaMigrations = definition.getSchemaMigrations();
+				if (schemaMigrations != null) {
+					for (SchemaMigration schemaMigration : schemaMigrations) {
+						if (SchemaMigrationOperation.RENAMED_PARENT.equals(schemaMigration.getOperation()) &&
+								info.itemName.equals(schemaMigration.getElementQName())) {
+							LOGGER.warn("Using legacy element name {} for definition {}", info.itemName, definition);
+							info.itemName = definition.getItemName();
+						}
+					}
+				}
+			}
 		}
 
 		// type name

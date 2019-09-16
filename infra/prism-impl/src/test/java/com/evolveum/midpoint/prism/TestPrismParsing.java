@@ -70,7 +70,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test100PrismParseFile() throws Exception {
 		final String TEST_NAME = "test100PrismParseFile";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 
@@ -88,7 +88,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test110PrismParseFileNoNs() throws Exception {
 		final String TEST_NAME = "test110PrismParseFileNoNs";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 
@@ -106,7 +106,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test120PrismParseFileObject() throws Exception {
 		final String TEST_NAME = "test120PrismParseFileObject";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -125,7 +125,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test130PrismParseFileAdhoc() throws Exception {
 		final String TEST_NAME = "test130PrismParseFileAdhoc";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -144,7 +144,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test200RoundTrip() throws Exception {
 		final String TEST_NAME = "test200RoundTrip";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		roundTrip(getFile(USER_JACK_FILE_BASENAME), true);
 	}
@@ -152,7 +152,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test210RoundTripNoNs() throws Exception {
 		final String TEST_NAME = "test210RoundTripNoNs";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		roundTrip(getFile(USER_JACK_NO_NS_BASENAME), true);
 	}
@@ -160,7 +160,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test220RoundTripObject() throws Exception {
 		final String TEST_NAME = "test220RoundTripObject";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		roundTrip(getFile(USER_JACK_OBJECT_BASENAME), false);
 	}
@@ -211,7 +211,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test230RoundTripAdhoc() throws Exception {
 		final String TEST_NAME = "test230RoundTripAdhoc";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		roundTripAdhoc(getFile(USER_JACK_ADHOC_BASENAME));
 	}
@@ -254,7 +254,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test300MeleeContext() throws Exception {
 		final String TEST_NAME = "test300MeleeContext";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -315,7 +315,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test400UserWill() throws Exception {
 		final String TEST_NAME = "test400UserWill";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -334,7 +334,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test410UserWillRoundTrip() throws Exception {
 		final String TEST_NAME = "test410UserWillRoundTrip";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -372,7 +372,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test500UserElisabethRoundTrip() throws Exception {
 		final String TEST_NAME = "test500UserElisabethRoundTrip";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -411,7 +411,7 @@ public abstract class TestPrismParsing {
 	@Test
 	public void test600AccountBarbossa() throws Exception {
 		final String TEST_NAME = "test600AccountBarbossa";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -598,4 +598,7 @@ public abstract class TestPrismParsing {
 	protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
 	}
 
+	protected void displayTestTitle(final String TEST_NAME) {
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME+"("+getSubdirName()+")");
+	}
 }

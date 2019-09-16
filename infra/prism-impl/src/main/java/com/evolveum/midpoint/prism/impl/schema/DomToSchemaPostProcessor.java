@@ -20,10 +20,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.sun.xml.xsom.*;
+import com.sun.xml.xsom.impl.AnnotationImpl;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.Locator;
 
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.namespace.QName;
@@ -1124,7 +1126,8 @@ class DomToSchemaPostProcessor {
 
 	private void parseSchemaMigrations(MutableDefinition def, XSAnnotation annotation) throws SchemaException {
 		for (Element schemaMigrationElement : SchemaProcessorUtil.getAnnotationElements(annotation, A_SCHEMA_MIGRATION)) {
-			def.addSchemaMigration(parseSchemaMigration(def, schemaMigrationElement));
+			SchemaMigration schemaMigration = parseSchemaMigration(def, schemaMigrationElement);
+			def.addSchemaMigration(schemaMigration);
 		}
 	}
 

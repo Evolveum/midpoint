@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
@@ -222,8 +223,9 @@ public class TestSchemaRegistry {
 		PrismPropertyDefinition identifierDef = abstractRoleDefinition.findPropertyDefinition(AbstractRoleType.F_IDENTIFIER);
 		assertNotNull("No identifier definition", identifierDef);
 
-		List<SchemaMigration> schemaMigrations = abstractRoleDefinition.getSchemaMigrations();
-		assertEquals("Wrong number of schema migrations in role definition", 8, schemaMigrations.size());
+		assertNull("Unexpected schema migrations in abstract role definition (OTD)", abstractRoleDefinition.getSchemaMigrations());
+		List<SchemaMigration> schemaMigrations = abstractRoleDefinition.getComplexTypeDefinition().getSchemaMigrations();
+		assertEquals("Wrong number of schema migrations in AbstractRoleType definition (CTD)", 8, schemaMigrations.size());
 
 		// Just make sure this does not end with NPE or stack overflow
 		PrismObjectDefinition<AbstractRoleType> shallowClone = abstractRoleDefinition.clone();
@@ -232,29 +234,57 @@ public class TestSchemaRegistry {
 	}
 
     @Test
-	public void testCommonSchemaAccountType() throws SchemaException, SAXException, IOException {
-    	System.out.println("===[ testCommonSchemaAccountType ]===");
+	public void testCommonSchemaShadowType() throws SchemaException, SAXException, IOException {
+    	System.out.println("\n\n===[ testCommonSchemaShadowType ]===");
 
 		MidPointPrismContextFactory factory = getContextFactory();
 		PrismContext context = factory.createInitializedPrismContext();
 		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
 
-		PrismObjectDefinition<ShadowType> accountDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
-		assertNotNull("No account definition", accountDef);
+		PrismObjectDefinition<ShadowType> shadowDef = schemaRegistry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
+		assertNotNull("No shadow definition", shadowDef);
 
-		System.out.println("testCommonSchemaAccountType:");
-		System.out.println(accountDef.debugDump());
+		System.out.println("\nshadow definition:");
+		System.out.println(shadowDef.debugDump(1));
 
-		PrismPropertyDefinition nameDef = accountDef.findPropertyDefinition(ShadowType.F_NAME);
+		PrismPropertyDefinition nameDef = shadowDef.findPropertyDefinition(ShadowType.F_NAME);
 		assertNotNull("No name definition", nameDef);
 
-		PrismContainerDefinition extensionDef = accountDef.findContainerDefinition(ShadowType.F_EXTENSION);
+		PrismContainerDefinition extensionDef = shadowDef.findContainerDefinition(ShadowType.F_EXTENSION);
 		assertNotNull("No 'extension' definition", extensionDef);
 		assertTrue("'extension' definition is not marked as runtime", extensionDef.isRuntimeSchema());
 
-		PrismContainerDefinition attributesDef = accountDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
+		PrismContainerDefinition attributesDef = shadowDef.findContainerDefinition(ShadowType.F_ATTRIBUTES);
 		assertNotNull("No 'attributes' definition", attributesDef);
 		assertTrue("'attributes' definition is not marked as runtime", attributesDef.isRuntimeSchema());
+
+		List<SchemaMigration> schemaMigrations = shadowDef.getSchemaMigrations();
+		System.out.println("\nshadow schema migrations ("+schemaMigrations.size()+"):");
+		System.out.println(DebugUtil.debugDump(schemaMigrations));
+		assertEquals("Wrong number of schema migrations in shadow definition", 1, schemaMigrations.size());
+
+		ComplexTypeDefinition shadowTypeDef = shadowDef.getComplexTypeDefinition();
+		List<SchemaMigration> shadowTypeSchemaMigrations = shadowTypeDef.getSchemaMigrations();
+		System.out.println("\nShadowType schema migrations ("+shadowTypeSchemaMigrations.size()+"):");
+		System.out.println(DebugUtil.debugDump(shadowTypeSchemaMigrations));
+		assertEquals("Wrong number of schema migrations in ShadowType definition", 4, shadowTypeSchemaMigrations.size());
+	}
+
+	@Test
+	public void testCommonSchemaLegacyAccount() throws SchemaException, SAXException, IOException {
+		System.out.println("\n\n===[ testCommonSchemaLegacyAccount ]===");
+
+		MidPointPrismContextFactory factory = getContextFactory();
+		PrismContext context = factory.createInitializedPrismContext();
+		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
+
+		ItemDefinition accountDef = schemaRegistry.findItemDefinitionByElementName(SchemaConstants.C_ACCOUNT);
+		assertNotNull("No definition for legacy account", accountDef);
+		System.out.println("\naccount definition:");
+		System.out.println(accountDef.debugDump(1));
+		assertTrue("Expected object definition for legacy account, but got "+accountDef, accountDef instanceof  PrismObjectDefinition);
+
+		assertEquals("Unexpected element name in legacy account definition", SchemaConstants.C_SHADOW, accountDef.getItemName());
 	}
 
 	private MidPointPrismContextFactory getContextFactory() {

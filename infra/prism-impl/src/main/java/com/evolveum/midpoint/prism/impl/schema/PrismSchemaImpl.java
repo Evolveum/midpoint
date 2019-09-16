@@ -112,7 +112,9 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 
 	@Override
 	public void add(@NotNull Definition def) {
+
 		definitions.add(def);
+
 		if (def instanceof ItemDefinition) {
 			ItemDefinition<?> itemDef = (ItemDefinition<?>) def;
 			itemDefinitionMap.put(itemDef.getItemName(), itemDef);
@@ -121,6 +123,16 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 				throw new IllegalArgumentException("Item definition (" + itemDef + ") of unqualified type " + typeName + " cannot be added to " + this);
 			}
 			itemDefinitionByTypeMap.put(typeName, itemDef);
+
+			List<SchemaMigration> schemaMigrations = itemDef.getSchemaMigrations();
+			if (schemaMigrations != null) {
+				for (SchemaMigration schemaMigration : schemaMigrations) {
+					if (SchemaMigrationOperation.RENAMED_PARENT.equals(schemaMigration.getOperation())) {
+						itemDefinitionMap.put(schemaMigration.getElementQName(), itemDef);
+					}
+				}
+			}
+
 		} else if (def instanceof TypeDefinition) {
 			QName typeName = def.getTypeName();
 			if (QNameUtil.isUnqualified(typeName)) {

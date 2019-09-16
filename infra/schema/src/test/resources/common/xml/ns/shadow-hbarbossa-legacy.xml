@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!--MID-5752-->
+<account xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		oid="88519fca-3f4a-44ca-91c8-dc9be5bf3d03" version="0">
+	<name>hbarbossa</name>
+	<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+	<dead>false</dead>
+	<synchronizationSituation>linked</synchronizationSituation>
+	<synchronizationSituationDescription>
+		<situation>linked</situation>
+		<channel>syncChannel</channel>
+	</synchronizationSituationDescription>
+	<objectClass xmlns:qn80="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">qn80:AccountObjectClass</objectClass>
+	<attributes xmlns:gen913="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
+		<gen913:cn>Hector Barbossa</gen913:cn>
+		<icfs:name>uid=hbarbossa,ou=people,dc=example,dc=com</icfs:name>
+		<gen913:sn>Barbossa</gen913:sn>
+		<gen913:uid>hbarbossa</gen913:uid>
+		<icfs:uid>8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
+	</attributes>
+	<activation>
+		<administrativeStatus>enabled</administrativeStatus>
+	</activation>
+</account>

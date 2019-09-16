@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
@@ -116,7 +117,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					protected List<QName> getSupportedRelations() {
+					protected AvailableRelationDto getSupportedRelations() {
 						return getSupportedMembersTabRelations();
 					}
 
@@ -131,7 +132,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					protected List<QName> getSupportedRelations() {
+					protected AvailableRelationDto getSupportedRelations() {
 						return getSupportedGovernanceTabRelations();
 					}
 
