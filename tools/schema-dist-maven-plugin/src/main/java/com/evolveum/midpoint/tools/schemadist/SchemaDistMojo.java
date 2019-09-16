@@ -31,9 +31,10 @@ import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.ArtifactNotFoundException;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.artifact.resolver.ArtifactResolutionRequest;
 import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
 import org.apache.maven.artifact.versioning.VersionRange;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -44,7 +45,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.project.MavenProjectHelper;
+import org.apache.maven.repository.RepositorySystem;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.codehaus.plexus.archiver.ArchiverException;
@@ -85,23 +86,17 @@ public class SchemaDistMojo extends AbstractMojo {
     @Parameter(defaultValue="${project}")
     private org.apache.maven.project.MavenProject project;
 
-    @Parameter(defaultValue="${localRepository}")
-    private ArtifactRepository local;
-
-    @Parameter(defaultValue="${project.remoteArtifactRepositories}")
-    protected List<ArtifactRepository> remoteRepos;
-
     @Component
     private ArtifactFactory factory;
 
     @Component
-    private ArtifactResolver resolver;
+	private RepositorySystem repository;
+
+	@Component
+	private MavenSession session;
 
     @Component
     private ArchiverManager archiverManager;
-
-    @Component
-    private MavenProjectHelper projectHelper;
 
     private void processArtifactItems() throws MojoExecutionException, InvalidVersionSpecificationException {
     	for (ArtifactItem artifactItem : artifactItems) {
@@ -156,11 +151,15 @@ public class SchemaDistMojo extends AbstractMojo {
 	                                                     Artifact.SCOPE_COMPILE );
 	    }
 
-	    try {
-			resolver.resolve(artifact, remoteRepos, local);
-		} catch (ArtifactResolutionException | ArtifactNotFoundException e) {
-			throw new MojoExecutionException("Error resolving artifact "+artifact, e);
-		}
+		ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+		request.setArtifact(artifact);
+		request.setResolveRoot(true).setResolveTransitively(false);
+		request.setServers( session.getRequest().getServers() );
+		request.setMirrors( session.getRequest().getMirrors() );
+		request.setProxies( session.getRequest().getProxies() );
+		request.setLocalRepository(session.getLocalRepository());
+		request.setRemoteRepositories(session.getRequest().getRemoteRepositories());
+		repository.resolve(request);
 
 	    return artifact;
     }
