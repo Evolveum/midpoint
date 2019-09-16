@@ -686,24 +686,7 @@ public class ColumnUtils {
 					item.add(new Label(componentId, new IModel<String>() {
 						@Override
 						public String getObject() {
-							String actors = null;
-							SelectableBean<CaseType> caseModel = rowModel.getObject();
-							if (caseModel != null) {
-								CaseType caseIntance = caseModel.getValue();
-								if (caseIntance != null) {
-									List<CaseWorkItemType> caseWorkItemTypes = caseIntance.getWorkItem();
-									List<String> actorsList = new ArrayList<String>();
-									for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
-										List<ObjectReferenceType> assignees = caseWorkItem.getAssigneeRef();
-										for (ObjectReferenceType actor : assignees) {
-											actorsList.add(WebComponentUtil.getEffectiveName(actor, AbstractRoleType.F_DISPLAY_NAME, pageBase,
-													pageBase.getClass().getSimpleName() + "." + "loadCaseActorsNames"));
-										}
-									}
-									actors = String.join(", ", actorsList);
-								}
-							}
-							return actors;
+							return getActorsForCase(rowModel, pageBase);
 						}
 					}));
 				}
@@ -813,5 +796,26 @@ public class ColumnUtils {
 
 	public static <C extends Containerable> C unwrapRowModel(IModel<PrismContainerValueWrapper<C>> rowModel){
 		return rowModel.getObject().getRealValue();
+	}
+	
+	public static String getActorsForCase(IModel<SelectableBean<CaseType>> rowModel, PageBase pageBase) {
+		String actors = null;
+		SelectableBean<CaseType> caseModel = rowModel.getObject();
+		if (caseModel != null) {
+			CaseType caseIntance = caseModel.getValue();
+			if (caseIntance != null) {
+				List<CaseWorkItemType> caseWorkItemTypes = caseIntance.getWorkItem();
+				List<String> actorsList = new ArrayList<String>();
+				for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
+					List<ObjectReferenceType> assignees = caseWorkItem.getAssigneeRef();
+					for (ObjectReferenceType actor : assignees) {
+						actorsList.add(WebComponentUtil.getEffectiveName(actor, AbstractRoleType.F_DISPLAY_NAME, pageBase,
+								pageBase.getClass().getSimpleName() + "." + "loadCaseActorsNames"));
+					}
+				}
+				actors = String.join(", ", actorsList);
+			}
+		}
+		return actors;
 	}
 }
