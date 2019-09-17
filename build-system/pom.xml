@@ -77,7 +77,7 @@
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.8.0</wro4j.version>
         <jackson.version>2.9.9</jackson.version>
-        <snakeyaml.version>1.19</snakeyaml.version>
+        <snakeyaml.version>1.23</snakeyaml.version>
         <surefire.version>3.0.0-M3</surefire.version>
         <reflections.version>0.9.11</reflections.version>
         <guava.version>28.1-jre</guava.version>
