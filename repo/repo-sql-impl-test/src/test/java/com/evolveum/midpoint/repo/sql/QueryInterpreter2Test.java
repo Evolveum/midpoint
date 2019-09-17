@@ -4818,5 +4818,37 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             close(session);
         }
     }
+    
+    //@Test
+    public void test1443QueryWithMultiValueItemPathForOrdering() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery q = prismContext.queryFor(ObjectType.class)
+                    .exists(ObjectType.F_OPERATION_EXECUTION)
+                    .block()
+                    .item(OperationExecutionType.F_TASK_REF).ref("00000000-0000-0000-0000-000000000006")
+                    .and()
+                    .block().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.FATAL_ERROR)
+                    .or().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.PARTIAL_ERROR)
+                    .or().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.WARNING)
+                    .endBlock()
+                    .endBlock()
+                    .build();
+            List<ObjectOrdering> orderings = Collections.singletonList(
+            		prismContext.queryFactory().createOrdering(
+            				ItemPath.create("operationExecution", "timestamp"), OrderDirection.ASCENDING));
+            ObjectPaging paging = prismContext.queryFactory().createPaging(1, 20, orderings);
+            q.setPaging(paging);
+            
+            String real = getInterpretedQuery2(session, ObjectType.class, q, false);
+            String expected = "";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
 
 }

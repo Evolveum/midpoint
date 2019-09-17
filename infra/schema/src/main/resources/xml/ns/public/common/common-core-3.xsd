@@ -11792,8 +11792,18 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-	<!-- let's put shadow first, to be matched before "account" -->
-	<xsd:element name="shadow" type="tns:ShadowType" substitutionGroup="c:object"/>
+	<xsd:element name="shadow" type="tns:ShadowType" substitutionGroup="c:object">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:account</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>renamedParent</a:operation>
+                    <a:replacement>tns:shadow</a:replacement>
+                </a:schemaMigration>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:simpleType name="ShadowKindType">
         <xsd:annotation>
@@ -24192,6 +24202,16 @@
 						<xsd:annotation>
 	       					<xsd:appinfo>
 								<a:displayName>GuiObjectListViewType.disableSorting</a:displayName>
+	       					</xsd:appinfo>
+	       				</xsd:annotation>
+	       			</xsd:element>
+					<xsd:element name="disableCounting" type="xsd:boolean" default="false" minOccurs="0">
+						<xsd:annotation>
+                            <xsd:documentation>
+                                Configures the possibility of the objects counting while object list loading
+                            </xsd:documentation>
+	       					<xsd:appinfo>
+								<a:displayName>GuiObjectListViewType.disableCounting</a:displayName>
 	       					</xsd:appinfo>
 	       				</xsd:annotation>
 	       			</xsd:element>

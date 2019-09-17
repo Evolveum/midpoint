@@ -654,7 +654,7 @@ public class ColumnUtils {
 		return columns;
 	}
 
-	public static List<IColumn<SelectableBean<CaseType>, String>> getDefaultCaseColumns(PageBase pageBase) {
+	public static List<IColumn<SelectableBean<CaseType>, String>> getDefaultCaseColumns(PageBase pageBase, boolean isDashboard) {
 
 		List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseType>, String>>();
 
@@ -678,36 +678,21 @@ public class ColumnUtils {
 			}
 		};
 		columns.add(column);
-
-		column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
-			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
-				item.add(new Label(componentId, new IModel<String>() {
-					@Override
-					public String getObject() {
-						String actors = null;
-						SelectableBean<CaseType> caseModel = rowModel.getObject();
-						if (caseModel != null) {
-							CaseType caseIntance = caseModel.getValue();
-							if (caseIntance != null) {
-								List<CaseWorkItemType> caseWorkItemTypes = caseIntance.getWorkItem();
-								List<String> actorsList = new ArrayList<String>();
-								for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
-									List<ObjectReferenceType> assignees = caseWorkItem.getAssigneeRef();
-									for (ObjectReferenceType actor : assignees) {
-										actorsList.add(WebComponentUtil.getEffectiveName(actor, AbstractRoleType.F_DISPLAY_NAME, pageBase,
-												pageBase.getClass().getSimpleName() + "." + "loadCaseActorsNames"));
-									}
-								}
-								actors = String.join(", ", actorsList);
-							}
+		
+		if (!isDashboard) {
+			column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
+				@Override
+				public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
+					item.add(new Label(componentId, new IModel<String>() {
+						@Override
+						public String getObject() {
+							return getActorsForCase(rowModel, pageBase);
 						}
-						return actors;
-					}
-				}));
-			}
-		};
-		columns.add(column);
+					}));
+				}
+			};
+			columns.add(column);
+		}
 
 		column = new AbstractColumn<SelectableBean<CaseType>, String>(
 				createStringResource("pageCases.table.openTimestamp"),
@@ -736,60 +721,101 @@ public class ColumnUtils {
 					}
 				}));
 			}
+			
+			@Override
+			public String getCssClass() {
+				return isDashboard ? "col-sm-2 col-lg-1" : super.getCssClass();
+			}
 		};
 		columns.add(column);
 
-		column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), CaseType.F_CLOSE_TIMESTAMP.getLocalPart(), "value.closeTimestamp") {
-			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
-									 String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
-				CaseType object = rowModel.getObject().getValue();
-				XMLGregorianCalendar closedCal = object != null ? object.getCloseTimestamp() : null;
-				final Date closed;
-				if (closedCal != null) {
-					closed = closedCal.toGregorianCalendar().getTime();
-                    cellItem.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE)));
-                    cellItem.add(new TooltipBehavior());
-				} else {
-					closed = null;
-				}
-				cellItem.add(new Label(componentId, new IModel<String>() {
-					@Override
-					public String getObject() {
-						return WebComponentUtil.getShortDateTimeFormattedValue(closed, pageBase);
+		if (!isDashboard) {
+			column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), CaseType.F_CLOSE_TIMESTAMP.getLocalPart(), "value.closeTimestamp") {
+				@Override
+				public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
+										 String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
+					CaseType object = rowModel.getObject().getValue();
+					XMLGregorianCalendar closedCal = object != null ? object.getCloseTimestamp() : null;
+					final Date closed;
+					if (closedCal != null) {
+						closed = closedCal.toGregorianCalendar().getTime();
+	                    cellItem.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE)));
+	                    cellItem.add(new TooltipBehavior());
+					} else {
+						closed = null;
 					}
-				}));
+					cellItem.add(new Label(componentId, new IModel<String>() {
+						@Override
+						public String getObject() {
+							return WebComponentUtil.getShortDateTimeFormattedValue(closed, pageBase);
+						}
+					}));
+				}
+				
+				@Override
+				public String getCssClass() {
+					return isDashboard ? "col-sm-2 col-lg-1" : super.getCssClass();
+				}
+			};
+			columns.add(column);
+		}
+
+		column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state"){
+			@Override
+			public String getCssClass() {
+				return isDashboard ? "col-md-1 col-sm-2" : super.getCssClass();
 			}
 		};
 		columns.add(column);
 
-		column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state");
-		columns.add(column);
+		if (!isDashboard) {
+			column = new AbstractExportableColumn<SelectableBean<CaseType>, String>(
+					createStringResource("pageCases.table.workitems")) {
 
-		column = new AbstractExportableColumn<SelectableBean<CaseType>, String>(
-				createStringResource("pageCases.table.workitems")) {
+				@Override
+				public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
+										 String componentId, IModel<SelectableBean<CaseType>> model) {
+					cellItem.add(new Label(componentId,
+							model.getObject().getValue() != null && model.getObject().getValue().getWorkItem() != null ?
+									model.getObject().getValue().getWorkItem().size() : null));
+				}
 
-			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
-									 String componentId, IModel<SelectableBean<CaseType>> model) {
-				cellItem.add(new Label(componentId,
-						model.getObject().getValue() != null && model.getObject().getValue().getWorkItem() != null ?
-								model.getObject().getValue().getWorkItem().size() : null));
-			}
-
-			@Override
-			public IModel<String> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
-				return Model.of(rowModel.getObject().getValue() != null && rowModel.getObject().getValue().getWorkItem() != null ?
-						Integer.toString(rowModel.getObject().getValue().getWorkItem().size()) : "");
-			}
+				@Override
+				public IModel<String> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
+					return Model.of(rowModel.getObject().getValue() != null && rowModel.getObject().getValue().getWorkItem() != null ?
+							Integer.toString(rowModel.getObject().getValue().getWorkItem().size()) : "");
+				}
 
 
-		};
-		columns.add(column);
+			};
+			columns.add(column);
+		}
+		
 		return columns;
 	}
 
 	public static <C extends Containerable> C unwrapRowModel(IModel<PrismContainerValueWrapper<C>> rowModel){
 		return rowModel.getObject().getRealValue();
+	}
+	
+	public static String getActorsForCase(IModel<SelectableBean<CaseType>> rowModel, PageBase pageBase) {
+		String actors = null;
+		SelectableBean<CaseType> caseModel = rowModel.getObject();
+		if (caseModel != null) {
+			CaseType caseIntance = caseModel.getValue();
+			if (caseIntance != null) {
+				List<CaseWorkItemType> caseWorkItemTypes = caseIntance.getWorkItem();
+				List<String> actorsList = new ArrayList<String>();
+				for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
+					List<ObjectReferenceType> assignees = caseWorkItem.getAssigneeRef();
+					for (ObjectReferenceType actor : assignees) {
+						actorsList.add(WebComponentUtil.getEffectiveName(actor, AbstractRoleType.F_DISPLAY_NAME, pageBase,
+								pageBase.getClass().getSimpleName() + "." + "loadCaseActorsNames"));
+					}
+				}
+				actors = String.join(", ", actorsList);
+			}
+		}
+		return actors;
 	}
 }

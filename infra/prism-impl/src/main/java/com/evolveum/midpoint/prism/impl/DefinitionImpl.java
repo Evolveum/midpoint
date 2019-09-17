@@ -289,7 +289,9 @@ public abstract class DefinitionImpl implements MutableDefinition {
 		if (schemaMigrations == null) {
 			schemaMigrations = new ArrayList<>();
 		}
-		schemaMigrations.add(schemaMigration);
+		if (!schemaMigrations.contains(schemaMigration)) {
+			schemaMigrations.add(schemaMigration);
+		}
 	}
 
 	public abstract void revive(PrismContext prismContext);

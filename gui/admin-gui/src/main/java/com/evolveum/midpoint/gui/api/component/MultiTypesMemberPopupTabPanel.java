@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -41,7 +42,7 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
 
     private ObjectTypes defaultObjectType = ObjectTypes.OBJECT_COLLECTION;
 
-    public MultiTypesMemberPopupTabPanel(String id, List<QName> supportedRelationsList){
+    public MultiTypesMemberPopupTabPanel(String id, AvailableRelationDto supportedRelationsList){
         super(id, supportedRelationsList);
     }
 

@@ -342,6 +342,7 @@ public class UserProfileCompiler {
 		compileDisplay(existingView, objectListViewType);
 		compileDistinct(existingView, objectListViewType);
 		compileSorting(existingView, objectListViewType);
+		compileCounting(existingView, objectListViewType);
 		compileDisplayOrder(existingView, objectListViewType);
 		compileSearchBox(existingView, objectListViewType);
 		compileCollection(existingView, objectListViewType, task, result);
@@ -434,6 +435,13 @@ public class UserProfileCompiler {
 		Boolean newDisableSorting = objectListViewType.isDisableSorting();
 		if (newDisableSorting != null) {
 			existingView.setDisableSorting(newDisableSorting);
+		}
+	}
+
+	private void compileCounting(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
+		Boolean newDisableCounting = objectListViewType.isDisableCounting();
+		if (newDisableCounting != null) {
+			existingView.setDisableCounting(newDisableCounting);
 		}
 	}
 

@@ -11,10 +11,12 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -80,8 +83,26 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
 
                 IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
                 columns.add(column);
+                
+                column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
+    				@Override
+    				public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
+    					item.add(new Label(componentId, new IModel<String>() {
+    						@Override
+    						public String getObject() {
+    							return ColumnUtils.getActorsForCase(rowModel, getPageBase());
+    						}
+    					}));
+    				}
+    			};
+    			columns.add(column);
 
-                column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state");
+                column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state"){
+                	@Override
+                	public String getCssClass() {
+                		return "col-sm-2 col-md-1";
+                	}
+                };
                 columns.add(column);
 
                 column = new AbstractExportableColumn<SelectableBean<CaseType>, String>(
@@ -101,7 +122,10 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
                                 Integer.toString(rowModel.getObject().getValue().getWorkItem().size()) : "");
                     }
 
-
+                    @Override
+                    public String getCssClass() {
+                    	return "col-md-2 col-lg-1";
+                    }
                 };
                 columns.add(column);
                 return columns;

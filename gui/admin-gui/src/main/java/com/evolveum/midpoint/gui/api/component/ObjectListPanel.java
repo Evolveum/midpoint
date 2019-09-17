@@ -424,12 +424,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 			@Override
 			public boolean isOrderingDisabled() {
-				GuiObjectListPanelConfigurationType additionalPanelConfig = getAdditionalPanelConfig();
-				if (additionalPanelConfig != null && additionalPanelConfig.isDisableSorting() != null) {
-					return additionalPanelConfig.isDisableSorting();
-				} else {
-					return super.isOrderingDisabled();
-				}
+				return ObjectListPanel.this.isOrderingDisabled();
+			}
+
+			@Override
+			public boolean isUseObjectCounting(){
+				return isCountingEnabled();
 			}
 		};
 		if (options == null){
@@ -467,6 +467,42 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	 */
 	protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
 		return null;
+	}
+
+	protected boolean isOrderingDisabled(){
+		CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
+		if (isAdditionalPanel()){
+			if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
+					guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
+					guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting() != null){
+				return guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting();
+			}
+		} else {
+			if (guiObjectListViewType != null && guiObjectListViewType.isDisableSorting() != null){
+				return guiObjectListViewType.isDisableSorting();
+			}
+		}
+		return true;
+	}
+
+	protected boolean isCountingEnabled(){
+		CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
+		if (isAdditionalPanel()){
+			if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
+					guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
+					guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting() != null){
+				return guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting();
+			}
+		} else {
+			if (guiObjectListViewType != null && guiObjectListViewType.isDisableCounting() != null){
+				return !guiObjectListViewType.isDisableCounting();
+			}
+		}
+		return true;
+	}
+
+	protected boolean isAdditionalPanel(){
+		return false;
 	}
 
 	private SearchFormPanel initSearch(String headerId) {

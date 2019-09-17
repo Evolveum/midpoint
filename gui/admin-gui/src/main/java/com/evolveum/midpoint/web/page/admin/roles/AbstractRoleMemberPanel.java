@@ -258,11 +258,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 					@Override
 					protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation) {
 						List<QName> relations = relation != null && !CollectionUtils.isEmpty(relation.getRelations()) ?
-								Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations();
+								Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations().getAvailableRelationList();
+						AvailableRelationDto avariableRelations = new AvailableRelationDto(relations, getSupportedRelations().getDefaultRelation());
 						List<QName> objectTypes = relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
 								relation.getObjectTypes() : null;
 						MemberOperationsHelper.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), target,
-								relations, objectTypes, relation == null);
+								avariableRelations, objectTypes, relation == null);
 					}
 
 					@Override
@@ -342,6 +343,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             @Override
 			protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
 				return AbstractRoleMemberPanel.this.getAdditionalPanelConfig();
+			}
+
+			@Override
+			protected boolean isAdditionalPanel(){
+				return true;
 			}
         };
         childrenListPanel.setOutputMarkupId(true);
@@ -493,7 +499,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	
 	
 	
-	protected abstract List<QName> getSupportedRelations();
+	protected abstract AvailableRelationDto getSupportedRelations();
 
 	protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
 		return null;
@@ -525,7 +531,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		return spec;
 	}
 
-	protected void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList, List<QName> objectTypes) {
+	protected void assignMembers(AjaxRequestTarget target, AvailableRelationDto availableRelationList, List<QName> objectTypes) {
 		MemberOperationsHelper.assignMembers(getPageBase(), getModelObject(), target, availableRelationList, objectTypes);
 	}
 
@@ -543,7 +549,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 			@Override
 			protected List<QName> getSupportedRelations() {
-				return AbstractRoleMemberPanel.this.getSupportedRelations();
+				return AbstractRoleMemberPanel.this.getSupportedRelations().getAvailableRelationList();
 			}
 			
 			@Override
@@ -579,7 +585,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 			@Override
 			protected List<QName> getSupportedRelations() {
-				return AbstractRoleMemberPanel.this.getSupportedRelations();
+				return AbstractRoleMemberPanel.this.getSupportedRelations().getAvailableRelationList();
 			}
 
 			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
@@ -638,7 +644,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 				@Override
 				protected List<QName> getSupportedRelations() {
-					return AbstractRoleMemberPanel.this.getSupportedRelations();
+					return AbstractRoleMemberPanel.this.getSupportedRelations().getAvailableRelationList();
 				}
 
 				protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
@@ -763,8 +769,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		form.add(typeSelect);
 
 		RelationDropDownChoicePanel relationSelector = new RelationDropDownChoicePanel(ID_SEARCH_BY_RELATION,
-				getMemberPanelStorage() != null ? getMemberPanelStorage().getRelation() : null,
-				getSupportedRelations(), true){
+				getMemberPanelStorage() != null ? getMemberPanelStorage().getRelation() : getSupportedRelations().getDefaultRelation(),
+				getSupportedRelations().getAvailableRelationList(), true){
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -918,12 +924,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 	
 	protected void recomputeMembersPerformed(AjaxRequestTarget target) {
-		MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(true), getActionQuery(getQueryScope(true), getSupportedRelations()), target);
+		MemberOperationsHelper.recomputeMembersPerformed(getPageBase(), getQueryScope(true), getActionQuery(getQueryScope(true), getSupportedRelations().getAvailableRelationList()), target);
 	}
 
 	protected ObjectQuery createContentQuery() {
 		CheckFormGroup isIndirect = getIndirectmembersPanel();
-		List<QName> relations = QNameUtil.match(getSelectedRelation(), PrismConstants.Q_ANY) ? getSupportedRelations() : Arrays.asList(getSelectedRelation());  
+		List<QName> relations = QNameUtil.match(getSelectedRelation(), PrismConstants.Q_ANY) ? getSupportedRelations().getAvailableRelationList() : Arrays.asList(getSelectedRelation());  
  		return createMemberQuery(isIndirect != null ? isIndirect.getValue() : false, relations);
 
 	}
@@ -1120,7 +1126,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	private String buildRelation(ObjectReferenceType roleMembershipRef, String relation) {
 		if (roleMembershipRef.getOid().equals(getModelObject().getOid())) {
 			QName assignmentRelation = roleMembershipRef.getRelation();
-			if (getSupportedRelations().stream().anyMatch(r -> QNameUtil.match(r, assignmentRelation))) {
+			if (getSupportedRelations().getAvailableRelationList().stream().anyMatch(r -> QNameUtil.match(r, assignmentRelation))) {
 				if (!StringUtils.isBlank(relation)) {
 					relation += ",";
 				}

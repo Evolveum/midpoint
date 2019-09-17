@@ -17,6 +17,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType> {
@@ -28,8 +29,8 @@ public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	protected List<QName> getSupportedRelations() {
-		return Arrays.asList(SchemaConstants.ORG_DEFAULT);
+	protected AvailableRelationDto getSupportedRelations() {
+		return new AvailableRelationDto(Arrays.asList(SchemaConstants.ORG_DEFAULT));
 	}
 
 	@Override

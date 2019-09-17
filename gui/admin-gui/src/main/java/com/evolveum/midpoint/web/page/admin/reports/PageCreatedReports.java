@@ -61,9 +61,11 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
@@ -279,73 +281,113 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
         };
         columns.add(column);
 
-        column = new AbstractColumn<SelectableBean<ReportOutputType>, String>(new Model(), null) {
-
-        	private static final long serialVersionUID = 1L;
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<ReportOutputType>>> cellItem,
-                                     String componentId, final IModel<SelectableBean<ReportOutputType>> model) {
-
-                DownloadButtonPanel panel = new DownloadButtonPanel(componentId) {
-
-                	private static final long serialVersionUID = 1L;
-                    @Override
-                    protected void deletePerformed(AjaxRequestTarget target) {
-                        deleteSelectedPerformed(target, ReportDeleteDialogDto.Operation.DELETE_SINGLE,
-                                model.getObject().getValue());
-                    }
-
-                    @Override
-                    protected void downloadPerformed(AjaxRequestTarget target) {
-                        currentReport = model.getObject().getValue();
-                        PageCreatedReports.this.
-                                downloadPerformed(target, model.getObject().getValue(), ajaxDownloadBehavior);
-                    }
-                };
-                cellItem.add(panel);
-            }
-        };
-        columns.add(column);
+//        column = new AbstractColumn<SelectableBean<ReportOutputType>, String>(new Model(), null) {
+//
+//        	private static final long serialVersionUID = 1L;
+//            @Override
+//            public void populateItem(Item<ICellPopulator<SelectableBean<ReportOutputType>>> cellItem,
+//                                     String componentId, final IModel<SelectableBean<ReportOutputType>> model) {
+//
+//                DownloadButtonPanel panel = new DownloadButtonPanel(componentId) {
+//
+//                	private static final long serialVersionUID = 1L;
+//                    @Override
+//                    protected void deletePerformed(AjaxRequestTarget target) {
+//                        deleteSelectedPerformed(target, ReportDeleteDialogDto.Operation.DELETE_SINGLE,
+//                                model.getObject().getValue());
+//                    }
+//
+//                    @Override
+//                    protected void downloadPerformed(AjaxRequestTarget target) {
+//                        currentReport = model.getObject().getValue();
+//                        PageCreatedReports.this.
+//                                downloadPerformed(target, model.getObject().getValue(), ajaxDownloadBehavior);
+//                    }
+//                };
+//                cellItem.add(panel);
+//            }
+//        };
+//        columns.add(column);
 
         return columns;
     }
 
     private List<InlineMenuItem> initInlineMenu() {
-        List<InlineMenuItem> headerMenuItems = new ArrayList<>();
+        List<InlineMenuItem> menuItems = new ArrayList<>();
 
-        headerMenuItems.add(new InlineMenuItem(createStringResource("pageCreatedReports.inlineMenu.deleteAll")) {
+//        menuItems.add(new InlineMenuItem(createStringResource("pageCreatedReports.inlineMenu.deleteAll")) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public InlineMenuItemAction initAction() {
+//                return new HeaderMenuAction(PageCreatedReports.this) {
+//                    private static final long serialVersionUID = 1L;
+//
+//                    @Override
+//                    public void onClick(AjaxRequestTarget target) {
+//                        deleteAllPerformed(target, ReportDeleteDialogDto.Operation.DELETE_ALL);
+//                    }
+//                };
+//            }
+//        });
+
+        menuItems.add(new ButtonInlineMenuItem(createStringResource("pageCreatedReports.button.delete")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public InlineMenuItemAction initAction() {
-                return new HeaderMenuAction(PageCreatedReports.this) {
+                return new ColumnMenuAction<SelectableBean<ReportOutputType>>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        deleteAllPerformed(target, ReportDeleteDialogDto.Operation.DELETE_ALL);
+                    	ReportOutputType report = null;
+                    	if (getRowModel() != null) {
+                    		SelectableBean<ReportOutputType> rowDto = getRowModel().getObject();
+                    		report = rowDto.getValue();
+                    	}
+                        deleteSelectedPerformed(target, ReportDeleteDialogDto.Operation.DELETE_SELECTED, report);
                     }
                 };
             }
-        });
-
-        headerMenuItems.add(new InlineMenuItem(createStringResource("pageCreatedReports.inlineMenu.deleteSelected")) {
-            private static final long serialVersionUID = 1L;
-
+            
             @Override
-            public InlineMenuItemAction initAction() {
-                return new HeaderMenuAction(PageCreatedReports.this) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        deleteSelectedPerformed(target, ReportDeleteDialogDto.Operation.DELETE_SELECTED, null);
-                    }
-                };
-            }
+			public String getButtonIconCssClass() {
+				return "fa fa-minus";
+			}
         });
+        
+        ButtonInlineMenuItem item = new ButtonInlineMenuItem(createStringResource("DownloadButtonPanel.download")) {
+			private static final long serialVersionUID = 1L;
 
-        return headerMenuItems;
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<ReportOutputType>>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						SelectableBean<ReportOutputType> rowDto = getRowModel().getObject();
+						currentReport = rowDto.getValue();
+						downloadPerformed(target, rowDto.getValue(), ajaxDownloadBehavior);
+					}
+				};
+				
+			}
+			
+			@Override
+			public String getButtonIconCssClass() {
+				return "fa fa-download";
+			}
+			
+			@Override
+			public boolean isHeaderMenuItem(){
+		        return false;
+		    }
+		};
+		menuItems.add(item);
+
+        return menuItems;
     }
 
     private IModel<String> createDeleteConfirmString() {
@@ -366,7 +408,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
                         return createStringResource("pageCreatedReports.message.deleteAll").getString();
                     default:
                         return createStringResource("pageCreatedReports.message.deleteOutputConfirmed",
-                                getSelectedData().size()).getString();
+                        		deleteModel.getObject().getObjects().size()).getString();
                 }
             }
         };
@@ -522,7 +564,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
         //TODO - perform filtering based on file type - need to wait for schema update (ReportOutputType)
     }
 
-    private void downloadPerformed(AjaxRequestTarget target, ReportOutputType report,
+    private void downloadPerformed(AjaxRequestTarget target, ReportOutputType reports,
                                    AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
 
         ajaxDownloadBehavior.initiate(target);

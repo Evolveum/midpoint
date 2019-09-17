@@ -51,7 +51,7 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
 
 
     public ContainerListDataProvider(Component component, Class<C> type, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(component);
+        super(component, false, false);
         this.type = type;
         this.options = options;
     }
