@@ -273,7 +273,7 @@ public class NavigatorPanel extends Panel {
 
             @Override
             public boolean isEnabled() {
-                return BooleanUtils.isTrue(showPageListingModel.getObject()) && isLastEnabled();
+                return !isCountingDisabled() && BooleanUtils.isTrue(showPageListingModel.getObject()) && isLastEnabled();
             }
         });
         last.add(lastLink);
@@ -329,5 +329,9 @@ public class NavigatorPanel extends Panel {
     }
 
     protected void onPageChanged(AjaxRequestTarget target, long page) {
+    }
+
+    protected boolean isCountingDisabled(){
+        return false;
     }
 }
