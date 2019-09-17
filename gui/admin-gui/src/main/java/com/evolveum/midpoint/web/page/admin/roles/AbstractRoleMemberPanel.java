@@ -344,6 +344,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
 				return AbstractRoleMemberPanel.this.getAdditionalPanelConfig();
 			}
+
+			@Override
+			protected boolean isAdditionalPanel(){
+				return true;
+			}
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);

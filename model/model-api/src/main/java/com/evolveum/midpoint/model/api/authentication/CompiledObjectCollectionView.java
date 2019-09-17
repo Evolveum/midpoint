@@ -47,6 +47,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	private GuiObjectListViewAdditionalPanelsType additionalPanels;
 	private DistinctSearchOptionType distinct;
 	private Boolean disableSorting;
+	private Boolean disableCounting;
 	private SearchBoxConfigurationType searchBoxConfiguration;
 	private ObjectFilter filter;
 	private ObjectFilter domainFilter;
@@ -140,7 +141,15 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 	public void setDisableSorting(Boolean disableSorting) {
 		this.disableSorting = disableSorting;
 	}
-	
+
+	public Boolean isDisableCounting() {
+		return disableCounting;
+	}
+
+	public void setDisableCounting(Boolean disableCounting) {
+		this.disableCounting = disableCounting;
+	}
+
 	public SearchBoxConfigurationType getSearchBoxConfiguration() {
 		return searchBoxConfiguration;
 	}
@@ -211,6 +220,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "additionalPanels", additionalPanels, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "distinct", distinct, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "disableSorting", disableSorting, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "disableCounting", disableCounting, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "searchBoxConfiguration", searchBoxConfiguration, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "filter", filter, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "domainFilter", domainFilter, indent + 1);
