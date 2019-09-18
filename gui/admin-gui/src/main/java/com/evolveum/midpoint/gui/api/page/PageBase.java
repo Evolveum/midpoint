@@ -1873,11 +1873,22 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             addCollectionsMenuItems(item.getItems(), CaseType.COMPLEX_TYPE, PageCases.class);
         }
 
-        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listAttorney", PageAttorneySelection.class);
-        addMenuItem(item, "PageWorkItemsClaimable.title", PageWorkItemsClaimable.class);
-
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ALL_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)){
+                addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
+    }
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
+        }
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            addMenuItem(item, "PageAdmin.menu.top.workItems.listAttorney", PageAttorneySelection.class);
+        }
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            addMenuItem(item, "PageWorkItemsClaimable.title", PageWorkItemsClaimable.class);
+        }
         createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
 
         return item;
@@ -2448,7 +2459,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return true;
         }
         if (breadcrumbs.size() == backStep && (breadcrumbs.get(breadcrumbs.size() - backStep)) != null) {
-            return true;
+            Breadcrumb br = breadcrumbs.get(breadcrumbs.size() - backStep);
+            if (br instanceof BreadcrumbPageInstance || br instanceof BreadcrumbPageClass) {
+                return true;
+            }
         }
 
         return false;
