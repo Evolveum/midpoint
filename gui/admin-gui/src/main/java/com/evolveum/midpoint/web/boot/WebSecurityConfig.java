@@ -109,7 +109,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         web.ignoring().antMatchers("/wicket/resource/**");
         
-        web.ignoring().antMatchers("/actuator/**");
+        web.ignoring().antMatchers("/actuator");
+        web.ignoring().antMatchers("/actuator/health");
     }
 
     @Override

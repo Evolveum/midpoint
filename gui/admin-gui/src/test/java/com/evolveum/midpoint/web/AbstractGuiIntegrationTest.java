@@ -164,7 +164,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 	  	login(USER_ADMINISTRATOR_USERNAME);
 	  	LOGGER.info("user logged in");
 	  	
-	  	tester = new WicketTester(application);
+	  	tester = new WicketTester(application, true);
 	}
 
     @BeforeMethod
@@ -179,6 +179,9 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
     public void beforeClass() throws Exception {
         System.out.println("\n>>>>>>>>>>>>>>>>>>>>>>>> START " + getClass().getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
         LOGGER.info("\n>>>>>>>>>>>>>>>>>>>>>>>> START {} <<<<<<<<<<<<<<<<<<<<<<<<", new Object[]{getClass().getName()});
+        LOGGER.info("Loalization serivce : {}", localizationService );
+        String s = localizationService.translate("midpoint.system.build", null, localizationService.getDefaultLocale());
+        LOGGER.info("SsSSSSSSSSSSSSS {}", s);
     }
 
     @AfterClass

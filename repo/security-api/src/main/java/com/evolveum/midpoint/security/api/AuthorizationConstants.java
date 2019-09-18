@@ -35,6 +35,7 @@ public class AuthorizationConstants {
 	public static final String NS_AUTHORIZATION_WS = NS_SECURITY_PREFIX + "authorization-ws-3";
 	public static final String NS_AUTHORIZATION_REST = NS_SECURITY_PREFIX + "authorization-rest-3";
 	public static final String NS_AUTHORIZATION_MODEL = NS_SECURITY_PREFIX + "authorization-model-3";
+	public static final String NS_AUTHORIZATION_ACTUATOR = NS_SECURITY_PREFIX + "authorization-actuator-3";
 
 	public static final QName AUTZ_ALL_QNAME = new QName(NS_AUTHORIZATION, "all");
 	public static final String AUTZ_ALL_URL = QNameUtil.qNameToUri(AUTZ_ALL_QNAME);
@@ -483,6 +484,25 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");
 	public static final String AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME);
 
+	//authorization for spring boot actuator endpoints
+	public static final QName AUTZ_ACTUATOR_ALL_QNAME = new QName(NS_AUTHORIZATION_ACTUATOR, "all");
+    public static final String AUTZ_ACTUATOR_ALL_URL = QNameUtil.qNameToUri(AUTZ_ACTUATOR_ALL_QNAME);
+    
+    public static final QName AUTZ_ACTUATOR_THREAD_DUMP_QNAME = new QName(NS_AUTHORIZATION_ACTUATOR, "threadDump");
+    public static final String AUTZ_ACTUATOR_THREAD_DUMP_URL = QNameUtil.qNameToUri(AUTZ_ACTUATOR_THREAD_DUMP_QNAME);
+    
+    public static final QName AUTZ_ACTUATOR_HEAP_DUMP_QNAME = new QName(NS_AUTHORIZATION_ACTUATOR, "heapDump");
+    public static final String AUTZ_ACTUATOR_HEAP_DUMP_URL = QNameUtil.qNameToUri(AUTZ_ACTUATOR_HEAP_DUMP_QNAME);
+    
+    public static final QName AUTZ_ACTUATOR_ENV_QNAME = new QName(NS_AUTHORIZATION_ACTUATOR, "env");
+    public static final String AUTZ_ACTUATOR_ENV_URL = QNameUtil.qNameToUri(AUTZ_ACTUATOR_ENV_QNAME);
+    
+    public static final QName AUTZ_ACTUATOR_INFO_QNAME = new QName(NS_AUTHORIZATION_ACTUATOR, "info");
+    public static final String AUTZ_ACTUATOR_INFO_URL = QNameUtil.qNameToUri(AUTZ_ACTUATOR_INFO_QNAME);
+    
+    public static final QName AUTZ_ACTUATOR_METRICS_QNAME = new QName(NS_AUTHORIZATION_ACTUATOR, "metrics");
+    public static final String AUTZ_ACTUATOR_METRICS_URL = QNameUtil.qNameToUri(AUTZ_ACTUATOR_METRICS_QNAME);
+    
 	/**
 	 * Those are the items that midPoint logic controls directly. They have exception from execution-phase
 	 * authorization enforcement. Their modification in execution phase is always allowed. If it was not
