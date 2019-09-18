@@ -79,15 +79,15 @@ public enum PageUrlMapping {
             new AuthorizationActionValue(AUTZ_ACTUATOR_HEAP_DUMP_URL,
                     "ActuatorEndpoint.authActuator.heapDump.label", "ActuatorEndpoint.authActuator.heapDump.description")
     }),
-    ACTUATOR_ENV_DUMP("/actuator/env", new DisplayableValue[]{
+    ACTUATOR_ENV("/actuator/env/**", new DisplayableValue[]{
             new AuthorizationActionValue(AUTZ_ACTUATOR_ENV_URL,
                     "ActuatorEndpoint.authActuator.env.label", "ActuatorEndpoint.authActuator.env.description")
     }),
-    ACTUATOR_INFO_DUMP("/actuator/info", new DisplayableValue[]{
+    ACTUATOR_INFO("/actuator/info", new DisplayableValue[]{
             new AuthorizationActionValue(AUTZ_ACTUATOR_INFO_URL,
                     "ActuatorEndpoint.authActuator.info.label", "ActuatorEndpoint.authActuator.info.description")
     }),
-    ACTUATOR_METRICS_DUMP("/actuator/metrics", new DisplayableValue[]{
+    ACTUATOR_METRICS("/actuator/metrics/**", new DisplayableValue[]{
             new AuthorizationActionValue(AUTZ_ACTUATOR_METRICS_URL,
                     "ActuatorEndpoint.authActuator.metrics.label", "ActuatorEndpoint.authActuator.metrics.description")
     });
