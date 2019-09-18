@@ -248,6 +248,14 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 				protected void onPageChanged(AjaxRequestTarget target, long page) {
 					target.add(count);
 				}
+
+				@Override
+				protected boolean isCountingDisabled(){
+					if (dataTable.getDataProvider() instanceof SelectableBeanObjectDataProvider){
+						return !((SelectableBeanObjectDataProvider)dataTable.getDataProvider()).isUseObjectCounting();
+					}
+					return super.isCountingDisabled();
+				}
 			};
 			footerContainer.add(nb2);
 
