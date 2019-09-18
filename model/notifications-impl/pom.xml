@@ -133,8 +133,8 @@
             <artifactId>mail</artifactId>
         </dependency>
         <dependency> <!-- Explicit version (in dependency management) -->
-            <groupId>javax.activation</groupId>
-            <artifactId>activation</artifactId>
+            <groupId>com.sun.activation</groupId>
+            <artifactId>javax.activation</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -245,11 +245,6 @@
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
             <version>4.0.1-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

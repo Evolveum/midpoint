@@ -122,7 +122,10 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
 
 	        return registration;
 	    }
-	    
+
+	    // Overriding bean from org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration
+		// This method is not very clean. We should probably subclass WebSecurityConfiguration instead.
+		// This is the reason that global bean override is allowed in application.yml
 	    @Bean
 	    public FilterRegistrationBean<DelegatingFilterProxy> springSecurityFilterChain() {
 	        FilterRegistrationBean<DelegatingFilterProxy> registration = new FilterRegistrationBean<>();

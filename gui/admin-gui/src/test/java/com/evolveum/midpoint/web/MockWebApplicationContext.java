@@ -16,6 +16,7 @@ import javax.servlet.ServletContext;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
@@ -71,6 +72,16 @@ public class MockWebApplicationContext implements WebApplicationContext {
 
 	public <T> T getBean(Class<T> arg0, Object... arg1) throws BeansException {
 		return appContext.getBean(arg0, arg1);
+	}
+
+	@Override
+	public <T> ObjectProvider<T> getBeanProvider(Class<T> aClass) {
+		return appContext.getBeanProvider(aClass);
+	}
+
+	@Override
+	public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType) {
+		return appContext.getBeanProvider(resolvableType);
 	}
 
 	public <T> T getBean(Class<T> arg0) throws BeansException {
