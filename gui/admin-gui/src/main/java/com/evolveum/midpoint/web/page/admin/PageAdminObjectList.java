@@ -114,7 +114,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                 }
 
                 CompiledObjectCollectionView view = getCollectionViewObject();
-                if (view.getCollection() != null && view.getCollection().getCollectionRef() != null &&
+                if (view!= null && view.getCollection() != null && view.getCollection().getCollectionRef() != null &&
                         ArchetypeType.COMPLEX_TYPE.equals(view.getCollection().getCollectionRef().getType())){
                     return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(getCollectionViewObject(), PageAdminObjectList.this);
                 }
@@ -216,8 +216,16 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     }
 
     protected ObjectFilter getArchetypeViewFilter(){
+        if (!isCollectionViewPage()){
+            return null;
+        }
         CompiledObjectCollectionView view = getCollectionViewObject();
-        return view != null ? view.getFilter() : null;
+        if (view == null){
+            getFeedbackMessages().add(PageAdminObjectList.this, "Unable to load collection view list", 0);
+            return null;
+        } else {
+            return view != null ? view.getFilter() : null;
+        }
     }
 
     protected CompiledObjectCollectionView getCollectionViewObject(){
