@@ -79,7 +79,7 @@ public class AboutPage extends BasicPage {
     public String hibernateDialect() {
         SelenideElement additionalDetailsBox = $(By.cssSelector("div.box.box-danger"));
 
-        return additionalDetailsBox.findElementByXPath("/html/body/div[2]/div/section/div[2]/div[1]/div[2]/div/div[2]/div[2]/table/tbody/tr[4]/td[2]").getText();
+        return additionalDetailsBox.find(By.xpath("/html/body/div[2]/div/section/div[2]/div[1]/div[2]/div/div[2]/div[2]/table/tbody/tr[4]/td[2]")).getText();
     }
 
     public String connIdFrameworkVersion() {

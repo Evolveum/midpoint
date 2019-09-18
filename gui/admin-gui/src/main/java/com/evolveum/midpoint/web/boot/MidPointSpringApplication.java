@@ -23,6 +23,7 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryCustomizer;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.ErrorPage;
@@ -138,6 +139,7 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
     }
 	
     @Component
+	@EnableConfigurationProperties(ServerProperties.class)
     public class ServerCustomization implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
     	
     	@Value("${server.servlet.session.timeout}")
@@ -146,33 +148,28 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
 		private int backgroundProcessorDelay;
     	@Value("${server.servlet.context-path}")
 		private String servletPath;
-    	
-    	@Autowired 
-    	ServerProperties serverProperties;
+
+		@Autowired
+    	private ServerProperties serverProperties;
 		
     	@Override
-    	public void customize(ConfigurableServletWebServerFactory server) {
+    	public void customize(ConfigurableServletWebServerFactory serverFactory) {
+
+    		ServletWebServerFactoryCustomizer servletWebServerFactoryCustomizer = new ServletWebServerFactoryCustomizer(serverProperties);
+        	servletWebServerFactoryCustomizer.customize(serverFactory);
     		
-    		ServletWebServerFactoryCustomizer servletWebServerFactoryCustomizer = new ServletWebServerFactoryCustomizer(this.serverProperties);
-        	servletWebServerFactoryCustomizer.customize(server);
-    		
-    		server.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
-                  "/error/401"));
-    		server.addErrorPages(new ErrorPage(HttpStatus.FORBIDDEN,
-                  "/error/403"));
-    		server.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND,
-                  "/error/404"));
-    		server.addErrorPages(new ErrorPage(HttpStatus.GONE,
-                  "/error/410"));
-    		server.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR,
-                  "/error"));
+    		serverFactory.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED, "/error/401"));
+    		serverFactory.addErrorPages(new ErrorPage(HttpStatus.FORBIDDEN, "/error/403"));
+    		serverFactory.addErrorPages(new ErrorPage(HttpStatus.NOT_FOUND, "/error/404"));
+    		serverFactory.addErrorPages(new ErrorPage(HttpStatus.GONE, "/error/410"));
+    		serverFactory.addErrorPages(new ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR, "/error"));
     
     		Session session = new Session(); 
     		session.setTimeout(Duration.ofMinutes(sessionTimeout));
-    		server.setSession(session);
+    		serverFactory.setSession(session);
     		
-    		if (server instanceof TomcatServletWebServerFactory) {
-    			customizeTomcat((TomcatServletWebServerFactory) server);
+    		if (serverFactory instanceof TomcatServletWebServerFactory) {
+    			customizeTomcat((TomcatServletWebServerFactory) serverFactory);
     		}            
     	}
     

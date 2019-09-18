@@ -121,6 +121,10 @@
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-actuator</artifactId>
+        </dependency>
+        <dependency>
             <groupId> org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
         </dependency>
@@ -158,6 +162,10 @@
         <dependency>
     		<groupId>org.springframework.boot</groupId>
    	 		<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+    		<groupId>org.springframework.boot</groupId>
+   	 		<artifactId>spring-boot-actuator</artifactId>
 		</dependency>
 		<dependency>
     		<groupId>org.springframework.boot</groupId>
@@ -437,6 +445,7 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
+            <type>pom</type>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -725,27 +734,20 @@
             <artifactId>asm</artifactId>
             <scope>runtime</scope>
         </dependency>
+
         <!-- TEST -->
-        
-        <dependency>  
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-test</artifactId>
-    <exclusions>
-    	<exclusion>
-    	 <artifactId>asm</artifactId>
-    	 <groupId>org.ow2.asm</groupId>
-    	</exclusion>
-    </exclusions>
-    <scope>test</scope>
-</dependency>  
 
         <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-util</artifactId>
-            <version>7.0</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <exclusions>
+                <exclusion>
+                 <artifactId>asm</artifactId>
+                 <groupId>org.ow2.asm</groupId>
+                </exclusion>
+            </exclusions>
             <scope>test</scope>
         </dependency>
-
 
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -919,12 +921,7 @@
             <version>4.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-		    <groupId>cglib</groupId>
-		    <artifactId>cglib-nodep</artifactId>
-		    <version>3.2.10</version>
-		    <scope>test</scope>
-		</dependency>
+
 
     </dependencies>
 

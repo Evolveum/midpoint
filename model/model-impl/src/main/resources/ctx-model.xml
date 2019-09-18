@@ -300,9 +300,6 @@
         <property name="contextFactory" ref="contextFactory"/>
     </bean>
 
-    <import resource="classpath:META-INF/cxf/cxf.xml"/>
-    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
-
     <bean id="loggingFeature" class="com.evolveum.midpoint.model.impl.util.LoggingFeature"/>
 
     <jaxws:endpoint id="modelWS"
@@ -366,10 +363,6 @@
             <ref bean="loggingFeature"/>
         </jaxrs:features>
     </jaxrs:server>
-
-    <bean id="extensionSchemaRestService" class="com.evolveum.midpoint.model.impl.ExtensionSchemaRestService"/>
-    <bean id="clusterRestService" class="com.evolveum.midpoint.model.impl.ClusterRestService"/>
-    <bean id="modelRestService" class="com.evolveum.midpoint.model.impl.ModelRestService"/>
 
     <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.impl.security.MidpointRestAuthenticationHandler"/>
 
