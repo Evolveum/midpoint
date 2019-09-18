@@ -154,12 +154,4 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return (MemberPanelStorage) storage;
 	}
 
-	@Override
-	protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
-		CompiledObjectCollectionView orgViewType = getPageBase().getCompiledUserProfile().findObjectCollectionView(OrgType.COMPLEX_TYPE, null);
-		if (orgViewType == null || orgViewType.getAdditionalPanels() == null){
-			return null;
-		}
-		return orgViewType.getAdditionalPanels().getMemberPanel();
-	}
 }

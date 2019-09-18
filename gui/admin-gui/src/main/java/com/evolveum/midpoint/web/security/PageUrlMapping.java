@@ -66,6 +66,32 @@ public enum PageUrlMapping {
                     "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_DEPRECATED_URL,
                     "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")
+    }),
+    ACTUATOR("/actuator/**", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "Actuator.authUri.guiAll.label", "Actuator.authUri.guiAll.description"),
+            new AuthorizationActionValue(AUTZ_ACTUATOR_ALL_URL,
+                    "Actuator.authUri.actuatorAll.label", "Actuator.authUri.actuatorAll.description")
+    }),
+    ACTUATOR_THREAD_DUMP("/actuator/threaddump", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_ACTUATOR_THREAD_DUMP_URL,
+                    "PageCaseWorkItems.authUri.actuatorThreadDump.label", "PageAdminRoles.authUri.actuatorThreadDump.description")
+    }),
+    ACTUATOR_HEAP_DUMP("/actuator/heapdump", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_ACTUATOR_HEAP_DUMP_URL,
+                    "PageCaseWorkItems.authUri.actuatorHeapDump.label", "PageAdminRoles.authUri.actuatorHeapDump.description")
+    }),
+    ACTUATOR_ENV_DUMP("/actuator/env", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_ACTUATOR_ENV_URL,
+                    "PageCaseWorkItems.authUri.actuatorEnv.label", "PageAdminRoles.authUri.actuatorEnv.description")
+    }),
+    ACTUATOR_INFO_DUMP("/actuator/info", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_ACTUATOR_INFO_URL,
+                    "PageCaseWorkItems.authUri.actuatorInfo.label", "PageAdminRoles.authUri.actuatorInfo.description")
+    }),
+    ACTUATOR_METRICS_DUMP("/actuator/metrics", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_ACTUATOR_METRICS_URL,
+                    "PageCaseWorkItems.authUri.actuatorMetrics.label", "PageAdminRoles.authUri.actuatorMetrics.description")
     });
 
     private String url;

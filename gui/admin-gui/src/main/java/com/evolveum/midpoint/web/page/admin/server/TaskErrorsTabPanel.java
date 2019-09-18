@@ -8,13 +8,17 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -23,7 +27,10 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -79,6 +86,23 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
             public ObjectQuery getQuery() {
                 return createContentQuery(taskDtoModel.getObject().getOid(), getPageBase());
             }
+            
+            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+        		if (sortParam != null && sortParam.getProperty() != null) {
+        			OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+        			ItemPath ordering = null;
+        			if (sortParam.getProperty().equals("timestamp")) {
+        				ordering = ItemPath.create("operationExecution", "timestamp");
+        			} else {
+        				ordering = ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty()));
+        			}
+        			return Collections.singletonList(
+        					getPrismContext().queryFactory().createOrdering(
+                                    ordering, order));
+        		} else {
+        			return Collections.emptyList();
+        		}
+        	}
         };
         TablePanel resultTablePanel = new TablePanel<>(ID_TASK_ERRORS, provider, initColumns());
         resultTablePanel.setStyle("padding-top: 0px;");
@@ -93,7 +117,12 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
     }
     private List<IColumn<TaskErrorDto, String>> initColumns() {
         List<IColumn<TaskErrorDto, String>> columns = new ArrayList<>();
-        columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorDto.F_OBJECT_REF_NAME));
+        columns.add(new PropertyColumn<TaskErrorDto, String>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorDto.F_OBJECT_REF_NAME){
+        	@Override
+        	public String getSortProperty() {
+        		return "name";
+        	}
+        });
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorDto.F_STATUS));
         columns.add(new AbstractColumn<TaskErrorDto, String>(createStringResource("pageTaskEdit.taskErros.timestamp")){
             private static final long serialVersionUID = 1L;
@@ -109,6 +138,12 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
                 });
                 cellItem.add(label);
             }
+            
+//            TODO:uncomment after fixing of MID-5748
+//            @Override
+//        	public String getSortProperty() {
+//        		return "timestamp";
+//        	}
         });
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorDto.F_MESSAGE));
         return columns;

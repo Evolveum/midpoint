@@ -267,7 +267,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         clearCache();
     }
 
-    public boolean isUseObjectCounting(){
+    protected boolean isUseObjectCounting(){
     	return useObjectCounting;
     }
 
