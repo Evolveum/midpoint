@@ -121,6 +121,10 @@
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-actuator</artifactId>
+        </dependency>
+        <dependency>
             <groupId> org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
         </dependency>
@@ -726,19 +730,19 @@
             <artifactId>asm</artifactId>
             <scope>runtime</scope>
         </dependency>
+
         <!-- TEST -->
-        
-        <dependency>  
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-test</artifactId>
-    <exclusions>
-    	<exclusion>
-    	 <artifactId>asm</artifactId>
-    	 <groupId>org.ow2.asm</groupId>
-    	</exclusion>
-    </exclusions>
-    <scope>test</scope>
-</dependency>  
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <exclusions>
+                <exclusion>
+                 <artifactId>asm</artifactId>
+                 <groupId>org.ow2.asm</groupId>
+                </exclusion>
+            </exclusions>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.ow2.asm</groupId>

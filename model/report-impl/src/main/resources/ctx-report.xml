@@ -22,10 +22,7 @@
  <context:annotation-config/>
     <context:component-scan base-package="com.evolveum.midpoint.report" />
     <context:spring-configured/>
-    
-     <import resource="classpath:META-INF/cxf/cxf.xml"/>
-    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
-    
+
     <jaxws:endpoint id="reportWS"
                     address="/report-3"
                     wsdlLocation="classpath:xml/ns/public/report/report-3.wsdl"
@@ -49,5 +46,5 @@
         </jaxws:outInterceptors>
   
     </jaxws:endpoint>
-    
+
 </beans>

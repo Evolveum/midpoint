@@ -18,4 +18,8 @@
     <context:spring-configured/>
     <context:component-scan base-package="com.evolveum.midpoint.web, com.evolveum.midpoint.gui"/>
 
+    <!-- We need to load those in one place to avoid bean duplication -->
+    <import resource="classpath:META-INF/cxf/cxf.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+
 </beans>
