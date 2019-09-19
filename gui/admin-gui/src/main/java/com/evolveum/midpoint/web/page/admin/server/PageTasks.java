@@ -1005,7 +1005,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			@Override
 			protected IModel createLinkModel(IModel<TaskDto> rowModel) {
 				PageBase page = (PageBase) component.getPage();
-				IModel<String> taskNameModel = page.createStringResource(rowModel.getObject().getName());
+				String name = rowModel.getObject().getName();
+				IModel<String> taskNameModel = StringUtils.isNotEmpty(name) ? page.createStringResource(name) : null;
 				String taskName = taskNameModel != null && StringUtils.isNotEmpty(taskNameModel.getObject()) ?
 						taskNameModel.getObject() : "";
 
