@@ -6,7 +6,11 @@
  */
 package com.evolveum.midpoint.gui;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -21,11 +25,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author skublik
@@ -36,11 +40,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 //@ImportResource(locations = {
 //		"classpath:ctx-init.xml"
 //})
-public class TestPageAccount extends AbstractInitializedGuiIntegrationTest {
+public class TestPageSystemConfiguration extends AbstractInitializedGuiIntegrationTest {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(TestPageAccount.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(TestPageSystemConfiguration.class);
 	
-	private static final String FORM_SAVE = "mainForm:save";
+	private static final String MAIN_FORM = "mainPanel:mainForm";
+	private static final String FORM_INPUT_DESCRIPTION = "tabPanel:panel:basicSystemConfiguration:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:input";
+	private static final String FORM_SAVE = "save";
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -52,37 +58,36 @@ public class TestPageAccount extends AbstractInitializedGuiIntegrationTest {
 	}
 	
 	@Test
-	public void test000testPageAccount() throws Exception {
-		dummyResourceCtl.addAccount("test");
-		
-		PrismObject<ShadowType> accountMancomb = findAccountByUsername("test", dummyResourceCtl.getResource());
-		renderPage(accountMancomb.getOid());
-		tester.assertComponent(FORM_SAVE, AjaxSubmitButton.class);
+	public void test000testPageSystemConfiguration() {
+		renderPage();
 	}
 	
-	@Test (expectedExceptions = AssertionError.class)
-	public void test001testPageAccountWithProtectedUser() throws Exception {
-		dummyResourceCtl.addAccount("admin");
+	@Test
+	public void test001testModifySystemConfig() throws Exception {
+		renderPage();
 		
-		PrismObject<ShadowType> accountMancomb = findAccountByUsername("admin", dummyResourceCtl.getResource());
-		renderPage(accountMancomb.getOid());
-		tester.assertComponent(FORM_SAVE, AjaxSubmitButton.class);
+		tester.clickLink(MAIN_FORM +":tabPanel:panel:basicSystemConfiguration:values:0:value:showEmptyButton");
+		
+		FormTester formTester = tester.newFormTester(MAIN_FORM, false);
+		String des = "new description";
+		formTester.setValue(FORM_INPUT_DESCRIPTION, des);
+
+		formTester = formTester.submit(FORM_SAVE);
+		
+		Thread.sleep(5000);
+		
+		tester.assertRenderedPage(PageDashboardInfo.class);
+		
+		PrismObject<SystemConfigurationType> sysConf = getObject(SystemConfigurationType.class, "00000000-0000-0000-0000-000000000001");
+		assertEquals(des, sysConf.getRealValue().getDescription());
 	}
 	
-	private PageAccount renderPage(String userOid) {
+	private PageSystemConfiguration renderPage() {
+		LOGGER.info("render page system configuration");
 		PageParameters params = new PageParameters();
-		params.add(OnePageParameterEncoder.PARAMETER, userOid);
-		return renderPageWithParams(params);
-	}
-	
-	private PageAccount renderPageWithParams(PageParameters params) {
-		LOGGER.info("render page account");
-		if(params == null) {
-			params = new PageParameters();
-		}
-		PageAccount pageAccount = tester.startPage(PageAccount.class, params);
+		PageSystemConfiguration pageAccount = tester.startPage(PageSystemConfiguration.class, params);
 		
-		tester.assertRenderedPage(PageAccount.class);
+		tester.assertRenderedPage(PageSystemConfiguration.class);
 		
 		return pageAccount;
 	}
