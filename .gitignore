@@ -22,4 +22,6 @@ dependency-reduced-pom.xml
 tools/schrodinger/build
 testing/schrodingertest/build
 
+test-output
+
 _mess

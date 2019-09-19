@@ -211,7 +211,7 @@ public class PageAccount extends PageAdmin {
 			@Override
 			public boolean isVisible() {
 				ShadowWrapper wrapper = accountModel.getObject();
-				return wrapper.isProtected();
+				return !wrapper.isProtected();
 			}
 		});
 		mainForm.add(save);

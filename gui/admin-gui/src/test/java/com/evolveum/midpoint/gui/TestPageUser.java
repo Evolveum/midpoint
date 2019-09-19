@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
+
 import java.io.File;
 
 import com.evolveum.midpoint.web.component.objectdetails.*;
@@ -32,6 +34,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
+import com.evolveum.midpoint.web.AbstractInitializedGuiIntegrationTest;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -46,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 @SpringBootTest(classes = TestMidPointSpringApplication.class)
-public class TestPageUser extends AbstractGuiIntegrationTest {
+public class TestPageUser extends AbstractInitializedGuiIntegrationTest {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(TestPageUser.class);
 	
@@ -76,11 +79,6 @@ public class TestPageUser extends AbstractGuiIntegrationTest {
 		
 		LOGGER.info("adding system config page");
 		addObject(systemConfig, ModelExecuteOptions.createOverwrite(), initTask, initResult);
-		
-		importObjectFromFile(CONNECTOR_CSV_FILE);
-		importObjectFromFile(RESOURCE_CSV_FAKE_FILE);
-		importObjectFromFile(SHADOW_RESOURCE_CSV_FAKE_FILE);
-		importObjectFromFile(USER_EMPTY_WITH_FAKE_PROJECTION_FILE);
 	}
 	
 	@Test
@@ -142,7 +140,7 @@ public class TestPageUser extends AbstractGuiIntegrationTest {
 	
 	@Test
 	public void test011renderProjectionsTab() throws Exception {
-		renderPage(USER_EMPTY_WITH_FAKE_PROJECTION_OID);
+		renderPage(USER_JACK_OID);
 		
 		clickOnTab(1);
 		String projectionTable = "mainPanel:mainForm:tabPanel:panel:shadowTable";
