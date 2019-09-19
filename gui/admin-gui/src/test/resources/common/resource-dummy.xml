@@ -276,6 +276,14 @@
 					</q:equal>
 				</filter>
 			</protected>
+			<protected>
+				<filter>
+					<q:equal>
+						<q:path>attributes/name</q:path>
+						<q:value>admin</q:value>
+					</q:equal>
+				</filter>
+			</protected>
             
             <activation>
             	<!-- Explicit existence mapping, but does the same as the default one -->
