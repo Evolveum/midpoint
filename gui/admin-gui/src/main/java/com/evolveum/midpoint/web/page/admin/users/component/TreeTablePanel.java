@@ -348,7 +348,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						editRootPerformed(getRowModel().getObject(), target);
+						editRootPerformed(org, target);
 					}
 				};
 			}
@@ -372,7 +372,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					public void onClick(AjaxRequestTarget target) {
 						try {
 							initObjectForAdd(
-									ObjectTypeUtil.createObjectRef(getRowModel().getObject().getValue(), getPageBase().getPrismContext()),
+									ObjectTypeUtil.createObjectRef(org.getValue(), getPageBase().getPrismContext()),
 									OrgType.COMPLEX_TYPE, null, target);
 						} catch (SchemaException e) {
 							throw new SystemException(e.getMessage(), e);
