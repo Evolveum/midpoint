@@ -491,7 +491,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
 					guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
 					guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting() != null){
-				return guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting();
+				return !guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting();
 			}
 		} else {
 			if (guiObjectListViewType != null && guiObjectListViewType.isDisableCounting() != null){
