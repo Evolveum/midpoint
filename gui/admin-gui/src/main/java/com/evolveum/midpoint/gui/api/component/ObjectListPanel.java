@@ -482,7 +482,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 				return guiObjectListViewType.isDisableSorting();
 			}
 		}
-		return true;
+		return false;
 	}
 
 	protected boolean isCountingEnabled(){
