@@ -1002,12 +1002,12 @@ public class ResourceManager {
 		connectorManager.cacheConfiguredConnector(connectorInstanceCacheEntry, connectorSpec);
 	}
 	
-	public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType newStatus, OperationResult result){
+	public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType newStatus, OperationResult result) {
 			ResourceType resourceType = resource.asObjectable();
 			
 			synchronized (resource) {
 				AvailabilityStatusType currentStatus = ResourceTypeUtil.getLastAvailabilityStatus(resourceType);
-				if (!newStatus.equals(currentStatus)) {
+				if (newStatus != currentStatus) {
 					LOGGER.debug("Changing availability status of {}: {} -> {}", resource, currentStatus, newStatus);
 					List<PropertyDelta<?>> modifications = new ArrayList<>();
 					PropertyDelta<?> statusDelta = createResourceAvailabilityStatusDelta(resource, newStatus);
@@ -1016,19 +1016,19 @@ public class ResourceManager {
 					try {
 						repositoryService.modifyObject(ResourceType.class, resourceType.getOid(), modifications, result);
 						InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
-					} catch(SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException ex) {
+					} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException ex) {
 						throw new SystemException(ex);
 					}
+					resource.modifyUnfrozen(() -> {
+						if (resourceType.getOperationalState() == null) {
+							OperationalStateType operationalState = new OperationalStateType();
+							operationalState.setLastAvailabilityStatus(newStatus);
+							resourceType.setOperationalState(operationalState);
+						} else {
+							resourceType.getOperationalState().setLastAvailabilityStatus(newStatus);
+						}
+					});
 				}
-				resource.modifyUnfrozen(() -> {
-					if (resourceType.getOperationalState() == null) {
-						OperationalStateType operationalState = new OperationalStateType();
-						operationalState.setLastAvailabilityStatus(newStatus);
-						resourceType.setOperationalState(operationalState);
-					} else {
-						resourceType.getOperationalState().setLastAvailabilityStatus(newStatus);
-					}
-				});
 			}
 		}
 	

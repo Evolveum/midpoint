@@ -128,7 +128,7 @@ public enum ObjectTypes {
 	}
 
 	public enum ObjectManager {
-        PROVISIONING, TASK_MANAGER, MODEL, WORKFLOW, REPOSITORY, EMULATED
+        PROVISIONING, TASK_MANAGER, MODEL, REPOSITORY
     }
 
 	@NotNull private final QName type;

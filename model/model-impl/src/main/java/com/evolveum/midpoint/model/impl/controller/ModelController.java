@@ -146,8 +146,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Autowired private SchemaTransformer schemaTransformer;
 	@Autowired private ObjectMerger objectMerger;
 	@Autowired private SystemObjectCache systemObjectCache;
-	@Autowired private EmulatedSearchProvider emulatedSearchProvider;
-	@Autowired private CacheRegistry cacheRegistry;
 	@Autowired private ClockworkMedic clockworkMedic;
 	@Autowired private ChangeNotificationDispatcher dispatcher;
 	@Autowired
@@ -785,10 +783,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
                 }
                 switch (searchProvider) {
-	                case EMULATED: 
-	                	list = emulatedSearchProvider.searchObjects(type, processedQuery, options, result);
-	                	break;
-                    case REPOSITORY: 
+                    case REPOSITORY:
                     	list = cacheRepositoryService.searchObjects(type, processedQuery, options, result);
                     	break;
                     case PROVISIONING: 
@@ -926,8 +921,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				if (GetOperationOptions.isRaw(rootOptions)) {       // MID-2218
 					QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
 				}
+				//noinspection SwitchStatementWithTooFewBranches
 				switch (ctx.manager) {
-					case EMULATED: list = emulatedSearchProvider.searchContainers(type, query, options, result); break;
 					case REPOSITORY: list = cacheRepositoryService.searchContainers(type, query, options, result); break;
 					default: throw new IllegalStateException();
 				}
@@ -1174,7 +1169,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             case REPOSITORY: message = "Couldn't search objects in repository"; break;
             case PROVISIONING: message = "Couldn't search objects in provisioning"; break;
             case TASK_MANAGER: message = "Couldn't search objects in task manager"; break;
-			case WORKFLOW: message = "Couldn't search objects in workflow engine"; break;
             default: message = "Couldn't search objects"; break;    // should not occur
         }
 		LoggingUtils.logUnexpectedException(LOGGER, message, e);

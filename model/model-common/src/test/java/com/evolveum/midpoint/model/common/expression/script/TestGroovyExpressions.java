@@ -77,7 +77,8 @@ public class TestGroovyExpressions extends AbstractScriptTest {
 						"foo", PrismTestUtil.createPolyString("FOO"), PolyStringType.COMPLEX_TYPE,
 						"bar", "BAR", PrimitiveType.STRING 
 				),
-				Boolean.FALSE);
+				// Only true for midPoint 4.0.1 and later. Older groovy did not process Groovy operator == in the same way.
+				Boolean.TRUE);
     }
 
 	@Test

@@ -12,7 +12,6 @@
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
-    <bean id="entityStateInterceptor" class="com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor"/>
 
     <bean id="testInterceptor" class="com.evolveum.midpoint.repo.sql.testing.TestInterceptor"/>
 
@@ -29,5 +28,4 @@
 
     <alias name="testSessionFactory" alias="sessionFactory"/>
 
-    <bean id="extItemDictionary" class="com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary"/>
 </beans>

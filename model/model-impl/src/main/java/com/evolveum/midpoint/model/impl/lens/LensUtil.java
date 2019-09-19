@@ -1113,4 +1113,8 @@ public class LensUtil {
 	public static LensContext.ExportType getExportTypeTraceOrReduced(TraceType trace, OperationResult result) {
 		return result.isTracingNormal(trace.getClass()) ? LensContext.ExportType.TRACE : LensContext.ExportType.REDUCED;
 	}
+
+    public static <AH extends AssignmentHolderType> ItemDelta getAprioriItemDelta(ObjectDelta<AH> focusDelta, ItemPath itemPath) {
+        return focusDelta != null ? focusDelta.findItemDelta(itemPath) : null;
+    }
 }

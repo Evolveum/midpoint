@@ -105,11 +105,6 @@
         </property>
     </bean>
 
-    <bean id="transactionManager"
-          class="org.springframework.orm.hibernate5.HibernateTransactionManager">
-        <property name="sessionFactory" ref="testSessionFactory"/>
-    </bean>
-
     <context:annotation-config/>
     <context:component-scan base-package="com.evolveum.midpoint.repo.sql"/>
 

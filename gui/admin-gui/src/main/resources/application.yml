@@ -1,11 +1,14 @@
 spring:
   application:
     name: MidPoint
+  main:
+    # needed to override springSecurityFilterChain from Spring Security
+    allow-bean-definition-overriding: true
   servlet:
     multipart:
-      max-file-size: 100Mb
-      max-request-size: 100Mb
-      file-size-threshold: 256Kb
+      max-file-size: 100MB
+      max-request-size: 100MB
+      file-size-threshold: 256KB
 
 server:
   tomcat:
