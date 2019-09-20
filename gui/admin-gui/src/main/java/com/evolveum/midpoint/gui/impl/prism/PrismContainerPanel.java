@@ -106,6 +106,11 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	}
 	
 	@Override
+	protected EnableBehaviour getEnableBehaviourOfValuePanel(PrismContainerWrapper<C> iw) {
+		return new EnableBehaviour(() -> true);
+	}
+	
+	@Override
 	protected void customValuesPanel(ListView<PrismContainerValueWrapper<C>> values) {
 		values.add(new VisibleBehaviour(() -> getModelObject() != null && (getModelObject().isExpanded() || getModelObject().isSingleValue())));
 	}
@@ -114,5 +119,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	protected void createButtons(ListItem<PrismContainerValueWrapper<C>> item) {
 		//nothing to do.. buttons are in the prism container panel header/ prism container value header
 	}
+	
+	
 
 }

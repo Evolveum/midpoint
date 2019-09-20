@@ -99,7 +99,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 						.findValuePanelFactory(ItemPanel.this.getModelObject());
 
 				Component panel = createValuePanel(item, componentFactory, getVisibilityHandler());
-				panel.add(new EnableBehaviour(() -> !ItemPanel.this.getModelObject().isReadOnly()));
+				panel.add(getEnableBehaviourOfValuePanel(ItemPanel.this.getModelObject()));
 				createButtons(item);
 			}
 
@@ -108,6 +108,10 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 		values.setReuseItems(true);
 		customValuesPanel(values);
 		return values;
+	}
+	
+	protected EnableBehaviour getEnableBehaviourOfValuePanel(IW iw) {
+		return new EnableBehaviour(() -> !iw.isReadOnly());
 	}
 
 	protected void customValuesPanel(ListView<VW> values) {

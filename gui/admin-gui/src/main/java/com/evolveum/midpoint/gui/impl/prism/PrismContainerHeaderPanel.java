@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author katka
@@ -52,7 +53,20 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 	                addValue(target);
 	            }
 	        };
-	        addButton.add(new VisibleBehaviour(() -> isAddButtonVisible()));
+	        addButton.add(new VisibleEnableBehaviour() {
+				
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isEnabled() {
+					return isAddButtonEnable();
+				}
+				
+				@Override
+				public boolean isVisible() {
+					return isAddButtonVisible();
+				}
+			});
 	        add(addButton);
 	        
 	        
@@ -78,6 +92,10 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 	
 	private boolean isAddButtonVisible() {
 		return getModelObject() != null && getModelObject().isExpanded() && getModelObject().isMultiValue();
+	}
+	
+	private boolean isAddButtonEnable() {
+		return getModelObject() != null && !getModelObject().isReadOnly();
 	}
 
 	@Override
