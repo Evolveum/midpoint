@@ -38,6 +38,7 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 	private static final String ID_BUTTON_CONTAINER = "buttonContainer";
 	private static final String ID_INFO = "info";
 	private static final String ID_ICON = "icon";
+	private static final String ID_CARET = "caret";
 	private static final String ID_LABEL = "label";
 
 	private static final String ID_DROPDOWN_MENU = "dropDownMenu";
@@ -86,6 +87,16 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
             }
         });
 		buttonContainer.add(icon);
+		
+		WebMarkupContainer caret = new WebMarkupContainer(ID_CARET);
+		caret.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
+            public boolean isVisible() {
+                return visibleCaret();
+            }
+        });
+		buttonContainer.add(caret);
 
 		WebMarkupContainer dropdownMenuContainer = new WebMarkupContainer(ID_DROPDOWN_MENU);
 		dropdownMenuContainer.setOutputMarkupId(true);
@@ -107,8 +118,12 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 	public WebMarkupContainer getButtonContainer() {
 		return (WebMarkupContainer)get(ID_BUTTON_CONTAINER);
 	}
+	
+	protected boolean visibleCaret() {
+		return true;
+	}
 
-	 private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
+	private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
 			MenuLinkPanel menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
 		 	menuItemBody.add(new VisibleBehaviour(() -> menuItem.getModelObject().getVisible().getObject()));
 	        menuItemBody.setRenderBodyOnly(true);

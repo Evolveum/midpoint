@@ -42,6 +42,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiFeature;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
@@ -143,8 +145,22 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         Label treeTitle = new Label(ID_TREE_TITLE, createStringResource(title));
         treeHeader.add(treeTitle);
 
-		InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU,
-				new Model((Serializable) createTreeMenuInternal(serviceLocator.getCompiledUserProfile())));
+//		InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU,
+//				new Model((Serializable) createTreeMenuInternal(serviceLocator.getCompiledUserProfile())));
+		DropdownButtonDto model = new DropdownButtonDto(null, "fa fa-cog", null, createTreeMenuInternal(serviceLocator.getCompiledUserProfile()));
+        DropdownButtonPanel treeMenu = new DropdownButtonPanel(ID_TREE_MENU, model) {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn-default";
+            }
+            
+            @Override
+            protected boolean visibleCaret() {
+            	return false;
+            }
+        };
 		treeMenu.setOutputMarkupId(true);
 		treeMenu.setOutputMarkupPlaceholderTag(true);
 		treeHeader.add(treeMenu);

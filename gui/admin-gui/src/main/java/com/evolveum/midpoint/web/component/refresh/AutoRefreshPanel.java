@@ -45,7 +45,7 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 				refreshable.refresh(target);
 			}
 		};
-		refreshNow.setRenderBodyOnly(true);
+//		refreshNow.setRenderBodyOnly(true);
 		add(refreshNow);
 
 		final LinkIconPanel resumeRefreshing = new LinkIconPanel(ID_START, new Model("fa fa-play"), createStringResource("autoRefreshPanel.resumeRefreshing")) {
@@ -56,7 +56,7 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 				startRefreshing(refreshable, target);
 			}
 		};
-		resumeRefreshing.setRenderBodyOnly(true);
+//		resumeRefreshing.setRenderBodyOnly(true);
 		resumeRefreshing.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
@@ -73,7 +73,7 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 				stopRefreshing(refreshable, target);
 			}
 		};
-		pauseRefreshing.setRenderBodyOnly(true);
+//		pauseRefreshing.setRenderBodyOnly(true);
 		pauseRefreshing.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
@@ -93,7 +93,7 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
 				}
 			}
 		});
-		status.setRenderBodyOnly(true);
+//		status.setRenderBodyOnly(true);
 		add(status);
 
 		if (inSummaryPanel) {

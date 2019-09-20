@@ -30,6 +30,8 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -98,8 +100,17 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 		Label label = new Label(ID_HEADER, getLabel());
 		assignments.add(label);
 
-		InlineMenu assignmentMenu = new InlineMenu(ID_MENU, new Model((Serializable) createAssignmentMenu()));
-        assignmentMenu.setVisible(getAssignmentMenuVisibility());
+//		InlineMenu assignmentMenu = new InlineMenu(ID_MENU, new Model((Serializable) createAssignmentMenu()));
+		DropdownButtonDto model = new DropdownButtonDto(null, null, null, createAssignmentMenu());
+        DropdownButtonPanel assignmentMenu = new DropdownButtonPanel(ID_MENU, model) {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn-xs btn-default";
+            }
+        };
+		assignmentMenu.setVisible(getAssignmentMenuVisibility());
         assignments.add(assignmentMenu);
 
 		ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, getModel()) {
