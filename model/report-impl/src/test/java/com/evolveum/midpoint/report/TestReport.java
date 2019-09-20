@@ -181,7 +181,7 @@ public class TestReport extends AbstractReportIntegrationTest {
 	  displayTestTitle(TEST_NAME);
 	  PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
 	  
-      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report);
+      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report, false);
       
       assertSuccess("Finished report task result", finishedTask.asObjectable().getResult());
       
@@ -192,14 +192,14 @@ public class TestReport extends AbstractReportIntegrationTest {
 	  displayTestTitle(TEST_NAME);
 	  PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
 	  
-      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report);
+      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report, true);
       
       assertFailure("Finished report task result", finishedTask.asObjectable().getResult());
       
       assertNoCsvReport(report);
   }
 
-  protected PrismObject<TaskType> runReport(final String TEST_NAME, PrismObject<ReportType> report) throws Exception {
+  protected PrismObject<TaskType> runReport(final String TEST_NAME, PrismObject<ReportType> report, boolean errorOk) throws Exception {
       Task task = createTask(TEST_NAME);
       OperationResult result = task.getResult();
       
@@ -211,7 +211,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       
       display("Background task (running)", task);
       
-      waitForTaskFinish(task.getOid(), true);
+      waitForTaskFinish(task.getOid(), true, DEFAULT_TASK_WAIT_TIMEOUT, errorOk);
 
       // THEN
       displayThen(TEST_NAME);
@@ -249,7 +249,7 @@ public class TestReport extends AbstractReportIntegrationTest {
       
       PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
       
-      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report);
+      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report, false);
       
       assertSuccess("Report task result", finishedTask.asObjectable().getResult());
       
@@ -260,7 +260,7 @@ public class TestReport extends AbstractReportIntegrationTest {
 	  displayTestTitle(TEST_NAME);
 	  PrismObject<ReportType> report = getObject(ReportType.class, reportOid);
 	  
-      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report);
+      PrismObject<TaskType> finishedTask = runReport(TEST_NAME, report, true);
       
       assertFailure("Finished report task result", finishedTask.asObjectable().getResult());
       
