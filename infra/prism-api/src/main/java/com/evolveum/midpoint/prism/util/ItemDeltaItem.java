@@ -212,7 +212,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		return null;
 	}
 
-	@NotNull
+	@NotNull        // FIXME beware, ObjectDeltaObject.getDefinition seems to return null sometimes (probably should be fixed there)
 	public D getDefinition() {
 		return definition;
 	}
@@ -557,8 +557,8 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		}
 	}
 
-	public V getSingleValue(boolean evaluateOld) {
-		return getSingleValue(evaluateOld ? itemOld : itemNew);
+	public V getSingleValue(boolean old) {
+		return getSingleValue(old ? itemOld : itemNew);
 	}
 	
 	private void validate(Item<V, D> item, String desc) {

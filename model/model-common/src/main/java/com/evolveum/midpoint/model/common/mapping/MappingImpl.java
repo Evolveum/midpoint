@@ -18,7 +18,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
@@ -26,9 +25,6 @@ import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.Mapping;
@@ -52,7 +48,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -751,7 +746,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		sb.append("]---------------------------");
 		MappingStrengthType strength = getStrength();
 		if (strength != null) {
-			sb.append("\nStregth: ").append(strength);
+			sb.append("\nStrength: ").append(strength);
+		}
+		if (!isAuthoritative()) {
+			sb.append("\nNot authoritative");
 		}
 		for (Source<?,?> source: sources) {
 			sb.append("\n");
@@ -1144,7 +1142,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				ExpressionUtil.createCondition(conditionExpressionType, expressionProfile, expressionFactory,
 				"condition in "+getMappingContextDescription(), task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
-				"condition in "+getMappingContextDescription(), task, result);
+				"condition in "+getMappingContextDescription(), task);
 		context.setValuePolicyResolver(stringPolicyResolver);
 		context.setExpressionFactory(expressionFactory);
 		context.setDefaultSource(defaultSource);
@@ -1152,7 +1150,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		context.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
 		context.setMappingQName(mappingQName);
 		context.setVariableProducer(variableProducer);
-		conditionOutputTriple = expression.evaluate(context);
+		conditionOutputTriple = expression.evaluate(context, result);
 	}
 
 
@@ -1164,7 +1162,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
 				"expression in "+getMappingContextDescription(), task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
-				"expression in "+getMappingContextDescription(), task, result);
+				"expression in "+getMappingContextDescription(), task);
 		context.setDefaultSource(defaultSource);
 		context.setSkipEvaluationMinus(!conditionResultOld);
 		context.setSkipEvaluationPlus(!conditionResultNew);
@@ -1176,10 +1174,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		context.setVariableProducer(variableProducer);
 		
 		if (mappingPreExpression != null) {
-			mappingPreExpression.mappingPreExpression(context);
+			mappingPreExpression.mappingPreExpression(context, result);
 		}
 		
-		outputTriple = expression.evaluate(context);
+		outputTriple = expression.evaluate(context, result);
 
 		if (outputTriple == null) {
 

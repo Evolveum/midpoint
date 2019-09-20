@@ -47,6 +47,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
+import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -141,11 +142,6 @@ import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.Checker;
-import com.evolveum.midpoint.test.DummyAuditService;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -203,7 +199,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
 	protected static final String LOG_PREFIX_DENY = "SSSSS=- ";
 	protected static final String LOG_PREFIX_ALLOW = "SSSSS=+ ";
-
 
 	@Autowired protected ModelService modelService;
 	@Autowired protected ModelInteractionService modelInteractionService;
@@ -745,6 +740,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assignRole(UserType.class, userOid, roleOid, (ActivationType) null, task, result);
 	}
 
+	protected void assignService(String userOid, String targetOid, Task task, OperationResult result) throws ObjectNotFoundException,
+		SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+		PolicyViolationException, SecurityViolationException {
+		assignService(UserType.class, userOid, targetOid, (ActivationType) null, task, result);
+	}
+
 	protected void assignRole(String userOid, String roleOid, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectNotFoundException,
 		SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 		PolicyViolationException, SecurityViolationException {
@@ -785,6 +786,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		modifyAssignmentHolderAssignment(focusClass, focusOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, true, result);
+	}
+
+	protected void assignService(Class<? extends AssignmentHolderType> focusClass, String focusOid, String targetOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyAssignmentHolderAssignment(focusClass, focusOid, targetOid, ServiceType.COMPLEX_TYPE, null, task, null, activationType, true, result);
 	}
 
 	protected void assignRole(Class<? extends FocusType> focusClass, String focusOid, String roleOid, ActivationType activationType, Task task, ModelExecuteOptions options, OperationResult result) throws ObjectNotFoundException,
@@ -3788,6 +3795,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         for (File file : files) {
             addObject(file);
         }
+    }
+
+    protected void addObject(TestResource resource, Task task, OperationResult result)
+		    throws IOException, ObjectNotFoundException, ConfigurationException, SecurityViolationException,
+		    PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
+		    SchemaException {
+		addObject(resource.file, task, result);
     }
 
     // not going through model to avoid conflicts (because the task starts execution during the clockwork operation)

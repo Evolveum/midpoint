@@ -82,7 +82,7 @@ public class ExpressionEvaluationHelper {
 			resultDef.setMaxOccurs(-1);
 		}
 		Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task, result);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task);
 		context.setAdditionalConvertor(additionalConvertor);
 		PrismValueDeltaSetTriple<?> exprResultTriple = ModelExpressionThreadLocalHolder
 				.evaluateAnyExpressionInContext(expression, context, task, result);

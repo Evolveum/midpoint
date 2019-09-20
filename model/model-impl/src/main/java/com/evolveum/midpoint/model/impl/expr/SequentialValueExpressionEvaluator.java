@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.expr;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 
@@ -42,11 +41,12 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
 	}
 
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) 
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context,
+            OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
 		checkEvaluatorProfile(context);
 		
-        long counter = getSequenceCounter(getExpressionEvaluatorType().getSequenceRef().getOid(), repositoryService, context.getResult());
+        long counter = getSequenceCounter(getExpressionEvaluatorType().getSequenceRef().getOid(), repositoryService, result);
 
 		Object value = ExpressionUtil.convertToOutputValue(counter, outputDefinition, protector);
 

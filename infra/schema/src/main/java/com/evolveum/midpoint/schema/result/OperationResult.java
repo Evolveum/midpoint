@@ -275,6 +275,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				segment.getEntry().add(event.getText());
 			}
 			logSegments.add(segment);
+			loggingEventSink.clearEvents();
 		}
 	}
 

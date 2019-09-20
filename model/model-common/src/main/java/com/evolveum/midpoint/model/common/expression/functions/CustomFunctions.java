@@ -105,9 +105,8 @@ public class CustomFunctions {
 			Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
 					shortDesc, task, result);
 
-			ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task,
-					result);
-			PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context);
+			ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+			PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context, result);
 
 			LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 

@@ -109,8 +109,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Autowired private MappingEvaluator mappingEvaluator;
 	@Autowired private ActivationComputer activationComputer;
 
-
-
 	// first part
     private RoleType role1, role2, role4, role5, role6;
     private OrgType org3;

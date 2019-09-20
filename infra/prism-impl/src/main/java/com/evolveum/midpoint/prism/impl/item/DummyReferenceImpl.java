@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -178,6 +179,7 @@ public class DummyReferenceImpl implements PrismReference {
 		realReference.setUserData(key, value);
 	}
 
+	@NotNull
 	public List<PrismReferenceValue> getValues() {
 		return realReference.getValues();
 	}

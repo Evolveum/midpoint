@@ -62,6 +62,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
@@ -83,7 +84,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.Entry;
@@ -162,6 +162,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	private long lastDummyResourceGroupMembersReadCount;
 	private long lastDummyResourceWriteOperationCount;
 
+	@Autowired protected Tracer tracer;
 	@Autowired protected TaskManager taskManager;
 	@Autowired protected Protector protector;
 	@Autowired protected Clock clock;
@@ -252,6 +253,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		return repoAddObjectFromFile(file, false, parentResult);
+	}
+
+	protected <T extends ObjectType> PrismObject<T> repoAdd(TestResource resource, OperationResult parentResult)
+			throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
+		return repoAddObjectFromFile(resource.file, parentResult);
 	}
 
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file, Class<T> type,
@@ -1774,24 +1780,58 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			operationName = this.getClass().getName() + "." + operationName;
 		}
 		Task task = taskManager.createTaskInstance(operationName);
-//		task.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
-//		task.setTracingProfile(new TracingProfileType()
-//				.collectLogEntries(true)
-//				.beginLoggingOverride()
-//					.beginLevelOverride()
-//						.logger("org.hibernate.SQL")
-//						.level(LoggingLevelType.TRACE)
-//					.<LoggingOverrideType>end()
-//					.beginLevelOverride()
-//						.logger("org.hibernate.type")
-//						.level(LoggingLevelType.TRACE)
-//					.<LoggingOverrideType>end()
-//				.<TracingProfileType>end()
-//				.beginTracingTypeProfile()
-//					.level(TracingLevelType.NORMAL)
-//				.<TracingProfileType>end()
-//				.fileNamePattern("trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}"));
+//		setModelLoggingTracing(task);
 		return task;
+	}
+
+	protected void setDefaultTracing(Task task) {
+		setTracing(task, createDefaultTracingProfile());
+	}
+
+	protected void setModelLoggingTracing(Task task) {
+		setTracing(task, createModelLoggingTracingProfile());
+	}
+
+	protected void setHibernateLoggingTracing(Task task) {
+		setTracing(task, createHibernateLoggingTracingProfile());
+	}
+
+	protected void setTracing(Task task, TracingProfileType profile) {
+		task.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
+		task.setTracingProfile(profile);
+	}
+
+	protected TracingProfileType createModelLoggingTracingProfile() {
+		return createDefaultTracingProfile()
+				.beginLoggingOverride()
+					.beginLevelOverride()
+						.logger("com.evolveum.midpoint.model")
+						.level(LoggingLevelType.TRACE)
+					.<LoggingOverrideType>end()
+				.end();
+	}
+
+	protected TracingProfileType createHibernateLoggingTracingProfile() {
+		return createDefaultTracingProfile()
+				.beginLoggingOverride()
+					.beginLevelOverride()
+						.logger("org.hibernate.SQL")
+						.level(LoggingLevelType.TRACE)
+					.<LoggingOverrideType>end()
+					.beginLevelOverride()
+						.logger("org.hibernate.type")
+						.level(LoggingLevelType.TRACE)
+					.<LoggingOverrideType>end()
+				.end();
+	}
+
+	protected TracingProfileType createDefaultTracingProfile() {
+		return new TracingProfileType()
+				.collectLogEntries(true)
+				.beginTracingTypeProfile()
+					.level(TracingLevelType.NORMAL)
+				.<TracingProfileType>end()
+				.fileNamePattern("trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}");
 	}
 
 	protected Task createTracedTask(String operationName) {

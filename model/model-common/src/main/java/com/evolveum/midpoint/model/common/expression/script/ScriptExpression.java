@@ -41,7 +41,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
  */
 public class ScriptExpression {
 
-    private ScriptExpressionEvaluatorType scriptType;
+	private static final String OP_EVALUATE = ScriptExpression.class.getName() + ".evaluate";
+
+	private ScriptExpressionEvaluatorType scriptType;
     private ScriptEvaluator evaluator;
     private ItemDefinition outputDefinition;
 	private Function<Object, Object> additionalConvertor;
@@ -129,7 +131,7 @@ public class ScriptExpression {
 		
 		return evaluate(context);
 	}
-		
+
 	public <V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -154,7 +156,13 @@ public class ScriptExpression {
 		if (context.getObjectResolver() == null) {
 			context.setObjectResolver(objectResolver);
 		}
-		
+
+		OperationResult parentResult = context.getResult();
+		OperationResult result = parentResult.subresult(OP_EVALUATE)
+				.setMinor()
+				.addContext("context", context.getContextDescription())
+				.build();
+		context.setResult(result);      // a bit of hack: this is to provide some tracing of script evaluation
 		try {
 			context.setupThreadLocal();
 
@@ -165,9 +173,12 @@ public class ScriptExpression {
 
 		} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error ex) {
 			traceExpressionFailure(context, ex);
+			result.recordFatalError(ex.getMessage(), ex);
 			throw ex;
 		} finally {
 			context.cleanupThreadLocal();
+			result.computeStatusIfUnknown();
+			context.setResult(parentResult);        // a bit of hack
 		}
 	}
 

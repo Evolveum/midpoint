@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -65,8 +66,9 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
 	 * We need to do that just before mapping expression is executed, because we want all the sources
 	 * and variables set the same way as mapping is set.
 	 */
-	public void mappingPreExpression(ExpressionEvaluationContext context) throws SchemaException, ObjectNotFoundException,
-			ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result) throws SchemaException,
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException {
 	}
 
 	@NotNull

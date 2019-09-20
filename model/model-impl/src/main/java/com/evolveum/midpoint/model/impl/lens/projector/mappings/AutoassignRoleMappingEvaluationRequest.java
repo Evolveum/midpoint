@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +55,7 @@ public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluati
     }
 
     @Override
-    public void mappingPreExpression(ExpressionEvaluationContext context)
+    public void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         PopulateType populate = mapping.getPopulate();
@@ -63,7 +64,7 @@ public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluati
         }
         List<ItemDelta<PrismValue, ItemDefinition>> populateItemDeltas = PopulatorUtil
                 .computePopulateItemDeltas(populate, assignmentDef, context.getVariables(), context,
-                        context.getContextDescription(), context.getTask(), context.getResult());
+                        context.getContextDescription(), context.getTask(), result);
         if (populateItemDeltas != null) {
             ItemDeltaCollectionsUtil.applyTo(populateItemDeltas, assignmentType.asPrismContainerValue());
         }

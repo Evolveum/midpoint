@@ -107,13 +107,11 @@ public class OutboundProcessor {
         outboundConstruction.setRefinedObjectClassDefinition(rOcDef);
 
         Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = rOcDef.getAuxiliaryObjectClassDefinitions();
-        if (auxiliaryObjectClassDefinitions != null) {
-        	for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
-        		outboundConstruction.addAuxiliaryObjectClassDefinition(auxiliaryObjectClassDefinition);
-        	}
-        }
+	    for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+		    outboundConstruction.addAuxiliaryObjectClassDefinition(auxiliaryObjectClassDefinition);
+	    }
 
-        String operation = projCtx.getOperation().getValue();
+	    String operation = projCtx.getOperation().getValue();
 
         for (QName attributeName : rOcDef.getNamesOfAttributesWithOutboundExpressions()) {
 			RefinedAttributeDefinition<?> refinedAttributeDefinition = rOcDef.findAttributeDefinition(attributeName);

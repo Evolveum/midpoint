@@ -10,6 +10,7 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 
 import com.evolveum.midpoint.common.ActivationComputer;
@@ -48,12 +49,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
@@ -216,9 +211,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         
         assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, taskAssignment);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDump(1));
-		}
+		LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDumpLazily(1));
 
 		// Iterate over all the assignments. I mean really all. This is a union of the existing and changed assignments
         // therefore it contains all three types of assignments (plus, minus and zero). As it is an union each assignment
@@ -568,16 +561,16 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
     private EvaluatedAssignmentImpl<AH> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
     		PlusMinusZero mode, boolean evaluateOld, String assignmentPlacementDesc, SmartAssignmentElement smartAssignment) throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 		OperationResult subResult = result.createMinorSubresult(OP_EVALUATE_ASSIGNMENT);
-		subResult.addParam("assignmentDescription", assignmentPlacementDesc);
+	    PrismContainerValue<AssignmentType> assignment = assignmentIdi.getSingleValue(evaluateOld);
+	    subResult.addParam("assignment", assignment != null ? FocusTypeUtil.dumpAssignment(assignment.asContainerable()) : null);
+		subResult.addParam("assignmentPlacementDescription", assignmentPlacementDesc);
         try {
 			// Evaluate assignment. This follows to the assignment targets, follows to the inducements,
         	// evaluates all the expressions, etc.
         	EvaluatedAssignmentImpl<AH> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentIdi, mode, evaluateOld, source, assignmentPlacementDesc, smartAssignment.isVirtual(), task, subResult);
         	context.rememberResources(evaluatedAssignment.getResources(task, subResult));
         	subResult.recordSuccess();
-        	if (LOGGER.isTraceEnabled()) {
-        		LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment == null ? null : evaluatedAssignment.debugDump(1));
-        	}
+       		LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
         	evaluatedAssignment.setPresentInCurrentObject(smartAssignment.isCurrent());
 			evaluatedAssignment.setPresentInOldObject(smartAssignment.isOld());
         	return evaluatedAssignment;
@@ -611,22 +604,16 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 				projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 			}
         	return null;
-        } catch (ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException  e) {
+        } catch (ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException |
+		        CommunicationException | RuntimeException | Error e) {
         	AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
         	if (LOGGER.isTraceEnabled()) {
         		LOGGER.trace("Processing of assignment resulted in error {}: {}", e, SchemaDebugUtil.prettyPrint(assignmentType));
             }
         	subResult.recordFatalError(e);
         	throw e;
-		} catch (RuntimeException | Error e) {
-			AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
-        	if (LOGGER.isTraceEnabled()) {
-        		LOGGER.trace("Processing of assignment resulted in error {}: {}", e, SchemaDebugUtil.prettyPrint(assignmentType));
-            }
-			subResult.recordFatalError(e);
-			throw e;
 		}
-	}
+    }
 
 	/**
      * Returns delta of user assignments, both primary and secondary (merged together).

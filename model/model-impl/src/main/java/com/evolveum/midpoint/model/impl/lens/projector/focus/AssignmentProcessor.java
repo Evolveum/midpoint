@@ -980,10 +980,11 @@ public class AssignmentProcessor {
 			if (ea.isVirtual()) {
 				continue;
 			}
+			//noinspection unchecked
 			Collection<MappingImpl<V,D>> focusMappings = (Collection)ea.getFocusMappings();
 			for (MappingImpl<V,D> mapping: focusMappings) {
 
-				ItemPath itemPath = mapping.getOutputPath();
+				UniformItemPath itemPath = prismContext.toUniformPath(mapping.getOutputPath());
 				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping,
 						prismContext);
 				if (outputTriple == null) {
@@ -998,12 +999,12 @@ public class AssignmentProcessor {
 					outputTriple.clearZeroSet();
 					outputTriple.clearPlusSet();
 				}
-				DeltaSetTriple<ItemValueWithOrigin<V,D>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(itemPath);
-				if (mapTriple == null) {
-					UniformItemPath uniformItemPath = prismContext.toUniformPath(itemPath);
-					outputTripleMap.put(uniformItemPath, outputTriple);
+				//noinspection unchecked
+				DeltaSetTriple<ItemValueWithOrigin<V,D>> existingTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(itemPath);
+				if (existingTriple == null) {
+					outputTripleMap.put(itemPath, outputTriple);
 				} else {
-					mapTriple.merge(outputTriple);
+					existingTriple.merge(outputTriple);
 				}
 			}
 		}

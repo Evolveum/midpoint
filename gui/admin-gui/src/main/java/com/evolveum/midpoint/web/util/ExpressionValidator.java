@@ -92,10 +92,10 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 		}
 		variables.putObject(ExpressionConstants.VAR_OBJECT, (ObjectType)getObjectType(), ObjectType.class);
 //		addAdditionalExpressionVariables(variables);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, result);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
 		PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple;
 		try {
-			outputTriple = expression.evaluate(context);
+			outputTriple = expression.evaluate(context, result);
 		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
 				| ConfigurationException | SecurityViolationException e) {
 			ValidationError error = new ValidationError();

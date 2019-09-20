@@ -221,10 +221,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		return prop.getRealValue();
 	}
 	
-	protected void assertPolyStringProperty(QName propName, String expectedOrig) {
+	public PrismObjectAsserter<O,RA> assertPolyStringProperty(QName propName, String expectedOrig) {
 		PrismProperty<PolyString> prop = getObject().findProperty(ItemName.fromQName(propName));
 		assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);
 		PrismAsserts.assertEqualsPolyString("Wrong "+propName.getLocalPart()+" in "+desc(), expectedOrig, prop.getRealValue());
+		return this;
 	}
 	
 	protected void assertPolyStringPropertyMulti(QName propName, String... expectedOrigs) {
