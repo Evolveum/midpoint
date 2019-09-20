@@ -238,9 +238,7 @@ public class AssignmentProcessor {
         policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
         context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
-        if (LOGGER.isTraceEnabled()) {
-        	LOGGER.trace("evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());
-        }
+	    LOGGER.trace("evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
         // PROCESSING POLICIES
 
@@ -254,11 +252,12 @@ public class AssignmentProcessor {
         	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
 			context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
-			policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
+	        // TODO implement isMemberOf invocation result change check here!
+	        //  Actually, we should factor out the relevant code to avoid code duplication.
 
-        	if (LOGGER.isTraceEnabled()) {
-            	LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());
-            }
+	        policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
+
+           	LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
         	policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, task, result);
         }
@@ -267,10 +266,16 @@ public class AssignmentProcessor {
 
         // PROCESSING FOCUS
 
+	    LOGGER.trace("Processing output triples from assignment-held mappings");
         Map<UniformItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> focusOutputTripleMap = new HashMap<>();
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getPlusSet(), focusOutputTripleMap, PlusMinusZero.PLUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getMinusSet(), focusOutputTripleMap, PlusMinusZero.MINUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getZeroSet(), focusOutputTripleMap, PlusMinusZero.ZERO);
+        if (LOGGER.isTraceEnabled()) {
+	        for (Entry<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> entry : focusOutputTripleMap.entrySet()) {
+		        LOGGER.trace("Resulting output triple for {}:\n{}", entry.getKey(), entry.getValue().debugDump(1));
+	        }
+        }
         ObjectDeltaObject<AH> focusOdo = focusContext.getObjectDeltaObject();
 		Collection<ItemDelta<?,?>> focusDeltas = objectTemplateProcessor.computeItemDeltas(focusOutputTripleMap, null,
 				focusOdo.getObjectDelta(), focusOdo.getNewObject(), focusContext.getObjectDefinition(),
@@ -281,34 +286,31 @@ public class AssignmentProcessor {
 
 		if (context.getPartialProcessingOptions().getProjection() != PartialProcessingTypeType.SKIP) {
 
-			if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-				LOGGER.trace("Skipping evaluating constructions. Not a focus.");
-				return;
-			}
-			
-			// PROCESSING PROJECTIONS
+			if (FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Projection processing start, evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump(1));
-			}
+				// PROCESSING PROJECTIONS
 
-			// Evaluate the constructions in assignments now. These were not evaluated in the first pass of AssignmentEvaluator
-			// because there may be interaction from focusMappings of some roles to outbound mappings of other roles.
-			// Now we have complete focus with all the focusMappings so we can evaluate the constructions
-			evaluateConstructions(context, evaluatedAssignmentTriple, task, result);
+				LOGGER.trace("Projection processing start, evaluatedAssignmentTriple:\n{}",
+						evaluatedAssignmentTriple.debugDumpLazily(1));
 
-			proccessProjections((LensContext<F>) context, (DeltaSetTriple) evaluatedAssignmentTriple, task, result);
-			
-			if (LOGGER.isTraceEnabled()) {
+				// Evaluate the constructions in assignments now. These were not evaluated in the first pass of AssignmentEvaluator
+				// because there may be interaction from focusMappings of some roles to outbound mappings of other roles.
+				// Now we have complete focus with all the focusMappings so we can evaluate the constructions
+				evaluateConstructions(context, evaluatedAssignmentTriple, task, result);
+
+				processProjections((LensContext<F>) context, (DeltaSetTriple) evaluatedAssignmentTriple, task, result);
+
 				LOGGER.trace("Projection processing done");
-			}
 
-			removeIgnoredContexts(context);
-			finishLegalDecisions(context);
+				removeIgnoredContexts(context);
+				finishLegalDecisions(context);
+			} else {
+				LOGGER.trace("Skipping evaluating constructions. Not a focus.");
+			}
 		}
     }
 
-    private <F extends FocusType> void proccessProjections(LensContext<F> context, DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <F extends FocusType> void processProjections(LensContext<F> context, DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	ComplexConstructionConsumer<ResourceShadowDiscriminator, Construction<F>> consumer = new ComplexConstructionConsumer<ResourceShadowDiscriminator, Construction<F>>() {
 
 			private boolean processOnlyExistingProjCxts;
@@ -978,7 +980,7 @@ public class AssignmentProcessor {
 
 		for (EvaluatedAssignmentImpl<F> ea: evaluatedAssignments) {
 			if (ea.isVirtual()) {
-				continue;
+				continue;       // TODO why? ... Virtual assignments can hold mappings, cannot they?
 			}
 			//noinspection unchecked
 			Collection<MappingImpl<V,D>> focusMappings = (Collection)ea.getFocusMappings();
@@ -998,6 +1000,9 @@ public class AssignmentProcessor {
 					outputTriple.addAllToMinusSet(outputTriple.getZeroSet());
 					outputTriple.clearZeroSet();
 					outputTriple.clearPlusSet();
+				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Output triple created from {}:\n{}", ea.shortDump(), outputTriple.debugDump());
 				}
 				//noinspection unchecked
 				DeltaSetTriple<ItemValueWithOrigin<V,D>> existingTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(itemPath);

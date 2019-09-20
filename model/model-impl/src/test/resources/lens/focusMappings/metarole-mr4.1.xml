@@ -7,20 +7,24 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="2421b2c5-8563-4ba7-9a87-f9ef4b169620">
-	<name>bearable</name>
+	  oid="b2876ccd-ed84-40f4-9841-f694a0722196">
+	<name>mr4.1</name>
 	<inducement>
 		<focusMappings>
 			<mapping>
+				<source>
+					<path>description</path>
+				</source>
 				<expression>
 					<script>
 						<code>
-							basic.stringify(assignmentPath[0].target.name) + '-bearer'
+							// source = this metarole
+							description + ':' + basic.stringify(source.name)
 						</code>
 					</script>
 				</expression>
 				<target>
-					<path>organizationalUnit</path>
+					<path>extension/p41</path>
 				</target>
 			</mapping>
 		</focusMappings>

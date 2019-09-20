@@ -859,6 +859,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>)null, false, result);
 	}
 
+	protected void unassignService(String userOid, String serviceOid, Task task, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyUserAssignment(userOid, serviceOid, ServiceType.COMPLEX_TYPE, null, task, (Consumer<AssignmentType>)null, false, result);
+	}
+
 	protected void unassignRole(String userOid, String roleOid, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {

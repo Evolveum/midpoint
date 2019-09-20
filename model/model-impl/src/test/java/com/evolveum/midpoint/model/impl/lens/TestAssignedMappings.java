@@ -9,17 +9,18 @@ package com.evolveum.midpoint.model.impl.lens;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
+import javax.xml.bind.JAXBElement;
 import java.io.File;
 
 /**
@@ -32,8 +33,44 @@ public class TestAssignedMappings extends AbstractLensTest {
     private static final TestResource ROLE_SIMPLE = new TestResource(TEST_DIR, "role-simple.xml", "de0c9c11-eb2e-4b6a-9200-a4306a5c8d6c");
     private static final TestResource USER_JIM = new TestResource(TEST_DIR, "user-jim.xml", "6ce717d6-414f-4d91-948a-923f02191399");
     
-    private static final TestResource ROLE_ORGANIZER = new TestResource(TEST_DIR, "role-organizer.xml", "7d31a3c2-cecf-4e3d-8740-988b37848a7c");
+    private static final TestResource METAMETAROLE_MMR111 = new TestResource(TEST_DIR, "metametarole-mmr1.1.1.xml", "b3d1cb95-526b-4162-8d65-acd8f2994644");
+    private static final TestResource METAMETAROLE_MMR112 = new TestResource(TEST_DIR, "metametarole-mmr1.1.2.xml", "49cf021c-4127-41e1-9187-abcbeb8c0903");
+    private static final TestResource METAMETAROLE_MMR113 = new TestResource(TEST_DIR, "metametarole-mmr1.1.3.xml", "99ed5447-4633-40ca-a81d-faa6f364ee69");
+    private static final TestResource METAMETAROLE_MMR121 = new TestResource(TEST_DIR, "metametarole-mmr1.2.1.xml", "786f30f5-083f-4e45-a06d-2213a8cbd789");
+    private static final TestResource METAMETAROLE_MMR122 = new TestResource(TEST_DIR, "metametarole-mmr1.2.2.xml", "9fcb61b5-d970-4637-8cbe-6ffbaf075ab4");
+    private static final TestResource METAMETAROLE_MMR123 = new TestResource(TEST_DIR, "metametarole-mmr1.2.3.xml", "717c386e-4fd0-48c7-982b-ccdbb8d4415e");
+    private static final TestResource METAMETAROLE_MMR131 = new TestResource(TEST_DIR, "metametarole-mmr1.3.1.xml", "7f9239aa-e2ea-4532-a597-6cb572dadd6b");
+    private static final TestResource METAMETAROLE_MMR132 = new TestResource(TEST_DIR, "metametarole-mmr1.3.2.xml", "c5f74a67-da40-4498-a2f9-1d41ff4163b6");
+    private static final TestResource METAMETAROLE_MMR211 = new TestResource(TEST_DIR, "metametarole-mmr2.1.1.xml", "01f0ae41-6348-4707-ab17-a0638302d759");
+    private static final TestResource METAMETAROLE_MMR221 = new TestResource(TEST_DIR, "metametarole-mmr2.2.1.xml", "0f4ff4db-53d9-4028-9995-6fa6f1d2fbfe");
+    private static final TestResource METAMETAROLE_MMR231 = new TestResource(TEST_DIR, "metametarole-mmr2.3.1.xml", "eda583e0-7f6f-4770-ba59-a7a9fbbb2fa6");
+    private static final TestResource METAMETAROLE_MMR241 = new TestResource(TEST_DIR, "metametarole-mmr2.4.1.xml", "06ce4987-6e3a-4e61-9ec3-f436b15ef7b1");
+    private static final TestResource METAMETAROLE_MMR311 = new TestResource(TEST_DIR, "metametarole-mmr3.1.1.xml", "46fe813b-2658-4f49-b67e-1516b7154851");
+
+    private static final TestResource METAROLE_MR11 = new TestResource(TEST_DIR, "metarole-mr1.1.xml", "2f4136cd-663f-4d52-bc29-77dd6cc64bda");
+    private static final TestResource METAROLE_MR12 = new TestResource(TEST_DIR, "metarole-mr1.2.xml", "4106cf9e-443e-4218-9aef-88d7d9aac3e4");
+    private static final TestResource METAROLE_MR13 = new TestResource(TEST_DIR, "metarole-mr1.3.xml", "a92858ac-52cc-4ea7-aa42-0fb3033ac9f2");
+    private static final TestResource METAROLE_MR21 = new TestResource(TEST_DIR, "metarole-mr2.1.xml", "e0cf0c0e-0db4-4d41-bba4-5e6ee4928837");
+    private static final TestResource METAROLE_MR22 = new TestResource(TEST_DIR, "metarole-mr2.2.xml", "cfda5d1a-c940-4648-a362-d49195ee2d17");
+    private static final TestResource METAROLE_MR23 = new TestResource(TEST_DIR, "metarole-mr2.3.xml", "3108290d-08c5-4025-a574-32998da7e28c");
+    private static final TestResource METAROLE_MR24 = new TestResource(TEST_DIR, "metarole-mr2.4.xml", "559efdde-90e0-465b-8989-a45472f14c9f");
+    private static final TestResource METAROLE_MR31 = new TestResource(TEST_DIR, "metarole-mr3.1.xml", "1b732c09-ecf0-41d6-828a-1cbeba9d4758");
+    private static final TestResource METAROLE_MR32 = new TestResource(TEST_DIR, "metarole-mr3.2.xml", "59ae7541-cdb0-4d71-99ad-2df4130d5833");
+    private static final TestResource METAROLE_MR33 = new TestResource(TEST_DIR, "metarole-mr3.3.xml", "9af8fcad-05e2-46c0-9e0c-31c037931a32");
+    private static final TestResource METAROLE_MR41 = new TestResource(TEST_DIR, "metarole-mr4.1.xml", "b2876ccd-ed84-40f4-9841-f694a0722196");
+    private static final TestResource METAROLE_MR51 = new TestResource(TEST_DIR, "metarole-mr5.1.xml", "7323da3b-4657-42f7-8e92-0dd27c34f4fd");
+    private static final TestResource METAROLE_MR61 = new TestResource(TEST_DIR, "metarole-mr6.1.xml", "2bb624c8-1d55-4fd4-9c1b-a3e51c6a572a");
+
+    private static final TestResource ROLE_R1 = new TestResource(TEST_DIR, "role-r1.xml", "b6897584-6b3e-421c-b4f3-b57123eac50c");
+    private static final TestResource ROLE_R2 = new TestResource(TEST_DIR, "role-r2.xml", "e502a2b9-6961-42f6-91dd-f45edc6e2b02");
+    private static final TestResource ROLE_R3 = new TestResource(TEST_DIR, "role-r3.xml", "7fc1925f-6e54-47a8-aa4b-65b1903d65eb");
+    private static final TestResource ROLE_R4 = new TestResource(TEST_DIR, "role-r4.xml", "958d0b7b-146f-4c25-aee1-ae27d26e34ed");
+    private static final TestResource ROLE_R5 = new TestResource(TEST_DIR, "role-r5.xml", "beb37147-f75a-4c44-a9ec-bc482c1e2a85");
+    private static final TestResource ROLE_R6 = new TestResource(TEST_DIR, "role-r6.xml", "5c58ec3c-bb67-423c-ac4b-bb276c2e8c92");
+
     private static final TestResource USER_ADAM = new TestResource(TEST_DIR, "user-adam.xml", "cf10f112-a731-45cd-8dfb-1b3fe9375c14");
+
+    //private static final TestResource ROLE_ORGANIZER = new TestResource(TEST_DIR, "role-organizer.xml", "7d31a3c2-cecf-4e3d-8740-988b37848a7c");
 
     private static final TestResource USER_FRODO = new TestResource(TEST_DIR, "user-frodo.xml", "786919b7-23c9-4a38-90e7-5a1efd0ab853");
     private static final TestResource ROLE_BEARABLE = new TestResource(TEST_DIR, "metarole-bearable.xml", "2421b2c5-8563-4ba7-9a87-f9ef4b169620");
@@ -51,7 +88,38 @@ public class TestAssignedMappings extends AbstractLensTest {
         repoAdd(USER_JIM, initResult);
         repoAdd(ROLE_SIMPLE, initResult);
 
-        repoAdd(ROLE_ORGANIZER, initResult);
+        repoAdd(METAMETAROLE_MMR111, initResult);
+        repoAdd(METAMETAROLE_MMR112, initResult);
+        repoAdd(METAMETAROLE_MMR113, initResult);
+        repoAdd(METAMETAROLE_MMR121, initResult);
+        repoAdd(METAMETAROLE_MMR122, initResult);
+        repoAdd(METAMETAROLE_MMR123, initResult);
+        repoAdd(METAMETAROLE_MMR131, initResult);
+        repoAdd(METAMETAROLE_MMR132, initResult);
+        repoAdd(METAMETAROLE_MMR211, initResult);
+        repoAdd(METAMETAROLE_MMR221, initResult);
+        repoAdd(METAMETAROLE_MMR231, initResult);
+        repoAdd(METAMETAROLE_MMR241, initResult);
+        repoAdd(METAMETAROLE_MMR311, initResult);
+        repoAdd(METAROLE_MR11, initResult);
+        repoAdd(METAROLE_MR12, initResult);
+        repoAdd(METAROLE_MR13, initResult);
+        repoAdd(METAROLE_MR21, initResult);
+        repoAdd(METAROLE_MR22, initResult);
+        repoAdd(METAROLE_MR23, initResult);
+        repoAdd(METAROLE_MR24, initResult);
+        repoAdd(METAROLE_MR31, initResult);
+        repoAdd(METAROLE_MR32, initResult);
+        repoAdd(METAROLE_MR33, initResult);
+        repoAdd(METAROLE_MR41, initResult);
+        repoAdd(METAROLE_MR51, initResult);
+        repoAdd(METAROLE_MR61, initResult);
+        repoAdd(ROLE_R1, initResult);
+        repoAdd(ROLE_R2, initResult);
+        repoAdd(ROLE_R3, initResult);
+        repoAdd(ROLE_R4, initResult);
+        repoAdd(ROLE_R5, initResult);
+        repoAdd(ROLE_R6, initResult);
         addObject(USER_ADAM, initTask, initResult);
 
         repoAdd(ROLE_BEARABLE, initResult);
@@ -64,6 +132,8 @@ public class TestAssignedMappings extends AbstractLensTest {
     /**
      * Assign "simple" role to jim.
      * Focus mappings should be applied in correct order: name -> fullName -> description -> title -> honorificPrefix.
+     *
+     * See MID-5753.
      */
     @Test
     public void test100AssignSimpleToJim() throws Exception {
@@ -97,55 +167,25 @@ public class TestAssignedMappings extends AbstractLensTest {
     }
 
     /**
-     * Unassign "organizer" role from adam.
-     * This is to test chaining in the negative case when combined with change of source value.
+     * Continuing with chaining tests. Now let's chain mappings coming from various sources.
+     *
+     * First, let's assign "ring" service to frodo.
+     *
+     * Assignments are now like this:
+     *  - frodo ---> ring ---> bearable  M: sets organizationalUnit to "ring-bearer"
+     *      |
+     *      +------> propagator          M: sets fullName -> description
+     *                                           name, honorificPrefix -> fullName
+     *                                           title -> honorificPrefix
+     *                                           organization -> title
+     *                                           organizationalUnit -> organization
+     *
+     * Focus mappings should be applied in correct order:
+     *    () -> organizationalUnit -> organization -> title -> honorificPrefix -> fullName -> description.
      */
     @Test
-    public void test150UnassignOrganizerFromAdam() throws Exception {
-    	final String TEST_NAME = "test150UnassignOrganizerFromAdam";
-        TestUtil.displayTestTitle(this, TEST_NAME);
-
-        // GIVEN
-        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
-        setModelLoggingTracing(task);
-        OperationResult result = task.getResult();
-
-        PrismObject<UserType> adamBefore = getUser(USER_ADAM.oid);
-        new UserAsserter<>(adamBefore)
-                .display("adam before")
-                .assertAssignments(1);
-
-        // WHEN
-        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
-                .item(UserType.F_DESCRIPTION).replace("troublemaker")
-                .item(UserType.F_ASSIGNMENT).delete(adamBefore.asObjectable().getAssignment().get(0).asPrismContainerValue().clone())
-                .asObjectDeltaCast(USER_ADAM.oid);
-
-        executeChanges(delta, null, task, result);
-
-        // THEN
-        assertSuccess(result);
-        PrismObject<UserType> adamAfter = getUserFromRepo(USER_ADAM.oid);
-        UserType adamAfterBean = adamAfter.asObjectable();
-        System.out.println("name = " + adamAfterBean.getName());
-        System.out.println("description = " + adamAfterBean.getDescription());
-        System.out.println("organization = " + adamAfterBean.getOrganization());
-        System.out.println("organizationalUnit = " + adamAfterBean.getOrganizationalUnit());
-        new UserAsserter<>(adamAfter)
-                .display()
-                .assertName("adam")
-                .assertDescription("troublemaker")
-                .assertOrganizationalUnits()
-                .assertOrganizations();
-    }
-
-    /**
-     * Assign "ring" service to frodo.
-     * Focus mappings should be applied in correct order: name -> fullName -> description -> title -> honorificPrefix.
-     */
-    @Test
-    public void test200AssignRingToFrodo() throws Exception {
-    	final String TEST_NAME = "test200AssignRingToFrodo";
+    public void test110AssignRingToFrodo() throws Exception {
+    	final String TEST_NAME = "test110AssignRingToFrodo";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -161,16 +201,251 @@ public class TestAssignedMappings extends AbstractLensTest {
         PrismObject<UserType> frodoAfter = getUserFromRepo(USER_FRODO.oid);
         UserType frodoAfterBean = frodoAfter.asObjectable();
         System.out.println("name = " + frodoAfterBean.getName());
-        System.out.println("fullName = " + frodoAfterBean.getFullName());
-        System.out.println("description = " + frodoAfterBean.getDescription());
+        System.out.println("organizationalUnit = " + frodoAfterBean.getOrganizationalUnit());
+        System.out.println("organization = " + frodoAfterBean.getOrganization());
         System.out.println("title = " + frodoAfterBean.getTitle());
         System.out.println("honorificPrefix = " + frodoAfterBean.getHonorificPrefix());
+        System.out.println("fullName = " + frodoAfterBean.getFullName());
+        System.out.println("description = " + frodoAfterBean.getDescription());
         new UserAsserter<>(frodoAfter)
                 .display()
                 .assertName("frodo")
+                .assertOrganizationalUnits("ring-bearer")
+                .assertOrganizations("ring-bearer")
                 .assertTitle("ring-bearer")
                 .assertPolyStringProperty(UserType.F_HONORIFIC_PREFIX, "ring-bearer")
                 .assertFullName("frodo, the ring-bearer")
                 .assertDescription("frodo, the ring-bearer");
     }
+
+    /**
+     * Variation of the above. Let's add sting to frodo.
+     *
+     * Assignments are now like this:
+     *  - frodo -+---> ring -----> bearable  M: sets organizationalUnit to "ring-bearer"
+     *      |    +---> sting ----> bearable  M: sets organizationalUnit to "sting-bearer"
+     *      |
+     *      +------> propagator          M: sets fullName -> description
+     *                                           name, honorificPrefix -> fullName
+     *                                           title -> honorificPrefix
+     *                                           organization -> title
+     *                                           organizationalUnit -> organization
+     *
+     * Focus mappings should be applied in correct order:
+     *    () -> organizationalUnit -> organization -> title -> honorificPrefix -> fullName -> description.
+     */
+    @Test
+    public void test120AssignStingToFrodo() throws Exception {
+    	final String TEST_NAME = "test120AssignStingToFrodo";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        setModelLoggingTracing(task);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        assignService(USER_FRODO.oid, SERVICE_STING.oid, task, result);
+
+        // THEN
+        assertSuccess(result);
+        PrismObject<UserType> frodoAfter = getUserFromRepo(USER_FRODO.oid);
+        UserType frodoAfterBean = frodoAfter.asObjectable();
+        System.out.println("name = " + frodoAfterBean.getName());
+        System.out.println("organizationalUnit = " + frodoAfterBean.getOrganizationalUnit());
+        System.out.println("organization = " + frodoAfterBean.getOrganization());
+        System.out.println("title = " + frodoAfterBean.getTitle());
+        System.out.println("honorificPrefix = " + frodoAfterBean.getHonorificPrefix());
+        System.out.println("fullName = " + frodoAfterBean.getFullName());
+        System.out.println("description = " + frodoAfterBean.getDescription());
+        new UserAsserter<>(frodoAfter)
+                .display()
+                .assertName("frodo")
+                .assertOrganizationalUnits("ring-bearer", "sting-bearer")
+                .assertOrganizations("ring-bearer", "sting-bearer")
+                .assertTitle("ring-bearer, sting-bearer")
+                .assertPolyStringProperty(UserType.F_HONORIFIC_PREFIX, "ring-bearer, sting-bearer")
+                .assertFullName("frodo, the ring-bearer, sting-bearer")
+                .assertDescription("frodo, the ring-bearer, sting-bearer");
+    }
+
+    /**
+     * Let's remove ring from frodo.
+     *
+     * Assignments are now like this:
+     *  - frodo -----> sting ----> bearable  M: sets organizationalUnit to "sting-bearer"
+     *      |
+     *      +------> propagator          M: sets fullName -> description
+     *                                           name, honorificPrefix -> fullName
+     *                                           title -> honorificPrefix
+     *                                           organization -> title
+     *                                           organizationalUnit -> organization
+     *
+     * Focus mappings should be applied in correct order:
+     *    () -> organizationalUnit -> organization -> title -> honorificPrefix -> fullName -> description.
+     */
+    @Test
+    public void test130UnassignStingFromFrodo() throws Exception {
+    	final String TEST_NAME = "test130UnassignStingFromFrodo";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        setModelLoggingTracing(task);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        unassignService(USER_FRODO.oid, SERVICE_STING.oid, task, result);
+
+        // THEN
+        assertSuccess(result);
+        PrismObject<UserType> frodoAfter = getUserFromRepo(USER_FRODO.oid);
+        UserType frodoAfterBean = frodoAfter.asObjectable();
+        System.out.println("name = " + frodoAfterBean.getName());
+        System.out.println("organizationalUnit = " + frodoAfterBean.getOrganizationalUnit());
+        System.out.println("organization = " + frodoAfterBean.getOrganization());
+        System.out.println("title = " + frodoAfterBean.getTitle());
+        System.out.println("honorificPrefix = " + frodoAfterBean.getHonorificPrefix());
+        System.out.println("fullName = " + frodoAfterBean.getFullName());
+        System.out.println("description = " + frodoAfterBean.getDescription());
+        new UserAsserter<>(frodoAfter)
+                .display()
+                .assertName("frodo")
+                .assertOrganizationalUnits("sting-bearer")
+                .assertOrganizations("sting-bearer")
+                .assertTitle("sting-bearer")
+                .assertPolyStringProperty(UserType.F_HONORIFIC_PREFIX, "sting-bearer")
+                .assertFullName("frodo, the sting-bearer")
+                .assertDescription("frodo, the sting-bearer");
+    }
+
+    /**
+     * Add roles 1, 2, 3 with validity and conditions set by various ways.
+     *
+     * mmr111 - everything is enabled
+     * mmr112 - condition on individual mapping is 'false'
+     * mmr113 - inducement condition is 'false' (on last inducement (with mappings))
+     * mmr121 - inducement activation is 'disabled'
+     * mmr122 - metarole mmr122 condition is 'false'
+     * mmr123 - metarole mmr123 activation is 'disabled'
+     * mmr131 - assignment mr12->mmr131 has condition of 'false'
+     * mmr132 - assignment mr13->mmr132 activation is 'disabled'
+     * mr21 - metarole mr21 condition is 'false'
+     * mr22 - metarole mr22 activation is 'disabled'
+     * mr23 - assignment r2->mr23 condition is 'false'
+     * mr24 - assignment r2->mr24 activation is 'disabled'
+     * r3 - role activation is 'disabled'                       (MID-4449)
+     * r4 - role condition is false
+     * r5 - assignment adam->r5 condition is 'false'
+     * r6 - assignment adam->r6 activation is 'disabled'        (MID-4430)
+     */
+    @Test
+    public void test200AssignRoles123toAdam() throws Exception {
+        final String TEST_NAME = "test200AssignRoles123toAdam";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        setModelLoggingTracing(task);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(
+                                createRoleAssignment(ROLE_R1),
+                                createRoleAssignment(ROLE_R2),
+                                createRoleAssignment(ROLE_R3),
+                                createRoleAssignment(ROLE_R4),
+                                createRoleAssignmentConditionFalse(ROLE_R5),
+                                createRoleAssignmentDisabled(ROLE_R6))
+                        .asObjectDelta(USER_ADAM.oid),
+                null, task, result);
+
+        // THEN
+        assertSuccess(result);
+        PrismObject<UserType> adamAfter = getUserFromRepo(USER_ADAM.oid);
+        UserType jimAfterBean = adamAfter.asObjectable();
+        new UserAsserter<>(adamAfter)
+                .display();
+    }
+
+    private AssignmentType createRoleAssignment(TestResource role) {
+        return new AssignmentType(prismContext)
+                .targetRef(role.oid, RoleType.COMPLEX_TYPE);
+    }
+
+    private AssignmentType createRoleAssignmentConditionFalse(TestResource role) {
+        ScriptExpressionEvaluatorType scriptExpressionEvaluator = new ScriptExpressionEvaluatorType();
+        scriptExpressionEvaluator.setCode("false");
+        ExpressionType expression = new ExpressionType();
+        expression.getExpressionEvaluator().add(new JAXBElement<>(SchemaConstantsGenerated.C_SCRIPT,
+                ScriptExpressionEvaluatorType.class, scriptExpressionEvaluator));
+        return new AssignmentType(prismContext)
+                .targetRef(role.oid, RoleType.COMPLEX_TYPE)
+                .beginCondition()
+                    .expression(expression)
+                .end();
+    }
+
+    private AssignmentType createRoleAssignmentDisabled(TestResource role) {
+        return new AssignmentType(prismContext)
+                .targetRef(role.oid, RoleType.COMPLEX_TYPE)
+                .beginActivation()
+                    .administrativeStatus(ActivationStatusType.DISABLED)
+                .end();
+    }
+
+    //    /**
+//     * Unassign "organizer" role from adam.
+//     * This is to test chaining in the negative case when combined with change of source value.
+//     */
+//    @Test
+//    public void test150UnassignOrganizerFromAdam() throws Exception {
+//        final String TEST_NAME = "test150UnassignOrganizerFromAdam";
+//        TestUtil.displayTestTitle(this, TEST_NAME);
+//
+//        // GIVEN
+//        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+//        setModelLoggingTracing(task);
+//        OperationResult result = task.getResult();
+//
+//        PrismObject<UserType> adamBefore = getUser(USER_ADAM.oid);
+//        new UserAsserter<>(adamBefore)
+//                .display("adam before")
+//                .assertAssignments(1);
+//
+//        UserType adamBeforeBean = adamBefore.asObjectable();
+//        System.out.println("Before:");
+//        System.out.println("- name = " + adamBeforeBean.getName());
+//        System.out.println("- description = " + adamBeforeBean.getDescription());                   // (empty)
+//        System.out.println("- organization = " + adamBeforeBean.getOrganization());                 // gardener
+//        System.out.println("- organizationalUnit = " + adamBeforeBean.getOrganizationalUnit());     // gardener
+//
+//        // WHEN
+//        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+//                .item(UserType.F_DESCRIPTION).replace("gardener")
+//                .item(UserType.F_ASSIGNMENT).delete(adamBefore.asObjectable().getAssignment().get(0).asPrismContainerValue().clone())
+//                .asObjectDeltaCast(USER_ADAM.oid);
+//
+//        executeChanges(delta, null, task, result);
+//
+//        // THEN
+//        assertSuccess(result);
+//        PrismObject<UserType> adamAfter = getUserFromRepo(USER_ADAM.oid);
+//        UserType adamAfterBean = adamAfter.asObjectable();
+//        System.out.println("After:");
+//        System.out.println("- name = " + adamAfterBean.getName());
+//        System.out.println("- description = " + adamAfterBean.getDescription());
+//        System.out.println("- organization = " + adamAfterBean.getOrganization());
+//        System.out.println("- organizationalUnit = " + adamAfterBean.getOrganizationalUnit());
+//        new UserAsserter<>(adamAfter)
+//                .display()
+//                .assertName("adam")
+//                .assertDescription("gardener")
+//                .assertOrganizationalUnits()
+//                .assertOrganizations();
+//    }
+
 }

@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -266,6 +267,10 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
 			evaluateFromSegment(segment, PlusMinusZero.ZERO, ctx, result);
 
+			if (segment.getTarget() != null) {
+				result.addContext("assignmentTargetName", PolyString.getOrig(segment.getTarget().getName()));
+			}
+
 			LOGGER.trace("Assignment evaluation finished:\n{}", ctx.evalAssignment.debugDumpLazily());
 			if (trace != null) {
 				trace.text("Result:\n" + ctx.evalAssignment.debugDump());
@@ -364,7 +369,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 			if (assignmentCondition != null) {
 				AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 				PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateCondition(assignmentCondition,
-						assignmentType, segment.source, assignmentPathVariables, ctx, result);
+						segment.source, assignmentPathVariables,
+						"condition in assignment in " + segment.getSourceDescription(), ctx, result);
 				boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
 				boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
 				PlusMinusZero modeFromCondition = ExpressionUtil.computeConditionResultMode(condOld, condNew);
@@ -398,6 +404,12 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 			}
 
 			LOGGER.trace("evalAssignment isVirtual {} ", ctx.evalAssignment.isVirtual());
+			if (segment.getSource() != null) {
+				result.addContext("segmentSourceName", PolyString.getOrig(segment.getSource().getName()));
+			}
+			if (segment.getTarget() != null) {
+				result.addContext("segmentTargetName", PolyString.getOrig(segment.getTarget().getName()));
+			}
 			result.addArbitraryObjectAsReturn("relativeMode", relativeMode);
 			result.addReturn("evaluateContent", evaluateContent);
 			result.addReturn("isValid", isValid);
@@ -851,7 +863,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 			if (roleCondition != null) {
 	            AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 				PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateCondition(roleCondition,
-						null, segment.source, assignmentPathVariables, ctx, result);
+						segment.source, assignmentPathVariables,
+						"condition in " + segment.getSourceDescription(), ctx, result);
 				boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
 				boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
 				PlusMinusZero modeFromCondition = ExpressionUtil.computeConditionResultMode(condOld, condNew);
@@ -1350,17 +1363,12 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 	}
 
 	public PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateCondition(MappingType condition,
-			AssignmentType sourceAssignment, ObjectType source, AssignmentPathVariables assignmentPathVariables,
-			EvaluationContext ctx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-		String desc;
-		if (sourceAssignment == null) {
-			desc = "condition in " + source; 
-		} else {
-			desc = "condition in assignment in " + source;
-		}
+			ObjectType source, AssignmentPathVariables assignmentPathVariables, String contextDescription, EvaluationContext ctx,
+			OperationResult result) throws ExpressionEvaluationException,
+			ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		MappingImpl.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = mappingFactory.createMappingBuilder();
 		builder = builder.mappingType(condition)
-				.contextDescription(desc)
+				.contextDescription(contextDescription)
 				.sourceContext(focusOdo)
 				.originType(OriginType.ASSIGNMENTS)
 				.originObject(source)

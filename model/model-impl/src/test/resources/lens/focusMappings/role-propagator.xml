@@ -12,24 +12,6 @@
 	<inducement>
 		<focusMappings>
 			<mapping>
-				<name>title -> honorificPrefix</name>
-				<source>
-					<path>title</path>
-				</source>
-				<target>
-					<path>honorificPrefix</path>
-				</target>
-			</mapping>
-			<mapping>
-				<name>description -> title</name>
-				<source>
-					<path>description</path>
-				</source>
-				<target>
-					<path>title</path>
-				</target>
-			</mapping>
-			<mapping>
 				<name>fullName -> description</name>
 				<source>
 					<path>fullName</path>
@@ -39,7 +21,39 @@
 				</target>
 			</mapping>
 			<mapping>
-				<name>organization -> fullName</name>
+				<name>name, honorificPrefix -> fullName</name>
+				<source>
+					<path>name</path>
+				</source>
+				<source>
+					<path>honorificPrefix</path>
+				</source>
+				<expression>
+					<script>
+						<code>
+							if (name != null &amp;&amp; honorificPrefix != null) {
+								basic.stringify(name) + ', the ' + basic.stringify(honorificPrefix)
+							} else {
+								null
+							}
+						</code>
+					</script>
+				</expression>
+				<target>
+					<path>title</path>
+				</target>
+			</mapping>
+			<mapping>
+				<name>title -> honorificPrefix</name>
+				<source>
+					<path>title</path>
+				</source>
+				<target>
+					<path>honorificPrefix</path>
+				</target>
+			</mapping>
+			<mapping>
+				<name>organization -> title</name>
 				<source>
 					<path>organization</path>
 				</source>
@@ -55,7 +69,7 @@
 					</script>
 				</expression>
 				<target>
-					<path>fullName</path>
+					<path>title</path>
 				</target>
 			</mapping>
 			<mapping>

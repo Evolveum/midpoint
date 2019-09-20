@@ -6,7 +6,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="cf10f112-a731-45cd-8dfb-1b3fe9375c14">
-	<name>adam</name>
-</user>
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  oid="9af8fcad-05e2-46c0-9e0c-31c037931a32">
+	<name>mr3.3</name>
+</role>

@@ -10,8 +10,8 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections.CollectionUtils;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -573,6 +573,9 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
        		LOGGER.trace("Evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
         	evaluatedAssignment.setPresentInCurrentObject(smartAssignment.isCurrent());
 			evaluatedAssignment.setPresentInOldObject(smartAssignment.isOld());
+			if (evaluatedAssignment.getTarget() != null) {
+				subResult.addContext("assignmentTargetName", PolyString.getOrig(evaluatedAssignment.getTarget().getName()));
+			}
         	return evaluatedAssignment;
         } catch (ObjectNotFoundException ex) {
         	if (LOGGER.isTraceEnabled()) {
