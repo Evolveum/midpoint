@@ -40,7 +40,7 @@
 					</script>
 				</expression>
 				<target>
-					<path>title</path>
+					<path>fullName</path>
 				</target>
 			</mapping>
 			<mapping>

@@ -98,6 +98,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		realContainer.setValue(value);
 	}
 
+	@NotNull
 	public PrismContainerValue<C> getValue() {
 		return realContainer.getValue();
 	}

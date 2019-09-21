@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -168,13 +169,13 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -184,7 +185,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertSuccess("Assignment processor failed (result)", result);
 
 		Collection<EvaluatedAssignmentImpl<UserType>> evaluatedAssignments = assertAssignmentTripleSetSize(context, 0, 1, 0);
-		@SuppressWarnings({ "unchecked", "raw" })
+		@SuppressWarnings({ "raw" })
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
@@ -207,13 +208,25 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 	}
 
+	private void processAssignments(LensContext<UserType> context, String TEST_NAME, OperationResult result, Task task)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
+//		TracingProfileType profile = createModelLoggingTracingProfile();
+//		profile.setFileNamePattern(profile.getFileNamePattern().replace("%{testNameShort}", TEST_NAME));    // hack
+//		result.tracingProfile(tracer.compileProfile(profile, result));
+
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+
+//		tracer.storeTrace(task, result);
+	}
+
 	@Test(enabled = FIRST_PART)
 	public void test020AssignMR1ToR1() throws Exception {
 		final String TEST_NAME = "test020AssignMR1ToR1";
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<RoleType> context = createContextForAssignment(RoleType.class, ROLE_R1_OID, RoleType.class, ROLE_MR1_OID, null, null, result);
@@ -262,7 +275,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null,
@@ -294,13 +307,13 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, SchemaConstants.ORG_APPROVER, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -351,7 +364,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		AssignmentType policyRuleAssignment = new AssignmentType(prismContext);
@@ -373,7 +386,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				SchemaConstants.ORG_DEPUTY, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -434,7 +447,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		AssignmentType deputyOfBarbossaAssignment = ObjectTypeUtil.createAssignmentTo(USER_BARBOSSA_OID, ObjectTypes.USER, prismContext);
@@ -456,7 +469,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				SchemaConstants.ORG_DEPUTY, assignment -> assignment.beginLimitTargetContent().allowTransitive(true).end(), result);
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -502,7 +515,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		PrismObject<UserType> jack = getUser(USER_JACK_OID);
@@ -591,7 +604,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		unassignAllRoles(USER_JACK_OID);
@@ -607,7 +620,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				SchemaConstants.ORG_DEPUTY, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -671,7 +684,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
@@ -688,13 +701,13 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -749,7 +762,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
@@ -764,13 +777,13 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -825,7 +838,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
@@ -846,7 +859,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
@@ -856,7 +869,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 						.asItemDelta());
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -878,7 +891,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 		// R4-1 is not in plusInvalid (see above)
 		assertConstructions(evaluatedAssignment, "R1-1", null, "MR1-2 MMR1-3", null, "R2-1 MR2-2", null);
-		assertFocusMappings(evaluatedAssignment, "R1-1 MR1-2 MMR1-3");
+		assertFocusMappings(evaluatedAssignment, "R1-1 MR1-2 MMR1-3 R2-1 MR2-2");       // R2-1 and MR2-2 are evaluated and sent to minus set
 		assertFocusPolicyRules(evaluatedAssignment, "R1-1 MR1-2 MMR1-3");
 
 		assertTargetPolicyRules(evaluatedAssignment, "R1-0 MR1-1 MMR1-2", "");
@@ -912,7 +925,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		createObjectsInSecondPart(false, task, result, null);
@@ -920,7 +933,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R7_OID, null, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -1055,7 +1068,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		createObjectsInThirdPart(false, task, result, () -> {
@@ -1074,7 +1087,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 		// WHEN
 		recording = true;
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 		recording = false;
 
 		// THEN
@@ -1517,7 +1530,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		createObjectsInFourthPart(false, task, result, null);
@@ -1525,7 +1538,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG11_OID, null, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -1578,13 +1591,13 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG11_OID, SchemaConstants.ORG_MANAGER, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -1636,13 +1649,13 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG11_OID, SchemaConstants.ORG_APPROVER, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -1693,14 +1706,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG21_OID,
 				null, null, result);	// intentionally unqualified
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -1749,14 +1762,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG21_OID,
 				new QName("manager"), null, result);	// intentionally unqualified
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -1819,14 +1832,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG41_OID,
 				new QName("approver"), null, result);	// intentionally unqualified
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);
@@ -1886,7 +1899,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		Task task = createTask(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		createObjectsInFifthPart(false, task, result, null);
@@ -1895,7 +1908,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				new QName("a"), null, result);	// intentionally unqualified
 
 		// WHEN
-		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		processAssignments(context, TEST_NAME, result, task);
 
 		// THEN
 		display("Output context", context);

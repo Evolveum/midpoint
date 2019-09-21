@@ -141,12 +141,11 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test100AssignSimpleToJim() throws Exception {
-    	final String TEST_NAME = "test100AssignSimpleToJack";
+    	final String TEST_NAME = "test100AssignSimpleToJim";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
-        setModelLoggingTracing(task);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -194,7 +193,6 @@ public class TestAssignedMappings extends AbstractLensTest {
 
         // GIVEN
         Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
-        setModelLoggingTracing(task);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -245,7 +243,6 @@ public class TestAssignedMappings extends AbstractLensTest {
 
         // GIVEN
         Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
-        setModelLoggingTracing(task);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -289,17 +286,16 @@ public class TestAssignedMappings extends AbstractLensTest {
      *    () -> organizationalUnit -> organization -> title -> honorificPrefix -> fullName -> description.
      */
     @Test
-    public void test130UnassignStingFromFrodo() throws Exception {
-    	final String TEST_NAME = "test130UnassignStingFromFrodo";
+    public void test130UnassignRingFromFrodo() throws Exception {
+    	final String TEST_NAME = "test130UnassignRingFromFrodo";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
-        setModelLoggingTracing(task);
         OperationResult result = task.getResult();
 
         // WHEN
-        unassignService(USER_FRODO.oid, SERVICE_STING.oid, task, result);
+        unassignService(USER_FRODO.oid, SERVICE_RING.oid, task, result);
 
         // THEN
         assertSuccess(result);
@@ -352,7 +348,6 @@ public class TestAssignedMappings extends AbstractLensTest {
 
         // GIVEN
         Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
-        setModelLoggingTracing(task);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -372,9 +367,14 @@ public class TestAssignedMappings extends AbstractLensTest {
         // THEN
         assertSuccess(result);
         PrismObject<UserType> adamAfter = getUserFromRepo(USER_ADAM.oid);
-        UserType adamAfterBean = adamAfter.asObjectable();
         new UserAsserter<>(adamAfter)
-                .display();
+                .display()
+                .assertExtensionValue("p111a", "null:mmr1.1.1")
+                .assertExtensionValue("p111b", "null:mmr1.1.1")
+                .assertExtensionValue("p111c", "null:mmr1.1.1")
+                .assertExtensionValue("p112a", "null:mmr1.1.2")         // further processing is disabled, so no b,c here
+                .assertExtensionItems(4)
+                .assertExtensionValues(4);
     }
 
     /**
@@ -406,7 +406,6 @@ public class TestAssignedMappings extends AbstractLensTest {
 
         // GIVEN
         Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
-        setModelLoggingTracing(task);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -428,7 +427,39 @@ public class TestAssignedMappings extends AbstractLensTest {
         PrismObject<UserType> benjaminAfter = getUserFromRepo(USER_BENJAMIN.oid);
         UserType benjaminAfterBean = benjaminAfter.asObjectable();
         new UserAsserter<>(benjaminAfter)
-                .display();
+                .display()
+                .assertExtensionValue("p111a", "null:mmr1.1.1")
+                .assertExtensionValue("p111b", "null:mmr1.1.1")
+                .assertExtensionValue("p111c", "null:mmr1.1.1")
+                .assertExtensionValue("p112a", "null:mmr1.1.2")
+                .assertExtensionValue("p112b", "null:mmr1.1.2")
+                .assertExtensionValue("p112c", "null:mmr1.1.2")
+                .assertExtensionValue("p113a", "null:mmr1.1.3")
+                .assertExtensionValue("p113b", "null:mmr1.1.3")
+                .assertExtensionValue("p113c", "null:mmr1.1.3")
+                // no p121 (activation disabled)
+                .assertExtensionValue("p122a", "null:mmr1.2.2")
+                .assertExtensionValue("p122b", "null:mmr1.2.2")
+                .assertExtensionValue("p122c", "null:mmr1.2.2")
+                // no p123 (activation disabled)
+                .assertExtensionValue("p131a", "null:mmr1.3.1")
+                .assertExtensionValue("p131b", "null:mmr1.3.1")
+                .assertExtensionValue("p131c", "null:mmr1.3.1")
+                // no p132 (activation disabled)
+                .assertExtensionValue("p211a", "null:mmr2.1.1")
+                .assertExtensionValue("p211b", "null:mmr2.1.1")
+                .assertExtensionValue("p211c", "null:mmr2.1.1")
+                // no p221 (activation disabled)
+                .assertExtensionValue("p231a", "null:mmr2.3.1")
+                .assertExtensionValue("p231b", "null:mmr2.3.1")
+                .assertExtensionValue("p231c", "null:mmr2.3.1")
+                // no p241 (activation disabled)
+                // no p311 (activation disabled)
+                .assertExtensionValue("p41", "null:mr4.1")
+                .assertExtensionValue("p51", "null:mr5.1")
+                // no p61 (activation disabled)
+                .assertExtensionItems(23)
+                .assertExtensionValues(23);
     }
 
     /**
@@ -460,7 +491,6 @@ public class TestAssignedMappings extends AbstractLensTest {
 
         // GIVEN
         Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
-        setModelLoggingTracing(task);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -476,7 +506,39 @@ public class TestAssignedMappings extends AbstractLensTest {
         PrismObject<UserType> adamAfter = getUserFromRepo(USER_ADAM.oid);
         UserType adamAfterBean = adamAfter.asObjectable();
         new UserAsserter<>(adamAfter)
-                .display();
+                .display()
+                .assertExtensionValue("p111a", "null:mmr1.1.1")
+                .assertExtensionValue("p111b", "null:mmr1.1.1")
+                .assertExtensionValue("p111c", "null:mmr1.1.1")
+                .assertExtensionValue("p112a", "null:mmr1.1.2")
+                .assertExtensionValue("p112b", "null:mmr1.1.2")
+                .assertExtensionValue("p112c", "null:mmr1.1.2")
+                .assertExtensionValue("p113a", "null:mmr1.1.3")
+                .assertExtensionValue("p113b", "null:mmr1.1.3")
+                .assertExtensionValue("p113c", "null:mmr1.1.3")
+                // no p121 (activation disabled)
+                .assertExtensionValue("p122a", "null:mmr1.2.2")
+                .assertExtensionValue("p122b", "null:mmr1.2.2")
+                .assertExtensionValue("p122c", "null:mmr1.2.2")
+                // no p123 (activation disabled)
+                .assertExtensionValue("p131a", "null:mmr1.3.1")
+                .assertExtensionValue("p131b", "null:mmr1.3.1")
+                .assertExtensionValue("p131c", "null:mmr1.3.1")
+                // no p132 (activation disabled)
+                .assertExtensionValue("p211a", "null:mmr2.1.1")
+                .assertExtensionValue("p211b", "null:mmr2.1.1")
+                .assertExtensionValue("p211c", "null:mmr2.1.1")
+                // no p221 (activation disabled)
+                .assertExtensionValue("p231a", "null:mmr2.3.1")
+                .assertExtensionValue("p231b", "null:mmr2.3.1")
+                .assertExtensionValue("p231c", "null:mmr2.3.1")
+                // no p241 (activation disabled)
+                // no p311 (activation disabled)
+                .assertExtensionValue("p41", "null:mr4.1")
+                .assertExtensionValue("p51", "null:mr5.1")
+                // no p61 (activation disabled)
+                .assertExtensionItems(23)
+                .assertExtensionValues(23);
     }
 
     /**
@@ -508,7 +570,6 @@ public class TestAssignedMappings extends AbstractLensTest {
 
         // GIVEN
         Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
-        setModelLoggingTracing(task);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -524,7 +585,13 @@ public class TestAssignedMappings extends AbstractLensTest {
         PrismObject<UserType> benjaminAfter = getUserFromRepo(USER_BENJAMIN.oid);
         UserType benjaminAfterBean = benjaminAfter.asObjectable();
         new UserAsserter<>(benjaminAfter)
-                .display();
+                .display()
+                .assertExtensionValue("p111a", "null:mmr1.1.1")
+                .assertExtensionValue("p111b", "null:mmr1.1.1")
+                .assertExtensionValue("p111c", "null:mmr1.1.1")
+                .assertExtensionValue("p112a", "null:mmr1.1.2")         // further processing is disabled, so no b,c here
+                .assertExtensionItems(4)
+                .assertExtensionValues(4);
     }
 
     /**
@@ -537,7 +604,6 @@ public class TestAssignedMappings extends AbstractLensTest {
 
         // GIVEN
         Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
-        setModelLoggingTracing(task);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -553,7 +619,9 @@ public class TestAssignedMappings extends AbstractLensTest {
         PrismObject<UserType> adamAfter = getUserFromRepo(USER_ADAM.oid);
         UserType adamAfterBean = adamAfter.asObjectable();
         new UserAsserter<>(adamAfter)
-                .display();
+                .display()
+                .assertExtensionItems(0)
+                .assertExtensionValues(0);
     }
 
     /**
@@ -566,7 +634,6 @@ public class TestAssignedMappings extends AbstractLensTest {
 
         // GIVEN
         Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
-        setModelLoggingTracing(task);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -582,7 +649,9 @@ public class TestAssignedMappings extends AbstractLensTest {
         PrismObject<UserType> benjaminAfter = getUserFromRepo(USER_BENJAMIN.oid);
         UserType benjaminAfterBean = benjaminAfter.asObjectable();
         new UserAsserter<>(benjaminAfter)
-                .display();
+                .display()
+                .assertExtensionItems(0)
+                .assertExtensionValues(0);
     }
 
     private AssignmentType createRoleAssignment(TestResource role) {
@@ -614,7 +683,7 @@ public class TestAssignedMappings extends AbstractLensTest {
                 .end();
     }
 
-    //    /**
+//    /**
 //     * Unassign "organizer" role from adam.
 //     * This is to test chaining in the negative case when combined with change of source value.
 //     */

@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
+import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -21,20 +23,46 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AssignedFocusMappingEvaluationRequest extends FocalMappingEvaluationRequest<MappingType, ObjectType> {
 
+    /**
+     * Evaluated assignment this request is part of. Beware: DO NOT CLONE. It is engaged in identity-based lookup.
+     */
+    @NotNull private final EvaluatedAssignmentImpl<?> evaluatedAssignment;
+
+    /**
+     * Mode of the focus mapping (plus, minus, zero), relative to the assignment being evaluated.
+     */
+    @NotNull private final PlusMinusZero relativeMode;
+
     private final AssignmentPathVariables assignmentPathVariables;
     private final String sourceDescription;
 
     public AssignedFocusMappingEvaluationRequest(@NotNull MappingType mapping, @NotNull ObjectType originObject,
-            AssignmentPathVariables assignmentPathVariables, String sourceDescription) {
+            @NotNull EvaluatedAssignmentImpl<?> evaluatedAssignment,
+            @NotNull PlusMinusZero relativeMode, AssignmentPathVariables assignmentPathVariables,
+            String sourceDescription) {
         super(mapping, originObject);
+        this.evaluatedAssignment = evaluatedAssignment;
+        this.relativeMode = relativeMode;
         this.assignmentPathVariables = assignmentPathVariables;
         this.sourceDescription = sourceDescription;
     }
 
+    @NotNull
+    public EvaluatedAssignmentImpl<?> getEvaluatedAssignment() {
+        return evaluatedAssignment;
+    }
+
+    @NotNull
+    public PlusMinusZero getRelativeMode() {
+        return relativeMode;
+    }
+
+    @Override
     public AssignmentPathVariables getAssignmentPathVariables() {
         return assignmentPathVariables;
     }
 
+    @SuppressWarnings("unused")
     public String getSourceDescription() {
         return sourceDescription;
     }
@@ -48,6 +76,6 @@ public class AssignedFocusMappingEvaluationRequest extends FocalMappingEvaluatio
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append("assigned mapping ");
-        sb.append("'").append(mapping.getName()).append("' in ").append(sourceDescription);
+        sb.append("'").append(getMappingInfo()).append("' in ").append(sourceDescription);
     }
 }

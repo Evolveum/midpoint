@@ -220,7 +220,40 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		}
 		return prop.getRealValue();
 	}
-	
+
+	public PrismObjectAsserter<O,RA> assertExtensionValue(String localName, Object realValue) {
+		Item extensionItem = getObject().findExtensionItem(localName);
+		assertNotNull("No extension property " + localName, extensionItem);
+		assertTrue("Real value " + realValue + " not in " + extensionItem, extensionItem.getRealValues().contains(realValue));
+		return this;
+	}
+
+	public PrismObjectAsserter<O,RA> assertExtensionValues(int count) {
+		assertEquals("Wrong # of extension items values", count, getExtensionValuesCount());
+		return this;
+	}
+
+	private int getExtensionValuesCount() {
+		PrismContainer<?> extension = getObject().getExtension();
+		int count = 0;
+		if (extension != null) {
+			for (Item<?, ?> item : extension.getValue().getItems()) {
+				count += item.size();
+			}
+		}
+		return count;
+	}
+
+	public PrismObjectAsserter<O,RA> assertExtensionItems(int count) {
+		assertEquals("Wrong # of extension items", count, getExtensionItemsCount());
+		return this;
+	}
+
+	private int getExtensionItemsCount() {
+		PrismContainer<?> extension = getObject().getExtension();
+		return extension != null ? extension.getValue().size() : 0;
+	}
+
 	public PrismObjectAsserter<O,RA> assertPolyStringProperty(QName propName, String expectedOrig) {
 		PrismProperty<PolyString> prop = getObject().findProperty(ItemName.fromQName(propName));
 		assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);

@@ -1151,7 +1151,7 @@ public class TestProjector extends AbstractLensTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-        result.tracingProfile(tracer.compileProfile(createModelLoggingTracingProfile(), result));
+//        result.tracingProfile(tracer.compileProfile(createModelLoggingTracingProfile(), result));
 
         LensContext<UserType> context = createUserLensContext();
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_LARGO_FILE);
@@ -1169,7 +1169,7 @@ public class TestProjector extends AbstractLensTest {
 
         // TODO
 
-        tracer.storeTrace(task, result);
+//        tracer.storeTrace(task, result);
 
 		assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.ADD);
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();

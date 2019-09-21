@@ -563,6 +563,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 		OperationResult subResult = result.createMinorSubresult(OP_EVALUATE_ASSIGNMENT);
 	    PrismContainerValue<AssignmentType> assignment = assignmentIdi.getSingleValue(evaluateOld);
 	    subResult.addParam("assignment", assignment != null ? FocusTypeUtil.dumpAssignment(assignment.asContainerable()) : null);
+		subResult.addArbitraryObjectAsParam("mode", mode);
 		subResult.addParam("assignmentPlacementDescription", assignmentPlacementDesc);
         try {
 			// Evaluate assignment. This follows to the assignment targets, follows to the inducements,

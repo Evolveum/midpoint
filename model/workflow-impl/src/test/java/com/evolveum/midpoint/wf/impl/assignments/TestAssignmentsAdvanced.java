@@ -1180,7 +1180,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 	private void previewAssignRolesToJack(String TEST_NAME, boolean immediate, boolean also24) throws Exception {
 		Task task = createTask("previewAssignRolesToJack");
 		OperationResult result = task.getResult();
-		result.tracingProfile(tracer.compileProfile(addWorkflowLogging(createModelLoggingTracingProfile()), result));
+		//result.tracingProfile(tracer.compileProfile(addWorkflowLogging(createModelLoggingTracingProfile()), result));
 
 		List<AssignmentType> assignmentsToAdd = new ArrayList<>();
 		assignmentsToAdd.add(createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE, prismContext));
@@ -1206,7 +1206,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 		displayContainerablesCollection("Approval infos", approvalInfo);
 		displayContainerablesCollection("Enforce infos", enforceInfo);
 		result.computeStatus();
-		tracer.storeTrace(task, result);
+		//tracer.storeTrace(task, result);
 
 		// we do not assert success here, because there are (intentional) exceptions in some of the expressions
 

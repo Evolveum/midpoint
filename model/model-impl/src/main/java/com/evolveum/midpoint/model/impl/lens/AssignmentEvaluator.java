@@ -503,16 +503,15 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 					collectPersonaConstruction(segment, relativeMode, reallyValid, ctx);
 				}
 				if (assignmentType.getFocusMappings() != null) {
-					// Here we ignore "reallyValid". It is OK, because reallyValid can be false here only when
-					// evaluating direct assignments; and invalid ones are marked as such via EvaluatedAssignment.isValid.
-					// (This is currently ignored by downstream processing, but that's another story. Will be fixed soon.)
-					if (isNonNegative(relativeMode)) {
-						evaluateFocusMappings(segment, ctx, result);
+					if (reallyValid && relativeMode != null) {     // null relative mode means both PLUS and MINUS
+						collectFocusMappings(segment, relativeMode, ctx);
 					}
 				}
 			}
 			if (assignmentType.getPolicyRule() != null && !loginMode) {
-				// We can ignore "reallyValid" for the same reason as for focus mappings.
+				// Here we ignore "reallyValid". It is OK, because reallyValid can be false here only when
+				// evaluating direct assignments; and invalid ones are marked as such via EvaluatedAssignment.isValid.
+				// TODO is it ok?
 				if (isNonNegative(relativeMode)) {
 					if (segment.isMatchingOrder()) {
 						collectPolicyRule(true, segment, ctx);
@@ -671,8 +670,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 		ctx.evalAssignment.addPersonaConstruction(construction, mode);
 	}
 	
-	private void evaluateFocusMappings(AssignmentPathSegmentImpl segment, EvaluationContext ctx, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+	private void collectFocusMappings(AssignmentPathSegmentImpl segment, @NotNull PlusMinusZero relativeMode, EvaluationContext ctx)
+			throws SchemaException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 
 		AssignmentType assignmentBean = getAssignmentType(segment, ctx);
@@ -684,7 +683,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
 		for (MappingType mappingBean: mappingsBean.getMapping()) {
 			AssignedFocusMappingEvaluationRequest request = new AssignedFocusMappingEvaluationRequest(mappingBean, segment.source,
-					assignmentPathVariables, segment.sourceDescription);
+                    ctx.evalAssignment, relativeMode, assignmentPathVariables, segment.sourceDescription);
 			ctx.evalAssignment.addFocusMappingEvaluationRequest(request);
 		}
 	}

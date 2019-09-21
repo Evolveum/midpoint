@@ -27,6 +27,10 @@ import java.util.List;
  */
 public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluationRequest<AutoassignMappingType, AbstractRoleType> {
 
+    // Internal state
+    private PrismContainerDefinition<AssignmentType> assignmentDef;
+    private AssignmentType assignmentType;
+
     public AutoassignRoleMappingEvaluationRequest(@NotNull AutoassignMappingType mapping, @NotNull AbstractRoleType role) {
         super(mapping, role);
     }
@@ -78,6 +82,6 @@ public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluati
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append("autoassign mapping ");
-        sb.append("'").append(mapping.getName()).append("' in ").append(originObject);
+        sb.append("'").append(getMappingInfo()).append("' in ").append(originObject);
     }
 }
