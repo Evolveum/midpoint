@@ -235,7 +235,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		if (!building) {
 			throw new IllegalStateException("Not being built");
 		}
-		// todo only if profiled!
 		recordStart(this, operation, createArguments());
 		building = false;
 		if (futureParent != null) {
@@ -253,6 +252,9 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	private static void recordStart(OperationResult result, String operation, Object[] arguments) {
+		// TODO for very minor operation results (e.g. those dealing with mapping and script execution)
+		//  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
+		//  and a call to System.nanoTime that could unnecessarily slow down midPoint operation.
 		result.invocationRecord = OperationInvocationRecord.create(operation, arguments);
 		result.invocationId = result.invocationRecord.getInvocationId();
 		result.start = System.currentTimeMillis();
@@ -287,11 +289,11 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public OperationResult createSubresult(String operation) {
-		return createSubresult(operation, false, true, new Object[0]);
+		return createSubresult(operation, false, new Object[0]);
 	}
 
 	public OperationResult createMinorSubresult(String operation) {
-		return createSubresult(operation, true, true, null);        // temporarily profiled todo make this configurable
+		return createSubresult(operation, true, null);
 	}
 
 //	public static OperationResult createProfiled(String operation) {
@@ -304,13 +306,11 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 //		return result;
 //	}
 
-	private OperationResult createSubresult(String operation, boolean minor, boolean profiled, Object[] arguments) {
+	private OperationResult createSubresult(String operation, boolean minor, Object[] arguments) {
 		OperationResult subresult = new OperationResult(operation);
 		subresult.recordCallerReason(this);
 		addSubresult(subresult);
-		if (profiled) {
-			recordStart(subresult, operation, arguments);
-		}
+		recordStart(subresult, operation, arguments);
 		subresult.importance = minor ? MINOR : NORMAL;
 		return subresult;
 	}
@@ -318,6 +318,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	// todo determine appropriate places where recordEnd() should be called
 	public void recordEnd() {
 		if (invocationRecord != null) {
+			// TODO use lambda here to avoid string manipulation if not necessary (i.e. if profiling logging is turned off)
 			String returnValue = getReturns().toString();
 			if (cause != null) {
 				returnValue += "; " + cause.getClass().getName() + ": " + cause.getMessage();

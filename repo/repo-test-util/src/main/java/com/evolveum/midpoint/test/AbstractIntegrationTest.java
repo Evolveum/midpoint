@@ -1780,7 +1780,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			operationName = this.getClass().getName() + "." + operationName;
 		}
 		Task task = taskManager.createTaskInstance(operationName);
-//		setModelAndWorkflowLoggingTracing(task);
+//		setModelLoggingTracing(task);
 		return task;
 	}
 

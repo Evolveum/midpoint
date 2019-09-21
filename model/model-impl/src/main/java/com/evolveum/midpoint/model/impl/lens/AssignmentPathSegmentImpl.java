@@ -348,9 +348,16 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return source;
 	}
 
-	@SuppressWarnings("unused")
 	public String getSourceDescription() {
 		return sourceDescription;
+	}
+
+	public String getTargetDescription() {
+		if (target != null) {
+			return target + " in " + sourceDescription;
+		} else {
+			return "(target) in " + sourceDescription;
+		}
 	}
 
 	public boolean isPathToSourceValid() {

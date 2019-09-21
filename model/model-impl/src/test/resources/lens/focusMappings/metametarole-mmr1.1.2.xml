@@ -31,12 +31,20 @@
 				<source>
 					<path>extension/p112a</path>
 				</source>
+				<source>
+					<path>$focus/title</path>
+				</source>
+				<expression>
+					<script>
+						<code>p112a</code>
+					</script>
+				</expression>
 				<target>
 					<path>extension/p112b</path>
 				</target>
 				<condition>
 					<script>
-						<code>false</code>
+						<code>basic.stringify(title) == 'enabled'</code>
 					</script>
 				</condition>
 			</mapping>

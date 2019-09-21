@@ -12,9 +12,12 @@
 	<assignment id="1">
 		<targetRef oid="7f9239aa-e2ea-4532-a597-6cb572dadd6b" type="RoleType"/>		<!-- mmr1.3.1 -->
 		<condition>
+			<source>
+				<path>$focus/title</path>
+			</source>
 			<expression>
 				<script>
-					<code>false</code>
+					<code>basic.stringify(title) == 'enabled'</code>
 				</script>
 			</expression>
 		</condition>

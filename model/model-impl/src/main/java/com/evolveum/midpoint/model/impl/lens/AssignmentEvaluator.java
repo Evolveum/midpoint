@@ -864,7 +864,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 	            AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 				PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateCondition(roleCondition,
 						segment.source, assignmentPathVariables,
-						"condition in " + segment.getSourceDescription(), ctx, result);
+						"condition in " + segment.getTargetDescription(), ctx, result);
 				boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
 				boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
 				PlusMinusZero modeFromCondition = ExpressionUtil.computeConditionResultMode(condOld, condNew);

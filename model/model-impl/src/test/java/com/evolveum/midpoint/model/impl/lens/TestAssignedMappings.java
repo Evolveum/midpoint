@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -17,6 +18,7 @@ import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
@@ -69,6 +71,7 @@ public class TestAssignedMappings extends AbstractLensTest {
     private static final TestResource ROLE_R6 = new TestResource(TEST_DIR, "role-r6.xml", "5c58ec3c-bb67-423c-ac4b-bb276c2e8c92");
 
     private static final TestResource USER_ADAM = new TestResource(TEST_DIR, "user-adam.xml", "cf10f112-a731-45cd-8dfb-1b3fe9375c14");
+    private static final TestResource USER_BENJAMIN = new TestResource(TEST_DIR, "user-benjamin.xml", "2e1a427c-d6a7-4783-90ec-9dc0ebc98630");
 
     //private static final TestResource ROLE_ORGANIZER = new TestResource(TEST_DIR, "role-organizer.xml", "7d31a3c2-cecf-4e3d-8740-988b37848a7c");
 
@@ -121,6 +124,7 @@ public class TestAssignedMappings extends AbstractLensTest {
         repoAdd(ROLE_R5, initResult);
         repoAdd(ROLE_R6, initResult);
         addObject(USER_ADAM, initTask, initResult);
+        addObject(USER_BENJAMIN, initTask, initResult);
 
         repoAdd(ROLE_BEARABLE, initResult);
         repoAdd(SERVICE_RING, initResult);
@@ -320,7 +324,7 @@ public class TestAssignedMappings extends AbstractLensTest {
     }
 
     /**
-     * Add roles 1, 2, 3 with validity and conditions set by various ways.
+     * Add roles with validity and conditions set by various ways.
      *
      * mmr111 - everything is enabled
      * mmr112 - condition on individual mapping is 'false'
@@ -328,7 +332,7 @@ public class TestAssignedMappings extends AbstractLensTest {
      * mmr121 - inducement activation is 'disabled'
      * mmr122 - metarole mmr122 condition is 'false'
      * mmr123 - metarole mmr123 activation is 'disabled'
-     * mmr131 - assignment mr12->mmr131 has condition of 'false'
+     * mmr131 - assignment mr13->mmr131 has condition of 'false'
      * mmr132 - assignment mr13->mmr132 activation is 'disabled'
      * mr21 - metarole mr21 condition is 'false'
      * mr22 - metarole mr22 activation is 'disabled'
@@ -338,10 +342,12 @@ public class TestAssignedMappings extends AbstractLensTest {
      * r4 - role condition is false
      * r5 - assignment adam->r5 condition is 'false'
      * r6 - assignment adam->r6 activation is 'disabled'        (MID-4430)
+     *
+     * Conditions are bound to "title" property: if it's 'enabled' then they are set to true.
      */
     @Test
-    public void test200AssignRoles123toAdam() throws Exception {
-        final String TEST_NAME = "test200AssignRoles123toAdam";
+    public void test200AssignRolesToAdam() throws Exception {
+        final String TEST_NAME = "test200AssignRolesToAdam";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -358,7 +364,7 @@ public class TestAssignedMappings extends AbstractLensTest {
                                 createRoleAssignment(ROLE_R2),
                                 createRoleAssignment(ROLE_R3),
                                 createRoleAssignment(ROLE_R4),
-                                createRoleAssignmentConditionFalse(ROLE_R5),
+                                createRoleAssignmentWithCondition(ROLE_R5),
                                 createRoleAssignmentDisabled(ROLE_R6))
                         .asObjectDelta(USER_ADAM.oid),
                 null, task, result);
@@ -366,8 +372,216 @@ public class TestAssignedMappings extends AbstractLensTest {
         // THEN
         assertSuccess(result);
         PrismObject<UserType> adamAfter = getUserFromRepo(USER_ADAM.oid);
-        UserType jimAfterBean = adamAfter.asObjectable();
+        UserType adamAfterBean = adamAfter.asObjectable();
         new UserAsserter<>(adamAfter)
+                .display();
+    }
+
+    /**
+     * Add roles with validity and conditions set by various ways.
+     *
+     * mmr111 - everything is enabled
+     * mmr112 - condition on individual mapping is 'true'
+     * mmr113 - inducement condition is 'true' (on last inducement (with mappings))
+     * mmr121 - inducement activation is 'disabled'
+     * mmr122 - metarole mmr122 condition is 'true'
+     * mmr123 - metarole mmr123 activation is 'disabled'
+     * mmr131 - assignment mr13->mmr131 has condition of 'true'
+     * mmr132 - assignment mr13->mmr132 activation is 'disabled'
+     * mr21 - metarole mr21 condition is 'true'
+     * mr22 - metarole mr22 activation is 'disabled'
+     * mr23 - assignment r2->mr23 condition is 'true'
+     * mr24 - assignment r2->mr24 activation is 'disabled'
+     * r3 - role activation is 'disabled'                       (MID-4449)
+     * r4 - role condition is true
+     * r5 - assignment adam->r5 condition is 'true'
+     * r6 - assignment adam->r6 activation is 'disabled'        (MID-4430)
+     *
+     * Conditions are bound to "title" property: here it's 'enabled' so they are set to true.
+     */
+    @Test
+    public void test210AssignRolesToBenjamin() throws Exception {
+        final String TEST_NAME = "test210AssignRolesToBenjamin";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        setModelLoggingTracing(task);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .add(
+                                createRoleAssignment(ROLE_R1),
+                                createRoleAssignment(ROLE_R2),
+                                createRoleAssignment(ROLE_R3),
+                                createRoleAssignment(ROLE_R4),
+                                createRoleAssignmentWithCondition(ROLE_R5),
+                                createRoleAssignmentDisabled(ROLE_R6))
+                        .asObjectDelta(USER_BENJAMIN.oid),
+                null, task, result);
+
+        // THEN
+        assertSuccess(result);
+        PrismObject<UserType> benjaminAfter = getUserFromRepo(USER_BENJAMIN.oid);
+        UserType benjaminAfterBean = benjaminAfter.asObjectable();
+        new UserAsserter<>(benjaminAfter)
+                .display();
+    }
+
+    /**
+     * Switch Adam condition from false to true.
+     *
+     * mmr111 - everything is enabled
+     * mmr112 - condition on individual mapping is 'false' -> 'true'
+     * mmr113 - inducement condition is 'false' -> 'true' (on last inducement (with mappings))  (MID-5783)
+     * mmr121 - inducement activation is 'disabled'
+     * mmr122 - metarole mmr122 condition is 'false' -> 'true'                                  (MID-5783)
+     * mmr123 - metarole mmr123 activation is 'disabled'
+     * mmr131 - assignment mr13->mmr131 has condition of 'false' -> 'true'                      (MID-5783)
+     * mmr132 - assignment mr13->mmr132 activation is 'disabled'
+     * mr21 - metarole mr21 condition is 'false' -> 'true'                                      (MID-5783)
+     * mr22 - metarole mr22 activation is 'disabled'
+     * mr23 - assignment r2->mr23 condition is 'false' -> 'true'                                (MID-5783)
+     * mr24 - assignment r2->mr24 activation is 'disabled'
+     * r3 - role activation is 'disabled'                                                       (MID-4449)
+     * r4 - role condition is 'false' -> 'true'                                                 (MID-5783)
+     * r5 - assignment adam->r5 condition is 'false' -> 'true'                                  (MID-5783)
+     * r6 - assignment adam->r6 activation is 'disabled'                                        (MID-4430)
+     *
+     * Conditions are bound to "title" property: if it's 'enabled' then they are set to true.
+     */
+    @Test
+    public void test220AdamConditionFalseToTrue() throws Exception {
+        final String TEST_NAME = "test220AdamConditionFalseToTrue";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        setModelLoggingTracing(task);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_TITLE)
+                        .replace(PolyString.fromOrig("enabled"))
+                        .asObjectDelta(USER_ADAM.oid),
+                null, task, result);
+
+        // THEN
+        assertSuccess(result);
+        PrismObject<UserType> adamAfter = getUserFromRepo(USER_ADAM.oid);
+        UserType adamAfterBean = adamAfter.asObjectable();
+        new UserAsserter<>(adamAfter)
+                .display();
+    }
+
+    /**
+     * Switch Benjamin condition from true to false.
+     *
+     * mmr111 - everything is enabled
+     * mmr112 - condition on individual mapping is 'true' -> 'false'
+     * mmr113 - inducement condition is 'true' -> 'false' (on last inducement (with mappings))      (MID-5783)
+     * mmr121 - inducement activation is 'disabled'
+     * mmr122 - metarole mmr122 condition is 'true' -> 'false'                                      (MID-5783)
+     * mmr123 - metarole mmr123 activation is 'disabled'
+     * mmr131 - assignment mr13->mmr131 has condition of 'true' -> 'false'                          (MID-5783)
+     * mmr132 - assignment mr13->mmr132 activation is 'disabled'
+     * mr21 - metarole mr21 condition is 'true' -> 'false'                                          (MID-5783)
+     * mr22 - metarole mr22 activation is 'disabled'
+     * mr23 - assignment r2->mr23 condition is 'true' -> 'false'                                    (MID-5783)
+     * mr24 - assignment r2->mr24 activation is 'disabled'
+     * r3 - role activation is 'disabled'                                                           (MID-4449)
+     * r4 - role condition is 'true' -> 'false'                                                     (MID-5783)
+     * r5 - assignment adam->r5 condition is 'true' -> 'false'                                      (MID-5783)
+     * r6 - assignment adam->r6 activation is 'disabled'                                            (MID-4430)
+     *
+     * Conditions are bound to "title" property: if it's 'enabled' then they are set to true.
+     */
+    @Test
+    public void test230BenjaminConditionTrueToFalse() throws Exception {
+        final String TEST_NAME = "test230BenjaminConditionTrueToFalse";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        setModelLoggingTracing(task);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_TITLE)
+                        .replace()
+                        .asObjectDelta(USER_BENJAMIN.oid),
+                null, task, result);
+
+        // THEN
+        assertSuccess(result);
+        PrismObject<UserType> benjaminAfter = getUserFromRepo(USER_BENJAMIN.oid);
+        UserType benjaminAfterBean = benjaminAfter.asObjectable();
+        new UserAsserter<>(benjaminAfter)
+                .display();
+    }
+
+    /**
+     * Unassign the roles. Extension values should disappear.
+     */
+    @Test
+    public void test280UnassignRolesFromAdam() throws Exception {
+        final String TEST_NAME = "test280UnassignRolesFromAdam";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        setModelLoggingTracing(task);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .replace()
+                        .asObjectDelta(USER_ADAM.oid),
+                null, task, result);
+
+        // THEN
+        assertSuccess(result);
+        PrismObject<UserType> adamAfter = getUserFromRepo(USER_ADAM.oid);
+        UserType adamAfterBean = adamAfter.asObjectable();
+        new UserAsserter<>(adamAfter)
+                .display();
+    }
+
+    /**
+     * Unassign the roles. Extension values should disappear.
+     */
+    @Test
+    public void test290UnassignRolesFromBenjamin() throws Exception {
+        final String TEST_NAME = "test290UnassignRolesFromBenjamin";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestAssignedMappings.class.getName() + "." + TEST_NAME);
+        setModelLoggingTracing(task);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_ASSIGNMENT)
+                        .replace()
+                        .asObjectDelta(USER_BENJAMIN.oid),
+                null, task, result);
+
+        // THEN
+        assertSuccess(result);
+        PrismObject<UserType> benjaminAfter = getUserFromRepo(USER_BENJAMIN.oid);
+        UserType benjaminAfterBean = benjaminAfter.asObjectable();
+        new UserAsserter<>(benjaminAfter)
                 .display();
     }
 
@@ -376,17 +590,20 @@ public class TestAssignedMappings extends AbstractLensTest {
                 .targetRef(role.oid, RoleType.COMPLEX_TYPE);
     }
 
-    private AssignmentType createRoleAssignmentConditionFalse(TestResource role) {
+    @SuppressWarnings("SameParameterValue")
+    private AssignmentType createRoleAssignmentWithCondition(TestResource role) {
         ScriptExpressionEvaluatorType scriptExpressionEvaluator = new ScriptExpressionEvaluatorType();
-        scriptExpressionEvaluator.setCode("false");
+        scriptExpressionEvaluator.setCode("basic.stringify(title) == 'enabled'");
         ExpressionType expression = new ExpressionType();
         expression.getExpressionEvaluator().add(new JAXBElement<>(SchemaConstantsGenerated.C_SCRIPT,
                 ScriptExpressionEvaluatorType.class, scriptExpressionEvaluator));
+        MappingType condition = new MappingType(prismContext)
+                .source(new VariableBindingDefinitionType().path(new ItemPathType(UserType.F_TITLE)))
+                .expression(expression);
+
         return new AssignmentType(prismContext)
                 .targetRef(role.oid, RoleType.COMPLEX_TYPE)
-                .beginCondition()
-                    .expression(expression)
-                .end();
+                .condition(condition);
     }
 
     private AssignmentType createRoleAssignmentDisabled(TestResource role) {

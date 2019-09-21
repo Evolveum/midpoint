@@ -252,7 +252,7 @@ public class AssignmentProcessor {
         	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
 			context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
-	        // TODO implement isMemberOf invocation result change check here!
+	        // TODO implement isMemberOf invocation result change check here! MID-5784
 	        //  Actually, we should factor out the relevant code to avoid code duplication.
 
 	        policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);

@@ -55,9 +55,12 @@
 		<order>3</order>
 		<focusType>UserType</focusType>
 		<condition>
+			<source>
+				<path>$focus/title</path>
+			</source>
 			<expression>
 				<script>
-					<code>false</code>
+					<code>basic.stringify(title) == 'enabled'</code>
 				</script>
 			</expression>
 		</condition>
