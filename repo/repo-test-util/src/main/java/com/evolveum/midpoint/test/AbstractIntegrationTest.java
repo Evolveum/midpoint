@@ -1780,7 +1780,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			operationName = this.getClass().getName() + "." + operationName;
 		}
 		Task task = taskManager.createTaskInstance(operationName);
-//		setModelLoggingTracing(task);
+//		setModelAndWorkflowLoggingTracing(task);
 		return task;
 	}
 
@@ -1790,6 +1790,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void setModelLoggingTracing(Task task) {
 		setTracing(task, createModelLoggingTracingProfile());
+	}
+
+	protected void setModelAndWorkflowLoggingTracing(Task task) {
+		setTracing(task, addWorkflowLogging(createModelLoggingTracingProfile()));
 	}
 
 	protected void setHibernateLoggingTracing(Task task) {
@@ -1808,6 +1812,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 						.logger("com.evolveum.midpoint.model")
 						.level(LoggingLevelType.TRACE)
 					.<LoggingOverrideType>end()
+				.end();
+	}
+
+	protected TracingProfileType addWorkflowLogging(TracingProfileType profile) {
+		return profile.getLoggingOverride()
+				.beginLevelOverride()
+					.logger("com.evolveum.midpoint.wf")
+					.level(LoggingLevelType.TRACE)
+				.<LoggingOverrideType>end()
 				.end();
 	}
 

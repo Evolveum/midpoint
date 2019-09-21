@@ -1180,6 +1180,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 	private void previewAssignRolesToJack(String TEST_NAME, boolean immediate, boolean also24) throws Exception {
 		Task task = createTask("previewAssignRolesToJack");
 		OperationResult result = task.getResult();
+		result.tracingProfile(tracer.compileProfile(addWorkflowLogging(createModelLoggingTracingProfile()), result));
+
 		List<AssignmentType> assignmentsToAdd = new ArrayList<>();
 		assignmentsToAdd.add(createAssignmentTo(roleRole21Oid, ObjectTypes.ROLE, prismContext));
 		assignmentsToAdd.add(createAssignmentTo(roleRole22Oid, ObjectTypes.ROLE, prismContext));
@@ -1204,7 +1206,9 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 		displayContainerablesCollection("Approval infos", approvalInfo);
 		displayContainerablesCollection("Enforce infos", enforceInfo);
 		result.computeStatus();
-		assertSuccess(result);
+		tracer.storeTrace(task, result);
+
+		// we do not assert success here, because there are (intentional) exceptions in some of the expressions
 
 		assertEquals("Wrong # of schema execution information pieces", also24 ? 5 : 4, approvalInfo.size());
 		assertEquals("Wrong # of enforcement hook preview output items", 1, enforceInfo.size());

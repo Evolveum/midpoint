@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
@@ -36,6 +37,7 @@ import javax.annotation.PreDestroy;
 import java.util.Objects;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.evolveum.midpoint.repo.cache.RepositoryCache.PassReasonType.*;
@@ -188,6 +190,8 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			trace = null;
 		}
 
+		PolyString objectName = null;
+
 		try {
 			CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
 			LocalObjectCache localObjectsCache = getLocalObjectCache();
@@ -217,7 +221,9 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 					trace.setGlobalCacheUse(passReason.toCacheUse());
 					// todo object if needed
 				}
-				return getObjectInternal(type, oid, options, result);
+				PrismObject<T> object = getObjectInternal(type, oid, options, result);
+				objectName = object != null ? object.getName() : null;
+				return object;
 			}
 
 			/*
@@ -242,6 +248,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 						trace.setLocalCacheUse(createUse(CacheUseCategoryTraceType.HIT));
 						// todo object if needed
 					}
+					objectName = object != null ? object.getName() : null;
 					return cloneIfNecessary(object, readOnly);
 				}
 				if (local.supports) {
@@ -274,6 +281,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 					trace.setGlobalCacheUse(createUse(CacheUseCategoryTraceType.NOT_AVAILABLE));
 					// todo object if needed
 				}
+				objectName = object != null ? object.getName() : null;
 				return object;
 			} else if (!global.supports) {
 				// caller is not interested in cached value, or global cache doesn't want to cache value
@@ -285,6 +293,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 					trace.setGlobalCacheUse(createUse(CacheUseCategoryTraceType.PASS, "configuration"));
 					// todo object if needed
 				}
+				objectName = object != null ? object.getName() : null;
 				return object;
 			}
 
@@ -337,6 +346,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 					}
 				}
 			}
+			objectName = object != null ? object.getName() : null;
 			return object;
 		} catch (ObjectNotFoundException e) {
 			if (isAllowNotFound(findRootOptions(options))) {
@@ -349,6 +359,9 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			result.recordFatalError(t);
 			throw t;
 		} finally {
+			if (objectName != null) {
+				result.addContext("objectName", objectName.getOrig());
+			}
 			result.computeStatusIfUnknown();
 		}
 	}
@@ -493,6 +506,8 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			trace = null;
 		}
 
+		Integer objectsFound = null;
+
 		try {
 			CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
 
@@ -517,7 +532,9 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 				log("Cache (local/global): PASS:{} searchObjects ({}, {})", local.tracePass || global.tracePass, passReason,
 						type.getSimpleName(), options);
 				CacheUseTraceType use = passReason.toCacheUse();
-				return record(trace, use, use, searchObjectsInternal(type, query, options, result));
+				SearchResultList<PrismObject<T>> objects = searchObjectsInternal(type, query, options, result);
+				objectsFound = objects.size();
+				return record(trace, use, use, objects);
 			}
 			QueryKey key = new QueryKey(type, query);
 
@@ -537,6 +554,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 				if (queryResult != null) {
 					localQueryCache.registerHit();
 					collector.registerHit(LocalQueryCache.class, type, local.statisticsLevel);
+					objectsFound = queryResult.size();
 					if (readOnly) {
 						log("Cache: HIT searchObjects {} ({})", false, query, type.getSimpleName());
 						//noinspection unchecked
@@ -568,6 +586,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 				log("Cache (global): NOT_AVAILABLE {} searchObjects ({})", false, query, type.getSimpleName());
 				SearchResultList<PrismObject<T>> objects = searchObjectsInternal(type, query, options, result);
 				locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, objects);
+				objectsFound = objects.size();
 				return record(trace, localCacheUse, createUse(CacheUseCategoryTraceType.NOT_AVAILABLE), objects);
 			} else if (!global.supports) {
 				// caller is not interested in cached value, or global cache doesn't want to cache value
@@ -575,6 +594,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 				log("Cache (global): PASS:CONFIGURATION {} searchObjects ({})", global.tracePass, query, type.getSimpleName());
 				SearchResultList<PrismObject<T>> objects = searchObjectsInternal(type, query, options, result);
 				locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, objects);
+				objectsFound = objects.size();
 				return record(trace, localCacheUse, createUse(CacheUseCategoryTraceType.PASS, "configuration"), objects);
 			}
 
@@ -594,11 +614,15 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 				searchResult = searchResult.clone();        // never return the value from the cache
 				record(trace, localCacheUse, createUse(CacheUseCategoryTraceType.HIT), searchResult);
 			}
+			objectsFound = searchResult.size();
 			return readOnly ? searchResult : searchResult.clone();
 		} catch (Throwable t) {
 			result.recordFatalError(t);
 			throw t;
 		} finally {
+			if (objectsFound != null) {
+				result.addReturn("objectsFound", objectsFound);
+			}
 			result.computeStatusIfUnknown();
 		}
 	}
@@ -699,6 +723,18 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			trace = null;
 		}
 
+		AtomicInteger objectsFound = new AtomicInteger(0);
+		AtomicBoolean interrupted = new AtomicBoolean(false);
+
+		ResultHandler<T> watchingHandler = (object, result1) -> {
+			objectsFound.incrementAndGet();
+			boolean cont = handler.handle(object, result1);
+			if (!cont) {
+				interrupted.set(true);
+			}
+			return cont;
+		};
+
 		try {
 			CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
 
@@ -727,7 +763,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 					trace.setLocalCacheUse(use);
 					trace.setGlobalCacheUse(use);
 				}
-				return searchObjectsIterativeInternal(type, query, handler, options, strictlySequential, result);
+				return searchObjectsIterativeInternal(type, query, watchingHandler, options, strictlySequential, result);
 			}
 			QueryKey key = new QueryKey(type, query);
 
@@ -753,10 +789,10 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 					}
 					if (readOnly) {
 						log("Cache: HIT searchObjectsIterative {} ({})", false, query, type.getSimpleName());
-						return iterateOverQueryResult(queryResult, handler, result, false);
+						return iterateOverQueryResult(queryResult, watchingHandler, result, false);
 					} else {
 						log("Cache: HIT(clone) searchObjectsIterative {} ({})", false, query, type.getSimpleName());
-						return iterateOverQueryResult(queryResult, handler, result, true);
+						return iterateOverQueryResult(queryResult, watchingHandler, result, true);
 					}
 				}
 				if (local.supports) {
@@ -778,7 +814,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			if (!globalQueryCache.isAvailable()) {
 				collector.registerNotAvailable(GlobalQueryCache.class, type, global.statisticsLevel);
 				log("Cache (global): NOT_AVAILABLE {} searchObjectsIterative ({})", false, query, type.getSimpleName());
-				CollectingHandler<T> collectingHandler = new CollectingHandler<>(handler);
+				CollectingHandler<T> collectingHandler = new CollectingHandler<>(watchingHandler);
 				SearchResultMetadata metadata = searchObjectsIterativeInternal(type, query, collectingHandler, options,
 						strictlySequential, result);
 				if (collectingHandler.isResultAvailable()) {
@@ -794,7 +830,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 				collector.registerPass(GlobalQueryCache.class, type, global.statisticsLevel);
 				log("Cache (global): PASS:CONFIGURATION {} searchObjectsIterative ({})", global.tracePass, query,
 						type.getSimpleName());
-				CollectingHandler<T> collectingHandler = new CollectingHandler<>(handler);
+				CollectingHandler<T> collectingHandler = new CollectingHandler<>(watchingHandler);
 				SearchResultMetadata metadata = searchObjectsIterativeInternal(type, query, collectingHandler, options,
 						strictlySequential, result);
 				if (collectingHandler.isResultAvailable()) {
@@ -819,7 +855,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 					trace.setLocalCacheUse(localCacheUse);
 					trace.setGlobalCacheUse(createUse(CacheUseCategoryTraceType.MISS));
 				}
-				metadata = executeAndCacheSearchIterative(type, key, handler, options, strictlySequential, readOnly,
+				metadata = executeAndCacheSearchIterative(type, key, watchingHandler, options, strictlySequential, readOnly,
 						localQueryCache,
 						local.supports, result);
 			} else {
@@ -830,7 +866,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 					trace.setGlobalCacheUse(createUse(CacheUseCategoryTraceType.HIT));
 				}
 				locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, searchResult);
-				iterateOverQueryResult(searchResult, handler, result, !readOnly);
+				iterateOverQueryResult(searchResult, watchingHandler, result, !readOnly);
 				metadata = searchResult.getMetadata();
 			}
 			return metadata;
@@ -838,6 +874,8 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			result.recordFatalError(t);
 			throw t;
 		} finally {
+			result.addReturn("objectsFound", objectsFound.get());
+			result.addReturn("interrupted", interrupted.get());
 			result.computeStatusIfUnknown();
 		}
 	}
