@@ -75,7 +75,11 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
 	public OO getOriginObject() {
 		return originObject;
 	}
-	
+
+	/**
+	 * @return The phase this mapping should be evaluated in. If null, the mapping will be skipped if explicit
+	 *         evaluation phase is requested.
+	 */
 	public abstract ObjectTemplateMappingEvaluationPhaseType getEvaluationPhase();
 
 }

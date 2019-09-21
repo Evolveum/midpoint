@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -670,27 +671,21 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 		ctx.evalAssignment.addPersonaConstruction(construction, mode);
 	}
 	
-	private void evaluateFocusMappings(AssignmentPathSegmentImpl segment, EvaluationContext ctx,
-			OperationResult result)
+	private void evaluateFocusMappings(AssignmentPathSegmentImpl segment, EvaluationContext ctx, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 
-		AssignmentType assignmentType = getAssignmentType(segment, ctx);
-		MappingsType mappingsType = assignmentType.getFocusMappings();
+		AssignmentType assignmentBean = getAssignmentType(segment, ctx);
+		MappingsType mappingsBean = assignmentBean.getFocusMappings();
 		
-		LOGGER.trace("Evaluate focus mappings '{}' in {} ({} mappings)",
-				mappingsType.getDescription(), segment.source, mappingsType.getMapping().size());
+		LOGGER.trace("Request evaluation of focus mappings '{}' in {} ({} mappings)",
+				mappingsBean.getDescription(), segment.source, mappingsBean.getMapping().size());
 		AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 
-		for (MappingType mappingType: mappingsType.getMapping()) {
-			MappingImpl mapping = mappingEvaluator.createFocusMapping(mappingFactory, lensContext, mappingType, segment.source, focusOdo,
-					assignmentPathVariables, systemConfiguration, now, segment.sourceDescription, ctx.task, result);
-			if (mapping == null) {
-				continue;
-			}
-			// TODO: time constratins?
-			mappingEvaluator.evaluateMapping(mapping, lensContext, ctx.task, result);
-			ctx.evalAssignment.addFocusMapping(mapping);
+		for (MappingType mappingBean: mappingsBean.getMapping()) {
+			AssignedFocusMappingEvaluationRequest request = new AssignedFocusMappingEvaluationRequest(mappingBean, segment.source,
+					assignmentPathVariables, segment.sourceDescription);
+			ctx.evalAssignment.addFocusMappingEvaluationRequest(request);
 		}
 	}
 
