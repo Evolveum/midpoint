@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
@@ -475,7 +474,7 @@ public class LensUtil {
 		sources.add(iterationSource);
 
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables,
-				"iteration token expression in "+accountContext.getHumanReadableName(), task, result);
+				"iteration token expression in "+accountContext.getHumanReadableName(), task);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, task, result);
 		Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
 		if (outputValues.isEmpty()) {
@@ -525,9 +524,10 @@ public class LensUtil {
 		variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
 		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
 
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task);
 		ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(context, null, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env);
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
+				ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env, result);
 		Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
 		if (outputValues.isEmpty()) {
 			return false;
@@ -998,7 +998,7 @@ public class LensUtil {
 				new QName(SchemaConstants.NS_C, "result"), typeName);
 		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
 				expressionFactory.makeExpression(expressionBean, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
-		ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
+		ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task);
 		eeContext.setAdditionalConvertor(additionalConvertor);
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, eeContext, task, result);

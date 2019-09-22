@@ -162,7 +162,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			}
 
 			resultValues = executeSearchUsingCache(targetTypeClass, targetTypeQName, query, additionalAttributeDeltas, context,
-					contextDescription, task, context.getResult());
+					contextDescription, task, result);
 
 			if (resultValues.isEmpty()) {
 				ObjectReferenceType defaultTargetRef = getExpressionEvaluatorType().getDefaultTargetRef();
@@ -175,8 +175,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 		if (resultValues.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
 				(valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
-			String createdObjectOid = createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, context
-					.getResult());
+			String createdObjectOid = createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, result);
 			resultValues.add(createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, context));
 		}
 

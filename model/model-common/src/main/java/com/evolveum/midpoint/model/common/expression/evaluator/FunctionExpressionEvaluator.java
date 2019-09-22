@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -24,16 +22,12 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -78,7 +72,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	 * com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) 
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		checkEvaluatorProfile(context);
 
@@ -90,7 +84,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 			throw new SchemaException("No functions library defined in "+context.getContextDescription());
 		}
 		
-		OperationResult result = context.getResult().createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".resolveFunctionLibrary");
+		OperationResult result = parentResult.createMinorSubresult(FunctionExpressionEvaluator.class.getSimpleName() + ".resolveFunctionLibrary");
 		try {
 			Task task = context.getTask();
 
@@ -161,7 +155,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 							.makeExpression(valueExpressionType, variableOutputDefinition, MiscSchemaUtil.getExpressionProfile(),
 									"parameters execution", task, variableResult);
 					functionExpressionResult.recordSuccess();
-					PrismValueDeltaSetTriple<V> evaluatedValue = valueExpression.evaluate(context);
+					PrismValueDeltaSetTriple<V> evaluatedValue = valueExpression.evaluate(context, result);
 					V value = ExpressionUtil.getExpressionOutputValue(evaluatedValue, " evaluated value for paramter");
 					functionVariables.addVariableDefinition(param.getName(), value, variableOutputDefinition);
 					variableResult.recordSuccess();
@@ -175,7 +169,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
 			functionContext.setVariables(functionVariables);
 
-			return functionExpression.evaluate(functionContext);
+			return functionExpression.evaluate(functionContext, result);
 		} catch (Throwable t) {
 			result.recordFatalError(t);
 			throw t;

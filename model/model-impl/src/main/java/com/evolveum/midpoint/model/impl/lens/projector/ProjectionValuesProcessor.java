@@ -665,7 +665,7 @@ public class ProjectionValuesProcessor {
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 
 		SynchronizationPolicyDecision policyDecision = projContext.getSynchronizationPolicyDecision();
-		if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.UNLINK) {
+		if (policyDecision == SynchronizationPolicyDecision.UNLINK) {
 			// We will not update accounts that are being unlinked.
 			// we cannot skip deleted accounts here as the delete delta will be skipped as well
 			if (LOGGER.isTraceEnabled()) {

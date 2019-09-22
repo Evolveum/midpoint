@@ -27,7 +27,6 @@ import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -152,10 +151,10 @@ public class TestExpression extends AbstractModelCommonTest {
     	ExpressionType expressionType = parseExpression(EXPRESSION_ASIS_FILE);
     	Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
 		ExpressionVariables variables = prepareBasicVariables();
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
 
 		// WHEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
 
 		// THEN
 		assertOutputTriple(outputTriple)
@@ -180,10 +179,11 @@ public class TestExpression extends AbstractModelCommonTest {
     	ExpressionType expressionType = parseExpression(EXPRESSION_PATH_FILE);
     	Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
 		ExpressionVariables variables = prepareBasicVariables();
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
 
 		// WHEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext,
+				result);
 
 		// THEN
 		assertOutputTriple(outputTriple)
@@ -208,10 +208,11 @@ public class TestExpression extends AbstractModelCommonTest {
     	ExpressionType expressionType = parseExpression(EXPRESSION_VALUE_FILE);
     	Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
 		ExpressionVariables variables = prepareBasicVariables();
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
 
 		// WHEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+				evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
 
 		// THEN
 		assertOutputTriple(outputTriple)
@@ -236,10 +237,11 @@ public class TestExpression extends AbstractModelCommonTest {
     	ExpressionType expressionType = parseExpression(EXPRESSION_CONST_FILE);
     	Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
 		ExpressionVariables variables = prepareBasicVariables();
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
 
 		// WHEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+				evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
 
 		// THEN
 		assertOutputTriple(outputTriple)
@@ -264,10 +266,11 @@ public class TestExpression extends AbstractModelCommonTest {
     	ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SIMPLE_FILE);
     	Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
 		ExpressionVariables variables = prepareBasicVariables();
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
 
 		// WHEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+				evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
 
 		// THEN
 		assertOutputTriple(outputTriple)
@@ -292,10 +295,11 @@ public class TestExpression extends AbstractModelCommonTest {
     	ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SYSTEM_ALLOW_FILE);
     	Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
 		ExpressionVariables variables = prepareBasicVariables();
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
 
 		// WHEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+				evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
 
 		// THEN
 		assertOutputTriple(outputTriple)
@@ -320,10 +324,11 @@ public class TestExpression extends AbstractModelCommonTest {
     	ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SYSTEM_DENY_FILE);
     	Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
 		ExpressionVariables variables = prepareBasicVariables();
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
 
 		// WHEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+				evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
 
 		// THEN
 		assertOutputTriple(outputTriple)
@@ -348,10 +353,11 @@ public class TestExpression extends AbstractModelCommonTest {
     	ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_JAVASCRIPT_FILE);
     	Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
 		ExpressionVariables variables = prepareBasicVariables();
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
 
 		// WHEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
+				evaluatePropertyExpression(expressionType, PrimitiveType.STRING, expressionContext, result);
 
 		// THEN
 		assertOutputTriple(outputTriple)
@@ -391,10 +397,11 @@ public class TestExpression extends AbstractModelCommonTest {
 		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, "001",
 				TestUtil.createPrimitivePropertyDefinition(prismContext, ExpressionConstants.VAR_ITERATION_TOKEN, PrimitiveType.STRING));
 
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, TEST_NAME, null);
 
 		// WHEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = evaluatePropertyExpression(expressionType, PrimitiveType.BOOLEAN, expressionContext);
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
+				evaluatePropertyExpression(expressionType, PrimitiveType.BOOLEAN, expressionContext, result);
 
 		// THEN
 		assertOutputTriple(outputTriple)
@@ -435,36 +442,39 @@ public class TestExpression extends AbstractModelCommonTest {
 	}
 
 	protected <V extends PrismValue, D extends ItemDefinition> PrismValueDeltaSetTriple<V> evaluateExpression(
-			ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext)
+			ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
+			OperationResult result)
 					throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Expression<V,D> expression = expressionFactory.makeExpression(expressionType, outputDefinition , getExpressionProfile(), 
-				expressionContext.getContextDescription(), expressionContext.getTask(), expressionContext.getResult());
+				expressionContext.getContextDescription(), expressionContext.getTask(), result);
 		LOGGER.debug("Starting evaluation of expression: {}", expression);
-		return expression.evaluate(expressionContext);
+		return expression.evaluate(expressionContext, result);
 	}
 
 	protected <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
-			ExpressionType expressionType, QName outputType, ExpressionEvaluationContext expressionContext)
+			ExpressionType expressionType, QName outputType, ExpressionEvaluationContext expressionContext, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
-		return evaluateExpression(expressionType, outputDefinition, expressionContext);
+		return evaluateExpression(expressionType, outputDefinition, expressionContext, result);
 	}
 	
 	protected <T> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluatePropertyExpression(
-			ExpressionType expressionType, PrimitiveType outputType, ExpressionEvaluationContext expressionContext)
+			ExpressionType expressionType, PrimitiveType outputType, ExpressionEvaluationContext expressionContext,
+			OperationResult result)
 					throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		return evaluatePropertyExpression(expressionType, outputType.getQname(), expressionContext);
+		return evaluatePropertyExpression(expressionType, outputType.getQname(), expressionContext, result);
 	}
 	
 	protected <V extends PrismValue, D extends ItemDefinition> void evaluateExpressionRestricted(
-			ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext)
+			ExpressionType expressionType, D outputDefinition, ExpressionEvaluationContext expressionContext,
+			OperationResult result)
 					throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Expression<V,D> expression;
 		try {
 			
 			expression = expressionFactory.makeExpression(expressionType, outputDefinition , getExpressionProfile(), 
-				expressionContext.getContextDescription(), expressionContext.getTask(), expressionContext.getResult());
+				expressionContext.getContextDescription(), expressionContext.getTask(), result);
 			
 		} catch (SecurityViolationException e) {
 			// Exception may happen here, or it may happen later.
@@ -477,7 +487,7 @@ public class TestExpression extends AbstractModelCommonTest {
 		LOGGER.debug("Starting evaluation of expression (expecting security violation): {}", expression);
 		try {
 			
-			expression.evaluate(expressionContext);
+			expression.evaluate(expressionContext, result);
 			
 			AssertJUnit.fail("Unexpected success of expression evaluation");
 			
@@ -491,17 +501,18 @@ public class TestExpression extends AbstractModelCommonTest {
 	}
 
 	protected <T> void evaluatePropertyExpressionRestricted(
-			ExpressionType expressionType, QName outputType, ExpressionEvaluationContext expressionContext)
+			ExpressionType expressionType, QName outputType, ExpressionEvaluationContext expressionContext, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		PrismPropertyDefinition<T> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME, outputType);
-		evaluateExpressionRestricted(expressionType, outputDefinition, expressionContext);
+		evaluateExpressionRestricted(expressionType, outputDefinition, expressionContext, result);
 	}
 	
 	protected <T> void evaluatePropertyExpressionRestricted(
-			ExpressionType expressionType, PrimitiveType outputType, ExpressionEvaluationContext expressionContext)
+			ExpressionType expressionType, PrimitiveType outputType, ExpressionEvaluationContext expressionContext,
+			OperationResult result)
 					throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		evaluatePropertyExpressionRestricted(expressionType, outputType.getQname(), expressionContext);
+		evaluatePropertyExpressionRestricted(expressionType, outputType.getQname(), expressionContext, result);
 	}
 
     protected void rememberScriptExecutionCount() {

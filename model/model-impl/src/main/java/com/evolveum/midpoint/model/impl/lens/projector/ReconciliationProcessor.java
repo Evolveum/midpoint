@@ -366,8 +366,7 @@ public class ReconciliationProcessor {
 		LOGGER.trace("Attribute reconciliation processing attribute {}", attrName);
 		RefinedAttributeDefinition<T> attributeDefinition = projCtx.findAttributeDefinition(attrName);
 		if (attributeDefinition == null) {
-			String msg = "No definition for attribute " + attrName + " in "
-					+ projCtx.getResourceShadowDiscriminator();
+			String msg = "No definition for attribute " + attrName + " in " + projCtx.getResourceShadowDiscriminator();
 			throw new SchemaException(msg);
 		}
 
@@ -384,13 +383,11 @@ public class ReconciliationProcessor {
 			PropertyAccessType access = limitations.getAccess();
 			if (access != null) {
 				if (projCtx.isAdd() && (access.isAdd() == null || !access.isAdd())) {
-					LOGGER.trace("Skipping reconciliation of attribute {} because it is non-createable",
-							attrName);
+					LOGGER.trace("Skipping reconciliation of attribute {} because it is non-createable", attrName);
 					return;
 				}
 				if (projCtx.isModify() && (access.isModify() == null || !access.isModify())) {
-					LOGGER.trace("Skipping reconciliation of attribute {} because it is non-updateable",
-							attrName);
+					LOGGER.trace("Skipping reconciliation of attribute {} because it is non-updateable", attrName);
 					return;
 				}
 			}
@@ -412,17 +409,18 @@ public class ReconciliationProcessor {
 		boolean hasOtherNonWeakValues = false;
 		for (ItemValueWithOrigin<? extends PrismPropertyValue<T>,PrismPropertyDefinition<T>> shouldBePValue : shouldBePValues) {
 			if (shouldBePValue.getMapping() != null) {
-					if (shouldBePValue.getMapping().getStrength() == MappingStrengthType.STRONG) {
-						hasStrongShouldBePValue = true;
-						hasOtherNonWeakValues = true;
-						break;
-					}
-					if (shouldBePValue.getMapping().getStrength() == null || shouldBePValue.getMapping().getStrength() == MappingStrengthType.NORMAL) {
-						hasOtherNonWeakValues = true;
-					}
+				if (shouldBePValue.getMapping().getStrength() == MappingStrengthType.STRONG) {
+					hasStrongShouldBePValue = true;
+					hasOtherNonWeakValues = true;
+					break;
+				}
+				if (shouldBePValue.getMapping().getStrength() == null || shouldBePValue.getMapping().getStrength() == MappingStrengthType.NORMAL) {
+					hasOtherNonWeakValues = true;
+				}
 			}
 		}
 
+		//noinspection unchecked
 		PrismProperty<T> attribute = attributesContainer.findProperty(ItemName.fromQName(attrName));
 		Collection<PrismPropertyValue<T>> arePValues;
 		if (attribute != null) {
@@ -463,17 +461,18 @@ public class ReconciliationProcessor {
 		T realValueToReplace = null;
 		boolean hasRealValueToReplace = false;
 		for (ItemValueWithOrigin<? extends PrismPropertyValue<T>,PrismPropertyDefinition<T>> shouldBePvwo : shouldBePValues) {
+			PrismPropertyValue<T> shouldBePrismValue = shouldBePvwo.getItemValue();
+			T shouldBeRealValue = shouldBePrismValue != null ? shouldBePrismValue.getValue() : null;        // probably too careful (the value should not be null, shouldn't it?)
 			PrismValueDeltaSetTripleProducer<?,?> shouldBeMapping = shouldBePvwo.getMapping();
 			if (shouldBeMapping == null) {
+				LOGGER.trace("Skipping reconciliation of value {} of the attribute {}: no origin mapping", shouldBeRealValue,
+						attributeDefinition.getItemName().getLocalPart());
 				continue;
 			}
-			T shouldBeRealValue = shouldBePvwo.getItemValue().getValue();
 			if (shouldBeMapping.getStrength() != MappingStrengthType.STRONG
 					&& (!arePValues.isEmpty() || hasStrongShouldBePValue)) {
-				// weak or normal value and the attribute already has a
-				// value. Skip it.
-				// we cannot override it as it might have been legally
-				// changed directly on the projection resource object
+				// Weak or normal value and the attribute already has a value. Skip it.
+				// We cannot override it as it might have been legally changed directly on the projection resource object
 				LOGGER.trace("Skipping reconciliation of value {} of the attribute {}: the mapping is not strong", shouldBeRealValue, attributeDefinition.getItemName().getLocalPart());
 				continue;
 			}
@@ -501,6 +500,8 @@ public class ReconciliationProcessor {
 					recordDelta(valueMatcher, projCtx, SchemaConstants.PATH_ATTRIBUTES, attributeDefinition, ModificationType.ADD, shouldBeRealValue,
 							shouldBePvwo.getSource(), "it is given by a mapping");
 				}
+			} else {
+				LOGGER.trace("Value is already present in {}, skipping it: {}", attrName, shouldBeRealValue);
 			}
 		}
 
@@ -771,12 +772,12 @@ public class ReconciliationProcessor {
 			ValueMatcher<T> valueMatcher, boolean hasOtherNonWeakValues) throws SchemaException {
 
 		for (PrismPropertyValue<T> isPValue : arePValues) {
-			if (matchPattern(attributeDefinition.getTolerantValuePattern(), isPValue, valueMatcher)){
+			if (matchPattern(attributeDefinition.getTolerantValuePattern(), isPValue, valueMatcher)) {
 				LOGGER.trace("Reconciliation: KEEPING value {} of the attribute {}: match with tolerant value pattern." , isPValue, attributeDefinition.getItemName().getLocalPart());
 				continue;
 			}
 
-			if (matchPattern(attributeDefinition.getIntolerantValuePattern(), isPValue, valueMatcher)){
+			if (matchPattern(attributeDefinition.getIntolerantValuePattern(), isPValue, valueMatcher)) {
 				recordDeleteDelta(isPValue, attributeDefinition, valueMatcher, projCtx, "it has matched with intolerant pattern");
 				continue;
 			}
@@ -899,10 +900,11 @@ public class ReconciliationProcessor {
 			PrismPropertyDefinition<T> attrDef, ModificationType changeType, T value, ObjectType originObject, String reason)
 			throws SchemaException {
 
-		ItemDelta existingDelta = null;
+		ItemDelta existingDelta;
 		if (projCtx.getSecondaryDelta() != null) {
-			existingDelta = projCtx.getSecondaryDelta().findItemDelta(
-					ItemPath.create(parentPath, attrDef.getItemName()));
+			existingDelta = projCtx.getSecondaryDelta().findItemDelta(ItemPath.create(parentPath, attrDef.getItemName()));
+		} else {
+			existingDelta = null;
 		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("  reconciliation will {} value of attribute {}: {} because {}", changeType,

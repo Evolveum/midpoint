@@ -351,12 +351,14 @@ public class Projector {
 					throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
 					SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
 
+		String projectionDesc = getProjectionDesc(projectionContext);
+		parentResult.addParam(OperationResult.PARAM_PROJECTION, projectionDesc);        // a bit of hack -> to have projection info also on the root "component" operation result
+		parentResult.addParam("resourceName", projectionContext.getResourceName());
+
 		if (projectionContext.getWave() != context.getProjectionWave()) {
     		// Let's skip accounts that do not belong into this wave.
     		return;
     	}
-
-		String projectionDesc = getProjectionDesc(projectionContext);
 
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_PROJECT_PROJECTION);
 		result.addParam(OperationResult.PARAM_PROJECTION, projectionDesc);

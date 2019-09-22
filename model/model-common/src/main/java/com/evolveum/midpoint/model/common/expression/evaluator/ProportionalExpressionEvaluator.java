@@ -8,19 +8,16 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IntegerStatType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProportionalExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProportionalStyleType;
@@ -51,7 +48,7 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
 	 * com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context)
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
 		ProportionalStyleType style = proportionalEvaluatorType.getStyle();

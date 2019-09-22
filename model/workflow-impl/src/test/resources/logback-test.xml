@@ -13,7 +13,14 @@
 			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
 		</encoder>
 	</appender>
-    <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
+	<appender name="TracingAppender" class="com.evolveum.midpoint.util.logging.TracingAppender">
+		<layout>
+			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+		</layout>
+	</appender>
+	<turboFilter class="com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter"/>
+
+	<logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
 	<logger name="com.evolveum.midpoint.schema" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="TRACE" />
 	<logger name="com.evolveum.midpoint.common.expression" level="INFO" />
@@ -27,9 +34,10 @@
     <logger name="com.evolveum.midpoint.task" level="DEBUG" />
    <!--<logger name="org.springframework" level="DEBUG" />-->
 
-	<logger name="PROFILING" level="TRACE" />
+<!--	<logger name="PROFILING" level="TRACE" />-->
 	<root level="INFO">
 		<appender-ref ref="X" />
+		<appender-ref ref="TracingAppender" />
 	</root>
 </configuration>
 
