@@ -10,6 +10,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,12 +47,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FormSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author semancik
@@ -60,7 +59,6 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 	private static final Trace LOGGER = TraceManager.getTrace(FocusMainPanel.class);
 
 	private LoadableModel<List<ShadowWrapper>> projectionModel;
-	private TaskDtoProvider taskDtoProvider;
 
 	public FocusMainPanel(String id, LoadableModel<PrismObjectWrapper<F>> objectModel,
 			LoadableModel<List<ShadowWrapper>> projectionModel,
@@ -74,8 +72,6 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 	private void initLayout(final PageAdminObjectDetails<F> parentPage) {
 		getMainForm().setMultiPart(true);
 
-		taskDtoProvider = new TaskDtoProvider(parentPage, TaskDtoProviderOptions.minimalOptions());
-		taskDtoProvider.setQuery(createTaskQuery(null, parentPage));
 	}
 
 	@Override
@@ -83,20 +79,22 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 		super.onInitialize();
 		StringValue oidValue = getPage().getPageParameters().get(OnePageParameterEncoder.PARAMETER);
 
-		taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null, (PageBase)getPage()));
 	}
 
 	private ObjectQuery createTaskQuery(String oid, PageBase page) {
 		if (oid == null) {
 			oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
 		}
-		return page.getPrismContext().queryFor(TaskType.class)
-				.item(TaskType.F_OBJECT_REF).ref(oid)
+		return page.getPrismContext().queryFor(CaseType.class)
+				.item(CaseType.F_OBJECT_REF).ref(oid)
 				.and()
-					.block()
-						.not().item(TaskType.F_EXECUTION_STATUS).eq(TaskExecutionStatusType.CLOSED)
-					.endBlock()
-				.and().item(TaskType.F_PARENT).isNull()
+				.item(CaseType.F_ARCHETYPE_REF)
+				.ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())
+				.and()
+				.not()
+				.item(CaseType.F_STATE)
+				.eq(SchemaConstants.CASE_STATE_CLOSED)
+				.desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
 				.build();
 	}
 
@@ -258,12 +256,21 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-						return new FocusTasksTabPanel<>(panelId, getMainForm(), getObjectModel(), taskDtoProvider);
+						return new FocusTasksTabPanel<>(panelId, getMainForm(), getObjectModel());
 					}
 
 					@Override
 					public String getCount() {
-						return Long.toString(taskDtoProvider == null ? 0L : taskDtoProvider.size());
+						String oid = null;
+						if (getObjectWrapper() == null || StringUtils.isEmpty(getObjectWrapper().getOid())) {
+							oid = "non-existent";
+						} else {
+							oid = getObjectWrapper().getOid();
+						}
+						ObjectQuery casesQuery = QueryUtils.filterForCasesOverUser(parentPage.getPrismContext().queryFor(CaseType.class), oid)
+								.desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+								.build();
+						return Integer.toString(WebModelServiceUtils.countObjects(CaseType.class, casesQuery, parentPage));
 					}
 				});
 
