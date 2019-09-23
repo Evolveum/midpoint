@@ -1877,11 +1877,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		String requestIdentifier = ModelImplUtils.generateRequestIdentifier();
 		auditRecord.setRequestIdentifier(requestIdentifier);
 		auditRecord.setTarget(taskRef);
-		auditRecord.setOutcome(parentResult.getStatus());
+		ObjectDelta<TaskType> delta = prismContext.deltaFactory().object().createDeleteDelta(TaskType.class, taskRef.getOid());
+		ObjectDeltaOperation<TaskType> odo = new ObjectDeltaOperation<>(delta, parentResult);
+		auditRecord.getDeltas().add(odo);
 		if (AuditEventStage.EXECUTION == stage) {
-			ObjectDelta<TaskType> delta = prismContext.deltaFactory().object().createDeleteDelta(TaskType.class, taskRef.getOid());
-			ObjectDeltaOperation<TaskType> odo = new ObjectDeltaOperation<>(delta, parentResult);
-			auditRecord.getDeltas().add(odo);
+			auditRecord.setOutcome(parentResult.getStatus());
+
 		}
 		auditHelper.audit(auditRecord, null, operationTask, parentResult);
 	}
