@@ -256,27 +256,32 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-						return new FocusTasksTabPanel<>(panelId, getMainForm(), getObjectModel());
+						return new FocusTasksTabPanel<F>(panelId, getMainForm(), getObjectModel(),
+                                countUsersTasks(parentPage) > 0);
 					}
 
 					@Override
 					public String getCount() {
-						String oid = null;
-						if (getObjectWrapper() == null || StringUtils.isEmpty(getObjectWrapper().getOid())) {
-							oid = "non-existent";
-						} else {
-							oid = getObjectWrapper().getOid();
-						}
-						ObjectQuery casesQuery = QueryUtils.filterForCasesOverUser(parentPage.getPrismContext().queryFor(CaseType.class), oid)
-								.desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
-								.build();
-						return Integer.toString(WebModelServiceUtils.countObjects(CaseType.class, casesQuery, parentPage));
+						return Integer.toString(countUsersTasks(parentPage));
 					}
 				});
 
 	}
 
-	@Override
+    private int countUsersTasks(PageBase parentPage){
+        String oid = null;
+        if (getObjectWrapper() == null || StringUtils.isEmpty(getObjectWrapper().getOid())) {
+            oid = "non-existent";
+        } else {
+            oid = getObjectWrapper().getOid();
+        }
+        ObjectQuery casesQuery = QueryUtils.filterForCasesOverUser(parentPage.getPrismContext().queryFor(CaseType.class), oid)
+                .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                .build();
+        return WebModelServiceUtils.countObjects(CaseType.class, casesQuery, parentPage);
+    }
+
+    @Override
 	@Deprecated
     protected boolean areSavePreviewButtonsEnabled() {
 		PrismObjectWrapper<F> focusWrapper = getObjectModel().getObject();

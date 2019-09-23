@@ -12,6 +12,7 @@ import java.util.List;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.CasesListPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.util.QueryUtils;
@@ -46,11 +47,12 @@ public class FocusTasksTabPanel<F extends FocusType>
 
 	protected static final String ID_TASK_TABLE = "taskTable";
 	protected static final String ID_LABEL = "label";
-
+	protected boolean tasksExist = false;
 	private static final Trace LOGGER = TraceManager.getTrace(FocusTasksTabPanel.class);
 
-	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
+	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel, boolean tasksExist) {
 		super(id, mainForm, focusModel);
+		this.tasksExist = tasksExist;
 	}
 
 	@Override
@@ -60,6 +62,10 @@ public class FocusTasksTabPanel<F extends FocusType>
 	}
 	
 	private void initLayout() {
+		Label label = new Label(ID_LABEL, getPageBase().createStringResource(tasksExist ?
+				"pageAdminFocus.task.descriptionHasTasks" : "pageAdminFocus.task.descriptionNoTasks"));
+		label.setOutputMarkupId(true);
+		add(label);
 
 		CasesListPanel casesPanel = new CasesListPanel(ID_TASK_TABLE) {
 			private static final long serialVersionUID = 1L;
@@ -82,6 +88,8 @@ public class FocusTasksTabPanel<F extends FocusType>
 				return true;
 			}
 		};
+		casesPanel.add(new VisibleBehaviour(() -> tasksExist));
+		casesPanel.setOutputMarkupId(true);
 		add(casesPanel);
 	}
 }
