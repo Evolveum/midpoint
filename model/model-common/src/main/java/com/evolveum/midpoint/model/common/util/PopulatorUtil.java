@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -26,7 +25,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -109,8 +107,7 @@ public class PopulatorUtil {
 		ExpressionFactory expressionFactory = params.getExpressionFactory();
 		Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, params.getExpressionProfile(),
 				expressionDesc, task, result);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables,
-				expressionDesc, task, result);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, expressionDesc, task);
 		context.setExpressionFactory(expressionFactory);
 		context.setValuePolicyResolver(params.getValuePolicyResolver());
 		context.setDefaultTargetContext(params.getDefaultTargetContext());
@@ -118,7 +115,7 @@ public class PopulatorUtil {
 		context.setSkipEvaluationPlus(false);
 		context.setVariableProducer(params.getVariableProducer());
 		
-		PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(context);
+		PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(context, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("output triple:\n{}", outputTriple==null?null:outputTriple.debugDump(1));
 		}

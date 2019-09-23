@@ -6,46 +6,17 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertEquals;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
 
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author Radovan Semancik
@@ -71,10 +42,10 @@ public class TestExpressionProfileSafe extends TestExpression {
     	ExpressionType expressionType = parseExpression(EXPRESSION_CONST_FILE);
     	Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
 		ExpressionVariables variables = prepareBasicVariables();
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, TEST_NAME, null);
 
 		// WHEN
-		evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext);
+		evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext, result);
 
 		// THEN
 
@@ -95,10 +66,10 @@ public class TestExpressionProfileSafe extends TestExpression {
     	ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_GROOVY_SYSTEM_DENY_FILE);
     	Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
 		ExpressionVariables variables = prepareBasicVariables();
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
 
 		// WHEN
-		evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext);
+		evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext, result);
 
 		// THEN
 
@@ -119,10 +90,10 @@ public class TestExpressionProfileSafe extends TestExpression {
     	ExpressionType expressionType = parseExpression(EXPRESSION_SCRIPT_JAVASCRIPT_FILE);
     	Collection<Source<?, ?>> sources = prepareStringSources(INPUT_VALUE);
 		ExpressionVariables variables = prepareBasicVariables();
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, TEST_NAME, null);
 
 		// WHEN
-		evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext);
+		evaluatePropertyExpressionRestricted(expressionType, PrimitiveType.STRING, expressionContext, result);
 
 		// THEN
 

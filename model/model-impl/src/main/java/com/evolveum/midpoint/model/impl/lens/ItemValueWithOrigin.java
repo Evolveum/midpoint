@@ -34,10 +34,10 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 	private PrismValueDeltaSetTripleProducer<V, D> mapping;
 	private Construction construction;
 
-	public ItemValueWithOrigin(V propertyValue,
+	public ItemValueWithOrigin(V itemValue,
 			PrismValueDeltaSetTripleProducer<V, D> mapping, Construction accountConstruction) {
 		super();
-		this.itemValue = propertyValue;
+		this.itemValue = itemValue;
 		this.mapping = mapping;
 		this.construction = accountConstruction;
 	}
@@ -110,8 +110,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		Collection<ItemValueWithOrigin<V,D>> zeroIvwoSet = convertSet(outputTriple.getZeroSet(), mapping);
 		Collection<ItemValueWithOrigin<V,D>> plusIvwoSet = convertSet(outputTriple.getPlusSet(), mapping);
 		Collection<ItemValueWithOrigin<V,D>> minusIvwoSet = convertSet(outputTriple.getMinusSet(), mapping);
-		DeltaSetTriple<ItemValueWithOrigin<V,D>> ivwoTriple = prismContext.deltaFactory().createDeltaSetTriple(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
-		return ivwoTriple;
+		return prismContext.deltaFactory().createDeltaSetTriple(zeroIvwoSet, plusIvwoSet, minusIvwoSet);
 	}
 
 	@NotNull

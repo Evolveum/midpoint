@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.intest;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -635,7 +634,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
 	private void changeManagerRaw(String id, Task task, OperationResult result) throws CommonException {
 		executeChanges(
-				(ObjectDelta) prismContext.deltaFor(OrgType.class)
+				deltaFor(OrgType.class)
 						.item(OrgType.F_EXTENSION, MANAGER_ID_QNAME).replace(id)
 						.asObjectDelta(ORG_GOVERNOR_OFFICE_OID),
 				ModelExecuteOptions.createRaw(), task, result);
@@ -643,7 +642,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 
 	private void changeEmployeeIdRaw(String id, Task initTask, OperationResult initResult) throws CommonException {
 		executeChanges(
-				(ObjectDelta) prismContext.deltaFor(UserType.class)
+				deltaFor(UserType.class)
 						.item(UserType.F_EMPLOYEE_NUMBER).replace(id)
 						.asObjectDelta(USER_ELAINE_OID),
 				ModelExecuteOptions.createRaw(), initTask, initResult);

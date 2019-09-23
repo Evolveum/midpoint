@@ -16,7 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
@@ -99,37 +99,21 @@ public class AssignmentProcessor {
     @Qualifier("modelObjectResolver")
     private ObjectResolver objectResolver;
 
-    @Autowired
-	private SystemObjectCache systemObjectCache;
-
-    @Autowired
-    private RelationRegistry relationRegistry;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private MappingFactory mappingFactory;
-
-    @Autowired
-    private MappingEvaluator mappingEvaluator;
-
-    @Autowired
-	private ActivationComputer activationComputer;
-
-    @Autowired
-    private ProvisioningService provisioningService;
-
-    @Autowired
-    private ConstructionProcessor constructionProcessor;
-
-    @Autowired
-    private ObjectTemplateProcessor objectTemplateProcessor;
-
-    @Autowired
-    private PolicyRuleProcessor policyRuleProcessor;
+    @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private RelationRegistry relationRegistry;
+    @Autowired private PrismContext prismContext;
+    @Autowired private MappingFactory mappingFactory;
+    @Autowired private MappingEvaluator mappingEvaluator;
+    @Autowired private MappingSetEvaluator mappingSetEvaluator;
+    @Autowired private ActivationComputer activationComputer;
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired private ConstructionProcessor constructionProcessor;
+    @Autowired private ObjectTemplateProcessor objectTemplateProcessor;
+    @Autowired private PolicyRuleProcessor policyRuleProcessor;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
+
+    private static final String OP_EVALUATE_FOCUS_MAPPINGS = AssignmentProcessor.class.getName() + ".evaluateFocusMappings";
 
     /**
      * Processing all the assignments.
@@ -205,7 +189,6 @@ public class AssignmentProcessor {
 
         checkAssignmentDeltaSanity(context);
 
-
         // ASSIGNMENT EVALUATION
 
         // Initializing assignment evaluator. This will be used later to process all the assignments including the nested
@@ -238,9 +221,7 @@ public class AssignmentProcessor {
         policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
         context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
-        if (LOGGER.isTraceEnabled()) {
-        	LOGGER.trace("evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());
-        }
+	    LOGGER.trace("evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
         // PROCESSING POLICIES
 
@@ -254,11 +235,12 @@ public class AssignmentProcessor {
         	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
 			context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
-			policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
+	        // TODO implement isMemberOf invocation result change check here! MID-5784
+	        //  Actually, we should factor out the relevant code to avoid code duplication.
 
-        	if (LOGGER.isTraceEnabled()) {
-            	LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());
-            }
+	        policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
+
+           	LOGGER.trace("re-evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
         	policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, task, result);
         }
@@ -267,48 +249,141 @@ public class AssignmentProcessor {
 
         // PROCESSING FOCUS
 
-        Map<UniformItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> focusOutputTripleMap = new HashMap<>();
-        collectFocusTripleFromMappings(evaluatedAssignmentTriple.getPlusSet(), focusOutputTripleMap, PlusMinusZero.PLUS);
-        collectFocusTripleFromMappings(evaluatedAssignmentTriple.getMinusSet(), focusOutputTripleMap, PlusMinusZero.MINUS);
-        collectFocusTripleFromMappings(evaluatedAssignmentTriple.getZeroSet(), focusOutputTripleMap, PlusMinusZero.ZERO);
-        ObjectDeltaObject<AH> focusOdo = focusContext.getObjectDeltaObject();
-		Collection<ItemDelta<?,?>> focusDeltas = objectTemplateProcessor.computeItemDeltas(focusOutputTripleMap, null,
-				focusOdo.getObjectDelta(), focusOdo.getNewObject(), focusContext.getObjectDefinition(),
-				"focus mappings in assignments of "+focusContext.getHumanReadableName());
-		LOGGER.trace("Computed focus deltas: {}", focusDeltas);
-		focusContext.applyProjectionWaveSecondaryDeltas(focusDeltas);
-		focusContext.recompute();
+	    evaluateFocusMappings(context, now, focusContext, evaluatedAssignmentTriple, task, result);
 
-		if (context.getPartialProcessingOptions().getProjection() != PartialProcessingTypeType.SKIP) {
+	    if (context.getPartialProcessingOptions().getProjection() != PartialProcessingTypeType.SKIP) {
 
-			if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-				LOGGER.trace("Skipping evaluating constructions. Not a focus.");
-				return;
-			}
-			
-			// PROCESSING PROJECTIONS
+			if (FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Projection processing start, evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump(1));
-			}
+				// PROCESSING PROJECTIONS
 
-			// Evaluate the constructions in assignments now. These were not evaluated in the first pass of AssignmentEvaluator
-			// because there may be interaction from focusMappings of some roles to outbound mappings of other roles.
-			// Now we have complete focus with all the focusMappings so we can evaluate the constructions
-			evaluateConstructions(context, evaluatedAssignmentTriple, task, result);
+				LOGGER.trace("Projection processing start, evaluatedAssignmentTriple:\n{}",
+						evaluatedAssignmentTriple.debugDumpLazily(1));
 
-			proccessProjections((LensContext<F>) context, (DeltaSetTriple) evaluatedAssignmentTriple, task, result);
-			
-			if (LOGGER.isTraceEnabled()) {
+				// Evaluate the constructions in assignments now. These were not evaluated in the first pass of AssignmentEvaluator
+				// because there may be interaction from focusMappings of some roles to outbound mappings of other roles.
+				// Now we have complete focus with all the focusMappings so we can evaluate the constructions
+				evaluateConstructions(context, evaluatedAssignmentTriple, task, result);
+
+				processProjections((LensContext<F>) context, (DeltaSetTriple) evaluatedAssignmentTriple, task, result);
+
 				LOGGER.trace("Projection processing done");
-			}
 
-			removeIgnoredContexts(context);
-			finishLegalDecisions(context);
+				removeIgnoredContexts(context);
+				finishLegalDecisions(context);
+			} else {
+				LOGGER.trace("Skipping evaluating constructions. Not a focus.");
+			}
 		}
     }
 
-    private <F extends FocusType> void proccessProjections(LensContext<F> context, DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private <AH extends AssignmentHolderType> void evaluateFocusMappings(LensContext<AH> context, XMLGregorianCalendar now,
+			LensFocusContext<AH> focusContext,
+			DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task,
+			OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, PolicyViolationException,
+			ConfigurationException, SecurityViolationException, ObjectNotFoundException, CommunicationException {
+
+    	OperationResult result = parentResult.subresult(OP_EVALUATE_FOCUS_MAPPINGS)
+			    .setMinor()
+			    .build();
+
+    	try {
+		    LOGGER.trace("Starting evaluation of assignment-held mappings");
+
+		    ObjectDeltaObject<AH> focusOdo = focusContext.getObjectDeltaObject();
+
+		    List<AssignedFocusMappingEvaluationRequest> allRequests = new ArrayList<>();
+		    for (EvaluatedAssignmentImpl<AH> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
+			    allRequests.addAll(evaluatedAssignment.getFocusMappingEvaluationRequests());
+		    }
+
+		    MappingSetEvaluator.TripleCustomizer<PrismValue, ItemDefinition> customizer = (triple, abstractRequest) -> {
+		    	if (triple == null) {
+		    		return null;
+			    }
+			    DeltaSetTriple<ItemValueWithOrigin<PrismValue, ItemDefinition>> rv = prismContext.deltaFactory().createDeltaSetTriple();
+			    AssignedFocusMappingEvaluationRequest request = (AssignedFocusMappingEvaluationRequest) abstractRequest;
+			    //noinspection unchecked
+			    EvaluatedAssignmentImpl<AH> evaluatedAssignment = (EvaluatedAssignmentImpl<AH>) request.getEvaluatedAssignment();
+			    PlusMinusZero relativeMode = request.getRelativeMode();
+			    Set<PlusMinusZero> presence = new HashSet<>();
+			    PlusMinusZero resultingMode = null;
+			    if (evaluatedAssignmentTriple.presentInPlusSet(evaluatedAssignment)) {
+			    	resultingMode = PlusMinusZero.compute(PlusMinusZero.PLUS, relativeMode);
+				    presence.add(PlusMinusZero.PLUS);
+			    }
+			    if (evaluatedAssignmentTriple.presentInMinusSet(evaluatedAssignment)) {
+				    resultingMode = PlusMinusZero.compute(PlusMinusZero.MINUS, relativeMode);
+				    presence.add(PlusMinusZero.MINUS);
+			    }
+			    if (evaluatedAssignmentTriple.presentInZeroSet(evaluatedAssignment)) {
+				    resultingMode = PlusMinusZero.compute(PlusMinusZero.ZERO, relativeMode);
+				    presence.add(PlusMinusZero.ZERO);
+			    }
+			    LOGGER.trace("triple customizer: presence = {}, relativeMode = {}, resultingMode = {}", presence, relativeMode,
+					    resultingMode);
+
+			    if (presence.isEmpty()) {
+			    	throw new IllegalStateException("Evaluated assignment is not present in any of plus/minus/zero sets "
+						    + "of the triple. Assignment = " + evaluatedAssignment + ", triple = " + triple);
+			    } else if (presence.size() > 1) {
+			    	// TODO think about this
+				    throw new IllegalStateException("Evaluated assignment is present in more than one plus/minus/zero sets "
+						    + "of the triple: " + presence + ". Assignment = " + evaluatedAssignment + ", triple = " + triple);
+			    }
+			    if (resultingMode != null) {
+			    	switch (resultingMode) {
+					    case PLUS:
+						    rv.addAllToPlusSet(triple.getNonNegativeValues());
+					    	break;
+					    case MINUS:
+					    	rv.addAllToMinusSet(triple.getNonPositiveValues());
+					    	break;
+					    case ZERO:
+					    	rv = triple;
+					    	break;
+				    }
+			    }
+			    return rv;
+		    };
+
+		    MappingSetEvaluator.EvaluatedMappingConsumer<PrismValue, ItemDefinition> mappingConsumer = (mapping, abstractRequest) -> {
+			    AssignedFocusMappingEvaluationRequest request = (AssignedFocusMappingEvaluationRequest) abstractRequest;
+			    request.getEvaluatedAssignment().addFocusMapping(mapping);
+		    };
+
+		    Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> focusOutputTripleMap = new HashMap<>();
+
+		    // TODO choose between these two approaches
+		    //TargetObjectSpecification<AH> targetSpecification = new SelfTargetSpecification<>();
+		    TargetObjectSpecification<AH> targetSpecification = new FixedTargetSpecification<>(focusOdo.getNewObject());
+
+		    mappingSetEvaluator.evaluateMappingsToTriples(context, allRequests, null, focusOdo, targetSpecification,
+				    focusOutputTripleMap, customizer, mappingConsumer, focusContext.getIteration(),
+				    focusContext.getIterationToken(), now, task, result);
+
+		    if (LOGGER.isTraceEnabled()) {
+			    for (Entry<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> entry : focusOutputTripleMap
+					    .entrySet()) {
+				    LOGGER.trace("Resulting output triple for {}:\n{}", entry.getKey(), entry.getValue().debugDump(1));
+			    }
+		    }
+
+		    Collection<ItemDelta<?, ?>> focusDeltas = objectTemplateProcessor.computeItemDeltas(focusOutputTripleMap, null,
+				    focusOdo.getObjectDelta(), focusOdo.getNewObject(), focusContext.getObjectDefinition(),
+				    "focus mappings in assignments of " + focusContext.getHumanReadableName());
+		    LOGGER.trace("Computed focus deltas: {}", focusDeltas);
+		    focusContext.applyProjectionWaveSecondaryDeltas(focusDeltas);
+		    focusContext.recompute();
+	    } catch (Throwable t) {
+    		result.recordFatalError(t.getMessage(), t);
+    		throw t;
+	    } finally {
+    		result.computeStatusIfUnknown();
+	    }
+	}
+
+	private <F extends FocusType> void processProjections(LensContext<F> context, DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	ComplexConstructionConsumer<ResourceShadowDiscriminator, Construction<F>> consumer = new ComplexConstructionConsumer<ResourceShadowDiscriminator, Construction<F>>() {
 
 			private boolean processOnlyExistingProjCxts;
@@ -978,12 +1053,13 @@ public class AssignmentProcessor {
 
 		for (EvaluatedAssignmentImpl<F> ea: evaluatedAssignments) {
 			if (ea.isVirtual()) {
-				continue;
+				continue;       // TODO why? ... Virtual assignments can hold mappings, cannot they?
 			}
+			//noinspection unchecked
 			Collection<MappingImpl<V,D>> focusMappings = (Collection)ea.getFocusMappings();
 			for (MappingImpl<V,D> mapping: focusMappings) {
 
-				ItemPath itemPath = mapping.getOutputPath();
+				UniformItemPath itemPath = prismContext.toUniformPath(mapping.getOutputPath());
 				DeltaSetTriple<ItemValueWithOrigin<V,D>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping,
 						prismContext);
 				if (outputTriple == null) {
@@ -998,12 +1074,15 @@ public class AssignmentProcessor {
 					outputTriple.clearZeroSet();
 					outputTriple.clearPlusSet();
 				}
-				DeltaSetTriple<ItemValueWithOrigin<V,D>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(itemPath);
-				if (mapTriple == null) {
-					UniformItemPath uniformItemPath = prismContext.toUniformPath(itemPath);
-					outputTripleMap.put(uniformItemPath, outputTriple);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Output triple created from {}:\n{}", ea.shortDump(), outputTriple.debugDump());
+				}
+				//noinspection unchecked
+				DeltaSetTriple<ItemValueWithOrigin<V,D>> existingTriple = (DeltaSetTriple<ItemValueWithOrigin<V,D>>) outputTripleMap.get(itemPath);
+				if (existingTriple == null) {
+					outputTripleMap.put(itemPath, outputTriple);
 				} else {
-					mapTriple.merge(outputTriple);
+					existingTriple.merge(outputTriple);
 				}
 			}
 		}

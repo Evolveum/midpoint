@@ -677,8 +677,8 @@ public class ObjectMerger {
 		variables.put(ExpressionConstants.VAR_OBJECT_RIGHT, side, String.class);
 		variables.put(ExpressionConstants.VAR_INPUT, origValue, origValue.getParent().getDefinition());
 		variables.put(ExpressionConstants.VAR_VALUE, origValue, origValue.getParent().getDefinition());
-		ExpressionEvaluationContext exprContext = new ExpressionEvaluationContext(null, variables, "for value "+origValue, task, result);
-		PrismValueDeltaSetTriple<PrismValue> triple = valueExpression.evaluate(exprContext);
+		ExpressionEvaluationContext exprContext = new ExpressionEvaluationContext(null, variables, "for value "+origValue, task);
+		PrismValueDeltaSetTriple<PrismValue> triple = valueExpression.evaluate(exprContext, result);
 		if (triple == null) {
 			return null;
 		}

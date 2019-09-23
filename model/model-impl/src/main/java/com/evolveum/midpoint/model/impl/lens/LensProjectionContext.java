@@ -1550,4 +1550,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		}
 		return null;
 	}
+
+	public String getResourceName() {
+		ResourceType resource = getResource();
+		return resource != null ? PolyString.getOrig(resource.getName()) : getResourceOid();
+	}
 }

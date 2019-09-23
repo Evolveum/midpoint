@@ -63,6 +63,11 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
     // we use special options when exporting to CSV (due to bulk nature of the operation)
     private boolean export;
 
+    // it seems that if connector doesn't support counting, provisioning return null. the default before was 0
+    // which resulted to the empty list of object. Therefore we need to set this the default count to  "undefined"
+    // at least for the shadows.
+    private int defaultCountIfNull = 0;
+
     /**
      *  The number of all objects that the query can return. Defaults to a really big number
      *  if we cannot count the number of objects.
@@ -232,7 +237,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         try {
 	        Collection<SelectorOptions<GetOperationOptions>> currentOptions = GetOperationOptions.merge(getPrismContext(), options, getDistinctRelatedOptions());
             Integer counted = getModel().countObjects(type, getQuery(), currentOptions, task, result);
-            count = defaultIfNull(counted, 0);
+            count = defaultIfNull(counted, defaultCountIfNull);
         } catch (Exception ex) {
         	result.recordFatalError(getPage().createStringResource("ObjectDataProvider.message.countObjects.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
@@ -249,6 +254,8 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         LOGGER.trace("end::internalSize(): {}", count);
         return count;
     }
+
+
 
     @Override
     protected CachedSize getCachedSize(Map<Serializable, CachedSize> cache) {
@@ -299,7 +306,11 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
 		this.export = export;
 	}
 
-	//    public int getSize() {
+    public void setDefaultCountIfNull(int defaultCountIfNull) {
+        this.defaultCountIfNull = defaultCountIfNull;
+    }
+
+    //    public int getSize() {
 //        return size;
 //    }
 //

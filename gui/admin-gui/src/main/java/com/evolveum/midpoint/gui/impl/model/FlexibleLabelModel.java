@@ -42,8 +42,6 @@ import org.apache.wicket.model.IModel;
 
 import java.util.Collection;
 
-import javax.xml.namespace.QName;
-
 /**
  * Model that returns string value for a flexible label. The label value defaults to
  * the value of a fixed property. But if an expression is specified then the value
@@ -127,8 +125,8 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.put(ExpressionConstants.VAR_OBJECT, object, object.asPrismContainerValue().getDefinition());
 		addAdditionalExpressionVariables(variables);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, result);
 		if (outputTriple == null) {
 			return "";
 		}

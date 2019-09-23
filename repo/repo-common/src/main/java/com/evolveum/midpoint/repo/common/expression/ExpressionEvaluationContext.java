@@ -40,7 +40,6 @@ public class ExpressionEvaluationContext {
 	private QName mappingQName;
 	private String contextDescription;
 	private Task task;
-	private OperationResult result;
 	private Function<Object, Object> additionalConvertor;
 	private VariableProducer variableProducer;
 
@@ -52,14 +51,12 @@ public class ExpressionEvaluationContext {
 	private ExpressionEvaluatorProfile expressionEvaluatorProfile;
 	
 	public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
-			ExpressionVariables variables, String contextDescription, Task task,
-			OperationResult result) {
+			ExpressionVariables variables, String contextDescription, Task task) {
 		super();
 		this.sources = sources;
 		this.variables = variables;
 		this.contextDescription = contextDescription;
 		this.task = task;
-		this.result = result;
 	}
 
 	public Collection<Source<?,?>> getSources() {
@@ -174,14 +171,6 @@ public class ExpressionEvaluationContext {
 		this.task = task;
 	}
 
-	public OperationResult getResult() {
-		return result;
-	}
-
-	public void setResult(OperationResult result) {
-		this.result = result;
-	}
-
 	public Function<Object, Object> getAdditionalConvertor() {
 		return additionalConvertor;
 	}
@@ -199,7 +188,7 @@ public class ExpressionEvaluationContext {
 	}
 
 	public ExpressionEvaluationContext shallowClone() {
-		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, task, result);
+		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, task);
 		clone.skipEvaluationMinus = this.skipEvaluationMinus;
 		clone.skipEvaluationPlus = this.skipEvaluationPlus;
 		clone.expressionProfile = this.expressionProfile;

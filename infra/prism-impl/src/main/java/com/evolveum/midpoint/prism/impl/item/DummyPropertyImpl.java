@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -249,6 +250,7 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		realProperty.setUserData(key, value);
 	}
 
+	@NotNull
 	public List<PrismPropertyValue<T>> getValues() {
 		return realProperty.getValues();
 	}

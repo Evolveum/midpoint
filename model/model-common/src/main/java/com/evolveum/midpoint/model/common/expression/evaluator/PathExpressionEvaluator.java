@@ -12,7 +12,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -31,6 +30,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -73,7 +73,8 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) 
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context,
+            OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
 		ExpressionUtil.checkEvaluatorProfileSimple(this, context);
 
@@ -109,7 +110,7 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 			}
 			if (variableValue instanceof Item || variableValue instanceof ItemDeltaItem<?,?>) {
 				resolveContext = ExpressionUtil.toItemDeltaItem(variableValue, objectResolver,
-						"path expression in "+ context.getContextDescription(), context.getResult());
+						"path expression in "+ context.getContextDescription(), result);
 			} else if (variableValue instanceof PrismPropertyValue<?>){
 				PrismValueDeltaSetTriple<V> outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
 				outputTriple.addToZeroSet((V) variableValue);

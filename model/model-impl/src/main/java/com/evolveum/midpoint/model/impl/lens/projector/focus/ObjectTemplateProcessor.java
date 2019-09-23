@@ -86,6 +86,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS;
+
 /**
  * Processor to handle object template.
  *
@@ -144,8 +146,13 @@ public class ObjectTemplateProcessor {
 		collectAutoassignMappings(context, mappings, result);
 
 		Map<UniformItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap = new HashMap<>();
-		NextRecompute nextRecompute = mappingSetEvaluator.evaluateMappingsToTriples(context, mappings, phase, focusOdo, focusOdo.getNewObject(),
-				outputTripleMap, iteration, iterationToken, now, task, result);
+
+		// TODO choose between these two
+		//TargetObjectSpecification<AH> targetSpecification = new SelfTargetSpecification<>();
+		TargetObjectSpecification<AH> targetSpecification = new FixedTargetSpecification<>(focusOdo.getNewObject());
+
+		NextRecompute nextRecompute = mappingSetEvaluator.evaluateMappingsToTriples(context, mappings, phase, focusOdo,
+				targetSpecification, outputTripleMap, null, null, iteration, iterationToken, now, task, result);
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLine(outputTripleMap));
@@ -213,8 +220,9 @@ public class ObjectTemplateProcessor {
 		collectAutoassignMappings(context, mappings, result);
 
 		Map<UniformItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap = new HashMap<>();
-		mappingSetEvaluator.evaluateMappingsToTriples(context, mappings, ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS,
-				focusOdo, target, outputTripleMap, iteration, iterationToken, now, task, result);
+		mappingSetEvaluator.evaluateMappingsToTriples(context, mappings, BEFORE_ASSIGNMENTS,
+				focusOdo, new FixedTargetSpecification<>(target), outputTripleMap, null, null, iteration,
+				iterationToken, now, task, result);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLine(outputTripleMap));

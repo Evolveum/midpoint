@@ -1780,12 +1780,11 @@ public class ChangeExecutor {
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
 				.makeExpression(argument, scriptArgumentDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task,
-				result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
 		ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(context, 
 				objectContext instanceof LensProjectionContext ? (LensProjectionContext) objectContext : null, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder
-				.evaluateExpressionInContext(expression, params, env);
+				.evaluateExpressionInContext(expression, params, env, result);
 
 		Collection<PrismPropertyValue<String>> nonNegativeValues = null;
 		if (outputTriple != null) {

@@ -15,9 +15,9 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -34,7 +34,7 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 	}
 
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) 
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
 		
 		checkEvaluatorProfile(context);

@@ -20,12 +20,12 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.expression.ValuePolicyResolver;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -85,7 +85,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 	 * com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context)
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		checkEvaluatorProfile(context);
 
@@ -95,9 +95,8 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 		ObjectReferenceType generateEvaluatorValuePolicyRef = getExpressionEvaluatorType().getValuePolicyRef();
 		if (generateEvaluatorValuePolicyRef != null) {
 			if (getExpressionEvaluatorType().getValuePolicyRef() != null) {
-	        	ValuePolicyType resolvedValuePolicyType = objectResolver.resolve(generateEvaluatorValuePolicyRef, ValuePolicyType.class,
-	        			null, "resolving value policy reference in generateExpressionEvaluator", context.getTask(), context.getResult());
-	        	valuePolicyType = resolvedValuePolicyType;
+				valuePolicyType = objectResolver.resolve(generateEvaluatorValuePolicyRef, ValuePolicyType.class,
+						null, "resolving value policy reference in generateExpressionEvaluator", context.getTask(), result);
 	        }
 
 		}
@@ -131,15 +130,15 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
 			if (valuePolicyType != null) {
 				if (isNotEmptyMinLength(valuePolicyType)) {
 					stringValue = valuePolicyGenerator.generate(output.getPath(), valuePolicyType, DEFAULT_LENGTH, true, originResolver,
-							context.getContextDescription(), context.getTask(), context.getResult());
+							context.getContextDescription(), context.getTask(), result);
 				} else {
 					stringValue = valuePolicyGenerator.generate(output.getPath(), valuePolicyType, DEFAULT_LENGTH, false, originResolver,
-							context.getContextDescription(), context.getTask(), context.getResult());
+							context.getContextDescription(), context.getTask(), result);
 				}
-				context.getResult().computeStatus();
-				if (context.getResult().isError()) {
+				result.computeStatus();
+				if (result.isError()) {
 					throw new ExpressionEvaluationException("Failed to generate value according to policy: "
-							+ valuePolicyType.getDescription() + ". " + context.getResult().getMessage());
+							+ valuePolicyType.getDescription() + ". " + result.getMessage());
 				}
 			}
 

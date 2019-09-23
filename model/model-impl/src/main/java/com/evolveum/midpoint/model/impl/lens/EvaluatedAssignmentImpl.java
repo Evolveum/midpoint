@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
@@ -31,7 +31,6 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -64,7 +63,21 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> delegationRefVals = new ArrayList<>();
 	@NotNull private final Collection<Authorization> authorizations = new ArrayList<>();
+
+	/**
+	 * Requests to evaluate focus mappings. These are collected during assignment evaluation, but executed afterwards.
+	 * This is to implement proper mapping chaining.
+	 *
+	 * @since 4.0.1
+	 */
+	@NotNull private final Collection<AssignedFocusMappingEvaluationRequest> focusMappingEvaluationRequests = new ArrayList<>();
+
+	/**
+	 * These are evaluated focus mappings. Since 4.0.1 the evaluation is carried out not during assignment evaluation
+	 * but afterwards.
+	 */
 	@NotNull private final Collection<MappingImpl<?,?>> focusMappings = new ArrayList<>();
+
 	@NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 	// rules related to the focal object (typically e.g. "forbid modifications")
 	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules = new ArrayList<>();
@@ -293,8 +306,17 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 		return focusMappings;
 	}
 
-	public void addFocusMapping(MappingImpl<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> focusMapping) {
+	@NotNull
+	public Collection<AssignedFocusMappingEvaluationRequest> getFocusMappingEvaluationRequests() {
+		return focusMappingEvaluationRequests;
+	}
+
+	public void addFocusMapping(MappingImpl<?,?> focusMapping) {
 		this.focusMappings.add(focusMapping);
+	}
+
+	void addFocusMappingEvaluationRequest(AssignedFocusMappingEvaluationRequest request) {
+		this.focusMappingEvaluationRequests.add(request);
 	}
 
 	/* (non-Javadoc)
@@ -506,9 +528,18 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 				sb.append(autz.toString());
 			}
 		}
+		if (!focusMappingEvaluationRequests.isEmpty()) {
+			sb.append("\n");
+			DebugUtil.debugDumpLabel(sb, "Focus mappings evaluation requests", indent+1);
+			for (AssignedFocusMappingEvaluationRequest request : focusMappingEvaluationRequests) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent+2);
+				sb.append(request.shortDump());
+			}
+		}
 		if (!focusMappings.isEmpty()) {
 			sb.append("\n");
-			DebugUtil.debugDumpLabel(sb, "Focus Mappings", indent+1);
+			DebugUtil.debugDumpLabel(sb, "Focus mappings", indent+1);
 			for (PrismValueDeltaSetTripleProducer<?,?> mapping: focusMappings) {
 				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent+2);
@@ -546,8 +577,13 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
 	@Override
 	public String toString() {
-		return "EvaluatedAssignment(target=" + target + "; constr=" + constructionTriple + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
-				.size()+" rules)";
+		return "EvaluatedAssignment(target=" + target
+				+ "; constr=" + constructionTriple
+				+ "; org=" + orgRefVals
+				+ "; autz=" + authorizations
+				+ "; " + focusMappingEvaluationRequests.size() + " focus mappings eval requests"
+				+ "; " + focusMappings.size() + " focus mappings"
+				+ "; " + focusPolicyRules.size()+" rules)";
 	}
 
 	public String toHumanReadableString() {
