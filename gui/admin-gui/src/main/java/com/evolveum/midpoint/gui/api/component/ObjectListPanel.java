@@ -443,6 +443,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			}
 			provider.setOptions(options);
 		}
+		setDefaultSorting(provider);
 		provider.setQuery(getQuery());
 
 		return provider;
@@ -671,6 +672,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
 		return query;
+	}
+
+	protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
+		//should be overrided if needed
 	}
 
 	public StringResourceModel createStringResource(String resourceKey, Object... objects) {

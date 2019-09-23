@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -244,6 +245,7 @@ public class PageSelfDashboard extends PageSelf {
                             protected ObjectFilter getCasesFilter() {
                                 return QueryUtils.filterForMyRequests(getPrismContext().queryFor(CaseType.class),
                                         SecurityUtils.getPrincipalUser().getOid())
+                                        .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
                                         .buildFilter();
                             }
 
