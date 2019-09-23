@@ -252,8 +252,11 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE = new File(TEST_DIR, "role-filter-object-user-type-shadow.xml");
 	protected static final String ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_OID = "00000000-0000-0000-0000-00000000aa0h";
 
-	protected static final File ROLE_MODIFY_USER_FILE = new File(TEST_DIR, "role-modify-user.xml");
-	protected static final String ROLE_MODIFY_USER_OID = "00000000-0000-0000-0000-00000000aa0g";
+	protected static final File ROLE_USER_MODIFY_FILE = new File(TEST_DIR, "role-user-modify.xml");
+	protected static final String ROLE_USER_MODIFY_OID = "710395da-ddd9-11e9-9d81-cf471cec8185";
+
+	protected static final File ROLE_USER_ADD_FILE = new File(TEST_DIR, "role-user-add.xml");
+	protected static final String ROLE_USER_ADD_OID = "aa662e3c-ddd9-11e9-afe9-ab216a2d304b";
 
 	protected static final File ROLE_APPLICATION_1_FILE = new File(TEST_DIR, "role-application-1.xml");
 	protected static final String ROLE_APPLICATION_1_OID = "00000000-0000-0000-0000-00000000aaa1";
@@ -385,7 +388,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 73;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 74;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -463,7 +466,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_LIMITED_USER_ADMIN_FILE, RoleType.class, initResult);
 
 		repoAddObjectFromFile(ROLE_END_USER_FILE, initResult);
-		repoAddObjectFromFile(ROLE_MODIFY_USER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_USER_MODIFY_FILE, initResult);
+		repoAddObjectFromFile(ROLE_USER_ADD_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MANAGER_FULL_CONTROL_FILE, initResult);
 		repoAddObjectFromFile(ROLE_MANAGER_USER_ADMIN_FILE, initResult);
 //		repoAddObjectFromFile(ROLE_ROLE_OWNER_FULL_CONTROL_FILE, initResult);
@@ -664,6 +668,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         cleanupDelete(UserType.class, USER_MANCOMB_OID, task, result);
         cleanupDelete(UserType.class, USER_CAPSIZE_OID, task, result);
         cleanupDelete(UserType.class, USER_WILL_OID, task, result);
+		cleanupDeleteUserByUsername(USER_NOOID_USERNAME, task, result);
         cleanupAdd(USER_LARGO_FILE, task, result);
         cleanupAdd(USER_LECHUCK_FILE, task, result);
         cleanupAdd(USER_ESTEVAN_FILE, task, result);
@@ -707,7 +712,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	        }
         }
 	}
-	
+
+
 	protected void cleanupUnassign(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		unassignRole(userOid, roleOid);
 	}
@@ -724,6 +730,19 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected <O extends ObjectType> void cleanupDelete(Class<O> type, String oid, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, ObjectAlreadyExistsException {
 		try {
 			deleteObject(type, oid, task, result);
+		} catch (ObjectNotFoundException e) {
+			// this is OK
+			result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
+		}
+	}
+
+	private void cleanupDeleteUserByUsername(String username, Task task, OperationResult result) throws CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+		try {
+			PrismObject<UserType> user = findUserByUsername(username);
+			if (user == null) {
+				return;
+			}
+			deleteObject(UserType.class, user.getOid(), task, result);
 		} catch (ObjectNotFoundException e) {
 			// this is OK
 			result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);

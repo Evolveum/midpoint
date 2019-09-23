@@ -1161,7 +1161,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 	}
 
 	@SafeVarargs
-	private void makeUndefined(Holder<EvaluationOrder>... holders) {
+	private final void makeUndefined(Holder<EvaluationOrder>... holders) {      // final because of SafeVarargs (on java8)
 		for (Holder<EvaluationOrder> holder : holders) {
 			holder.setValue(EvaluationOrderImpl.UNDEFINED);
 		}

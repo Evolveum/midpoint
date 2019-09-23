@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -63,7 +65,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  * @author Radovan Semancik
  *
  */
-public class OperationResult implements Serializable, DebugDumpable, ShortDumpable, Cloneable, OperationResultBuilder {
+public class OperationResult implements Serializable, DebugDumpable, ShortDumpable, Cloneable, OperationResultBuilder, Visitable<OperationResult> {
 
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String VARIOUS_VALUES = "[various values]";
@@ -938,6 +940,16 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void clearTracingProfile() {
 		tracingProfile = null;
+	}
+
+	@Override
+	public void accept(Visitor<OperationResult> visitor) {
+		visitor.visit(this);
+		if (subresults != null) {
+			for (OperationResult subresult : subresults) {
+				subresult.accept(visitor);
+			}
+		}
 	}
 
 	public static class PreviewResult {

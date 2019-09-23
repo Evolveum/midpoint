@@ -11,8 +11,8 @@ package com.evolveum.midpoint.prism;
  *
  */
 @FunctionalInterface
-public interface Visitable {
+public interface Visitable<T extends Visitable<T>> {
 
-	void accept(Visitor visitor);
+	void accept(Visitor<T> visitor);
 
 }
