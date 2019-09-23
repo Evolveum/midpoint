@@ -890,8 +890,7 @@ public abstract class ResourceContentPanel extends Panel {
 		for (ShadowType shadow : selectedShadows) {
 			try {
 				getPageBase().getModelService().importFromResource(shadow.getOid(), task, result);
-			} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-					| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+			} catch (Exception e) {
 				result.recordPartialError(pageBase.createStringResource("ResourceContentPanel.message.importResourceObject.partialError", shadow).getString(), e);
 				LOGGER.error("Could not import account {} ", shadow, e);
 			}
