@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.common.mapping;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -21,6 +22,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 @FunctionalInterface
 public interface MappingPreExpression {
 
-	void mappingPreExpression(ExpressionEvaluationContext context) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+	void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 }

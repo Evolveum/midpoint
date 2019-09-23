@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -26,7 +27,7 @@ public interface ExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 	
 	QName getElementName();
 
-	PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context)
+	PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	String shortDebugDump();

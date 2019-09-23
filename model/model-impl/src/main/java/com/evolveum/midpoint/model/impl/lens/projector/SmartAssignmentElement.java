@@ -22,9 +22,9 @@ public class SmartAssignmentElement implements DebugDumpable {
 	private boolean isOld = false;
 	private boolean isChanged = false;
 	
-	private boolean virtual = false;
+	private boolean virtual;
 	
-	public SmartAssignmentElement(PrismContainerValue<AssignmentType> assignmentCVal, boolean virtual) {
+	SmartAssignmentElement(PrismContainerValue<AssignmentType> assignmentCVal, boolean virtual) {
 		this.assignmentCVal = assignmentCVal;
 		this.virtual = virtual;
 	}

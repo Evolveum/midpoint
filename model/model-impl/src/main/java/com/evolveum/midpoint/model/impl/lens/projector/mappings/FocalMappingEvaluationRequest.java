@@ -7,12 +7,13 @@
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import com.evolveum.midpoint.model.common.mapping.MappingPreExpression;
+import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -20,12 +21,10 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.stream.Collectors;
 
 /**
  * Contains some of the information necessary to evaluate a mapping. It is used when mappings are collected e.g. from
@@ -41,14 +40,12 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
 	@NotNull protected final MT mapping;
 	@NotNull protected final OO originObject;
 
+	private String mappingInfo;                           // lazily computed
+
 	FocalMappingEvaluationRequest(@NotNull MT mapping, @NotNull OO originObject) {
 		this.mapping = mapping;
 		this.originObject = originObject;
 	}
-
-	// Internal state
-	PrismContainerDefinition<AssignmentType> assignmentDef;
-	AssignmentType assignmentType;
 
 	@NotNull
 	public MT getMapping() {
@@ -65,15 +62,48 @@ public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO e
 	 * We need to do that just before mapping expression is executed, because we want all the sources
 	 * and variables set the same way as mapping is set.
 	 */
-	public void mappingPreExpression(ExpressionEvaluationContext context) throws SchemaException, ObjectNotFoundException,
-			ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result) throws SchemaException,
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException {
 	}
 
 	@NotNull
 	public OO getOriginObject() {
 		return originObject;
 	}
-	
+
+	/**
+	 * @return The phase this mapping should be evaluated in. If null, the mapping will be skipped if explicit
+	 *         evaluation phase is requested.
+	 */
 	public abstract ObjectTemplateMappingEvaluationPhaseType getEvaluationPhase();
 
+    public AssignmentPathVariables getAssignmentPathVariables() {
+    	return null;
+    }
+
+	String getMappingInfo() {
+    	if (mappingInfo == null) {
+		    StringBuilder sb = new StringBuilder();
+		    if (mapping.getName() != null) {
+			    sb.append(mapping.getName()).append(" (");
+		    }
+		    String sources = mapping.getSource().stream()
+				    .filter(source -> source != null && source.getPath() != null)
+				    .map(source -> source.getPath().toString())
+				    .collect(Collectors.joining(", "));
+		    if (!sources.isEmpty()) {
+			    sb.append(sources).append(" ");
+		    }
+		    sb.append("->");
+		    if (mapping.getTarget() != null && mapping.getTarget().getPath() != null) {
+			    sb.append(" ").append(mapping.getTarget().getPath().toString());
+		    }
+		    if (mapping.getName() != null) {
+			    sb.append(")");
+		    }
+		    mappingInfo = sb.toString();
+	    }
+		return mappingInfo;
+	}
 }

@@ -12,9 +12,6 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaHelper;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
@@ -67,9 +64,7 @@ public class ApprovalSchemaExecutionInformationHelper {
 	List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
 			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		WfConfigurationType wfConfiguration = configurationHelper.getWorkflowConfiguration(modelContext, result);
-		ModelInvocationContext<?> ctx = new ModelInvocationContext<>(modelContext, wfConfiguration, prismContext, repositoryService,
-				opTask
-		);
+		ModelInvocationContext<?> ctx = new ModelInvocationContext<>(modelContext, wfConfiguration, prismContext, repositoryService, opTask);
 		List<PcpStartInstruction> taskInstructions = primaryChangeProcessor.previewModelInvocation(ctx, result);
 		List<ApprovalSchemaExecutionInformationType> rv = new ArrayList<>();
 		for (PcpStartInstruction taskInstruction : taskInstructions) {

@@ -14,7 +14,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Resource;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -663,8 +662,9 @@ public class ResourceManager {
 			
 			// TODO: populate variables
 			
-			ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
-			PrismValueDeltaSetTriple<PrismPropertyValue<T>> expressionOutputTriple = expression.evaluate(expressionContext);
+			ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+			PrismValueDeltaSetTriple<PrismPropertyValue<T>> expressionOutputTriple = expression.evaluate(expressionContext,
+                    result);
 			Collection<PrismPropertyValue<T>> expressionOutputValues = expressionOutputTriple.getNonNegativeValues();
 			if (expressionOutputValues != null && !expressionOutputValues.isEmpty()) {
 				Iterator<PrismPropertyValue<T>> iterator = expressionOutputValues.iterator();

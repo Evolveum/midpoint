@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +26,10 @@ import java.util.List;
  *
  */
 public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluationRequest<AutoassignMappingType, AbstractRoleType> {
+
+    // Internal state
+    private PrismContainerDefinition<AssignmentType> assignmentDef;
+    private AssignmentType assignmentType;
 
     public AutoassignRoleMappingEvaluationRequest(@NotNull AutoassignMappingType mapping, @NotNull AbstractRoleType role) {
         super(mapping, role);
@@ -54,7 +59,7 @@ public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluati
     }
 
     @Override
-    public void mappingPreExpression(ExpressionEvaluationContext context)
+    public void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         PopulateType populate = mapping.getPopulate();
@@ -63,7 +68,7 @@ public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluati
         }
         List<ItemDelta<PrismValue, ItemDefinition>> populateItemDeltas = PopulatorUtil
                 .computePopulateItemDeltas(populate, assignmentDef, context.getVariables(), context,
-                        context.getContextDescription(), context.getTask(), context.getResult());
+                        context.getContextDescription(), context.getTask(), result);
         if (populateItemDeltas != null) {
             ItemDeltaCollectionsUtil.applyTo(populateItemDeltas, assignmentType.asPrismContainerValue());
         }
@@ -77,6 +82,6 @@ public class AutoassignRoleMappingEvaluationRequest extends FocalMappingEvaluati
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append("autoassign mapping ");
-        sb.append("'").append(mapping.getName()).append("' in ").append(originObject);
+        sb.append("'").append(getMappingInfo()).append("' in ").append(originObject);
     }
 }

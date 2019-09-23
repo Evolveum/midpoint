@@ -294,7 +294,7 @@ public class ReportServiceImpl implements ReportService {
 
 		TypedValue<VariablesMap> auditParams = getConvertedParams(parameters);
 		ExpressionVariables variables = new ExpressionVariables();
-			variables.put("auditParams", auditParams);
+		variables.put("auditParams", auditParams);
 
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
 		context.setVariables(variables);

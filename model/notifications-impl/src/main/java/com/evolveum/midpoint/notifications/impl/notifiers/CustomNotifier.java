@@ -165,7 +165,7 @@ public class CustomNotifier extends BaseHandler {
 
 		Expression<PrismPropertyValue<NotificationMessageType>,PrismPropertyDefinition<NotificationMessageType>> expression =
 				expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task);
 		PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageType>> exprResult = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, params, task, result);
 		return exprResult.getZeroSet().stream().map(PrismPropertyValue::getValue).collect(Collectors.toList());

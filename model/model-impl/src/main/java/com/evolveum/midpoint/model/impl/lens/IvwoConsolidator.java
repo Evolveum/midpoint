@@ -158,25 +158,36 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
 	@NotNull
 	public ItemDelta<V,D> consolidateToDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
+
+		//noinspection unchecked
+		ItemDelta<V,D> itemDelta = itemDefinition.createEmptyDelta(itemPath);
+
 		if (strengthSelector.isNone()) {
 			LOGGER.trace("Consolidation of {} skipped as strength selector is 'none'", itemPath);
-			return null;
+			return itemDelta;
 		}
 		
 		boolean isAssignment = FocusType.F_ASSIGNMENT.equivalent(itemPath);
 
-		ItemDelta<V,D> itemDelta = itemDefinition.createEmptyDelta(itemPath);
-
-		Item<V,D> itemExisting = null;
+		Item<V,D> itemExisting;
 		if (itemContainer != null) {
             itemExisting = itemContainer.findItem(itemPath);
+		} else {
+			itemExisting = null;
 		}
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Consolidating {} IVwO triple:\n{}\n  Apriori Delta:\n{}\n  Existing item:\n{}",
+			LOGGER.trace("Consolidating {} IVwO triple:\n{}\n  Apriori Delta:\n{}\n  Existing item:\n{}\n  Parameters:\n"
+							+ "   - addUnchangedValues: {}\n"
+							+ "   - filterExistingValues: {}\n"
+							+ "   - isExclusiveStrong: {}\n"
+							+ "   - strengthSelector: {}\n"
+							+ "   - valueMatcher: {}\n"
+							+ "   - comparator: {}",
 					itemPath, ivwoTriple.debugDump(1),
 					DebugUtil.debugDump(aprioriItemDelta, 2),
-					DebugUtil.debugDump(itemExisting, 2));
+					DebugUtil.debugDump(itemExisting, 2),
+					addUnchangedValues, filterExistingValues, isExclusiveStrong, strengthSelector, valueMatcher, comparator);
 		}
 
         Collection<V> allValues = collectAllValues();
@@ -389,9 +400,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
 		if (itemExisting != null) {
 			List<V> existingValues = itemExisting.getValues();
-			if (existingValues != null) {
-				itemDelta.setEstimatedOldValues(PrismValueCollectionsUtil.cloneCollection(existingValues));
-			}
+			itemDelta.setEstimatedOldValues(PrismValueCollectionsUtil.cloneCollection(existingValues));
 		}
 
         return itemDelta;

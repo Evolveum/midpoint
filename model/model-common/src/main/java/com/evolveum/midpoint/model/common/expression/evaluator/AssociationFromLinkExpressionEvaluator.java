@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -74,7 +75,8 @@ public class AssociationFromLinkExpressionEvaluator
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationType>> evaluate(ExpressionEvaluationContext context) 
+	public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationType>> evaluate(ExpressionEvaluationContext context,
+            OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		checkEvaluatorProfile(context);
 
@@ -152,18 +154,17 @@ public class AssociationFromLinkExpressionEvaluator
 		// Always process the first role (myself) regardless of recursion setting
 		gatherCandidateShadowsFromAbstractRole(thisRole, candidateShadowOidList);
 		if (thisRole instanceof OrgType && matchesForRecursion((OrgType)thisRole)) {
-			gatherCandidateShadowsFromAbstractRoleRecurse((OrgType)thisRole, candidateShadowOidList, options, desc, context);
+			gatherCandidateShadowsFromAbstractRoleRecurse((OrgType)thisRole, candidateShadowOidList, options, desc, context, result);
 		}
 		LOGGER.trace("Candidate shadow OIDs: {}", candidateShadowOidList);
 
-		selectMatchingShadows(candidateShadowOidList, output, resourceOid, kind, intent, assocName, context);
+		selectMatchingShadows(candidateShadowOidList, output, resourceOid, kind, intent, assocName, context, result);
 		return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
 	}
 
 	private void selectMatchingShadows(List<String> candidateShadowsOidList,
 			PrismContainer<ShadowAssociationType> output, String resourceOid, ShadowKindType kind,
-			String intent, QName assocName, ExpressionEvaluationContext params)
-			throws SchemaException {
+			String intent, QName assocName, ExpressionEvaluationContext context, OperationResult result) {
 
 		S_AtomicFilterExit filter = prismContext.queryFor(ShadowType.class)
 				.id(candidateShadowsOidList.toArray(new String[0]))
@@ -176,7 +177,7 @@ public class AssociationFromLinkExpressionEvaluator
 
 		try {
 			SearchResultList<PrismObject<ShadowType>> objects = objectResolver
-					.searchObjects(ShadowType.class, query, createNoFetchCollection(), params.getTask(), params.getResult());
+					.searchObjects(ShadowType.class, query, createNoFetchCollection(), context.getTask(), result);
 			for (PrismObject<ShadowType> object : objects) {
 				PrismContainerValue<ShadowAssociationType> newValue = output.createNewValue();
 				ShadowAssociationType shadowAssociationType = newValue.asContainerable();
@@ -216,18 +217,16 @@ public class AssociationFromLinkExpressionEvaluator
 		}
 	}
 	
-	private void gatherCandidateShadowsFromAbstractRoleRecurse(OrgType thisOrg,
-			List< String > candidateShadowsOidList,
-			 Collection<SelectorOptions<GetOperationOptions>> options,
-			String desc, ExpressionEvaluationContext params) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void gatherCandidateShadowsFromAbstractRoleRecurse(OrgType thisOrg, List<String> candidateShadowsOidList,
+			Collection<SelectorOptions<GetOperationOptions>> options, String desc, ExpressionEvaluationContext context,
+			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ExpressionEvaluationException {
 
-
-		
 		for (ObjectReferenceType parentOrgRef: thisOrg.getParentOrgRef()) {
-			OrgType parent = objectResolver.resolve(parentOrgRef, OrgType.class, options, desc, params.getTask(), params.getResult());
+			OrgType parent = objectResolver.resolve(parentOrgRef, OrgType.class, options, desc, context.getTask(), result);
 			if (matchesForRecursion(parent)) {
 				gatherCandidateShadowsFromAbstractRole(parent, candidateShadowsOidList);
-				gatherCandidateShadowsFromAbstractRoleRecurse(parent, candidateShadowsOidList, options, desc, params);
+				gatherCandidateShadowsFromAbstractRoleRecurse(parent, candidateShadowsOidList, options, desc, context, result);
 			}
 		}
 	}

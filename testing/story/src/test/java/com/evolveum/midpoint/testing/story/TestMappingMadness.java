@@ -6,18 +6,9 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
-import java.util.Collection;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -139,6 +130,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 		assertSuccess(result);
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME)
+			.display("tolerant")
 			.assertFullName(USER_JACK_FULL_NAME)
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, shipize(JACK_TITLE_CAPTAIN))
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, JACK_TITLE_CAPTAIN)
@@ -147,20 +139,22 @@ public class TestMappingMadness extends AbstractStoryTest {
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, locationize(JACK_TITLE_CAPTAIN))
 			// drink: multivalue, tolerant and non-authoritative.
 			//        non-authoritative = old value is not removed
-			//        tolerant = that value is not removed by reconiliation
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+			//        tolerant = that value is not removed by reconciliation
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
 					drinkize(JACK_TITLE_PIRATE), drinkize(JACK_TITLE_CAPTAIN));
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_RANGE_NAME, USER_JACK_USERNAME)
+			.display("tolerant range")
 			.assertFullName(USER_JACK_FULL_NAME)
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, shipize(JACK_TITLE_CAPTAIN))
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, JACK_TITLE_CAPTAIN)
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, weaponize(JACK_TITLE_CAPTAIN))
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, locationize(JACK_TITLE_CAPTAIN))
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, 
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME,
 					drinkize(JACK_TITLE_PIRATE), drinkize(JACK_TITLE_CAPTAIN));
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME)
+			.display("smart range")
 			.assertFullName(USER_JACK_FULL_NAME)
 			// Authoritative mappings
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, shipize(JACK_TITLE_CAPTAIN))
@@ -172,6 +166,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, drinkize(JACK_TITLE_CAPTAIN));
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_NONTOLERANT_NAME, USER_JACK_USERNAME)
+			.display("non-tolerant")
 			.assertFullName(USER_JACK_FULL_NAME)
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, shipize(JACK_TITLE_CAPTAIN))
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, JACK_TITLE_CAPTAIN)
@@ -208,6 +203,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 		// Mappings return null, which means no value.
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME)
+			.display("dummy tolerant")
 			.assertFullName(USER_JACK_FULL_NAME)
 			// Mappings for title, ship and weapon and authoritative. Therefore old value is removed anyway.
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME)
@@ -219,6 +215,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 					drinkize(JACK_TITLE_PIRATE), drinkize(JACK_TITLE_CAPTAIN));
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_RANGE_NAME, USER_JACK_USERNAME)
+			.display("tolerant range")
 			.assertFullName(USER_JACK_FULL_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
@@ -228,6 +225,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 					drinkize(JACK_TITLE_PIRATE), drinkize(JACK_TITLE_CAPTAIN));
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME)
+			.display("smart range")
 			.assertFullName(USER_JACK_FULL_NAME)
 			// Mappings for title, ship and weapon are authoritative. 
 			// Therefore the value is explicitly removed even if it is not in the range.
@@ -247,6 +245,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 
 	private void assertNoAttributes(DummyAccountAsserter<Void> asserter) {
 		asserter
+			.display()
 			.assertFullName(USER_JACK_FULL_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
@@ -276,6 +275,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 		assertSuccess(result);
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME)
+			.display("dummy tolerant")
 			.assertFullName(USER_JACK_FULL_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
@@ -285,6 +285,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 					drinkize(JACK_TITLE_PIRATE), drinkize(JACK_TITLE_CAPTAIN));
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_RANGE_NAME, USER_JACK_USERNAME)
+			.display("tolerant range")
 			.assertFullName(USER_JACK_FULL_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
@@ -294,6 +295,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 					drinkize(JACK_TITLE_PIRATE), drinkize(JACK_TITLE_CAPTAIN));
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME)
+			.display("smart range")
 			.assertFullName(USER_JACK_FULL_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
@@ -402,6 +404,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 		assertJackMadAccount(RESOURCE_DUMMY_TOLERANT_RANGE_NAME);
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME)
+			.display("smart range")
 			.assertFullName(USER_JACK_FULL_NAME)
 			// Authoritative mappings. Range is "all". Values should be gone.
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME)
@@ -466,6 +469,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 	
 	private void assertJackPirateAccount(String dummyName) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyAccountByUsername(dummyName, USER_JACK_USERNAME)
+			.display(dummyName)
 			.assertFullName(USER_JACK_FULL_NAME)
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, JACK_TITLE_PIRATE)
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, shipize(JACK_TITLE_PIRATE))
@@ -485,6 +489,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 
 	private void assertJackMadAccount(String dummyName) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
 		assertDummyAccountByUsername(dummyName, USER_JACK_USERNAME)
+			.display(dummyName)
 			.assertFullName(USER_JACK_FULL_NAME)
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, JACK_MAD_TITLE)
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, JACK_MAD_SHIP)

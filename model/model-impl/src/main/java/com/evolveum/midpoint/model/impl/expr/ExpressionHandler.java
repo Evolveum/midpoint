@@ -70,7 +70,7 @@ public class ExpressionHandler {
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType,
 				outputDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
 		if (outputTriple == null) {
 			return null;
@@ -103,7 +103,7 @@ public class ExpressionHandler {
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType,
 				outputDefinition, expressionProfile, shortDesc, task, result);
 
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
 		Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
 		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
