@@ -54,6 +54,7 @@ import com.evolveum.midpoint.repo.common.CacheRegistry;
 import com.evolveum.midpoint.repo.common.Cacheable;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
@@ -1779,12 +1780,40 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
 	@Override
-    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		authorizeTaskCollectionOperation(ModelAuthorizationAction.DELETE, taskOids, operationTask, parentResult);
-        taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
-    }
+	public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		List<PrismObject<TaskType>> taskRefs = new ArrayList<>(taskOids.size());
 
-    @Override
+		for (String taskOid : taskOids) {
+			PrismObject<TaskType> task = cacheRepositoryService.getObject(TaskType.class, taskOid, SelectorOptions.createCollection(GetOperationOptions.createRaw()), parentResult);
+			taskRefs.add(task);
+		}
+
+		authorizeResolvedTaskCollectionOperation(ModelAuthorizationAction.DELETE, taskRefs, operationTask, parentResult);
+
+		for (PrismObject<TaskType> taskRef : taskRefs) {
+			auditTaskOperation(ObjectTypeUtil.createObjectRef(taskRef, SchemaConstants.ORG_DEFAULT).asReferenceValue(), AuditEventStage.REQUEST, operationTask, parentResult);
+		}
+		taskManager.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
+		parentResult.computeStatusIfUnknown();
+		for (PrismObject<TaskType> taskRef : taskRefs) {
+			auditTaskOperation(ObjectTypeUtil.createObjectRef(taskRef, SchemaConstants.ORG_DEFAULT).asReferenceValue(), AuditEventStage.EXECUTION, operationTask, parentResult);
+		}
+	}
+
+	private void auditTaskOperation(PrismReferenceValue taskRef, AuditEventStage stage, Task operationTask, OperationResult parentResult) {
+		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.DELETE_OBJECT, stage);
+		auditRecord.setTarget(taskRef);
+		if (AuditEventStage.EXECUTION == stage) {
+			auditRecord.setOutcome(parentResult.getStatus());
+		}
+		ObjectDelta<TaskType> delta = ObjectDelta.createDeleteDelta(TaskType.class, taskRef.getOid(), prismContext);
+		ObjectDeltaOperation<TaskType> odo = new ObjectDeltaOperation<>(delta, parentResult);
+		auditRecord.getDeltas().add(odo);
+		auditService.audit(auditRecord, operationTask);
+	}
+
+
+	@Override
     public void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		authorizeTaskCollectionOperation(ModelAuthorizationAction.RESUME_TASK, taskOids, operationTask, parentResult);
         taskManager.resumeTasks(taskOids, parentResult);
@@ -1872,6 +1901,17 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			securityEnforcer.authorize(action.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, parentResult);
 		}
 	}
+
+	private void authorizeResolvedTaskCollectionOperation(ModelAuthorizationAction action, Collection<PrismObject<TaskType>> existingTasks, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
+			return;
+		}
+		for (PrismObject existingObject : existingTasks) {
+			securityEnforcer.authorize(action.getUrl(), null, AuthorizationParameters.Builder.buildObject(existingObject), null, task, parentResult);
+		}
+	}
+
+
 
 	private void authorizeNodeCollectionOperation(ModelAuthorizationAction action, Collection<String> identifiers, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		if (securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
