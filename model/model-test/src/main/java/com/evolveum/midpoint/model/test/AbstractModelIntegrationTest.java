@@ -4655,6 +4655,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return task;
 	}
 
+	protected void setTracing(Task task, TracingProfileType profile) {
+		task.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
+		task.setTracingProfile(profile);
+	}
+
+	protected TracingProfileType createDefaultTracingProfile() {
+		return new TracingProfileType()
+				.collectLogEntries(true)
+				.beginTracingTypeProfile()
+				.level(TracingLevelType.NORMAL)
+				.<TracingProfileType>end()
+				.fileNamePattern("trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}");
+	}
+
 	protected void modifyRoleAddConstruction(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleAddConstruction");
         OperationResult result = task.getResult();
@@ -6020,7 +6034,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		asserter.display();
 		return asserter;
 	}
-	
+
+	protected OperationResultAsserter<Void> assertOperationResult(OperationResult result) {
+		OperationResultAsserter<Void> asserter = OperationResultAsserter.forResult(result);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
 	
 	// SECURITY
 	
@@ -6240,13 +6260,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertAddAllow(file, null);
 	}
 
+	protected OperationResult assertAddAllowTracing(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+		return assertAddAllowTracing(file, null);
+	}
+
 	protected <O extends ObjectType> void assertAddAllow(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = PrismTestUtil.parseObject(file);
         assertAddAllow(object, options);
 	}
-	
-	protected <O extends ObjectType> void assertAddAllow(PrismObject<O> object, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
-		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertAddAllow");
+
+	protected <O extends ObjectType> OperationResult assertAddAllowTracing(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+		PrismObject<O> object = PrismTestUtil.parseObject(file);
+		return assertAddAllowTracing(object, options);
+	}
+
+	protected <O extends ObjectType> OperationResult assertAddAllow(PrismObject<O> object, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+		Task task = createAllowDenyTask(AbstractModelIntegrationTest.class.getName() + ".assertAddAllow");
+		return assertAddAllow(object, options, task);
+	}
+
+	protected <O extends ObjectType> OperationResult assertAddAllowTracing(PrismObject<O> object, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+		Task task = createAllowDenyTask(AbstractModelIntegrationTest.class.getName() + ".assertAddAllow");
+		setTracing(task, createDefaultTracingProfile());
+		return assertAddAllow(object, options, task);
+	}
+
+	protected <O extends ObjectType> OperationResult assertAddAllow(PrismObject<O> object, ModelExecuteOptions options, Task task) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         OperationResult result = task.getResult();
     	ObjectDelta<O> addDelta = object.createAddDelta();
     	logAttempt("add", object.getCompileTimeClass(), object.getOid(), null);
@@ -6258,9 +6297,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		logAllow("add", object.getCompileTimeClass(), object.getOid(), null);
+		return result;
 	}
 
-	
 	protected <O extends ObjectType> void assertDeleteDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		assertDeleteDeny(type, oid, null);
 	}
@@ -6305,27 +6344,41 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		TestUtil.assertSuccess(result);
 		logAllow("delete", type, oid, null);
 	}
-	
-	protected <O extends ObjectType> void assertAllow(String opname, Attempt attempt) throws Exception {
+
+	private Task createAllowDenyTask(String opname) {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertAllow."+opname);
 		task.setOwner(getSecurityContextPrincipalUser());
 		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-        OperationResult result = task.getResult();
-        try {
-        	logAttempt(opname);
-        	attempt.run(task, result);
-        } catch (SecurityViolationException e) {
+		return task;
+	}
+
+	protected <O extends ObjectType> OperationResult assertAllow(String opname, Attempt attempt) throws Exception {
+		Task task = createAllowDenyTask(opname);
+		return assertAllow(opname, attempt, task);
+	}
+
+	protected <O extends ObjectType> OperationResult assertAllowTracing(String opname, Attempt attempt) throws Exception {
+		Task task = createAllowDenyTask(opname);
+		setTracing(task, createDefaultTracingProfile());
+		return assertAllow(opname, attempt, task);
+	}
+
+	protected <O extends ObjectType> OperationResult assertAllow(String opname, Attempt attempt, Task task) throws Exception {
+		OperationResult result = task.getResult();
+		try {
+			logAttempt(opname);
+			attempt.run(task, result);
+		} catch (SecurityViolationException e) {
 			failAllow(opname, e);
 		}
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 		logAllow(opname);
+		return result;
 	}
 	
-	protected <O extends ObjectType> void assertDeny(String opname, Attempt attempt) throws Exception {
-		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertDeny."+opname);
-		task.setOwner(getSecurityContextPrincipalUser());
-		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+	protected <O extends ObjectType> OperationResult assertDeny(String opname, Attempt attempt) throws Exception {
+		Task task = createAllowDenyTask(opname);
         OperationResult result = task.getResult();
         try {
         	logAttempt(opname);
@@ -6337,6 +6390,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			result.computeStatus();
 			TestUtil.assertFailure(result);
 		}
+		return result;
 	}
 	
 	protected <O extends ObjectType> void asAdministrator(Attempt attempt) throws Exception {

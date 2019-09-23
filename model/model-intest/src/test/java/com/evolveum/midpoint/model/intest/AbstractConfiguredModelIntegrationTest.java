@@ -337,7 +337,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_THREE_HEADED_MONKEY_OID = "c0c010c0-d34d-b33f-f00d-110011001133";
 	protected static final String USER_THREE_HEADED_MONKEY_NAME = "monkey";
 	protected static final String USER_THREE_HEADED_MONKEY_FULL_NAME = "Three-Headed Monkey";
-	
+
+	// User with no OID
+	protected static final File USER_NOOID_FILE = new File(COMMON_DIR, "user-nooid.xml");
+	protected static final String USER_NOOID_USERNAME = "nooid";
 
 	// Elaine has account on the dummy resources (default, red, blue)
 	// The accounts are also assigned

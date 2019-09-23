@@ -52,7 +52,7 @@
 		<item>description</item>
 		<item>givenName</item>
 		<item>fullName</item>
-		<item>nickName</item> <!-- Set by user template  -->
+		<item>nickName</item> <!-- Set by user template to modifier OID -->
 		<item>familyName</item>
 		<item>title</item>
 		<item>locality</item>
@@ -63,5 +63,14 @@
 		<item>iteration</item>
 		<item>iterationToken</item>
    </authorization>
+	<authorization>
+		<name>lua-modify-exec</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+		<phase>execution</phase>
+		<object>
+			<type>UserType</type>
+		</object>
+		<item>nickName</item> <!-- Set by user template to modifier OID -->
+	</authorization>
 </role>
   
