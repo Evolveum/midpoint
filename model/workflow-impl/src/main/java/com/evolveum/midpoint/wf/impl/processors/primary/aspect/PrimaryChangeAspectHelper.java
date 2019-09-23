@@ -127,7 +127,7 @@ public class PrimaryChangeAspectHelper {
                     expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(),
                             "applicability condition expression", task, result);
             ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables,
-                    "applicability condition expression", task, result);
+                    "applicability condition expression", task);
 
 			exprResultTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {

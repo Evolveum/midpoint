@@ -525,7 +525,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	
 	public List<InlineMenuItem> getDefaultMenuActions() {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
-		menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.unassign")) {
+		menuItems.add(new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

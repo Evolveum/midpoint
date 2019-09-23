@@ -48,7 +48,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AllFilter;
@@ -80,7 +79,6 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
@@ -985,8 +983,8 @@ public class ExpressionUtil {
 		Expression<V, D> expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
 				shortDesc, task, parentResult);
 
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task, parentResult);
-		PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);
+		PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context, parentResult);
 
 		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 
@@ -1028,9 +1026,8 @@ public class ExpressionUtil {
 		Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
 				.makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, parentResult);
 
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task,
-				parentResult);
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, parentResult);
 
 		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 

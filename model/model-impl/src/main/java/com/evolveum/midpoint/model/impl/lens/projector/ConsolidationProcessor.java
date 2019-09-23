@@ -68,10 +68,12 @@ import java.util.Map.Entry;
 @Component
 public class ConsolidationProcessor {
 
-    public static final String PROCESS_CONSOLIDATION = ConsolidationProcessor.class.getName() + ".consolidateValues";
-    private static final Trace LOGGER = TraceManager.getTrace(ConsolidationProcessor.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ConsolidationProcessor.class);
 
-    private PrismContainerDefinition<ShadowAssociationType> associationDefinition;
+	private static final String OP_CONSOLIDATE_VALUES = ConsolidationProcessor.class.getName() + ".consolidateValues";
+	private static final String OP_CONSOLIDATE_ITEM = ConsolidationProcessor.class.getName() + ".consolidateItem";
+
+	private PrismContainerDefinition<ShadowAssociationType> associationDefinition;
 
     @Autowired
     private ContextLoader contextLoader;
@@ -85,28 +87,37 @@ public class ConsolidationProcessor {
     /**
      * Converts delta set triples to a secondary account deltas.
      */
-    <F extends FocusType> void consolidateValues(LensContext<F> context, LensProjectionContext accCtx,
-												 Task task, OperationResult result)
-    				throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-    				ConfigurationException, SecurityViolationException, PolicyViolationException {
+    <F extends FocusType> void consolidateValues(LensContext<F> context, LensProjectionContext accCtx, Task task,
+		    OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
+		    CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
     		//todo filter changes which were already in account sync delta
 
-        //account was deleted, no changes are needed.
-        if (wasProjectionDeleted(accCtx)) {
-            dropAllProjectionDelta(accCtx);
-            return;
-        }
+	    OperationResult result = parentResult.subresult(OP_CONSOLIDATE_VALUES)
+			    .setMinor()
+			    .build();
+	    try {
+		    //account was deleted, no changes are needed.
+		    if (wasProjectionDeleted(accCtx)) {
+			    dropAllProjectionDelta(accCtx);
+			    return;
+		    }
 
-        SynchronizationPolicyDecision policyDecision = accCtx.getSynchronizationPolicyDecision();
+		    SynchronizationPolicyDecision policyDecision = accCtx.getSynchronizationPolicyDecision();
 
-        if (consistencyChecks) context.checkConsistence();
-        if (policyDecision == SynchronizationPolicyDecision.DELETE) {
-            // Nothing to do
-        } else {
-            // This is ADD, KEEP, UNLINK or null. All are in fact the same as KEEP
-            consolidateValuesModifyProjection(context, accCtx, task, result);
-        }
-        if (consistencyChecks) context.checkConsistence();
+		    if (consistencyChecks) context.checkConsistence();
+		    if (policyDecision == SynchronizationPolicyDecision.DELETE) {
+			    // Nothing to do
+		    } else {
+			    // This is ADD, KEEP, UNLINK or null. All are in fact the same as KEEP
+			    consolidateValuesModifyProjection(context, accCtx, task, result);
+		    }
+		    if (consistencyChecks) context.checkConsistence();
+	    } catch (Throwable t) {
+	    	result.recordFatalError(t.getMessage(), t);
+	    	throw t;
+	    } finally {
+	    	result.computeStatusIfUnknown();
+	    }
     }
 
     private void dropAllProjectionDelta(LensProjectionContext accContext) {
@@ -124,11 +135,9 @@ public class ConsolidationProcessor {
     }
     
     private <F extends FocusType> ObjectDelta<ShadowType> consolidateValuesToModifyDelta(LensContext<F> context,
-																						 LensProjectionContext projCtx, 
-																						 boolean addUnchangedValues, 
-																						 Task task, OperationResult result)
-            		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-            		ConfigurationException, SecurityViolationException, PolicyViolationException {
+		    LensProjectionContext projCtx, boolean addUnchangedValues, Task task, OperationResult result)
+		    throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+		    ConfigurationException, SecurityViolationException, PolicyViolationException {
 
     	squeezeAll(context, projCtx);
         
@@ -142,13 +151,9 @@ public class ConsolidationProcessor {
  		if (!projCtx.hasFullShadow() &&
  				(hasActiveWeakMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveWeakMapping(projCtx.getSqueezedAssociations(), projCtx)
  						|| (hasActiveStrongMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveStrongMapping(projCtx.getSqueezedAssociations(), projCtx)))) {
- 			// Full account was not yet loaded. This will cause problems as
- 			// the weak mapping may be applied even though it should not be
- 			// applied
- 			// and also same changes may be discarded because of unavailability
- 			// of all
- 			// account's attributes.Therefore load the account now, but with
- 			// doNotDiscovery options..
+ 			// Full account was not yet loaded. This will cause problems as the weak mapping may be applied even though
+		    // it should not be applied and also same changes may be discarded because of unavailability of all
+ 			// account's attributes. Therefore load the account now, but with doNotDiscovery options.
 
  			// We also need to get account if there are strong mappings. Strong mappings
  			// should always be applied. So reading the account now will indirectly
@@ -174,9 +179,8 @@ public class ConsolidationProcessor {
 
        
         StrengthSelector strengthSelector = projCtx.isAdd() ? StrengthSelector.ALL : StrengthSelector.ALL_EXCEPT_WEAK;
-        consolidateAttributes(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector);
-        
-        consolidateAssociations(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector);
+        consolidateAttributes(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, result);
+        consolidateAssociations(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, result);
 
         return objectDelta;
     }
@@ -257,9 +261,9 @@ public class ConsolidationProcessor {
 
     }
     
-    private <F extends FocusType> void consolidateAttributes(LensContext<F> context, LensProjectionContext projCtx, 
-    		boolean addUnchangedValues, RefinedObjectClassDefinition rOcDef, ObjectDelta<ShadowType> objectDelta, 
-    		ObjectDelta<ShadowType> existingDelta, StrengthSelector strengthSelector) 
+    private <F extends FocusType> void consolidateAttributes(LensContext<F> context, LensProjectionContext projCtx,
+		    boolean addUnchangedValues, RefinedObjectClassDefinition rOcDef, ObjectDelta<ShadowType> objectDelta,
+		    ObjectDelta<ShadowType> existingDelta, StrengthSelector strengthSelector, OperationResult result)
     				throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
     	Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>, PrismPropertyDefinition<?>>>> squeezedAttributes = projCtx.getSqueezedAttributes();
     	// Iterate and process each attribute separately. Now that we have squeezed the data we can process each attribute just
@@ -268,7 +272,7 @@ public class ConsolidationProcessor {
         	QName attributeName = entry.getKey();
         	DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>> triple = entry.getValue();
         	PropertyDelta<?> propDelta = consolidateAttribute(rOcDef, projCtx.getResourceShadowDiscriminator(), existingDelta, projCtx,
-        			addUnchangedValues, attributeName, (DeltaSetTriple)triple, strengthSelector);
+        			addUnchangedValues, attributeName, (DeltaSetTriple)triple, strengthSelector, result);
         	if (propDelta != null) {
         		objectDelta.addModification(propDelta);
         	}
@@ -276,16 +280,18 @@ public class ConsolidationProcessor {
     }
 
     private <T,V extends PrismValue> PropertyDelta<T> consolidateAttribute(RefinedObjectClassDefinition rOcDef,
-			ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
-			boolean addUnchangedValues, QName itemName,
-			DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<T>,PrismPropertyDefinition<T>>> triple, StrengthSelector strengthSelector)
-					throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+		    ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
+		    boolean addUnchangedValues, QName itemName,
+		    DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<T>, PrismPropertyDefinition<T>>> triple,
+		    StrengthSelector strengthSelector, OperationResult result)
+		    throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
     	if (triple == null || triple.isEmpty()) {
     		return null;
     	}
 
-    	RefinedAttributeDefinition<T> attributeDefinition = triple.getAnyValue().getConstruction().findAttributeDefinition(itemName);
+	    //noinspection unchecked
+	    RefinedAttributeDefinition<T> attributeDefinition = triple.getAnyValue().getConstruction().findAttributeDefinition(itemName);
 
     	ItemPath itemPath = ItemPath.create(ShadowType.F_ATTRIBUTES, itemName);
 
@@ -297,70 +303,65 @@ public class ConsolidationProcessor {
         ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry);
 
         return (PropertyDelta<T>) consolidateItem(rOcDef, discr, existingDelta, projCtx, addUnchangedValues,
-        		attributeDefinition.isExlusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, null, strengthSelector, "attribute "+itemName);
+        		attributeDefinition.isExlusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, null, strengthSelector, "attribute "+itemName, result);
     }
     
     
-    private <F extends FocusType> void consolidateAssociations(LensContext<F> context, LensProjectionContext projCtx, 
-    		boolean addUnchangedValues, RefinedObjectClassDefinition rOcDef, ObjectDelta<ShadowType> objectDelta, ObjectDelta<ShadowType> existingDelta, StrengthSelector strengthSelector) 
+    private <F extends FocusType> void consolidateAssociations(LensContext<F> context, LensProjectionContext projCtx,
+		    boolean addUnchangedValues, RefinedObjectClassDefinition rOcDef, ObjectDelta<ShadowType> objectDelta,
+		    ObjectDelta<ShadowType> existingDelta, StrengthSelector strengthSelector, OperationResult result)
     				throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
     	for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> entry : projCtx.getSqueezedAssociations().entrySet()) {
         	QName associationName = entry.getKey();
         	DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> triple = entry.getValue();
         	ContainerDelta<ShadowAssociationType> containerDelta = consolidateAssociation(rOcDef, projCtx.getResourceShadowDiscriminator(), 
-        			existingDelta, projCtx, addUnchangedValues, associationName, triple, strengthSelector);
+        			existingDelta, projCtx, addUnchangedValues, associationName, triple, strengthSelector, result);
         	if (containerDelta != null) {
         		objectDelta.addModification(containerDelta);
         	}
         }
     }
 
-    private <V extends PrismValue> ContainerDelta<ShadowAssociationType> consolidateAssociation(RefinedObjectClassDefinition rOcDef,
-			ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
-			boolean addUnchangedValues, QName associationName,
-			DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>> triple,
-			StrengthSelector strengthSelector) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+    private <V extends PrismValue> ContainerDelta<ShadowAssociationType> consolidateAssociation(
+		    RefinedObjectClassDefinition rOcDef, ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta,
+		    LensProjectionContext projCtx, boolean addUnchangedValues, QName associationName,
+		    DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> triple,
+		    StrengthSelector strengthSelector, OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
     	PrismContainerDefinition<ShadowAssociationType> asspcContainerDef = getAssociationDefinition();
     	RefinedAssociationDefinition associationDef = rOcDef.findAssociationDefinition(associationName);
 
-    	Comparator<PrismContainerValue<ShadowAssociationType>> comparator = new Comparator<PrismContainerValue<ShadowAssociationType>>() {
+    	Comparator<PrismContainerValue<ShadowAssociationType>> comparator = (o1, o2) -> {
+		    if (o1 == null && o2 == null) {
+			    LOGGER.trace("Comparing {} and {}: 0 (A)", o1, o2);
+			    return 0;
+		    }
 
-    		@Override
-    		public int compare(PrismContainerValue<ShadowAssociationType> o1,
-    				PrismContainerValue<ShadowAssociationType> o2) {
+		    if (o1 == null || o2 == null) {
+			    LOGGER.trace("Comparing {} and {}: 2 (B)", o1, o2);
+			    return 1;
+		    }
 
-    			if (o1 == null && o2 == null){
-    				LOGGER.trace("Comparing {} and {}: 0 (A)", o1, o2);
-    				return 0;
-    			}
+		    PrismReference ref1 = o1.findReference(ShadowAssociationType.F_SHADOW_REF);
+		    PrismReference ref2 = o2.findReference(ShadowAssociationType.F_SHADOW_REF);
 
-    			if (o1 == null || o2 == null){
-    				LOGGER.trace("Comparing {} and {}: 2 (B)", o1, o2);
-    				return 1;
-    			}
+		    // We do not want to compare references in details. Comparing OIDs suffices.
+		    // Otherwise we get into problems, as one of the references might be e.g. without type,
+		    // causing unpredictable behavior (MID-2368)
+		    String oid1 = ref1 != null ? ref1.getOid() : null;
+		    String oid2 = ref2 != null ? ref2.getOid() : null;
+		    if (ObjectUtils.equals(oid1, oid2)) {
+			    LOGGER.trace("Comparing {} and {}: 0 (C)", o1, o2);
+			    return 0;
+		    }
 
-    			PrismReference ref1 = o1.findReference(ShadowAssociationType.F_SHADOW_REF);
-    			PrismReference ref2 = o2.findReference(ShadowAssociationType.F_SHADOW_REF);
-
-				// We do not want to compare references in details. Comparing OIDs suffices.
-				// Otherwise we get into problems, as one of the references might be e.g. without type,
-				// causing unpredictable behavior (MID-2368)
-				String oid1 = ref1 != null ? ref1.getOid() : null;
-				String oid2 = ref2 != null ? ref2.getOid() : null;
-    			if (ObjectUtils.equals(oid1, oid2)) {
-    				LOGGER.trace("Comparing {} and {}: 0 (C)", o1, o2);
-    				return 0;
-    			}
-
-    			LOGGER.trace("Comparing {} and {}: 1 (D)", o1, o2);
-    			return 1;
-    		}
-		};
+		    LOGGER.trace("Comparing {} and {}: 1 (D)", o1, o2);
+		    return 1;
+	    };
 
 		ContainerDelta<ShadowAssociationType> delta = (ContainerDelta<ShadowAssociationType>) consolidateItem(rOcDef, discr, existingDelta,
     			projCtx, addUnchangedValues, associationDef.isExclusiveStrong(), ShadowType.F_ASSOCIATION,
-        		asspcContainerDef, triple, null, comparator, strengthSelector, "association "+associationName);
+        		asspcContainerDef, triple, null, comparator, strengthSelector, "association "+associationName, result);
 
     	if (delta != null) {
 	    	setAssociationName(delta.getValuesToAdd(), associationName);
@@ -391,82 +392,91 @@ public class ConsolidationProcessor {
 	private <V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> consolidateItem(RefinedObjectClassDefinition rOcDef,
 			ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
 			boolean addUnchangedValues, boolean isExclusiveStrong,
-			ItemPath itemPath, D itemDefinition, DeltaSetTriple<ItemValueWithOrigin<V,D>> triple,
-			ValueMatcher<?> valueMatcher, Comparator<V> comparator, StrengthSelector strengthSelector, String itemDesc)
-					throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
+			ItemPath itemPath, D itemDefinition, DeltaSetTriple<ItemValueWithOrigin<V, D>> triple,
+			ValueMatcher<?> valueMatcher, Comparator<V> comparator, StrengthSelector strengthSelector, String itemDesc,
+			OperationResult parentResult)
+			throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
-        boolean forceAddUnchangedValues = false;
-        ItemDelta<V,D> existingItemDelta = null;
-        if (existingDelta != null) {
-        	existingItemDelta = existingDelta.findItemDelta(itemPath);
-        }
-        if (existingItemDelta != null && existingItemDelta.isReplace()) {
-        	// We need to add all values if there is replace delta. Otherwise the zero-set values will be
-        	// lost
-        	forceAddUnchangedValues = true;
-        }
+    	OperationResult result = parentResult.subresult(OP_CONSOLIDATE_ITEM)
+			    .setMinor()
+			    .addArbitraryObjectAsParam("itemPath", itemPath)
+			    .build();
+    	try {
+	        boolean forceAddUnchangedValues = false;
+	        ItemDelta<V,D> existingItemDelta = null;
+	        if (existingDelta != null) {
+	            existingItemDelta = existingDelta.findItemDelta(itemPath);
+	        }
+	        if (existingItemDelta != null && existingItemDelta.isReplace()) {
+	            // We need to add all values if there is replace delta. Otherwise the zero-set values will be lost
+	            forceAddUnchangedValues = true;
+	        }
 
-        LOGGER.trace("CONSOLIDATE {}\n  ({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
-				itemDesc, discr, projCtx.hasFullShadow(), addUnchangedValues, forceAddUnchangedValues);
+	        LOGGER.trace("CONSOLIDATE {}\n  ({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
+					itemDesc, discr, projCtx.hasFullShadow(), addUnchangedValues, forceAddUnchangedValues);
 
-        // Use the consolidator to do the computation. It does most of the work.
-        IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidator<>();
-        consolidator.setItemPath(itemPath);
-        consolidator.setIvwoTriple(triple);
-        consolidator.setItemDefinition(itemDefinition);
-        consolidator.setAprioriItemDelta(existingItemDelta);
-        consolidator.setItemContainer(projCtx.getObjectNew());
-        consolidator.setValueMatcher(valueMatcher);
-        consolidator.setComparator(comparator);
-        consolidator.setAddUnchangedValues(addUnchangedValues || forceAddUnchangedValues);
-        consolidator.setFilterExistingValues(projCtx.hasFullShadow());
-        consolidator.setExclusiveStrong(isExclusiveStrong);
-        consolidator.setContextDescription(discr.toHumanReadableDescription());
-        if (projCtx.hasFullShadow()) {
-        	consolidator.setStrengthSelector(strengthSelector);
-        } else {
-        	consolidator.setStrengthSelector(strengthSelector.notWeak());
-        }
-        
-        ItemDelta<V, D> itemDelta = consolidator.consolidateToDelta();
+	        // Use the consolidator to do the computation. It does most of the work.
+	        IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidator<>();
+	        consolidator.setItemPath(itemPath);
+	        consolidator.setIvwoTriple(triple);
+	        consolidator.setItemDefinition(itemDefinition);
+	        consolidator.setAprioriItemDelta(existingItemDelta);
+	        consolidator.setItemContainer(projCtx.getObjectNew());
+	        consolidator.setValueMatcher(valueMatcher);
+	        consolidator.setComparator(comparator);
+	        consolidator.setAddUnchangedValues(addUnchangedValues || forceAddUnchangedValues);
+	        consolidator.setFilterExistingValues(projCtx.hasFullShadow());
+	        consolidator.setExclusiveStrong(isExclusiveStrong);
+	        consolidator.setContextDescription(discr.toHumanReadableDescription());
+	        if (projCtx.hasFullShadow()) {
+	            consolidator.setStrengthSelector(strengthSelector);
+	        } else {
+	            consolidator.setStrengthSelector(strengthSelector.notWeak());
+	        }
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",discr,itemDelta==null?"null":itemDelta.debugDump());
-		}
+	        ItemDelta<V, D> itemDelta = consolidator.consolidateToDelta();
 
-		if (existingItemDelta != null && existingItemDelta.isReplace()) {
-			// We cannot filter out any values if there is an replace delta. The replace delta cleans all previous
-			// state and all the values needs to be passed on
-			LOGGER.trace("Skipping consolidation with sync delta as there was a replace delta on top of that already");
-		} else {
-			// Also consider a synchronization delta (if it is present). This may filter out some deltas.
-			itemDelta = consolidateItemWithSync(projCtx, itemDelta, valueMatcher);
-            if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",discr,itemDelta==null?"null":itemDelta.debugDump());
+			LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",discr, itemDelta.debugDumpLazily());
+
+			if (existingItemDelta != null && existingItemDelta.isReplace()) {
+				// We cannot filter out any values if there is an replace delta. The replace delta cleans all previous
+				// state and all the values needs to be passed on
+				LOGGER.trace("Skipping consolidation with sync delta as there was a replace delta on top of that already");
+			} else {
+				// Also consider a synchronization delta (if it is present). This may filter out some deltas.
+				itemDelta = consolidateItemWithSync(projCtx, itemDelta, valueMatcher);
+	            if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",discr,itemDelta==null?"null":itemDelta.debugDump());
+				}
 			}
-		}
 
-        if (itemDelta != null && !itemDelta.isEmpty()) {
-        	if (existingItemDelta == null || !existingItemDelta.isReplace()) {
-        		// We cannot simplify if there is already a replace delta. This might result in
-        		// two replace deltas and therefore some information may be lost
-        		itemDelta.simplify();
-        	}
+	        if (itemDelta != null && !itemDelta.isEmpty()) {
+	            if (existingItemDelta == null || !existingItemDelta.isReplace()) {
+	                // We cannot simplify if there is already a replace delta. This might result in
+	                // two replace deltas and therefore some information may be lost
+	                itemDelta.simplify();
+	            }
 
-        	// Validate the delta. i.e. make sure it conforms to schema (that it does not have more values than allowed, etc.)
-        	if (existingItemDelta != null) {
-        		// Let's make sure that both the previous delta and this delta makes sense
-        		ItemDelta<V,D> mergedDelta = existingItemDelta.clone();
-        		mergedDelta.merge(itemDelta);
-        		mergedDelta.validate();
-        	} else {
-        		itemDelta.validate();
-        	}
+	            // Validate the delta. i.e. make sure it conforms to schema (that it does not have more values than allowed, etc.)
+	            if (existingItemDelta != null) {
+	                // Let's make sure that both the previous delta and this delta makes sense
+	                ItemDelta<V,D> mergedDelta = existingItemDelta.clone();
+	                mergedDelta.merge(itemDelta);
+	                mergedDelta.validate();
+	            } else {
+	                itemDelta.validate();
+	            }
 
-        	return itemDelta;
-        }
+	            return itemDelta;
+	        }
 
-        return null;
+	        return null;
+	    } catch (Throwable t) {
+    		result.recordFatalError(t.getMessage(), t);
+    		throw t;
+	    } finally {
+    		result.computeStatusIfUnknown();
+	    }
 	}
 	
 	private void fillInAssociationNames(Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations) throws SchemaException {
@@ -991,10 +1001,8 @@ public class ConsolidationProcessor {
 		return triple;
 	}
 
-    <F extends FocusType> void consolidateValuesPostRecon(LensContext<F> context, LensProjectionContext projCtx,
-												 Task task, OperationResult result)
-    				throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
-    				ConfigurationException, SecurityViolationException, PolicyViolationException {
+    <F extends FocusType> void consolidateValuesPostRecon(LensContext<F> context, LensProjectionContext projCtx, Task task,
+		    OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
         //account was deleted, no changes are needed.
         if (wasProjectionDeleted(projCtx)) {
@@ -1028,11 +1036,10 @@ public class ConsolidationProcessor {
     		LOGGER.trace("Object class definition for {} post-recon consolidation:\n{}", projCtx.getResourceShadowDiscriminator(), rOcDef.debugDump());
     	}
 
-    	consolidateAttributes(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY);
-    	consolidateAssociations(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY);
+    	consolidateAttributes(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY, result);
+    	consolidateAssociations(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, StrengthSelector.WEAK_ONLY, result);
 
-    	
-    	if (objectDelta == null || objectDelta.isEmpty()) {
+    	if (objectDelta.isEmpty()) {
     		return;
     	}
     	ObjectDelta<ShadowType> accountSecondaryDelta = projCtx.getSecondaryDelta();
@@ -1042,7 +1049,4 @@ public class ConsolidationProcessor {
     		projCtx.setSecondaryDelta(objectDelta);
     	}
     }
-
-    
-    
 }

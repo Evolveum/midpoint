@@ -86,7 +86,7 @@
 				<condition>
 					<script>
 						<code>
-							assignment?.subtype.contains('combined')
+							assignment?.subtype?.contains('combined')
 						</code>
 					</script>
 				</condition>

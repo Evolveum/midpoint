@@ -48,6 +48,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -406,7 +407,27 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	        	}
 	        };
 	        
-			addChildContainerButton.add(new VisibleBehaviour(() -> shouldBeButtonsShown() && getModelObject()!= null && getModelObject().isHeterogenous()));
+			addChildContainerButton.add(new VisibleEnableBehaviour() {
+				
+				private static final long serialVersionUID = 1L;
+				
+				@Override
+				public boolean isEnabled() {
+					if (getModelObject() != null) {
+						if(getModelObject().getParent() != null) {
+							return !getModelObject().getParent().isReadOnly();
+						} else {
+							return !getModelObject().isReadOnly();
+						}
+					}
+					return false;
+				}
+
+				@Override
+				public boolean isVisible() {
+					return shouldBeButtonsShown() && getModelObject()!= null && getModelObject().isHeterogenous();
+				}
+			});
 			addChildContainerButton.setOutputMarkupId(true);
 			addChildContainerButton.setOutputMarkupPlaceholderTag(true);
 			add(addChildContainerButton);
@@ -461,7 +482,27 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 			}
 		};
 		
-		removeContainerButton.add(new VisibleBehaviour(() -> shouldBeButtonsShown()));
+		removeContainerButton.add(new VisibleEnableBehaviour() {
+			
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public boolean isEnabled() {
+				if (getModelObject() != null) {
+					if(getModelObject().getParent() != null) {
+						return !getModelObject().getParent().isReadOnly();
+					} else {
+						return !getModelObject().isReadOnly();
+					}
+				}
+				return false;
+			}
+
+			@Override
+			public boolean isVisible() {
+				return shouldBeButtonsShown();
+			}
+		});
 		add(removeContainerButton);
 
 	}

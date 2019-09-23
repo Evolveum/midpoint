@@ -32,6 +32,6 @@ public class TemplateMappingEvaluationRequest extends FocalMappingEvaluationRequ
     @Override
     public void shortDump(StringBuilder sb) {
         sb.append("template mapping ");
-        sb.append("'").append(mapping.getName()).append("' in ").append(originObject);
+        sb.append("'").append(getMappingInfo()).append("' in ").append(originObject);
     }
 }

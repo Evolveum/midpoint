@@ -20,7 +20,7 @@ public class LoggingEventSink {
 	private final LoggingEventCollector collector;
 	private final LoggingEventSink parent;
 
-	public LoggingEventSink(LoggingEventCollector collector, LoggingEventSink parent) {
+	LoggingEventSink(LoggingEventCollector collector, LoggingEventSink parent) {
 		this.collector = collector;
 		this.parent = parent;
 	}
@@ -33,7 +33,7 @@ public class LoggingEventSink {
 		events.add(new LoggedEvent(eventText));
 	}
 
-	public void collectEvents() {
+	void collectEvents() {
 		if (collector != null) {
 			collector.collect(this);
 		}
@@ -41,5 +41,9 @@ public class LoggingEventSink {
 
 	public LoggingEventSink getParent() {
 		return parent;
+	}
+
+	public void clearEvents() {
+		events.clear();
 	}
 }

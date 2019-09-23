@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
+import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -32,8 +34,17 @@ public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
                              IModel<T> rowModel) {
 
-        InlineMenu inlineMenu = new com.evolveum.midpoint.web.component.menu.cog.InlineMenu(componentId,
-                createMenuModel(rowModel));
+//        InlineMenu inlineMenu = new com.evolveum.midpoint.web.component.menu.cog.InlineMenu(componentId,
+//                createMenuModel(rowModel));
+    	DropdownButtonDto model = new DropdownButtonDto(null, null, null, createMenuModel(rowModel).getObject());
+        DropdownButtonPanel inlineMenu = new DropdownButtonPanel(componentId, model) {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn-xs btn-default";
+            }
+        };
         inlineMenu.setOutputMarkupId(true);
         inlineMenu.setOutputMarkupPlaceholderTag(true);
         cellItem.add(inlineMenu);
@@ -69,6 +80,6 @@ public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T
 
     @Override
     public String getCssClass() {
-        return "cog";
+        return "cog-xs";
     }
 }

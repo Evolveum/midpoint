@@ -97,8 +97,7 @@ public class CommandLineScriptExecutor {
     				.makeExpression(macroDef, outputDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
     		Collection<Source<?, ?>> sources = new ArrayList<>(1);
-    		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task,
-    				result);
+    		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);
     		
     		
     		TypedValue defaultObjectValAndDef = variables.get(macroName);
@@ -122,7 +121,7 @@ public class CommandLineScriptExecutor {
 				sources.add(defaultSource);
     		}
 
-    		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context);
+    		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, result);
 
     		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
 

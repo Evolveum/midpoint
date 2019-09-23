@@ -18,11 +18,11 @@ public class TracingAppender<E> extends AppenderBase<E> {
 
 	private Layout<E> layout;
 
-	private static ThreadLocal<LoggingEventSink> eventsThreadLocal = new ThreadLocal<>();
+	private static ThreadLocal<LoggingEventSink> eventSinkThreadLocal = new ThreadLocal<>();
 
 	@Override
 	protected void append(E eventObject) {
-		LoggingEventSink loggingEventSink = eventsThreadLocal.get();
+		LoggingEventSink loggingEventSink = eventSinkThreadLocal.get();
 		if (loggingEventSink != null) {
 			String text = layout.doLayout(eventObject);
 			String normalized = StringUtils.removeEnd(text, "\n");
@@ -39,22 +39,22 @@ public class TracingAppender<E> extends AppenderBase<E> {
 	}
 
 	public static void terminateCollecting() {
-		eventsThreadLocal.remove();
+		eventSinkThreadLocal.remove();
 	}
 
 	public static void openSink(LoggingEventCollector collector) {
-		LoggingEventSink currentSink = eventsThreadLocal.get();
+		LoggingEventSink currentSink = eventSinkThreadLocal.get();
 		if (currentSink != null) {
 			currentSink.collectEvents();
 		}
-		eventsThreadLocal.set(new LoggingEventSink(collector, currentSink));
+		eventSinkThreadLocal.set(new LoggingEventSink(collector, currentSink));
 	}
 
 	public static void closeCurrentSink() {
-		LoggingEventSink currentSink = eventsThreadLocal.get();
+		LoggingEventSink currentSink = eventSinkThreadLocal.get();
 		if (currentSink != null) {
 			currentSink.collectEvents();
-			eventsThreadLocal.set(currentSink.getParent());
+			eventSinkThreadLocal.set(currentSink.getParent());
 		}
 	}
 }

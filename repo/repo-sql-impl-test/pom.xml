@@ -105,12 +105,6 @@
 		<dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-			<exclusions>
-                <exclusion>
-                    <groupId>org.javassist</groupId>
-                    <artifactId>javassist</artifactId>
-                </exclusion>
-			</exclusions>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>

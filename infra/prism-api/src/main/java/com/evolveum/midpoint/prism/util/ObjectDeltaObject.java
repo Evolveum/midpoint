@@ -96,8 +96,7 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 	public void update(ItemDelta<?, ?> itemDelta) throws SchemaException {
 		if (delta == null) {
 			delta = getAnyObject().getPrismContext().deltaFactory().object()
-					.createModifyDelta(getAnyObject().getOid(), itemDelta, getAnyObject().getCompileTimeClass()
-					);
+					.createModifyDelta(getAnyObject().getOid(), itemDelta, getAnyObject().getCompileTimeClass());
 		} else {
 			delta.swallow(itemDelta);
 			itemDelta.applyTo(newObject);

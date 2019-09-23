@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -97,6 +98,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		realContainer.setValue(value);
 	}
 
+	@NotNull
 	public PrismContainerValue<C> getValue() {
 		return realContainer.getValue();
 	}
@@ -235,6 +237,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.findValue(id);
 	}
 
+	@NotNull
 	public List<PrismContainerValue<C>> getValues() {
 		return realContainer.getValues();
 	}

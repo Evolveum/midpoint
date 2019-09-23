@@ -105,8 +105,8 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
 		if (additionalVariables != null) {
 			variables.addVariableDefinitions(additionalVariables, variables.keySet());
 		}
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = condition.evaluate(context);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = condition.evaluate(context, result);
 		if (outputTriple == null) {
 			return false;
 		}

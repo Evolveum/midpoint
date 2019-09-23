@@ -165,7 +165,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 			OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException {
-		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".getApprovalSchemaExecutionInformation");
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getApprovalSchemaExecutionInformation");
 		try {
 			return approvalSchemaExecutionInformationHelper.getApprovalSchemaExecutionInformation(taskOid, opTask, result);
 		} catch (Throwable t) {
@@ -181,7 +181,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 			OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException {
-		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".getApprovalSchemaPreview");
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getApprovalSchemaPreview");
 		try {
 			return approvalSchemaExecutionInformationHelper.getApprovalSchemaPreview(modelContext, opTask, result);
 		} catch (Throwable t) {

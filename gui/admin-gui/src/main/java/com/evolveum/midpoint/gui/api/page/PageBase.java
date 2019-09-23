@@ -1432,8 +1432,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             variables.put(ExpressionConstants.VAR_INPUT, resultType, OperationResultType.class);
 
-            ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, topResult);
-            PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple = expression.evaluate(context);
+            ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
+            PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple = expression.evaluate(context, topResult);
             if (outputTriple == null) {
                 return null;
             }

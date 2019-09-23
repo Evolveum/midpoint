@@ -1477,6 +1477,59 @@
     </xsd:complexType>
     <xsd:element name="scriptEvaluationTrace" type="tns:ScriptEvaluationTraceType" />
 
+    <xsd:complexType name="AssignmentEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for assignment evaluation operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <!-- TODO: assignment ItemDeltaItem as a wrapping object -->
+                    <xsd:element name="assignmentOld" type="c:AssignmentType"/>
+                    <xsd:element name="assignmentDelta" type="t:ItemDeltaType"/>
+                    <xsd:element name="assignmentNew" type="c:AssignmentType"/>
+                    <xsd:element name="primaryAssignmentMode" type="t:PlusMinusZeroType"/>
+                    <xsd:element name="evaluateOld" type="xsd:boolean"/>
+                    <!-- TODO source -->
+                    <xsd:element name="sourceDescription" type="xsd:string"/>
+                    <!-- TODO machine-readable result -->
+                    <xsd:element name="textResult" type="xsd:string" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="assignmentEvaluationTrace" type="tns:AssignmentEvaluationTraceType" />
+
+    <xsd:complexType name="AssignmentSegmentEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for assignment evaluation operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="segment" type="tns:AssignmentPathSegmentType" minOccurs="0"/>
+                    <xsd:element name="mode" type="t:PlusMinusZeroType" minOccurs="0"/>
+                    <!-- TODO result -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="assignmentSegmentEvaluationTrace" type="tns:AssignmentSegmentEvaluationTraceType" />
+
     <xsd:complexType name="CacheUseTraceType">
         <xsd:annotation>
             <xsd:documentation>

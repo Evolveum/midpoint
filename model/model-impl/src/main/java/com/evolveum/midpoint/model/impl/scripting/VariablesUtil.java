@@ -134,7 +134,7 @@ public class VariablesUtil {
 		ItemDefinition<?> outputDefinition = determineOutputDefinition(definition, ctx, shortDesc);
 		Expression<PrismValue, ItemDefinition<?>> expression = ctx.expressionFactory
 				.makeExpression(definition.getExpression(), outputDefinition, ctx.expressionProfile, shortDesc, ctx.task, result);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, createVariables(resultingVariables), shortDesc, ctx.task, result);
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, createVariables(resultingVariables), shortDesc, ctx.task);
 		PrismValueDeltaSetTriple<?> triple = ModelExpressionThreadLocalHolder
 				.evaluateAnyExpressionInContext(expression, context, ctx.task, result);
 		Collection<?> resultingValues = triple.getNonNegativeValues();

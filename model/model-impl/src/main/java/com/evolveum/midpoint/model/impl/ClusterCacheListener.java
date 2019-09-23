@@ -63,7 +63,7 @@ public class ClusterCacheListener implements CacheListener {
 
 		if (context != null && context.isTerminateSession()) {
 			CacheInvalidationDetails details = context.getDetails();
-			if (details == null || !(details instanceof TerminateSessionEvent)) {
+			if (!(details instanceof TerminateSessionEvent)) {
 				LOGGER.warn("Cannot perform cluster-wide session termination, no details provided.");
 				return;
 			}
