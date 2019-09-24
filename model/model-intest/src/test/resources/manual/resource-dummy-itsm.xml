@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2017-2018 Evolveum and contributors
+  ~ Copyright (c) 2017-2019 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0 
   ~ and European Union Public License. See LICENSE file for details.
@@ -28,6 +28,9 @@
 	
 	<connectorConfiguration>
 		<conf:uselessString>whatever</conf:uselessString>
+		<!-- MID-5399 -->
+		<conf:uselessArray>something1</conf:uselessArray>
+		<conf:uselessArray>something2</conf:uselessArray>
 	</connectorConfiguration>
 	
 	<!-- Static schema definition -->

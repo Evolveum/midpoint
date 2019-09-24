@@ -12,15 +12,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -194,8 +190,14 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 				throw new ConfigurationException("Only properties are supported for now");
 			}
 			PrismProperty<?> configurationProperty = (PrismProperty<?>)configurationItem;
-			Object realValue = configurationProperty.getRealValue();
-			configurationClassBean.setPropertyValue(configurationProperty.getElementName().getLocalPart(), realValue);
+			PrismPropertyDefinition<?> configurationPropertyDefinition = configurationProperty.getDefinition();
+			if (configurationPropertyDefinition != null && configurationPropertyDefinition.isMultiValue()) {
+				Object[] realValuesArray = configurationProperty.getRealValuesArray(Object.class);
+				configurationClassBean.setPropertyValue(configurationProperty.getElementName().getLocalPart(), realValuesArray);
+			} else {
+				Object realValue = configurationProperty.getRealValue();
+				configurationClassBean.setPropertyValue(configurationProperty.getElementName().getLocalPart(), realValue);
+			}
 		}
 		connectorBean.setPropertyValue(connectorConfigurationProp.getName(), configurationObject);
 	}
