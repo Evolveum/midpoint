@@ -1208,16 +1208,14 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
         		accountJackOid, dummyResourceCtl.getAttributeFullnamePath(), "Cpt. Jack Sparrow");
         accountDelta.addModificationReplaceProperty(
         		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
         		"Queen Anne's Revenge");
-        deltas.add(accountDelta);
 
 		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(accountDelta, null, task, result);
 
 		// THEN
 		assertSuccess(result);

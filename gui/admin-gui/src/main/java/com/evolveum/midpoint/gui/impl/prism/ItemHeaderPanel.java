@@ -107,7 +107,8 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 	private void createHelpText(WebMarkupContainer labelContainer) {
 		
 		Label help = new Label(ID_HELP);
-        help.add(AttributeModifier.replace("title", new PropertyModel<>(getModel(), "help")));
+		IModel<String> helpModel = new PropertyModel<String>(getModel(), "help");
+        help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
         help.add(new InfoTooltipBehavior());
         help.add(new VisibleBehaviour(() -> getModelObject() != null && StringUtils.isNotEmpty(getModelObject().getHelp())));
         labelContainer.add(help);
