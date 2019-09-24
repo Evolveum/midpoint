@@ -66,6 +66,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
     @Override
     protected void onInitialize(){
         super.onInitialize();
+        add(new VisibleBehaviour(() -> getModelObject() != null));
         initButtonsPanel();
         initAssignmentsPanel();
 
@@ -460,6 +461,9 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
     }
 
     private boolean isAssignmentPanelVisible() {
+        if (getModelObject() == null){
+            return false;
+        }
         PrismObjectWrapper<?> objectWrapper = getModelObject().findObjectWrapper();
         if (objectWrapper == null ) {
             return true;

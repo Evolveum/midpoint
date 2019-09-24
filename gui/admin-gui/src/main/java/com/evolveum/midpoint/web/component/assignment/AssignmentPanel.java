@@ -144,7 +144,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 	private void initLayout() {
 
 		MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation> multivalueContainerListPanel =
-				new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation>(ID_ASSIGNMENTS, getModel(), getTableId(),
+				new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation>(ID_ASSIGNMENTS, getModel() != null ? getModel() : Model.of(), getTableId(),
 				getAssignmentsTabStorage()) {
 
 			private static final long serialVersionUID = 1L;
@@ -171,6 +171,9 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
 			@Override
 			protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createColumns() {
+				if (AssignmentPanel.this.getModelObject() == null){
+					return new ArrayList<>();
+				}
 				return initBasicColumns();
 			}
 
@@ -187,6 +190,9 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
 			@Override
 			protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
+				if (AssignmentPanel.this.getModelObject() == null){
+					return null;
+				}
 				if (isInducement()){
 					return null;
 				} else {
@@ -267,6 +273,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 			}
 
 		};
+		multivalueContainerListPanel.add(new VisibleBehaviour(() -> getModel() != null && getModelObject() != null));
 		add(multivalueContainerListPanel);
 
 		setOutputMarkupId(true);
@@ -332,10 +339,16 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 	}
 
 	protected void initCustomPaging(){
+		if (getModel() == null || getModelObject() == null){
+			return;
+		}
 		getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory().createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
 	}
 
 	protected ObjectTabStorage getAssignmentsTabStorage(){
+		if (getModel() == null || getModelObject() == null){
+			return null;
+		}
 		if (isInducement()){
 			return getParentPage().getSessionStorage().getInducementsTabStorage();
 		} else {
@@ -1055,7 +1068,7 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 	}
 
 	protected boolean isInducement(){
-		return getModelObject().getPath().containsNameExactly(AbstractRoleType.F_INDUCEMENT);
+		return getModelObject() != null && getModelObject().getPath().containsNameExactly(AbstractRoleType.F_INDUCEMENT);
 	}
 
 	protected ObjectFilter getSubtypeFilter(){
