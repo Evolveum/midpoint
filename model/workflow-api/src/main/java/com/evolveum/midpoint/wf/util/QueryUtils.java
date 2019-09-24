@@ -70,7 +70,12 @@ public class QueryUtils {
 			throws SchemaException {
 		List<PrismReferenceValue> candidates = getCandidatesForUser(userOid, repositoryService, relationRegistry, result);
 		return q.item(CaseWorkItemType.F_CANDIDATE_REF).ref(candidates)
-				.and().item(CaseWorkItemType.F_ASSIGNEE_REF).isNull();
+				.and()
+				.item(CaseWorkItemType.F_ASSIGNEE_REF)
+				.isNull()
+				.and()
+				.item(CaseWorkItemType.F_CLOSE_TIMESTAMP)
+				.isNull();
 	}
 
 	private static List<PrismReferenceValue> getPotentialAssigneesForUser(MidPointPrincipal principal,
