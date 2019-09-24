@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.ProfilingClassLoggerWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -315,6 +317,71 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
                 .assertAssignments(1);
 
     }
+    
+    @Test
+    public void test300SaveSystemConfigWithoutChanges() throws Exception {
+        final String TEST_NAME = "test300SaveSystemConfigWithoutChanges";
+        TestUtil.displayTestTitle(TEST_NAME);
+        Task task = taskManager.createTaskInstance(TEST_NAME);
+
+        OperationResult result = task.getResult();
+
+        SystemConfigurationType systemConfig = getSystemConfiguration();
+
+        WrapperContext ctx = new WrapperContext(task, result);
+        PrismObjectWrapper objectWrapper =createObjectWrapper(systemConfig.asPrismContainer(), ItemStatus.NOT_CHANGED, ctx);
+
+        //GIVEN
+        ObjectDelta<UserType> systemConfigDelta = objectWrapper.getObjectDelta();
+        assertModificationsSize(systemConfigDelta, 0);
+    }
+    
+    @Test
+    public void test301ModifyProfilingClassLoggerOfSystemConfig() throws Exception {
+        final String TEST_NAME = "test301ModifyProfilingClassLoggerOfSystemConfig";
+        TestUtil.displayTestTitle(TEST_NAME);
+        Task task = taskManager.createTaskInstance(TEST_NAME);
+
+        OperationResult result = task.getResult();
+
+        SystemConfigurationType systemConfigBefore = getSystemConfiguration();
+
+        WrapperContext ctx = new WrapperContext(task, result);
+        PrismObjectWrapper objectWrapper =createObjectWrapper(systemConfigBefore.asPrismContainer(), ItemStatus.NOT_CHANGED, ctx);
+
+        PrismContainerWrapper<LoggingConfigurationType> loggingConfig = objectWrapper.findContainer(SystemConfigurationType.F_LOGGING);
+        PrismContainerWrapper<Containerable> profilingClassLogger = loggingConfig.findContainer(ItemName.fromQName(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH));
+        PrismPropertyWrapper<LoggingLevelType> loggerLevel = profilingClassLogger.getValue().findProperty(ClassLoggerConfigurationType.F_LEVEL);
+        PrismPropertyWrapper<String> appenderLevel = profilingClassLogger.getValue().findProperty(ClassLoggerConfigurationType.F_APPENDER);
+        loggerLevel.getValue().setRealValue(LoggingLevelType.DEBUG);
+        appenderLevel.getValues().get(0).setRealValue("MIDPOINT_PROFILE_LOG");
+        
+        //GIVEN
+        ObjectDelta<UserType> systemConfigDelta = objectWrapper.getObjectDelta();
+        assertModificationsSize(systemConfigDelta, 1);
+        
+        assertModification(systemConfigDelta, ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_LEVEL),
+        		ModificationTypeType.ADD, LoggingLevelType.DEBUG);
+        assertModification(systemConfigDelta, ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType. F_APPENDER),
+        		ModificationTypeType.ADD, "MIDPOINT_PROFILE_LOG");
+        //WHEN
+        executeChanges(systemConfigDelta, null, task, result);
+
+        //THEN
+        SystemConfigurationType systemConfigAfter = getSystemConfiguration();
+        loggingConfig = objectWrapper.findContainer(SystemConfigurationType.F_LOGGING);
+        profilingClassLogger = loggingConfig.findContainer(ItemName.fromQName(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH));
+        loggerLevel = profilingClassLogger.getValue().findProperty(ClassLoggerConfigurationType.F_LEVEL);
+        appenderLevel = profilingClassLogger.getValue().findProperty(ClassLoggerConfigurationType.F_APPENDER);
+        
+        if(!loggerLevel.getValue().getRealValue().equals(LoggingLevelType.DEBUG)) {
+        	AssertJUnit.fail("Expected value: " + LoggingLevelType.DEBUG + " after executing of changes. Values present: " + loggerLevel.getValue().getRealValue());
+        }
+        if(!appenderLevel.getValues().get(0).getRealValue().equals("MIDPOINT_PROFILE_LOG")) {
+        	AssertJUnit.fail("Expected value: " + "MIDPOINT_PROFILE_LOG" + " after executing of changes. Values present: " + appenderLevel.getValues().get(0).getRealValue());
+        }
+        
+    }
 
     private PrismContainerValue<AssignmentType> createDummyResourceAssignment(PrismObjectWrapper<UserType> objectWrapper, int existingAssignments, Task task, OperationResult result) throws Exception {
         PrismContainerWrapper<AssignmentType> assignment = objectWrapper.findContainer(UserType.F_ASSIGNMENT);
@@ -360,7 +427,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         assertEquals("Unexpected modifications size", expectedModifications, modifications.size());
 
     }
-
+    
     private <O extends ObjectType, D extends ItemDelta> void assertModification(ObjectDelta<O> delta, ItemPath itemPath, ModificationTypeType modificationType, Object... expectedValues) {
         D modification = (D) delta.findItemDelta(itemPath);
         assertNotNull("Unexpected null delta for " + itemPath, modification);
