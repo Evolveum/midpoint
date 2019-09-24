@@ -551,7 +551,7 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             public boolean isVisible() {
-                return getModelObject().getSearchType().equals(searchType);
+                return getModelObject() != null && getModelObject().getSearchType().equals(searchType);
             }
         };
     }

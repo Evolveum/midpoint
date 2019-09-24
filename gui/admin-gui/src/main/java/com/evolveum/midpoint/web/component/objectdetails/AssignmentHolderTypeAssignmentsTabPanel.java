@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.Model;
 
 /**
  * @author semancik
@@ -55,7 +56,7 @@ public class AssignmentHolderTypeAssignmentsTabPanel<AHT extends AssignmentHolde
 	}
 	
 	protected SwitchAssignmentTypePanel createPanel(String panelId, PrismContainerWrapperModel<AHT, AssignmentType> model) {
-		SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId, model){
+		SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId, model != null ? model : Model.of()){
 			private static final long serialVersionUID = 1L;
 
 			@Override

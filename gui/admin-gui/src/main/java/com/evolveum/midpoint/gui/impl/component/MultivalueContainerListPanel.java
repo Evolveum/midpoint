@@ -253,7 +253,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
 		};
 		itemTable.setOutputMarkupId(true);
-		itemTable.setCurrentPage(pageStorage.getPaging());
+		itemTable.setCurrentPage(pageStorage != null ? pageStorage.getPaging() : null);
 		return itemTable;
 
 	}
