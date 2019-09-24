@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createEvaluateAllAssignmentRelationsOnRecompute;
+import static com.evolveum.midpoint.model.api.ModelExecuteOptions.fromModelExecutionOptionsType;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
@@ -67,7 +68,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	static final File ACCOUNT_ROGERS_DUMMY_DEFAULT_FILE = new File(TEST_DIR, "account-rogers-dummy-default.xml");
 	static final File ACCOUNT_ROGERS_DUMMY_LEMON_FILE = new File(TEST_DIR, "account-rogers-dummy-lemon.xml");
 
-	private static String accountOid;
+	private String accountGuybrushOid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -618,28 +619,63 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test220PreviewJackAssignRolePirate() throws Exception {
 		final String TEST_NAME = "test220PreviewJackAssignRolePirate";
-        displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
-        // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-        ObjectDelta<UserType> delta = createAssignmentAssignmentHolderDelta(UserType.class, USER_JACK_OID,
-        		ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
+		ObjectDelta<UserType> delta = createAssignmentAssignmentHolderDelta(UserType.class, USER_JACK_OID,
+				ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
 
 		// WHEN
 		displayWhen(TEST_NAME);
-        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
-        		null, task, result);
+		ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
+				null, task, result);
 
 		// THEN
-        displayThen(TEST_NAME);
-        display("Preview context", modelContext);
-		assertNotNull("Null model context", modelContext);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertPreviewJackAssignRolePirate(modelContext);
+	}
+
+	/**
+	 * MID-5762
+	 */
+	@Test
+	public void test221PreviewJackAssignRolePirateReconcile() throws Exception {
+		final String TEST_NAME = "test221PreviewJackAssignRolePirateReconcile";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+		assertUserBefore(USER_JACK_OID)
+				.links()
+					.assertNone();
+
+		ObjectDelta<UserType> delta = createAssignmentAssignmentHolderDelta(UserType.class, USER_JACK_OID,
+				ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
+				ModelExecuteOptions.createReconcile(), task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertPreviewJackAssignRolePirate(modelContext);
+	}
+
+	private void assertPreviewJackAssignRolePirate(ModelContext<UserType> modelContext) throws Exception {
+		display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
 
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Model focus context missing", focusContext);
@@ -735,8 +771,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
+
+		accountGuybrushOid = assertUserAfter(USER_GUYBRUSH_OID)
+				.singleLink()
+					.getOid();
 
         DummyAccount dummyAccount = assertDummyAccount(null, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, true);
         display("Dummy account after", dummyAccount);
@@ -744,11 +783,117 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	}
 
 	/**
+	 * Let's preview direct modification of account attribute. Make sure that there is no focus delta.
+	 * MID-5762
+	 */
+	@Test
+	public void test231PreviewGuybrushModifyAccountFullName() throws Exception {
+		final String TEST_NAME = "test231PreviewGuybrushModifyAccountFullName";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				accountGuybrushOid, dummyResourceCtl.getAttributeFullnamePath(), "Mighty Pirate Guybrush Threepwood");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(accountDelta),
+				null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
+
+		assertSuccess(result);
+
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Model focus context missing", focusContext);
+		assertNull("Unexpected focus primary delta", focusContext.getPrimaryDelta());
+		assertNull("Unexpected focus secondary delta", focusContext.getSecondaryDelta());
+
+		Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
+		assertNotNull("Null model projection context list", projectionContexts);
+		assertEquals("Unexpected number of projection contexts", 1, projectionContexts.size());
+		ModelProjectionContext accContext = projectionContexts.iterator().next();
+		assertNotNull("Null model projection context", accContext);
+		assertNotNull("Missing account primary delta", accContext.getPrimaryDelta());
+		assertNull("Unexpected account secondary delta", accContext.getSecondaryDelta());
+		assertEquals(ChangeType.MODIFY, accContext.getPrimaryDelta().getChangeType());
+
+		assertAccountDefaultDummyAttributeModify(accContext.getPrimaryDelta(),
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
+				null, // old
+				null, // add
+				null, // delete
+				new String[] { "Mighty Pirate Guybrush Threepwood" });  // replace
+
+		PrismAsserts.assertModifications(accContext.getPrimaryDelta(), 1);
+	}
+
+	/**
+	 * Let's preview direct modification of account attribute. Make sure that there is no focus primary delta.
+	 * But there will be focus secondary delta as ship has inbound mapping.
+	 * MID-5762
+	 */
+	@Test
+	public void test232PreviewGuybrushModifyAccountShip() throws Exception {
+		final String TEST_NAME = "test232PreviewGuybrushModifyAccountShip";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		ObjectDelta<ShadowType> accountDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+				accountGuybrushOid, dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+				"The Mad Monkey");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(accountDelta),
+				null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Preview context", modelContext);
+		assertNotNull("Null model context", modelContext);
+
+		assertSuccess(result);
+
+		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Model focus context missing", focusContext);
+		assertNull("Unexpected focus primary delta", focusContext.getPrimaryDelta());
+		assertNotNull("Missing focus secondary delta", focusContext.getSecondaryDelta());
+
+		Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
+		assertNotNull("Null model projection context list", projectionContexts);
+		assertEquals("Unexpected number of projection contexts", 1, projectionContexts.size());
+		ModelProjectionContext accContext = projectionContexts.iterator().next();
+		assertNotNull("Null model projection context", accContext);
+		assertNotNull("Missing account primary delta", accContext.getPrimaryDelta());
+		assertNull("Unexpected account secondary delta", accContext.getSecondaryDelta());
+		assertEquals(ChangeType.MODIFY, accContext.getPrimaryDelta().getChangeType());
+
+		assertAccountDefaultDummyAttributeModify(accContext.getPrimaryDelta(),
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME,
+				null, // old
+				null, // add
+				null, // delete
+				new String[] { "The Mad Monkey" });  // replace
+
+		PrismAsserts.assertModifications(accContext.getPrimaryDelta(), 1);
+	}
+
+	/**
 	 * MID-3079
 	 */
 	@Test
-    public void test232PreviewGuybrushAddRolePirate() throws Exception {
-		final String TEST_NAME = "test232PreviewGuybrushAddRolePirate";
+    public void test233PreviewGuybrushAddRolePirate() throws Exception {
+		final String TEST_NAME = "test233PreviewGuybrushAddRolePirate";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -769,8 +914,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Preview context", modelContext);
 		assertNotNull("Null model context", modelContext);
 
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Model focus context missing", focusContext);
@@ -839,8 +983,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Preview context", modelContext);
 		assertNotNull("Null model context", modelContext);
 
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Model focus context missing", focusContext);
