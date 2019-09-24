@@ -15,6 +15,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
 public class DummyItsmIntegrationConnectorConfiguration {
 	
 	private String uselessString;
+	private String[] uselessArray;
 
 	@ConfigurationProperty
 	public String getUselessString() {
@@ -24,6 +25,13 @@ public class DummyItsmIntegrationConnectorConfiguration {
 	public void setUselessString(String uselessString) {
 		this.uselessString = uselessString;
 	}
-	
 
+	@ConfigurationProperty
+	public String[] getUselessArray() {
+		return uselessArray;
+	}
+
+	public void setUselessArray(String[] uselessArray) {
+		this.uselessArray = uselessArray;
+	}
 }
