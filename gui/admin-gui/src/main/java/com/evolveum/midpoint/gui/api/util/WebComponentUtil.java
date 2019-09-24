@@ -132,6 +132,7 @@ import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.datetime.PatternDateConverter;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -3637,6 +3638,24 @@ public final class WebComponentUtil {
 			}
 		}
 		pageBase.processResult(target, result, false);
+	}
+
+	public static List<ObjectOrdering> createMetadataOrdering(SortParam<String> sortParam, String metadataProperty, PrismContext prismContext){
+		if (sortParam != null && sortParam.getProperty() != null) {
+			OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+			if (sortParam.getProperty().equals(metadataProperty)) {
+				return Collections.singletonList(
+						prismContext.queryFactory().createOrdering(
+								ItemPath.create(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), order));
+			}
+			return Collections.singletonList(
+					prismContext.queryFactory().createOrdering(
+							ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
+
+
+		} else {
+			return null;
+		}
 	}
 
 	public static void claimWorkItemActionPerformed(CaseWorkItemType workItemToClaim,

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.wf.util;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
@@ -69,7 +70,12 @@ public class QueryUtils {
 			throws SchemaException {
 		List<PrismReferenceValue> candidates = getCandidatesForUser(userOid, repositoryService, relationRegistry, result);
 		return q.item(CaseWorkItemType.F_CANDIDATE_REF).ref(candidates)
-				.and().item(CaseWorkItemType.F_ASSIGNEE_REF).isNull();
+				.and()
+				.item(CaseWorkItemType.F_ASSIGNEE_REF)
+				.isNull()
+				.and()
+				.item(CaseWorkItemType.F_CLOSE_TIMESTAMP)
+				.isNull();
 	}
 
 	private static List<PrismReferenceValue> getPotentialAssigneesForUser(MidPointPrincipal principal,
@@ -113,6 +119,18 @@ public class QueryUtils {
 		return q
 				.item(CaseType.F_REQUESTOR_REF)
 				.ref(principalUserOid)
+				.and()
+				.item(CaseType.F_ARCHETYPE_REF)
+				.ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())
+				.and()
+				.not()
+				.item(CaseType.F_STATE)
+				.eq(SchemaConstants.CASE_STATE_CLOSED);
+	}
+
+	public static S_AtomicFilterExit filterForCasesOverUser(S_FilterEntryOrEmpty q, String userOid){
+		return q
+				.item(CaseType.F_OBJECT_REF).ref(userOid)
 				.and()
 				.item(CaseType.F_ARCHETYPE_REF)
 				.ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())

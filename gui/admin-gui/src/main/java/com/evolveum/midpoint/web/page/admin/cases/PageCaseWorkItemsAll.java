@@ -37,9 +37,8 @@ public class PageCaseWorkItemsAll extends PageCaseWorkItems {
     @Override
     protected ObjectFilter getCaseWorkItemsFilter(){
         return getPrismContext().queryFor(CaseWorkItemType.class)
-                .not()
-                .item(PrismConstants.T_PARENT, CaseType.F_STATE)
-                .eq(SchemaConstants.CASE_STATE_CLOSED)
+                .item(CaseWorkItemType.F_CLOSE_TIMESTAMP)
+                .isNull()
                 .buildFilter();
     }
 }

@@ -89,7 +89,12 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 				}
 				return (PrismObject<FO>) context.getCachedOwner();
 			}
-			
+
+			if (object.getOid() == null) {
+				// No reason to query. We will find nothing, but the query may take a long time.
+				return null;
+			}
+
 			ObjectQuery query = context.getPrismContext().queryFor(UserType.class)
 					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
 			List<PrismObject<UserType>> owners = new ArrayList<>();

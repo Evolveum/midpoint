@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -179,6 +180,11 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 //WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName()
                 return key;
             }
+
+            protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
+                PageAdminObjectList.this.setDefaultSorting(provider);
+            }
+
         };
 
         userListPanel.setAdditionalBoxCssClasses(WebComponentUtil.getBoxCssClasses(WebComponentUtil.classToQName(getPrismContext(), getType())));
@@ -243,6 +249,10 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     protected ObjectQuery addCustomFilterToContentQuery(ObjectQuery query){
         return query;
+    }
+
+    protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
+        //should be overrided if needed
     }
 
     protected boolean isNameColumnClickable(IModel<SelectableBean<O>> rowModel) {

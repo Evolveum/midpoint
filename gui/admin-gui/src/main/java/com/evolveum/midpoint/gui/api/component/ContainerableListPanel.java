@@ -135,9 +135,14 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
             }
 
         };
+        setDefaultSorting(provider);
     }
 
     protected abstract Class<C> getType();
+
+    protected void setDefaultSorting(ContainerListDataProvider<C> provider){
+        //should be overridded if needed
+    }
 
     public long getItemsPerPage() {
         UserProfileStorage userProfile = getPageBase().getSessionStorage().getUserProfile();

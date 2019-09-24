@@ -9,6 +9,17 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.cases.CasesListPanel;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -36,15 +47,12 @@ public class FocusTasksTabPanel<F extends FocusType>
 
 	protected static final String ID_TASK_TABLE = "taskTable";
 	protected static final String ID_LABEL = "label";
-
+	protected boolean tasksExist = false;
 	private static final Trace LOGGER = TraceManager.getTrace(FocusTasksTabPanel.class);
 
-	private TaskDtoProvider taskDtoProvider;
-
-	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel,
-			TaskDtoProvider taskDtoProvider) {
+	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel, boolean tasksExist) {
 		super(id, mainForm, focusModel);
-		this.taskDtoProvider = taskDtoProvider;
+		this.tasksExist = tasksExist;
 	}
 
 	@Override
@@ -54,42 +62,34 @@ public class FocusTasksTabPanel<F extends FocusType>
 	}
 	
 	private void initLayout() {
+		Label label = new Label(ID_LABEL, getPageBase().createStringResource(tasksExist ?
+				"pageAdminFocus.task.descriptionHasTasks" : "pageAdminFocus.task.descriptionNoTasks"));
+		label.setOutputMarkupId(true);
+		add(label);
 
-		Label label = new Label(ID_LABEL, new IModel<String>() {
+		CasesListPanel casesPanel = new CasesListPanel(ID_TASK_TABLE) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public String getObject() {
-				if (taskDtoProvider.size() > 0) {
-					return getString("pageAdminFocus.task.descriptionHasTasks");
+			protected ObjectFilter getCasesFilter() {
+				String oid = null;
+				if (getObjectWrapper() == null || StringUtils.isEmpty(getObjectWrapper().getOid())) {
+					oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
 				} else {
-					return getString("pageAdminFocus.task.descriptionNoTasks");
+					oid = getObjectWrapper().getOid();
 				}
+				return QueryUtils.filterForCasesOverUser(getPageBase().getPrismContext().queryFor(CaseType.class), oid)
+						.desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+						.buildFilter();
 			}
-		});
-		add(label);
 
-		List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
-		TablePanel taskTable = new TablePanel<>(ID_TASK_TABLE, taskDtoProvider, taskColumns);
-		add(taskTable);
-
-		taskTable.add(new VisibleEnableBehaviour() {
 			@Override
-			public boolean isVisible() {
-				return taskDtoProvider.size() > 0;
+			protected boolean isDashboard(){
+				return true;
 			}
-		});
+		};
+		casesPanel.add(new VisibleBehaviour(() -> tasksExist));
+		casesPanel.setOutputMarkupId(true);
+		add(casesPanel);
 	}
-
-	private List<IColumn<TaskDto, String>> initTaskColumns() {
-		List<IColumn<TaskDto, String>> columns = new ArrayList<>();
-
-		columns.add(TaskDtoTablePanel.createTaskNameColumn(this, "pageAdminFocus.task.name"));
-		columns.add(TaskDtoTablePanel.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));
-		columns.add(TaskDtoTablePanel.createTaskExecutionStatusColumn(this, "pageAdminFocus.task.execution"));
-		columns.add(TaskDtoTablePanel.createTaskResultStatusColumn(this, "pageAdminFocus.task.status"));
-		return columns;
-	}
-
-
 }
