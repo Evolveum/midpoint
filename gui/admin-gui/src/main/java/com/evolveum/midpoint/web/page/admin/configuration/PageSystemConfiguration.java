@@ -316,7 +316,10 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
  	
 	@Override
 	public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
-		
+		if (!isKeepDisplayingResults()) {
+			showResult(result);
+			redirectBack();
+		}
 	}
 
 	@Override
