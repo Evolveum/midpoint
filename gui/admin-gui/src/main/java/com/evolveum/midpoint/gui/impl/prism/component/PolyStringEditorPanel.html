@@ -19,24 +19,20 @@
 <wicket:panel>
     <div wicket:id="localizedValueContainer" class="row">
         <div class="col-md-3" style="padding-left: 0px !important; padding-top: 5px;" wicket:id="localizedValueLabel" />
-        <div wicket:id="localizedValueWithButton" class="input-group">
-            <div class="col-lg-11 col-md-11 col-xs-11 pull-left" style="padding: 0px !important;" wicket:id="localizedValue"/>
-            <div class="col-lg-1 col-md-1 col-xs-1 pull-right" style="padding: 0px !important;"> 
-    			<div class="form-control col-md-12" style="border-left: none !important;height: 30px !important;padding-left: 0px !important; background-color:#eee;">
-                	<i class="fa fa-language" style="float:right;cursor: pointer;" wicket:id="showHideLanguagesLocalized"/>
-                </div>
-    		</div>
+        <div wicket:id="localizedValueWithButton" class="input-group" style="position: relative">
+            <div class="col-md-12 " style="padding: 0px !important;" wicket:id="localizedValue"/>
+    		<div style="position: absolute; right: 12px; top: 8px; z-index: 5;">
+                <i class="fa fa-language" style="float:right;cursor: pointer; color: #555555;" wicket:id="showHideLanguagesLocalized"/>
+            </div>
         </div>
     </div>
     <div wicket:id="originValueContainer" class="row">
         <div class="col-md-3" style="padding-left: 0px !important; padding-top: 5px;" wicket:id="originValueLabel" />
-        <div wicket:id="origValueWithButton" class="input-group">
-            <div class="col-lg-11 col-md-11 col-xs-11 pull-left" style="padding: 0px !important;" wicket:id="origValue"/>
-            <div class="col-lg-1 col-md-1 col-xs-1 pull-right" style="padding: 0px !important;">
-    			<div class="form-control col-md-12" style="border-left: none !important;height: 30px !important;padding-left: 0px !important;">
-                	<i class="fa fa-language" style="float:right;cursor: pointer;" wicket:id="showHideLanguagesOrig"/>
-                </div>
-    		</div>
+        <div wicket:id="origValueWithButton" class="input-group" style="position: relative">
+            <div class="col-md-12" style="padding: 0px !important;" wicket:id="origValue"/>
+    		<div style="position: absolute; right: 12px; top: 8px; z-index: 5;">
+                <i class="fa fa-language" style="float:right;cursor: pointer; color: #555555;" wicket:id="showHideLanguagesOrig"/>
+            </div>
         </div>
     </div>
     <div wicket:id="fullDataContainer">

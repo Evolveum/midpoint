@@ -99,7 +99,6 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         TextPanel<String> localizedValuePanel = new TextPanel<String>(ID_LOCALIZED_VALUE_PANEL, Model.of(localizedValue));
         localizedValuePanel.setOutputMarkupId(true);
         localizedValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        localizedValuePanel.getBaseFormComponent().add(AttributeAppender.append("style", "border-right: none !important; "));
         localizedValuePanel.add(new EnableBehaviour(() -> false));
         localizedValueWithButton.add(localizedValuePanel);
 
@@ -160,7 +159,6 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         }, String.class, false);
         origValuePanel.setOutputMarkupId(true);
         origValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        origValuePanel.getBaseFormComponent().add(AttributeAppender.append("style", "border-right: none !important; "));
         origValueWithButton.add(origValuePanel);
 
         WebMarkupContainer fullDataContainer = new WebMarkupContainer(ID_FULL_DATA_CONTAINER);
