@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +15,9 @@ import javax.xml.namespace.QName;
 /**
  * @author lukas
  */
-public class AvailableRelationDto {
-
+public class AvailableRelationDto implements Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	private List<QName> availableRelationList = new ArrayList<QName>();
 	private QName defaultRelation = null;
 	
