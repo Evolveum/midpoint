@@ -107,15 +107,17 @@
             </plugin>
             <plugin>
 		        <artifactId>maven-assembly-plugin</artifactId>
+                <inherited>false</inherited>
 		        <configuration>
 		          <descriptors>
 		            <descriptor>src/main/assembly/dist.xml</descriptor>
 		          </descriptors>
 		          <finalName>midpoint-${project.version}</finalName>
+                    <tarLongFileMode>gnu</tarLongFileMode>
 		        </configuration>
 		        <executions>
 		          <execution>
-		            <id>make-assembly</id> <!-- this is used for inheritance merges -->
+		            <id>dist-assembly</id>
 		            <phase>package</phase> <!-- bind to the packaging phase -->
 		            <goals>
 		              <goal>single</goal>
