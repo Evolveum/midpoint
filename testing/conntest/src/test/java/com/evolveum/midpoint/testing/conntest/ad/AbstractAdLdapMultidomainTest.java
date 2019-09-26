@@ -1263,7 +1263,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertLdapConnectorInstances(2);
 	}
 
-	protected PrismObject<UserType> assertBarbossaEnabled(String password) throws Exception {
+	protected PrismObject<UserType> assertBarbossaEnabled(String ldapPassword) throws Exception {
 		PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
 
@@ -1278,7 +1278,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
         
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, password);
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, ldapPassword);
 
         return user;
 	}
@@ -2290,7 +2290,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // THEN
         displayThen(TEST_NAME);
         
-        assertUsers(23);
+        assertUsers(15);
         // TODO
 
 //        assertLdapConnectorInstances(2);

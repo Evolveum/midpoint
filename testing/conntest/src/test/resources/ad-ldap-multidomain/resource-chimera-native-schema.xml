@@ -262,7 +262,42 @@
             	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
             	<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
-            
+
+			<protected>
+				<filter>
+					<q:equal>
+						<q:path>attributes/dn</q:path>
+						<q:value>cn=midpoint,cn=users,dc=ad,dc=evolveum,dc=com</q:value>
+					</q:equal>
+				</filter>
+			</protected>
+			<protected>
+				<filter>
+					<q:equal>
+						<q:path>attributes/dn</q:path>
+						<q:value>CN=SUB$,CN=Users,DC=ad,DC=evolveum,DC=com</q:value>
+					</q:equal>
+				</filter>
+			</protected>
+			<protected>
+				<filter>
+					<q:substring>
+						<q:path>attributes/dn</q:path>
+						<q:value>CN=DiscoverySearchMailbox</q:value>
+						<q:anchorStart>true</q:anchorStart>
+					</q:substring>
+				</filter>
+			</protected>
+			<protected>
+				<filter>
+					<q:substring>
+						<q:path>attributes/dn</q:path>
+						<q:value>CN=SystemMailbox</q:value>
+						<q:anchorStart>true</q:anchorStart>
+					</q:substring>
+				</filter>
+			</protected>
+
             <activation>
 				<administrativeStatus>
 					<outbound/>
@@ -731,23 +766,23 @@
 					</expression>
 				</q:equal>
 			</correlation>
-			
+
 			<reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus"/>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#link"/>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus"/>
-	        </reaction>
+				<situation>linked</situation>
+				<synchronize>true</synchronize>
+			</reaction>
+			<reaction>
+				<situation>deleted</situation>
+				<action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri></action>
+			</reaction>
+			<reaction>
+				<situation>unlinked</situation>
+				<action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri></action>
+			</reaction>
+			<reaction>
+				<situation>unmatched</situation>
+				<action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri></action>
+			</reaction>
 
 		</objectSynchronization>
 		
