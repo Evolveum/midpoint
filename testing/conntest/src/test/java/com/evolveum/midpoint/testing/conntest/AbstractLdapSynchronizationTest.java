@@ -154,10 +154,13 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         assertStepSyncToken(getSyncTaskOid(), 1, tsStart, tsEnd);
 	}
 
-	// Do not change cn here. This triggers rename in the AD case.
+    /**
+     * Changing account sn directly.
+     * Do not change cn here. But even if sn is not changed, this triggers rename in the AD case.
+     */
 	@Test
-    public void test802ModifyAccountHt() throws Exception {
-		final String TEST_NAME = "test802ModifyAccountHt";
+    public void test802ModifyAccountHtSn() throws Exception {
+		final String TEST_NAME = "test802ModifyAccountHtSn";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -169,16 +172,15 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
         // WHEN
         displayWhen(TEST_NAME);
         LdapNetworkConnection connection = ldapConnect();
-        Modification modCn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "sn", ACCOUNT_HT_SN_MODIFIED);
-        connection.modify(toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN), modCn);
+        Modification modSn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "sn", ACCOUNT_HT_SN_MODIFIED);
+        connection.modify(toAccountDn(ACCOUNT_HT_UID, ACCOUNT_HT_CN), modSn);
 		ldapDisconnect(connection);
 
 		waitForTaskNextRunAssertSuccess(getSyncTaskOid(), true);
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         long tsEnd = System.currentTimeMillis();
 
@@ -212,8 +214,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         long tsEnd = System.currentTimeMillis();
 
@@ -256,8 +257,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         long tsEnd = System.currentTimeMillis();
 
