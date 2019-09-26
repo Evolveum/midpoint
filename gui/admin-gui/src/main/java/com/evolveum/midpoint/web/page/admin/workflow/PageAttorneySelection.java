@@ -180,7 +180,7 @@ public class PageAttorneySelection extends PageBase {
     private void selectUserPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(PARAMETER_DONOR_OID, oid);
-        PageCaseWorkItems workItemsPage = new PageCaseWorkItems(parameters);
+        PageWorkItemsAttorney workItemsPage = new PageWorkItemsAttorney(parameters);
         navigateToNext(workItemsPage);
     }
 }

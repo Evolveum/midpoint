@@ -171,7 +171,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                PageCaseWorkItem pageCaseWorkItem = new PageCaseWorkItem(rowModel.getObject() != null ? rowModel.getObject().getRealValue() : null);
+                PageCaseWorkItem pageCaseWorkItem = new PageCaseWorkItem(rowModel.getObject() != null ? rowModel.getObject().getRealValue() : null, pageParameters);
                 CaseWorkItemsPanel.this.getPageBase().navigateToNext(pageCaseWorkItem);
             }
         });

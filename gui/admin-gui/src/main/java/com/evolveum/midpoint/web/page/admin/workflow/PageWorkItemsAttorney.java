@@ -13,7 +13,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItems;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -31,14 +33,14 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
                         label = "PageAttorneySelection.auth.workItems.attorney.label",
                         description = "PageAttorneySelection.auth.workItems.attorney.description")
         })
-public class PageWorkItemsAttorney extends PageWorkItems {
+public class PageWorkItemsAttorney extends PageCaseWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItemsAttorney.class);
 
     private static final String DOT_CLASS = PageWorkItems.class.getName() + ".";
 
 
-    public PageWorkItemsAttorney() {
-        super(WorkItemsPageType.ATTORNEY);
+    public PageWorkItemsAttorney(PageParameters pageParameters) {
+        super(pageParameters);
     }
 }

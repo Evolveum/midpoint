@@ -99,39 +99,41 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 	private PageParameters pageParameters;
 
     public PageCaseWorkItem(CaseWorkItemType workItem) {
+		this(workItem, null);
+	}
+
+    public PageCaseWorkItem(CaseWorkItemType workItem, PageParameters parameters) {
+		this.pageParameters = parameters;
+
 		caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
 			@Override
 			protected CaseWorkItemType load() {
 				return workItem;
 			}
 		};
-	}
 
-    public PageCaseWorkItem(PageParameters parameters) {
-		this.pageParameters = parameters;
-
-		String caseId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
-		if (StringUtils.isEmpty(caseId)) {
-			throw new IllegalStateException("Case ID not specified.");
-		}
-		workItemId = WorkItemId.create(caseId);
-		if (workItemId == null || StringUtils.isEmpty(workItemId.getCaseOid())) {
-			throw new IllegalStateException("Case oid not specified.");
-		}
-
-		caseModel = new LoadableModel<CaseType>(false) {
-			@Override
-			protected CaseType load() {
-				return loadCaseIfNecessary();
-			}
-		};
-
-		caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
-			@Override
-			protected CaseWorkItemType load() {
-				return loadCaseWorkItemIfNecessary();
-			}
-		};
+//		String caseId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+//		if (StringUtils.isEmpty(caseId)) {
+//			throw new IllegalStateException("Case ID not specified.");
+//		}
+//		workItemId = WorkItemId.create(caseId);
+//		if (workItemId == null || StringUtils.isEmpty(workItemId.getCaseOid())) {
+//			throw new IllegalStateException("Case oid not specified.");
+//		}
+//
+//		caseModel = new LoadableModel<CaseType>(false) {
+//			@Override
+//			protected CaseType load() {
+//				return loadCaseIfNecessary();
+//			}
+//		};
+//
+//		caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
+//			@Override
+//			protected CaseWorkItemType load() {
+//				return loadCaseWorkItemIfNecessary();
+//			}
+//		};
 
 //        initLayout();
     }
