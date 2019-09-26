@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2015 Evolveum and contributors
+  ~ Copyright (c) 2015-2019 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0 
   ~ and European Union Public License. See LICENSE file for details.
@@ -26,7 +26,7 @@
                            <q:value>Pirates</q:value>
                         </q:equal>
                      </filter>
-                     <searchOnResource>true</searchOnResource>
+                     <searchStrategy>onResource</searchStrategy>
                   </associationTargetSearch>
                </expression>
             </outbound>
