@@ -18,6 +18,8 @@ import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -38,14 +40,23 @@ import com.evolveum.midpoint.gui.api.component.delta.ObjectDeltaOperationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -118,6 +129,8 @@ public class PageAuditLogDetails extends PageBase {
 					WorkflowConstants.AUDIT_COMMENT,
 					WorkflowConstants.AUDIT_WORK_ITEM_ID,
 					WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID);
+    
+    private Map<String, String> resourceForShadow = new HashMap<String, String>();
 
     public PageAuditLogDetails() {
         AuditLogStorage storage = getSessionStorage().getAuditLog();
@@ -444,7 +457,7 @@ public class PageAuditLogDetails extends PageBase {
         List<ObjectDeltaOperationType> deltas = recordModel.getObject().getDelta();
         RepeatingView deltaScene = new RepeatingView(ID_DELTA_LIST_PANEL);
 
-        for(ObjectDeltaOperationType deltaOp :deltas){
+        for(ObjectDeltaOperationType deltaOp :connectDeltas(deltas)){
             ObjectDeltaOperationPanel deltaPanel = new ObjectDeltaOperationPanel(deltaScene.newChildId(), Model.of(deltaOp), this);
             deltaPanel.setOutputMarkupId(true);
             deltaScene.add(deltaPanel);
@@ -455,7 +468,57 @@ public class PageAuditLogDetails extends PageBase {
 
     }
 
-    protected void initLayoutBackButton() {
+    private Collection<ObjectDeltaOperationType> connectDeltas(List<ObjectDeltaOperationType> deltas) {
+    	Map<PolyStringType, ObjectDeltaOperationType> focusDeltas = new HashMap<PolyStringType, ObjectDeltaOperationType>();
+    	List<ObjectDeltaOperationType> otherDeltas = new ArrayList<ObjectDeltaOperationType>();
+    	for (ObjectDeltaOperationType delta : deltas) {
+    		if (delta != null && delta.getObjectDelta() != null && FocusType.class.isAssignableFrom(WebComponentUtil.qnameToClass(getPrismContext(), delta.getObjectDelta().getObjectType()))) {
+    			if (focusDeltas.containsKey(delta.getObjectName())) {
+    				focusDeltas.get(delta.getObjectName()).setResourceName(null);
+    				focusDeltas.get(delta.getObjectName()).setResourceOid(null);
+    				if (delta.getObjectDelta() != null) {
+    					if (focusDeltas.get(delta.getObjectName()).getObjectDelta() == null) {
+    						focusDeltas.get(delta.getObjectName()).setObjectDelta(delta.getObjectDelta());
+    					} else {
+    						focusDeltas.get(delta.getObjectName()).getObjectDelta().getItemDelta().addAll(delta.getObjectDelta().getItemDelta());
+    					}
+    					for (ItemDeltaType itemDelta : delta.getObjectDelta().getItemDelta()) {
+    						if (itemDelta == null) {
+    							continue;
+    						}
+    						if ((delta.getResourceName() != null || !StringUtils.isEmpty(delta.getResourceOid()))
+    								&& itemDelta.getPath() != null && ItemPath.create(FocusType.F_LINK_REF).equivalent(itemDelta.getPath().getItemPath())) {
+    							for (RawType rawType : itemDelta.getValue()) {
+    								if (rawType != null && QNameUtil.match(rawType.getExplicitTypeName(), ObjectReferenceType.COMPLEX_TYPE)) {
+    									try {
+											ObjectReferenceType ref = rawType.getParsedRealValue(ObjectReferenceType.class);
+											if (ref != null && !StringUtils.isEmpty(ref.getOid())) {
+												String resource = (delta.getResourceName() != null) ? delta.getResourceName().getOrig() : delta.getResourceOid();
+												resourceForShadow.put(ref.getOid(), resource);
+											}
+										} catch (SchemaException e) {
+											LOGGER.debug("Couldn't parse ObjectReferenceType from RawType {}", rawType);
+											e.printStackTrace();
+										}
+    								}
+    							}
+    						}
+    					}
+    				}
+    			} else {
+    				focusDeltas.put(delta.getObjectName(), delta);
+    			}
+    		} else {
+    			otherDeltas.add(delta);
+    		}
+    	}
+    	List<ObjectDeltaOperationType> retDeltas = new ArrayList<ObjectDeltaOperationType>();
+    	retDeltas.addAll(focusDeltas.values());
+    	retDeltas.addAll(otherDeltas);
+		return retDeltas;
+	}
+
+	protected void initLayoutBackButton() {
         AjaxButton back = new AjaxButton(ID_BUTTON_BACK, createStringResource("PageBase.button.back")) {
 
             @Override

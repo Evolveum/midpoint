@@ -100,7 +100,7 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
 		assertPartialError(result);
 		assertMessageContains(result.getMessage(), "CONSTRAINT_ATT_TYPE");
 		
-		assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_3);
+		assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
 		assertUserAfter(USER_BARBOSSA_OID)
 			.assertPassword(USER_BARBOSSA_PASSWORD_AD_3)
 			.singleLink()
