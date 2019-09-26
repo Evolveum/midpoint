@@ -87,6 +87,7 @@ import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
@@ -206,6 +207,7 @@ public final class WebComponentUtil {
 		objectDetailsPageMap.put(ValuePolicyType.class, PageValuePolicy.class);
 		objectDetailsPageMap.put(CaseType.class, PageCase.class);
 		objectDetailsPageMap.put(ArchetypeType.class, PageArchetype.class);
+		objectDetailsPageMap.put(ShadowType.class, PageAccount.class);
 	}
 
 	static{
