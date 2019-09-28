@@ -24,6 +24,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityContextManagerAware;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
+import com.evolveum.midpoint.task.api.Tracer;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,19 +74,19 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	@Autowired private TaskManager taskManager;
 	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private UcfExpressionEvaluator ucfExpressionEvaluator;
+	@Autowired private Tracer tracer;
 
 	private final Object CONNECTOR_DISCOVERY = new Object();
 
 	private Map<String,ConnectorStruct> connectorMap;
 
 	@Override
-	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul)
-			throws CommunicationException {
+	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentResult) {
 		if (host != null) {
 			return null;
 		}
 		discoverConnectorsIfNeeded();
-		return connectorMap.entrySet().stream().map(e -> e.getValue().connectorObject).collect(Collectors.toSet());
+		return connectorMap.values().stream().map(connectorStruct -> connectorStruct.connectorObject).collect(Collectors.toSet());
 	}
 
 	private void discoverConnectorsIfNeeded() {
@@ -253,6 +254,12 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		}
 		if (connectorInstance instanceof UcfExpressionEvaluatorAware) {
 			((UcfExpressionEvaluatorAware) connectorInstance).setUcfExpressionEvaluator(ucfExpressionEvaluator);
+		}
+		if (connectorInstance instanceof TracerAware) {
+			((TracerAware) connectorInstance).setTracer(tracer);
+		}
+		if (connectorInstance instanceof TaskManagerAware) {
+			((TaskManagerAware) connectorInstance).setTaskManager(taskManager);
 		}
 		return connectorInstance;
 	}

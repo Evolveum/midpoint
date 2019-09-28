@@ -517,6 +517,20 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="tracing" type="c:ProcessTracingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Replaces tracingInterval, tracingProfile, tracingRoot items.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Tracing configuration</a:displayName>
+                <a:displayOrder>854</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>        <!-- will be unbounded, eventually -->
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
 </xsd:schema>
 
 

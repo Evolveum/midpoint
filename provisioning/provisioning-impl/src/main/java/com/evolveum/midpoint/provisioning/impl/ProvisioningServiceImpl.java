@@ -345,12 +345,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
  
 			LOGGER.trace("Start synchronization of resource {} ", resourceType);
 
-			// getting token form task
-			PrismProperty tokenProperty = getTokenProperty(shadowCoordinates, task, result);
-			LOGGER.trace("Got token property: {} from the task extension.", SchemaDebugUtil.prettyPrintLazily(tokenProperty));
-
-			liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, tokenProperty, task, taskPartition, result);
-			LOGGER.debug("Synchronization of {} done, token at start {}, result: {}", resource, tokenProperty, liveSyncResult);
+			liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, taskPartition, result);
+			LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
 		} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
@@ -438,30 +434,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			result.summarize(true);
 			throw e;
-		}
-	}
-
-	private PrismProperty<?> getTokenProperty(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult result)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
-		PrismProperty<?> taskTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
-
-		if (taskTokenProperty != null) {
-			if (taskTokenProperty.getAnyRealValue() != null) {
-				return taskTokenProperty;
-			} else {
-				LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
-				LOGGER.trace("Empty sync token property:\n{}", taskTokenProperty.debugDumpLazily());
-			}
-		}
-
-		// if the token is not specified in the task, get the latest token
-		PrismProperty<?> resourceTokenProperty = liveSynchronizer.fetchCurrentToken(shadowCoordinates, result);
-		if (resourceTokenProperty != null && resourceTokenProperty.getValue() != null &&
-				resourceTokenProperty.getValue().getValue() != null) {
-			return resourceTokenProperty;
-		} else {
-			LOGGER.warn("Empty current sync token provided by {}", shadowCoordinates);
-			return null;
 		}
 	}
 

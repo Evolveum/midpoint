@@ -31,6 +31,7 @@ public class ProcessChangeRequest {
         this.simulate = simulate;
     }
 
+    @NotNull
     public Change getChange() {
         return change;
     }

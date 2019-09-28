@@ -152,10 +152,6 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
     /**
      * Gets the value of the objectToAdd property.
      *
-     * @return
-     *     possible object is
-     *     {@link ObjectDeltaType.ObjectToAdd }
-     *
      */
     public ObjectType getObjectToAdd() {
         return objectToAdd;
@@ -163,10 +159,6 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
 
     /**
      * Sets the value of the objectToAdd property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link ObjectDeltaType.ObjectToAdd }
      *
      */
     public <T extends ObjectType> void setObjectToAdd(T value) {

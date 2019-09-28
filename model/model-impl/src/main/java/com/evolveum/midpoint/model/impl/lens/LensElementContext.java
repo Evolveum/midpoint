@@ -77,7 +77,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	 * ---
 	 * Although placed in LensElementContext, support for this data is currently implemented only for focus, not for projections.
 	 */
-	@NotNull private transient final List<ItemDelta<?,?>> pendingObjectPolicyStateModifications = new ArrayList<>();
+	@NotNull private final List<ItemDelta<?,?>> pendingObjectPolicyStateModifications = new ArrayList<>();
 
 	/**
 	 * Policy state modifications for assignments.
@@ -85,7 +85,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	 * Although we put here also deltas for assignments that are to be deleted, we do not execute these
 	 * (because we implement execution only for the standard exit-path from the clockwork).
 	 */
-	@NotNull private transient final Map<AssignmentSpec, List<ItemDelta<?,?>>> pendingAssignmentPolicyStateModifications = new HashMap<>();
+	@NotNull private final Map<AssignmentSpec, List<ItemDelta<?,?>>> pendingAssignmentPolicyStateModifications = new HashMap<>();
 
     /**
      * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
@@ -101,8 +101,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
 	private transient PrismObjectDefinition<O> objectDefinition = null;
 
-	transient private final Collection<EvaluatedPolicyRule> policyRules = new ArrayList<>();
-    transient private final Collection<String> policySituations = new ArrayList<>();
+	private final Collection<EvaluatedPolicyRule> policyRules = new ArrayList<>();
+    private final Collection<String> policySituations = new ArrayList<>();
 
 	public LensElementContext(Class<O> objectTypeClass, LensContext<? extends ObjectType> lensContext) {
 		super();

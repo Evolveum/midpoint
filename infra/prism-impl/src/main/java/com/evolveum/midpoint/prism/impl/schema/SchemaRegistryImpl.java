@@ -1367,7 +1367,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 		return definition.getTypeName().equals(typeName);
 	}
 
-
 	@Override
 	public QName determineTypeForClass(Class<?> clazz) {
 		if (XmlTypeConverter.canConvert(clazz)) {

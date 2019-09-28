@@ -35,6 +35,10 @@ class CollectingChangeHandler implements ChangeHandler {
         return false;
     }
 
+    @Override
+    public void handleAllChangesFetched(PrismProperty<?> finalToken, OperationResult result) {
+    }
+
     public List<Change> getChanges() {
         return changes;
     }

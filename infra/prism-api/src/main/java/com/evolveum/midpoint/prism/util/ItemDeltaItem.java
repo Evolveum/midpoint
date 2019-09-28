@@ -8,12 +8,6 @@ package com.evolveum.midpoint.prism.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -23,9 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -572,5 +563,4 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			throw new IllegalArgumentException("Attempt to set delta without definition");
 		}
 	}
-	
 }

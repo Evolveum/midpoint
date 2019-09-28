@@ -507,13 +507,9 @@ public class ShadowManager {
 		try {
 			shadow = createRepositoryShadow(ctx, shadow);
 		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Can't create shadow from identifiers: "
-					+ change.getIdentifiers());
-			throw new SchemaException("Can't create shadow from identifiers: "
-					+ change.getIdentifiers());
+			throw new SchemaException("Can't create shadow from identifiers: " + change.getIdentifiers());
 		}
 
-		parentResult.recordSuccess();
 		return shadow;
 	}
 	

@@ -4675,20 +4675,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return task;
 	}
 
-	protected void setTracing(Task task, TracingProfileType profile) {
-		task.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
-		task.setTracingProfile(profile);
-	}
-
-	protected TracingProfileType createDefaultTracingProfile() {
-		return new TracingProfileType()
-				.collectLogEntries(true)
-				.beginTracingTypeProfile()
-				.level(TracingLevelType.NORMAL)
-				.<TracingProfileType>end()
-				.fileNamePattern("trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}");
-	}
-
 	protected void modifyRoleAddConstruction(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleAddConstruction");
         OperationResult result = task.getResult();

@@ -18,6 +18,23 @@
 	
 	<extension>
 		<syncext:objectclass>ri:inetOrgPerson</syncext:objectclass>
+<!--		<syncext:tracing>-->
+<!--			<interval>1</interval>-->
+<!--			<tracingProfile>-->
+<!--				<collectLogEntries>true</collectLogEntries>-->
+<!--				<loggingOverride>-->
+<!--					<levelOverride>-->
+<!--						<logger>com.evolveum.midpoint.model</logger>-->
+<!--						<logger>com.evolveum.midpoint.provisioning</logger>-->
+<!--						<level>TRACE</level>-->
+<!--					</levelOverride>-->
+<!--				</loggingOverride>-->
+<!--				<tracingTypeProfile>-->
+<!--					<level>normal</level>-->
+<!--				</tracingTypeProfile>-->
+<!--				<fileNamePattern>trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}</fileNamePattern>-->
+<!--			</tracingProfile>-->
+<!--		</syncext:tracing>-->
 	</extension>
 	
 	<taskIdentifier>cd1e0ff2-0099-11e5-9e22-001e8c717e5b</taskIdentifier>

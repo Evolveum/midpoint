@@ -286,6 +286,7 @@ public abstract class SchemaConstants {
 	public static final ItemName MODEL_EXTENSION_TRACING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "tracingInterval");
 	public static final ItemName MODEL_EXTENSION_TRACING_PROFILE = new ItemName(NS_MODEL_EXTENSION, "tracingProfile");
 	public static final ItemName MODEL_EXTENSION_TRACING_ROOT = new ItemName(NS_MODEL_EXTENSION, "tracingRoot");
+	public static final ItemName MODEL_EXTENSION_TRACING = new ItemName(NS_MODEL_EXTENSION, "tracing");
 
 	public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
 	public static final String MODEL_DISABLE_REASON_EXPLICIT =

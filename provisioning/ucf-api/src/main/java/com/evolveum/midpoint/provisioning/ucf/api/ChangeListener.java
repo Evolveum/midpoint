@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+
 /**
  * Processes changes encountered on a resource
  */
@@ -15,10 +18,8 @@ public interface ChangeListener {
 	/**
 	 * Called when the connector learns about a resource change.
 	 * @param change The change.
-	 * @return true if the change was successfully processed and can be acknowledged on the resource;
+     * @return true if the change was successfully processed and can be acknowledged on the resource;
 	 * false (or a runtime exception) should be returned otherwise
-	 *
-	 * TODO add operation result here? Beware of simultaneous firing of changes. OperationResult is not thread-safe yet.
 	 */
-	boolean onChange(Change change);
+	boolean onChange(Change change, Task task, OperationResult result);
 }

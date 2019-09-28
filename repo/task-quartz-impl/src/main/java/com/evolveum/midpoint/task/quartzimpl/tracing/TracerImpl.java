@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.TestNameHolder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -69,7 +70,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService repositoryService;
 
-	private SystemConfigurationType systemConfiguration;
+	private SystemConfigurationType systemConfiguration;            // can be null during some tests
 
 	private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
 	private static final String TRACE_DIR = MIDPOINT_HOME + "trace/";
@@ -139,13 +140,21 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 	private TracingEnvironmentType createTracingEnvironmentDescription(Task task, TracingProfileType tracingProfile) {
 		TracingEnvironmentType environment = new TracingEnvironmentType(prismContext);
 		if (!Boolean.TRUE.equals(tracingProfile.isHideDeploymentInformation())) {
-			DeploymentInformationType deployment = systemConfiguration.getDeploymentInformation();
+			DeploymentInformationType deployment = systemConfiguration != null ? systemConfiguration.getDeploymentInformation() : null;
 			if (deployment != null) {
 				DeploymentInformationType deploymentClone = deployment.clone();
 				deploymentClone.setSubscriptionIdentifier(null);
 				environment.setDeployment(deploymentClone);
 			}
 		}
+//		NodeType localNode = taskManager.getLocalNode();
+//		if (localNode != null) {
+//			NodeType nodeClone = localNode.clone();
+//			nodeClone.setSecret(null);
+//			nodeClone.setSecretUpdateTimestamp(null);
+//			nodeClone.setOid(null);
+//			environment.setNode(nodeClone);
+//		}
 		TaskType taskClone = task.getClonedTaskObject().asObjectable();
 		if (taskClone.getResult() != null) {
 			taskClone.getResult().getPartialResults().clear();
@@ -184,7 +193,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 				PrismReferenceValue refVal = (PrismReferenceValue) visitable;
 				//noinspection unchecked
 				PrismObject<? extends ObjectType> object = refVal.getObject();
-				if (object != null) {
+				if (object != null && !object.isEmpty()) {
 					long entryId = findOrCreateEntry(object);
 					refVal.setObject(null);
 					refVal.setOid(SchemaConstants.TRACE_DICTIONARY_PREFIX + entryId);
@@ -230,8 +239,13 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		Map<String, String> rv = new HashMap<>();
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS");
 		rv.put(MACRO_TIMESTAMP, df.format(new Date()));
-		String testName = task.getResult().getOperation();
-		rv.put(MACRO_TEST_NAME, testName);  // e.g. com.evolveum.midpoint.model.intest.TestIteration.test532GuybrushModifyDescription
+		String testName;
+		if (TestNameHolder.getCurrentTestName() != null) {
+			testName = TestNameHolder.getCurrentTestName();
+		} else {
+			testName = task.getResult().getOperation();
+		}
+		rv.put(MACRO_TEST_NAME, testName);  // e.g. com.evolveum.midpoint.model.intest.TestIteration.test532GuybrushModifyDescription or simply TestIteration.test532GuybrushModifyDescription
 		int testNameIndex = StringUtils.lastOrdinalIndexOf(testName, ".", 2);
 		rv.put(MACRO_TEST_NAME_SHORT, testNameIndex >= 0 ? testName.substring(testNameIndex+1) : testName);
 		rv.put(MACRO_FOCUS_NAME, getFocusName(result));

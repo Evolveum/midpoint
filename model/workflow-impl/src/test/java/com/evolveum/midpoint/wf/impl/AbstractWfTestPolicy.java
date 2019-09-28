@@ -126,7 +126,8 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 		prepareNotifications();
 		dummyAuditService.clear();
 
-		Task opTask = taskManager.createTaskInstance(AbstractWfTestPolicy.class.getName() + "." + testName);
+		Task opTask = createTask(AbstractWfTestPolicy.class.getName() + "." + testName);
+//		setModelAndWorkflowLoggingTracing(opTask);
 		opTask.setOwner(userAdministrator);
 		OperationResult result = new OperationResult("execution");
 

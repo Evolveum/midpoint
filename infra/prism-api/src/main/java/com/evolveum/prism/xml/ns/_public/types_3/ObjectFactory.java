@@ -176,14 +176,6 @@ public class ObjectFactory implements Serializable {
     }
 
     /**
-     * Create an instance of {@link ItemDeltaType.Value }
-     *
-     */
-    public ItemDeltaType.Value createItemDeltaTypeValue() {
-        return new ItemDeltaType.Value();
-    }
-
-    /**
      * Create an instance of {@link ObjectDeltaType.ObjectToAdd }
      *
      */
