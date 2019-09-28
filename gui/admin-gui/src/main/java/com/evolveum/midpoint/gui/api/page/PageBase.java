@@ -1883,7 +1883,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ATTORNEY_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
-            addMenuItem(item, "PageAdmin.menu.top.workItems.listAttorney", PageAttorneySelection.class);
+            addMenuItem(item, "PageAdmin.menu.top.workItems.selectAttorney", PageAttorneySelection.class);
+            createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.workItems.listAttorney", PageWorkItemsAttorney.class);
+
         }
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
