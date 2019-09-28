@@ -63,6 +63,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private String oid = null;
 	private int iteration;
     private String iterationToken;
+
+	/**
+	 * When clockwork exception occurs (e.g. as in MID-5801) we record it (by default) to focus object.
+	 * But we might also want to record the exception also to a shadow, in order to see that this shadow could
+	 * not e.g. be imported or reconciled, or live-synced.
+	 */
+	boolean recordClockworkExceptionHere;
     
     transient private SecurityPolicyType securityPolicy;
 
@@ -453,7 +460,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 
-    @Contract(pure = true)
     public PrismObjectDefinition<O> getObjectDefinition() {
 		if (objectDefinition == null) {
 			if (objectOld != null) {
@@ -475,6 +481,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
 	public void setFresh(boolean isFresh) {
 		this.isFresh = isFresh;
+	}
+
+	public boolean isRecordClockworkExceptionHere() {
+		return recordClockworkExceptionHere;
+	}
+
+	public void setRecordClockworkExceptionHere(boolean recordClockworkExceptionHere) {
+		this.recordClockworkExceptionHere = recordClockworkExceptionHere;
 	}
 
 	@NotNull
@@ -555,7 +569,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		}
 	}
 
-	protected boolean isRequireSecondardyDeltaOid() {
+	protected boolean isRequireSecondaryDeltaOid() {
 		return primaryDelta == null;
 	}
 
@@ -616,6 +630,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public abstract LensElementContext<O> clone(LensContext<? extends ObjectType> lensContext);
 
 	protected void copyValues(LensElementContext<O> clone, LensContext lensContext) {
+		//noinspection unchecked
 		clone.lensContext = lensContext;
 		// This is de-facto immutable
 		clone.objectDefinition = this.objectDefinition;
@@ -629,6 +644,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		clone.iteration = this.iteration;
 		clone.iterationToken = this.iterationToken;
 		clone.securityPolicy = this.securityPolicy;
+		clone.recordClockworkExceptionHere = this.recordClockworkExceptionHere;
 	}
 
 	protected ObjectDelta<O> cloneDelta(ObjectDelta<O> thisDelta) {
