@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -46,6 +47,7 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.user"), DecisionDto.F_USER));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.attorney"), DecisionDto.F_ATTORNEY));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.originalActor"), DecisionDto.F_ORIGINAL_ACTOR));
+        columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.originalAssignee"), DecisionDto.F_ORIGINAL_ASSIGNEE));
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.stage"), DecisionDto.F_STAGE));
 		columns.add(createOutcomeColumn());
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.comment"), DecisionDto.F_COMMENT));
@@ -65,10 +67,12 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
 			@Override
 			protected DisplayType getIconDisplayType(final IModel<DecisionDto> rowModel) {
 				return WebComponentUtil.createDisplayType(choose(rowModel,
-						ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon()),
+						ApprovalOutcomeIcon.IN_PROGRESS.getIcon(), ApprovalOutcomeIcon.FORWARDED.getIcon(),
+						ApprovalOutcomeIcon.APPROVED.getIcon(), ApprovalOutcomeIcon.REJECTED.getIcon()),
 						"",
 						choose(rowModel,
 								createStringResource("MyRequestsPanel.inProgress").getString(),
+								createStringResource("MyRequestsPanel.forwarded").getString(),
 								createStringResource("MyRequestsPanel.approved").getString(),
 								createStringResource("MyRequestsPanel.rejected").getString()));
 			}
@@ -78,8 +82,11 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
 		        return "shrink";
 		    }
 
-			private String choose(IModel<DecisionDto> rowModel, String inProgress, String approved, String rejected) {
+			private String choose(IModel<DecisionDto> rowModel, String inProgress, String forwarded, String approved, String rejected) {
 				DecisionDto dto = rowModel.getObject();
+				if (StringUtils.isNotEmpty(dto.getOriginalAssignee())){
+					return forwarded;
+				}
 				if (dto.getOutcome() == null) {
 					return inProgress;
 				} else {

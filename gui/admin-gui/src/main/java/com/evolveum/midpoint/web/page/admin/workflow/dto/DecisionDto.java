@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
@@ -27,6 +28,7 @@ public class DecisionDto extends Selectable {
     public static final String F_USER = "user";
     public static final String F_ATTORNEY = "attorney";
     public static final String F_ORIGINAL_ACTOR = "originalActor";
+    public static final String F_ORIGINAL_ASSIGNEE = "originalAssignee";
     public static final String F_STAGE = "stage";
     public static final String F_OUTCOME = "outcome";
     public static final String F_COMMENT = "comment";
@@ -36,6 +38,7 @@ public class DecisionDto extends Selectable {
     private String user;
     private String attorney;
     private String originalActor;
+    private String originalAssignee;
     private String stage;
     private Boolean outcome;
     private String comment;
@@ -56,6 +59,10 @@ public class DecisionDto extends Selectable {
 
 	public String getOriginalActor() {
 		return originalActor;
+	}
+
+	public String getOriginalAssignee() {
+		return originalAssignee;
 	}
 
 	public String getStage() {
@@ -111,6 +118,11 @@ public class DecisionDto extends Selectable {
 				rv.originalActor = WebModelServiceUtils.resolveReferenceName(completionEvent.getOriginalAssigneeRef(), pageBase);
 			}
 			return rv;
+		} else if (e instanceof WorkItemDelegationEventType){
+			ObjectReferenceType origAssigneeRef = CollectionUtils.isNotEmpty(((WorkItemDelegationEventType) e).getAssigneeBefore()) ?
+					((WorkItemDelegationEventType) e).getAssigneeBefore().get(0) : null;
+			rv.originalAssignee =  origAssigneeRef != null ? WebModelServiceUtils.resolveReferenceName(origAssigneeRef, pageBase) : null;
+			return rv;
 		} else if (e instanceof StageCompletionEventType) {
 			StageCompletionEventType completion = (StageCompletionEventType) e;
 			AutomatedCompletionReasonType reason = completion.getAutomatedDecisionReason();
@@ -130,6 +142,5 @@ public class DecisionDto extends Selectable {
 		} else {
 			return null;
 		}
-		// delegations are not shown here
 	}
 }
