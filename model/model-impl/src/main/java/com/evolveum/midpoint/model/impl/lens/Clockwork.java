@@ -923,7 +923,7 @@ public class Clockwork {
 				LOGGER.trace("recordOperationExecution starting; task = {}, clockworkException = {}", task, clockworkException);
 				recordFocusOperationExecution(context, now, clockworkException, task, result);
 				for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-					recordProjectionOperationExecution(context, projectionContext, now, task, result);
+					recordProjectionOperationExecution(context, projectionContext, now, clockworkException, task, result);
 				}
 			} catch (Throwable t) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't record operation execution. Model context:\n{}", t,
@@ -946,27 +946,35 @@ public class Clockwork {
 		}
 		PrismObject<F> objectNew = focusContext.getObjectNew();
 		Validate.notNull(objectNew, "No focus object even if the context is not of 'delete' type");
-		List<LensObjectDeltaOperation<F>> executedDeltas;
-		if (clockworkException == null) {
-			executedDeltas = focusContext.getExecutedDeltas();
-		} else {
-			executedDeltas = new ArrayList<>(focusContext.getExecutedDeltas());
-			LensObjectDeltaOperation<F> odo = new LensObjectDeltaOperation<>();
-			ObjectDelta<F> primaryDelta = focusContext.getPrimaryDelta();
+
+		//noinspection unchecked
+		List<LensObjectDeltaOperation<F>> executedDeltas = getExecutedDeltas(focusContext,
+				(Class<F>) objectNew.asObjectable().getClass(), clockworkException, result);
+		LOGGER.trace("recordFocusOperationExecution: executedDeltas: {}", executedDeltas.size());
+		recordOperationExecution(objectNew, false, executedDeltas, now, context.getChannel(),
+				getSkipWhenSuccess(context), task, result);
+	}
+
+	@NotNull
+	private <O extends ObjectType> List<LensObjectDeltaOperation<O>> getExecutedDeltas(LensElementContext<O> elementContext,
+			Class<O> objectClass, Throwable clockworkException, OperationResult result) {
+		List<LensObjectDeltaOperation<O>> executedDeltas;
+		if (clockworkException != null && elementContext.isRecordClockworkExceptionHere()) {
+			executedDeltas = new ArrayList<>(elementContext.getExecutedDeltas());
+			LensObjectDeltaOperation<O> odo = new LensObjectDeltaOperation<>();
+			ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
 			if (primaryDelta != null) {
 				odo.setObjectDelta(primaryDelta);
 			} else {
-				@SuppressWarnings({"unchecked", "raw"})
-				Class<F> fClass = (Class<F>) objectNew.asObjectable().getClass();
-				ObjectDelta<F> fakeDelta = prismContext.deltaFactory().object().create(fClass, ChangeType.MODIFY);
+				ObjectDelta<O> fakeDelta = prismContext.deltaFactory().object().create(objectClass, ChangeType.MODIFY);
 				odo.setObjectDelta(fakeDelta);
 			}
 			odo.setExecutionResult(result);		// we rely on the fact that 'result' already contains record of the exception
 			executedDeltas.add(odo);
+		} else {
+			executedDeltas = elementContext.getExecutedDeltas();
 		}
-		LOGGER.trace("recordFocusOperationExecution: executedDeltas: {}", executedDeltas.size());
-		recordOperationExecution(objectNew, false, executedDeltas, now, context.getChannel(),
-				getSkipWhenSuccess(context), task, result);
+		return executedDeltas;
 	}
 
 	private <F extends ObjectType> boolean getSkipWhenSuccess(LensContext<F> context) {
@@ -976,13 +984,15 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType> void recordProjectionOperationExecution(LensContext<F> context,
-			LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result)
-			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+			LensProjectionContext projectionContext, XMLGregorianCalendar now, Throwable clockworkException,
+			Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		PrismObject<ShadowType> object = projectionContext.getObjectAny();
 		if (object == null) {
 			return;			// this can happen
 		}
-		recordOperationExecution(object, true, projectionContext.getExecutedDeltas(), now,
+		List<LensObjectDeltaOperation<ShadowType>> executedDeltas = getExecutedDeltas(projectionContext, ShadowType.class,
+				clockworkException, result);
+		recordOperationExecution(object, true, executedDeltas, now,
 				context.getChannel(), getSkipWhenSuccess(context), task, result);
 	}
 

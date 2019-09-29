@@ -44,7 +44,7 @@ public class UcfExpressionEvaluatorImpl implements UcfExpressionEvaluator {
 	@NotNull
 	@Override
 	public <O> List<O> evaluate(ExpressionType expressionBean, VariablesMap variables, QName outputPropertyName,
-			String ctxDesc) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			String ctxDesc, OperationResult opResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException {
 		// TODO consider getting the task instance from the caller
 		Task task = taskManager.createTaskInstance(UcfExpressionEvaluatorImpl.class.getName() + ".evaluate");

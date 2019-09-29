@@ -803,8 +803,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			lensContext.setDoReconciliationForAllProjections(BooleanUtils.isTrue(reaction.isReconcileAll()));
 		}
 
-
-
 		if (LOGGER.isTraceEnabled() && lensContext != null) {
 			LOGGER.trace("---[ SYNCHRONIZATION context before action execution ]-------------------------\n"
 					+ "{}\n------------------------------------------", lensContext.debugDump());
@@ -818,6 +816,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			Iterator<LensProjectionContext> iterator = lensContext.getProjectionContextsIterator();
 			LensProjectionContext originalProjectionContext = iterator.hasNext() ? iterator.next() : null;
+
+			if (originalProjectionContext != null) {
+				originalProjectionContext.setRecordClockworkExceptionHere(true);
+			}
 
 			try {
 

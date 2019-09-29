@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.TestNameHolder;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -179,11 +180,14 @@ public class TestUtil {
 	public static void displayTestTitle(String testName) {
 		System.out.println(TEST_OUT_PREFIX + testName + TEST_OUT_SUFFIX);
 		LOGGER.info(TEST_LOG_PREFIX + testName + TEST_LOG_SUFFIX);
+		TestNameHolder.setCurrentTestName(testName);
 	}
 
 	public static void displayTestTitle(Object testCase, String testName) {
-		System.out.println(TEST_OUT_PREFIX + testCase.getClass().getSimpleName() + "." + testName + TEST_OUT_SUFFIX);
-		LOGGER.info(TEST_LOG_PREFIX + testCase.getClass().getSimpleName() + "." + testName + TEST_LOG_SUFFIX);
+		String qualifiedTestName = testCase.getClass().getSimpleName() + "." + testName;
+		System.out.println(TEST_OUT_PREFIX + qualifiedTestName + TEST_OUT_SUFFIX);
+		LOGGER.info(TEST_LOG_PREFIX + qualifiedTestName + TEST_LOG_SUFFIX);
+		TestNameHolder.setCurrentTestName(qualifiedTestName);
 	}
 
 	public static void displayWhen(String testName) {

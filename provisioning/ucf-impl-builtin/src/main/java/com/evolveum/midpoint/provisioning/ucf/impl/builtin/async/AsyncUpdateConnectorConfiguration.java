@@ -7,10 +7,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async;
 
 import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateErrorHandlingActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AsyncUpdateSourcesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -26,6 +23,7 @@ public class AsyncUpdateConnectorConfiguration {
 	private AsyncUpdateSourcesType sources;
 	private ExpressionType transformExpression;
 	private AsyncUpdateErrorHandlingActionType errorHandlingAction;
+	private ProcessTracingConfigurationType processTracingConfiguration;
 
 	@ConfigurationProperty
 	public AsyncUpdateSourcesType getSources() {
@@ -52,6 +50,16 @@ public class AsyncUpdateConnectorConfiguration {
 
 	public void setErrorHandlingAction(AsyncUpdateErrorHandlingActionType errorHandlingAction) {
 		this.errorHandlingAction = errorHandlingAction;
+	}
+
+	@ConfigurationProperty
+	public ProcessTracingConfigurationType getProcessTracingConfiguration() {
+		return processTracingConfiguration;
+	}
+
+	public void setProcessTracingConfiguration(
+			ProcessTracingConfigurationType processTracingConfiguration) {
+		this.processTracingConfiguration = processTracingConfiguration;
 	}
 
 	public void validate() {

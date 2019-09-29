@@ -138,7 +138,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private boolean summarizeSuccesses;
 	private OperationResultImportanceType importance = NORMAL;
 
-	private boolean building = true;        // experimental (NOT SERIALIZED)
+	private boolean building;        // experimental (NOT SERIALIZED)
 	private OperationResult futureParent;   // experimental (NOT SERIALIZED)
 
 	private Long start;
@@ -232,6 +232,12 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return subresult;
 	}
 
+	public static OperationResultBuilder createFor(String operation) {
+		OperationResult rv = new OperationResult(operation);
+		rv.building = true;
+		return rv;
+	}
+
 	@Override
 	public OperationResult build() {
 		if (!building) {
@@ -254,12 +260,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	private static void recordStart(OperationResult result, String operation, Object[] arguments) {
-		// TODO for very minor operation results (e.g. those dealing with mapping and script execution)
-		//  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
-		//  and a call to System.nanoTime that could unnecessarily slow down midPoint operation.
-		result.invocationRecord = OperationInvocationRecord.create(operation, arguments);
-		result.invocationId = result.invocationRecord.getInvocationId();
-		result.start = System.currentTimeMillis();
 		result.collectingLogEntries = result.tracingProfile != null && result.tracingProfile.isCollectingLogEntries();
 		if (result.collectingLogEntries) {
 			LoggingLevelOverrideConfiguration loggingOverrideConfiguration = result.tracingProfile.getLoggingLevelOverrideConfiguration();
@@ -269,6 +269,12 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			}
 			TracingAppender.openSink(result::appendLoggedEvents);
 		}
+		// TODO for very minor operation results (e.g. those dealing with mapping and script execution)
+		//  we should consider skipping creation of invocationRecord. It includes some string manipulation(s)
+		//  and a call to System.nanoTime that could unnecessarily slow down midPoint operation.
+		result.invocationRecord = OperationInvocationRecord.create(operation, arguments);
+		result.invocationId = result.invocationRecord.getInvocationId();
+		result.start = System.currentTimeMillis();
 	}
 
 	private void appendLoggedEvents(LoggingEventSink loggingEventSink) {
@@ -330,7 +336,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			invocationRecord.processReturnValue(returnValue);
 			invocationRecord.afterCall();
 			microseconds = invocationRecord.getElapsedTimeMicros();
-			TracingAppender.closeCurrentSink();
+			if (collectingLogEntries) {
+				TracingAppender.closeCurrentSink();
+				collectingLogEntries = false;
+			}
 			invocationRecord = null;
 		}
 		end = System.currentTimeMillis();
@@ -1104,7 +1113,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	@Override
 	@SuppressWarnings("unchecked")
 	public OperationResult addParam(String name, Class<?> value) {
-		if (ObjectType.class.isAssignableFrom(value)) {
+		if (value != null && ObjectType.class.isAssignableFrom(value)) {
 			getParams().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
 		} else {
 			getParams().put(name, collectionize(stringify(value)));
@@ -1200,7 +1209,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	@Override
 	@SuppressWarnings("unchecked")
 	public OperationResult addContext(String name, Class<?> value) {
-		if (ObjectType.class.isAssignableFrom(value)) {
+		if (value != null && ObjectType.class.isAssignableFrom(value)) {
 			getContext().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
 		} else {
 			getContext().put(name, collectionize(stringify(value)));
@@ -1302,7 +1311,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	@SuppressWarnings("unchecked")
 	public void addReturn(String name, Class<?> value) {
-		if (ObjectType.class.isAssignableFrom(value)) {
+		if (value != null && ObjectType.class.isAssignableFrom(value)) {
 			getReturns().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
 		} else {
 			getReturns().put(name, collectionize(stringify(value)));

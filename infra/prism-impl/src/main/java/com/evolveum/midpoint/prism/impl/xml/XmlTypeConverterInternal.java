@@ -127,7 +127,7 @@ public class XmlTypeConverterInternal {
             return Base64.encodeBase64String(binaryData);
         } else if (type.equals(Boolean.class)) {
             Boolean bool = (Boolean) val;
-            if (bool.booleanValue()) {
+            if (bool) {
                 return XsdTypeMapper.BOOLEAN_XML_VALUE_TRUE;
             } else {
                 return XsdTypeMapper.BOOLEAN_XML_VALUE_FALSE;

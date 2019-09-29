@@ -23,7 +23,13 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultBuilder;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -39,10 +45,11 @@ import org.springframework.security.core.Authentication;
 import javax.xml.namespace.QName;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toPrismObject;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  *  Transforms AsyncUpdateMessageType objects to Change ones (via UcfChangeType intermediary).
@@ -53,51 +60,103 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 
 	private static final Trace LOGGER = TraceManager.getTrace(TransformationalAsyncUpdateMessageListener.class);
 
+	private static final String OP_ON_MESSAGE = TransformationalAsyncUpdateMessageListener.class.getName() + ".onMessage";
+	private static final String OP_ON_MESSAGE_PREPARATION = TransformationalAsyncUpdateMessageListener.class.getName() + ".onMessagePreparation";
+
 	private static final String VAR_MESSAGE = "message";
 
 	@NotNull private final ChangeListener changeListener;
 	@Nullable private final Authentication authentication;
 	@NotNull private final AsyncUpdateConnectorInstance connectorInstance;
+	@NotNull private final Tracer tracer;
+	@NotNull private final TaskManager taskManager;
 
-	TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener,
-			@Nullable Authentication authentication,
-			@NotNull AsyncUpdateConnectorInstance connectorInstance) {
+	private AtomicInteger messagesSeen = new AtomicInteger(0);
+
+	TransformationalAsyncUpdateMessageListener(@NotNull ChangeListener changeListener, @Nullable Authentication authentication,
+			@NotNull AsyncUpdateConnectorInstance connectorInstance, @NotNull Tracer tracer,
+			@NotNull TaskManager taskManager) {
 		this.changeListener = changeListener;
 		this.authentication = authentication;
 		this.connectorInstance = connectorInstance;
+		this.tracer = tracer;
+		this.taskManager = taskManager;
 	}
 
 	@Override
 	public boolean onMessage(AsyncUpdateMessageType message) throws SchemaException {
-		LOGGER.trace("Got {}", message);
+        int messageNumber = messagesSeen.getAndIncrement();
+		LOGGER.trace("Got message number {}: {}", messageNumber, message);
+
 		SecurityContextManager securityContextManager = connectorInstance.getSecurityContextManager();
 		Authentication oldAuthentication = securityContextManager.getAuthentication();
 
 		try {
 			securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
 
-			VariablesMap variables = new VariablesMap();
-			variables.put(VAR_MESSAGE, message, AsyncUpdateMessageType.class);
-			List<UcfChangeType> changeBeans;
+			Task task = taskManager.createTaskInstance(OP_ON_MESSAGE_PREPARATION);
+			if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
+				task.setOwner(((MidPointPrincipal) authentication.getPrincipal()).getUser().asPrismObject().clone());
+			}
+			OperationResult result = task.getResult();
+			OperationResultBuilder resultBuilder = OperationResult.createFor(OP_ON_MESSAGE);
 			try {
-				ExpressionType transformExpression = connectorInstance.getTransformExpression();
-				if (transformExpression != null) {
-					changeBeans = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
-							SchemaConstantsGenerated.C_UCF_CHANGE, "computing UCF change from async update");
-				} else {
-					changeBeans = unwrapMessage(message);
+
+                ProcessTracingConfigurationType tracingConfig = connectorInstance.getConfiguration()
+                        .getProcessTracingConfiguration();
+                if (tracingConfig != null) {
+                    int interval = defaultIfNull(tracingConfig.getInterval(), 1);
+                    boolean matches = interval > 0 && messageNumber % interval == 0;
+                    if (matches) {
+                        task.setTracingProfile(tracingConfig.getTracingProfile());
+                        if (tracingConfig.getTracingPoint().isEmpty()) {
+                            task.addTracingRequest(TracingRootType.ASYNCHRONOUS_MESSAGE_PROCESSING);
+                        } else {
+                            tracingConfig.getTracingPoint().forEach(task::addTracingRequest);
+                        }
+                    }
+                }
+
+                if (task.getTracingRequestedFor().contains(TracingRootType.ASYNCHRONOUS_MESSAGE_PROCESSING)) {
+                    TracingProfileType profile = task.getTracingProfile() != null ? task.getTracingProfile() : tracer.getDefaultProfile();
+                    resultBuilder.tracingProfile(tracer.compileProfile(profile, task.getResult()));
+                }
+
+                // replace task result with the newly-built one
+                result = resultBuilder.build();
+                task.setResult(result);
+
+				VariablesMap variables = new VariablesMap();
+				variables.put(VAR_MESSAGE, message, AsyncUpdateMessageType.class);
+				List<UcfChangeType> changeBeans;
+				try {
+					ExpressionType transformExpression = connectorInstance.getTransformExpression();
+					if (transformExpression != null) {
+						changeBeans = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
+								SchemaConstantsGenerated.C_UCF_CHANGE, "computing UCF change from async update", result);
+					} else {
+						changeBeans = unwrapMessage(message);
+					}
+				} catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
+						ConfigurationException | ExpressionEvaluationException e) {
+					throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
 				}
-			} catch (RuntimeException | SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
-					ConfigurationException | ExpressionEvaluationException e) {
-				throw new SystemException("Couldn't evaluate message transformation expression: " + e.getMessage(), e);
+				boolean ok = true;
+				for (UcfChangeType changeBean : changeBeans) {
+					// intentionally in this order - to process changes even after failure
+					// (if listener wants to fail fast, it can throw an exception)
+					ok = changeListener.onChange(createChange(changeBean), task, result) && ok;
+				}
+				return ok;
+			} catch (Throwable t) {
+				result.recordFatalError(t.getMessage(), t);
+				throw t;
+			} finally {
+				result.computeStatusIfUnknown();
+				if (result.isTraced()) {
+					tracer.storeTrace(task, result);
+				}
 			}
-			boolean ok = true;
-			for (UcfChangeType changeBean : changeBeans) {
-				// intentionally in this order - to process changes even after failure
-				// (if listener wants to fail fast, it can throw an exception)
-				ok = changeListener.onChange(createChange(changeBean)) && ok;
-			}
-			return ok;
 
 		} finally {
 			securityContextManager.setupPreAuthenticatedSecurityContext(oldAuthentication);

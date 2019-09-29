@@ -49,4 +49,12 @@ public interface ChangeHandler {
 	 */
 	boolean handleError(@Nullable PrismProperty<?> token, @Nullable Change change, @NotNull Throwable exception,
 			@NotNull OperationResult result);
+
+	/**
+	 * Called when all changes from the resource were fetched. This is meant to let the caller know that
+	 * it can update the token in the task (if token values are not known to be "precise".)
+	 *
+	 * Note that finalToken value might or might not be present; depending on the connector implementation.
+	 */
+	void handleAllChangesFetched(PrismProperty<?> finalToken, OperationResult result);
 }

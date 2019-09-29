@@ -7,21 +7,18 @@
 
 package com.evolveum.midpoint.provisioning.impl.sync;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.provisioning.impl.*;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.ShadowCache;
+import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
+import com.evolveum.midpoint.provisioning.impl.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -40,10 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -67,22 +62,13 @@ public class ChangeProcessor {
     @Autowired private ShadowCache shadowCache;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private RelationRegistry relationRegistry;
-    @Autowired private PrismContext prismContext;
     @Autowired private SchemaHelper schemaHelper;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
 
     public void execute(ProcessChangeRequest request, Task task, TaskPartitionDefinitionType partition,
             OperationResult parentResult) {
 
         ProvisioningContext globalCtx = request.getGlobalContext();
         Change change = request.getChange();
-
-        if (change.isTokenOnly()) {
-            return;         // nothing to do here ... token management is carried out elsewhere
-        }
 
         OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_SYNCHRONIZATION);
 
@@ -130,7 +116,10 @@ public class ChangeProcessor {
                 shadowCache.notifyResourceObjectChangeListeners(shadowChangeDescription, ctx.getTask(), notifyChangeResult);
                 notifyChangeResult.computeStatusIfUnknown();
             } catch (RuntimeException ex) {
+                notifyChangeResult.recordFatalError(ex.getMessage(), ex);
                 throw new SystemException("Synchronization error: " + ex.getMessage(), ex);
+            } catch (Throwable t) {
+                notifyChangeResult.recordFatalError(t.getMessage(), t);
             }
 
             notifyChangeResult.computeStatus("Error in notify change operation.");
@@ -149,14 +138,14 @@ public class ChangeProcessor {
                 request.setSuccess(false);
             }
 
-            if (result.isUnknown()) {
-                result.computeStatus();
-            }
-
             try {
                 validateResult(notifyChangeResult, task, partition);
             } catch (PreconditionViolationException e) {
                 throw new SystemException(e.getMessage(), e);
+            }
+
+            if (result.isUnknown()) {
+                result.computeStatus();
             }
 
             if (request.isSuccess()) {
@@ -315,9 +304,4 @@ public class ChangeProcessor {
         CriticalityType criticality = ExceptionUtil.getCriticality(selector, ex, CriticalityType.PARTIAL);
         RepoCommonUtils.processErrorCriticality(task, criticality, ex, result);
     }
-
-    private PrismObjectDefinition<ShadowType> getShadowDefinition() {
-        return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-    }
-
 }

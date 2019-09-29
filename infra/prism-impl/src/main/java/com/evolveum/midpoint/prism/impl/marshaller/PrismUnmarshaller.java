@@ -573,17 +573,26 @@ public class PrismUnmarshaller {
 
         XNodeImpl xrefObject = map.get(XNodeImpl.KEY_REFERENCE_OBJECT);
         if (xrefObject != null) {
-            if (!(xrefObject instanceof MapXNodeImpl)) {
-                throw new SchemaException("Cannot parse object from " + xrefObject);
-            }
+            MapXNodeImpl objectMapNode = toObjectMapNode(xrefObject);
 			if (type == null) {
 				throw new SchemaException("Cannot parse object from " + xrefObject + " without knowing its type");
 			}
-            PrismObject<Objectable> object = parseObject((MapXNodeImpl) xrefObject, objectDefinition, pc);
+            PrismObject<Objectable> object = parseObject(objectMapNode, objectDefinition, pc);
             setReferenceObject(refVal, object);
         }
 
         return refVal;
+    }
+
+    private MapXNodeImpl toObjectMapNode(XNodeImpl xNode) throws SchemaException {
+        if (xNode instanceof MapXNodeImpl) {
+            return (MapXNodeImpl) xNode;
+        } else if (xNode instanceof PrimitiveXNode && xNode.isEmpty()) {
+            return new MapXNodeImpl();
+        } else {
+            // TODO ...or warn
+            throw new SchemaException("Cannot parse object from " + xNode);
+        }
     }
 
     private void setReferenceObject(PrismReferenceValue refVal, PrismObject<Objectable> object) throws SchemaException {

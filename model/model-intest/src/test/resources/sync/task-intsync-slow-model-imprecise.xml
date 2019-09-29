@@ -15,6 +15,23 @@
 
 	<extension>
 		<ext:objectclass>ri:AccountObjectClass</ext:objectclass>
+<!--		<ext:tracing>-->
+<!--			<interval>1</interval>-->
+<!--			<tracingProfile>-->
+<!--				<collectLogEntries>true</collectLogEntries>-->
+<!--				<loggingOverride>-->
+<!--					<levelOverride>-->
+<!--						<logger>com.evolveum.midpoint.model</logger>-->
+<!--						<logger>com.evolveum.midpoint.provisioning</logger>-->
+<!--						<level>TRACE</level>-->
+<!--					</levelOverride>-->
+<!--				</loggingOverride>-->
+<!--				<tracingTypeProfile>-->
+<!--					<level>normal</level>-->
+<!--				</tracingTypeProfile>-->
+<!--				<fileNamePattern>trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}</fileNamePattern>-->
+<!--			</tracingProfile>-->
+<!--		</ext:tracing>-->
 	</extension>
 
 	<taskIdentifier>066c6993-8b94-445c-aaff-937184bbe6ca</taskIdentifier>

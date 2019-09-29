@@ -54,12 +54,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -1780,7 +1775,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			operationName = this.getClass().getName() + "." + operationName;
 		}
 		Task task = taskManager.createTaskInstance(operationName);
-//		setModelLoggingTracing(task);
+//		setModelAndProvisioningLoggingTracing(task);
 		return task;
 	}
 
@@ -1794,6 +1789,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void setModelAndWorkflowLoggingTracing(Task task) {
 		setTracing(task, addWorkflowLogging(createModelLoggingTracingProfile()));
+	}
+
+	protected void setModelAndProvisioningLoggingTracing(Task task) {
+		setTracing(task, addProvisioningLogging(createModelLoggingTracingProfile()));
 	}
 
 	protected void setHibernateLoggingTracing(Task task) {
@@ -1819,6 +1818,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return profile.getLoggingOverride()
 				.beginLevelOverride()
 					.logger("com.evolveum.midpoint.wf")
+					.level(LoggingLevelType.TRACE)
+				.<LoggingOverrideType>end()
+				.end();
+	}
+
+	protected TracingProfileType addProvisioningLogging(TracingProfileType profile) {
+		return profile.getLoggingOverride()
+				.beginLevelOverride()
+					.logger("com.evolveum.midpoint.provisioning")
 					.level(LoggingLevelType.TRACE)
 				.<LoggingOverrideType>end()
 				.end();

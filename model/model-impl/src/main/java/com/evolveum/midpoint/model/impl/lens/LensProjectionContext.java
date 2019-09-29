@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -976,7 +975,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public void checkConsistence(String contextDesc) {
 		super.checkConsistence(contextDesc);
 		if (secondaryDelta != null) {
-			boolean requireOid = isRequireSecondardyDeltaOid();
+			boolean requireOid = isRequireSecondaryDeltaOid();
 			// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
 			checkConsistence(secondaryDelta, requireOid, getElementDesc() + " secondary delta in " + this + (contextDesc == null ? "" : " in " + contextDesc));
 		}
@@ -1033,7 +1032,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	}
 	}
 
-	protected boolean isRequireSecondardyDeltaOid() {
+	protected boolean isRequireSecondaryDeltaOid() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD ||
 				synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN ||
 				synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE) {
@@ -1043,7 +1042,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			// These may not have the OID yet
 			return false;
 		}
-		return super.isRequireSecondardyDeltaOid();
+		return super.isRequireSecondaryDeltaOid();
 	}
 
 	@Override

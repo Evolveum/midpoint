@@ -20,7 +20,8 @@ public class SynchronizationOperationResult {
 	private AtomicInteger errors = new AtomicInteger(0);
 	private volatile boolean suspendEncountered;
 	private volatile boolean haltingErrorEncountered;
-	private PrismProperty<?> lastTokenSeen;
+	private boolean allChangesFetched;
+	private PrismProperty<?> initialToken;
 	private PrismProperty<?> taskTokenUpdatedTo;
 
 	public int getChangesProcessed() {
@@ -47,12 +48,20 @@ public class SynchronizationOperationResult {
 		this.haltingErrorEncountered = haltingErrorEncountered;
 	}
 
-	public PrismProperty<?> getLastTokenSeen() {
-		return lastTokenSeen;
+	public boolean isAllChangesFetched() {
+		return allChangesFetched;
 	}
 
-	public void setLastTokenSeen(PrismProperty<?> lastTokenSeen) {
-		this.lastTokenSeen = lastTokenSeen;
+	public void setAllChangesFetched(boolean allChangesFetched) {
+		this.allChangesFetched = allChangesFetched;
+	}
+
+	public PrismProperty<?> getInitialToken() {
+		return initialToken;
+	}
+
+	public void setInitialToken(PrismProperty<?> initialToken) {
+		this.initialToken = initialToken;
 	}
 
 	public PrismProperty<?> getTaskTokenUpdatedTo() {
@@ -65,18 +74,21 @@ public class SynchronizationOperationResult {
 
 	@Override
 	public String toString() {
-		return "changesProcessed=" + changesProcessed.get() +
-				", errors=" + errors.get() +
+		return "changesProcessed=" + changesProcessed +
+				", errors=" + errors +
 				", suspendEncountered=" + suspendEncountered +
 				", haltingErrorEncountered=" + haltingErrorEncountered +
-				", lastTokenSeen=" + lastTokenSeen +
+				", allChangesFetched=" + allChangesFetched +
+				", initialToken=" + initialToken +
 				", taskTokenUpdatedTo=" + taskTokenUpdatedTo;
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	public int incrementErrors() {
 		return errors.incrementAndGet();
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	public int incrementChangesProcessed() {
 		return changesProcessed.incrementAndGet();
 	}

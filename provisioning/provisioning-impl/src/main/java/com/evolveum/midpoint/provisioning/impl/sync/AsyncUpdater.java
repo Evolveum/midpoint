@@ -39,23 +39,25 @@ public class AsyncUpdater {
     @Autowired private ResourceObjectConverter resourceObjectConverter;
     @Autowired private ChangeProcessor changeProcessor;
 
-    public String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
+    public String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task callerTask, OperationResult callerResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             ExpressionEvaluationException {
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
-        ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
-        ChangeListener listener = change -> {
+        ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, callerTask, callerResult);
+        ChangeListener listener = (change, listenerTask, listenerResult) -> {
             ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, false);
-            changeProcessor.execute(request, task, null, parentResult);
+            changeProcessor.execute(request, listenerTask, null, listenerResult);
             // note that here's no try-catch block, as exceptions are converted to SystemException in default
             // implementation of ProcessChangeRequest (todo)
-            if (task instanceof RunningTask) {
-                ((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+
+            // TODO TODO TODO this will not work now
+            if (listenerTask instanceof RunningTask) {
+                ((RunningTask) listenerTask).incrementProgressAndStoreStatsIfNeeded();
             }
             return request.isSuccess();
         };
-        return resourceObjectConverter.startListeningForAsyncUpdates(ctx, listener, parentResult);
+        return resourceObjectConverter.startListeningForAsyncUpdates(ctx, listener, callerResult);
     }
 
     @SuppressWarnings("unused")

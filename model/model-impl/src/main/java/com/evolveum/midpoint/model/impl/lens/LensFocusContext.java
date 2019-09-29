@@ -58,6 +58,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	public LensFocusContext(Class<O> objectTypeClass, LensContext<O> lensContext) {
 		super(objectTypeClass, lensContext);
+		recordClockworkExceptionHere = true;
 	}
 	
 	private int getProjectionWave() {

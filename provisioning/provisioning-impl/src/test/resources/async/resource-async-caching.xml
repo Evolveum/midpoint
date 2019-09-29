@@ -25,6 +25,27 @@
 				<className>com.evolveum.midpoint.provisioning.impl.async.MockAsyncUpdateSource</className>
 			</other>
 		</conf:sources>
+<!--		<conf:processTracingConfiguration>-->
+<!--			<interval>1</interval>-->
+<!--			<tracingProfile>-->
+<!--				<name>functional-model-logging</name>-->
+<!--				<displayName>Functional tracing (with model logging)</displayName>-->
+<!--				<visible>true</visible>-->
+<!--				<fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>-->
+<!--				<createRepoObject>true</createRepoObject>-->
+<!--				<compressOutput>true</compressOutput>-->
+<!--				<collectLogEntries>true</collectLogEntries>-->
+<!--				<loggingOverride>-->
+<!--					<levelOverride>-->
+<!--						<logger>com.evolveum.midpoint.model</logger>-->
+<!--						<level>TRACE</level>-->
+<!--					</levelOverride>-->
+<!--				</loggingOverride>-->
+<!--				<tracingTypeProfile>-->
+<!--					<level>normal</level>-->
+<!--				</tracingTypeProfile>-->
+<!--			</tracingProfile>-->
+<!--		</conf:processTracingConfiguration>-->
 	</connectorConfiguration>
 	<schema>
 		<definition>

@@ -33,6 +33,9 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -83,8 +86,8 @@ public class ResourceObjectConverter {
 	private static final String OPERATION_MODIFY_RESOURCE_OBJECT = DOT_CLASS + "modifyResourceObject";
 	private static final String OPERATION_DELETE_RESOURCE_OBJECT = DOT_CLASS + "deleteResourceObject";
 	private static final String OPERATION_REFRESH_OPERATION_STATUS = DOT_CLASS + "refreshOperationStatus";
-	
-	
+	private static final String OPERATION_HANDLE_CHANGE = DOT_CLASS + "handleChange";
+
 	@Autowired private EntitlementConverter entitlementConverter;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;	
 	@Autowired private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
@@ -94,6 +97,7 @@ public class ResourceObjectConverter {
 	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private AsyncUpdateListeningRegistry listeningRegistry;
 	@Autowired private CacheConfigurationManager cacheConfigurationManager;
+	@Autowired private Tracer tracer;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -1736,12 +1740,11 @@ public class ResourceObjectConverter {
 		return ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath());
 	}
 
-	public void fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken, ChangeHandler changeHandler,
+	public void fetchChanges(ProvisioningContext ctx, @NotNull PrismProperty<?> initialToken, ChangeHandler changeHandler,
 			OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
-		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.trace("START fetch changes, objectClass: {}", ctx.getObjectClassDefinition());
+		LOGGER.trace("START fetch changes from {}, objectClass: {}", initialToken, ctx.getObjectClassDefinition());
 		AttributesToReturn attrsToReturn;
 		if (ctx.isWildcard()) {
 			attrsToReturn = null;
@@ -1750,37 +1753,73 @@ public class ResourceObjectConverter {
 		}
 
 		ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, parentResult);
-		Integer batchSizeInTask = ctx.getTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE);
-		Integer maxChanges;
-		LiveSyncCapabilityType capability = ctx.getEffectiveCapability(LiveSyncCapabilityType.class);
-		if (capability != null) {
-			if (Boolean.TRUE.equals(capability.isPreciseTokenValue())) {
-				maxChanges = batchSizeInTask;
-			} else {
-				checkMaxChanges(batchSizeInTask, "LiveSync capability has preciseTokenValue not set to 'true'");
-				maxChanges = null;
-			}
-		} else {
-			// Is this possible?
-			checkMaxChanges(batchSizeInTask, "LiveSync capability is not found or disabled");
-			maxChanges = null;
-		}
+		Integer maxChanges = getMaxChanges(ctx);
+
+		Holder<Boolean> allChangesFetchedHolder = new Holder<>();           // for diag purposes
+		Holder<PrismProperty<?>> finalTokenHolder = new Holder<>();         // for diag purposes
 
 		AtomicInteger processed = new AtomicInteger(0);
 		ChangeHandler localHandler = new ChangeHandler() {
 			@Override
-			public boolean handleChange(Change change, OperationResult result) {
-				processed.getAndIncrement();
-				if (!change.isTokenOnly()) {
-					try {
-						if (!preprocessChange(ctx, attrsToReturn, connector, change, result)) {
-							return true;
+			public boolean handleChange(Change change, OperationResult parentResult) {
+				int changeNumber = processed.getAndIncrement();
+
+				Task task = ctx.getTask();
+				boolean requestedTracingHere;
+				requestedTracingHere = task instanceof RunningTask &&
+						((RunningTask) task).requestTracingIfNeeded(
+								(RunningTask) task, changeNumber,
+								TracingRootType.LIVE_SYNC_CHANGE_PROCESSING);
+				try {
+					OperationResultBuilder resultBuilder = parentResult.subresult(OPERATION_HANDLE_CHANGE)
+							.setMinor()
+							.addParam("number", changeNumber)
+							.addArbitraryObjectAsParam("primaryIdentifier", change.getPrimaryIdentifierRealValue())
+							.addArbitraryObjectAsParam("token", change.getToken());
+
+					// Here we request tracing if configured to do so. Note that this is only a partial solution: for multithreaded
+					// livesync we currently do not trace the "worker" part of the processing.
+					boolean tracingRequested;
+					if (task.getTracingRequestedFor().contains(TracingRootType.LIVE_SYNC_CHANGE_PROCESSING)) {
+						tracingRequested = true;
+						try {
+							resultBuilder.tracingProfile(tracer.compileProfile(task.getTracingProfile(), parentResult));
+						} catch (SchemaException | RuntimeException e) {
+							return changeHandler.handleError(change.getToken(), change, e, parentResult);
 						}
+					} else {
+						tracingRequested = false;
+					}
+					OperationResult result = resultBuilder.build();
+
+					try {
+						try {
+							if (!preprocessChange(ctx, attrsToReturn, connector, change, result)) {
+								result.addReturn("status", "stopped in pre-processing");
+								return true;
+							}
+						} catch (Throwable t) {
+							result.addReturn("status", "failed: " + t);
+							return changeHandler.handleError(change.getToken(), change, t, result);
+						}
+						boolean cont = changeHandler.handleChange(change, result);
+						result.addReturn("status", "handled with continue=" + cont);
+
+						return cont;
 					} catch (Throwable t) {
-						return changeHandler.handleError(change.getToken(), change, t, result);
+						result.recordFatalError(t);
+						throw t;
+					} finally {
+						result.computeStatusIfUnknown();
+						if (tracingRequested) {
+							tracer.storeTrace(task, result);
+						}
+					}
+				} finally {
+					if (requestedTracingHere && task instanceof RunningTask) {
+						((RunningTask) task).stopTracing();
 					}
 				}
-				return changeHandler.handleChange(change, result);
 			}
 
 			@Override
@@ -1788,14 +1827,41 @@ public class ResourceObjectConverter {
 					@NotNull Throwable exception, @NotNull OperationResult result) {
 				return changeHandler.handleError(token, change, exception, result);
 			}
+
+			@Override
+			public void handleAllChangesFetched(PrismProperty<?> finalToken, OperationResult result) {
+				allChangesFetchedHolder.setValue(true);
+				finalTokenHolder.setValue(finalToken);
+				changeHandler.handleAllChangesFetched(finalToken, result);
+			}
 		};
 
 		// get changes from the connector
-		connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, maxChanges, ctx, localHandler, parentResult);
+		connector.fetchChanges(ctx.getObjectClassDefinition(), initialToken, attrsToReturn, maxChanges, ctx, localHandler, parentResult);
 
 		computeResultStatus(parentResult);
 		
-		LOGGER.trace("END fetch changes ({} changes); interrupted = {}", processed.get(), !ctx.canRun());
+		LOGGER.trace("END fetch changes ({} changes); interrupted = {}; all fetched = {}, final token = {}", processed.get(),
+				!ctx.canRun(), allChangesFetchedHolder.getValue(), finalTokenHolder.getValue());
+	}
+
+	@Nullable
+	private Integer getMaxChanges(ProvisioningContext ctx) throws SchemaException, ObjectNotFoundException,
+			CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Integer batchSizeInTask = ctx.getTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE);
+		LiveSyncCapabilityType capability = ctx.getEffectiveCapability(LiveSyncCapabilityType.class);
+		if (capability != null) {
+			if (Boolean.TRUE.equals(capability.isPreciseTokenValue())) {
+				return batchSizeInTask;
+			} else {
+				checkMaxChanges(batchSizeInTask, "LiveSync capability has preciseTokenValue not set to 'true'");
+				return null;
+			}
+		} else {
+			// Is this possible?
+			checkMaxChanges(batchSizeInTask, "LiveSync capability is not found or disabled");
+			return null;
+		}
 	}
 
 	/**
@@ -1878,7 +1944,7 @@ public class ResourceObjectConverter {
 		LOGGER.trace("START start listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
 		ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
 
-		ChangeListener innerListener = change -> {
+		ChangeListener innerListener = (change, listenerTask, listenerResult) -> {
 			try {
 				LOGGER.trace("Start processing change:\n{}", change.debugDumpLazily());
 				setResourceOidIfMissing(change, ctx.getResourceOid());
@@ -1902,12 +1968,12 @@ public class ResourceObjectConverter {
 				if (change.getCurrentShadow() != null) {
 					shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());
 					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
-							change.getCurrentShadow(), true, parentResult);
+							change.getCurrentShadow(), true, listenerResult);
 					change.setCurrentShadow(processedCurrentShadow);
 				} else {
 					// we will fetch current shadow later
 				}
-				return outerListener.onChange(change);
+				return outerListener.onChange(change, listenerTask, listenerResult);
 			} catch (Throwable t) {
 				throw new SystemException("Couldn't process async update: " + t.getMessage(), t);
 			}
