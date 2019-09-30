@@ -818,7 +818,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			LensProjectionContext originalProjectionContext = iterator.hasNext() ? iterator.next() : null;
 
 			if (originalProjectionContext != null) {
-				originalProjectionContext.setRecordClockworkExceptionHere(true);
+				originalProjectionContext.setSynchronizationSource(true);
 			}
 
 			try {

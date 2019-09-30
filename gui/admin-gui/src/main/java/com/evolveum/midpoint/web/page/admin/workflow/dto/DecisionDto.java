@@ -119,8 +119,11 @@ public class DecisionDto extends Selectable {
 			}
 			return rv;
 		} else if (e instanceof WorkItemDelegationEventType){
-			ObjectReferenceType origAssigneeRef = CollectionUtils.isNotEmpty(((WorkItemDelegationEventType) e).getAssigneeBefore()) ?
-					((WorkItemDelegationEventType) e).getAssigneeBefore().get(0) : null;
+			WorkItemDelegationEventType event = (WorkItemDelegationEventType) e;
+			ObjectReferenceType origAssigneeRef = CollectionUtils.isNotEmpty(event.getAssigneeBefore()) ? event.getAssigneeBefore().get(0) : null;
+			if (event.getCause() != null){
+
+			}
 			rv.originalAssignee =  origAssigneeRef != null ? WebModelServiceUtils.resolveReferenceName(origAssigneeRef, pageBase) : null;
 			return rv;
 		} else if (e instanceof StageCompletionEventType) {

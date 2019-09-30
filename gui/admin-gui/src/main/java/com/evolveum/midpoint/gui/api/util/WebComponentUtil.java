@@ -3580,15 +3580,13 @@ public final class WebComponentUtil {
 	}
 
 	public static void workItemApproveActionPerformed(AjaxRequestTarget target, CaseWorkItemType workItem, AbstractWorkItemOutputType workItemOutput,
-												Component formPanel, PrismObject<UserType> powerDonor, boolean approved, String operation, PageBase pageBase) {
+												Component formPanel, PrismObject<UserType> powerDonor, boolean approved, OperationResult result, PageBase pageBase) {
 		if (workItem == null){
 			return;
 		}
 		CaseType parentCase = CaseWorkItemUtil.getCase(workItem);
-		OperationResult result;
 		if (CaseTypeUtil.isManualProvisioningCase(parentCase)){
-			Task task = pageBase.createSimpleTask(operation);
-			result = new OperationResult(operation);
+			Task task = pageBase.createSimpleTask(result.getOperation());
 			try {
 				AbstractWorkItemOutputType output = workItem.getOutput();
 				if (output == null) {
@@ -3609,8 +3607,7 @@ public final class WebComponentUtil {
 			}
 		} else {
 
-			Task task = pageBase.createSimpleTask(operation);
-			result = task.getResult();
+			Task task = pageBase.createSimpleTask(result.getOperation());
 			try {
 				try {
 					ObjectDelta additionalDelta = null;
@@ -3639,7 +3636,7 @@ public final class WebComponentUtil {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
 			}
 		}
-		pageBase.processResult(target, result, false);
+		result.computeStatusIfUnknown();
 	}
 
 	public static List<ObjectOrdering> createMetadataOrdering(SortParam<String> sortParam, String metadataProperty, PrismContext prismContext){

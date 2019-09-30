@@ -41,7 +41,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -64,14 +63,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private int iteration;
     private String iterationToken;
 
-	/**
-	 * When clockwork exception occurs (e.g. as in MID-5801) we record it (by default) to focus object.
-	 * But we might also want to record the exception also to a shadow, in order to see that this shadow could
-	 * not e.g. be imported or reconciled, or live-synced.
-	 */
-	boolean recordClockworkExceptionHere;
-    
-    transient private SecurityPolicyType securityPolicy;
+	transient private SecurityPolicyType securityPolicy;
 
 	/**
 	 * These are policy state modifications that should be applied.
@@ -483,14 +475,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.isFresh = isFresh;
 	}
 
-	public boolean isRecordClockworkExceptionHere() {
-		return recordClockworkExceptionHere;
-	}
-
-	public void setRecordClockworkExceptionHere(boolean recordClockworkExceptionHere) {
-		this.recordClockworkExceptionHere = recordClockworkExceptionHere;
-	}
-
 	@NotNull
 	public Collection<EvaluatedPolicyRule> getPolicyRules() {
 		return policyRules;
@@ -644,7 +628,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		clone.iteration = this.iteration;
 		clone.iterationToken = this.iterationToken;
 		clone.securityPolicy = this.securityPolicy;
-		clone.recordClockworkExceptionHere = this.recordClockworkExceptionHere;
 	}
 
 	protected ObjectDelta<O> cloneDelta(ObjectDelta<O> thisDelta) {
