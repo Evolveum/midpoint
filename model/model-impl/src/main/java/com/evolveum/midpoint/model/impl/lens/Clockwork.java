@@ -921,9 +921,17 @@ public class Clockwork {
 			XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 			try {
 				LOGGER.trace("recordOperationExecution starting; task = {}, clockworkException = {}", task, clockworkException);
-				recordFocusOperationExecution(context, now, clockworkException, task, result);
+				boolean opRecordedIntoFocus = recordFocusOperationExecution(context, now, clockworkException, task, result);
 				for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-					recordProjectionOperationExecution(context, projectionContext, now, clockworkException, task, result);
+					Throwable exceptionToProjection;
+					if (clockworkException != null && !opRecordedIntoFocus && projectionContext.isSynchronizationSource()) {
+						// We need to record the exception somewhere. Because we were not able to put it into focus,
+						// we have to do it into sync-source projection.
+						exceptionToProjection = clockworkException;
+					} else {
+						exceptionToProjection = null;
+					}
+					recordProjectionOperationExecution(context, projectionContext, now, exceptionToProjection, task, result);
 				}
 			} catch (Throwable t) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't record operation execution. Model context:\n{}", t,
@@ -936,13 +944,16 @@ public class Clockwork {
 		}
 	}
 
-	private <F extends ObjectType> void recordFocusOperationExecution(LensContext<F> context, XMLGregorianCalendar now,
+	/**
+	 * @return true if the operation execution was recorded (or would be recorded, but skipped because of the configuration)
+	 */
+	private <F extends ObjectType> boolean recordFocusOperationExecution(LensContext<F> context, XMLGregorianCalendar now,
 			Throwable clockworkException, Task task, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null || focusContext.isDelete()) {
 			LOGGER.trace("focusContext is null or 'delete', not recording focus operation execution");
-			return;
+			return false;
 		}
 		PrismObject<F> objectNew = focusContext.getObjectNew();
 		Validate.notNull(objectNew, "No focus object even if the context is not of 'delete' type");
@@ -951,7 +962,7 @@ public class Clockwork {
 		List<LensObjectDeltaOperation<F>> executedDeltas = getExecutedDeltas(focusContext,
 				(Class<F>) objectNew.asObjectable().getClass(), clockworkException, result);
 		LOGGER.trace("recordFocusOperationExecution: executedDeltas: {}", executedDeltas.size());
-		recordOperationExecution(objectNew, false, executedDeltas, now, context.getChannel(),
+		return recordOperationExecution(objectNew, false, executedDeltas, now, context.getChannel(),
 				getSkipWhenSuccess(context), task, result);
 	}
 
@@ -959,7 +970,7 @@ public class Clockwork {
 	private <O extends ObjectType> List<LensObjectDeltaOperation<O>> getExecutedDeltas(LensElementContext<O> elementContext,
 			Class<O> objectClass, Throwable clockworkException, OperationResult result) {
 		List<LensObjectDeltaOperation<O>> executedDeltas;
-		if (clockworkException != null && elementContext.isRecordClockworkExceptionHere()) {
+		if (clockworkException != null) {
 			executedDeltas = new ArrayList<>(elementContext.getExecutedDeltas());
 			LensObjectDeltaOperation<O> odo = new LensObjectDeltaOperation<>();
 			ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
@@ -996,7 +1007,10 @@ public class Clockwork {
 				context.getChannel(), getSkipWhenSuccess(context), task, result);
 	}
 
-	private <F extends ObjectType> void recordOperationExecution(PrismObject<F> object, boolean deletedOk,
+	/**
+	 * @return true if the operation execution was recorded (or would be recorded, but skipped because of the configuration)
+	 */
+	private <F extends ObjectType> boolean recordOperationExecution(PrismObject<F> object, boolean deletedOk,
 			List<LensObjectDeltaOperation<F>> executedDeltas, XMLGregorianCalendar now,
 			String channel, boolean skipWhenSuccess, Task task, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
@@ -1014,12 +1028,13 @@ public class Clockwork {
 		}
 		if (oid == null) {        // e.g. if there is an exception in provisioning.addObject method
 			LOGGER.trace("recordOperationExecution: skipping because oid is null for object = {}", object);
-			return;
+			return false;
 		}
 		summaryResult.computeStatus();
 		OperationResultStatusType overallStatus = summaryResult.getStatus().createStatusType();
 		setOperationContext(operation, overallStatus, now, channel, task);
 		storeOperationExecution(object, oid, operation, deletedOk, skipWhenSuccess, result);
+		return true;
 	}
 
 	private <F extends ObjectType> void storeOperationExecution(@NotNull PrismObject<F> object, @NotNull String oid,
