@@ -70,6 +70,7 @@ import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -1443,6 +1444,8 @@ public class ResourceObjectConverter {
 						ctx, enabledPropertyDelta, shadow, status, activationCapability, result);
 				if (activationAttribute != null) {
 					operations.add(activationAttribute);
+				} else {
+					operations.add(new PropertyModificationOperation<>(enabledPropertyDelta));
 				}
 			} else {
 				LOGGER.trace("Native activation capability, creating property modification");
@@ -1506,8 +1509,7 @@ public class ResourceObjectConverter {
 			ShadowType shadow, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException{
 		
 		ActivationStatusCapabilityType capActStatus = getActivationAdministrativeStatusFromSimulatedActivation(ctx, activationCapabilityType, shadow, result);
-		ResourceAttribute<T> activationAttribute = getSimulatedActivationAdministrativeStatusAttribute(ctx, shadow, 
-				capActStatus, result);
+		ResourceAttribute<T> activationAttribute = getSimulatedActivationAdministrativeStatusAttribute(ctx, shadow, capActStatus, result);
 		if (activationAttribute == null) {
 			return;
 		}
@@ -1757,6 +1759,7 @@ public class ResourceObjectConverter {
 				}
 			} else if (new ItemPath(ShadowType.F_ASSOCIATION).equivalent(itemDelta.getPath())) {
 				if (itemDelta instanceof ContainerDelta) {
+					//noinspection unchecked
 					entitlementConverter.collectEntitlementChange(ctx, (ContainerDelta<ShadowAssociationType>)itemDelta, operations);
 				} else {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
@@ -1910,7 +1913,7 @@ public class ResourceObjectConverter {
 			ActivationType activationType = null;
 
 			if (ctx.hasConfiguredCapability(ActivationCapabilityType.class) && CapabilityUtil.isCapabilityEnabled(activationCapability)){
-				activationType = convertFromSimulatedActivationAttributes(resourceType, resourceObject, activationCapability, parentResult);
+				activationType = convertFromSimulatedActivationAttributes(resourceType, resourceObject, activationCapability, resourceObjectType.getActivation(), parentResult);
 			} else if (ctx.hasNativeCapability(ActivationCapabilityType.class)) {
 				activationType = resourceObjectType.getActivation();
 			} else {
@@ -1929,61 +1932,59 @@ public class ResourceObjectConverter {
 	}
 	
 	private static ActivationType convertFromSimulatedActivationAttributes(ResourceType resource,
-			PrismObject<ShadowType> resourceObject, ActivationCapabilityType activationCapability, OperationResult parentResult) {
+			PrismObject<ShadowType> resourceObject, ActivationCapabilityType activationCapability, @Nullable ActivationType activationType, OperationResult parentResult) {
 		// LOGGER.trace("Start converting activation type from simulated activation attribute");
 		if (activationCapability == null) {
 			return null;
 		}
 		
-		ActivationType activationType = new ActivationType();
-		
-		convertFromSimulatedActivationAdministrativeStatus(activationType, activationCapability, resource, resourceObject, parentResult);
-		convertFromSimulatedActivationLockoutStatus(activationType, activationCapability, resource, resourceObject, parentResult);
+		activationType = convertFromSimulatedActivationAdministrativeStatus(activationType, activationCapability, resource, resourceObject, parentResult);
+		activationType = convertFromSimulatedActivationLockoutStatus(activationType, activationCapability, resource, resourceObject, parentResult);
 		
 		return activationType;
 	}
 
-	private static void convertFromSimulatedActivationAdministrativeStatus(ActivationType activationType, ActivationCapabilityType activationCapability,
+	private static ActivationType convertFromSimulatedActivationAdministrativeStatus(@Nullable  ActivationType activationType, ActivationCapabilityType activationCapability,
 			ResourceType resource, PrismObject<ShadowType> shadow, OperationResult parentResult) {
 		
 		ActivationStatusCapabilityType statusCapabilityType = CapabilityUtil.getEffectiveActivationStatus(activationCapability);
 		if (statusCapabilityType == null) {
-			return;
+			return activationType;
+		}
+		QName statusCapabilityAttributeQName = statusCapabilityType.getAttribute();
+		if (statusCapabilityAttributeQName == null) {
+			return activationType;
 		}
 		
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);		
-		ResourceAttribute<?> simulatedStatusAttribute = null;
-		if (statusCapabilityType.getAttribute() != null) {
-			simulatedStatusAttribute = attributesContainer.findAttribute(statusCapabilityType.getAttribute());
-		}
-		
-		// LOGGER.trace("activation property: {}", activationProperty.dump());
-		// if (activationProperty == null) {
-		// LOGGER.debug("No simulated activation attribute was defined for the account.");
-		// return null;
-		// }
+		ResourceAttribute<?> simulatedStatusAttribute = attributesContainer.findAttribute(statusCapabilityAttributeQName);
 
 		Collection<Object> simulatedStatusAttributeValues = null;
 		if (simulatedStatusAttribute != null) {
 			simulatedStatusAttributeValues = simulatedStatusAttribute.getRealValues(Object.class);
 		}
 		
+		if (activationType == null) {
+			activationType = new ActivationType();
+		}
 		convertFromSimulatedActivationAdministrativeStatusInternal(activationType, statusCapabilityType, resource, simulatedStatusAttributeValues, parentResult);
 		
+		if (LOGGER.isTraceEnabled()) {
 		LOGGER.trace(
 				"Detected simulated activation administrativeStatus attribute {} on {} with value {}, resolved into {}",
-				SchemaDebugUtil.prettyPrint(statusCapabilityType.getAttribute()),
-				ObjectTypeUtil.toShortString(resource), simulatedStatusAttributeValues,
-				activationType == null ? "null" : activationType.getAdministrativeStatus());
+					SchemaDebugUtil.prettyPrint(statusCapabilityAttributeQName),
+					resource, simulatedStatusAttributeValues, activationType.getAdministrativeStatus());
+		}
 		
 		// Remove the attribute which is the source of simulated activation. If we leave it there then we
 		// will have two ways to set activation.
-		if (statusCapabilityType.isIgnoreAttribute() == null
-				|| statusCapabilityType.isIgnoreAttribute()) {
+		if (statusCapabilityType.isIgnoreAttribute() == null  || statusCapabilityType.isIgnoreAttribute()) {
 			if (simulatedStatusAttribute != null) {
 				attributesContainer.remove(simulatedStatusAttribute);
 			}
 		}
+
+		return activationType;
 	}
 	
 	/**
@@ -2043,47 +2044,46 @@ public class ResourceObjectConverter {
 
 	}
 	
-	private static void convertFromSimulatedActivationLockoutStatus(ActivationType activationType, ActivationCapabilityType activationCapability,
+	private static ActivationType convertFromSimulatedActivationLockoutStatus(@Nullable ActivationType activationType, ActivationCapabilityType activationCapability,
 			ResourceType resource, PrismObject<ShadowType> shadow, OperationResult parentResult) {
 		
 		ActivationLockoutStatusCapabilityType statusCapabilityType = CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapability);
 		if (statusCapabilityType == null) {
-			return;
+			return activationType;
 		}
 		
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);		
-		ResourceAttribute<?> activationProperty = null;
-		if (statusCapabilityType.getAttribute() != null) {
-			activationProperty = attributesContainer.findAttribute(statusCapabilityType.getAttribute());
+		if (statusCapabilityType.getAttribute() == null) {
+			return activationType;
 		}
-		
-		// LOGGER.trace("activation property: {}", activationProperty.dump());
-		// if (activationProperty == null) {
-		// LOGGER.debug("No simulated activation attribute was defined for the account.");
-		// return null;
-		// }
+		ResourceAttribute<?> activationProperty = attributesContainer.findAttribute(statusCapabilityType.getAttribute());
 
 		Collection<Object> activationValues = null;
 		if (activationProperty != null) {
 			activationValues = activationProperty.getRealValues(Object.class);
 		}
 		
+		if (activationType == null) {
+			activationType = new ActivationType();
+		}
 		convertFromSimulatedActivationLockoutStatusInternal(activationType, statusCapabilityType, resource, activationValues, parentResult);
 		
+		if (LOGGER.isTraceEnabled()) {
 		LOGGER.trace(
 				"Detected simulated activation lockout attribute {} on {} with value {}, resolved into {}",
 				SchemaDebugUtil.prettyPrint(statusCapabilityType.getAttribute()),
-				ObjectTypeUtil.toShortString(resource), activationValues,
-				activationType == null ? "null" : activationType.getAdministrativeStatus());
+					resource, activationValues,  activationType.getAdministrativeStatus());
+		}
 		
 		// Remove the attribute which is the source of simulated activation. If we leave it there then we
 		// will have two ways to set activation.
-		if (statusCapabilityType.isIgnoreAttribute() == null
-				|| statusCapabilityType.isIgnoreAttribute()) {
+		if (statusCapabilityType.isIgnoreAttribute() == null  || statusCapabilityType.isIgnoreAttribute()) {
 			if (activationProperty != null) {
 				attributesContainer.remove(activationProperty);
 			}
 		}
+
+		return activationType;
 	}
 	
 	/**
@@ -2114,8 +2114,6 @@ public class ResourceObjectConverter {
 				parentResult.recordPartialError("The " + resource
 						+ " has native activation capability but noes not provide value for lockout attribute");
 			}
-
-			return;
 
 		} else {
 			if (activationValues.size() > 1) {
@@ -2175,16 +2173,14 @@ public class ResourceObjectConverter {
 		QName enableAttributeName = capActStatus.getAttribute();
 		LOGGER.trace("Simulated attribute name: {}", enableAttributeName);
 		if (enableAttributeName == null) {
-			result.recordWarning("Resource "
-							+ ObjectTypeUtil.toShortString(resource)
-							+ " does not have attribute specification for simulated activation status capability. Processing of activation for "+ shadow +" was skipped");
-			shadow.setFetchResult(result.createOperationResultType());
+			// Do not throw error and do not log warning here. Configured activation capability may not be just about simulated activation.
 			return null;
 		}
 
 		ResourceAttributeDefinition<T> enableAttributeDefinition = ctx.getObjectClassDefinition()
 				.findAttributeDefinition(enableAttributeName);
 		if (enableAttributeDefinition == null) {
+			// Warning is appropriate here. Attribute is defined, but that attribute is not known.
 			result.recordWarning("Resource " + ObjectTypeUtil.toShortString(resource)
 					+ "  attribute for simulated activation/enableDisable capability" + enableAttributeName
 					+ " in not present in the schema for objeclass " + ctx.getObjectClassDefinition()+". Processing of activation for "+ ObjectTypeUtil.toShortString(shadow)+" was skipped");
@@ -2209,7 +2205,7 @@ public class ResourceObjectConverter {
 			return null;
 		}
 
-		LOGGER.trace("Simulted activation attribute: {}", simulatedAttribute);
+		LOGGER.trace("Simulated activation attribute: {}", simulatedAttribute);
 
 		Class<?> simulatedAttrValueClass = getAttributeValueClass(ctx, shadow, simulatedAttribute, capActStatus);
 
@@ -2227,8 +2223,7 @@ public class ResourceObjectConverter {
 			simulatedAttrDelta = createActivationPropDelta(simulatedAttribute.getElementName(), simulatedAttribute.getDefinition(), disableValue);
 		}
 
-		PropertyModificationOperation attributeChange = new PropertyModificationOperation(simulatedAttrDelta);
-		return attributeChange;
+		return new PropertyModificationOperation<>(simulatedAttrDelta);
 	}
 	
 	private PropertyModificationOperation convertToSimulatedActivationLockoutStatusAttribute(ProvisioningContext ctx,
@@ -2245,7 +2240,7 @@ public class ResourceObjectConverter {
 			return null;
 		}
 		
-		PropertyDelta<?> lockoutAttributeDelta = null;
+		PropertyDelta<?> lockoutAttributeDelta;
 		
 		if (status == null && activationDelta.isDelete()){
 			LOGGER.trace("deleting activation property.");
@@ -2259,8 +2254,7 @@ public class ResourceObjectConverter {
 			lockoutAttributeDelta = createActivationPropDelta(activationAttribute.getElementName(), activationAttribute.getDefinition(), lockedValue);
 		}
 
-		PropertyModificationOperation attributeChange = new PropertyModificationOperation(lockoutAttributeDelta);
-		return attributeChange;
+		return new PropertyModificationOperation<>(lockoutAttributeDelta);
 	}
 	
 	private PropertyDelta<?> createActivationPropDelta(QName attrName, ResourceAttributeDefinition attrDef, Object value) {
@@ -2334,58 +2328,11 @@ public class ResourceObjectConverter {
 	}
 	
 	private String getLockoutNormalValue(ActivationLockoutStatusCapabilityType capActStatus) {
-		String value = capActStatus.getNormalValue().iterator().next();
-		return value;
+		return capActStatus.getNormalValue().iterator().next();
 	}
 	
 	private String getLockoutLockedValue(ActivationLockoutStatusCapabilityType capActStatus) {
-		String value = capActStatus.getLockedValue().iterator().next();
-		return value;
-	}
-
-	private RefinedObjectClassDefinition determineObjectClassDefinition(PrismObject<ShadowType> shadow, ResourceType resource) throws SchemaException, ConfigurationException {
-		ShadowType shadowType = shadow.asObjectable();
-		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, prismContext);
-		if (refinedSchema == null) {
-			throw new ConfigurationException("No schema definied for "+resource);
-		}
-		
-		
-		RefinedObjectClassDefinition objectClassDefinition = null;
-		ShadowKindType kind = shadowType.getKind();
-		String intent = shadowType.getIntent();
-		QName objectClass = shadow.asObjectable().getObjectClass();
-		if (kind != null) {
-			objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
-		} else {
-			// Fallback to objectclass only
-			if (objectClass == null) {
-				throw new SchemaException("No kind nor objectclass definied in "+shadow);
-			}
-			objectClassDefinition = refinedSchema.findRefinedDefinitionByObjectClassQName(null, objectClass);
-		}
-		
-		if (objectClassDefinition == null) {
-			throw new SchemaException("Definition for "+shadow+" not found (objectClass=" + PrettyPrinter.prettyPrint(objectClass) +
-					", kind="+kind+", intent='"+intent+"') in schema of " + resource);
-		}		
-		
-		return objectClassDefinition;
-	}
-	
-	private ObjectClassComplexTypeDefinition determineObjectClassDefinition(
-			ResourceShadowDiscriminator discriminator, ResourceType resource) throws SchemaException {
-		ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
-		// HACK FIXME
-		ObjectClassComplexTypeDefinition objectClassDefinition = schema.findObjectClassDefinition(ShadowKindType.ACCOUNT, discriminator.getIntent());
-
-		if (objectClassDefinition == null) {
-			// Unknown objectclass
-			throw new SchemaException("Account type " + discriminator.getIntent()
-					+ " is not known in schema of " + resource);
-		}
-		
-		return objectClassDefinition;
+		return capActStatus.getLockedValue().iterator().next();
 	}
 	
 	private void addExecuteScriptOperation(Collection<Operation> operations, ProvisioningOperationTypeType type,

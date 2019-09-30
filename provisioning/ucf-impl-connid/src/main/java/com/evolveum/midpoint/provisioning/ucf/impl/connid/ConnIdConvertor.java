@@ -40,6 +40,7 @@ import org.identityconnectors.framework.common.objects.Uid;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -123,8 +124,7 @@ public class ConnIdConvertor {
 		// shadowPrism.debugDump());
 
 		T shadow = shadowPrism.asObjectable();
-		ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) shadowPrism
-				.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+		ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) (PrismContainer)shadowPrism.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 		ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
 		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 
