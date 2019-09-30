@@ -75,9 +75,10 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
                 WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(true),
-                        getCustomForm(), getPowerDonor(), true, OPERATION_COMPLETE_WORK_ITEM, getPageBase());
-                		CaseWorkItemActionsPanel.this.getPageBase().redirectBack();
+                        getCustomForm(), getPowerDonor(), true, completionResult, getPageBase());
+                CaseWorkItemActionsPanel.this.getPageBase().redirectBack();
 
             }
         };
@@ -90,8 +91,9 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
                 WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(false),
-                        getCustomForm(), getPowerDonor(), false, OPERATION_COMPLETE_WORK_ITEM, getPageBase());
+                        getCustomForm(), getPowerDonor(), false, completionResult, getPageBase());
                 CaseWorkItemActionsPanel.this.getPageBase().redirectBack();
             }
         };

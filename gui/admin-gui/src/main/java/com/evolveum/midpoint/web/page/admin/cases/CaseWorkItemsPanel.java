@@ -280,15 +280,17 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         final PrismObject<UserType> powerDonor = StringUtils.isNotEmpty(getPowerDonorOidParameterValue()) ?
                 WebModelServiceUtils.loadObject(UserType.class, getPowerDonorOidParameterValue(),
                         CaseWorkItemsPanel.this.getPageBase(), task, result) : null;
+        OperationResult completeWorkItemResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
         selectedWorkItems.forEach(workItemToReject -> {
             WebComponentUtil.workItemApproveActionPerformed(target, workItemToReject.getRealValue(),
                     new AbstractWorkItemOutputType(getPrismContext()).outcome(ApprovalUtils.toUri(approved)),
-                    null, powerDonor, approved,  OPERATION_COMPLETE_WORK_ITEM, CaseWorkItemsPanel.this.getPageBase());
+                    null, powerDonor, approved,  completeWorkItemResult, CaseWorkItemsPanel.this.getPageBase());
         });
 
-        result.computeStatusComposite();
         WebComponentUtil.clearProviderCache(getContainerableListPanel().getProvider());
 
+        getPageBase().showResult(completeWorkItemResult, true);
+        target.add(getPageBase().getFeedbackPanel());
         target.add(getContainerableListPanel());
 
     }
