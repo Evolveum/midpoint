@@ -234,8 +234,8 @@ public class ShadowManager {
 			OperationResult parentResult) 
 					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
-		ObjectQuery query = createSearchShadowQuery(ctx, identifierContainer.getValue().getItems(), false, prismContext,
-				parentResult);
+		@SuppressWarnings("unchecked")
+		ObjectQuery query = createSearchShadowQuery(ctx, (Collection)identifierContainer.getValue().getItems(), false, prismContext, parentResult);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter (repo):\n{}",
 					query.debugDump());

@@ -18,6 +18,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
@@ -127,8 +128,7 @@ public class ConnIdConvertor {
 			}
 
 			T shadow = shadowPrism.asObjectable();
-			ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) shadowPrism
-					.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+			ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) (PrismContainer)shadowPrism.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 			ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
 			shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 
@@ -247,11 +247,8 @@ public class ConnIdConvertor {
 					continue;
 				}
 
-				ItemName qname = ItemName
-						.fromQName(connIdNameMapper
-								.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition));
-				ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition
-						.findAttributeDefinition(qname, caseIgnoreAttributeNames);
+				ItemName qname = ItemName.fromQName(connIdNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition));
+				ResourceAttributeDefinition<Object> attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 				if (attributeDefinition == null) {
 					// Try to locate definition in auxiliary object classes
