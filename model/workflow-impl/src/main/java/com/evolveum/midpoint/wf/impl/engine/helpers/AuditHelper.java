@@ -13,6 +13,9 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -38,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,6 +60,7 @@ public class AuditHelper {
 	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private PrismContext prismContext;
 	@Autowired private MiscHelper miscHelper;
+	@Autowired private SchemaHelper schemaHelper;
 	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;   // todo
 
 	@Autowired
@@ -94,13 +99,14 @@ public class AuditHelper {
 		record.setEventStage(stage);
 		record.setInitiator(miscHelper.getRequesterIfExists(aCase, result));           // set real principal in case of explicitly requested process termination (MID-4263)
 
-		ObjectReferenceType objectRef = resolveIfNeeded(aCase.getObjectRef(), result);
+		// TODO we could be more strict and allow non-existence of object only in case of "object add" delta. But we are not.
+		ObjectReferenceType objectRef = resolveIfNeeded(aCase.getObjectRef(), true, result);
 		record.setTarget(objectRef.asReferenceValue());
 
 		record.setOutcome(OperationResultStatus.SUCCESS);
 
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, objectRef);
-		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(aCase.getTargetRef(), result));
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(aCase.getTargetRef(), false, result));
 		if (stage == EXECUTION) {
 			String stageInfo = miscHelper.getCompleteStageInfo(aCase);
 			record.setParameter(stageInfo);
@@ -122,7 +128,7 @@ public class AuditHelper {
 		return record;
 	}
 
-	private ObjectReferenceType resolveIfNeeded(ObjectReferenceType ref, OperationResult result) {
+	private ObjectReferenceType resolveIfNeeded(ObjectReferenceType ref, boolean optional, OperationResult result) {
 		if (ref == null || ref.getOid() == null || ref.asReferenceValue().getObject() != null || ref.getType() == null) {
 			return ref;
 		}
@@ -131,17 +137,27 @@ public class AuditHelper {
 			return ref;
 		}
 		try {
+			Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+					.allowNotFound(optional)
+					.build();
 			return ObjectTypeUtil.createObjectRef(
-					repositoryService.getObject(types.getClassDefinition(), ref.getOid(), null, result), prismContext);
-		} catch (ObjectNotFoundException | SchemaException e) {
+					repositoryService.getObject(types.getClassDefinition(), ref.getOid(), options, result), prismContext);
+		} catch (ObjectNotFoundException e) {
+			if (optional) {
+				LOGGER.trace("Couldn't resolve {} but it's perhaps expected", ref, e);
+			} else {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve {}", e, ref);
+			}
+			return ref;
+		} catch (SchemaException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve {}", e, ref);
 			return ref;
 		}
 	}
 
-	private List<ObjectReferenceType> resolveIfNeeded(List<ObjectReferenceType> refs, OperationResult result) {
+	private List<ObjectReferenceType> resolveIfNeeded(List<ObjectReferenceType> refs, boolean optional, OperationResult result) {
 		return refs.stream()
-				.map(ref -> resolveIfNeeded(ref, result))
+				.map(ref -> resolveIfNeeded(ref, optional, result))
 				.collect(Collectors.toList());
 	}
 
@@ -154,16 +170,17 @@ public class AuditHelper {
 		record.setEventType(AuditEventType.WORK_ITEM);
 		record.setEventStage(stage);
 
-		ObjectReferenceType objectRef = resolveIfNeeded(aCase.getObjectRef(), result);
+		// TODO we could be more strict and allow non-existence of object only in case of "object add" delta. But we are not.
+		ObjectReferenceType objectRef = resolveIfNeeded(aCase.getObjectRef(), true, result);
 		record.setTarget(objectRef.asReferenceValue());
 
 		record.setOutcome(OperationResultStatus.SUCCESS);
 		record.setParameter(miscHelper.getCompleteStageInfo(aCase));
 
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, objectRef);
-		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(aCase.getTargetRef(), result));
-		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE, resolveIfNeeded(workItem.getOriginalAssigneeRef(), result));
-		record.addReferenceValues(WorkflowConstants.AUDIT_CURRENT_ASSIGNEE, resolveIfNeeded(workItem.getAssigneeRef(), result));
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(aCase.getTargetRef(), false, result));
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE, resolveIfNeeded(workItem.getOriginalAssigneeRef(), false, result));
+		record.addReferenceValues(WorkflowConstants.AUDIT_CURRENT_ASSIGNEE, resolveIfNeeded(workItem.getAssigneeRef(), false, result));
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NUMBER, workItem.getStageNumber());
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, ApprovalContextUtil.getStageCount(wfc));
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, ApprovalContextUtil.getStageName(aCase));

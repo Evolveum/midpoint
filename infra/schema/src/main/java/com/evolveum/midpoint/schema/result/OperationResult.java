@@ -1615,6 +1615,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				subresults);
 		opResult.getQualifiers().addAll(result.getQualifier());
 		opResult.setImportance(result.getImportance());
+		opResult.setAsynchronousOperationReference(result.getAsynchronousOperationReference());
 		if (result.getCount() != null) {
 			opResult.setCount(result.getCount());
 		}
@@ -1697,6 +1698,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		for (OperationResult subResult : opResult.getSubresults()) {
 			resultType.getPartialResults().add(createOperationResultType(subResult, resolveKeys));
 		}
+
+		resultType.setAsynchronousOperationReference(opResult.getAsynchronousOperationReference());
 
 		resultType.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
 		resultType.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));

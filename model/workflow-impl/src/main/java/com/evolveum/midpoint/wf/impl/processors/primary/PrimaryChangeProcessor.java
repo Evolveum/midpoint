@@ -271,8 +271,8 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private HookOperationMode executeStartInstructions(List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx,
 		    ObjectTreeDeltas<?> changesWithoutApproval, OperationResult parentResult) {
+    	// Note that this result cannot be minor, because we need to be able to retrieve case OID. And minor results get cut off.
     	OperationResult result = parentResult.subresult(OP_EXECUTE_START_INSTRUCTIONS)
-			    .setMinor()
 			    .build();
         try {
 			// prepare root case and case0
