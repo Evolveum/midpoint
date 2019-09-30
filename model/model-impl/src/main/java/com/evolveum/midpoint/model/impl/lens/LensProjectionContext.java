@@ -68,6 +68,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
 	private ObjectDelta<ShadowType> syncDelta;
 
+	/**
+	 * Is this projection the source of the synchronization? (The syncDelta attribute could be used for this but in
+	 * reality it is not always present.) We need this information e.g. when it's not possible to record a clockwork
+	 * exception to focus (e.g. as in MID-5801). The alternate way is to record it into shadow representing the synchronization
+	 * source, e.g. the object being imported, reconciled, or live-synced.
+	 */
+	private boolean synchronizationSource;
+
 	private ObjectDelta<ShadowType> secondaryDelta;
 
 	/**
@@ -1129,6 +1137,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		}
 		clone.secondaryDelta = cloneDelta(this.secondaryDelta);
 		clone.wave = this.wave;
+		clone.synchronizationSource = this.synchronizationSource;
 	}
 
 	private Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> cloneSqueezedAttributes() {
@@ -1553,5 +1562,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public String getResourceName() {
 		ResourceType resource = getResource();
 		return resource != null ? PolyString.getOrig(resource.getName()) : getResourceOid();
+	}
+
+	public boolean isSynchronizationSource() {
+		return synchronizationSource;
+	}
+
+	public void setSynchronizationSource(boolean synchronizationSource) {
+		this.synchronizationSource = synchronizationSource;
 	}
 }
