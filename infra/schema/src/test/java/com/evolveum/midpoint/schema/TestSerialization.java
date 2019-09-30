@@ -44,6 +44,21 @@ public class TestSerialization {
 	}
 
 	@Test
+	public void testSerializeTrace() throws Exception {
+		System.out.println("===[ testSerializeTrace ]===");
+
+		PrismContext prismContext = getPrismContext();
+		ValueTransformationTraceType trace = new ValueTransformationTraceType(prismContext);
+		NamedValueType input1 = new NamedValueType();
+		input1.setName(new QName("myRef"));
+		input1.setValue(new ObjectReferenceType().oid("123").type(UserType.COMPLEX_TYPE));
+		trace.getInput().add(input1);
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "trace");
+		String xml = prismContext.xmlSerializer().serializeAnyData(trace, fakeQName);
+		System.out.println(xml);
+	}
+
+	@Test
 	public void testSerializeMessage() throws Exception {
 		System.out.println("===[ testSerializeMessage ]===");
 

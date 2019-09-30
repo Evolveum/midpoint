@@ -132,6 +132,13 @@ public class PolicyRuleTypeUtil {
 		}
 	}
 
+	public static String toShortString(PolicyActionsType actions) {
+		return toShortString(actions, null);
+	}
+
+	/**
+	 * @param enabledActions if null we don't consider action enabled/disabled state
+	 */
 	public static String toShortString(PolicyActionsType actions, List<PolicyActionType> enabledActions) {
 		if (actions == null) {
 			return "null";
@@ -139,37 +146,37 @@ public class PolicyRuleTypeUtil {
 		StringBuilder sb = new StringBuilder();
 		if (actions.getEnforcement() != null) {
 			sb.append("enforce");
-			if (filterActions(enabledActions, EnforcementPolicyActionType.class).isEmpty()) {
+			if (enabledActions != null && filterActions(enabledActions, EnforcementPolicyActionType.class).isEmpty()) {
 				sb.append("X");
 			}
 		}
 		if (!actions.getApproval().isEmpty()) {
 			sb.append(" approve");
-			if (filterActions(enabledActions, ApprovalPolicyActionType.class).isEmpty()) {
+			if (enabledActions != null && filterActions(enabledActions, ApprovalPolicyActionType.class).isEmpty()) {
 				sb.append("X");
 			}
 		}
 		if (actions.getRemediation() != null) {
 			sb.append(" remedy");
-			if (filterActions(enabledActions, RemediationPolicyActionType.class).isEmpty()) {
+			if (enabledActions != null && filterActions(enabledActions, RemediationPolicyActionType.class).isEmpty()) {
 				sb.append("X");
 			}
 		}
 		if (actions.getCertification() != null) {
 			sb.append(" certify");
-			if (filterActions(enabledActions, CertificationPolicyActionType.class).isEmpty()) {
+			if (enabledActions != null && filterActions(enabledActions, CertificationPolicyActionType.class).isEmpty()) {
 				sb.append("X");
 			}
 		}
 		if (!actions.getNotification().isEmpty()) {
 			sb.append(" notify");
-			if (filterActions(enabledActions, NotificationPolicyActionType.class).isEmpty()) {
+			if (enabledActions != null && filterActions(enabledActions, NotificationPolicyActionType.class).isEmpty()) {
 				sb.append("X");
 			}
 		}
 		if (!actions.getScriptExecution().isEmpty()) {
 			sb.append(" execute");
-			if (filterActions(enabledActions, ScriptExecutionPolicyActionType.class).isEmpty()) {
+			if (enabledActions != null && filterActions(enabledActions, ScriptExecutionPolicyActionType.class).isEmpty()) {
 				sb.append("X");
 			}
 		}

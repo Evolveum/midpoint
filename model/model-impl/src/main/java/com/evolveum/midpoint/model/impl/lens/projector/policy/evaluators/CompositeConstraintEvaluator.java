@@ -38,30 +38,50 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstra
 @Component
 public class CompositeConstraintEvaluator implements PolicyConstraintEvaluator<PolicyConstraintsType> {
 
+	private static final String OP_EVALUATE = CompositeConstraintEvaluator.class.getName() + ".evaluate";
+
 	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 	@Autowired private PolicyRuleProcessor policyRuleProcessor;
 
 	@Override
 	public <AH extends AssignmentHolderType> EvaluatedCompositeTrigger evaluate(JAXBElement<PolicyConstraintsType> constraint,
-			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		boolean isAnd = QNameUtil.match(PolicyConstraintsType.F_AND, constraint.getName());
-		boolean isOr = QNameUtil.match(PolicyConstraintsType.F_OR, constraint.getName());
-		boolean isNot = QNameUtil.match(PolicyConstraintsType.F_NOT, constraint.getName());
-		assert isAnd || isOr || isNot;
-		List<EvaluatedPolicyRuleTrigger<?>> triggers = policyRuleProcessor
-				.evaluateConstraints(constraint.getValue(), !isOr, rctx, result);
-		if (isNot) {
-			if (triggers.isEmpty()) {
-				return createTrigger(NOT, constraint, triggers, rctx, result);
+		OperationResult result = parentResult.subresult(OP_EVALUATE)
+				.setMinor()
+				.build();
+		try {
+			boolean isAnd = QNameUtil.match(PolicyConstraintsType.F_AND, constraint.getName());
+			boolean isOr = QNameUtil.match(PolicyConstraintsType.F_OR, constraint.getName());
+			boolean isNot = QNameUtil.match(PolicyConstraintsType.F_NOT, constraint.getName());
+			assert isAnd || isOr || isNot;
+			List<EvaluatedPolicyRuleTrigger<?>> triggers = policyRuleProcessor
+					.evaluateConstraints(constraint.getValue(), !isOr, rctx, result);
+			EvaluatedCompositeTrigger rv;
+			if (isNot) {
+				if (triggers.isEmpty()) {
+					rv = createTrigger(NOT, constraint, triggers, rctx, result);
+				} else {
+					rv = null;
+				}
+			} else {
+				if (!triggers.isEmpty()) {
+					rv = createTrigger(isAnd ? AND : OR, constraint, triggers, rctx, result);
+				} else {
+					rv = null;
+				}
 			}
-		} else {
-			if (!triggers.isEmpty()) {
-				return createTrigger(isAnd ? AND : OR, constraint, triggers, rctx, result);
+			if (rv != null) {
+				result.addReturn("trigger", rv.toDiagShortcut());
 			}
+			return rv;
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-		return null;
 	}
 
 	@NotNull

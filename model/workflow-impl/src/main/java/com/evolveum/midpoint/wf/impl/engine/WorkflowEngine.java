@@ -56,6 +56,7 @@ import javax.annotation.PreDestroy;
 public class WorkflowEngine implements CaseEventListener {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WorkflowEngine.class);
+	private static final String OP_EXECUTE_REQUEST = WorkflowEngine.class.getName() + ".executeRequest";
 
 	@Autowired public Clock clock;
 	@Autowired
@@ -92,11 +93,16 @@ public class WorkflowEngine implements CaseEventListener {
 	/**
 	 * Executes a request. This is the main entry point.
 	 */
-	public void executeRequest(Request request, Task opTask, OperationResult result)
+	public void executeRequest(Request request, Task opTask, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
 			ExpressionEvaluationException, ConfigurationException, CommunicationException {
 		int attempt = 1;
 		for (;;) {
+			OperationResult result = parentResult.subresult(OP_EXECUTE_REQUEST)
+					.setMinor()
+					.addParam("attempt", attempt)
+					.addArbitraryObjectAsParam("request", request)
+					.build();
 			EngineInvocationContext ctx = createInvocationContext(request.getCaseOid(), opTask, result);
 			Action firstAction = actionFactory.create(request, ctx);
 			executeActionChain(firstAction, result);

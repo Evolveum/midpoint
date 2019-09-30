@@ -94,32 +94,34 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		TracingProfileType tracingProfile = compiledTracingProfile.getDefinition();
 		result.clearTracingProfile();
 
-		boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
-		Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
-		File file = createFileName(zip, tracingProfile, templateParameters);
-		try {
-			TracingOutputType tracingOutput = createTracingOutput(task, result, tracingProfile);
-			String xml = prismContext.xmlSerializer().serializeRealValue(tracingOutput);
-			if (zip) {
-				MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
-				LOGGER.info("Trace was written to {} ({} chars uncompressed)", file, xml.length());
-			} else {
-				try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
-					pw.write(xml);
-					LOGGER.info("Trace was written to {} ({} chars)", file, xml.length());
+		if (!Boolean.FALSE.equals(tracingProfile.isCreateTraceFile())) {
+			boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
+			Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
+			File file = createFileName(zip, tracingProfile, templateParameters);
+			try {
+				TracingOutputType tracingOutput = createTracingOutput(task, result, tracingProfile);
+				String xml = prismContext.xmlSerializer().serializeRealValue(tracingOutput);
+				if (zip) {
+					MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
+					LOGGER.info("Trace was written to {} ({} chars uncompressed)", file, xml.length());
+				} else {
+					try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
+						pw.write(xml);
+						LOGGER.info("Trace was written to {} ({} chars)", file, xml.length());
+					}
 				}
+				if (!Boolean.FALSE.equals(tracingProfile.isCreateRepoObject())) {
+					ReportOutputType reportOutputObject = new ReportOutputType(prismContext)
+							.name(createObjectName(tracingProfile, templateParameters))
+							.archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE)
+							.filePath(file.getAbsolutePath())
+							.nodeRef(ObjectTypeUtil.createObjectRef(taskManager.getLocalNode(), prismContext));
+					repositoryService.addObject(reportOutputObject.asPrismObject(), null, result);
+				}
+			} catch (IOException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't write trace ({})", e, file);
+				throw new SystemException(e);
 			}
-			if (!Boolean.FALSE.equals(tracingProfile.isCreateRepoObject())) {
-				ReportOutputType reportOutputObject = new ReportOutputType(prismContext)
-						.name(createObjectName(tracingProfile, templateParameters))
-						.archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE)
-						.filePath(file.getAbsolutePath())
-						.nodeRef(ObjectTypeUtil.createObjectRef(taskManager.getLocalNode(), prismContext));
-				repositoryService.addObject(reportOutputObject.asPrismObject(), null, result);
-			}
-		} catch (IOException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't write trace ({})", e, file);
-			throw new SystemException(e);
 		}
 	}
 

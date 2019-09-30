@@ -54,6 +54,8 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 public class ObjectPolicyAspectPart {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyAspectPart.class);
+	private static final String OP_EXTRACT_OBJECT_BASED_INSTRUCTIONS = ObjectPolicyAspectPart.class.getName()
+			+ ".extractObjectBasedInstructions";
 
 	@Autowired private PolicyRuleBasedAspect main;
 	@Autowired protected ApprovalSchemaHelper approvalSchemaHelper;
@@ -63,50 +65,64 @@ public class ObjectPolicyAspectPart {
 
 	<T extends ObjectType> void extractObjectBasedInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
 			@Nullable PrismObject<UserType> requester, @NotNull List<PcpStartInstruction> instructions,
-			@NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult result)
+			@NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException {
 
-		ObjectDelta<T> focusDelta = objectTreeDeltas.getFocusChange();
-		LensFocusContext<T> focusContext = (LensFocusContext<T>) ctx.modelContext.getFocusContext();
-		PrismObject<T> object = focusContext.getObjectOld() != null ?
-				focusContext.getObjectOld() : focusContext.getObjectNew();
+		OperationResult result = parentResult.subresult(OP_EXTRACT_OBJECT_BASED_INSTRUCTIONS)
+				.setMinor()
+				.build();
+		try {
+			ObjectDelta<T> focusDelta = objectTreeDeltas.getFocusChange();
+			LensFocusContext<T> focusContext = (LensFocusContext<T>) ctx.modelContext.getFocusContext();
+			PrismObject<T> object = focusContext.getObjectOld() != null ?
+					focusContext.getObjectOld() : focusContext.getObjectNew();
 
-		List<EvaluatedPolicyRule> triggeredApprovalActionRules = main.selectTriggeredApprovalActionRules(focusContext.getPolicyRules());
-		LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}", debugDumpLazily(triggeredApprovalActionRules));
+			List<EvaluatedPolicyRule> triggeredApprovalActionRules = main
+					.selectTriggeredApprovalActionRules(focusContext.getPolicyRules());
+			LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}",
+					debugDumpLazily(triggeredApprovalActionRules));
 
-		if (!triggeredApprovalActionRules.isEmpty()) {
-			generateObjectOidIfNeeded(focusDelta, ctx.modelContext);
-			ProcessSpecifications processSpecifications = ProcessSpecifications.createFromRules(triggeredApprovalActionRules, prismContext);
-			LOGGER.trace("Process specifications:\n{}", debugDumpLazily(processSpecifications));
-			for (ProcessSpecification processSpecificationEntry : processSpecifications.getSpecifications()) {
-				if (focusDelta.isEmpty()) {
-					break;  // we're done
-				}
-				WfProcessSpecificationType processSpecification = processSpecificationEntry.basicSpec;
-				List<ObjectDelta<T>> deltasToApprove = extractDeltasToApprove(focusDelta, processSpecification);
-				LOGGER.trace("Deltas to approve:\n{}", debugDumpLazily(deltasToApprove));
-				if (deltasToApprove.isEmpty()) {
-					continue;
-				}
-				LOGGER.trace("Remaining delta:\n{}", debugDumpLazily(focusDelta));
-				ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
-				builder.setProcessSpecification(processSpecificationEntry);
-				for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule : processSpecificationEntry.actionsWithRules) {
-					ApprovalPolicyActionType approvalAction = actionWithRule.getLeft();
-					builder.add(main.getSchemaFromAction(approvalAction), approvalAction, object, actionWithRule.getRight());
-				}
-				buildSchemaForObject(requester, instructions, ctx, result, deltasToApprove, builder);
-			}
-		} else if (configurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
-			// default rule
-			ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
-			if (builder.addPredefined(object, RelationKindType.OWNER, result)) {
-				LOGGER.trace("Added default approval action, as no explicit one was found");
+			if (!triggeredApprovalActionRules.isEmpty()) {
 				generateObjectOidIfNeeded(focusDelta, ctx.modelContext);
-				List<ObjectDelta<T>> deltasToApprove = singletonList(focusDelta.clone());
-				focusDelta.clear();
-				buildSchemaForObject(requester, instructions, ctx, result, deltasToApprove, builder);
+				ProcessSpecifications processSpecifications = ProcessSpecifications
+						.createFromRules(triggeredApprovalActionRules, prismContext);
+				LOGGER.trace("Process specifications:\n{}", debugDumpLazily(processSpecifications));
+				for (ProcessSpecification processSpecificationEntry : processSpecifications.getSpecifications()) {
+					if (focusDelta.isEmpty()) {
+						break;  // we're done
+					}
+					WfProcessSpecificationType processSpecification = processSpecificationEntry.basicSpec;
+					List<ObjectDelta<T>> deltasToApprove = extractDeltasToApprove(focusDelta, processSpecification);
+					LOGGER.trace("Deltas to approve:\n{}", debugDumpLazily(deltasToApprove));
+					if (deltasToApprove.isEmpty()) {
+						continue;
+					}
+					LOGGER.trace("Remaining delta:\n{}", debugDumpLazily(focusDelta));
+					ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
+					builder.setProcessSpecification(processSpecificationEntry);
+					for (Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule : processSpecificationEntry.actionsWithRules) {
+						ApprovalPolicyActionType approvalAction = actionWithRule.getLeft();
+						builder.add(main.getSchemaFromAction(approvalAction), approvalAction, object, actionWithRule.getRight());
+					}
+					buildSchemaForObject(requester, instructions, ctx, result, deltasToApprove, builder);
+				}
+			} else if (configurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration)
+					!= DefaultApprovalPolicyRulesUsageType.NEVER) {
+				// default rule
+				ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
+				if (builder.addPredefined(object, RelationKindType.OWNER, result)) {
+					LOGGER.trace("Added default approval action, as no explicit one was found");
+					generateObjectOidIfNeeded(focusDelta, ctx.modelContext);
+					List<ObjectDelta<T>> deltasToApprove = singletonList(focusDelta.clone());
+					focusDelta.clear();
+					buildSchemaForObject(requester, instructions, ctx, result, deltasToApprove, builder);
+				}
 			}
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 

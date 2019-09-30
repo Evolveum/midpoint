@@ -16,10 +16,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.util.TraceUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -27,6 +29,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptVariableEvaluationTraceType;
+
+import javax.xml.namespace.QName;
 
 /**
  * Expression evaluator that is using javax.script (JSR-223) engine.
@@ -94,8 +99,9 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
 		}
 		
 		// Variables
-		if (context.getVariables() != null) {
-			for (Entry<String, TypedValue> variableEntry: context.getVariables().entrySet()) {
+		ExpressionVariables variables = context.getVariables();
+		if (variables != null) {
+			for (Entry<String, TypedValue> variableEntry: variables.entrySet()) {
 				if (variableEntry.getKey() == null) {
 					// This is the "root" node. We have no use for it in script expressions, just skip it
 					continue;
@@ -103,6 +109,13 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
 				String variableName = variableEntry.getKey();
 				TypedValue variableTypedValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, context.getObjectResolver(), context.getContextDescription(), context.getExpressionType().getObjectVariableMode(), prismContext, context.getTask(), context.getResult());
 				scriptVariableMap.put(variableName, variableTypedValue.getValue());
+				if (context.getTrace() != null && !variables.isAlias(variableName)) {
+					ScriptVariableEvaluationTraceType variableTrace = new ScriptVariableEvaluationTraceType(prismContext);
+					variableTrace.setName(new QName(variableName));
+					variableTrace.getValue().addAll(TraceUtil.toAnyValueTypeList(variableTypedValue.getValue(), prismContext));
+					variables.getAliases(variableName).forEach(alias -> variableTrace.getAlias().add(new QName(alias)));
+					context.getTrace().getVariable().add(variableTrace);
+				}
 			}
 		}
 

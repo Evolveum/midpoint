@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -68,6 +69,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 	@Autowired protected Clockwork clockwork;
 	@Autowired protected TaskManager taskManager;
 	@Autowired protected WorkflowManager workflowManager;
+	@Autowired protected WorkflowService workflowService;
 	@Autowired protected WorkflowEngine workflowEngine;
 	@Autowired protected WorkItemManager workItemManager;
 	@Autowired protected PrimaryChangeProcessor primaryChangeProcessor;

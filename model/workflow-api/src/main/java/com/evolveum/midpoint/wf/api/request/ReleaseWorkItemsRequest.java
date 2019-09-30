@@ -46,4 +46,13 @@ public class ReleaseWorkItemsRequest extends Request {
 	public Collection<SingleRelease> getReleases() {
 		return releases;
 	}
+
+	@Override
+	public String toString() {
+		return "ReleaseWorkItemsRequest{" +
+				"releases=" + releases +
+				", caseOid='" + caseOid + '\'' +
+				", causeInformation=" + causeInformation +
+				'}';
+	}
 }

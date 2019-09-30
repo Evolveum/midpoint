@@ -79,7 +79,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private final transient PrismContext prismContextForDebugDump;     // if null, nothing serious happens
 	
 	private String policyRuleId;
-	
+
+	private boolean enabledActionsComputed;
 	@NotNull private final List<PolicyActionType> enabledActions = new ArrayList<>();          // computed only when necessary (typically when triggered)
 
 	public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleType, @Nullable AssignmentPath assignmentPath,
@@ -319,7 +320,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		}
 		sb.append("(").append(PolicyRuleTypeUtil.toShortString(getPolicyConstraints())).append(")");
 		sb.append("->");
-		sb.append("(").append(PolicyRuleTypeUtil.toShortString(getActions(), enabledActions)).append(")");
+		sb.append("(").append(PolicyRuleTypeUtil.toShortString(getActions(), enabledActionsComputed ? enabledActions : null)).append(")");
 		if (!getTriggers().isEmpty()) {
 			sb.append(" # {T:");
 			sb.append(getTriggers().stream().map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
@@ -436,7 +437,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	public <AH extends AssignmentHolderType> void computeEnabledActions(@Nullable PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object,
 			ExpressionFactory expressionFactory, PrismContext prismContext, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		LOGGER.trace("$$$$COmpute enabled actions");
+		LOGGER.trace("Computation of enabled actions starting");
 		List<PolicyActionType> allActions = PolicyRuleTypeUtil.getAllActions(policyRuleType.getPolicyActions());
 		LOGGER.trace("Actions defined for policy rule: {}", allActions);
 		for (PolicyActionType action : allActions) {
@@ -452,12 +453,10 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 			LOGGER.trace("Adding action {} into the enabled action list.", action);
 			enabledActions.add(action);
 		}
+		enabledActionsComputed = true;
 	}
 	
 	//experimental
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule#getPolicyRuleIdentifier()
-	 */
 	@Override
 	public String getPolicyRuleIdentifier() {
 		return policyRuleId;

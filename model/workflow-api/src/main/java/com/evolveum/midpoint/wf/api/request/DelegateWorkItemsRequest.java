@@ -93,4 +93,14 @@ public class DelegateWorkItemsRequest extends Request {
 	public XMLGregorianCalendar getNow() {
 		return now;
 	}
+
+	@Override
+	public String toString() {
+		return "DelegateWorkItemsRequest{" +
+				"now=" + now +
+				", delegations=" + delegations +
+				", caseOid='" + caseOid + '\'' +
+				", causeInformation=" + causeInformation +
+				'}';
+	}
 }
