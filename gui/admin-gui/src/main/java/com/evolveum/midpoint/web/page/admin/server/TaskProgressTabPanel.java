@@ -16,6 +16,7 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -27,6 +28,8 @@ import com.evolveum.midpoint.web.page.admin.server.currentState.SynchronizationI
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskCurrentStateDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskCurrentStateDtoModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
@@ -80,7 +83,7 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 		synchronizationInformationPanelBefore.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return model.getObject().getSynchronizationInformationType() != null;
+				return !allCountsIsZero(model.getObject().getSynchronizationInformationType());
 			}
 		});
 		synchronizationInformationPanelBefore.setOutputMarkupId(true);
@@ -91,7 +94,8 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 		synchronizationInformationPanelAfter.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return model.getObject().getSynchronizationInformationType() != null && !taskDtoModel.getObject().isDryRun();
+				return !allCountsIsZero(model.getObject().getSynchronizationInformationType())
+						&& !taskDtoModel.getObject().isDryRun();
 			}
 		});
 		synchronizationInformationPanelAfter.setOutputMarkupId(true);
@@ -102,7 +106,7 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 		actionsExecutedInformationPanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return model.getObject().getActionsExecutedInformationType() != null;
+				return !isEmpty(model.getObject().getActionsExecutedInformationType());
 			}
 		});
 		actionsExecutedInformationPanel.setOutputMarkupId(true);
@@ -118,6 +122,34 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 		rv.add(synchronizationInformationPanelAfter);
 		rv.addAll(actionsExecutedInformationPanel.getComponentsToUpdate());
 		return rv;
+	}
+	
+	private boolean isEmpty(ActionsExecutedInformationType actionsExecutedInformation) {
+		return actionsExecutedInformation == null || (
+				actionsExecutedInformation.getObjectActionsEntry().isEmpty()
+				&& actionsExecutedInformation.getResultingObjectActionsEntry().isEmpty());
+	}
+    
+	private boolean allCountsIsZero(SynchronizationInformationType synchronizationInformation) {
+		return synchronizationInformation == null || (
+				synchronizationInformation.getCountDeleted() == 0
+				&& synchronizationInformation.getCountDeletedAfter() == 0
+				&& synchronizationInformation.getCountDisputed() == 0
+				&& synchronizationInformation.getCountDisputedAfter() == 0
+				&& synchronizationInformation.getCountLinked() == 0
+				&& synchronizationInformation.getCountLinkedAfter() == 0
+				&& synchronizationInformation.getCountNoSynchronizationPolicy() == 0
+				&& synchronizationInformation.getCountNoSynchronizationPolicyAfter() == 0
+				&& synchronizationInformation.getCountNotApplicableForTask() == 0
+				&& synchronizationInformation.getCountNotApplicableForTaskAfter() == 0
+				&& synchronizationInformation.getCountProtected() == 0
+				&& synchronizationInformation.getCountProtectedAfter() == 0
+				&& synchronizationInformation.getCountSynchronizationDisabled() == 0
+				&& synchronizationInformation.getCountSynchronizationDisabledAfter() == 0
+				&& synchronizationInformation.getCountUnlinked() == 0
+				&& synchronizationInformation.getCountUnlinkedAfter() == 0
+				&& synchronizationInformation.getCountUnmatched() == 0
+				&& synchronizationInformation.getCountUnmatchedAfter() == 0);
 	}
 
 }
