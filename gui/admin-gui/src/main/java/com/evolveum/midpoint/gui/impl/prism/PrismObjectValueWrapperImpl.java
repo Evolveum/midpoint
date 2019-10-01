@@ -52,6 +52,10 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
 			if (container instanceof  PrismContainerWrapper && ((PrismContainerWrapper) container).isVirtual()) {
 				((List)containers).add(container);
 			}
+			
+			if (ObjectType.F_METADATA.equals(container.getItemName())) {
+				((List)containers).add(container);
+			}
 
 		}
 
