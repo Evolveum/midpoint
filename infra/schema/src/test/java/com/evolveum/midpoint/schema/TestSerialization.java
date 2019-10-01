@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -55,6 +56,42 @@ public class TestSerialization {
 		trace.getInput().add(input1);
 		QName fakeQName = new QName(PrismConstants.NS_TYPES, "trace");
 		String xml = prismContext.xmlSerializer().serializeAnyData(trace, fakeQName);
+		System.out.println(xml);
+	}
+
+	@Test
+	public void testSerializeNamedReference() throws Exception {
+		System.out.println("===[ testSerializeNamedReference ]===");
+
+		PrismContext prismContext = getPrismContext();
+		ObjectReferenceType reference = new ObjectReferenceType()
+				.oid("66662a3b-76eb-4465-8374-742f6e2f54b4")
+				.type(UserType.COMPLEX_TYPE)
+				.targetName("joe");
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "ref");
+		String xml = prismContext.xmlSerializer().serializeAnyData(reference, fakeQName);
+		System.out.println(xml);
+	}
+
+	@Test
+	public void testSerializeFullReference() throws Exception {
+		System.out.println("===[ testSerializeFullReference ]===");
+
+		PrismContext prismContext = getPrismContext();
+
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "ref");
+		MutablePrismReferenceDefinition definition = prismContext.definitionFactory().createReferenceDefinition(fakeQName, ObjectReferenceType.COMPLEX_TYPE);
+		definition.setComposite(true);
+		PrismReference reference = definition.instantiate();
+
+		UserType joe = new UserType(prismContext)
+				.name("joe")
+				.oid("66662a3b-76eb-4465-8374-742f6e2f54b4")
+				.description("description");
+		ObjectReferenceType referenceRealValue = ObjectTypeUtil.createObjectRefWithFullObject(joe, prismContext);
+		reference.add(referenceRealValue.asReferenceValue());
+
+		String xml = prismContext.xmlSerializer().serialize(reference);
 		System.out.println(xml);
 	}
 
