@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
@@ -959,6 +960,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				subresult.accept(visitor);
 			}
 		}
+	}
+
+	public Stream<OperationResult> getResultStream() {
+		return Stream.concat(Stream.of(this),
+				getSubresults().stream()
+						.map(subresult -> subresult.getResultStream())
+						.flatMap(stream -> stream));
 	}
 
 	public static class PreviewResult {
@@ -2401,5 +2409,9 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void setCallerReason(String callerReason) {
 		this.callerReason = callerReason;
+	}
+
+	public List<LogSegmentType> getLogSegments() {
+		return logSegments;
 	}
 }

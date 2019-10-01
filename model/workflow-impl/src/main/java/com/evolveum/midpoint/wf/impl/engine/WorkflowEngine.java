@@ -103,22 +103,30 @@ public class WorkflowEngine implements CaseEventListener {
 					.addParam("attempt", attempt)
 					.addArbitraryObjectAsParam("request", request)
 					.build();
-			EngineInvocationContext ctx = createInvocationContext(request.getCaseOid(), opTask, result);
-			Action firstAction = actionFactory.create(request, ctx);
-			executeActionChain(firstAction, result);
 			try {
-				ctx.commit(result);
-				return;
-			} catch (PreconditionViolationException e) {
-				boolean repeat = attempt < MAX_ATTEMPTS;
-				String action = repeat ? "retried" : "aborted";
-				LOGGER.info("Approval commit conflict detected; operation will be {} (this was attempt {} of {})",
-						action, attempt, MAX_ATTEMPTS);
-				if (repeat) {
-					attempt++;
-				} else {
-					throw new SystemException("Couldn't execute " + request.getClass() + " in " + MAX_ATTEMPTS + " attempts", e);
+				EngineInvocationContext ctx = createInvocationContext(request.getCaseOid(), opTask, result);
+				Action firstAction = actionFactory.create(request, ctx);
+				executeActionChain(firstAction, result);
+				try {
+					ctx.commit(result);
+					return;
+				} catch (PreconditionViolationException e) {
+					boolean repeat = attempt < MAX_ATTEMPTS;
+					String action = repeat ? "retried" : "aborted";
+					LOGGER.info("Approval commit conflict detected; operation will be {} (this was attempt {} of {})",
+							action, attempt, MAX_ATTEMPTS);
+					if (repeat) {
+						attempt++;
+					} else {
+						throw new SystemException("Couldn't execute " + request.getClass() + " in " + MAX_ATTEMPTS + " attempts",
+								e);
+					}
 				}
+			} catch (Throwable t) {
+				result.recordFatalError(t);
+				throw t;
+			} finally {
+				result.computeStatusIfUnknown();
 			}
 		}
 	}

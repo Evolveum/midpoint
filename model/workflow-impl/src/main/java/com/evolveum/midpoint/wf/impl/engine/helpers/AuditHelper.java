@@ -62,6 +62,7 @@ public class AuditHelper {
 	@Autowired private MiscHelper miscHelper;
 	@Autowired private SchemaHelper schemaHelper;
 	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;   // todo
+	@Autowired private com.evolveum.midpoint.model.impl.util.AuditHelper modelAuditHelper;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -81,9 +82,9 @@ public class AuditHelper {
 		ctx.addAuditRecord(auditEventRecord);
 	}
 
-	public void auditPreparedRecords(EngineInvocationContext ctx) {
+	public void auditPreparedRecords(EngineInvocationContext ctx, OperationResult result) {
 		for (AuditEventRecord record : ctx.pendingAuditRecords) {
-			auditService.audit(record, ctx.getTask());
+			modelAuditHelper.audit(record, null, ctx.getTask(), result);
 		}
 	}
 	//endregion
