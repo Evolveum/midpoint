@@ -234,8 +234,8 @@ public class ShadowManager {
 			OperationResult parentResult) 
 					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
-		ObjectQuery query = createSearchShadowQuery(ctx, identifierContainer.getValue().getItems(), false, prismContext,
-				parentResult);
+		@SuppressWarnings("unchecked")
+		ObjectQuery query = createSearchShadowQuery(ctx, (Collection)identifierContainer.getValue().getItems(), false, prismContext, parentResult);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter (repo):\n{}",
 					query.debugDump());
@@ -1438,17 +1438,10 @@ public class ShadowManager {
 		if (ShadowUtil.isDead(shadow)) {
 			return null;
 		}
-		Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
-		// Let's make this simple. We support single-attribute, single-value, string-only primary identifiers anyway
-		if (primaryIdentifiers.isEmpty()) {
-			// No primary identifiers. This can happen in sme cases, e.g. for proposed shadows.
-			// Therefore we should be tolerating this.
+		ResourceAttribute<String> primaryIdentifier = getPrimaryIdentifier(shadow);
+		if (primaryIdentifier == null) {
 			return null;
 		}
-		if (primaryIdentifiers.size() > 1) {
-			throw new SchemaException("Too many primary identifiers in "+shadow+", this is not supported yet");
-		}
-		ResourceAttribute<String> primaryIdentifier = (ResourceAttribute<String>) primaryIdentifiers.iterator().next();
 		RefinedAttributeDefinition<String> rDef;
 		try {
 			rDef = ctx.getObjectClassDefinition().findAttributeDefinition(primaryIdentifier.getElementName());
@@ -1467,6 +1460,21 @@ public class ShadowManager {
 		String primaryIdentifierValue = normalizedPrimaryIdentifierValues.iterator().next();
 //		LOGGER.info("III: --->>{}<<--- {}", primaryIdentifierValue, shadow);
 		return primaryIdentifierValue;
+	}
+	
+	private ResourceAttribute<String> getPrimaryIdentifier(PrismObject<ShadowType> shadow) throws SchemaException{
+		Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+		// Let's make this simple. We support single-attribute, single-value, string-only primary identifiers anyway
+		if (primaryIdentifiers.isEmpty()) {
+			// No primary identifiers. This can happen in sme cases, e.g. for proposed shadows.
+			// Therefore we should be tolerating this.
+			return null;
+		}
+		if (primaryIdentifiers.size() > 1) {
+			throw new SchemaException("Too many primary identifiers in "+shadow+", this is not supported yet");
+		}
+		ResourceAttribute<String> primaryIdentifier = (ResourceAttribute<String>) primaryIdentifiers.iterator().next();
+		return primaryIdentifier;
 	}
 	
 	public PrismObject<ShadowType> refreshProvisioningIndexes(ProvisioningContext ctx,
@@ -1675,6 +1683,28 @@ public class ShadowManager {
 					}
 					PropertyDelta<PolyString> nameDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
 					repoChanges.add(nameDelta);
+				}
+				if (objectClassDefinition.isPrimaryIdentifier(attrName)) {
+					// Change of primary identifier $shadow/primaryIdentifier.
+					String newPrimaryIdentifier = null;
+					if (itemDelta.getValuesToReplace() != null && !itemDelta.getValuesToReplace().isEmpty()) {
+						newPrimaryIdentifier = ((PrismPropertyValue)itemDelta.getValuesToReplace().iterator().next()).getValue().toString();
+					} else if (itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty()) {
+						newPrimaryIdentifier = ((PrismPropertyValue)itemDelta.getValuesToAdd().iterator().next()).getValue().toString();
+					}
+					ResourceAttribute<String> primaryIdentifier = getPrimaryIdentifier(shadow);
+					RefinedAttributeDefinition<String> rDef;
+					try {
+						rDef = ctx.getObjectClassDefinition().findAttributeDefinition(primaryIdentifier.getElementName());
+					} catch (ConfigurationException | ObjectNotFoundException | CommunicationException
+							| ExpressionEvaluationException e) {
+						// Should not happen at this stage. And we do not want to pollute throws clauses all the way up.
+						throw new SystemException(e.getMessage(), e);
+					}
+					String normalizedNewPrimaryIdentifier = getNormalizedAttributeValue(rDef, newPrimaryIdentifier);
+					PropertyDelta<String> primaryIdentifierDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(),
+							ShadowType.F_PRIMARY_IDENTIFIER_VALUE, normalizedNewPrimaryIdentifier);
+					repoChanges.add(primaryIdentifierDelta);
 				}
 				if (!ProvisioningUtil.shouldStoreAttributeInShadow(objectClassDefinition, attrName, cachingStrategy)) {
 					continue;
@@ -2261,6 +2291,15 @@ public class ShadowManager {
 				normalizedValues.add(normalizedRealValue);
 			}
 			return normalizedValues;
+		}
+	}
+	
+	private <T> T getNormalizedAttributeValue(RefinedAttributeDefinition rAttrDef, T value) throws SchemaException {
+		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName());
+		if (matchingRule == null) {
+			return value;
+		} else {
+			return matchingRule.normalize(value);
 		}
 	}
 
