@@ -1439,6 +1439,9 @@ public class ShadowManager {
 			return null;
 		}
 		ResourceAttribute<String> primaryIdentifier = getPrimaryIdentifier(shadow);
+		if (primaryIdentifier == null) {
+			return null;
+		}
 		RefinedAttributeDefinition<String> rDef;
 		try {
 			rDef = ctx.getObjectClassDefinition().findAttributeDefinition(primaryIdentifier.getElementName());
