@@ -2791,7 +2791,7 @@ public class ShadowCache {
 
 	private void transplantIdentifiers(PrismContainerValue<ShadowAssociationType> association,
 			PrismObject<ShadowType> repoShadow) throws SchemaException {
-		PrismContainer<Containerable> identifiersContainer = association
+		PrismContainer<ShadowAttributesType> identifiersContainer = association
 				.findContainer(ShadowAssociationType.F_IDENTIFIERS);
 		if (identifiersContainer == null) {
 			ResourceAttributeContainer origContainer = ShadowUtil.getAttributesContainer(repoShadow);
