@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
@@ -1250,13 +1251,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 					.addOperation()
 						.display()
 						.assertType(PendingOperationTypeType.RETRY)
-						.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
 						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
 						.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-						.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-						.assertAttemptNumber(1)
-						.assertLastAttemptTimestamp(lastRequestEndTs, lastRequestEndTs)
+						.assertAttemptNumber(2)
 						.delta()
+							.display()
 						.end()
 					.end()
 					.modifyOperation()
@@ -1655,37 +1654,41 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 				.end()
 					.pendingOperations()
 					.assertOperations(2)
-					.modifyOperation()
-						.display()
-						.assertType(PendingOperationTypeType.RETRY)
-						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-						.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-						.assertAttemptNumber(1)
-						.delta()
-							.display()
-							.assertModify()
-							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_CN))
-						.end()
-					.end()
-					.modifyOperation()
-						.display()
-						.assertType(PendingOperationTypeType.RETRY)
-						.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
-						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-						.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-						.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-						.assertAttemptNumber(1)
-						.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
-						.delta()
-							.display()
-							.assertModify()
-							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_CN))
-							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_GIVENNAME))
-						.end();
+					.by()
+						.changeType(ChangeTypeType.MODIFY)
+						.executionStatus(PendingOperationExecutionStatusType.EXECUTING)
+						.assertAll();
+//					.modifyOperation()
+//						.display()
+//						.assertType(PendingOperationTypeType.RETRY)
+//						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+//						.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+//						.assertAttemptNumber(1)
+//						.delta()
+//							.display()
+//							.assertModify()
+//							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_CN))
+//						.end()
+//					.end()
+//					.modifyOperation()
+//						.display()
+//						.assertType(PendingOperationTypeType.RETRY)
+//						.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+//						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+//						.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+//						.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+//						.assertAttemptNumber(1)
+//						.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+//						.delta()
+//							.display()
+//							.assertModify()
+//							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_CN))
+//							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_GIVENNAME))
+//						.end();
 
 
 
-		assertModelShadowFuture(shadowOid)
+		assertModelShadowFutureNoFetch(shadowOid)
 				.display()
 				.assertKind(ShadowKindType.ACCOUNT)
 				.assertNotDead()
@@ -1769,7 +1772,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		TestUtil.info("OpenDJ started, resource UP");
 
 		PrismObject<ShadowType> shadow = getShadowModel(shadowOid, GetOperationOptions.createForceRefresh(), true);
-
+		//TODO more asserts
 	}
 		
 	@Test
@@ -1820,18 +1823,18 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 					.end()
 				.pendingOperations()
 					.singleOperation()
-					.display()
-					.assertType(PendingOperationTypeType.RETRY)
-					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
-					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
-					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
-					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
-					.assertAttemptNumber(1)
-					.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
-					.delta()
 						.display()
-						.assertModify()
-						.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
+						.assertType(PendingOperationTypeType.RETRY)
+						.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+						.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+						.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.assertAttemptNumber(1)
+						.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.delta()
+							.display()
+							.assertModify()
+							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
 
 
 		//start openDJ
@@ -1842,8 +1845,27 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		assertModelShadowFuture(shadowOid)
 				.attributes()
 				.assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "44332");
-		//and then try to get account -> result is that the modifications will be applied to the account
 
+		//and then try to get account -> result is that the modifications will be applied to the account
+		PrismObject<ShadowType> shadowAfter = getShadowModel(shadowOid, GetOperationOptions.createForceRefresh(), true);
+		ShadowAsserter.forShadow(shadowAfter)
+				.attributes()
+					.assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "44332")
+				.end()
+				.pendingOperations()
+					.singleOperation()
+						.display()
+						.assertType(PendingOperationTypeType.RETRY)
+						.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+						.assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+						.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.assertAttemptNumber(2)
+						.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.delta()
+							.display()
+							.assertModify()
+							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
 	}
 	
 	@Test
@@ -1855,15 +1877,62 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		openDJController.assumeStopped();
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = task.getResult();
-		
-		String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
-		
+
+		assertUser(USER_ALICE_OID, "User before")
+			.assertLinks(1);
+
+		String shadowOid = getLinkRefOid(USER_ALICE_OID, RESOURCE_OPENDJ_OID);
 		// WHEN (down)
-		requestToExecuteChanges(REQUEST_USER_MODIFY_CHANGE_PASSWORD_1_FILE, USER_ALICE_OID, UserType.class, task, null, parentResult);
+		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
+		modifyUserChangePassword(USER_ALICE_OID, "DEADmenTELLnoTALES", task, parentResult);
+		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
 		// THEN
 		//check the state after execution
-		checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, parentResult);
+		assertModelShadowNoFetch(shadowOid)
+				.display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertIsExists()
+				.assertNotDead()
+				// We have name (secondary identifier), but we do not have primary identifier yet.
+				// We will get that only when create operation is successful.
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertHasPrimaryIdentifier()
+					.assertHasSecondaryIdentifier()
+				.end()
+				.pendingOperations()
+					.assertOperations(2)
+					.by()
+						.executionStatus(PendingOperationExecutionStatusType.EXECUTING)
+						.find()
+							.display()
+								.assertType(PendingOperationTypeType.RETRY)
+								.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+								.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+								.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+								.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+								.assertAttemptNumber(1)
+								.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+								.delta()
+									.display()
+									.assertModify()
+									.assertHasModification(SchemaConstants.PATH_PASSWORD_VALUE)
+								.end()
+							.end()
+					.by()
+						.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+						.find()
+							.display()
+							.assertType(PendingOperationTypeType.RETRY)
+							.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+							.assertResultStatus(OperationResultStatusType.SUCCESS)
+							.assertAttemptNumber(2)
+							.delta()
+								.display()
+								.assertModify()
+								.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));;
+
 
 		//start openDJ
 		openDJController.start();
@@ -1871,13 +1940,18 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		// WHEN (restore)
 		//and then try to get account -> result is that the modifications will be applied to the account
-		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, parentResult);
-		assertAttribute(aliceAccount, "employeeNumber", "emp4321");
-		
-		PrismObject<UserType> userAliceAfter = getUser(USER_ALICE_OID);
-		assertPassword(userAliceAfter, "DEADmenTELLnoTALES");
-		
-		aliceAccountDn = ShadowUtil.getAttributeValue(aliceAccount, getOpenDjSecondaryIdentifierQName());
+		PrismObject<ShadowType> shadowAfter = getShadowModel(shadowOid, GetOperationOptions.createForceRefresh(), true);
+		ShadowAsserter.forShadow(shadowAfter)
+				.assertNotDead()
+				.display()
+				.attributes()
+					.assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "44332")
+					.assertHasPrimaryIdentifier();
+
+		assertUser(USER_ALICE_OID, "User after")
+				.assertPassword("DEADmenTELLnoTALES");
+
+		aliceAccountDn = ShadowUtil.getAttributeValue(shadowAfter.asObjectable(), getOpenDjSecondaryIdentifierQName());
 		openDJController.assertPassword(aliceAccountDn, "DEADmenTELLnoTALES");
 	}
 	
@@ -1894,17 +1968,50 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		openDJController.assumeStopped();
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
-		
-		String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
-		
+
+		assertUser(USER_ALICE_OID, "User before")
+				.assertLinks(1);
+		String shadowOid = getLinkRefOid(USER_ALICE_OID, RESOURCE_OPENDJ_OID);
+
 		// WHEN (down)
 		TestUtil.displayWhen(TEST_NAME);
-		requestToExecuteChanges(REQUEST_USER_MODIFY_CHANGE_PASSWORD_2_FILE, USER_ALICE_OID, UserType.class, task, null, result);
+		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
+		modifyUserChangePassword(USER_ALICE_OID, "UNDEADmenTELLscaryTALES", task, result);
+		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		//check the state after execution
-		checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, result);
+		assertModelShadowNoFetch(shadowOid)
+				.display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertIsExists()
+				.assertNotDead()
+				// We have name (secondary identifier), but we do not have primary identifier yet.
+				// We will get that only when create operation is successful.
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertHasPrimaryIdentifier()
+					.assertHasSecondaryIdentifier()
+				.end()
+					.pendingOperations()
+					.assertOperations(3)
+					.by()
+						.executionStatus(PendingOperationExecutionStatusType.EXECUTING)
+						.find()
+							.display()
+							.assertType(PendingOperationTypeType.RETRY)
+							.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+							.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+							.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+							.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+							.assertAttemptNumber(1)
+							.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+							.delta()
+								.display()
+								.assertModify()
+								.assertHasModification(SchemaConstants.PATH_PASSWORD_VALUE);
+
 
 		//start openDJ
 		openDJController.start();
@@ -1918,12 +2025,17 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		TestUtil.displayThen(TEST_NAME);
 		openDJController.assertPassword(aliceAccountDn, "UNDEADmenTELLscaryTALES");
 
-		PrismObject<UserType> userAliceAfter = getUser(USER_ALICE_OID);
-		assertPassword(userAliceAfter, "UNDEADmenTELLscaryTALES");
-			
+		assertUser(USER_ALICE_OID, "User after")
+				.assertPassword("UNDEADmenTELLscaryTALES");
+
 		// Do this as a last step so it will not interfere with the results
-		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, result);
-		assertAttribute(aliceAccount, "employeeNumber", "emp4321");
+
+		assertModelShadowNoFetch(shadowOid)
+				.assertNotDead()
+				.display()
+				.attributes()
+					.assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "44332")
+					.assertHasPrimaryIdentifier();
 
 	}
 	
@@ -1944,54 +2056,46 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		// WHEN
 		repoAddObjectFromFile(USER_BOB_NO_GIVEN_NAME_FILENAME, parentResult);
 
-		assertUserNoAccountRef(USER_BOB_NO_GIVEN_NAME_OID, parentResult);
+		assertUser(USER_BOB_NO_GIVEN_NAME_OID, "User bofore")
+				.assertLinks(0);
 
 		Task task = taskManager.createTaskInstance();
 		
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_BOB_NO_GIVEN_NAME_OID, UserType.class, task, null, parentResult);
-		
-		parentResult.computeStatus();
-		display("add object communication problem result: ", parentResult);
-		assertEquals("Expected handled error but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
-		
-		String accountOid = assertUserOneAccountRef(USER_BOB_NO_GIVEN_NAME_OID);
+		assignAccount(UserType.class, USER_BOB_NO_GIVEN_NAME_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
 
-		checkPostponedAccountWithAttributes(accountOid, "bob", null, "Dylan",  "Bob Dylan", FailedOperationTypeType.ADD, false, task, parentResult);
-		
+		parentResult.computeStatus();
+		assertInProgress(parentResult);
+
+		assertUser(USER_BOB_NO_GIVEN_NAME_OID, "User after")
+				.assertLinks(1);
+
+		String shadowOid = getLinkRefOid(USER_BOB_NO_GIVEN_NAME_OID, RESOURCE_OPENDJ_OID);
+
 		//start openDJ
 		openDJController.start();
-		//and set the resource availability status to UP
-		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
-		
+
 		// WHEN
 		// This should not throw exception
-		modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
+		modelService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
 		
 		OperationResult modifyGivenNameResult = new OperationResult("execute changes -> modify user's given name");
 		LOGGER.trace("execute changes -> modify user's given name");
-		Collection<? extends ItemDelta> givenNameDelta = prismContext.deltaFactory().property().createModificationReplacePropertyCollection(UserType.F_GIVEN_NAME, getUserDefinition(), new PolyString("Bob"));
-		ObjectDelta familyNameD = prismContext.deltaFactory().object()
-				.createModifyDelta(USER_BOB_NO_GIVEN_NAME_OID, givenNameDelta, UserType.class
-				);
-		Collection<ObjectDelta<? extends ObjectType>> modifyFamilyNameDelta = MiscSchemaUtil.createCollection(familyNameD);
-		modelService.executeChanges(modifyFamilyNameDelta, null, task, modifyGivenNameResult);
-		
+		modifyObjectAddProperty(UserType.class, USER_BOB_NO_GIVEN_NAME_OID, UserType.F_GIVEN_NAME, task, modifyGivenNameResult, new PolyString("Bob"));
+
 		modifyGivenNameResult.computeStatus();
-		display("add object communication problem result: ", modifyGivenNameResult);
-		assertEquals("Expected handled error but got: " + modifyGivenNameResult.getStatus(), OperationResultStatus.SUCCESS, modifyGivenNameResult.getStatus());
-		
-		PrismObject<ShadowType> bobRepoAcc = repositoryService.getObject(ShadowType.class, accountOid, null, modifyGivenNameResult);
-		assertNotNull(bobRepoAcc);
-		ShadowType bobRepoAccount = bobRepoAcc.asObjectable();
-		displayJaxb("Shadow after discovery: ", bobRepoAccount, ShadowType.COMPLEX_TYPE);
-		// TODO FIX THIS!!!
-//		assertNull("Bob's account after discovery must not have failed opertion.", bobRepoAccount.getFailedOperationType());
-//		assertNull("Bob's account after discovery must not have result.", bobRepoAccount.getResult());
-		assertNotNull("Bob's account must contain reference on the resource", bobRepoAccount.getResourceRef());
-		
-		checkNormalizedShadowWithAttributes(accountOid, "bob", "Bob", "Dylan", "Bob Dylan", false, task, parentResult);
-		
+		assertInProgress(modifyGivenNameResult);
+
+		assertModelShadowNoFetch(shadowOid)
+				.assertIsExists()
+				.assertNotDead()
+				.assertResource(RESOURCE_OPENDJ_OID)
+				.attributes()
+					.assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Bob")
+					.assertValue(LDAP_ATTRIBUTE_UID, "bob")
+					.assertValue(LDAP_ATTRIBUTE_CN, "Bob Dylan")
+					.assertValue(LDAP_ATTRIBUTE_SN, "Dylan");
+
 	}
 	
 	@Test
