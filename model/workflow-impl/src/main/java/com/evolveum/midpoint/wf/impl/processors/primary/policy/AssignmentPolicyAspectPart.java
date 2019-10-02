@@ -54,6 +54,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -91,6 +92,13 @@ public class AssignmentPolicyAspectPart {
 		OperationResult result = parentResult.subresult(OP_EXTRACT_ASSIGNMENT_BASED_INSTRUCTIONS)
 				.setMinor()
 				.build();
+		ApprovalProcessStartInstructionCreationTraceType trace;
+		if (result.isTracingNormal(ApprovalProcessStartInstructionCreationTraceType.class)) {
+			trace = new ApprovalProcessStartInstructionCreationTraceType(prismContext);
+			result.addTrace(trace);
+		} else {
+			trace = null;
+		}
 		try {
 			DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) ctx.modelContext)
 					.getEvaluatedAssignmentTriple();
@@ -99,21 +107,27 @@ public class AssignmentPolicyAspectPart {
 				return;
 			}
 
-			int instructionsBefore = instructions.size();
+			List<PcpStartInstruction> newInstructions = new ArrayList<>();
 			for (EvaluatedAssignment<?> assignmentAdded : evaluatedAssignmentTriple.getPlusSet()) {
-				addIgnoreNull(instructions,
+				addIgnoreNull(newInstructions,
 						createInstructionFromAssignment(assignmentAdded, PLUS, objectTreeDeltas, requester, ctx, result));
 			}
 			for (EvaluatedAssignment<?> assignmentRemoved : evaluatedAssignmentTriple.getMinusSet()) {
-				addIgnoreNull(instructions,
+				addIgnoreNull(newInstructions,
 						createInstructionFromAssignment(assignmentRemoved, MINUS, objectTreeDeltas, requester, ctx, result));
 			}
 			for (EvaluatedAssignment<?> assignmentModified : evaluatedAssignmentTriple.getZeroSet()) {
-				addIgnoreNull(instructions,
+				addIgnoreNull(newInstructions,
 						createInstructionFromAssignment(assignmentModified, PlusMinusZero.ZERO, objectTreeDeltas, requester, ctx,
 								result));
 			}
-			int instructionsAdded = instructions.size() - instructionsBefore;
+			int newInstructionsCount = newInstructions.size();
+			if (trace != null) {
+				for (PcpStartInstruction newInstruction : newInstructions) {
+					trace.getCaseRef().add(ObjectTypeUtil.createObjectRefWithFullObject(newInstruction.getCase(), prismContext));
+				}
+			}
+			instructions.addAll(newInstructions);
 			CompiledUserProfile adminGuiConfiguration;
 			try {
 				adminGuiConfiguration = modelInteractionService.getCompiledUserProfile(ctx.task, result);
@@ -123,13 +137,17 @@ public class AssignmentPolicyAspectPart {
 			}
 			Integer limit = adminGuiConfiguration.getRoleManagement() != null ?
 					adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit() : null;
-			LOGGER.trace("Assignment-related approval instructions: {}; limit is {}", instructionsAdded, limit);
-			if (limit != null && instructionsAdded > limit) {
+			LOGGER.trace("Assignment-related approval instructions: {}; limit is {}", newInstructionsCount, limit);
+			if (limit != null && newInstructionsCount > limit) {
 				// TODO think about better error reporting
 				throw new IllegalStateException(
 						"Assignment approval request limit (" + limit + ") exceeded: you are trying to submit "
-								+ instructionsAdded + " requests");
+								+ newInstructionsCount + " requests");
 			}
+			if (limit != null) {
+				result.addContext("assignmentApprovalRequestLimit", limit);
+			}
+			result.addReturn("instructionsCreated", newInstructions.size());
 		} catch (Throwable t) {
 			result.recordFatalError(t);
 			throw t;
