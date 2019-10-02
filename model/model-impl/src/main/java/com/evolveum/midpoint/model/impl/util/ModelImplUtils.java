@@ -579,57 +579,6 @@ public class ModelImplUtils {
 	    setRequestee(task, (PrismObject) null);
 	}
 
-	public static boolean isDryRun(Task task) throws SchemaException {
-		Boolean dryRun = findExtensionItemValueInThisOrParent(task, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-		return dryRun != null ? dryRun : Boolean.FALSE;
-	}
-	private static Boolean findExtensionItemValueInThisOrParent(Task task, QName path) throws SchemaException {
-		Boolean value = findExtensionItemValue(task, path);
-		if (value != null) {
-			return value;
-		}
-		if (task instanceof RunningTask) {
-			RunningTask runningTask = (RunningTask) task;
-			if (runningTask.isLightweightAsynchronousTask() && runningTask.getParentForLightweightAsynchronousTask() != null) {
-				return findExtensionItemValue(runningTask.getParentForLightweightAsynchronousTask(), path);
-			}
-		}
-		return null;
-	}
-	
-	private static Boolean findExtensionItemValue(Task task, QName path) throws SchemaException{
-		Validate.notNull(task, "Task must not be null.");
-		if (!task.hasExtension()) {
-			return null;
-		}
-		PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(ItemName.fromQName(path));
-		if (item == null || item.isEmpty()) {
-			return null;
-		}
-		if (item.getValues().size() > 1) {
-			throw new SchemaException("Unexpected number of values for option 'dry run'.");
-		}
-		return item.getValues().iterator().next().getValue();
-	}
-		
-	static Boolean findItemValue(RunningTask task, QName path) throws SchemaException{
-		Validate.notNull(task, "Task must not be null.");
-		if (!task.hasExtension()) {
-			return null;
-		}
-		PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(ItemName.fromQName(path));
-		if (item == null || item.isEmpty()) {
-			return null;
-		}
-		if (item.getValues().size() > 1) {
-			throw new SchemaException("Unexpected number of values for option 'dry run'.");
-		}
-		return item.getValues().iterator().next().getValue();
-	}
-	
-	
-
-
 	public static ModelExecuteOptions getModelExecuteOptions(Task task) throws SchemaException {
 		Validate.notNull(task, "Task must not be null.");
 		if (!task.hasExtension()) {

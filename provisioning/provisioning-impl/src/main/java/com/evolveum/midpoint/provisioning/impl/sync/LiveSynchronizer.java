@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -64,6 +65,9 @@ public class LiveSynchronizer {
 
         ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
         boolean isSimulate = partition != null && partition.getStage() == ExecutionModeType.SIMULATE;
+        boolean isDryRun = TaskUtil.isDryRun(task);
+        boolean updateTokenInDryRun = TaskUtil.findExtensionItemValueInThisOrParent(task,
+                SchemaConstants.MODEL_EXTENSION_UPDATE_LIVE_SYNC_TOKEN_IN_DRY_RUN, false);
 
         PrismProperty<?> initialToken = getTokenFromTask(task);
         syncResult.setInitialToken(initialToken);
@@ -72,6 +76,9 @@ public class LiveSynchronizer {
             // (This is introduced in 4.0.1; it is different from the behaviour up to and including 4.0.) The rational is that
             // there's no point in trying to fetch changes after fetching the current token value. We defer that to next run
             // of the live sync task.
+            //
+            // We intentionally update the token even if we are in dry run mode. Otherwise we could never see any records
+            // (without setting updateLiveSyncTokenInDryRun to true).
             fetchAndRememberCurrentToken(syncResult, isSimulate, ctx, parentResult);
             return syncResult;
         }
@@ -208,6 +215,8 @@ public class LiveSynchronizer {
         PrismProperty<?> tokenToSet;
         if (isSimulate) {
             tokenToSet = null;        // Token should not be updated during simulation.
+        } else if (isDryRun && !updateTokenInDryRun) {
+            tokenToSet = null;
         } else if (!syncResult.isHaltingErrorEncountered() && !syncResult.isSuspendEncountered() && syncResult.isAllChangesFetched()) {
             // Everything went OK. Everything was processed.
             PrismProperty<?> finalToken = finalTokenHolder.getValue();
