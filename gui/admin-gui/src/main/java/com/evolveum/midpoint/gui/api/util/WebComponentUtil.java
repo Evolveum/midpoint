@@ -2933,7 +2933,8 @@ public final class WebComponentUtil {
 			ModelInteractionService mis = pageBase.getModelInteractionService();
 			RoleSelectionSpecification roleSpec =
 					mis.getAssignableRoleSpecification(focusObject, type, assignmentOrder.getOrder(), task, result);
-			filter = roleSpec.getFilter();
+			// TODO: make this relation-aware
+			filter = roleSpec.getGlobalFilter();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
 			result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.getAssignableRolesFilter.fatalError").getString(), ex);

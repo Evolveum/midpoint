@@ -3020,10 +3020,11 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         userJack = getUser(USER_JACK_OID);
         assertAssignments(userJack, 2);
-        
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec, "application", "nonexistent");
-        assertFilter(spec.getFilter(), TypeFilter.class);
+
+        assertAssignableRoleSpecification(getUser(USER_JACK_OID))
+                .relationDefault()
+                    .filter()
+                        .assertClass(TypeFilter.class);
 
         assertAllowRequestAssignmentItems(USER_JACK_OID, ROLE_APPLICATION_1_OID,
         		SchemaConstants.PATH_ASSIGNMENT_TARGET_REF, 

@@ -1659,6 +1659,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.displaySkip(testName);
 	}
 
+	/**
+	 * Used to display string HEREHERE both in test output and in logfiles. This can be used
+	 * to conveniently correlate a place in the test, output and logfiles.
+	 */
+	protected void displayHEREHERE() {
+		IntegrationTestTools.display("HEREHERE");
+	}
+
 	protected void display(String str) {
 		IntegrationTestTools.display(str);
 	}
