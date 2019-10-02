@@ -52,29 +52,42 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
 @Component
 public class ObjectModificationConstraintEvaluator extends ModificationConstraintEvaluator<ModificationPolicyConstraintType> {
 
+	private static final String OP_EVALUATE = ObjectModificationConstraintEvaluator.class.getName() + ".evaluate";
+
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectModificationConstraintEvaluator.class);
 
 	private static final String CONSTRAINT_KEY_PREFIX = "objectModification.";
 
 	@Override
 	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<ModificationPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		if (!(rctx instanceof ObjectPolicyRuleEvaluationContext)) {
-			LOGGER.trace("Policy rule evaluationo context is not of type ObjectPolicyRuleEvaluationContext. Skipping processing.");
-			return null;
-		}
-		ObjectPolicyRuleEvaluationContext<AH> ctx = (ObjectPolicyRuleEvaluationContext<AH>) rctx;
+		OperationResult result = parentResult.subresult(OP_EVALUATE)
+				.setMinor()
+				.build();
+		try {
+			if (!(rctx instanceof ObjectPolicyRuleEvaluationContext)) {
+				LOGGER.trace(
+						"Policy rule evaluation context is not of type ObjectPolicyRuleEvaluationContext. Skipping processing.");
+				return null;
+			}
+			ObjectPolicyRuleEvaluationContext<AH> ctx = (ObjectPolicyRuleEvaluationContext<AH>) rctx;
 
-		if (modificationConstraintMatches(constraint, ctx, result)) {
-			LocalizableMessage message = createMessage(constraint, rctx, result);
-			LocalizableMessage shortMessage = createShortMessage(constraint, rctx, result);
-			return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(), 
-					message, shortMessage);
-		} else {
-			LOGGER.trace("No operation matches.");
-			return null;
+			if (modificationConstraintMatches(constraint, ctx, result)) {
+				LocalizableMessage message = createMessage(constraint, rctx, result);
+				LocalizableMessage shortMessage = createShortMessage(constraint, rctx, result);
+				return new EvaluatedModificationTrigger(PolicyConstraintKindType.OBJECT_MODIFICATION, constraint.getValue(),
+						message, shortMessage);
+			} else {
+				LOGGER.trace("No operation matches.");
+				return null;
+			}
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 

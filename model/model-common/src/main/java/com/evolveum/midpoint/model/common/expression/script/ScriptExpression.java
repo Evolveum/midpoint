@@ -12,6 +12,7 @@ import java.util.function.Function;
 
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.TraceUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -30,8 +32,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * The expressions should be created by ExpressionFactory. They expect correct setting of
@@ -51,6 +52,7 @@ public class ScriptExpression {
     private Collection<FunctionLibrary> functions;
     private ExpressionProfile expressionProfile;
     private ScriptExpressionProfile scriptExpressionProfile;
+    private PrismContext prismContext;
     
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
 	private static final int MAX_CODE_CHARS = 42;
@@ -107,7 +109,15 @@ public class ScriptExpression {
 	public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
 		this.additionalConvertor = additionalConvertor;
 	}
-	
+
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+
 	@Deprecated
 	public <V extends PrismValue> List<V> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType,
 			boolean useNew, String contextDescription, Task task, OperationResult result)
@@ -162,11 +172,22 @@ public class ScriptExpression {
 				.setMinor()
 				.addContext("context", context.getContextDescription())
 				.build();
+		if (result.isTracingNormal(ScriptEvaluationTraceType.class)) {
+			ScriptEvaluationTraceType trace = new ScriptEvaluationTraceType(prismContext);
+			result.addTrace(trace);
+			context.setTrace(trace);
+			trace.setScriptExpressionEvaluator(context.getExpressionType());
+		} else {
+			context.setTrace(null);
+		}
 		context.setResult(result);      // a bit of hack: this is to provide some tracing of script evaluation
 		try {
 			context.setupThreadLocal();
 
 			List<V> expressionResult = evaluator.evaluate(context);
+			if (context.getTrace() != null) {
+				context.getTrace().getResult().addAll(TraceUtil.toAnyValueTypeList(expressionResult, prismContext));
+			}
 
 			traceExpressionSuccess(context, expressionResult);
 	        return expressionResult;

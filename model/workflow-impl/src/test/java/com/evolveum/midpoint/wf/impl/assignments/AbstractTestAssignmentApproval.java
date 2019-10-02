@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.OperationResultAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -140,7 +141,12 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
-		executeAssignRole1ToJack(TEST_NAME, false, false, null, null);
+		OperationResult result = executeAssignRole1ToJack(TEST_NAME, false, false, null, null, true);
+
+		// MID-5814
+		OperationResultAsserter.forResult(result)
+				.assertTracedSomewhere()                // just checking that tracing works
+				.assertNoLogEntry(text -> text.contains("Unresolved object reference in delta being audited"));
 	}
 
 	/**
@@ -183,7 +189,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		Task task = createTask(TEST_NAME);
 		importLead10(task, task.getResult());
 
-		executeAssignRole1ToJack(TEST_NAME, false, false, null, null);
+		executeAssignRole1ToJack(TEST_NAME, false, false, null, null, false);
 	}
 
 	/**
@@ -196,7 +202,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
-		executeAssignRole1ToJack(TEST_NAME, true, false, null, null);
+		executeAssignRole1ToJack(TEST_NAME, true, false, null, null, false);
 	}
 
 	/**
@@ -317,7 +323,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		importLead1Deputies(task, task.getResult());
 
 		unassignAllRoles(userJackOid);
-		executeAssignRole1ToJack(TEST_NAME, false, true, null, null);
+		executeAssignRole1ToJack(TEST_NAME, false, true, null, null, false);
 	}
 
 	/**
@@ -330,7 +336,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
-		executeAssignRole1ToJack(TEST_NAME, false, true, userLead1Deputy1Oid, null);
+		executeAssignRole1ToJack(TEST_NAME, false, true, userLead1Deputy1Oid, null, false);
 	}
 
 	@Test(enabled = false)
@@ -340,10 +346,11 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		login(userAdministrator);
 
 		unassignAllRoles(userJackOid);
-		executeAssignRole1ToJack(TEST_NAME, false, true, null, SchemaConstants.ORG_APPROVER);
+		executeAssignRole1ToJack(TEST_NAME, false, true, null, SchemaConstants.ORG_APPROVER, false);
 	}
 
-	private void executeAssignRole1ToJack(String TEST_NAME, boolean immediate, boolean deputy, String approverOid, QName relation) throws Exception {
+	private OperationResult executeAssignRole1ToJack(String TEST_NAME, boolean immediate, boolean deputy, String approverOid, QName relation,
+			boolean useTracing) throws Exception {
 		PrismObject<UserType> jack = getUser(userJackOid);
 		AssignmentType assignment = createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext);
 		assignment.getTargetRef().setRelation(relation);
@@ -352,7 +359,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 				.item(UserType.F_ASSIGNMENT).add(assignment)
 				.asObjectDelta(userJackOid);
 		String realApproverOid = approverOid != null ? approverOid : userLead1Oid;
-		executeTest2(TEST_NAME, new TestDetails2<UserType>() {
+		return executeTest2(TEST_NAME, new TestDetails2<UserType>() {
 			@Override
 			protected PrismObject<UserType> getFocus(OperationResult result) {
 				return jack.clone();
@@ -421,6 +428,19 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 				checkTargetOid(caseWorkItem, getRoleOid(1));
 				login(getUser(realApproverOid));
 				return true;
+			}
+
+			@Override
+			public void setTracing(Task opTask) {
+				if (useTracing) {
+					opTask.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
+					opTask.addTracingRequest(TracingRootType.WORKFLOW_OPERATION);
+					opTask.setTracingProfile(
+							new TracingProfileType(prismContext)
+									.createTraceFile(false)
+									.collectLogEntries(true)
+					);
+				}
 			}
 		}, 1, immediate);
 	}

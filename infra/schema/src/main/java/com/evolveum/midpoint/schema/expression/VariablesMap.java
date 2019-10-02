@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0 
@@ -6,19 +6,14 @@
  */
 package com.evolveum.midpoint.schema.expression;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -37,14 +32,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 
-	private Map<String,TypedValue> variables;
+	private Map<String, TypedValue> variables;
+
+	/**
+	 * We register aliases to make variable dumps more organized by eliminating duplicate objects.
+	 * But currently (for simplicity) we keep values for both real variables and aliases in variables map.
+	 *
+	 * Note that manipulating variables directly e.g. by entrySet-returned value could lead to inconsistencies.
+	 *
+	 * The aliases map semantics is: alias -> real name.
+	 *
+	 * Anyway, aliases should be used SOLELY for presentation purposes. No "real" functionality should depend on them.
+	 */
+	private final Map<String, String> aliases = new HashMap<>();
 	
 	public VariablesMap() {
 		variables = new HashMap<>();
 	}
 
 	private VariablesMap(Map<String, TypedValue> variablesMap) {
-		super();
 		this.variables = variablesMap;
 	}
 
@@ -68,6 +74,7 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 		return variables.get(key);
 	}
 
+	@SuppressWarnings("ConstantConditions")
 	public TypedValue put(String key, TypedValue typedValue) {
 		if (typedValue == null) {
 			throw new IllegalArgumentException("Attempt to set variable '"+key+"' with null typed value: "+typedValue);
@@ -77,7 +84,25 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 		}
 		return variables.put(key, typedValue);
 	}
-	
+
+	public void registerAlias(String alias, String realName) {
+		if (isAlias(realName)) {
+			throw new IllegalArgumentException("Trying to put alias definition: " + alias + "->" + realName + ", but " + realName + " is itself an alias");
+		}
+		aliases.put(alias, realName);
+	}
+
+	/**
+	 * Use only if you previously register all variables from this map!
+	 */
+	public void registerAliasesFrom(VariablesMap map) {
+		aliases.putAll(map.aliases);
+	}
+
+	public void unregisterAlias(String alias) {
+		aliases.remove(alias);
+	}
+
 	@SuppressWarnings("rawtypes")
 	public <D extends ItemDefinition> TypedValue put(String key, Object value, D definition) {
 		if (definition == null) {
@@ -135,6 +160,7 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 	}
 
 	public TypedValue remove(Object key) {
+		aliases.remove(key);
 		return variables.remove(key);
 	}
 
@@ -142,23 +168,31 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 		variables.putAll(m);
 	}
 
+	public void putAll(VariablesMap m) {
+		variables.putAll(m);
+		aliases.putAll(m.aliases);
+	}
+
 	public void clear() {
+		aliases.clear();
 		variables.clear();
 	}
 
+	@NotNull
 	public Set<String> keySet() {
 		return variables.keySet();
 	}
 
+	@NotNull
 	public Collection<TypedValue> values() {
 		return variables.values();
 	}
 
+	@NotNull
 	public Set<Entry<String, TypedValue>> entrySet() {
 		return variables.entrySet();
 	}
-	
-	
+
 	/**
      * Expects name-value-definition triples.
      * Definition can be just a type QName.
@@ -237,34 +271,66 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
         Iterator<Entry<String, TypedValue>> i = entrySet().iterator();
         while (i.hasNext()) {
             Entry<String, TypedValue> entry = i.next();
-            SchemaDebugUtil.indentDebugDump(sb, 1);
-            sb.append(entry.getKey()).append(": ");
-            TypedValue valueDef = entry.getValue();
-            Object value = valueDef.getValue();
-            // TODO: dump definitions?
-            if (value instanceof DebugDumpable) {
-            	sb.append("\n");
-            	sb.append(((DebugDumpable)value).debugDump(2));
-            } else if (value instanceof Element) {
-            	sb.append("\n");
-            	sb.append(DOMUtil.serializeDOMToString(((Element)value)));
-            } else {
-            	sb.append(SchemaDebugUtil.prettyPrint(value));
-            }
-            if (i.hasNext()) {
-                sb.append("\n");
-            }
+	        if (!isAlias(entry.getKey())) {
+		        SchemaDebugUtil.indentDebugDump(sb, 1);
+		        sb.append(entry.getKey());
+		        sb.append(getAliasesListFormatted(entry.getKey()));
+		        sb.append(": ");
+		        TypedValue valueDef = entry.getValue();
+		        Object value = valueDef.getValue();
+		        // TODO: dump definitions?
+		        if (value instanceof DebugDumpable) {
+			        sb.append("\n");
+			        sb.append(((DebugDumpable) value).debugDump(2));
+		        } else if (value instanceof Element) {
+			        sb.append("\n");
+			        sb.append(DOMUtil.serializeDOMToString(((Element) value)));
+		        } else {
+			        sb.append(SchemaDebugUtil.prettyPrint(value));
+		        }
+		        if (i.hasNext()) {
+			        sb.append("\n");
+		        }
+	        }
         }
         return sb.toString();
     }
-	
+
+	private String getAliasesListFormatted(String key) {
+		Collection<String> aliases = getAliases(key);
+		if (aliases.isEmpty()) {
+			return "";
+		} else {
+			return aliases.stream().collect(Collectors.joining(", ", " (", ")"));
+		}
+	}
+
+	@NotNull
+	public Collection<String> getAliases(String key) {
+		return aliases.entrySet().stream()
+				.filter(e -> Objects.equals(key, e.getValue()))
+				.map(Entry::getKey)
+				.collect(Collectors.toList());
+	}
+
+	public boolean isAlias(String key) {
+		return aliases.containsKey(key);
+	}
+
+	public String getAliasResolution(String key) {
+    	return aliases.get(key);
+	}
+
 	public String dumpSingleLine() {
 		StringBuilder sb = new StringBuilder();
 		for (Entry<String, TypedValue> entry: variables.entrySet()) {
-			sb.append(entry.getKey());
-			sb.append("=");
-			sb.append(PrettyPrinter.prettyPrint(entry.getValue().getValue()));
-			sb.append("; ");
+			if (!isAlias(entry.getKey())) {
+				sb.append(entry.getKey());
+				sb.append(getAliasesListFormatted(entry.getKey()));
+				sb.append("=");
+				sb.append(PrettyPrinter.prettyPrint(entry.getValue().getValue()));
+				sb.append("; ");
+			}
 		}
 		return sb.toString();
 	}
@@ -273,8 +339,18 @@ public class VariablesMap implements Map<String,TypedValue>, DebugDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpMapMultiLine(sb, variables, 1);
+		DebugUtil.debugDumpMapMultiLine(sb, getAliasReducedMap(), 1);
 		return sb.toString();
 	}
 
+	private Map<String, TypedValue> getAliasReducedMap() {
+		Map<String, TypedValue> rv = new HashMap<>();
+		for (Entry<String, TypedValue> entry : variables.entrySet()) {
+			String key = entry.getKey();
+			if (!isAlias(key)) {
+				rv.put(key + getAliasesListFormatted(key), entry.getValue());
+			}
+		}
+		return rv;
+	}
 }

@@ -22,9 +22,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransitionPolicyConstraintType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +38,8 @@ import java.util.List;
 @Component
 public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<TransitionPolicyConstraintType> {
 
+	private static final String OP_EVALUATE = TransitionConstraintEvaluator.class.getName() + ".evaluate";
+
 	private static final String CONSTRAINT_KEY = "transition";
 
 	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
@@ -47,21 +47,31 @@ public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<
 
 	@Override
 	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<TransitionPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		TransitionPolicyConstraintType trans = constraintElement.getValue();
-		List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
-		boolean match =
-			evaluateState(trans, rctx, ObjectState.BEFORE, trans.isStateBefore(), triggers, result)
-					&& evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
-		if (match) {
-			return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans,
-					createMessage(constraintElement, rctx, result),
-					createShortMessage(constraintElement, rctx, result),
-					triggers);
-		} else {
-			return null;
+		OperationResult result = parentResult.subresult(OP_EVALUATE)
+				.setMinor()
+				.build();
+		try {
+			TransitionPolicyConstraintType trans = constraintElement.getValue();
+			List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+			boolean match =
+					evaluateState(trans, rctx, ObjectState.BEFORE, trans.isStateBefore(), triggers, result)
+							&& evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
+			if (match) {
+				return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans,
+						createMessage(constraintElement, rctx, result),
+						createShortMessage(constraintElement, rctx, result),
+						triggers);
+			} else {
+				return null;
+			}
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 

@@ -44,7 +44,6 @@ import java.util.*;
  *                 In this case the path expression used in the "property"
  *                 attribute must select exactly one property.
  *
- *                 TODO: this should be renamed to ItemDeltaType
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ItemDeltaType", propOrder = {
@@ -159,98 +158,6 @@ public class ItemDeltaType implements Serializable, Cloneable, JaxbVisitable {
 	@NotNull
     public List<RawType> getEstimatedOldValue() {
         return (List<RawType>) (List) estimatedOldValue;        // brutal hack
-    }
-
-    /**
-     * <p>Java class for anonymous complex type.
-     *
-     * <p>The following schema fragment specifies the expected content contained within this class.
-     *
-     * <pre>
-     * &lt;complexType&gt;
-     *   &lt;complexContent&gt;
-     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
-     *       &lt;sequence&gt;
-     *         &lt;any processContents='lax' maxOccurs="unbounded" minOccurs="0"/&gt;
-     *       &lt;/sequence&gt;
-     *     &lt;/restriction&gt;
-     *   &lt;/complexContent&gt;
-     * &lt;/complexType&gt;
-     * </pre>
-     */
-    @XmlAccessorType(XmlAccessType.FIELD)
-    @XmlType(name = "", propOrder = {
-        "any"
-    })
-    public static class Value implements Serializable, Cloneable {
-
-        @XmlAnyElement(lax = true)
-        protected final List<Object> any = new ArrayList<>();
-
-        /**
-         * Gets the value of the any property.
-         *
-         * <p>
-         * This accessor method returns a reference to the live list,
-         * not a snapshot. Therefore any modification you make to the
-         * returned list will be present inside the JAXB object.
-         * This is why there is not a <CODE>set</CODE> method for the any property.
-         *
-         * <p>
-         * For example, to add a new item, do as follows:
-         * <pre>
-         *    getAny().add(newItem);
-         * </pre>
-         *
-         *
-         * <p>
-         * Objects of the following type(s) are allowed in the list
-         * {@link Element }
-         * {@link Object }
-         *
-         *
-         */
-        @NotNull
-        public List<Object> getAny() {
-            return this.any;
-        }
-
-        @Override
-        public Value clone() {
-            Value value = new Value();
-            copyContent(Value.this.any, value.getAny());
-
-            return value;
-        }
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + any.hashCode();
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Value other = (Value) obj;
-			if (!JAXBUtil.compareElementList(any, other.any, false))
-				return false;
-			return true;
-		}
-
-		@Override
-		public String toString() {
-			return "Value(any=" + any + ")";
-		}
-
-
     }
 
     @Override

@@ -205,9 +205,13 @@ public class OutboundProcessor {
 		mappingBuilder.mappingQName(attributeQName);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
+		mappingBuilder.addAliasRegistration(ExpressionConstants.VAR_USER, null);
+		mappingBuilder.addAliasRegistration(ExpressionConstants.VAR_FOCUS, null);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projectionOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projectionOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projectionOdo);
+	    mappingBuilder.addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION);
+	    mappingBuilder.addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), SystemConfigurationType.class);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ITERATION,
 				LensUtil.getIterationVariableValue(projCtx), Integer.class);
