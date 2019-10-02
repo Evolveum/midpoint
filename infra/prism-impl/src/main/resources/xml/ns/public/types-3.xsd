@@ -716,8 +716,79 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="objectDelta" type="tns:ObjectDeltaType"/>
-    
-    <xsd:simpleType name="ChangeTypeType">
+
+	<xsd:complexType name="ObjectDeltaObjectType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO. Experimental.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0.1</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="oldObject" type="tns:ObjectType" minOccurs="0"/>
+			<xsd:element name="delta" type="tns:ObjectDeltaType" minOccurs="0"/>
+			<xsd:element name="newObject" type="tns:ObjectType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="objectDeltaObject" type="tns:ObjectDeltaObjectType"/>
+
+	<xsd:complexType name="ItemDeltaItemType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO. Experimental.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0.1</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="oldItem" type="tns:ItemType" minOccurs="0"/>
+			<xsd:element name="delta" type="tns:ItemDeltaType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="newItem" type="tns:ItemType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="itemDeltaItem" type="tns:ItemDeltaItemType"/>
+
+	<xsd:complexType name="ItemType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO. Experimental.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0.1</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:QName" minOccurs="0"/>
+			<xsd:element name="value" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="item" type="tns:ItemType"/>
+
+	<xsd:complexType name="DeltaSetTripleType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO. Experimental.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0.1</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="zero" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="plus" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="minus" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="deltaSetTriple" type="tns:DeltaSetTripleType"/>
+
+	<xsd:simpleType name="ChangeTypeType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO

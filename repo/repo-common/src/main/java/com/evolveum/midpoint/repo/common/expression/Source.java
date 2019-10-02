@@ -13,11 +13,15 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaItemType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -85,4 +89,15 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 		return sb.toString();
 	}
 
+	@NotNull
+	public ItemDeltaItemType toItemDeltaItemType() throws SchemaException {
+		ItemDeltaItemType rv = new ItemDeltaItemType();
+		rv.setOldItem(ItemType.fromItem(getItemOld()));
+		ItemDelta<V, D> delta = getDelta();
+		if (delta != null) {
+			rv.getDelta().addAll(DeltaConvertor.toItemDeltaTypes(delta));
+		}
+		rv.setNewItem(ItemType.fromItem(getItemNew()));
+		return rv;
+	}
 }

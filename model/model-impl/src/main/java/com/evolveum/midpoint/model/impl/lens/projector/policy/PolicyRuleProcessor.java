@@ -56,9 +56,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstra
  */
 @Component
 public class PolicyRuleProcessor {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleProcessor.class);
-	
+
+	private static final String OP_EVALUATE_RULE = PolicyRuleProcessor.class.getName() + ".evaluateRule";
+
 	@Autowired private PrismContext prismContext;
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 	@Autowired private MappingFactory mappingFactory;
@@ -354,14 +356,15 @@ public class PolicyRuleProcessor {
 	 */
 	private <AH extends AssignmentHolderType> void evaluateRule(PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		OperationResult result = parentResult.subresult(PolicyRuleProcessor.class.getName() + ".evaluateRule")
-				.addParam("policyRule", ctx.policyRule.toShortString())
-				.addContext("context", ctx.getShortDescription())
+
+		String ruleShortString = ctx.policyRule.toShortString();
+		String ctxShortDescription = ctx.getShortDescription();
+		OperationResult result = parentResult.subresult(OP_EVALUATE_RULE)
+				.addParam("policyRule", ruleShortString)
+				.addContext("context", ctxShortDescription)
 				.build();
 		try {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Evaluating policy rule {} in {}", ctx.policyRule.toShortString(), ctx.getShortDescription());
-			}
+			LOGGER.trace("Evaluating policy rule {} in {}", ruleShortString, ctxShortDescription);
 			PolicyConstraintsType constraints = ctx.policyRule.getPolicyConstraints();
 			JAXBElement<PolicyConstraintsType> conjunction = new JAXBElement<>(F_AND, PolicyConstraintsType.class, constraints);
 			EvaluatedCompositeTrigger trigger = compositeConstraintEvaluator.evaluate(conjunction, ctx, result);
@@ -449,8 +452,7 @@ public class PolicyRuleProcessor {
 		LOGGER.trace("{}", sb.toString());
 	}
 
-	private <AH extends AssignmentHolderType> void traceRuleEvaluationResult(EvaluatedPolicyRule rule, PolicyRuleEvaluationContext<AH> ctx)
-			throws SchemaException {
+	private <AH extends AssignmentHolderType> void traceRuleEvaluationResult(EvaluatedPolicyRule rule, PolicyRuleEvaluationContext<AH> ctx) {
 		if (!LOGGER.isTraceEnabled()) {
 			return;
 		}
@@ -466,7 +468,6 @@ public class PolicyRuleProcessor {
 		sb.append("]---------------------------");
 		sb.append("\n");
 		sb.append(rule.debugDump());
-		//sb.append("\nContext: ").append(ctx.debugDump());
 		LOGGER.trace("{}", sb.toString());
 	}
 
@@ -629,6 +630,8 @@ public class PolicyRuleProcessor {
 						prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
+				.addAliasRegistration(ExpressionConstants.VAR_USER, null)
+				.addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
 				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null, EvaluatedAssignment.class)
 				.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment, EvaluatedAssignment.class)
 				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment != null ? evaluatedAssignment.getAssignmentType() : null, AssignmentType.class)

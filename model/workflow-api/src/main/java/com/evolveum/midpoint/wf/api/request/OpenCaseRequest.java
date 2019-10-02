@@ -18,4 +18,11 @@ public class OpenCaseRequest extends Request {
 		super(caseOid, null);
 	}
 
+	@Override
+	public String toString() {
+		return "OpenCaseRequest{" +
+				"caseOid='" + caseOid + '\'' +
+				", causeInformation=" + causeInformation +
+				'}';
+	}
 }

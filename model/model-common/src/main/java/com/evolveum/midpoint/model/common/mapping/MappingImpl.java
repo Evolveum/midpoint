@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -72,6 +73,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  */
 public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implements Mapping<V,D>, DebugDumpable, PrismValueDeltaSetTripleProducer<V, D> {
+
+	private static final String OP_EVALUATE_PREPARED = MappingImpl.class.getName() + ".evaluatePrepared";
+	private static final String OP_EVALUATE = MappingImpl.class.getName() + ".evaluate";
+	private static final String OP_PREPARE = MappingImpl.class.getName() + ".prepare";
 
 	// configuration properties (unmodifiable)
 	private final MappingType mappingType;
@@ -403,7 +408,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	// TODO: rename to evaluateAll
 	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-		OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".evaluate")
+		OperationResult result = parentResult.subresult(OP_EVALUATE)
 				.addArbitraryObjectAsContext("mapping", this)
 				.addArbitraryObjectAsContext("context", getContextDescription())
 				.addArbitraryObjectAsContext("task", task)
@@ -444,11 +449,12 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	public void prepare(Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException,
 			ConfigurationException, CommunicationException {
-			OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".prepare")
-					.addArbitraryObjectAsContext("mapping", this)
-					.addArbitraryObjectAsContext("task", task)
-					.setMinor()
-					.build();
+
+		OperationResult result = parentResult.subresult(OP_PREPARE)
+				.addArbitraryObjectAsContext("mapping", this)
+				.addArbitraryObjectAsContext("task", task)
+				.setMinor()
+				.build();
 		assertState(MappingEvaluationState.UNINITIALIZED);
 		try {
 
@@ -469,6 +475,15 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		result.recordSuccess();
 	}
 
+	private void traceSources() throws SchemaException {
+		for (Source<?, ?> source : sources) {
+			MappingSourceEvaluationTraceType sourceTrace = new MappingSourceEvaluationTraceType(prismContext);
+			sourceTrace.setName(source.getName());
+			sourceTrace.setItemDeltaItem(source.toItemDeltaItemType());
+			trace.getSource().add(sourceTrace);
+		}
+	}
+
 	public boolean isActivated() {
 		// TODO
 //		return isActivated;
@@ -480,7 +495,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 		assertState(MappingEvaluationState.PREPARED);
 
-		OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".evaluatePrepared")
+		OperationResult result = parentResult.subresult(OP_EVALUATE_PREPARED)
 				.addArbitraryObjectAsContext("mapping", this)
 				.addArbitraryObjectAsContext("task", task)
 				.setMinor()
@@ -489,6 +504,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
         traceEvaluationStart();
 
 		try {
+
+			if (trace != null) {
+				traceSources();
+			}
 
 			// We may need to re-parse the sources here
 
@@ -539,10 +558,20 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			result.recordSuccess();
 			traceSuccess(conditionResultOld, conditionResultNew);
 
+			if (trace != null) {
+				traceOutput();
+			}
+
 		} catch (Throwable e) {
 			result.recordFatalError(e);
 			traceFailure(e);
 			throw e;
+		}
+	}
+
+	private void traceOutput() {
+		if (outputTriple != null) {
+			trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple));
 		}
 	}
 
@@ -1781,13 +1810,13 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 
 		public <O extends ObjectType> Builder<V, D> addVariableDefinition(String name, O objectType, Class<O> expectedClass) {
-			// Maybe determine definiton from schema registry here in case that object is null. We can do that here.
+			// Maybe determine definition from schema registry here in case that object is null. We can do that here.
 			variables.putObject(name, objectType, expectedClass);
 			return this;
 		}
 
 		public <O extends ObjectType> Builder<V, D> addVariableDefinition(String name, PrismObject<O> midpointObject, Class<O> expectedClass) {
-			// Maybe determine definiton from schema registry here in case that object is null. We can do that here.
+			// Maybe determine definition from schema registry here in case that object is null. We can do that here.
 			variables.putObject(name, midpointObject, expectedClass);
 			return this;
 		}
@@ -1824,6 +1853,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				throw new IllegalArgumentException("Attempt to set variable '"+name+"' as ODO without a definition: "+value);
 			}
 			return addVariableDefinition(name,(Object)value, definition);
+		}
+
+		public Builder<V, D> addAliasRegistration(String alias, String mainVariable) {
+			variables.registerAlias(alias, mainVariable);
+			return this;
 		}
 
 		public Builder<V, D> addVariableDefinitions(VariablesMap extraVariables) {

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptEvaluationTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
@@ -44,6 +45,8 @@ public class ScriptExpressionEvaluationContext {
 	private String contextDescription;
 	private Task task;
 	private OperationResult result;
+
+	private ScriptEvaluationTraceType trace;
 
 	public ScriptExpressionEvaluatorType getExpressionType() {
 		return expressionType;
@@ -173,4 +176,11 @@ public class ScriptExpressionEvaluationContext {
 		return threadLocalContext.get();
 	}
 
+	public ScriptEvaluationTraceType getTrace() {
+		return trace;
+	}
+
+	public void setTrace(ScriptEvaluationTraceType trace) {
+		this.trace = trace;
+	}
 }

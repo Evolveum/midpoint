@@ -73,6 +73,11 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
 
+	private static final String CLASS_DOT = PrimaryChangeProcessor.class.getName() + ".";
+	private static final String OP_PREVIEW_OR_PROCESS_MODEL_INVOCATION = CLASS_DOT + "previewOrProcessModelInvocation";
+	private static final String OP_GATHER_START_INSTRUCTIONS = CLASS_DOT + "gatherStartInstructions";
+	private static final String OP_EXECUTE_START_INSTRUCTIONS = CLASS_DOT + "executeStartInstructions";
+
 	@Autowired private ConfigurationHelper configurationHelper;
 	@Autowired private ModelHelper modelHelper;
 	@Autowired private AuditHelper auditHelper;
@@ -121,42 +126,53 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     private <O extends ObjectType> HookOperationMode previewOrProcessModelInvocation(@NotNull ModelInvocationContext<O> ctx,
-		    boolean previewOnly, List<PcpStartInstruction> startInstructionsHolder, @NotNull OperationResult result)
+		    boolean previewOnly, List<PcpStartInstruction> startInstructionsHolder, @NotNull OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
 		    ConfigurationException, SecurityViolationException {
 
-        if (ctx.modelContext.getFocusContext() == null) {
-            return null;
-        }
+    	OperationResult result = parentResult.subresult(OP_PREVIEW_OR_PROCESS_MODEL_INVOCATION)
+			    .addParam("previewOnly", previewOnly)
+			    .build();
+    	try {
 
-		PrimaryChangeProcessorConfigurationType processorConfig =
-				ctx.wfConfiguration != null ? ctx.wfConfiguration.getPrimaryChangeProcessor() : null;
-		if (processorConfig != null && Boolean.FALSE.equals(processorConfig.isEnabled())) {
-			LOGGER.debug("Primary change processor is disabled.");
-			return null;
-		}
+		    if (ctx.modelContext.getFocusContext() == null) {
+			    return null;
+		    }
 
-		ObjectTreeDeltas<O> objectTreeDeltas = ctx.modelContext.getTreeDeltas();
-        if (objectTreeDeltas.isEmpty()) {
-            return null;
-        }
+		    PrimaryChangeProcessorConfigurationType processorConfig =
+				    ctx.wfConfiguration != null ? ctx.wfConfiguration.getPrimaryChangeProcessor() : null;
+		    if (processorConfig != null && Boolean.FALSE.equals(processorConfig.isEnabled())) {
+			    LOGGER.debug("Primary change processor is disabled.");
+			    return null;
+		    }
 
-        // examine the request using process aspects
-        ObjectTreeDeltas<O> changesBeingDecomposed = objectTreeDeltas.clone();
-        List<PcpStartInstruction> startInstructions = gatherStartInstructions(changesBeingDecomposed, ctx, result);
+		    ObjectTreeDeltas<O> objectTreeDeltas = ctx.modelContext.getTreeDeltas();
+		    if (objectTreeDeltas.isEmpty()) {
+			    return null;
+		    }
 
-        // start the process(es)
-        removeEmptyProcesses(startInstructions, ctx, result);
-        if (startInstructions.isEmpty()) {
-            LOGGER.debug("There are no workflow processes to be started, exiting.");
-            return null;
-        }
-        if (previewOnly) {
-        	startInstructionsHolder.addAll(startInstructions);
-        	return null;
-        } else {
-	        return executeStartInstructions(startInstructions, ctx, changesBeingDecomposed, result);
-        }
+		    // examine the request using process aspects
+		    ObjectTreeDeltas<O> changesBeingDecomposed = objectTreeDeltas.clone();
+		    List<PcpStartInstruction> startInstructions = gatherStartInstructions(changesBeingDecomposed, ctx, result);
+
+		    // start the process(es)
+		    removeEmptyProcesses(startInstructions, ctx, result);
+		    if (startInstructions.isEmpty()) {
+			    LOGGER.debug("There are no workflow processes to be started, exiting.");
+			    return null;
+		    }
+		    if (previewOnly) {
+			    startInstructionsHolder.addAll(startInstructions);
+			    return null;
+		    } else {
+			    return executeStartInstructions(startInstructions, ctx, changesBeingDecomposed, result);
+		    }
+	    } catch (Throwable t) {
+    		result.recordFatalError(t);
+    		throw t;
+	    } finally {
+    		result.computeStatusIfUnknown();
+	    }
     }
 
     private void removeEmptyProcesses(List<PcpStartInstruction> instructions, ModelInvocationContext ctx,
@@ -208,19 +224,30 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
 	private <O extends ObjectType> List<PcpStartInstruction> gatherStartInstructions(
     		@NotNull ObjectTreeDeltas<O> changesBeingDecomposed, @NotNull ModelInvocationContext<O> ctx,
-		    @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
-        PrimaryChangeProcessorConfigurationType processorConfigurationType =
-                ctx.wfConfiguration != null ? ctx.wfConfiguration.getPrimaryChangeProcessor() : null;
-        List<PcpStartInstruction> startProcessInstructions = new ArrayList<>();
-        for (PrimaryChangeAspect aspect : getActiveChangeAspects(processorConfigurationType)) {
-            if (changesBeingDecomposed.isEmpty()) {      // nothing left
-                break;
-            }
-            List<PcpStartInstruction> instructions = aspect.getStartInstructions(changesBeingDecomposed, ctx, result);
-            logAspectResult(aspect, instructions, changesBeingDecomposed);
-            startProcessInstructions.addAll(instructions);
-        }
-        return startProcessInstructions;
+		    @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+
+    	OperationResult result = parentResult.subresult(OP_GATHER_START_INSTRUCTIONS)
+			    .setMinor()
+			    .build();
+    	try {
+		    PrimaryChangeProcessorConfigurationType processorConfigurationType =
+				    ctx.wfConfiguration != null ? ctx.wfConfiguration.getPrimaryChangeProcessor() : null;
+		    List<PcpStartInstruction> startProcessInstructions = new ArrayList<>();
+		    for (PrimaryChangeAspect aspect : getActiveChangeAspects(processorConfigurationType)) {
+			    if (changesBeingDecomposed.isEmpty()) {      // nothing left
+				    break;
+			    }
+			    List<PcpStartInstruction> instructions = aspect.getStartInstructions(changesBeingDecomposed, ctx, result);
+			    logAspectResult(aspect, instructions, changesBeingDecomposed);
+			    startProcessInstructions.addAll(instructions);
+		    }
+		    return startProcessInstructions;
+	    } catch (Throwable t) {
+    		result.recordFatalError(t);
+    		throw t;
+	    } finally {
+    		result.computeStatusIfUnknown();
+	    }
     }
 
 	private Collection<PrimaryChangeAspect> getActiveChangeAspects(PrimaryChangeProcessorConfigurationType configuration) {
@@ -243,7 +270,10 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     private HookOperationMode executeStartInstructions(List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx,
-		    ObjectTreeDeltas<?> changesWithoutApproval, OperationResult result) {
+		    ObjectTreeDeltas<?> changesWithoutApproval, OperationResult parentResult) {
+    	// Note that this result cannot be minor, because we need to be able to retrieve case OID. And minor results get cut off.
+    	OperationResult result = parentResult.subresult(OP_EXECUTE_START_INSTRUCTIONS)
+			    .build();
         try {
 			// prepare root case and case0
             CaseType rootCase = addRoot(ctx, result);
@@ -310,6 +340,8 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             return HookOperationMode.ERROR;
 
             // todo rollback - e.g. delete already created cases
+        } finally {
+        	result.computeStatusIfUnknown();
         }
     }
 

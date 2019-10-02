@@ -1789,6 +1789,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void setModelAndWorkflowLoggingTracing(Task task) {
 		setTracing(task, addWorkflowLogging(createModelLoggingTracingProfile()));
+		task.addTracingRequest(TracingRootType.WORKFLOW_OPERATION);
 	}
 
 	protected void setModelAndProvisioningLoggingTracing(Task task) {

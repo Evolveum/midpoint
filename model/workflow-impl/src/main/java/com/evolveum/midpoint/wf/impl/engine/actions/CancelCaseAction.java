@@ -23,23 +23,36 @@ public class CancelCaseAction extends RequestedAction<CancelCaseRequest> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(CancelCaseAction.class);
 
+	private static final String OP_EXECUTE = CancelCaseAction.class.getName() + ".execute";
+
 	public CancelCaseAction(EngineInvocationContext ctx, CancelCaseRequest request) {
 		super(ctx, request);
 	}
 
 	@Override
-	public Action execute(OperationResult result)
+	public Action execute(OperationResult parentResult)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException {
-		traceEnter(LOGGER);
+		OperationResult result = parentResult.subresult(OP_EXECUTE)
+				.setMinor()
+				.build();
+		try {
+			traceEnter(LOGGER);
 
-		engine.securityEnforcer.authorize(ModelAuthorizationAction.CANCEL_CASE.getUrl(), null,
-				AuthorizationParameters.Builder.buildObject(ctx.getCurrentCase().asPrismObject()), null, ctx.getTask(), result);
+			engine.securityEnforcer.authorize(ModelAuthorizationAction.CANCEL_CASE.getUrl(), null,
+					AuthorizationParameters.Builder.buildObject(ctx.getCurrentCase().asPrismObject()), null, ctx.getTask(),
+					result);
 
-		// TODO consider putting some events and notifications here
+			// TODO consider putting some events and notifications here
 
-		CloseCaseAction next = new CloseCaseAction(ctx, null);
-		traceExit(LOGGER, next);
-		return next;
+			CloseCaseAction next = new CloseCaseAction(ctx, null);
+			traceExit(LOGGER, next);
+			return next;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
 	}
 }

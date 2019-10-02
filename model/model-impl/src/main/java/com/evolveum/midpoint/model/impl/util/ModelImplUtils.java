@@ -659,11 +659,14 @@ public class ModelImplUtils {
 		if (context.getFocusContext() != null) {
 			variables.put(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDeltaObject().getDefinition());
 			variables.put(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDeltaObject().getDefinition());
+			variables.registerAlias(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
 		}
 		if (projCtx != null) {
 			variables.put(ExpressionConstants.VAR_PROJECTION, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
 			variables.put(ExpressionConstants.VAR_SHADOW, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
 			variables.put(ExpressionConstants.VAR_ACCOUNT, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
+			variables.registerAlias(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION);
+			variables.registerAlias(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION);
 			variables.put(ExpressionConstants.VAR_RESOURCE, projCtx.getResource(), projCtx.getResource().asPrismObject().getDefinition());
 		}
 	

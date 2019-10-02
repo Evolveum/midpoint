@@ -53,6 +53,8 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddAssociationAspect.class);
 
+    private static final String OP_GET_START_INSTRUCTIONS = AddAssociationAspect.class.getName() + ".getStartInstructions";
+
 	//region ------------------------------------------------------------ Things that execute on request arrival
 
     private static class Request {
@@ -63,18 +65,30 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     @NotNull
 	@Override
     public List<PcpStartInstruction> getStartInstructions(@NotNull ObjectTreeDeltas objectTreeDeltas,
-			@NotNull ModelInvocationContext ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
-        List<Request> approvalRequestList =
-                getApprovalRequests(ctx.modelContext, configurationHelper.getPcpConfiguration(ctx.wfConfiguration),
-                        objectTreeDeltas, ctx.task, result);
-        if (approvalRequestList == null || approvalRequestList.isEmpty()) {
-            return Collections.emptyList();
+			@NotNull ModelInvocationContext ctx, @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+
+        OperationResult result = parentResult.subresult(OP_GET_START_INSTRUCTIONS)
+                .setMinor()
+                .build();
+        try {
+            List<Request> approvalRequestList =
+                    getApprovalRequests(ctx.modelContext, configurationHelper.getPcpConfiguration(ctx.wfConfiguration),
+                            objectTreeDeltas, ctx.task, result);
+            if (!approvalRequestList.isEmpty()) {
+                return prepareJobCreateInstructions(ctx, result, approvalRequestList);
+            } else {
+                return Collections.emptyList();
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
-        return prepareJobCreateInstructions(ctx, result, approvalRequestList);
     }
 
     private List<Request> getApprovalRequests(ModelContext<?> modelContext, PrimaryChangeProcessorConfigurationType wfConfigurationType,
-                                                                               ObjectTreeDeltas changes, Task taskFromModel, OperationResult result) {
+            ObjectTreeDeltas changes, Task taskFromModel, OperationResult result) {
 
         List<Request> requests = new ArrayList<>();
 

@@ -12,11 +12,15 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.logging.TracingAppender;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.api.request.ClaimWorkItemsRequest;
 import com.evolveum.midpoint.wf.api.request.CompleteWorkItemsRequest;
@@ -51,7 +55,8 @@ public class WorkItemManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(WorkItemManager.class);
 
-    @Autowired private WorkflowEngine workflowEngine;
+	@Autowired private WorkflowEngine workflowEngine;
+	@Autowired private Tracer tracer;
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
@@ -69,10 +74,13 @@ public class WorkItemManager {
 		    throws SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
 		    ConfigurationException, SchemaException, ObjectAlreadyExistsException {
 
-        OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
-        result.addArbitraryObjectAsParam("workItemId", workItemId);
-        result.addParam("decision", output.getOutcome());
-        result.addParam("comment", output.getComment());
+	    OperationResultBuilder builder = parentResult.subresult(OPERATION_COMPLETE_WORK_ITEM)
+		        .addArbitraryObjectAsParam("workItemId", workItemId)
+		        .addParam("decision", output.getOutcome())
+		        .addParam("comment", output.getComment());
+	    boolean tracingRequested = startTracingIfRequested(builder, task, parentResult);
+
+	    OperationResult result = builder.build();
 
 		try {
 			LOGGER.trace("Completing work item {} with decision of {} ['{}']; cause: {}",
@@ -84,9 +92,25 @@ public class WorkItemManager {
 			result.recordFatalError("Couldn't complete the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
 		} finally {
+			if (tracingRequested) {
+				tracer.storeTrace(task, result);
+				TracingAppender.terminateCollecting();  // todo reconsider
+				LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
+			}
 			result.computeStatusIfUnknown();
 		}
     }
+
+	private boolean startTracingIfRequested(OperationResultBuilder builder, Task task, OperationResult parentResult)
+			throws SchemaException {
+		if (task.getTracingRequestedFor().contains(TracingRootType.WORKFLOW_OPERATION)) {
+			TracingProfileType profile = task.getTracingProfile() != null ? task.getTracingProfile() : tracer.getDefaultProfile();
+			builder.tracingProfile(tracer.compileProfile(profile, parentResult));
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	/**
 	 * Bulk version of completeWorkItem method. It's necessary when we need to complete more items at the same time,

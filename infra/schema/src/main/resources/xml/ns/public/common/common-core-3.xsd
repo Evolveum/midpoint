@@ -15267,6 +15267,16 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="asynchronousOperationReference" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Identifier (reference) of asynchronous operation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0.1</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="start" type="xsd:dateTime" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>

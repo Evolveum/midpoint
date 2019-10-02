@@ -73,7 +73,7 @@ public class WfHook implements ChangeHook {
     private RepositoryService repositoryService;
 
     private static final String DOT_CLASS = WfHook.class.getName() + ".";
-    private static final String OPERATION_INVOKE = DOT_CLASS + "invoke";
+    private static final String OP_INVOKE = DOT_CLASS + "invoke";
 
     @PostConstruct
     public void init() {
@@ -91,7 +91,7 @@ public class WfHook implements ChangeHook {
 	    // Generally this cannot be minor as we need the "task switched to background" flag.
 	    // But if the hook does nothing (returns FOREGROUND flag), we mark the result
 	    // as minor afterwards.
-        OperationResult result = parentResult.createSubresult(OPERATION_INVOKE);
+        OperationResult result = parentResult.createSubresult(OP_INVOKE);
         result.addParam("task", task.toString());
         result.addArbitraryObjectAsContext("model state", context.getState());
         try {
@@ -165,9 +165,8 @@ public class WfHook implements ChangeHook {
             WfConfigurationType wfConfigurationType, @NotNull Task opTask, @NotNull OperationResult result) {
         try {
             modelContext.reportProgress(new ProgressInformation(WORKFLOWS, ENTERING));
-            ModelInvocationContext<?> ctx = new ModelInvocationContext<>(modelContext, wfConfigurationType, prismContext, repositoryService,
-                    opTask
-            );
+            ModelInvocationContext<?> ctx = new ModelInvocationContext<>(modelContext, wfConfigurationType, prismContext,
+                    repositoryService, opTask);
             for (ChangeProcessor changeProcessor : wfConfiguration.getChangeProcessors()) {
                 LOGGER.trace("Trying change processor: {}", changeProcessor.getClass().getName());
                 try {
