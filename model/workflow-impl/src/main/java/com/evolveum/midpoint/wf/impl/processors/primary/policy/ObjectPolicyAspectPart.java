@@ -71,6 +71,13 @@ public class ObjectPolicyAspectPart {
 		OperationResult result = parentResult.subresult(OP_EXTRACT_OBJECT_BASED_INSTRUCTIONS)
 				.setMinor()
 				.build();
+		ApprovalProcessStartInstructionCreationTraceType trace;
+		if (result.isTracingNormal(ApprovalProcessStartInstructionCreationTraceType.class)) {
+			trace = new ApprovalProcessStartInstructionCreationTraceType(prismContext);
+			result.addTrace(trace);
+		} else {
+			trace = null;
+		}
 		try {
 			ObjectDelta<T> focusDelta = objectTreeDeltas.getFocusChange();
 			LensFocusContext<T> focusContext = (LensFocusContext<T>) ctx.modelContext.getFocusContext();
@@ -82,6 +89,7 @@ public class ObjectPolicyAspectPart {
 			LOGGER.trace("extractObjectBasedInstructions: triggeredApprovalActionRules:\n{}",
 					debugDumpLazily(triggeredApprovalActionRules));
 
+			List<PcpStartInstruction> newInstructions = new ArrayList<>();
 			if (!triggeredApprovalActionRules.isEmpty()) {
 				generateObjectOidIfNeeded(focusDelta, ctx.modelContext);
 				ProcessSpecifications processSpecifications = ProcessSpecifications
@@ -104,7 +112,7 @@ public class ObjectPolicyAspectPart {
 						ApprovalPolicyActionType approvalAction = actionWithRule.getLeft();
 						builder.add(main.getSchemaFromAction(approvalAction), approvalAction, object, actionWithRule.getRight());
 					}
-					buildSchemaForObject(requester, instructions, ctx, result, deltasToApprove, builder);
+					buildSchemaForObject(requester, newInstructions, ctx, result, deltasToApprove, builder);
 				}
 			} else if (configurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration)
 					!= DefaultApprovalPolicyRulesUsageType.NEVER) {
@@ -115,9 +123,16 @@ public class ObjectPolicyAspectPart {
 					generateObjectOidIfNeeded(focusDelta, ctx.modelContext);
 					List<ObjectDelta<T>> deltasToApprove = singletonList(focusDelta.clone());
 					focusDelta.clear();
-					buildSchemaForObject(requester, instructions, ctx, result, deltasToApprove, builder);
+					buildSchemaForObject(requester, newInstructions, ctx, result, deltasToApprove, builder);
 				}
 			}
+			if (trace != null) {
+				for (PcpStartInstruction newInstruction : newInstructions) {
+					trace.getCaseRef().add(ObjectTypeUtil.createObjectRefWithFullObject(newInstruction.getCase(), prismContext));
+				}
+			}
+			instructions.addAll(newInstructions);
+			result.addReturn("instructionsCreated", newInstructions.size());
 		} catch (Throwable t) {
 			result.recordFatalError(t);
 			throw t;

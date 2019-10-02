@@ -35,7 +35,7 @@ public class PcpStartInstruction extends StartInstruction {
 	@SuppressWarnings("unused")
 	private static final Trace LOGGER = TraceManager.getTrace(PcpStartInstruction.class);
 
-	private ObjectTreeDeltas<?> deltasToApprove;
+	private boolean isObjectCreationInstruction;
 
 	private PcpStartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
         super(changeProcessor, archetypeOid);
@@ -88,10 +88,14 @@ public class PcpStartInstruction extends StartInstruction {
         setDeltasToApprove(new ObjectTreeDeltas<>(delta, getChangeProcessor().getPrismContext()));
     }
 
-    public void setDeltasToApprove(ObjectTreeDeltas objectTreeDeltas) throws SchemaException {
-		deltasToApprove = objectTreeDeltas;
+    public void setDeltasToApprove(ObjectTreeDeltas<?> objectTreeDeltas) throws SchemaException {
+		isObjectCreationInstruction = isObjectCreationInstruction(objectTreeDeltas);
         getApprovalContext().setDeltasToApprove(ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
     }
+
+	private boolean isObjectCreationInstruction(ObjectTreeDeltas<?> deltasToApprove) {
+		return deltasToApprove != null && deltasToApprove.getFocusChange() != null && deltasToApprove.getFocusChange().isAdd();
+	}
 
     void setResultingDeltas(ObjectTreeDeltas objectTreeDeltas) throws SchemaException {
 	    getApprovalContext().setResultingDeltas(ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
@@ -110,6 +114,6 @@ public class PcpStartInstruction extends StartInstruction {
     }
 
 	boolean isObjectCreationInstruction() {
-		return deltasToApprove != null && deltasToApprove.getFocusChange() != null && deltasToApprove.getFocusChange().isAdd();
+		return isObjectCreationInstruction;
 	}
 }

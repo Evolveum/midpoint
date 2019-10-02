@@ -121,6 +121,8 @@ public class ExpressionConstants {
 	public static final String VAR_TASK = "task";
 	public static final String VAR_RULE_EVALUATION_CONTEXT = "ruleEvaluationContext";
 	public static final String VAR_STAGE_DEFINITION = "stageDefinition";
+	public static final String VAR_THE_CASE = "theCase";
+	public static final String VAR_POLICY_RULES = "policyRules";
 	public static final String VAR_ITEM_TO_APPROVE = "itemToApprove";
 
 	public static final String VAR_OBJECT_DISPLAY_INFORMATION = "objectDisplayInformation";

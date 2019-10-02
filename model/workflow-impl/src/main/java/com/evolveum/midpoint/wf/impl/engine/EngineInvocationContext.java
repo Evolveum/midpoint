@@ -84,6 +84,12 @@ public class EngineInvocationContext implements DebugDumpable {
 		return currentCase;
 	}
 
+	// TODO what's the difference between getCase() and getCurrentCase() ?
+	@NotNull
+	public CaseType getCurrentCase() {
+		return currentCase;
+	}
+
 	@NotNull
 	public Task getTask() {
 		return opTask;
@@ -292,11 +298,6 @@ public class EngineInvocationContext implements DebugDumpable {
 	@NotNull
 	public WorkflowEngine getEngine() {
 		return engine;
-	}
-
-	@NotNull
-	public CaseType getCurrentCase() {
-		return currentCase;
 	}
 
 	public boolean isApprovalCase() {
