@@ -349,10 +349,14 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 		boolean actorDefined = newVariables.get(ExpressionConstants.VAR_ACTOR) != null;
 
 		for (Entry<String,TypedValue> entry: variables.entrySet()) {
-			if (ExpressionConstants.VAR_ACTOR.equals(entry.getKey()) && actorDefined) {
+			String key = entry.getKey();
+			if (ExpressionConstants.VAR_ACTOR.equals(key) && actorDefined) {
 				continue;			// avoid pointless warning about redefined value of actor
 			}
-			newVariables.put(entry.getKey(), entry.getValue());
+			newVariables.put(key, entry.getValue());
+			if (variables.isAlias(key)) {
+				newVariables.registerAlias(key, variables.getAliasResolution(key));
+			}
 		}
 
 		for (ExpressionVariableDefinitionType variableDefType: expressionType.getVariable()) {

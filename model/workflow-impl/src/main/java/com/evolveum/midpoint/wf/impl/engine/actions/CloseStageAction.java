@@ -27,6 +27,8 @@ public class CloseStageAction extends InternalAction {
 
 	private static final Trace LOGGER = TraceManager.getTrace(CloseStageAction.class);
 
+	private static final String OP_EXECUTE = CloseStageAction.class.getName() + ".execute";
+
 	private final ComputationResult preStageComputationResult;
 
 	CloseStageAction(EngineInvocationContext ctx, ComputationResult preStageComputationResult) {
@@ -35,81 +37,96 @@ public class CloseStageAction extends InternalAction {
 	}
 
 	@Override
-	public Action execute(OperationResult result) {
-		traceEnter(LOGGER);
+	public Action execute(OperationResult parentResult) {
+		OperationResult result = parentResult.subresult(OP_EXECUTE)
+				.setMinor()
+				.build();
 
-		int currentStage = ctx.getCurrentStage();
-		ApprovalStageDefinitionType stageDef = ctx.getCurrentStageDefinition();
+		try {
+			traceEnter(LOGGER);
 
-		boolean approved;
-		if (preStageComputationResult != null) {
-			ApprovalLevelOutcomeType outcome = preStageComputationResult.getPredeterminedOutcome();
-			switch (outcome) {
-				case APPROVE:
-				case SKIP:
-					approved = true;
-					break;
-				case REJECT:
-					approved = false;
-					break;
-				default:
-					throw new IllegalStateException("Unknown outcome: " + outcome);		// TODO less draconian handling
-			}
-			recordAutoCompletionDecision(preStageComputationResult, currentStage);
-		} else {
-			LOGGER.trace("****************************************** Summarizing decisions in stage {} (stage evaluation strategy = {}): ",
-					stageDef.getName(), stageDef.getEvaluationStrategy());
+			int currentStage = ctx.getCurrentStage();
+			ApprovalStageDefinitionType stageDef = ctx.getCurrentStageDefinition();
 
-			List<CaseWorkItemType> workItems = ctx.getWorkItemsForStage(currentStage);
-
-			boolean allApproved = true;
-			List<CaseWorkItemType> answeredWorkItems = new ArrayList<>();
-			Set<String> outcomes = new HashSet<>();
-			for (CaseWorkItemType workItem : workItems) {
-				LOGGER.trace(" - {}", workItem);
-				allApproved &= ApprovalUtils.isApproved(workItem.getOutput());
-				if (workItem.getCloseTimestamp() != null && workItem.getPerformerRef() != null) {
-					answeredWorkItems.add(workItem);
-					outcomes.add(workItem.getOutput() != null ? workItem.getOutput().getOutcome() : null);
+			boolean approved;
+			if (preStageComputationResult != null) {
+				ApprovalLevelOutcomeType outcome = preStageComputationResult.getPredeterminedOutcome();
+				switch (outcome) {
+					case APPROVE:
+					case SKIP:
+						approved = true;
+						break;
+					case REJECT:
+						approved = false;
+						break;
+					default:
+						throw new IllegalStateException("Unknown outcome: " + outcome);        // TODO less draconian handling
 				}
-			}
-			if (stageDef.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
-				if (outcomes.size() > 1) {
-					LOGGER.warn("Ambiguous outcome with firstDecides strategy in {}: {} response(s), providing outcomes of {}",
-							ApprovalContextUtil.getBriefDiagInfo(ctx.getCurrentCase()), answeredWorkItems.size(), outcomes);
-					answeredWorkItems.sort(Comparator.nullsLast(Comparator.comparing(item -> XmlTypeConverter.toMillis(item.getCloseTimestamp()))));
-					CaseWorkItemType first = answeredWorkItems.get(0);
-					approved = ApprovalUtils.isApproved(first.getOutput());
-					LOGGER.warn("Possible race condition, so taking the first one: {} ({})", approved, first);
+				recordAutoCompletionDecision(preStageComputationResult, currentStage);
+			} else {
+				LOGGER.trace(
+						"****************************************** Summarizing decisions in stage {} (stage evaluation strategy = {}): ",
+						stageDef.getName(), stageDef.getEvaluationStrategy());
+
+				List<CaseWorkItemType> workItems = ctx.getWorkItemsForStage(currentStage);
+
+				boolean allApproved = true;
+				List<CaseWorkItemType> answeredWorkItems = new ArrayList<>();
+				Set<String> outcomes = new HashSet<>();
+				for (CaseWorkItemType workItem : workItems) {
+					LOGGER.trace(" - {}", workItem);
+					allApproved &= ApprovalUtils.isApproved(workItem.getOutput());
+					if (workItem.getCloseTimestamp() != null && workItem.getPerformerRef() != null) {
+						answeredWorkItems.add(workItem);
+						outcomes.add(workItem.getOutput() != null ? workItem.getOutput().getOutcome() : null);
+					}
+				}
+				if (stageDef.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
+					if (outcomes.size() > 1) {
+						LOGGER.warn(
+								"Ambiguous outcome with firstDecides strategy in {}: {} response(s), providing outcomes of {}",
+								ApprovalContextUtil.getBriefDiagInfo(ctx.getCurrentCase()), answeredWorkItems.size(), outcomes);
+						answeredWorkItems.sort(Comparator
+								.nullsLast(Comparator.comparing(item -> XmlTypeConverter.toMillis(item.getCloseTimestamp()))));
+						CaseWorkItemType first = answeredWorkItems.get(0);
+						approved = ApprovalUtils.isApproved(first.getOutput());
+						LOGGER.warn("Possible race condition, so taking the first one: {} ({})", approved, first);
+					} else {
+						approved = ApprovalUtils.isApproved(outcomes.iterator().next()) && !outcomes.isEmpty();
+					}
 				} else {
-					approved = ApprovalUtils.isApproved(outcomes.iterator().next()) && !outcomes.isEmpty();
+					approved = allApproved && !answeredWorkItems.isEmpty();
+				}
+			}
+
+			engine.triggerHelper.removeAllStageTriggersForWorkItem(ctx.getCurrentCase());
+
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(
+						"Closing the stage for approval process instance {} (case oid {}), stage {}: result of this stage: {}",
+						ctx.getProcessInstanceName(),
+						ctx.getCaseOid(), ApprovalContextUtil.getStageDiagName(stageDef), approved);
+			}
+
+			Action next;
+			if (approved) {
+				if (currentStage < ctx.getNumberOfStages()) {
+					next = new OpenStageAction(ctx);
+				} else {
+					next = new CloseCaseAction(ctx, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
 				}
 			} else {
-				approved = allApproved && !answeredWorkItems.isEmpty();
+				next = new CloseCaseAction(ctx, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
 			}
+
+			traceExit(LOGGER, next);
+			return next;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-
-		engine.triggerHelper.removeAllStageTriggersForWorkItem(ctx.getCurrentCase());
-
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Closing the stage for approval process instance {} (case oid {}), stage {}: result of this stage: {}",
-					ctx.getProcessInstanceName(),
-					ctx.getCaseOid(), ApprovalContextUtil.getStageDiagName(stageDef), approved);
-		}
-
-		Action next;
-		if (approved) {
-			if (currentStage < ctx.getNumberOfStages()) {
-				next = new OpenStageAction(ctx);
-			} else {
-				next = new CloseCaseAction(ctx, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
-			}
-		} else {
-			next = new CloseCaseAction(ctx, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
-		}
-
-		traceExit(LOGGER, next);
-		return next;
 	}
 
 	private void recordAutoCompletionDecision(ComputationResult computationResult, int stageNumber) {

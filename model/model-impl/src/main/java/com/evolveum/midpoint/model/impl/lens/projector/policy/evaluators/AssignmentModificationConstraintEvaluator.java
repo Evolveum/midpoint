@@ -53,26 +53,40 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 
 	private static final String CONSTRAINT_KEY_PREFIX = "assignmentModification.";
 
+	private static final String OP_EVALUATE = AssignmentModificationConstraintEvaluator.class.getName() + ".evaluate";
+
 	@Override
 	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<AssignmentModificationPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		AssignmentModificationPolicyConstraintType constraint = constraintElement.getValue();
-		if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
-			return null;
+		OperationResult result = parentResult.subresult(OP_EVALUATE)
+				.setMinor()
+				.build();
+		try {
+			AssignmentModificationPolicyConstraintType constraint = constraintElement.getValue();
+			if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
+				return null;
+			}
+			AssignmentPolicyRuleEvaluationContext<AH> ctx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
+			if (!ctx.isDirect ||
+					!operationMatches(constraint, ctx.inPlus, ctx.inZero, ctx.inMinus) ||
+					!relationMatches(constraint, ctx) ||
+					!pathsMatch(constraint, ctx) ||
+					!expressionPasses(constraintElement, ctx, result)) {
+				return null;
+			}
+			// TODO check modifications
+			EvaluatedModificationTrigger rv = new EvaluatedModificationTrigger(PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, constraint,
+					createMessage(constraintElement, ctx, result),
+					createShortMessage(constraintElement, ctx, result));
+			result.addReturn("trigger", rv.toDiagShortcut());
+			return rv;
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-		AssignmentPolicyRuleEvaluationContext<AH> ctx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
-		if (!ctx.isDirect ||
-				!operationMatches(constraint, ctx.inPlus, ctx.inZero, ctx.inMinus) ||
-				!relationMatches(constraint, ctx) ||
-				!pathsMatch(constraint, ctx) ||
-				!expressionPasses(constraintElement, ctx, result)) {
-			return null;
-		}
-		// TODO check modifications
-		return new EvaluatedModificationTrigger(PolicyConstraintKindType.ASSIGNMENT_MODIFICATION, constraint,
-				createMessage(constraintElement, ctx, result),
-				createShortMessage(constraintElement, ctx, result));
 	}
 
 	private <AH extends AssignmentHolderType> LocalizableMessage createMessage(JAXBElement<AssignmentModificationPolicyConstraintType> constraint,

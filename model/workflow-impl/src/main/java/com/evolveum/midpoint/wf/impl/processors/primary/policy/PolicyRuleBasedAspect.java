@@ -59,9 +59,11 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
     @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleBasedAspect.class);
 
-    public static final String USE_DEFAULT_NAME_MARKER = "#default#";
+    private static final String USE_DEFAULT_NAME_MARKER = "#default#";
 
-    @Autowired protected PrismContext prismContext;
+	private static final String OP_GET_START_INSTRUCTIONS = PolicyRuleBasedAspect.class.getName() + ".getStartInstructions";
+
+	@Autowired protected PrismContext prismContext;
 	@Autowired private AssignmentPolicyAspectPart assignmentPolicyAspectPart;
 	@Autowired private ObjectPolicyAspectPart objectPolicyAspectPart;
 	@Autowired private ModelInteractionService modelInteractionService;
@@ -81,15 +83,25 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 	@NotNull
 	@Override
     public <T extends ObjectType> List<PcpStartInstruction> getStartInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
-			@NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
-
-		List<PcpStartInstruction> instructions = new ArrayList<>();
-		if (objectTreeDeltas.getFocusChange() != null) {
-			PrismObject<UserType> requester = ctx.getRequestor(result);
-			assignmentPolicyAspectPart.extractAssignmentBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
-			objectPolicyAspectPart.extractObjectBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
+			@NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+		OperationResult result = parentResult.subresult(OP_GET_START_INSTRUCTIONS)
+				.setMinor()
+				.build();
+		try {
+			List<PcpStartInstruction> instructions = new ArrayList<>();
+			if (objectTreeDeltas.getFocusChange() != null) {
+				PrismObject<UserType> requester = ctx.getRequestor(result);
+				assignmentPolicyAspectPart
+						.extractAssignmentBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
+				objectPolicyAspectPart.extractObjectBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
+			}
+			return instructions;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-        return instructions;
     }
 
 	List<EvaluatedPolicyRule> selectTriggeredApprovalActionRules(Collection<EvaluatedPolicyRule> rules) {

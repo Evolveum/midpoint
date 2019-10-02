@@ -46,4 +46,13 @@ public class ClaimWorkItemsRequest extends Request {
 	public Collection<SingleClaim> getClaims() {
 		return claims;
 	}
+
+	@Override
+	public String toString() {
+		return "ClaimWorkItemsRequest{" +
+				"claims=" + claims +
+				", caseOid='" + caseOid + '\'' +
+				", causeInformation=" + causeInformation +
+				'}';
+	}
 }

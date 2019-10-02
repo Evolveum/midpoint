@@ -516,13 +516,15 @@ public class ActivationProcessor {
 
 	        // Variable: user (for convenience, same as "focus"), DEPRECATED
 			builder.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDefinition());
+			builder.addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
 
 			// Variable: projection
 			// This may be tricky when creation of a new projection is considered. 
-			// In that case we do not have any projection object (account) yet, neigher new nor old. But we already have
+			// In that case we do not have any projection object (account) yet, neither new nor old. But we already have
 			// projection context. We have to pass projection definition explicitly here.
 			builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
 			builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
+			builder.addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION);
 
 			// Variable: resource
 			builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource(), ResourceType.class);

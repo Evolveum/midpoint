@@ -69,10 +69,21 @@ public class BeanMarshaller {
 	}
 
 	@Nullable
-	public <T> XNodeImpl marshall(@Nullable T bean, @Nullable SerializationContext ctx) throws SchemaException {
-		if (bean == null) {
+	public XNodeImpl marshall(@Nullable Object inputBean, @Nullable SerializationContext ctx) throws SchemaException {
+		if (inputBean == null) {
 			return null;
 		}
+		// Special hack (MID-5803) -- we should NEVER get PrismValue here; but not enough time to fix this right now
+		Object bean;
+		if (inputBean instanceof PrismValue) {
+			bean = ((PrismValue) inputBean).getRealValue();
+			if (bean == null) {
+				return null;
+			}
+		} else {
+			bean = inputBean;
+		}
+
 		Marshaller marshaller = specialMarshallers.get(bean.getClass());
 		if (marshaller != null) {
 			return marshaller.marshal(bean, ctx);

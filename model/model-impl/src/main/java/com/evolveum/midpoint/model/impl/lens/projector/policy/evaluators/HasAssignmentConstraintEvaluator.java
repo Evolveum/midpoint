@@ -45,6 +45,8 @@ import java.util.List;
 @Component
 public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluator<HasAssignmentPolicyConstraintType> {
 
+	private static final String OP_EVALUATE = HasAssignmentConstraintEvaluator.class.getName() + ".evaluate";
+
 	private static final String CONSTRAINT_KEY_POSITIVE = "hasAssignment";
 	private static final String CONSTRAINT_KEY_NEGATIVE = "hasNoAssignment";
 
@@ -54,65 +56,78 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 
 	@Override
 	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<AH> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		boolean shouldExist = QNameUtil.match(constraintElement.getName(), PolicyConstraintsType.F_HAS_ASSIGNMENT);
-		HasAssignmentPolicyConstraintType constraint = constraintElement.getValue();
-		if (constraint.getTargetRef() == null) {
-			throw new SchemaException("No targetRef in hasAssignment constraint");
-		}
+		OperationResult result = parentResult.subresult(OP_EVALUATE)
+				.setMinor()
+				.build();
+		try {
+			boolean shouldExist = QNameUtil.match(constraintElement.getName(), PolicyConstraintsType.F_HAS_ASSIGNMENT);
+			HasAssignmentPolicyConstraintType constraint = constraintElement.getValue();
+			if (constraint.getTargetRef() == null) {
+				throw new SchemaException("No targetRef in hasAssignment constraint");
+			}
 
-		DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = ctx.lensContext.getEvaluatedAssignmentTriple();
-		if (evaluatedAssignmentTriple == null) {
-			return createTriggerIfShouldNotExist(shouldExist, constraintElement, ctx, result);
-		}
-		boolean allowMinus = ctx.state == ObjectState.BEFORE;
-		boolean allowZero = true;
-		boolean allowPlus = ctx.state == ObjectState.AFTER;
-		boolean allowDirect = !Boolean.FALSE.equals(constraint.isDirect());
-		boolean allowIndirect = !Boolean.TRUE.equals(constraint.isDirect());
-		boolean allowEnabled = !Boolean.FALSE.equals(constraint.isEnabled());
-		boolean allowDisabled = !Boolean.TRUE.equals(constraint.isEnabled());
+			DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = ctx.lensContext.getEvaluatedAssignmentTriple();
+			if (evaluatedAssignmentTriple == null) {
+				return createTriggerIfShouldNotExist(shouldExist, constraintElement, ctx, result);
+			}
+			boolean allowMinus = ctx.state == ObjectState.BEFORE;
+			boolean allowZero = true;
+			boolean allowPlus = ctx.state == ObjectState.AFTER;
+			boolean allowDirect = !Boolean.FALSE.equals(constraint.isDirect());
+			boolean allowIndirect = !Boolean.TRUE.equals(constraint.isDirect());
+			boolean allowEnabled = !Boolean.FALSE.equals(constraint.isEnabled());
+			boolean allowDisabled = !Boolean.TRUE.equals(constraint.isEnabled());
 
-		for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
-			boolean assignmentIsInPlusSet = evaluatedAssignmentTriple.presentInPlusSet(evaluatedAssignment);
-			boolean assignmentIsInZeroSet = evaluatedAssignmentTriple.presentInZeroSet(evaluatedAssignment);
-			boolean assignmentIsInMinusSet = evaluatedAssignmentTriple.presentInMinusSet(evaluatedAssignment);
-			DeltaSetTriple<EvaluatedAssignmentTargetImpl> targetsTriple = evaluatedAssignment.getRoles();
-			for (EvaluatedAssignmentTargetImpl target : targetsTriple.getNonNegativeValues()) {
-				if (!target.appliesToFocus()) {
-					continue;
-				}
-				if (!(allowDirect && target.isDirectlyAssigned() || allowIndirect && !target.isDirectlyAssigned())) {
-					continue;
-				}
-				if (!(allowEnabled && target.isValid() || allowDisabled && !target.isValid())) {
-					continue;
-				}
-				if (!relationMatches(constraint.getTargetRef().getRelation(), constraint.getRelation(), target.getAssignment())) {
-					continue;
-				}
-				boolean targetIsInPlusSet = targetsTriple.presentInPlusSet(target);
-				boolean targetIsInZeroSet = targetsTriple.presentInZeroSet(target);
-				boolean targetIsInMinusSet = targetsTriple.presentInMinusSet(target);
-				// TODO check these computations
-				boolean isPlus = assignmentIsInPlusSet || assignmentIsInZeroSet && targetIsInPlusSet;
-				boolean isZero = assignmentIsInZeroSet && targetIsInZeroSet;
-				boolean isMinus = assignmentIsInMinusSet || assignmentIsInZeroSet && targetIsInMinusSet;
-				if (!(allowPlus && isPlus || allowZero && isZero || allowMinus && isMinus)) {
-					continue;
-				}
-				if (ExclusionConstraintEvaluator.oidMatches(constraint.getTargetRef(), target, prismContext, matchingRuleRegistry, "hasAssignment constraint")) {
-					if (shouldExist) {
-						// TODO more specific trigger, containing information on matching assignment; see ExclusionConstraintEvaluator
-						return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_ASSIGNMENT, constraint,
-								createPositiveMessage(constraintElement, ctx, target.getTarget(), result),
-								createPositiveShortMessage(constraintElement, ctx, target.getTarget(), result));
+			for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+				boolean assignmentIsInPlusSet = evaluatedAssignmentTriple.presentInPlusSet(evaluatedAssignment);
+				boolean assignmentIsInZeroSet = evaluatedAssignmentTriple.presentInZeroSet(evaluatedAssignment);
+				boolean assignmentIsInMinusSet = evaluatedAssignmentTriple.presentInMinusSet(evaluatedAssignment);
+				DeltaSetTriple<EvaluatedAssignmentTargetImpl> targetsTriple = evaluatedAssignment.getRoles();
+				for (EvaluatedAssignmentTargetImpl target : targetsTriple.getNonNegativeValues()) {
+					if (!target.appliesToFocus()) {
+						continue;
+					}
+					if (!(allowDirect && target.isDirectlyAssigned() || allowIndirect && !target.isDirectlyAssigned())) {
+						continue;
+					}
+					if (!(allowEnabled && target.isValid() || allowDisabled && !target.isValid())) {
+						continue;
+					}
+					if (!relationMatches(constraint.getTargetRef().getRelation(), constraint.getRelation(),
+							target.getAssignment())) {
+						continue;
+					}
+					boolean targetIsInPlusSet = targetsTriple.presentInPlusSet(target);
+					boolean targetIsInZeroSet = targetsTriple.presentInZeroSet(target);
+					boolean targetIsInMinusSet = targetsTriple.presentInMinusSet(target);
+					// TODO check these computations
+					boolean isPlus = assignmentIsInPlusSet || assignmentIsInZeroSet && targetIsInPlusSet;
+					boolean isZero = assignmentIsInZeroSet && targetIsInZeroSet;
+					boolean isMinus = assignmentIsInMinusSet || assignmentIsInZeroSet && targetIsInMinusSet;
+					if (!(allowPlus && isPlus || allowZero && isZero || allowMinus && isMinus)) {
+						continue;
+					}
+					if (ExclusionConstraintEvaluator
+							.oidMatches(constraint.getTargetRef(), target, prismContext, matchingRuleRegistry,
+									"hasAssignment constraint")) {
+						if (shouldExist) {
+							// TODO more specific trigger, containing information on matching assignment; see ExclusionConstraintEvaluator
+							return new EvaluatedHasAssignmentTrigger(PolicyConstraintKindType.HAS_ASSIGNMENT, constraint,
+									createPositiveMessage(constraintElement, ctx, target.getTarget(), result),
+									createPositiveShortMessage(constraintElement, ctx, target.getTarget(), result));
+						}
 					}
 				}
 			}
+			return createTriggerIfShouldNotExist(shouldExist, constraintElement, ctx, result);
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-		return createTriggerIfShouldNotExist(shouldExist, constraintElement, ctx, result);
 	}
 
 	private <AH extends AssignmentHolderType> LocalizableMessage createPositiveMessage(JAXBElement<HasAssignmentPolicyConstraintType> constraintElement,

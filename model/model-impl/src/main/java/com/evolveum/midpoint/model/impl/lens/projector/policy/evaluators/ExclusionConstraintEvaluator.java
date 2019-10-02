@@ -9,10 +9,12 @@
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
+import com.evolveum.midpoint.model.api.context.EvaluatedExclusionTrigger;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentTargetImpl;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -27,13 +29,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
@@ -43,12 +39,9 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallbackMessage;
 
 /**
  * @author semancik
@@ -56,6 +49,8 @@ import static com.evolveum.midpoint.util.LocalizableMessageBuilder.buildFallback
  */
 @Component
 public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<ExclusionPolicyConstraintType> {
+
+	private static final String OP_EVALUATE = ExclusionConstraintEvaluator.class.getName() + ".evaluate";
 
 	private static final String CONSTRAINT_KEY = "exclusion";
 
@@ -67,72 +62,86 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 
 	@Override
 	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<ExclusionPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-		if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
-			return null;
-		}
-		AssignmentPolicyRuleEvaluationContext<AH> ctx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
-		if (!ctx.inPlus && !ctx.inZero) {
-			return null;
-		}
-
-		List<OrderConstraintsType> sourceOrderConstraints = defaultIfEmpty(constraint.getValue().getOrderConstraint());
-		List<OrderConstraintsType> targetOrderConstraints = defaultIfEmpty(constraint.getValue().getTargetOrderConstraint());
-		if (ctx.policyRule.isGlobal()) {
-			if (!pathMatches(ctx.policyRule.getAssignmentPath(), sourceOrderConstraints)) {
-				System.out.println("[global] Source assignment path does not match: " + ctx.policyRule.getAssignmentPath());
+		OperationResult result = parentResult.subresult(OP_EVALUATE)
+				.setMinor()
+				.build();
+		try {
+			if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
 				return null;
 			}
-		} else {
-			// It is not clear how to match orderConstraint with assignment path of the constraint.
-			// Let us try the following test: we consider it matching if there's at least one segment
-			// on the path that matches the constraint.
-			boolean found = ctx.policyRule.getAssignmentPath().getSegments().stream()
-					.anyMatch(segment -> segment.matches(sourceOrderConstraints));
-			if (!found) {
-//				System.out.println("Source assignment path does not match: constraints=" + sourceOrderConstraints + ", whole path=" + ctx.policyRule.getAssignmentPath());
+			AssignmentPolicyRuleEvaluationContext<AH> ctx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
+			if (!ctx.inPlus && !ctx.inZero) {
 				return null;
 			}
-		}
 
-		// We consider all policy rules, i.e. also from induced targets. (It is not possible to collect local
-		// rules for individual targets in the chain - rules are computed only for directly evaluated assignments.)
-
-//		// In order to avoid false positives, we consider all targets from the current assignment as "allowed"
-//		Set<String> allowedTargetOids = ctx.evaluatedAssignment.getNonNegativeTargets().stream()
-//				.filter(t -> t.appliesToFocus())
-//				.map(t -> t.getOid())
-//				.collect(Collectors.toSet());
-
-		List<EvaluatedAssignmentTargetImpl> nonNegativeTargetsA = ctx.evaluatedAssignment.getNonNegativeTargets();
-
-		for (EvaluatedAssignmentImpl<AH> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) {
-			if (assignmentB.equals(ctx.evaluatedAssignment)) {      // TODO (value instead of reference equality?)
-				continue;
+			List<OrderConstraintsType> sourceOrderConstraints = defaultIfEmpty(constraint.getValue().getOrderConstraint());
+			List<OrderConstraintsType> targetOrderConstraints = defaultIfEmpty(constraint.getValue().getTargetOrderConstraint());
+			if (ctx.policyRule.isGlobal()) {
+				if (!pathMatches(ctx.policyRule.getAssignmentPath(), sourceOrderConstraints)) {
+					System.out.println("[global] Source assignment path does not match: " + ctx.policyRule.getAssignmentPath());
+					return null;
+				}
+			} else {
+				// It is not clear how to match orderConstraint with assignment path of the constraint.
+				// Let us try the following test: we consider it matching if there's at least one segment
+				// on the path that matches the constraint.
+				boolean found = ctx.policyRule.getAssignmentPath().getSegments().stream()
+						.anyMatch(segment -> segment.matches(sourceOrderConstraints));
+				if (!found) {
+					//				System.out.println("Source assignment path does not match: constraints=" + sourceOrderConstraints + ", whole path=" + ctx.policyRule.getAssignmentPath());
+					return null;
+				}
 			}
-targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegativeTargets()) {
-				if (!pathMatches(targetB.getAssignmentPath(), targetOrderConstraints)) {
-//					System.out.println("Target assignment path does not match: constraints=" + targetOrderConstraints + ", whole path=" + targetB.getAssignmentPath());
+
+			// We consider all policy rules, i.e. also from induced targets. (It is not possible to collect local
+			// rules for individual targets in the chain - rules are computed only for directly evaluated assignments.)
+
+			//		// In order to avoid false positives, we consider all targets from the current assignment as "allowed"
+			//		Set<String> allowedTargetOids = ctx.evaluatedAssignment.getNonNegativeTargets().stream()
+			//				.filter(t -> t.appliesToFocus())
+			//				.map(t -> t.getOid())
+			//				.collect(Collectors.toSet());
+
+			List<EvaluatedAssignmentTargetImpl> nonNegativeTargetsA = ctx.evaluatedAssignment.getNonNegativeTargets();
+
+			for (EvaluatedAssignmentImpl<AH> assignmentB : ctx.evaluatedAssignmentTriple.getNonNegativeValues()) {
+				if (assignmentB.equals(ctx.evaluatedAssignment)) {      // TODO (value instead of reference equality?)
 					continue;
 				}
-				if (!oidMatches(constraint.getValue().getTargetRef(), targetB, prismContext, matchingRuleRegistry, "exclusion constraint")) {
-					continue;
-				}
-				// To avoid false positives let us check if this target is not already covered by assignment being evaluated
-				// (is this really needed?)
-				for (EvaluatedAssignmentTargetImpl targetA : nonNegativeTargetsA) {
-					if (targetA.appliesToFocusWithAnyRelation(relationRegistry)
-							&& targetA.getOid() != null && targetA.getOid().equals(targetB.getOid())
-							&& targetA.getAssignmentPath().equivalent(targetB.getAssignmentPath())) {
-						continue targetB;
+				targetB:
+				for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegativeTargets()) {
+					if (!pathMatches(targetB.getAssignmentPath(), targetOrderConstraints)) {
+						//					System.out.println("Target assignment path does not match: constraints=" + targetOrderConstraints + ", whole path=" + targetB.getAssignmentPath());
+						continue;
 					}
+					if (!oidMatches(constraint.getValue().getTargetRef(), targetB, prismContext, matchingRuleRegistry,
+							"exclusion constraint")) {
+						continue;
+					}
+					// To avoid false positives let us check if this target is not already covered by assignment being evaluated
+					// (is this really needed?)
+					for (EvaluatedAssignmentTargetImpl targetA : nonNegativeTargetsA) {
+						if (targetA.appliesToFocusWithAnyRelation(relationRegistry)
+								&& targetA.getOid() != null && targetA.getOid().equals(targetB.getOid())
+								&& targetA.getAssignmentPath().equivalent(targetB.getAssignmentPath())) {
+							continue targetB;
+						}
+					}
+					EvaluatedPolicyRuleTrigger rv =
+							createTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx.policyRule, ctx, result);
+					result.addReturn("trigger", rv.toDiagShortcut());
+					return rv;
 				}
-				return createTrigger(ctx.evaluatedAssignment, assignmentB, targetB, constraint, ctx.policyRule, ctx, result);
 			}
+			return null;
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-		return null;
 	}
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")

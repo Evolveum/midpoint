@@ -18,4 +18,11 @@ public class CancelCaseRequest extends Request {
 		super(caseOid, null);
 	}
 
+	@Override
+	public String toString() {
+		return "CancelCaseRequest{" +
+				"caseOid='" + caseOid + '\'' +
+				", causeInformation=" + causeInformation +
+				'}';
+	}
 }

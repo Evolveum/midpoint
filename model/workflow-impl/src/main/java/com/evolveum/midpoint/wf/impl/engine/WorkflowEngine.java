@@ -56,6 +56,7 @@ import javax.annotation.PreDestroy;
 public class WorkflowEngine implements CaseEventListener {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WorkflowEngine.class);
+	private static final String OP_EXECUTE_REQUEST = WorkflowEngine.class.getName() + ".executeRequest";
 
 	@Autowired public Clock clock;
 	@Autowired
@@ -92,27 +93,40 @@ public class WorkflowEngine implements CaseEventListener {
 	/**
 	 * Executes a request. This is the main entry point.
 	 */
-	public void executeRequest(Request request, Task opTask, OperationResult result)
+	public void executeRequest(Request request, Task opTask, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
 			ExpressionEvaluationException, ConfigurationException, CommunicationException {
 		int attempt = 1;
 		for (;;) {
-			EngineInvocationContext ctx = createInvocationContext(request.getCaseOid(), opTask, result);
-			Action firstAction = actionFactory.create(request, ctx);
-			executeActionChain(firstAction, result);
+			OperationResult result = parentResult.subresult(OP_EXECUTE_REQUEST)
+					.setMinor()
+					.addParam("attempt", attempt)
+					.addArbitraryObjectAsParam("request", request)
+					.build();
 			try {
-				ctx.commit(result);
-				return;
-			} catch (PreconditionViolationException e) {
-				boolean repeat = attempt < MAX_ATTEMPTS;
-				String action = repeat ? "retried" : "aborted";
-				LOGGER.info("Approval commit conflict detected; operation will be {} (this was attempt {} of {})",
-						action, attempt, MAX_ATTEMPTS);
-				if (repeat) {
-					attempt++;
-				} else {
-					throw new SystemException("Couldn't execute " + request.getClass() + " in " + MAX_ATTEMPTS + " attempts", e);
+				EngineInvocationContext ctx = createInvocationContext(request.getCaseOid(), opTask, result);
+				Action firstAction = actionFactory.create(request, ctx);
+				executeActionChain(firstAction, result);
+				try {
+					ctx.commit(result);
+					return;
+				} catch (PreconditionViolationException e) {
+					boolean repeat = attempt < MAX_ATTEMPTS;
+					String action = repeat ? "retried" : "aborted";
+					LOGGER.info("Approval commit conflict detected; operation will be {} (this was attempt {} of {})",
+							action, attempt, MAX_ATTEMPTS);
+					if (repeat) {
+						attempt++;
+					} else {
+						throw new SystemException("Couldn't execute " + request.getClass() + " in " + MAX_ATTEMPTS + " attempts",
+								e);
+					}
 				}
+			} catch (Throwable t) {
+				result.recordFatalError(t);
+				throw t;
+			} finally {
+				result.computeStatusIfUnknown();
 			}
 		}
 	}

@@ -124,6 +124,7 @@ public class ScriptExpressionFactory implements Cacheable {
 
 		String language = getLanguage(expressionType);
 		ScriptExpression expression = new ScriptExpression(getEvaluator(language, shortDesc), expressionType);
+		expression.setPrismContext(prismContext);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(objectResolver);
 		Collection<FunctionLibrary> functionsToUse = new ArrayList<>(functions);
