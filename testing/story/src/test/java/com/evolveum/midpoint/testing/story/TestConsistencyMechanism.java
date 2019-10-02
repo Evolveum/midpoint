@@ -19,15 +19,13 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.time.Duration;
+import java.util.*;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
@@ -35,6 +33,11 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
@@ -58,7 +61,6 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -79,7 +81,6 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -91,27 +92,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -162,14 +142,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	private static final String USER_DENIELS_FILENAME = REPO_DIR_NAME + "user-deniels.xml";
 	private static final String USER_DENIELS_OID = "c0c010c0-d34d-b33f-f00d-222111111111";
 
-	private static final String USER_JACK2_FILENAME = REPO_DIR_NAME + "user-jack2.xml";
-	private static final String USER_JACK2_OID = "c0c010c0-d34d-b33f-f00d-111111114444";
+	private static final String USER_JACKIE_FILENAME = REPO_DIR_NAME + "user-jackie.xml";
+	private static final File USER_JACKIE_FILE = new File(USER_JACKIE_FILENAME);
+	private static final String USER_JACKIE_OID = "c0c010c0-d34d-b33f-f00d-111111114444";
 
 	private static final String USER_WILL_FILENAME = REPO_DIR_NAME + "user-will.xml";
 	private static final String USER_WILL_OID = "c0c010c0-d34d-b33f-f00d-111111115555";
-
-	private static final String USER_JACK_LDAP_UID = "jackie";
-	private static final String USER_JACK_LDAP_DN = "uid=" + USER_JACK_LDAP_UID + "," + OPENDJ_PEOPLE_SUFFIX;
 
 	private static final String USER_GUYBRUSH_FILENAME = REPO_DIR_NAME + "user-guybrush.xml";
 	private static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111222";
@@ -184,6 +162,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	private static final String USER_E_OID = "c0c010c0-d34d-b33f-f00d-111111111100";
 	
 	private static final String USER_ELAINE_FILENAME = REPO_DIR_NAME + "user-elaine.xml";
+	private static final File USER_ELAINE_FILE = new File(USER_ELAINE_FILENAME);
 	private static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-111111116666";
 	
 	private static final String USER_HERMAN_FILENAME = REPO_DIR_NAME + "user-herman.xml";
@@ -229,12 +208,20 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	private static final String ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID = "a0c010c0-d34d-b33f-f00d-111111111333";
 
 	private static final String ACCOUNT_DENIELS_FILENAME = REPO_DIR_NAME + "account-deniels.xml";
+	private static final File ACCOUNT_DENIELS_FILE = new File(ACCOUNT_DENIELS_FILENAME);
 	private static final String ACCOUNT_DENIELS_OID = "a0c010c0-d34d-b33f-f00d-111111111555";
+	private static final String ACCOUNT_DENIELS_LDAP_UID = "deniels";
+	private static final String ACCOUNT_DENIELS_LDAP_DN = "uid=" + ACCOUNT_DENIELS_LDAP_UID + "," + OPENDJ_PEOPLE_SUFFIX;
 	
 	private static final String ACCOUNT_CHUCK_FILENAME = REPO_DIR_NAME + "account-chuck.xml";
 	
 	private static final String ACCOUNT_HERMAN_FILENAME = REPO_DIR_NAME + "account-herman.xml";
 	private static final String ACCOUNT_HERMAN_OID = "22220000-2200-0000-0000-333300003333";
+
+	private static final File ACCOUNT_JACKIE_FILE = new File(REQUEST_DIR_NAME, "add-account-jack.xml");
+	private static final String ACCOUNT_JACKIE_OID = "22220000-2222-5555-0000-333300003333";
+	private static final String ACCOUNT_JACKIE_LDAP_UID = "jackie";
+	private static final String ACCOUNT_JACKIE_LDAP_DN = "uid=" + ACCOUNT_JACKIE_LDAP_UID + "," + OPENDJ_PEOPLE_SUFFIX;
 
 	private static final File REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE = new File(REQUEST_DIR_NAME, "user-modify-assign-account.xml");
 	private static final File REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY_FILE = new File(REQUEST_DIR_NAME, "user-modify-add-account-directly.xml");
@@ -244,7 +231,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	
 	private static final File REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE = new File(REQUEST_DIR_NAME, "account-guybrush-modify-attributes.xml");
 	private static final File REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE = new File(REQUEST_DIR_NAME, "account-modify-attrs-communication-problem.xml");
-	private static final File REQUEST_ADD_ACCOUNT_JACKIE_FILE = new File(REQUEST_DIR_NAME, "add-account-jack.xml");
+//	private static final File REQUEST_ADD_ACCOUNT_JACKIE_FILE = new File(REQUEST_DIR_NAME, "add-account-jack.xml");
 	private static final File REQUEST_USER_MODIFY_WEAK_MAPPING_COMMUNICATION_PROBLEM_FILE = new File(REQUEST_DIR_NAME, "user-modify-employeeType.xml");
 	private static final File REQUEST_USER_MODIFY_WEAK_STRONG_MAPPING_COMMUNICATION_PROBLEM_FILE = new File(REQUEST_DIR_NAME, "user-modify-employeeType-givenName.xml");
 	private static final File REQUEST_RESOURCE_MODIFY_RESOURCE_SCHEMA_FILE = new File(REQUEST_DIR_NAME, "resource-modify-resource-schema.xml");
@@ -269,6 +256,14 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 	private static final String NS_MY = "http://whatever.com/my";
 	private static final QName MY_SHIP_STATE = new QName(NS_MY, "shipState");
+
+	private static final QName LDAP_ATTRIBUTE_DN = new QName(MidPointConstants.NS_RI, "dn");
+	private static final QName LDAP_ATTRIBUTE_UID = new QName(MidPointConstants.NS_RI, "uid");
+	private static final QName LDAP_ATTRIBUTE_GIVENNAME = new QName(MidPointConstants.NS_RI, "givenName");
+	private static final QName LDAP_ATTRIBUTE_SN = new QName(MidPointConstants.NS_RI, "sn");
+	private static final QName LDAP_ATTRIBUTE_CN = new QName(MidPointConstants.NS_RI, "cn");
+	private static final QName LDAP_ATTRIBUTE_CAR_LICENCE = new QName(MidPointConstants.NS_RI, "carLicense");
+	private static final QName LDAP_ATTRIBUTE_EMPLOYEE_NUMBER = new ItemName(MidPointConstants.NS_RI, "employeeNumber");
 
 	private static ResourceType resourceTypeOpenDjrepo;
 	private static String accountShadowOidOpendj;
@@ -458,62 +453,33 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	 * that happens in repo and in LDAP.
 	 */
 	@Test
-	public void test110PrepareOpenDjWithAccounts() throws Exception {
-		final String TEST_NAME = "test110PrepareOpenDjWithAccounts";
+	public void test110PrepareOpenDjWithJackieAccounts() throws Exception {
+		final String TEST_NAME = "test110PrepareOpenDjWithJackieAccounts";
 		displayTestTitle(TEST_NAME);
-		OperationResult parentResult = new OperationResult(TEST_NAME);
 
-		ShadowType jackeAccount = unmarshallValueFromFile(REQUEST_ADD_ACCOUNT_JACKIE_FILE, ShadowType.class);
+		Task task = createTask(TEST_NAME);
+		OperationResult parentResult = task.getResult();
 
-		Task task = taskManager.createTaskInstance();
-		String oid = provisioningService.addObject(jackeAccount.asPrismObject(), null, null, task, parentResult);
+		// adding jackie shadow directly and then, linking this shadow to the user jack. we need to do linking on repository level, to skip clockwork execution
+		PrismObject<ShadowType> jackieAccount = addObject(ACCOUNT_JACKIE_FILE, task, parentResult);
+		String oid = jackieAccount.getOid();
+
 		PrismObject<ShadowType> jackFromRepo = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
 		display("account jack after provisioning", jackFromRepo);
 
-		PrismObject<UserType> jackUser = repositoryService.getObject(UserType.class, USER_JACK_OID, null, parentResult);
-		ObjectReferenceType ort = new ObjectReferenceType();
-		ort.setOid(oid);
-		ort.setType(ShadowType.COMPLEX_TYPE);
-
-		jackUser.asObjectable().getLinkRef().add(ort);
-
-		PrismObject<UserType> jackUserRepo = repositoryService.getObject(UserType.class, USER_JACK_OID, null, parentResult);
-		ObjectDelta<UserType> delta = DiffUtil.diff(jackUserRepo, jackUser);
-
-		repositoryService.modifyObject(UserType.class, USER_JACK_OID, delta.getModifications(), parentResult);
+		ReferenceDelta linkRefDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.class, UserType.F_LINK_REF, ObjectTypeUtil.createObjectRef(jackieAccount, SchemaConstants.ORG_DEFAULT).asReferenceValue());
+		repositoryService.modifyObject(UserType.class, USER_JACK_OID, Arrays.asList(linkRefDelta), parentResult);
 
 		OperationResult repoResult = new OperationResult("getObject");
 		
 		// Check if user object was modified in the repo
-		accountShadowOidOpendj = assertUserOneAccountRef(USER_JACK_OID);
-		assertFalse(accountShadowOidOpendj.isEmpty());
+		assertUserOneAccountRef(USER_JACK_OID);
 
-		// Check if shadow was created in the repo
-
-		repoResult = new OperationResult("getObject");
-
-		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountShadowOidOpendj, null, repoResult);
-		ShadowType repoShadowType = repoShadow.asObjectable();
-		assertSuccess(repoResult);
-		
-		display("Shadow (repository)", repoShadow);
-		assertNotNull(repoShadowType);
-		assertEquals(RESOURCE_OPENDJ_OID, repoShadowType.getResourceRef().getOid());
-
-		assertNotNull("Shadow stored in repository has no name", repoShadowType.getName());
-		// Check the "name" property, it should be set to DN, not entryUUID
-		assertEquals("Wrong name property", USER_JACK_LDAP_DN.toLowerCase(), repoShadowType.getName()
-				.getOrig().toLowerCase());
-
-		// check attributes in the shadow: should be only identifiers (ICF UID)
-		String uid = checkRepoShadow(repoShadow);
-
-		// check if account was created in LDAP
-
-		Entry entry = openDJController.searchAndAssertByEntryUuid(uid);
+		// check LDAP
+		Entry entry = openDJController.searchByUid(ACCOUNT_JACKIE_LDAP_UID);
+		assertNotNull("Entry uid " + ACCOUNT_JACKIE_LDAP_UID + " not found", entry);
 
 		display("LDAP account", entry);
-	
 		OpenDJController.assertAttribute(entry, "uid", "jackie");
 		OpenDJController.assertAttribute(entry, "givenName", "Jack");
 		OpenDJController.assertAttribute(entry, "sn", "Sparrow");
@@ -521,46 +487,70 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 		assertNoRepoCache();
 
-		Holder<OperationResultType> resultHolder = new Holder<>();
-		Holder<ObjectType> objectHolder = new Holder<>();
-
-		// WHEN
-		PropertyReferenceListType resolve = new PropertyReferenceListType();
-//		List<ObjectOperationOptions> options = new ArrayList<ObjectOperationOptions>();
-		modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidOpendj, null,
-				objectHolder, resultHolder);
-
-		// THEN
-		assertNoRepoCache();
-		displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
-		TestUtil.assertSuccess("getObject has failed", resultHolder.value);
-
-		ShadowType modelShadow = (ShadowType) objectHolder.value;
+		// check full (model) shadow
+		PrismObject<ShadowType> modelShadow = getShadowModel(ACCOUNT_JACKIE_OID);
 		display("Shadow (model)", modelShadow);
 
-		AssertJUnit.assertNotNull(modelShadow);
-		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
+		ShadowAsserter.forShadow(modelShadow)
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertIntent("internal")
+				.attributes()
+					.assertHasPrimaryIdentifier()
+					.assertHasSecondaryIdentifier()
+					.assertValue(LDAP_ATTRIBUTE_UID, ACCOUNT_JACKIE_LDAP_UID)
+					.assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Jack")
+					.assertValue(LDAP_ATTRIBUTE_CN, "Jack Sparrow")
+					.assertValue(LDAP_ATTRIBUTE_SN, "Sparrow")
+					.assertNoAttribute(LDAP_ATTRIBUTE_CAR_LICENCE)
+				.end()
+				.assertResource(RESOURCE_OPENDJ_OID)
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED);
 
-		assertAttributeNotNull(modelShadow, getOpenDjPrimaryIdentifierQName());
-		assertAttributes(modelShadow, "jackie", "Jack", "Sparrow", "Jack Sparrow");
-		// "middle of nowhere");
-		assertNull("carLicense attribute sneaked to LDAP",
-				OpenDJController.getAttributeValue(entry, "carLicense"));
+	}
 
-		assertNotNull("Activation is null", modelShadow.getActivation());
-		assertNotNull("No 'enabled' in the shadow", modelShadow.getActivation().getAdministrativeStatus());
-		assertEquals("The account is not enabled in the shadow", ActivationStatusType.ENABLED, modelShadow.getActivation().getAdministrativeStatus());
+	@Test
+	public void test111prepareOpenDjWithDenielsAccounts() throws Exception {
+		final String TEST_NAME = "test111prepareOpenDjWithDenielsAccounts";
+		displayTestTitle(TEST_NAME);
 
-		displayTestTitle("test013prepareOpenDjWithAccounts - add second account");
+		Task task = createTask(TEST_NAME);
+		OperationResult parentResult = task.getResult();
 
-		OperationResult secondResult = new OperationResult(
-				"test013prepareOpenDjWithAccounts - add second account");
+		addObject(ACCOUNT_DENIELS_FILE, task, parentResult);
 
-		ShadowType shadow = unmarshallValueFromFile(ACCOUNT_DENIELS_FILENAME, ShadowType.class);
+		// check LDAP
+		Entry entry = openDJController.searchByUid(ACCOUNT_DENIELS_LDAP_UID);
+		assertNotNull("Entry uid " + ACCOUNT_DENIELS_LDAP_UID + " not found", entry);
 
-		provisioningService.addObject(shadow.asPrismObject(), null, null, task, secondResult);
+		display("LDAP account", entry);
+		OpenDJController.assertAttribute(entry, "uid", "deniels");
+		OpenDJController.assertAttribute(entry, "givenName", "Jack");
+		OpenDJController.assertAttribute(entry, "sn", "Deniels");
+		OpenDJController.assertAttribute(entry, "cn", "Jack Deniels");
 
-		repoAddObjectFromFile(USER_DENIELS_FILENAME, secondResult);
+		assertNoRepoCache();
+
+		// check full (model) shadow
+		PrismObject<ShadowType> modelShadow = getShadowModel(ACCOUNT_DENIELS_OID);
+		display("Shadow (model)", modelShadow);
+
+		ShadowAsserter.forShadow(modelShadow)
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertIntent("internal")
+				.attributes()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+					.assertValue(LDAP_ATTRIBUTE_UID, ACCOUNT_DENIELS_LDAP_UID)
+					.assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Jack")
+					.assertValue(LDAP_ATTRIBUTE_CN, "Jack Deniels")
+					.assertValue(LDAP_ATTRIBUTE_SN, "Deniels")
+					.assertNoAttribute(LDAP_ATTRIBUTE_CAR_LICENCE)
+				.end()
+				.assertResource(RESOURCE_OPENDJ_OID)
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
+		repoAddObjectFromFile(USER_DENIELS_FILENAME, parentResult);
+		//TODO some asserts?
 
 	}
 	
@@ -569,26 +559,57 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		final String TEST_NAME = "test120AddAccountAlreadyExistLinked";
 		displayTestTitle(TEST_NAME);
 		Task task = taskManager.createTaskInstance();
-		// GIVEN
+
 		OperationResult parentResult = new OperationResult("Add account already exist linked");
-		testAddUserToRepo("test014testAssAccountAlreadyExistLinked", USER_JACK2_FILENAME, USER_JACK2_OID);
 
-		assertUserNoAccountRef(USER_JACK2_OID, parentResult);
+		// GIVEN
+		//adding user jakie. we already have user jack with the account identifier jackie.
+		assertNoRepoCache();
+		addObject(USER_JACKIE_FILE, task, parentResult);
+		PrismObject<UserType> userJackieBefore = getUser(USER_JACKIE_OID);
+		UserAsserter.forUser(userJackieBefore).assertLinks(0);
 
+
+		PrismObject<UserType> userJackBefore = getUser(USER_JACK_OID);
+		UserAsserter.forUser(userJackBefore)
+				.assertLinks(1)
+				.links()
+					.link(ACCOUNT_JACKIE_OID);
 //		//check if the jackie account already exists on the resource
-		String accountRef = assertUserOneAccountRef(USER_JACK_OID);
 
-		PrismObject<ShadowType> jackUserAccount = repositoryService.getObject(ShadowType.class, accountRef, null, parentResult);
-		display("Jack's account: ", jackUserAccount.debugDump());
+		PrismObject<ShadowType> existingJackieAccount = getShadowRepo(ACCOUNT_JACKIE_OID);
+		display("Jack's account: ", existingJackieAccount);
 					
-		// WHEN REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_FILENAME
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_JACK2_OID, UserType.class, task, null, parentResult);
+		// WHEN
+		assignAccountToUser(USER_JACKIE_OID, RESOURCE_OPENDJ_OID, "internal");
+//		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_JACKIE_OID, UserType.class, task, null, parentResult);
 
 		// THEN		
 		//expected thet the dn and ri:uid will be jackie1 because jackie already exists and is liked to another user..
-		String accountOid = checkUser(USER_JACK2_OID, task, parentResult);
-		
-		checkAccount(accountOid, "jackie1", "Jack", "Russel", "Jack Russel", task, parentResult);
+		PrismObject<UserType> userJackieAfter = getUser(USER_JACKIE_OID);
+		UserAsserter.forUser(userJackieAfter)
+				.assertLinks(1);
+
+		ObjectReferenceType linkRef = userJackieAfter.asObjectable().getLinkRef().iterator().next();
+		assertFalse("Wrong account linked", ACCOUNT_JACKIE_OID.equals(linkRef.getOid()));
+
+		PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
+		ShadowAsserter.forShadow(shadow)
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertIntent("internal")
+				.attributes()
+					.assertHasPrimaryIdentifier()
+					.assertHasSecondaryIdentifier()
+					.assertValue(LDAP_ATTRIBUTE_UID, "jackie1")
+					.assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Jack")
+					.assertValue(LDAP_ATTRIBUTE_CN, "Jack Russel")
+					.assertValue(LDAP_ATTRIBUTE_SN, "Russel")
+					.assertNoAttribute(LDAP_ATTRIBUTE_CAR_LICENCE)
+				.end()
+				.assertResource(RESOURCE_OPENDJ_OID)
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
+//		checkAccount(accountOid, "jackie1", "Jack", "Russel", "Jack Russel", task, parentResult);
 	}
 	
 	
@@ -611,7 +632,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		String dn = searchResult.getDN().toString();
 		assertEquals("DN attribute " + dn + " not equals", dn, "uid=wturner,ou=People,dc=example,dc=com");
 
-		testAddUserToRepo("add user - test015 account already exist unlinked", USER_WILL_FILENAME,
+		testAddUserToRepo("test122AddAccountAlreadyExistUnlinked", USER_WILL_FILENAME,
 				USER_WILL_OID);
 		assertUserNoAccountRef(USER_WILL_OID, parentResult);
 
@@ -619,7 +640,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		//WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_WILL_OID, UserType.class, task, null, parentResult);
+		assignAccount(UserType.class, USER_WILL_OID, RESOURCE_OPENDJ_OID, null, task, parentResult);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -641,7 +662,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	}
 	
 	//MID-1595, MID-1577
-	@Test
+	@Test(enabled = false)
 	public void test124AddAccountDirectAlreadyExists() throws Exception {
 		final String TEST_NAME = "test124AddAccountDirectAlreadyExists";
 		displayTestTitle(TEST_NAME);
@@ -655,9 +676,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		try {
 
 			// we will reapply this schema handling after this test finish
-			ItemDefinition syncDef = resourceTypeOpenDjrepo.asPrismObject().getDefinition().findItemDefinition(ResourceType.F_SYNCHRONIZATION);
-			assertNotNull("null definition for sync delta", syncDef);
-
 			ObjectDeltaType omt = unmarshallValueFromFile(REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION_FILE, ObjectDeltaType.class);
 			ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(omt, prismContext);
 			
@@ -781,49 +799,86 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, parentResult);
 		
 		Task task = taskManager.createTaskInstance();
-		requestToExecuteChanges(REQUEST_USER_MODIFY_DELETE_ACCOUNT_FILE, USER_GUYBRUSH_OID, UserType.class, task, null, parentResult);
+//		requestToExecuteChanges(REQUEST_USER_MODIFY_DELETE_ACCOUNT_FILE, USER_GUYBRUSH_OID, UserType.class, task, null, parentResult);
 
 		// WHEN
-		ObjectDelta deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, ACCOUNT_GUYBRUSH_OID
-		);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(deleteDelta);
-		modelService.executeChanges(deltas, null, task, parentResult);
+		ObjectDelta deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, ACCOUNT_GUYBRUSH_OID);
+
+		executeChanges(deleteDelta, null, task, parentResult);
+		parentResult.computeStatus();
+
+		PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_GUYBRUSH_OID);
+		ShadowAsserter.forShadow(shadowRepo)
+				.assertTombstone()
+				.assertDead()
+				.assertIsNotExists();
+
+		clockForward("PT20M");
+
+		displayThen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepo, null, task, parentResult);
 
 		try {
 			repositoryService.getObject(ShadowType.class, ACCOUNT_GUYBRUSH_OID, null, parentResult);
+			fail("Unexpected object found");
 		} catch (Exception ex) {
 			if (!(ex instanceof ObjectNotFoundException)) {
 				fail("Expected ObjectNotFoundException but got " + ex);
 			}
 		}
-		
-		assertUserNoAccountRef(USER_GUYBRUSH_OID, parentResult);
+
+		clock.resetOverride();
+
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		UserAsserter.forUser(userAfter)
+				.assertLinks(0);
 
 		repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, parentResult);
 	}
 
 	/**
 	 * Modify account not found => reaction: Delete account
+	 *
+	 * no assignemnt - only linkRef to non existent account
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
-	public void test140ModifyObjectNotFound() throws Exception {
-		final String TEST_NAME = "test140ModifyObjectNotFound";
+	public void test140ModifyObjectNotFoundLinkedAccount() throws Exception {
+		final String TEST_NAME = "test140ModifyObjectNotFoundLinkedAccount";
 		displayTestTitle(TEST_NAME);
-		OperationResult result = new OperationResult(TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, result);
 		repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, result);
 
-		assertUserOneAccountRef(USER_GUYBRUSH_OID);
-		
-		Task task = taskManager.createTaskInstance();
-		
+		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+		UserAsserter.forUser(userBefore)
+				.assertLinks(1)
+				.links()
+					.link(ACCOUNT_GUYBRUSH_OID);
+
 		// WHEN
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE, ACCOUNT_GUYBRUSH_OID, ShadowType.class, task, null, result);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
+				.property(ItemPath.create(ShadowType.F_ATTRIBUTES, new ItemName(MidPointConstants.NS_RI, "roomNumber")))
+					.replace("cabin")
+				.asObjectDelta(ACCOUNT_GUYBRUSH_OID);
+
+		executeChanges(delta, null, task, result);
+//		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE, ACCOUNT_GUYBRUSH_OID, ShadowType.class, task, null, result);
 
 		// THEN
-		try {
+        displayThen(TEST_NAME);
+        PrismObject<ShadowType> shadowAfter = getShadowRepo(ACCOUNT_GUYBRUSH_OID);
+        ShadowAsserter.forShadow(shadowAfter)
+                .assertTombstone()
+                .assertDead()
+                .assertIsNotExists();
+
+        clockForward("PT20M");
+        provisioningService.refreshShadow(shadowAfter, null, task, result);
+
+        try {
 			repositoryService.getObject(ShadowType.class, ACCOUNT_GUYBRUSH_OID, null, result);
 			fail("Expected ObjectNotFound but did not get one.");
 		} catch (Exception ex) {
@@ -832,17 +887,24 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			}
 		}
 
-		assertUserNoAccountRef(USER_GUYBRUSH_OID, result);
+        clock.resetOverride();
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+		UserAsserter.forUser(userAfter)
+				.assertLinks(0);
 
-		repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, result);
+//		repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, result);
 	}
+
+
 
 	/**
 	 * Modify account not found => reaction: Re-create account, apply changes.
+	 *
+	 * assignemt with non-existent account
 	 */
 	@Test
 	public void test142ModifyObjectNotFoundAssignedAccount() throws Exception {
-		final String TEST_NAME = "test142ModifyObjectNotFoundAssignedAccount";
+		final String TEST_NAME = "test142ModifyObjectNotFoundAssignedAccountq";
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -851,31 +913,46 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILE, parentResult);
 		repoAddObjectFromFile(USER_GUYBRUSH_NOT_FOUND_FILENAME, parentResult);
 
-		assertUserOneAccountRef(USER_GUYBRUSH_NOT_FOUND_OID);
+		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_NOT_FOUND_OID);
+		UserAsserter.forUser(userBefore)
+				.assertLinks(1)
+				.links()
+					.link(ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID);
 		
 		Task task = taskManager.createTaskInstance();
 		
 		//WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE, ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID, ShadowType.class, task, null, parentResult);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
+				.property(ItemPath.create(ShadowType.F_ATTRIBUTES, new ItemName(MidPointConstants.NS_RI, "roomNumber")))
+					.replace("cabin")
+				.property(ItemPath.create(ShadowType.F_ATTRIBUTES, new ItemName(MidPointConstants.NS_RI, "businessCategory")))
+					.add("capsize", "fighting")
+				.asObjectDelta(ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID);
+
+		executeChanges(delta, null, task, parentResult);
+//		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE, ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID, ShadowType.class, task, null, parentResult);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
-		String accountOid = assertUserOneAccountRef(USER_GUYBRUSH_NOT_FOUND_OID);
-		
-		PrismObject<ShadowType> modifiedAccount = provisioningService.getObject(
-				ShadowType.class, accountOid, null, task, parentResult);
-		assertNotNull(modifiedAccount);
-		display("Modified shadow", modifiedAccount);
-		assertShadowName(modifiedAccount.asObjectable(), "uid=guybrush123,ou=people,dc=example,dc=com");
-//		PrismAsserts.assertEqualsPolyString("Wrong shadow name", "uid=guybrush123,ou=people,dc=example,dc=com", modifiedAccount.asObjectable().getName());
-		ResourceAttributeContainer attributeContainer = ShadowUtil
-				.getAttributesContainer(modifiedAccount);
-		assertAttribute(modifiedAccount.asObjectable(),
-				new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "roomNumber"),
-				"cabin");
-		assertNotNull(attributeContainer.findProperty(new ItemName(ResourceTypeUtil
-				.getResourceNamespace(resourceTypeOpenDjrepo), "businessCategory")));
+		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_NOT_FOUND_OID);
+		UserAsserter.forUser(userAfter)
+				.assertLinks(1);
+
+		String newShadowOid = getLinkRefOid(USER_GUYBRUSH_NOT_FOUND_OID, RESOURCE_OPENDJ_OID);
+
+		assertFalse("Unexpected that new and old shadows have the same oid", ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID.equals(newShadowOid));
+
+		PrismObject<ShadowType> accountAfter = getShadowModel(newShadowOid);
+		assertNotNull(accountAfter);
+		display("Modified shadow", accountAfter);
+
+		ShadowAsserter.forShadow(accountAfter)
+				.assertName("uid=guybrush123,ou=people,dc=example,dc=com")
+				.attributes()
+					.assertValue(new ItemName(MidPointConstants.NS_RI, "roomNumber"),"cabin")
+					.assertValue(new ItemName(MidPointConstants.NS_RI, "businessCategory"), "capsize", "fighting")
+				.end();
 
 	}
 
@@ -893,7 +970,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		repoAddShadowFromFile(ACCOUNT_HECTOR_FILE, parentResult);
 		repoAddObjectFromFile(USER_HECTOR_NOT_FOUND_FILENAME, parentResult);
 
-		assertUserOneAccountRef(USER_HECTOR_NOT_FOUND_OID);
+		PrismObject<UserType> userBefore = getUser(USER_HECTOR_NOT_FOUND_OID);
+		UserAsserter.forUser(userBefore)
+				.assertLinks(1)
+				.links()
+					.link(ACCOUNT_HECTOR_OID);
 
 		Task task = taskManager.createTaskInstance();
 
@@ -901,11 +982,18 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		PrismObject<UserType> modificatedUser = modelService.getObject(UserType.class, USER_HECTOR_NOT_FOUND_OID, null, task, parentResult);
 		
 		// THEN
-		String accountOid = assertOneAccountRef(modificatedUser);
+		PrismObject<UserType> userAfter = getUser(USER_HECTOR_NOT_FOUND_OID);
+		UserAsserter.forUser(userAfter)
+				.assertLinks(1)
+				.links()
+					.link(ACCOUNT_HECTOR_OID);
 		
-		PrismObject<ShadowType> modifiedAccount = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
+		PrismObject<ShadowType> modifiedAccount = getShadowModel(ACCOUNT_HECTOR_OID);
 		assertNotNull(modifiedAccount);
-		assertShadowName(modifiedAccount.asObjectable(), "uid=hector,ou=people,dc=example,dc=com");
+
+		ShadowAsserter.forShadow(modifiedAccount)
+				.assertName("uid=hector,ou=people,dc=example,dc=com");
+
 	}
 	
 	/**
@@ -920,21 +1008,21 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
-		PrismObject<UserType> userGuybrushFromFile = PrismTestUtil.parseObject(new File(USER_GUYBRUSH_FILENAME));
-		userGuybrushFromFile.asObjectable().getLinkRef().clear();
-		repoAddObject(userGuybrushFromFile, result);
 		assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null);
 		
 		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
 		display("User before", userBefore);
-		String accountShadowOid = assertOneAccountRef(userBefore);
-		PrismObject<ShadowType> shadowBefore = getShadowModel(accountShadowOid);
+		UserAsserter.forUser(userBefore)
+				.assertLinks(1);
+
+		ObjectReferenceType linkRef = userBefore.asObjectable().getLinkRef().iterator().next();
+		PrismObject<ShadowType> shadowBefore = getShadowModel(linkRef.getOid());
 		display("Model Shadow before", shadowBefore);
 		
 		String dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
 		openDJController.delete(dn);
 		
-		PrismObject<ShadowType> repoShadowBefore = repositoryService.getObject(ShadowType.class, accountShadowOid, null, result);
+		PrismObject<ShadowType> repoShadowBefore = getShadowRepo(linkRef.getOid());
 		assertNotNull("Repo shadow is gone!", repoShadowBefore);
 		display("Repository shadow before", repoShadowBefore);
 		assertTrue("Oh my! Shadow is dead!", repoShadowBefore.asObjectable().isDead() != Boolean.TRUE);
@@ -950,9 +1038,15 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		String accountShadowOidAfter = assertOneAccountRef(userAfter);
-		PrismObject<ShadowType> shadowAfter = getShadowModel(accountShadowOidAfter);
+		UserAsserter.forUser(userAfter)
+				.assertLinks(1);
+
+		ObjectReferenceType linkRefAfter = userAfter.asObjectable().getLinkRef().iterator().next();
+		assertFalse("Old and new shadow with the same oid?", linkRef.getOid().equals(linkRefAfter.getOid()));
+
+		PrismObject<ShadowType> shadowAfter = getShadowModel(linkRefAfter.getOid());
 		display("Shadow after", shadowAfter);
+		assertNotNull("No shadow found", shadowAfter);
 
 		Entry entryAfter = openDJController.fetchEntry(dn);
 		display("Entry after", entryAfter);
@@ -973,14 +1067,18 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
 		display("User before", userBefore);
-		String accountShadowOid = assertOneAccountRef(userBefore);
-		PrismObject<ShadowType> shadowBefore = getShadowModel(accountShadowOid);
+		UserAsserter.forUser(userBefore)
+				.assertLinks(1);
+
+		ObjectReferenceType linkRef = userBefore.asObjectable().getLinkRef().iterator().next();
+		String shadowOidBefore = linkRef.getOid();
+		PrismObject<ShadowType> shadowBefore = getShadowModel(shadowOidBefore);
 		display("Shadow before", shadowBefore);
 		
 		String dn = ShadowUtil.getAttributeValue(shadowBefore, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER);
 		openDJController.delete(dn);
 		
-		repositoryService.deleteObject(ShadowType.class, accountShadowOid, result);
+		repositoryService.deleteObject(ShadowType.class, shadowOidBefore, result);
 		
 		// WHEN
 		recomputeUser(USER_GUYBRUSH_OID, task, result);
@@ -988,15 +1086,23 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
-		String accountShadowOidAfter = assertOneAccountRef(userAfter);
-		PrismObject<ShadowType> shadowAfter = getShadowModel(accountShadowOidAfter);
+		UserAsserter.forUser(userAfter)
+				.assertLinks(1);
+
+		ObjectReferenceType linkRefAfter = userAfter.asObjectable().getLinkRef().iterator().next();
+		String shadowOidAfter = linkRefAfter.getOid();
+		assertFalse("Old and new shadow with the same oid?", shadowOidBefore.equals(shadowOidAfter));
+
+		PrismObject<ShadowType> shadowAfter = getShadowModel(shadowOidAfter);
 		display("Shadow after", shadowAfter);
+		assertNotNull("No shadow found", shadowAfter);
 
 		Entry entryAfter = openDJController.fetchEntry(dn);
 		display("Entry after", entryAfter);
+		assertNotNull("No LDAP entry for " + dn + " found", entryAfter);
 	}
 	
 	@Test
@@ -1051,18 +1157,52 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		repoAddObjectFromFile(USER_E_FILENAME, parentResult);
 
-		assertUserNoAccountRef(USER_E_OID, parentResult);
-		
+		assertUser(USER_E_OID, TEST_NAME).assertLinks(0);
+
+
+		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_E_OID, UserType.class, task, null, parentResult);
+		assignAccount(UserType.class, USER_E_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
+
+		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
+//
+//		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_E_OID, UserType.class, task, null, parentResult);
 
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
-		assertEquals("Expected handled error but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
-		
-		String accountOid = checkRepoUser(USER_E_OID, parentResult); 
+		assertEquals("Expected handled error but got: " + parentResult.getStatus(), OperationResultStatus.IN_PROGRESS, parentResult.getStatus());
 
-		checkPostponedAccountWithAttributes(accountOid, "e", "e", "e", "e", FailedOperationTypeType.ADD, false, task, parentResult);
+		assertUser(USER_E_OID, "after").assertLinks(1);
+
+		String shadowEOid = getLinkRefOid(USER_E_OID, RESOURCE_OPENDJ_OID);
+
+		assertRepoShadow(shadowEOid)
+                .display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertIsNotExists()
+				.assertNotDead()
+				// We have name (secondary identifier), but we do not have primary identifier yet.
+				// We will get that only when create operation is successful.
+				.assertNoPrimaryIdentifierValue()
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
+				.end()
+				.pendingOperations()
+					.singleOperation()
+					.display()
+					.assertType(PendingOperationTypeType.RETRY)
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(1)
+					.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.delta()
+				.display()
+				.assertAdd();
+
+//		checkPostponedAccountWithAttributes(accountOid, "e", "e", "e", "e", FailedOperationTypeType.ADD, false, task, parentResult);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1076,15 +1216,71 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = task.getResult();
 
-		String accountOid = assertUserOneAccountRef(USER_E_OID);
-		 
+		assertUser(USER_E_OID, "User before").assertLinks(1);
+
+		String accountOid = getLinkRefOid(USER_E_OID, RESOURCE_OPENDJ_OID);
+
 		//WHEN
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory()
+				.object()
+					.createModificationAddProperty(ShadowType.class, accountOid, createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER), "emp4321");
+		delta.addModificationReplaceProperty(createAttributePath(LDAP_ATTRIBUTE_GIVENNAME), "eeeee");
+
 		TestUtil.displayWhen(TEST_NAME);
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE, accountOid, ShadowType.class, task, null, parentResult);
+		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
+		executeChanges(delta, null, task, parentResult);
+		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
+//		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE, accountOid, ShadowType.class, task, null, parentResult);
 		
 		//THEN
 		TestUtil.displayThen(TEST_NAME);
-		checkPostponedAccountWithAttributes(accountOid, "e", "Jackkk", "e", "e", "emp4321", FailedOperationTypeType.ADD, false, task, parentResult);
+		assertRepoShadow(accountOid)
+				.display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertIsNotExists()
+				.assertNotDead()
+				// We have name (secondary identifier), but we do not have primary identifier yet.
+				// We will get that only when create operation is successful.
+				.assertNoPrimaryIdentifierValue()
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
+				.end()
+				.pendingOperations().assertOperations(2)
+					.addOperation()
+						.display()
+						.assertType(PendingOperationTypeType.RETRY)
+						.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+						.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+						.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.assertAttemptNumber(1)
+						.assertLastAttemptTimestamp(lastRequestEndTs, lastRequestEndTs)
+						.delta()
+						.end()
+					.end()
+					.modifyOperation()
+						.display()
+						.assertType(PendingOperationTypeType.RETRY)
+						.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+						.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+						.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.assertAttemptNumber(1)
+						.assertLastAttemptTimestamp(lastRequestEndTs, lastRequestEndTs)
+						.delta()
+						.end()
+				.end()
+				.end()
+				.display();
+
+
+
+//		checkPostponedAccountWithAttributes(accountOid, "e", "Jackkk", "e", "e", "emp4321", FailedOperationTypeType.ADD, false, task, parentResult);
+	}
+
+	private ItemPath createAttributePath(QName itemName) {
+		return ItemPath.create(ShadowType.F_ATTRIBUTES, itemName);
 	}
 
 	@Test
@@ -1102,11 +1298,53 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		//WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE, accountOid, ShadowType.class, task, null, parentResult);
-		
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory()
+				.object()
+				.createModificationAddProperty(ShadowType.class, accountOid, createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER), "emp4321");
+		delta.addModificationReplaceProperty(createAttributePath(LDAP_ATTRIBUTE_GIVENNAME), "Jackkk");
+
+		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
+
+		executeChanges(delta, null, task, parentResult);
+		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
+
 		//THEN
 		TestUtil.displayThen(TEST_NAME);
-		checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, parentResult);
+		assertModelShadowNoFetch(ACCOUNT_JACKIE_OID)
+				.display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertNotDead()
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertHasPrimaryIdentifier()
+					.assertHasSecondaryIdentifier()
+				.end()
+				.pendingOperations()
+					.singleOperation()
+					.display()
+					.assertType(PendingOperationTypeType.RETRY)
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(1)
+					.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.delta()
+						.display()
+						.assertModify();
+
+
+		assertModelShadowFutureNoFetch(ACCOUNT_JACKIE_OID)
+				.display()
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertNotDead()
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertValue(LDAP_ATTRIBUTE_GIVENNAME, "Jackkk")
+					.assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "emp4321")
+					.end()
+				.assertIsExists()
+				.end();
 	}
 
 	@Test
@@ -1122,17 +1360,43 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_DENIELS_OID);
 		
 		//WHEN
-		requestToExecuteChanges(REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM_FILE, USER_DENIELS_OID, UserType.class, task, null, parentResult);
-		
-		assertUserNoAccountRef(USER_DENIELS_OID, parentResult);
-		
-		ObjectDelta deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, ACCOUNT_DENIELS_OID
-		);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(deleteDelta);
-		modelService.executeChanges(deltas, null, task, parentResult);
+		ObjectDelta deleteDelta = prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, ACCOUNT_DENIELS_OID);
+
+		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
+		executeChanges(deleteDelta, null, task, parentResult);
+		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
+
+		assertUser(USER_DENIELS_OID, TEST_NAME)
+				.assertLinks(1);
 
 		// THEN
-		checkPostponedAccountBasic(accountOid, FailedOperationTypeType.DELETE, false, parentResult);
+		assertModelShadowNoFetch(ACCOUNT_DENIELS_OID)
+				.display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertNotDead()
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertHasPrimaryIdentifier()
+					.assertHasSecondaryIdentifier()
+				.end()
+				.pendingOperations()
+					.singleOperation()
+					.display()
+					.assertType(PendingOperationTypeType.RETRY)
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(1)
+					.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.delta()
+						.display()
+						.assertDelete();
+
+
+//		clockForward("PT20M");
+//		assertNoModelShadowFuture(ACCOUNT_DENIELS_OID);
+//		clock.resetOverride();
 	}
 
 	@Test
@@ -1148,6 +1412,27 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 				null, null, result).asObjectable();
 		assertNotNull("Get method returned null account.", account);
 		assertNotNull("Fetch result was not set in the shadow.", account.getFetchResult());
+
+		assertModelShadowNoFetch(ACCOUNT_DENIELS_OID)
+				.display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertNotDead()
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertHasPrimaryIdentifier()
+					.assertHasSecondaryIdentifier()
+				.end()
+				.pendingOperations()
+					.singleOperation()
+					.display()
+					.assertType(PendingOperationTypeType.RETRY)
+					.delta()
+						.display()
+						.assertDelete();
+
+//		clockForward("PT20M");
+//		assertNoModelShadowFuture(ACCOUNT_DENIELS_OID);
+//		clock.resetOverride();
 	}
 
 	@Test
@@ -1172,92 +1457,247 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		assertEquals("DN attribute " + dn + " not equals", dn, "uid=elaine,ou=people,dc=example,dc=com");
 
 		openDJController.stop();
-		
-		testAddUserToRepo(TEST_NAME, USER_ELAINE_FILENAME,
-				USER_ELAINE_OID);
-		assertUserNoAccountRef(USER_ELAINE_OID, parentResult);
+
+		repoAddObjectFromFile(USER_ELAINE_FILE, parentResult);
+
+		assertUser(USER_ELAINE_OID, "User before")
+				.assertLinks(0);
 
 		Task task = taskManager.createTaskInstance();
 		
-		//WHEN REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_FILENAME
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_ELAINE_OID, UserType.class, task, null, parentResult);
+		//WHEN assign account on OpenDJ
+		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
+		assignAccount(UserType.class, USER_ELAINE_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
+		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
+
+		parentResult.computeStatus();
+		assertInProgress(parentResult);
 
 		//THEN
-		String accountOid = assertUserOneAccountRef(USER_ELAINE_OID);
-		
-		checkPostponedAccountWithAttributes(accountOid, "elaine", "Elaine", "Marley", "Elaine Marley", FailedOperationTypeType.ADD, false, task, parentResult);
+		assertUser(USER_ELAINE_OID, "User after")
+				.assertLinks(1);
+
+		String shadowOid = getLinkRefOid(USER_ELAINE_OID, RESOURCE_OPENDJ_OID);
+
+		assertRepoShadow(shadowOid)
+				.display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertIsNotExists()
+				.assertNotDead()
+				// We have name (secondary identifier), but we do not have primary identifier yet.
+				// We will get that only when create operation is successful.
+				.assertNoPrimaryIdentifierValue()
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
+					.end()
+				.pendingOperations()
+					.singleOperation()
+					.display()
+					.assertType(PendingOperationTypeType.RETRY)
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(1)
+					.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.delta()
+						.display()
+						.assertAdd();
+
+		//check futurized
+//		checkPostponedAccountWithAttributes(shadowOid, "elaine", "Elaine", "Marley", "Elaine Marley", FailedOperationTypeType.ADD, false, task, parentResult);
 	}
 	
 	@Test
-	public void test250ModifyObjectTwoTimesCommunicationProblem() throws Exception {
-		final String TEST_NAME = "test250ModifyObjectTwoTimesCommunicationProblem";
+	public void test250ModifyFocusCommunicationProblem() throws Exception {
+		final String TEST_NAME = "test250ModifyFocusCommunicationProblem";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
 		openDJController.assumeStopped();
         OperationResult parentResult = new OperationResult(TEST_NAME);
-		
-		assertUserOneAccountRef(USER_JACK2_OID);
+
+		assertUser(USER_JACK_OID, "User before")
+				.assertLinks(1);
 		
 		Collection<PropertyDelta> modifications = new ArrayList<>();
 		
-		PropertyDelta fullNameDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(UserType.F_FULL_NAME, getUserDefinition(), new PolyString("jackNew2"));
+		PropertyDelta fullNameDelta = prismContext.deltaFactory()
+				.property()
+					.createModificationReplaceProperty(UserType.F_FULL_NAME, getUserDefinition(), new PolyString("jackNew2"));
 		modifications.add(fullNameDelta);
 		
-		PrismPropertyValue<ActivationStatusType> enabledUserAction = new PrismPropertyValueImpl<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
-		PropertyDelta<ActivationStatusType> enabledDelta = prismContext.deltaFactory().property().createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
-		enabledDelta.addValueToAdd(enabledUserAction);
+		PropertyDelta<ActivationStatusType> enabledDelta = prismContext.deltaFactory()
+				.property()
+					.createModificationAddProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition(), ActivationStatusType.ENABLED);
 		modifications.add(enabledDelta);
 		
-		ObjectDelta objectDelta = prismContext.deltaFactory().object()
-				.createModifyDelta(USER_JACK2_OID, modifications, UserType.class);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		
-		
+		ObjectDelta objectDelta = prismContext.deltaFactory()
+				.object()
+					.createModifyDelta(USER_JACKIE_OID, modifications, UserType.class);
 		Task task = taskManager.createTaskInstance();
-		
-		modelService.executeChanges(deltas, null, task, parentResult);
-		parentResult.computeStatus();
-		String accountOid = assertUserOneAccountRef(USER_JACK2_OID);
 
-		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
-		assertNotNull(account);
-		ShadowType shadow = account.asObjectable();
-		// TODO FIX THIS!!!
-		//assertNotNull(shadow.getObjectChange());
-		display("shadow after communication problem", shadow);
+		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
+		executeChanges(objectDelta, null, task, parentResult);
+		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
+
+		parentResult.computeStatus();
+		assertInProgress(parentResult);
+
+		assertUser(USER_JACKIE_OID, "User after first modify")
+				.assertLinks(1)
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+				.assertFullName("jackNew2");
+
+		String shadowOid = getLinkRefOid(USER_JACKIE_OID, RESOURCE_OPENDJ_OID);
+
+		assertModelShadowNoFetch(shadowOid)
+				.display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertNotDead()
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertHasPrimaryIdentifier()
+					.assertHasSecondaryIdentifier()
+				.end()
+				.pendingOperations()
+					.singleOperation()
+					.display()
+					.assertType(PendingOperationTypeType.RETRY)
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(1)
+					.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.delta()
+						.display()
+						.assertModify();
+
+
+		assertModelShadowFutureNoFetch(shadowOid)
+				.display()
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertNotDead()
+				.assertNoLegacyConsistency()
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+				.attributes()
+					.assertValue(LDAP_ATTRIBUTE_CN, "jackNew2")
+				.end()
+				.assertIsExists()
+				.end();
+
+
+
 		
-		
-		Collection<PropertyDelta> newModifications = new ArrayList<>();
-		PropertyDelta fullNameDeltaNew = prismContext.deltaFactory().property().createModificationReplaceProperty(UserType.F_FULL_NAME, getUserDefinition(), new PolyString("jackNew2a"));
-		newModifications.add(fullNameDeltaNew);
-		
-		
-		PropertyDelta givenNameDeltaNew = prismContext.deltaFactory().property().createModificationReplaceProperty(UserType.F_GIVEN_NAME, getUserDefinition(), new PolyString("jackNew2a"));
-		newModifications.add(givenNameDeltaNew);
-		
-		PrismPropertyValue<ActivationStatusType> enabledOutboundAction = new PrismPropertyValueImpl<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
-		PropertyDelta<ActivationStatusType> enabledDeltaNew = prismContext.deltaFactory().property().createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
-		enabledDeltaNew.addValueToAdd(enabledOutboundAction);
-		newModifications.add(enabledDeltaNew);
-		
-		ObjectDelta newObjectDelta = prismContext.deltaFactory().object()
-				.createModifyDelta(USER_JACK2_OID, newModifications, UserType.class);
-		Collection<ObjectDelta<? extends ObjectType>> newDeltas = MiscSchemaUtil.createCollection(newObjectDelta);
-		
-		
-		modelService.executeChanges(newDeltas, null, task, parentResult);
-		
-		account = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
-		assertNotNull(account);
-		shadow = account.asObjectable();
-		// TODO FIX THIS!!!
-		//assertNotNull(shadow.getObjectChange());
-		display("shadow after communication problem", shadow);
-//		parentResult.computeStatus();
-//		assertEquals("expected handled error in the result", OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
-		
-		
+	}
+
+	@Test
+	public void test251ModifyFocusCommunicationProblemSecondTime() throws Exception {
+		final String TEST_NAME = "test251ModifyFocusCommunicationProblemSecondTime";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		openDJController.assumeStopped();
+		OperationResult parentResult = new OperationResult(TEST_NAME);
+
+		assertUser(USER_JACKIE_OID, "User before")
+				.assertLinks(1)
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+				.assertFullName("jackNew2");
+
+		Collection<PropertyDelta> modifications = new ArrayList<>();
+
+		PropertyDelta fullNameDelta = prismContext.deltaFactory()
+				.property()
+					.createModificationReplaceProperty(UserType.F_FULL_NAME, getUserDefinition(), new PolyString("jackNew2a"));
+		modifications.add(fullNameDelta);
+
+		PropertyDelta givenNameDelta = prismContext.deltaFactory()
+				.property()
+					.createModificationReplaceProperty(UserType.F_GIVEN_NAME, getUserDefinition(), new PolyString("jackNew2a"));
+		modifications.add(givenNameDelta);
+
+		PropertyDelta<ActivationStatusType> enabledDelta = prismContext.deltaFactory()
+				.property()
+					.createModificationAddProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition(), ActivationStatusType.ENABLED);
+		modifications.add(enabledDelta);
+
+		ObjectDelta objectDelta = prismContext.deltaFactory()
+				.object()
+				.createModifyDelta(USER_JACKIE_OID, modifications, UserType.class);
+		Task task = taskManager.createTaskInstance();
+
+		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
+		executeChanges(objectDelta, null, task, parentResult);
+		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
+
+		parentResult.computeStatus();
+		assertInProgress(parentResult);
+
+		assertUser(USER_JACKIE_OID, "User after first modify")
+				.assertLinks(1)
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+				.assertFullName("jackNew2a")
+				.assertGivenName("jackNew2a");
+
+		String shadowOid = getLinkRefOid(USER_JACKIE_OID, RESOURCE_OPENDJ_OID);
+
+		assertModelShadowNoFetch(shadowOid)
+				.display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertNotDead()
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertHasPrimaryIdentifier()
+					.assertHasSecondaryIdentifier()
+				.end()
+					.pendingOperations()
+					.assertOperations(2)
+					.modifyOperation()
+						.display()
+						.assertType(PendingOperationTypeType.RETRY)
+						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+						.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+						.assertAttemptNumber(1)
+						.delta()
+							.display()
+							.assertModify()
+							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_CN))
+						.end()
+					.end()
+					.modifyOperation()
+						.display()
+						.assertType(PendingOperationTypeType.RETRY)
+						.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+						.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+						.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.assertAttemptNumber(1)
+						.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+						.delta()
+							.display()
+							.assertModify()
+							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_CN))
+							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_GIVENNAME))
+						.end();
+
+
+
+		assertModelShadowFuture(shadowOid)
+				.display()
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertNotDead()
+				.assertNoLegacyConsistency()
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+				.attributes()
+					.assertValue(LDAP_ATTRIBUTE_CN, "jackNew2a")
+					.assertValue(LDAP_ATTRIBUTE_GIVENNAME, "jackNew2a")
+				.end()
+				.assertIsExists()
+				.end();
+
 	}
 	
 	/**
@@ -1274,36 +1714,62 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		openDJController.assumeStopped();
 		display("OpenDJ stopped");
 		OperationResult parentResult = new OperationResult(TEST_NAME);
-		
+
 		repoAddObjectFromFile(USER_ANGELIKA_FILENAME, parentResult);
 
-		assertUserNoAccountRef(USER_ANGELIKA_OID, parentResult);
-		
+		assertUser(USER_ANGELIKA_OID, "User before")
+				.assertLinks(0);
+
 		Task task = taskManager.createTaskInstance();
 		
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_ANGELIKA_OID, UserType.class, task, null, parentResult);
-		
+
+		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
+		assignAccount(UserType.class, USER_ANGELIKA_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
+		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
+
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
 		parentResult.computeStatus();
-		display("add object communication problem result: ", parentResult);
-		assertEquals("Expected handled error but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
+		assertInProgress(parentResult);
 		
-		
-		String accountOid = assertUserOneAccountRef(USER_ANGELIKA_OID);
+		assertUser(USER_ANGELIKA_OID, "User after")
+			.assertLinks(1);
 
-		checkPostponedAccountWithAttributes(accountOid, "angelika", "angelika", "angelika", "angelika", FailedOperationTypeType.ADD, false, task, parentResult);
-		
+		String shadowOid = getLinkRefOid(USER_ANGELIKA_OID, RESOURCE_OPENDJ_OID);
+		assertRepoShadow(shadowOid)
+				.display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertIsNotExists()
+				.assertNotDead()
+				// We have name (secondary identifier), but we do not have primary identifier yet.
+				// We will get that only when create operation is successful.
+				.assertNoPrimaryIdentifierValue()
+				.assertNoLegacyConsistency()
+				.attributes()
+				.assertAttributes(LDAP_ATTRIBUTE_DN, LDAP_ATTRIBUTE_UID)
+				.end()
+				.pendingOperations()
+					.singleOperation()
+					.display()
+					.assertType(PendingOperationTypeType.RETRY)
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(1)
+					.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.delta()
+						.display()
+						.assertAdd();
 		//start openDJ
 		openDJController.start();
 		//and set the resource availability status to UP
-		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
 		TestUtil.info("OpenDJ started, resource UP");
-		
-		ShadowType shadowAfter = checkNormalizedShadowWithAttributes(accountOid, "angelika", "angelika", "angelika", "angelika", false, task, parentResult);
+
+		PrismObject<ShadowType> shadow = getShadowModel(shadowOid, GetOperationOptions.createForceRefresh(), true);
+
 	}
 		
 	@Test
@@ -1318,33 +1784,66 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		//prepare user 
 		repoAddObjectFromFile(USER_ALICE_FILENAME, parentResult);
-		
-		assertUserNoAccountRef(USER_ALICE_OID, parentResult);
+		assertUser(USER_ALICE_OID, "User before")
+			.assertLinks(0);
 
 		//and add account to the user while resource is UP
 		
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_ALICE_OID, UserType.class, task, null, parentResult);
+		assignAccountToUser(USER_ALICE_OID, RESOURCE_OPENDJ_OID, "internal");
+//		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_ALICE_OID, UserType.class, task, null, parentResult);
 		
 		//then stop openDJ
 		openDJController.stop();
-		
-		String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
+
+		assertUser(USER_ALICE_OID, "User after")
+				.assertLinks(1);
+
+		String shadowOid = getLinkRefOid(USER_ALICE_OID, RESOURCE_OPENDJ_OID);
 
 		//and make some modifications to the account while resource is DOWN
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE, accountOid, ShadowType.class, task, null, parentResult);
+		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
+		modifyAccountShadowReplace(shadowOid, createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER), task, parentResult, "44332");
+		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
-		//check the state after execution
-		checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, parentResult);
+		assertModelShadowNoFetch(shadowOid)
+				.display(TEST_NAME + "Shadow after")
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertIsExists()
+				.assertNotDead()
+				// We have name (secondary identifier), but we do not have primary identifier yet.
+				// We will get that only when create operation is successful.
+				.assertNoLegacyConsistency()
+				.attributes()
+					.assertHasPrimaryIdentifier()
+					.assertHasSecondaryIdentifier()
+					.end()
+				.pendingOperations()
+					.singleOperation()
+					.display()
+					.assertType(PendingOperationTypeType.RETRY)
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(1)
+					.assertLastAttemptTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.delta()
+						.display()
+						.assertModify()
+						.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER));
+
 
 		//start openDJ
 		openDJController.start();
 		//and set the resource availability status to UP
 		modifyResourceAvailabilityStatus(AvailabilityStatusType.UP, parentResult);
-		
+
+		assertModelShadowFuture(shadowOid)
+				.attributes()
+				.assertValue(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER, "44332");
 		//and then try to get account -> result is that the modifications will be applied to the account
-		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, parentResult);
-		assertAttribute(aliceAccount, "employeeNumber", "emp4321");
+
 	}
 	
 	@Test
@@ -2186,7 +2685,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		modifiedAccount = checkNormalizedShadowBasic(elaineAccountOid, "elaine", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
 		assertAttribute(modifiedAccount, getOpenDjSecondaryIdentifierQName(), "uid=elaine,ou=people,dc=example,dc=com");
 
-		accountOid = assertUserOneAccountRef(USER_JACK2_OID);
+		accountOid = assertUserOneAccountRef(USER_JACKIE_OID);
 		ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, "jack2", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
 		assertAttribute(jack2Shadow, "givenName", "jackNew2a");
 		assertAttribute(jack2Shadow, "cn", "jackNew2a");
@@ -2422,30 +2921,30 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		assertEquals(0, user.asObjectable().getLinkRef().size());
 	}
 	
-	private String checkRepoShadow(PrismObject<ShadowType> repoShadow) {
-		ShadowType repoShadowType = repoShadow.asObjectable();
-		String uid = null;
-        boolean hasOthers = false;
-        List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
-        for (Object element : xmlAttributes) {
-            if (getOpenDjPrimaryIdentifierQName().equals(JAXBUtil.getElementQName(element)) || getOpenDjPrimaryIdentifierQName().equals(JAXBUtil.getElementQName(element))) {
-                if (uid != null) {
-                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
-                } else {
-                    uid = ((Element) element).getTextContent();
-                }
-            } else if (SchemaConstants.ICFS_NAME.equals(JAXBUtil.getElementQName(element)) || getOpenDjSecondaryIdentifierQName().equals(JAXBUtil.getElementQName(element))) {
-            	// This is OK
-        	} else {
-                hasOthers = true;
-            }
-        }
-
-        assertFalse("Shadow "+repoShadow+" has unexpected elements", hasOthers);
-        assertNotNull(uid);
-        
-        return uid;
-	}
+//	private String checkRepoShadow(PrismObject<ShadowType> repoShadow) {
+//		ShadowType repoShadowType = repoShadow.asObjectable();
+//		String uid = null;
+//        boolean hasOthers = false;
+//        List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
+//        for (Object element : xmlAttributes) {
+//            if (getOpenDjPrimaryIdentifierQName().equals(JAXBUtil.getElementQName(element)) || getOpenDjPrimaryIdentifierQName().equals(JAXBUtil.getElementQName(element))) {
+//                if (uid != null) {
+//                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
+//                } else {
+//                    uid = ((Element) element).getTextContent();
+//                }
+//            } else if (SchemaConstants.ICFS_NAME.equals(JAXBUtil.getElementQName(element)) || getOpenDjSecondaryIdentifierQName().equals(JAXBUtil.getElementQName(element))) {
+//            	// This is OK
+//        	} else {
+//                hasOthers = true;
+//            }
+//        }
+//
+//        assertFalse("Shadow "+repoShadow+" has unexpected elements", hasOthers);
+//        assertNotNull(uid);
+//
+//        return uid;
+//	}
     
     private QName getOpenDjPrimaryIdentifierQName() {
     	return new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);

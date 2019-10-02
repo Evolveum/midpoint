@@ -5,36 +5,33 @@
   ~ This work is dual-licensed under the Apache License 2.0 
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<i:user oid="c0c010c0-d34d-b33f-f00d-222111111111" 
-   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+<user oid="c0c010c0-d34d-b33f-f00d-222111111111"
    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
-    <c:name>deniels</c:name>
+    <name>deniels</name>
 
-    <c:linkRef oid="a0c010c0-d34d-b33f-f00d-111111111555" type="c:ShadowType"/>
+    <linkRef oid="a0c010c0-d34d-b33f-f00d-111111111555" type="c:ShadowType"/>
 
-    <i:fullName>Jack Deniels</i:fullName>
-    <i:givenName>Jack</i:givenName>
-    <i:familyName>Deniels</i:familyName>
-<!--     <i:additionalNames>JackD</i:additionalNames> -->
-    <i:honorificPrefix>Mgr.</i:honorificPrefix>
+    <fullName>Jack Deniels</fullName>
+    <givenName>Jack</givenName>
+    <familyName>Deniels</familyName>
+    <honorificPrefix>Mgr.</honorificPrefix>
     
-    <i:honorificSuffix>PhD.</i:honorificSuffix>
-    <i:emailAddress>jack.deniels@evolveum.com</i:emailAddress>
-    <i:telephoneNumber>555-1234</i:telephoneNumber>
-    <i:employeeNumber>emp666</i:employeeNumber>
-    <i:employeeType>DRINKER</i:employeeType>
-    <i:organizationalUnit>Leaders</i:organizationalUnit>
-    <i:locality>Black Pearl</i:locality>
+    <honorificSuffix>PhD.</honorificSuffix>
+    <emailAddress>jack.deniels@evolveum.com</emailAddress>
+    <telephoneNumber>555-1234</telephoneNumber>
+    <employeeNumber>emp666</employeeNumber>
+    <employeeType>DRINKER</employeeType>
+    <organizationalUnit>Leaders</organizationalUnit>
+    <locality>Black Pearl</locality>
 
-    <i:credentials>
-        <i:password>
-        	<i:value>
+    <credentials>
+        <password>
+        	<value>
 	            <t:clearValue>deadmentellnotales</t:clearValue>
-            </i:value>
-        </i:password>
-    </i:credentials>
+            </value>
+        </password>
+    </credentials>
     
-</i:user>
+</user>

@@ -8,23 +8,24 @@
 
 <!-- Object modification description that is changing account of "guybrush" -->
 
-<c:shadow
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+<shadow
+	xmlns:t='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
+	oid="22220000-2222-5555-0000-333300003333"
+	>
 	<!-- No OID for account. The OID will be generated once the account shadow 
 		is added to the repository. -->
 	<!-- No name here. We expect that it will be generated -->
-	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<c:objectClass>ri:inetOrgPerson</c:objectClass>
-	<c:attributes>
+	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+	<objectClass>ri:inetOrgPerson</objectClass>
+	<kind>account</kind>
+	<intent>internal</intent>
+	<attributes>
 		<ri:dn>uid=jackie,ou=people,dc=example,dc=com</ri:dn>
 		<ri:cn>Jack Sparrow</ri:cn>
 		<ri:givenName>Jack</ri:givenName>
 		<ri:sn>Sparrow</ri:sn>
 
-	</c:attributes>
-</c:shadow>
+	</attributes>
+</shadow>
