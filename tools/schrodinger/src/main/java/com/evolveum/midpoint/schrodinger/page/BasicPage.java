@@ -37,12 +37,11 @@ import com.evolveum.midpoint.schrodinger.page.task.NewTaskPage;
 import com.evolveum.midpoint.schrodinger.page.user.FormSubmitablePage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
-import com.evolveum.midpoint.schrodinger.page.workitems.*;
+import com.evolveum.midpoint.schrodinger.page.cases.*;
+import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
-
-import java.awt.*;
 
 import static com.codeborne.selenide.Selenide.$;
 
@@ -138,6 +137,31 @@ public class BasicPage {
         return new NewResourcePage();
     }
 
+    public AllCasesPage listAllCases(){
+        clickAdministrationMenu(ConstantsUtil.MENU_TOP_CASES, ConstantsUtil.MENU_ALL_CASES);
+        return new AllCasesPage();
+    }
+
+    public MyCasesPage listMyCases(){
+        clickAdministrationMenu(ConstantsUtil.MENU_TOP_CASES, ConstantsUtil.MENU_MY_CASES_MENU_ITEM_LABEL_TEXT);
+        return new MyCasesPage();
+    }
+
+    public AllManualCasesPage listAllManualCases(){
+        clickAdministrationMenu(ConstantsUtil.MENU_TOP_CASES, ConstantsUtil.MENU_ALL_MANUAL_CASES_MENU_ITEM_LABEL_TEXT);
+        return new AllManualCasesPage();
+    }
+
+    public AllRequestsPage listAllRequests() {
+        clickAdministrationMenu(ConstantsUtil.MENU_TOP_CASES, ConstantsUtil.MENU_ALL_REQUESTS_MENU_ITEM_LABEL_TEXT);
+        return new AllRequestsPage();
+    }
+
+    public AllApprovalsPage listAllApprovals() {
+        clickAdministrationMenu(ConstantsUtil.MENU_TOP_CASES, ConstantsUtil.MENU_ALL_APPROVALS_MENU_ITEM_LABEL_TEXT);
+        return new AllApprovalsPage();
+    }
+
     public MyItemsPage myItems() {
         clickAdministrationMenu("PageAdmin.menu.top.workItems", "PageAdmin.menu.top.workItems.list");
         return new MyItemsPage();
@@ -166,11 +190,6 @@ public class BasicPage {
     public RequestsAboutMePage requestsAboutMe() {
         clickAdministrationMenu("PageAdmin.menu.top.workItems", "PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor");
         return new RequestsAboutMePage();
-    }
-
-    public AllRequestsPage allRequests() {
-        clickAdministrationMenu("PageAdmin.menu.top.workItems", "PageAdmin.menu.top.workItems.listProcessInstancesAll");
-        return new AllRequestsPage();
     }
 
     public CampaignDefinitionsPage campaignDefinitions() {
@@ -307,11 +326,11 @@ public class BasicPage {
     }
 
     private void clickAdministrationMenu(String mainMenuKey, String menuItemKey) {
-        clickMenuItem("PageAdmin.menu.mainNavigation", mainMenuKey, menuItemKey);
+        clickMenuItem(ConstantsUtil.ADMINISTRATION_MENU_ITEMS_SECTION_KEY, mainMenuKey, menuItemKey);
     }
 
     public String getAdministrationMenuItemIconClass(String mainMenuKey, String menuItemKey){
-        SelenideElement menuItem = getMenuItemElement("PageAdmin.menu.mainNavigation", mainMenuKey, menuItemKey);
+        SelenideElement menuItem = getMenuItemElement(ConstantsUtil.ADMINISTRATION_MENU_ITEMS_SECTION_KEY, mainMenuKey, menuItemKey);
         return menuItem.parent().$(By.tagName("i")).getAttribute("class");
     }
 
@@ -329,7 +348,29 @@ public class BasicPage {
         getMenuItemElement(topLevelMenuKey, mainMenuKey, menuItemKey).click();
     }
 
-    private SelenideElement getMenuItemElement(String topLevelMenuKey, String mainMenuKey, String menuItemKey){
+    public SelenideElement getMenuItemElement(String topLevelMenuKey, String mainMenuKey, String menuItemKey){
+        SelenideElement mainMenu = getMainMenuItemElement(topLevelMenuKey, mainMenuKey);
+        if (menuItemKey == null){
+            return mainMenu;
+        }
+        SelenideElement menuItem = mainMenu.$(Schrodinger.byDataResourceKey(menuItemKey));
+        menuItem.shouldBe(Condition.visible);
+
+        return menuItem;
+    }
+
+    public SelenideElement getMenuItemElementByMenuLabelText(String topLevelMenuKey, String mainMenuKey, String menuItemLabelText){
+        SelenideElement mainMenu = getMainMenuItemElement(topLevelMenuKey, mainMenuKey);
+        if (StringUtils.isEmpty(menuItemLabelText)){
+            return mainMenu;
+        }
+        SelenideElement menuItem = mainMenu.$(By.partialLinkText(menuItemLabelText));
+        menuItem.shouldBe(Condition.visible);
+
+        return menuItem;
+    }
+
+    private SelenideElement getMainMenuItemElement(String topLevelMenuKey, String mainMenuKey){
         SelenideElement topLevelMenu = $(Schrodinger.byDataResourceKey(topLevelMenuKey));
         topLevelMenu.shouldBe(Condition.visible);
 
@@ -341,20 +382,12 @@ public class BasicPage {
 
         SelenideElement mainMenu = topLevelMenu.$(Schrodinger.byDataResourceKey(mainMenuKey));
         mainMenu.shouldBe(Condition.visible);
-        if (menuItemKey == null) {
-            mainMenu.click();
-            return mainMenu;
-        }
 
         SelenideElement mainMenuLi = mainMenu.parent().parent();
         if (!mainMenuLi.has(Condition.cssClass("active"))) {
             mainMenu.click();
             mainMenuLi.waitUntil(Condition.cssClass("active"),MidPoint.TIMEOUT_DEFAULT_2_S).shouldHave(Condition.cssClass("active"));
         }
-
-        SelenideElement menuItem = mainMenu.$(Schrodinger.byDataResourceKey(menuItemKey));
-        menuItem.shouldBe(Condition.visible);
-
-        return menuItem;
+        return mainMenu;
     }
 }

@@ -67,7 +67,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
 		}
 		
 		if (PolicyActionsType.class.isAssignableFrom(realValue.getClass())) {
-			return PolicyRuleTypeUtil.toShortString((PolicyActionsType) realValue, new ArrayList<>());
+			return PolicyRuleTypeUtil.toShortString((PolicyActionsType) realValue);
 		}
 		
 		if (ActivationType.class.isAssignableFrom(realValue.getClass())) {

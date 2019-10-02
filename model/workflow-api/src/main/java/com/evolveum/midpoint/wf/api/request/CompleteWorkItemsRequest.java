@@ -56,4 +56,13 @@ public class CompleteWorkItemsRequest extends Request {
 	public Collection<SingleCompletion> getCompletions() {
 		return completions;
 	}
+
+	@Override
+	public String toString() {
+		return "CompleteWorkItemsRequest{" +
+				"completions=" + completions +
+				", caseOid='" + caseOid + '\'' +
+				", causeInformation=" + causeInformation +
+				'}';
+	}
 }

@@ -211,6 +211,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 		variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);
 		ExpressionUtil.addActorVariable(variables, securityContextManager, prismContext);
 		externalVariables.forEach((k, v) -> variables.put(k, cloneIfNecessary(k, v)));
+		variables.registerAliasesFrom(externalVariables);
 
 		List<?> rv = ModelImplUtils.evaluateScript(scriptExpression, null, variables, true, "in '"+NAME+"' action", context.getTask(), result);
 

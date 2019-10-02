@@ -43,59 +43,75 @@ class OpenStageAction extends InternalAction {
 
 	private static final Trace LOGGER = TraceManager.getTrace(OpenStageAction.class);
 
+	private static final String OP_EXECUTE = OpenStageAction.class.getName() + ".execute";
+
 	OpenStageAction(EngineInvocationContext ctx) {
 		super(ctx);
 	}
 
 	@Override
-	public Action execute(OperationResult result) {
-		traceEnter(LOGGER);
+	public Action execute(OperationResult parentResult) {
+		OperationResult result = parentResult.subresult(OP_EXECUTE)
+				.setMinor()
+				.build();
 
-		Action next;
+		try {
+			traceEnter(LOGGER);
 
-		int numberOfStages = ctx.getNumberOfStages();
-		int currentStage = ctx.getCurrentStage();
-		if (currentStage == numberOfStages) {
-			next = new CloseCaseAction(ctx, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
-		} else {
-			int stageToBe = currentStage + 1;
-			ctx.getCurrentCase().setStageNumber(stageToBe);
-			ApprovalStageDefinitionType stageDef = ctx.getCurrentStageDefinition();
+			Action next;
 
-			StageComputeHelper.ComputationResult preStageComputationResult =
-					engine.stageComputeHelper.computeStageApprovers(stageDef,
-							() -> engine.stageComputeHelper
-									.getDefaultVariables(ctx.getCurrentCase(), ctx.getWfContext(), ctx.getTask().getChannel(), result),
-							ctx.getTask(), result);
-
-			ApprovalLevelOutcomeType predeterminedOutcome = preStageComputationResult.getPredeterminedOutcome();
-			Set<ObjectReferenceType> approverRefs = preStageComputationResult.getApproverRefs();
-			logPreStageComputationResult(preStageComputationResult, stageDef, predeterminedOutcome, approverRefs);
-
-			if (predeterminedOutcome != null) {
-				next = new CloseStageAction(ctx, preStageComputationResult);
+			int numberOfStages = ctx.getNumberOfStages();
+			int currentStage = ctx.getCurrentStage();
+			if (currentStage == numberOfStages) {
+				next = new CloseCaseAction(ctx, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
 			} else {
-				assert !approverRefs.isEmpty();
-				XMLGregorianCalendar createTimestamp = engine.clock.currentTimeXMLGregorianCalendar();
-				XMLGregorianCalendar deadline;
-				if (stageDef.getDuration() != null) {
-					deadline = (XMLGregorianCalendar) createTimestamp.clone();
-					deadline.add(stageDef.getDuration());
+				int stageToBe = currentStage + 1;
+				ctx.getCurrentCase().setStageNumber(stageToBe);
+				ApprovalStageDefinitionType stageDef = ctx.getCurrentStageDefinition();
+
+				StageComputeHelper.ComputationResult preStageComputationResult =
+						engine.stageComputeHelper.computeStageApprovers(stageDef,
+								() -> engine.stageComputeHelper
+										.getDefaultVariables(ctx.getCurrentCase(), ctx.getWfContext(), ctx.getTask().getChannel(),
+												result),
+								ctx.getTask(), result);
+
+				ApprovalLevelOutcomeType predeterminedOutcome = preStageComputationResult.getPredeterminedOutcome();
+				Set<ObjectReferenceType> approverRefs = preStageComputationResult.getApproverRefs();
+				logPreStageComputationResult(preStageComputationResult, stageDef, predeterminedOutcome, approverRefs);
+
+				if (predeterminedOutcome != null) {
+					next = new CloseStageAction(ctx, preStageComputationResult);
 				} else {
-					deadline = null;
+					assert !approverRefs.isEmpty();
+					XMLGregorianCalendar createTimestamp = engine.clock.currentTimeXMLGregorianCalendar();
+					XMLGregorianCalendar deadline;
+					if (stageDef.getDuration() != null) {
+						deadline = (XMLGregorianCalendar) createTimestamp.clone();
+						deadline.add(stageDef.getDuration());
+					} else {
+						deadline = null;
+					}
+					AtomicLong idCounter = new AtomicLong(
+							defaultIfNull(ctx.getCurrentCase().asPrismObject().getHighestId(), 0L) + 1);
+					for (ObjectReferenceType approverRef : approverRefs) {
+						CaseWorkItemType workItem = createWorkItem(stageDef, createTimestamp, deadline, idCounter, approverRef,
+								result);
+						prepareAuditAndNotifications(workItem, result, ctx, engine);
+						createTriggers(workItem, stageDef, result);
+						ctx.getCurrentCase().getWorkItem().add(workItem);
+					}
+					next = null;            // at least one work item was created, so we must wait for its completion
 				}
-				AtomicLong idCounter = new AtomicLong(defaultIfNull(ctx.getCurrentCase().asPrismObject().getHighestId(), 0L) + 1);
-				for (ObjectReferenceType approverRef : approverRefs) {
-					CaseWorkItemType workItem = createWorkItem(stageDef, createTimestamp, deadline, idCounter, approverRef, result);
-					prepareAuditAndNotifications(workItem, result, ctx, engine);
-					createTriggers(workItem, stageDef, result);
-					ctx.getCurrentCase().getWorkItem().add(workItem);
-				}
-				next = null;            // at least one work item was created, so we must wait for its completion
 			}
+			traceExit(LOGGER, next);
+			return next;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-		traceExit(LOGGER, next);
-		return next;
 	}
 
 	private void createTriggers(CaseWorkItemType workItem, ApprovalStageDefinitionType stageDef, OperationResult result) {

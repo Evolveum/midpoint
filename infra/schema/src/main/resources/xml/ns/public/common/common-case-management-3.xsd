@@ -72,6 +72,7 @@
                             <xsd:appinfo>
                                 <a:since>3.7</a:since>
                                 <a:displayName>CaseType.objectRef</a:displayName>
+                                <a:composite>true</a:composite>     <!-- useful when object creation is being approved -->
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

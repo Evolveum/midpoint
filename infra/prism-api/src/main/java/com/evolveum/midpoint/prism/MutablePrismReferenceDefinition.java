@@ -17,5 +17,8 @@ import javax.xml.namespace.QName;
  *
  */
 public interface MutablePrismReferenceDefinition extends PrismReferenceDefinition, MutableItemDefinition<PrismReference> {
+
 	void setTargetTypeName(QName typeName);
+
+	void setComposite(boolean value);
 }

@@ -1316,12 +1316,15 @@ public class InboundProcessor {
 						(PrismPropertyDefinition<?>)sourceIdi.getDefinition());
 				builder = builder.defaultSource(source)
 						.addVariableDefinition(ExpressionConstants.VAR_USER, newUser, UserType.class)
-						.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser, FocusType.class);
+						.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser, FocusType.class)
+						.addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
 
 				PrismObject<ShadowType> accountNew = projContext.getObjectNew();
 				builder = builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew, ShadowType.class)
 						.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew, ShadowType.class)
 						.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew, ShadowType.class)
+						.addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
+						.addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
 						.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource(), ResourceType.class)
 						.valuePolicyResolver(createStringPolicyResolver(context, task, opResult))
 						.originType(OriginType.INBOUND)

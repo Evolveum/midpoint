@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -26,6 +25,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.schema.util.TraceUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -39,8 +39,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionRelativityModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PlusMinusZeroType;
 
 /**
  * @author Radovan Semancik
@@ -109,10 +109,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 	protected boolean isIncludeNullInputs() {
 		Boolean includeNullInputs = getExpressionEvaluatorType().isIncludeNullInputs();
-		if (includeNullInputs == null) {
-			return true;
-		}
-		return includeNullInputs;
+		return includeNullInputs == null || includeNullInputs;
 	}
 
 	protected boolean isRelative() {
@@ -365,18 +362,21 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			OperationResult result = parentResult.subresult(OP_PROCESS_VALUES_COMBINATION)
 					.setMinor()
 					.build();
+			ValueTransformationTraceType trace;
 			if (result.isTraced()) {
-				// doing this only when traced to save CPU cycles
-				// TODO consider putting this to TraceType!
 				result.addParam("context", contextDescription);
-				result.addArbitraryObjectCollectionAsParam("values",
-						pvalues.stream()
-								.map(v -> v != null ? v.getRealValue() : null)
-								.collect(Collectors.toList()));
+				trace = new ValueTransformationTraceType(prismContext);
+				dumpValueCombination(pvalues, sourceTriples, trace);
+				result.getTraces().add(trace);
+			} else {
+				trace = null;
 			}
 			try {
 				if (!isIncludeNullInputs() && MiscUtil.isAllNull(pvalues)) {
 					// The case that all the sources are null. There is no point executing the expression.
+					if (trace != null) {
+						trace.setComment("All sources are null and includeNullInputs is true");
+					}
 					return;
 				}
 				ExpressionVariables scriptVariables = new ExpressionVariables();
@@ -435,14 +435,21 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 					// That case is handled by the elseif branches above. This case strictly applies to
 					// combination of different values from the plus and minus sets.
 					LOGGER.trace("The combination of values that are both in plus and minus. Evaluating this combination does not make sense. Just skip it.");
+					if (trace != null) {
+						trace.setComment("The combination of values that are both in plus and minus. Evaluating this combination does not make sense. Just skip it.");
+					}
 					return;
 				}
 
 				if (hasPlus && skipEvaluationPlus) {
-					// The results will end up in the plus set, therefore we can skip it
+					if (trace != null) {
+						trace.setComment("The results will end up in the plus set and skipEvaluationPlus is true, therefore we can skip them.");
+					}
 					return;
 				} else if (hasMinus && skipEvaluationMinus) {
-					// The results will end up in the minus set, therefore we can skip it
+					if (trace != null) {
+						trace.setComment("The results will end up in the minus set and skipEvaluationMinus is true, therefore we can skip them.");
+					}
 					return;
 				}
 
@@ -517,12 +524,9 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 							dumpValueCombination(pvalues, sourceTriples), contextDescription, valueDestination, scriptResults);
 				}
 
-				if (result.isTraced()) {
-					result.addArbitraryObjectAsReturn("destination", valueDestination);
-					result.addArbitraryObjectCollectionAsReturn("result",
-							scriptResults.stream()
-									.map(v -> v != null ? v.getRealValue() : null)
-									.collect(Collectors.toList()));
+				if (trace != null) {
+					trace.setDestination(PlusMinusZeroType.fromValue(valueDestination));
+					trace.getOutput().addAll(TraceUtil.toAnyValueTypeList(scriptResults, prismContext));
 				}
 
 				outputTriple.addAllToSet(valueDestination, scriptResults);
@@ -564,9 +568,9 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 	private String dumpValueCombination(Collection<? extends PrismValue> pvalues, List<SourceTriple<?, ?>> sourceTriples) {
 		StringBuilder sb = new StringBuilder();
-		Iterator<SourceTriple<PrismValue,?>> sourceTriplesIterator = (Iterator)sourceTriples.iterator();
+		Iterator<SourceTriple<?,?>> sourceTriplesIterator = sourceTriples.iterator();
 		for (PrismValue pval: pvalues) {
-			SourceTriple<PrismValue,?> sourceTriple = sourceTriplesIterator.next();
+			SourceTriple<?,?> sourceTriple = sourceTriplesIterator.next();
 			sb.append(sourceTriple.getName().getLocalPart()).append('=');
 			sb.append(pval==null?null:(Object)pval.getRealValue());
 			if (sourceTriplesIterator.hasNext()) {
@@ -576,18 +580,21 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		return sb.toString();
 	}
 
+	private void dumpValueCombination(Collection<? extends PrismValue> pvalues, List<SourceTriple<?, ?>> sourceTriples,
+			ValueTransformationTraceType trace) {
+		Iterator<SourceTriple<?,?>> sourceTriplesIterator = sourceTriples.iterator();
+		for (PrismValue pval: pvalues) {
+			SourceTriple<?,?> sourceTriple = sourceTriplesIterator.next();
+			trace.getInput().add(TraceUtil.toNamedValueType(pval, sourceTriple.getName(), prismContext));
+		}
+	}
+
 	private void cleanupTriple(PrismValueDeltaSetTriple<V> triple) {
 		if (triple == null) {
 			return;
 		}
 		Collection<V> minusSet = triple.getMinusSet();
-		if (minusSet == null) {
-			return;
-		}
 		Collection<V> plusSet = triple.getPlusSet();
-		if (plusSet == null) {
-			return;
-		}
 		Iterator<V> plusIter = plusSet.iterator();
 		while (plusIter.hasNext()) {
 			V plusVal = plusIter.next();

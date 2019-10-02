@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
@@ -961,6 +962,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		}
 	}
 
+	public Stream<OperationResult> getResultStream() {
+		return Stream.concat(Stream.of(this),
+				getSubresults().stream()
+						.map(subresult -> subresult.getResultStream())
+						.flatMap(stream -> stream));
+	}
+
 	public static class PreviewResult {
 		public final OperationResultStatus status;
 		public final String message;
@@ -1615,6 +1623,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				subresults);
 		opResult.getQualifiers().addAll(result.getQualifier());
 		opResult.setImportance(result.getImportance());
+		opResult.setAsynchronousOperationReference(result.getAsynchronousOperationReference());
 		if (result.getCount() != null) {
 			opResult.setCount(result.getCount());
 		}
@@ -1697,6 +1706,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		for (OperationResult subResult : opResult.getSubresults()) {
 			resultType.getPartialResults().add(createOperationResultType(subResult, resolveKeys));
 		}
+
+		resultType.setAsynchronousOperationReference(opResult.getAsynchronousOperationReference());
 
 		resultType.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
 		resultType.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
@@ -2398,5 +2409,9 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void setCallerReason(String callerReason) {
 		this.callerReason = callerReason;
+	}
+
+	public List<LogSegmentType> getLogSegments() {
+		return logSegments;
 	}
 }

@@ -17,6 +17,7 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -35,8 +36,13 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
 import com.evolveum.midpoint.schema.CapabilityUtil;
@@ -365,9 +371,40 @@ public abstract class AbstractCsvTest extends AbstractProvisioningIntegrationTes
         assertAccountJackAttributesRepo(shadowType);
 
 	}
+	
+	@Test
+	public void test120ModifyShadowPrimaryIdentifier() throws Exception {
+		final String TEST_NAME = "test120ModifyShadowPrimaryIdentifier";
+		TestUtil.displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<ShadowType> shadowBefore = parseObject(getAccountJackFile());
+		String newValueOfUIDAttr = "Jack2"; 
+//		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+//				getAccountJackOid(), ItemPath.create(ShadowType.F_ATTRIBUTES, getQNameOfUID()), newValueOfUIDAttr);
+		PropertyDelta<String> delta = prismContext.deltaFactory().property().createReplaceDelta(shadowBefore.getDefinition(),
+				ShadowType.F_PRIMARY_IDENTIFIER_VALUE, newValueOfUIDAttr);
+		display("PropertyDelta", delta);
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, getAccountJackOid(), Collections.singletonList(delta),
+				null, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertSuccess(result);
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, shadowBefore.getOid(), null, result);
+        ShadowType repoShadowType = repoShadow.asObjectable();
+		assertEquals(newValueOfUIDAttr, repoShadowType.getPrimaryIdentifierValue());
+	}
 
 	protected abstract void assertAccountJackAttributes(ShadowType shadowType);
 
 	protected abstract void assertAccountJackAttributesRepo(ShadowType shadowType);
+	
+	protected abstract QName getQNameOfUID();
 
 }

@@ -1055,12 +1055,15 @@
         <xsd:complexContent>
             <xsd:extension base="tns:RepositoryOperationTraceType">
                 <xsd:sequence>
-                    <xsd:element name="objectToAdd" type="tns:ObjectType" minOccurs="0">
+                    <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Object to be added.
                             </xsd:documentation>
-                        </xsd:annotation>
+							<xsd:appinfo>
+								<a:composite>true</a:composite>
+							</xsd:appinfo>
+						</xsd:annotation>
                     </xsd:element>
                     <xsd:element name="options" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
@@ -1199,12 +1202,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="object" type="tns:ObjectType" minOccurs="0">
+                    <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Object that was retrieved.
                             </xsd:documentation>
-                        </xsd:annotation>
+							<xsd:appinfo>
+								<a:composite>true</a:composite>
+							</xsd:appinfo>
+						</xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
@@ -1331,7 +1337,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-					<!-- Here should be tns:ObjectType but that's not compilable because of a bug in our code generator -->
                     <xsd:element name="resultSize" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1339,12 +1344,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="object" type="t:ObjectType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Object(s) that was retrieved.
+                                Objects that were retrieved.
                             </xsd:documentation>
-                        </xsd:annotation>
+							<xsd:appinfo>
+								<a:composite>true</a:composite>
+							</xsd:appinfo>
+						</xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
@@ -1375,12 +1383,44 @@
                     <xsd:element name="timeConstraintValid" type="xsd:boolean" minOccurs="0"/>
                     <xsd:element name="conditionResultOld" type="xsd:boolean" minOccurs="0"/>
                     <xsd:element name="conditionResultNew" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="source" type="tns:MappingSourceEvaluationTraceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.0.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="output" type="t:DeltaSetTripleType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.0.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="textTrace" type="xsd:string" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="mappingEvaluationTrace" type="tns:MappingEvaluationTraceType" />
+
+    <xsd:complexType name="MappingSourceEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about mapping source during evaluation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName" minOccurs="0"/>
+            <xsd:element name="itemDeltaItem" type="t:ItemDeltaItemType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="mappingSourceEvaluationTrace" type="tns:MappingSourceEvaluationTraceType" />
 
     <xsd:simpleType name="MappingKindType">
         <xsd:annotation>
@@ -1456,6 +1496,30 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="ValueTransformationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for transformation of a tuple of values.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="input" type="tns:NamedValueType" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="destination" type="t:PlusMinusZeroType" minOccurs="0" />
+                    <xsd:element name="output" type="tns:AnyValueType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="comment" type="xsd:string" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="valueTransformationTrace" type="tns:ValueTransformationTraceType" />
+
     <xsd:complexType name="ScriptEvaluationTraceType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1470,12 +1534,51 @@
         <xsd:complexContent>
             <xsd:extension base="tns:TraceType">
                 <xsd:sequence>
-                    <!-- TODO -->
+                    <xsd:element name="scriptExpressionEvaluator" type="tns:ScriptExpressionEvaluatorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.0.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="variable" type="tns:ScriptVariableEvaluationTraceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.0.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="result" type="tns:AnyValueType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.0.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="scriptEvaluationTrace" type="tns:ScriptEvaluationTraceType" />
+
+    <xsd:complexType name="ScriptVariableEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about script variable during evaluation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName" minOccurs="0"/>
+            <xsd:element name="alias" type="xsd:QName" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="value" type="tns:AnyValueType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="scriptVariableEvaluationTrace" type="tns:ScriptVariableEvaluationTraceType" />
 
     <xsd:complexType name="AssignmentEvaluationTraceType">
         <xsd:annotation>
@@ -1531,6 +1634,49 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="assignmentSegmentEvaluationTrace" type="tns:AssignmentSegmentEvaluationTraceType" />
+
+    <xsd:complexType name="PolicyConstraintEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for policy constraint evaluation operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element ref="tns:abstractPolicyConstraint" minOccurs="0" />
+                    <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="policyConstraintEvaluationTrace" type="tns:PolicyConstraintEvaluationTraceType" />
+
+    <xsd:complexType name="PolicyRuleEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for policy rule evaluation operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="policyRuleEvaluationTrace" type="tns:PolicyRuleEvaluationTraceType" />
 
     <xsd:complexType name="CacheUseTraceType">
         <xsd:annotation>
@@ -1737,6 +1883,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="createTraceFile" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the trace file is to be created. (Default is true.)
+                        A value of false is useful e.g. in tests where we might want to collect trace information
+                        but don't need to store it for external use.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="createRepoObject" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1772,6 +1930,27 @@
                     <xsd:documentation>
                         How to override logging while this tracing profile is active.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recordObjectsFound" type="xsd:int" minOccurs="0" default="5">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many objects found (e.g. in search operations) we want to store.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recordObjectReferencesFound" type="xsd:int" minOccurs="0" default="10">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many objects references found (e.g. in search operations) we want to store.
+                        This starts counting after full objects are stored.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0.1</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tracingTypeProfile" type="tns:TracingTypeProfileType" minOccurs="0" maxOccurs="unbounded">
@@ -1869,6 +2048,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="LIVE_SYNC_CHANGE_PROCESSING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="workflowOperation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Processing of workflow operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WORKFLOW_OPERATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -2169,5 +2358,88 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="classLoggerLevelOverride" type="tns:ClassLoggerLevelOverrideType" />
+
+    <xsd:complexType name="AnyValueType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Any value (property, reference, container).
+                EXPERIMENTAL
+
+                This is a workaround to avoid using xsd:anyType directly in a container. It is mapped to a property;
+                however, it cannot be always serialized as a property.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.0.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="value" type="xsd:anyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:rawType>true</a:rawType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="textValue" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If the value is not directly representable in XML/JSON/YAML we at least store its text version
+                        (debugDump or toString or similar) here.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="anyValue" type="tns:AnyValueType" />
+
+    <xsd:complexType name="NamedValueType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Any value (property, reference, container) along with its name.
+
+                This is a workaround to avoid using xsd:anyType directly in a container. It is mapped to a property;
+                however, it cannot be always serialized as a property.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.0.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AnyValueType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:QName" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="namedValue" type="tns:NamedValueType" />
+
+<!--    <xsd:complexType name="AnyValuesType">-->
+<!--        <xsd:annotation>-->
+<!--            <xsd:documentation>-->
+<!--                List of any value (property, reference, container).-->
+<!--                EXPERIMENTAL-->
+
+<!--                This is a workaround to avoid using xsd:anyType directly in a container. It is mapped to a property;-->
+<!--                however, it cannot be always serialized as a property.-->
+<!--            </xsd:documentation>-->
+<!--            <xsd:appinfo>-->
+<!--                <a:experimental>true</a:experimental>-->
+<!--                <a:since>4.0.1</a:since>-->
+<!--            </xsd:appinfo>-->
+<!--        </xsd:annotation>-->
+<!--        <xsd:sequence>-->
+<!--            <xsd:element name="value" type="tns:AnyValueType" minOccurs="0" maxOccurs="unbounded">-->
+<!--                <xsd:annotation>-->
+<!--                    <xsd:appinfo>-->
+<!--                        <a:rawType>true</a:rawType>-->
+<!--                    </xsd:appinfo>-->
+<!--                </xsd:annotation>-->
+<!--            </xsd:element>-->
+<!--        </xsd:sequence>-->
+<!--    </xsd:complexType>-->
+<!--    <xsd:element name="anyValues" type="tns:AnyValuesType" />-->
 
 </xsd:schema>

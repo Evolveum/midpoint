@@ -21,9 +21,14 @@ import org.springframework.boot.actuate.autoconfigure.health.HealthIndicatorAuto
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.management.HeapDumpWebEndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.management.ThreadDumpEndpointAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.JvmMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsEndpointAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.SystemMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.jdbc.DataSourcePoolMetricsAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.metrics.orm.jpa.HibernateMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.web.servlet.WebMvcMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.web.tomcat.TomcatMetricsAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.web.servlet.ServletManagementContextAutoConfiguration;
@@ -78,9 +83,12 @@ import ro.isdc.wro.http.WroFilter;
         EnvironmentEndpointAutoConfiguration.class,
         InfoEndpointAutoConfiguration.class,
         MetricsAutoConfiguration.class,
-        TomcatMetricsAutoConfiguration.class,
-        WebMvcMetricsAutoConfiguration.class,
         SimpleMetricsExportAutoConfiguration.class,
+        CompositeMeterRegistryAutoConfiguration.class,
+        TomcatMetricsAutoConfiguration.class,
+        JvmMetricsAutoConfiguration.class,
+        SystemMetricsAutoConfiguration.class,
+        WebMvcMetricsAutoConfiguration.class,
         MetricsEndpointAutoConfiguration.class
 })
 public abstract class AbstractSpringBootApplication extends SpringBootServletInitializer{

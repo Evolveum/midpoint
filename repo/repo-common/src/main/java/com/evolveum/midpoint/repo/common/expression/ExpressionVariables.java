@@ -44,7 +44,7 @@ public class ExpressionVariables extends VariablesMap {
 
     public void addVariableDefinitions(VariablesMap extraVariables, @NotNull Collection<String> exceptFor) {
         for (Entry<String, TypedValue> entry : extraVariables.entrySet()) {
-        	if (exceptFor != null && exceptFor.contains(entry.getKey())) {
+        	if (exceptFor.contains(entry.getKey())) {
         		continue;
 	        }
         	TypedValue valueDef = entry.getValue();
@@ -57,6 +57,9 @@ public class ExpressionVariables extends VariablesMap {
         		value = odo.getOldObject();
         	}
             put(entry.getKey(), valueDef.createTransformed(value));
+        	if (extraVariables.isAlias(entry.getKey())) {
+        		registerAlias(entry.getKey(), extraVariables.getAliasResolution(entry.getKey()));
+	        }
         }
     }
 
@@ -86,6 +89,7 @@ public class ExpressionVariables extends VariablesMap {
         	}
             put(entry.getKey(), valueDef.createTransformed(value));
         }
+        registerAliasesFrom(extraVariables);
     }
 
     /**
@@ -106,6 +110,7 @@ public class ExpressionVariables extends VariablesMap {
         	}
             put(entry.getKey(), valueDef.createTransformed(value));
         }
+        registerAliasesFrom(extraVariables);
     }
 
     public void setRootNode(ObjectReferenceType objectRef, PrismReferenceDefinition def) {

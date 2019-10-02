@@ -42,33 +42,46 @@ import java.util.stream.Collectors;
 @Component
 public class PolicySituationConstraintEvaluator implements PolicyConstraintEvaluator<PolicySituationPolicyConstraintType> {
 
+	private static final String OP_EVALUATE = PolicySituationConstraintEvaluator.class.getName() + ".evaluate";
+
 	private static final String CONSTRAINT_KEY = "situation";
 
 	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 
 	@Override
 	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<PolicySituationPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		// For assignments we consider only directly attached "situation" policy rules. In the future, we might configure this.
-		// So, if someone wants to report (forward) triggers from a target, he must ensure that a particular
-		// "situation" constraint is present directly on it.
-		if (rctx instanceof AssignmentPolicyRuleEvaluationContext && !((AssignmentPolicyRuleEvaluationContext) rctx).isDirect) {
-			return null;
-		}
+		OperationResult result = parentResult.subresult(OP_EVALUATE)
+				.setMinor()
+				.build();
+		try {
+			// For assignments we consider only directly attached "situation" policy rules. In the future, we might configure this.
+			// So, if someone wants to report (forward) triggers from a target, he must ensure that a particular
+			// "situation" constraint is present directly on it.
+			if (rctx instanceof AssignmentPolicyRuleEvaluationContext
+					&& !((AssignmentPolicyRuleEvaluationContext) rctx).isDirect) {
+				return null;
+			}
 
-		// Single pass only (for the time being)
-		PolicySituationPolicyConstraintType situationConstraint = constraint.getValue();
-		Collection<EvaluatedPolicyRule> sourceRules =
-				selectTriggeredRules(rctx, situationConstraint.getSituation());
-		if (sourceRules.isEmpty()) {
-			return null;
+			// Single pass only (for the time being)
+			PolicySituationPolicyConstraintType situationConstraint = constraint.getValue();
+			Collection<EvaluatedPolicyRule> sourceRules =
+					selectTriggeredRules(rctx, situationConstraint.getSituation());
+			if (sourceRules.isEmpty()) {
+				return null;
+			}
+			return new EvaluatedSituationTrigger(situationConstraint,
+					createMessage(sourceRules, constraint, rctx, result),
+					createShortMessage(sourceRules, constraint, rctx, result),
+					sourceRules);
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-		return new EvaluatedSituationTrigger(situationConstraint,
-				createMessage(sourceRules, constraint, rctx, result),
-				createShortMessage(sourceRules, constraint, rctx, result),
-				sourceRules);
 	}
 
 	private LocalizableMessage createMessage(Collection<EvaluatedPolicyRule> sourceRules,

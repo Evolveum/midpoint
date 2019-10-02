@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.web.boot;
+package com.evolveum.midpoint.web.boot.actuator;
 
 import com.evolveum.midpoint.web.security.*;
 
@@ -55,10 +55,10 @@ public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         
         http
-        .antMatcher("/actuator/*")
+        .antMatcher("/actuator/**")
         .authorizeRequests()
         .accessDecisionManager(accessDecisionManager)
-        .anyRequest().authenticated()
+        .anyRequest().fullyAuthenticated()
         .and()
         .httpBasic()
         .and()
