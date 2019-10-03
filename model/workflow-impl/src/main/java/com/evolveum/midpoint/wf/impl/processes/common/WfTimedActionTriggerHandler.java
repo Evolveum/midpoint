@@ -176,7 +176,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputies, null);
 		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(null, cause, action);
 		notificationHelper.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction,
-				aCase, result);
+				aCase, opTask, result);
 	}
 
 	private void executeActions(WorkItemActionsType actions, CaseWorkItemType workItem, CaseType aCase,
@@ -241,17 +241,16 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 	}
 
 	private void executeNotificationAction(CaseWorkItemType workItem, @NotNull WorkItemNotificationActionType notificationAction,
-			CaseType aCase, Task opTask,
-			OperationResult result) throws SchemaException {
+			CaseType aCase, Task opTask, OperationResult result) throws SchemaException {
 		WorkItemTypeUtil.assertHasCaseOid(workItem);
 		WorkItemEventCauseInformationType cause = ApprovalContextUtil.createCause(notificationAction);
 		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 			List<ObjectReferenceType> assigneesAndDeputies = miscHelper.getAssigneesAndDeputies(workItem, opTask, result);
 			for (ObjectReferenceType assigneeOrDeputy : assigneesAndDeputies) {
-				notificationHelper.notifyWorkItemCustom(assigneeOrDeputy, workItem, cause, aCase, notificationAction, result);
+				notificationHelper.notifyWorkItemCustom(assigneeOrDeputy, workItem, cause, aCase, notificationAction, opTask, result);
 			}
 		} else {
-			notificationHelper.notifyWorkItemCustom(null, workItem, cause, aCase, notificationAction, result);
+			notificationHelper.notifyWorkItemCustom(null, workItem, cause, aCase, notificationAction, opTask, result);
 		}
 
 	}

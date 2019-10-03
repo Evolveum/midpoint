@@ -70,8 +70,6 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		addAndRecompute(USER_KEEN_FILE, initTask, initResult);
 
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-
-		//setGlobalTracingOverride(createModelAndWorkflowLoggingTracingProfile());
 	}
 
 	@Test
