@@ -27,6 +27,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.hibernate.Session;
@@ -321,6 +323,93 @@ public class ModifyTest extends BaseSQLRepoTest {
 //            session.close();
 //            AssertJUnit.fail(ex.getMessage());
 //        }
+    }
+
+    @Test   // MID-4801 (this passed even before fixing that issue)
+    public void test035ModifyTaskOwnerRef() throws Exception {
+        final String TEST_NAME = "test035ModifyTaskOwnerRef";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+        TaskType task = new TaskType(prismContext)
+                .oid("035")
+                .name("task035")
+                .ownerRef("owner-old", UserType.COMPLEX_TYPE)
+                .taskIdentifier("task035");
+
+        repositoryService.addObject(task.asPrismObject(), null, result);
+        assertTaskOwner(task.getOid(), "owner-old");
+
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_OWNER_REF).replace(ObjectTypeUtil.createObjectRef("owner-new", ObjectTypes.USER))
+                .asItemDeltas();
+        repositoryService.modifyObject(TaskType.class, task.getOid(), modifications, getModifyOptions(), result);
+        assertTaskOwner(task.getOid(), "owner-new");
+    }
+
+    @Test   // MID-4801 (this failed before fixing that issue)
+    public void test036ModifyTaskOwnerRefAddAndDelete() throws Exception {
+        final String TEST_NAME = "test036ModifyTaskOwnerRefAddAndDelete";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+        TaskType task = new TaskType(prismContext)
+                .oid("036")
+                .name("task036")
+                .ownerRef("owner-old", UserType.COMPLEX_TYPE)
+                .taskIdentifier("task036");
+
+        repositoryService.addObject(task.asPrismObject(), null, result);
+        assertTaskOwner(task.getOid(), "owner-old");
+
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(TaskType.class)
+                .item(TaskType.F_OWNER_REF)
+                    .add(ObjectTypeUtil.createObjectRef("owner-new", ObjectTypes.USER))
+                    .delete(ObjectTypeUtil.createObjectRef("owner-old", ObjectTypes.USER))
+                .asItemDeltas();
+        repositoryService.modifyObject(TaskType.class, task.getOid(), modifications, getModifyOptions(), result);
+        assertTaskOwner(task.getOid(), "owner-new");
+    }
+
+    @Test   // MID-4801
+    public void test050ModifyUserEmployeeNumber() throws Exception {
+        final String TEST_NAME = "test050ModifyUserEmployeeNumber";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+        UserType user = new UserType(prismContext)
+                .oid("050")
+                .name("user050")
+                .employeeNumber("old");
+
+        repositoryService.addObject(user.asPrismObject(), null, result);
+        assertUserEmployeeNumber(user.getOid(), "old");
+
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_EMPLOYEE_NUMBER)
+                    .add("new")
+                    .delete("old")
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, user.getOid(), modifications, getModifyOptions(), result);
+        assertUserEmployeeNumber(user.getOid(), "new");
+    }
+
+    private void assertTaskOwner(String taskOid, String expectedOwnerOid) {
+        Session session = open();
+        //noinspection unchecked
+        List<String> ownerOidList = session.createQuery("select t.ownerRefTask.targetOid from RTask t where t.oid = '" + taskOid + "'").list();
+        assertEquals("Wrong # of owner OIDs found", 1, ownerOidList.size());
+        assertEquals("Wrong owner OID", expectedOwnerOid, ownerOidList.get(0));
+        close(session);
+    }
+
+    private void assertUserEmployeeNumber(String userOid, String expectedValue) {
+        Session session = open();
+        //noinspection unchecked
+        List<String> ownerOidList = session.createQuery("select u.employeeNumber from RUser u where u.oid = '" + userOid + "'").list();
+        assertEquals("Wrong # of users found", 1, ownerOidList.size());
+        assertEquals("Wrong employee number", expectedValue, ownerOidList.get(0));
+        close(session);
     }
 
     @Test
