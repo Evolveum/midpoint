@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -45,7 +45,7 @@ public class TaskTypeUtil {
 		return rv;
 	}
 
-	public static void addSubtask(TaskType parent, TaskType child, QName relation) {
-		parent.getSubtaskRef().add(ObjectTypeUtil.createObjectRef(child, relation));
+	public static void addSubtask(TaskType parent, TaskType child, PrismContext prismContext) {
+		parent.getSubtaskRef().add(ObjectTypeUtil.createObjectRefWithFullObject(child, prismContext));
 	}
 }

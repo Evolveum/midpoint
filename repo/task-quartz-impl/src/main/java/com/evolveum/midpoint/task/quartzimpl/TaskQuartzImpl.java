@@ -2592,7 +2592,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	@Override
 	public void addSubtask(TaskType subtaskBean) {
 		synchronized (PRISM_ACCESS) {
-			taskPrism.asObjectable().getSubtaskRef().add(ObjectTypeUtil.createObjectRef(subtaskBean, getDefaultRelation()));
+			taskPrism.asObjectable().getSubtaskRef().add(ObjectTypeUtil.createObjectRefWithFullObject(subtaskBean, getPrismContext()));
 		}
 	}
 

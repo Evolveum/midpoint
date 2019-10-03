@@ -671,18 +671,24 @@ public class ColumnUtils {
 					@Override
 					public String getObject() {
 						CaseType caseModelObject = rowModel.getObject().getValue();
-						if (caseModelObject == null || caseModelObject.getObjectRef() == null) {
+						if (caseModelObject == null) {
 							return "";
 						}
 						AssignmentHolderType objectRef = WebComponentUtil.getObjectFromAddDeltyForCase(caseModelObject);
 						if (objectRef != null){
 							return WebComponentUtil.getEffectiveName(objectRef, AbstractRoleType.F_DISPLAY_NAME);
-						} else {
-							try {
-								return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef(), AbstractRoleType.F_DISPLAY_NAME, pageBase,
-										pageBase.getClass().getSimpleName() + "." + "loadCaseObjectRefName");
-							} catch (Exception ex){
-								LOGGER.error("Unable find the object for reference: ", caseModelObject.getObjectRef());
+						} else if (caseModelObject.getObjectRef() != null
+								&& StringUtils.isNotEmpty(caseModelObject.getObjectRef().getOid())){
+							if (caseModelObject.getObjectRef().getObject() != null){
+									return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef().getObject(),
+											AbstractRoleType.F_DISPLAY_NAME);
+							} else {
+								try {
+									return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef(), AbstractRoleType.F_DISPLAY_NAME, pageBase,
+											pageBase.getClass().getSimpleName() + "." + "loadCaseObjectRefName");
+								} catch (Exception ex) {
+									LOGGER.error("Unable find the object for reference: ", caseModelObject.getObjectRef());
+								}
 							}
 						}
 						return "";
