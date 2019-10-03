@@ -131,7 +131,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
      */
 	protected OperationResult taskResult;
 
-	protected TaskManagerQuartzImpl taskManager;
+	@NotNull final protected TaskManagerQuartzImpl taskManager;
 	protected RepositoryService repositoryService;
 
 	private boolean recreateQuartzTrigger = false;          // whether to recreate quartz trigger on next flushPendingModifications and/or synchronizeWithQuartz
@@ -146,7 +146,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
 	//region Constructors
 
-	private TaskQuartzImpl(TaskManagerQuartzImpl taskManager) {
+	private TaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager) {
 		this.taskManager = taskManager;
 		statistics = new Statistics(taskManager.getPrismContext());
 	}
@@ -156,7 +156,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	 *
 	 * @param operationName  if null, default op. name will be used
 	 */
-	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier, String operationName) {
+	TaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, LightweightIdentifier taskIdentifier, String operationName) {
 		this(taskManager);
 		this.repositoryService = taskManager.getRepositoryService();
 		this.taskPrism = new TaskType(getPrismContext()).asPrismObject();
@@ -178,7 +178,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	 * NOTE: if the result in prism is null, task result will be kept null as well (meaning it was not fetched from the repository).
 	 *
 	 */
-	TaskQuartzImpl(TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService) {
+	TaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService) {
 		this(taskManager);
 		this.repositoryService = repositoryService;
 		this.taskPrism = taskPrism;
@@ -2638,8 +2638,12 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
 	@NotNull
 	@Override
-	public Set<TracingRootType> getTracingRequestedFor() {
-		return tracingRequestedFor;
+	public Collection<TracingRootType> getTracingRequestedFor() {
+		if (taskManager.isTracingOverridden()) {
+			return taskManager.getGlobalTracingRequestedFor();
+		} else {
+			return tracingRequestedFor;
+		}
 	}
 
 	@Override
@@ -2654,7 +2658,11 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
 	@Override
 	public TracingProfileType getTracingProfile() {
-		return tracingProfile;
+		if (taskManager.isTracingOverridden()) {
+			return taskManager.getGlobalTracingProfile();
+		} else {
+			return tracingProfile;
+		}
 	}
 
 	@Override

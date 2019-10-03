@@ -37,8 +37,6 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.List;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 /**
  * Provides basic work item actions for upper layers.
  *
@@ -92,16 +90,20 @@ public class WorkItemManager {
 			result.recordFatalError("Couldn't complete the work item " + workItemId + ": " + e.getMessage(), e);
 			throw e;
 		} finally {
-			if (tracingRequested) {
-				tracer.storeTrace(task, result);
-				TracingAppender.terminateCollecting();  // todo reconsider
-				LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
-			}
-			result.computeStatusIfUnknown();
-		}
+            result.computeStatusIfUnknown();
+            storeTraceIfRequested(tracingRequested, task, result);
+        }
     }
 
-	private boolean startTracingIfRequested(OperationResultBuilder builder, Task task, OperationResult parentResult)
+    private void storeTraceIfRequested(boolean tracingRequested, Task task, OperationResult result) {
+        if (tracingRequested) {
+            tracer.storeTrace(task, result);
+            TracingAppender.terminateCollecting();  // todo reconsider
+            LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
+        }
+    }
+
+    private boolean startTracingIfRequested(OperationResultBuilder builder, Task task, OperationResult parentResult)
 			throws SchemaException {
 		if (task.getTracingRequestedFor().contains(TracingRootType.WORKFLOW_OPERATION)) {
 			TracingProfileType profile = task.getTracingProfile() != null ? task.getTracingProfile() : tracer.getDefaultProfile();
@@ -119,7 +121,9 @@ public class WorkItemManager {
     public void completeWorkItems(CompleteWorkItemsRequest request, Task task, OperationResult parentResult)
 		    throws SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
 		    ConfigurationException, SchemaException, ObjectAlreadyExistsException {
-        OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEMS);
+        OperationResultBuilder builder = parentResult.subresult(OPERATION_COMPLETE_WORK_ITEMS);
+        boolean tracingRequested = startTracingIfRequested(builder, task, parentResult);
+        OperationResult result = builder.build();
 		try {
 			workflowEngine.executeRequest(request, task, result);
 		} catch (SecurityViolationException | RuntimeException | CommunicationException | ConfigurationException | SchemaException | ObjectAlreadyExistsException e) {
@@ -127,15 +131,18 @@ public class WorkItemManager {
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
-		}
+            storeTraceIfRequested(tracingRequested, task, result);
+        }
     }
 
     // We can eventually provide bulk version of this method as well.
 	public void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        OperationResult result = parentResult.createSubresult(OPERATION_CLAIM_WORK_ITEM);
-        result.addArbitraryObjectAsParam("workItemId", workItemId);
+        OperationResultBuilder builder = parentResult.subresult(OPERATION_CLAIM_WORK_ITEM)
+                .addArbitraryObjectAsParam("workItemId", workItemId);
+        boolean tracingRequested = startTracingIfRequested(builder, task, parentResult);
+        OperationResult result = builder.build();
 		try {
 			LOGGER.trace("Claiming work item {}", workItemId);
 			ClaimWorkItemsRequest request = new ClaimWorkItemsRequest(workItemId.caseOid);
@@ -146,6 +153,7 @@ public class WorkItemManager {
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
+            storeTraceIfRequested(tracingRequested, task, result);
 		}
 	}
 
@@ -153,8 +161,10 @@ public class WorkItemManager {
     public void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
 		    throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
 		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        OperationResult result = parentResult.createSubresult(OPERATION_RELEASE_WORK_ITEM);
-        result.addArbitraryObjectAsParam("workItemId", workItemId);
+        OperationResultBuilder builder = parentResult.subresult(OPERATION_RELEASE_WORK_ITEM)
+                .addArbitraryObjectAsParam("workItemId", workItemId);
+        boolean tracingRequested = startTracingIfRequested(builder, task, parentResult);
+        OperationResult result = builder.build();
 		try {
 			LOGGER.trace("Releasing work item {}", workItemId);
 			ReleaseWorkItemsRequest request = new ReleaseWorkItemsRequest(workItemId.caseOid);
@@ -165,6 +175,7 @@ public class WorkItemManager {
 			throw e;
         } finally {
 			result.computeStatusIfUnknown();
+            storeTraceIfRequested(tracingRequested, task, result);
 		}
     }
 
@@ -181,14 +192,17 @@ public class WorkItemManager {
 		List<ObjectReferenceType> delegates = delegationRequest.getDelegate();
 		WorkItemDelegationMethodType method = delegationRequest.getMethod();
 		String comment = delegationRequest.getComment();
-		OperationResult result = parentResult.subresult(OPERATION_DELEGATE_WORK_ITEM)
+
+		OperationResultBuilder builder = parentResult.subresult(OPERATION_DELEGATE_WORK_ITEM)
 				.addArbitraryObjectAsParam("workItemId", workItemId)
 				.addArbitraryObjectAsParam("escalation", escalation)
 				.addArbitraryObjectCollectionAsParam("delegates", delegates)
 				.addArbitraryObjectAsParam("method", method)
-				.addParam("comment", delegationRequest.getComment())
-				.build();
-		try {
+				.addParam("comment", delegationRequest.getComment());
+        boolean tracingRequested = startTracingIfRequested(builder, task, parentResult);
+        OperationResult result = builder.build();
+
+        try {
 			LOGGER.trace("Delegating work item {} to {} ({}): escalation={}; cause={}; comment={}", workItemId, delegates, method,
 					escalation != null ? escalation.getName() + "/" + escalation.getDisplayName() : "none", causeInformation, comment);
 			DelegateWorkItemsRequest request = new DelegateWorkItemsRequest(workItemId.caseOid, causeInformation, now);
@@ -201,7 +215,8 @@ public class WorkItemManager {
 			throw new IllegalStateException(e);
 		} finally {
 			result.computeStatusIfUnknown();
-		}
+            storeTraceIfRequested(tracingRequested, task, result);
+        }
 	}
 
 	@NotNull
