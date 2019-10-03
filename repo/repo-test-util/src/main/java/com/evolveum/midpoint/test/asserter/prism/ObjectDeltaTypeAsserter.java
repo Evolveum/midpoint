@@ -80,6 +80,15 @@ public class ObjectDeltaTypeAsserter<RA> extends AbstractAsserter<RA> {
 		fail("No modification for "+itemPath+" in "+desc());
 		return null; // not reached
 	}
+
+	public ObjectDeltaTypeAsserter<RA> assertNoModification(ItemPath itemPath) {
+		for (ItemDeltaType itemDelta: delta.getItemDelta()) {
+			if (itemPath.equivalent(itemDelta.getPath().getItemPath())) {
+				fail("Unexpected modification for "+itemPath+" in "+desc());
+			}
+		}
+		return this;
+	}
 	
 	protected String desc() {
 		return descWithDetails(delta);
