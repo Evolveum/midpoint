@@ -46,7 +46,7 @@ public interface WorkflowManager {
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-	void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+	void delegateWorkItem(WorkItemId workItemId, WorkItemDelegationRequestType delegationRequest,
 			Task task, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException,
 			ExpressionEvaluationException, CommunicationException, ConfigurationException;
 	//endregion

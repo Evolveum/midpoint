@@ -89,7 +89,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         getDetailsPanelContainer().add(cancelButton);
 
         CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL,
-                new LoadableModel<CaseWorkItemType>() {
+                new LoadableModel<>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -100,12 +100,18 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved){
+            protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved) {
                 String comment = workItemDetails != null ? workItemDetails.getApproverComment() : null;
                 byte[] evidence = workItemDetails != null ? workItemDetails.getWorkItemEvidence() : null;
                 return super.getWorkItemOutput(approved)
                         .comment(comment)
                         .evidence(evidence);
+            }
+
+            @Override
+            protected WorkItemDelegationRequestType getDelegationRequest(UserType delegate) {
+                return super.getDelegationRequest(delegate)
+                        .comment(workItemDetails != null ? workItemDetails.getApproverComment() : null);
             }
 
             @Override

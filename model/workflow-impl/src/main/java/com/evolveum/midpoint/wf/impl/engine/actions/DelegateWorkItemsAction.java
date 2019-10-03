@@ -131,6 +131,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
 		WorkItemDelegationEventType event = ApprovalContextUtil
 				.createDelegationEvent(newEscalationInfo, assigneesBefore, delegatedTo,
 				delegation.getMethod(), causeInformation, engine.prismContext);
+		event.setComment(delegation.getComment());
 		if (newEscalationInfo != null) {
 			workItem.setEscalationLevel(newEscalationInfo);
 		}

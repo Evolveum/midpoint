@@ -174,20 +174,25 @@ public class WorkItemManager {
 	// aware that escalationLevelName/DisplayName are for internal use only.
 
 	// We can eventually provide bulk version of this method as well.
-	public void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+	public void delegateWorkItem(@NotNull WorkItemId workItemId, @NotNull WorkItemDelegationRequestType delegationRequest,
 			WorkItemEscalationLevelType escalation, Duration newDuration, WorkItemEventCauseInformationType causeInformation,
 			XMLGregorianCalendar now, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
-		result.addArbitraryObjectAsParam("workItemId", workItemId);
-		result.addArbitraryObjectAsParam("escalation", escalation);
-		result.addArbitraryObjectCollectionAsParam("delegates", delegates);
+		List<ObjectReferenceType> delegates = delegationRequest.getDelegate();
+		WorkItemDelegationMethodType method = delegationRequest.getMethod();
+		String comment = delegationRequest.getComment();
+		OperationResult result = parentResult.subresult(OPERATION_DELEGATE_WORK_ITEM)
+				.addArbitraryObjectAsParam("workItemId", workItemId)
+				.addArbitraryObjectAsParam("escalation", escalation)
+				.addArbitraryObjectCollectionAsParam("delegates", delegates)
+				.addArbitraryObjectAsParam("method", method)
+				.addParam("comment", delegationRequest.getComment())
+				.build();
 		try {
-			LOGGER.trace("Delegating work item {} to {}: escalation={}; cause={}", workItemId, delegates,
-					escalation != null ? escalation.getName() + "/" + escalation.getDisplayName() : "none", causeInformation);
+			LOGGER.trace("Delegating work item {} to {} ({}): escalation={}; cause={}; comment={}", workItemId, delegates, method,
+					escalation != null ? escalation.getName() + "/" + escalation.getDisplayName() : "none", causeInformation, comment);
 			DelegateWorkItemsRequest request = new DelegateWorkItemsRequest(workItemId.caseOid, causeInformation, now);
-			request.getDelegations().add(new DelegateWorkItemsRequest.SingleDelegation(workItemId.id, delegates,
-					defaultIfNull(method, WorkItemDelegationMethodType.REPLACE_ASSIGNEES), escalation, newDuration));
+			request.getDelegations().add(new DelegateWorkItemsRequest.SingleDelegation(workItemId.id, delegationRequest, escalation, newDuration));
 			workflowEngine.executeRequest(request, task, result);
 		} catch (SecurityViolationException | RuntimeException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException e) {
 			result.recordFatalError("Couldn't delegate/escalate work item " + workItemId + ": " + e.getMessage(), e);

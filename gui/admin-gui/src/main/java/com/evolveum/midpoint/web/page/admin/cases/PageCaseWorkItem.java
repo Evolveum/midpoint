@@ -231,6 +231,12 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 			}
 
 			@Override
+			protected WorkItemDelegationRequestType getDelegationRequest(UserType delegate) {
+				return super.getDelegationRequest(delegate)
+						.comment(workItemDetailsPanel.getApproverComment());
+			}
+
+			@Override
 			protected Component getCustomForm(){
 				return workItemDetailsPanel.getCustomForm();
 			}

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.wf.impl.other;
 
-import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -21,13 +20,11 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.wf.impl.AbstractWfTestPolicy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.ADD_ASSIGNEES;
@@ -59,8 +56,6 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	protected PrismObject<UserType> getDefaultActor() {
 		return userAdministrator;
 	}
-
-	@Autowired private WorkflowService workflowService;
 
 	private WorkItemId workItemId;
 	private String caseOid;
@@ -109,7 +104,10 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		try {
-			workflowService.delegateWorkItem(workItemId, Collections.singletonList(ort(USER_GIRTH_OID)), ADD_ASSIGNEES, task, result);
+			WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+					.delegate(ort(USER_GIRTH_OID))
+					.method(ADD_ASSIGNEES);
+			workflowService.delegateWorkItem(workItemId, request, task, result);
 			fail("delegate succeeded even if it shouldn't");
 		} catch (SecurityViolationException e) {
 			// ok
@@ -128,7 +126,11 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		workflowService.delegateWorkItem(workItemId, Collections.singletonList(ort(USER_GIRTH_OID)), ADD_ASSIGNEES, task, result);
+		WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+				.delegate(ort(USER_GIRTH_OID))
+				.method(ADD_ASSIGNEES)
+				.comment("check this");
+		workflowService.delegateWorkItem(workItemId, request, task, result);
 
 		result.computeStatus();
 		assertSuccess(result);
@@ -144,6 +146,8 @@ public class TestDelegation extends AbstractWfTestPolicy {
 
 		List<WorkItemDelegationEventType> events = ApprovalContextUtil.getWorkItemEvents(aCase.asObjectable(), workItemId.id, WorkItemDelegationEventType.class);
 		assertEquals("Wrong # of delegation events", 1, events.size());
+		WorkItemDelegationEventType event = events.get(0);
+		assertEquals("Wrong comment", "check this", event.getComment());
 		// TODO check content
 	}
 
@@ -156,7 +160,10 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		workflowService.delegateWorkItem(workItemId, Collections.singletonList(ort(USER_KEEN_OID)), REPLACE_ASSIGNEES, task, result);
+		WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+				.delegate(ort(USER_KEEN_OID))
+				.method(REPLACE_ASSIGNEES);
+		workflowService.delegateWorkItem(workItemId, request, task, result);
 
 		result.computeStatus();
 		assertSuccess(result);
@@ -184,7 +191,9 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		workflowService.delegateWorkItem(workItemId, Collections.emptyList(), REPLACE_ASSIGNEES, task, result);
+		WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext)
+				.method(REPLACE_ASSIGNEES);
+		workflowService.delegateWorkItem(workItemId, request, task, result);
 
 		result.computeStatus();
 		assertSuccess(result);

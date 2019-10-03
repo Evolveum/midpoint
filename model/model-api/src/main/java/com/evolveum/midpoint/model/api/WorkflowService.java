@@ -14,6 +14,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationRequestType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -48,7 +49,7 @@ public interface WorkflowService {
 		    throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
 		    CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-    void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+    void delegateWorkItem(WorkItemId workItemId, WorkItemDelegationRequestType delegationRequest,
 		    Task task, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException,
 		    SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 

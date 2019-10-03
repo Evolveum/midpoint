@@ -359,6 +359,42 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
+    <xsd:complexType name="WorkItemDelegationRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A request to delegate work item - analogous to AbstractWorkItemOutputType.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0.1</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="delegate" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        User(s) to delegate the work item to.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="method" type="tns:WorkItemDelegationMethodType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Delegation method: ADD_ASSIGNEES, REPLACE_ASSIGNEES.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="comment" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Delegator's comment, e.g. an information to delegates.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
     <xsd:complexType name="CaseWorkItemType">
         <xsd:annotation>
             <xsd:documentation>
@@ -595,6 +631,13 @@
                     <xsd:element name="assigneeBefore" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="delegatedTo" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"/>
                     <xsd:element name="delegationMethod" type="tns:WorkItemDelegationMethodType" minOccurs="0" />
+                    <xsd:element name="comment" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.0.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

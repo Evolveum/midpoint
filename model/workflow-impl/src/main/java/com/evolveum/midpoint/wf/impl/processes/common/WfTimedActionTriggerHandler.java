@@ -215,10 +215,11 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 			CaseType aCase, XMLGregorianCalendar now, Task opTask, OperationResult result)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		WorkItemEscalationLevelType escLevel = escalate ? ApprovalContextUtil.createEscalationLevelInformation(delegateAction) : null;
-		List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, aCase, opTask, result);
-		workItemManager.delegateWorkItem(WorkItemId.of(workItem), delegates,
-				delegateAction.getDelegationMethod(), escLevel,
-				delegateAction.getDuration(), ApprovalContextUtil.createCause(delegateAction), now, opTask, result);
+		WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext);
+		request.getDelegate().addAll(computeDelegateTo(delegateAction, workItem, aCase, opTask, result));
+		request.setMethod(delegateAction.getDelegationMethod());
+		workItemManager.delegateWorkItem(WorkItemId.of(workItem), request, escLevel, delegateAction.getDuration(),
+				ApprovalContextUtil.createCause(delegateAction), now, opTask, result);
 	}
 
 	private List<ObjectReferenceType> computeDelegateTo(DelegateWorkItemActionType delegateAction, CaseWorkItemType workItem,
@@ -231,9 +232,6 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 			rv.addAll(evaluationHelper.evaluateRefExpressions(delegateAction.getApproverExpression(),
 					variables, "computing delegates", opTask, result));
 		}
-//		if (!delegateAction.getApproverRelation().isEmpty()) {
-//			throw new UnsupportedOperationException("Approver relation in delegate/escalate action is not supported yet.");
-//		}
 		return rv;
 	}
 
