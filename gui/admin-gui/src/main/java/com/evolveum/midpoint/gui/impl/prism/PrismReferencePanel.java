@@ -80,6 +80,7 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 			FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
 			feedback.setOutputMarkupId(true);
 			item.add(feedback);
+			item.getModelObject().getParent().setReadOnly(false);
 			IconedObjectNamePanel iconedObjectNamePanel =
 					new IconedObjectNamePanel(ID_VALUE, (ObjectReferenceType) item.getModelObject().getRealValue());
 			iconedObjectNamePanel.setOutputMarkupId(true);

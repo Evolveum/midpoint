@@ -107,9 +107,9 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
                 }
             }
         };
-//        nameLink.add(new EnableBehaviour(() -> referencedObjectModel != null && referencedObjectModel.getObject() != null));
-//                && !new QName("dummy").getLocalPart().equals(
-//                        referencedObjectModel.getObject().asPrismContainer().getElementName().getLocalPart())));
+        nameLink.add(new EnableBehaviour(() -> referencedObjectModel != null && referencedObjectModel.getObject() != null
+                && !new QName("dummy").getLocalPart().equals(
+                        referencedObjectModel.getObject().asPrismContainer().getElementName().getLocalPart())));
         nameLink.setOutputMarkupId(true);
         add(nameLink);
 
