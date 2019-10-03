@@ -81,7 +81,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ResourceObjectConverter {
 	
 	private static final String DOT_CLASS = ResourceObjectConverter.class.getName() + ".";
-	public static final String OPERATION_MODIFY_ENTITLEMENT = DOT_CLASS + "modifyEntitlement";
+	private static final String OPERATION_MODIFY_ENTITLEMENT = DOT_CLASS + "modifyEntitlement";
 	private static final String OPERATION_ADD_RESOURCE_OBJECT = DOT_CLASS + "addResourceObject";
 	private static final String OPERATION_MODIFY_RESOURCE_OBJECT = DOT_CLASS + "modifyResourceObject";
 	private static final String OPERATION_DELETE_RESOURCE_OBJECT = DOT_CLASS + "deleteResourceObject";
@@ -222,84 +222,93 @@ public class ResourceObjectConverter {
 					ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		
 		OperationResult result = parentResult.createSubresult(OPERATION_ADD_RESOURCE_OBJECT);
-		
-		ResourceType resource = ctx.getResource();
-		
-		LOGGER.trace("Adding resource object {}", shadow);
-		
-		// We might be modifying the shadow (e.g. for simulated capabilities). But we do not want the changes
-		// to propagate back to the calling code. Hence the clone.
-		PrismObject<ShadowType> shadowClone = shadow.clone();
-		ShadowType shadowType = shadowClone.asObjectable();
-
-		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
-
-		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone, matchingRuleRegistry,
-				relationRegistry)) {
-			LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
-			SecurityViolationException e = new SecurityViolationException("Cannot get protected shadow " + shadowType);
-			result.recordFatalError(e);
-			throw e;
-		}
-		
-		if (!skipExplicitUniquenessCheck) {
-			checkForAddConflicts(ctx, shadow, result);
-		}
-		
-		checkForCapability(ctx, CreateCapabilityType.class, result);
-		
-		Collection<Operation> additionalOperations = new ArrayList<>();
-		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource, result);
-		entitlementConverter.processEntitlementsAdd(ctx, shadowClone);
-		
-		ConnectorInstance connector = ctx.getConnector(CreateCapabilityType.class, result);
-		AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> connectorAsyncOpRet;
+		boolean specificExceptionRecorded = false;
 		try {
+			ResourceType resource = ctx.getResource();
 
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("PROVISIONING ADD operation on resource {}\n ADD object:\n{}\n additional operations:\n{}",
-						resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
-						SchemaDebugUtil.debugDump(additionalOperations,2));
+			LOGGER.trace("Adding resource object {}", shadow);
+
+			// We might be modifying the shadow (e.g. for simulated capabilities). But we do not want the changes
+			// to propagate back to the calling code. Hence the clone.
+			PrismObject<ShadowType> shadowClone = shadow.clone();
+			ShadowType shadowType = shadowClone.asObjectable();
+
+			Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
+
+			if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone, matchingRuleRegistry,
+					relationRegistry)) {
+				LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
+				SecurityViolationException e = new SecurityViolationException("Cannot get protected shadow " + shadowType);
+				result.recordFatalError(e);
+				throw e;
 			}
-			transformActivationAttributesAdd(ctx, shadowType, result);
-			
-			connectorAsyncOpRet = connector.addObject(shadowClone, additionalOperations, ctx, result);
-			resourceAttributesAfterAdd = connectorAsyncOpRet.getReturnValue();
 
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("PROVISIONING ADD successful, returned attributes:\n{}",
-						SchemaDebugUtil.prettyPrint(resourceAttributesAfterAdd));
+			if (!skipExplicitUniquenessCheck) {
+				checkForAddConflicts(ctx, shadow, result);
 			}
 
-			// Be careful not to apply this to the cloned shadow. This needs to be propagated
-			// outside this method.
-			applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
-		} catch (CommunicationException ex) {
-			result.recordFatalError(
-					"Could not create object on the resource. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
-			throw new CommunicationException("Error communicating with the connector " + connector + ": "
-					+ ex.getMessage(), ex);
-		} catch (GenericFrameworkException ex) {
-			result.recordFatalError("Could not create object on the resource. Generic error in connector: " + ex.getMessage(), ex);
-			throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
-		} catch (ObjectAlreadyExistsException ex){
-			result.recordFatalError("Could not create object on the resource. Object already exists on the resource: " + ex.getMessage(), ex);
-			throw new ObjectAlreadyExistsException("Object already exists on the resource: " + ex.getMessage(), ex);
-		} catch (ConfigurationException | SchemaException | SecurityViolationException | PolicyViolationException | RuntimeException | Error e){
-			result.recordFatalError(e);
-			throw e;
+			checkForCapability(ctx, CreateCapabilityType.class, result);
+
+			Collection<Operation> additionalOperations = new ArrayList<>();
+			addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource, result);
+			entitlementConverter.processEntitlementsAdd(ctx, shadowClone);
+
+			ConnectorInstance connector = ctx.getConnector(CreateCapabilityType.class, result);
+			AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> connectorAsyncOpRet;
+			try {
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("PROVISIONING ADD operation on resource {}\n ADD object:\n{}\n additional operations:\n{}",
+							resource.asPrismObject(), shadowType.asPrismObject().debugDump(),
+							SchemaDebugUtil.debugDump(additionalOperations, 2));
+				}
+				transformActivationAttributesAdd(ctx, shadowType, result);
+
+				connectorAsyncOpRet = connector.addObject(shadowClone, additionalOperations, ctx, result);
+				resourceAttributesAfterAdd = connectorAsyncOpRet.getReturnValue();
+
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("PROVISIONING ADD successful, returned attributes:\n{}",
+							SchemaDebugUtil.prettyPrint(resourceAttributesAfterAdd));
+				}
+
+				// Be careful not to apply this to the cloned shadow. This needs to be propagated
+				// outside this method.
+				applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
+			} catch (CommunicationException ex) {
+				result.recordFatalError(
+						"Could not create object on the resource. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
+				specificExceptionRecorded = true;
+				throw new CommunicationException("Error communicating with the connector " + connector + ": "
+						+ ex.getMessage(), ex);
+			} catch (GenericFrameworkException ex) {
+				result.recordFatalError("Could not create object on the resource. Generic error in connector: " + ex.getMessage(), ex);
+				specificExceptionRecorded = true;
+				throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
+			} catch (ObjectAlreadyExistsException ex) {
+				result.recordFatalError(
+						"Could not create object on the resource. Object already exists on the resource: " + ex.getMessage(), ex);
+				specificExceptionRecorded = true;
+				throw new ObjectAlreadyExistsException("Object already exists on the resource: " + ex.getMessage(), ex);
+			}
+
+			// Execute entitlement modification on other objects (if needed)
+			executeEntitlementChangesAdd(ctx, shadowClone, scripts, connOptions, result);
+
+			LOGGER.trace("Added resource object {}", shadow);
+
+			computeResultStatus(result);
+
+			AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncOpRet = AsynchronousOperationReturnValue.wrap(shadow, result);
+			asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
+			return asyncOpRet;
+		} catch (Throwable t) {
+			if (!specificExceptionRecorded) {
+				result.recordFatalError(t);
+			}
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-		
-		// Execute entitlement modification on other objects (if needed)
-		executeEntitlementChangesAdd(ctx, shadowClone, scripts, connOptions, result);
-		
-		LOGGER.trace("Added resource object {}", shadow);
-
-		computeResultStatus(result);
-		
-		AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncOpRet = AsynchronousOperationReturnValue.wrap(shadow, result);
-		asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
-		return asyncOpRet;
 	}
 
 	/**
