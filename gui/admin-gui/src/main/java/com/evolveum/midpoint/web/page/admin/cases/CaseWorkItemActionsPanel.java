@@ -173,7 +173,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                 WebComponentUtil.dropPowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
             }
         } catch (Exception ex) {
-            result.recordFatalError(getString("CaseWorkItemActionsPanel.message.delegateConfirmedPerformed.fatalError"), ex);
+            result.recordFatalError(getString("CaseWorkItemActionsPanel.message.forwardConfirmedPerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't forward work item", ex);
         }
         getPageBase().processResult(target, result, false);
@@ -193,7 +193,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         return null;
     }
 
-    private IModel<String> getApproveButtonTitleModel(){
+    private IModel<String> getApproveButtonTitleModel() {
         return new IModel<String>() {
             @Override
             public String getObject() {
@@ -205,7 +205,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         };
     }
 
-    private IModel<String> getRejectButtonTitleModel(){
+    private IModel<String> getRejectButtonTitleModel() {
         return new IModel<String>() {
             @Override
             public String getObject() {
@@ -217,14 +217,14 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         };
     }
 
-    private boolean isApproveRejectButtonVisible(){
+    private boolean isApproveRejectButtonVisible() {
         boolean isAuthorized = false;
         try {
             OperationResult result = new OperationResult(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
             Task task = getPageBase().createSimpleTask(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
             isAuthorized =  getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result);
-        } catch (Exception ex){
-            LOGGER.error("Cannot check current user authorization to submit work item, ", ex.getLocalizedMessage());
+        } catch (Exception ex) {
+            LOGGER.error("Cannot check current user authorization to submit work item: {}", ex.getLocalizedMessage(), ex);
         }
         return CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
                 !CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) && isAuthorized;
