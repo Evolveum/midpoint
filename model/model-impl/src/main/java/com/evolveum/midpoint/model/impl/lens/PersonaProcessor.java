@@ -352,7 +352,7 @@ public class PersonaProcessor {
 		try {
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 			LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, null, task, result);
-			// Persona changes are all "secondary" changes, trigerred by roles and policies. We do not want to authorize
+			// Persona changes are all "secondary" changes, triggered by roles and policies. We do not want to authorize
 			// them as REQUEST. Assignment of the persona role was REQUEST. Changes in persona itself is all EXECUTION.
 			context.setExecutionPhaseOnly(true);
 			context.setOwnerOid(ownerOid);
