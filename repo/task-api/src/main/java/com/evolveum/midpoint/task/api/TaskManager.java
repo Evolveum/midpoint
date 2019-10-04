@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -30,12 +31,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 
 /**
  * <p>Task Manager Interface.</p>
@@ -751,4 +746,20 @@ public interface TaskManager {
 	Tracer getTracer();
 
 	boolean isClustered();
+
+	// EXPERIMENTAL
+    boolean isTracingOverridden();
+
+    // EXPERIMENTAL
+    @NotNull
+    Collection<TracingRootType> getGlobalTracingRequestedFor();
+
+    // EXPERIMENTAL
+	TracingProfileType getGlobalTracingProfile();
+
+	// EXPERIMENTAL
+	void setGlobalTracingOverride(@NotNull Collection<TracingRootType> roots, @NotNull TracingProfileType profile);
+
+	// EXPERIMENTAL
+	void removeGlobalTracingOverride();
 }

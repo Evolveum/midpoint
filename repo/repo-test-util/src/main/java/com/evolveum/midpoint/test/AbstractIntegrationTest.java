@@ -1832,6 +1832,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				.end();
 	}
 
+	protected TracingProfileType createModelAndWorkflowLoggingTracingProfile() {
+		return addWorkflowLogging(createModelLoggingTracingProfile());
+	}
+
 	protected TracingProfileType addProvisioningLogging(TracingProfileType profile) {
 		return profile.getLoggingOverride()
 				.beginLevelOverride()
@@ -2705,5 +2709,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			System.err.println("Couldn't truncate log file");
 			e.printStackTrace(System.err);
 		}
+	}
+
+	protected void setGlobalTracingOverride(@NotNull TracingProfileType profile) {
+		taskManager.setGlobalTracingOverride(Arrays.asList(TracingRootType.values()), profile);
+	}
+
+	protected void removeGlobalTracingOverride() {
+		taskManager.removeGlobalTracingOverride();
 	}
 }

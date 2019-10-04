@@ -260,6 +260,11 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		return this;
 	}
 	
+	public UserAsserter<RA> assertJpegPhoto() {
+		assertNotNull("Missing jpegPhoto in "+desc(), getObject().asObjectable().getJpegPhoto());
+		return this;
+	}
+
 	@Override
 	public UserAsserter<RA> assertLocality(String expected) {
 		super.assertLocality(expected);

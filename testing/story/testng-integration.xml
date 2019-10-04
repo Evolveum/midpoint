@@ -61,6 +61,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestImportGroups"/>
             <class name="com.evolveum.midpoint.testing.story.security.TestPrivacy"/>
             <class name="com.evolveum.midpoint.testing.story.security.TestRoleMembers"/>
+            <class name="com.evolveum.midpoint.testing.story.TestPhotoAssignment"/>
         </classes>
     </test>
 </suite>
