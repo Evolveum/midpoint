@@ -111,6 +111,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 //		InternalMonitor.setTraceShadowFetchOperation(true);
 //		InternalMonitor.setTraceResourceSchemaOperations(true);
 		InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
+
+		//setGlobalTracingOverride(createModelAndWorkflowLoggingTracingProfile());
 	}
 
 	@Test
