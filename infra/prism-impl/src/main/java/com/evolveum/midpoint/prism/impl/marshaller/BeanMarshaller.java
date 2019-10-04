@@ -70,33 +70,39 @@ public class BeanMarshaller {
 
 	@Nullable
 	public XNodeImpl marshall(@Nullable Object inputBean, @Nullable SerializationContext ctx) throws SchemaException {
-		if (inputBean == null) {
-			return null;
-		}
-		// Special hack (MID-5803) -- we should NEVER get PrismValue here; but not enough time to fix this right now
-		Object bean;
-		if (inputBean instanceof PrismValue) {
-			bean = ((PrismValue) inputBean).getRealValue();
-			if (bean == null) {
+		try {
+			if (inputBean == null) {
 				return null;
 			}
-		} else {
-			bean = inputBean;
-		}
+			// Special hack (MID-5803) -- we should NEVER get PrismValue here; but not enough time to fix this right now
+			Object bean;
+			if (inputBean instanceof PrismValue) {
+				bean = ((PrismValue) inputBean).getRealValue();
+				if (bean == null) {
+					return null;
+				}
+			} else {
+				bean = inputBean;
+			}
 
-		Marshaller marshaller = specialMarshallers.get(bean.getClass());
-		if (marshaller != null) {
-			return marshaller.marshal(bean, ctx);
-		}
+			Marshaller marshaller = specialMarshallers.get(bean.getClass());
+			if (marshaller != null) {
+				return marshaller.marshal(bean, ctx);
+			}
 
-		if (bean instanceof Containerable) {
-			return (XNodeImpl) prismContext.xnodeSerializer().context(ctx).serializeRealValue(bean, new QName("dummy")).getSubnode();
-		} else if (bean instanceof Enum) {
-			return marshalEnum((Enum) bean, ctx);
-		} else if (bean.getClass().getAnnotation(XmlType.class) != null) {
-			return marshalXmlType(bean, ctx);
-		} else {
-			return marshalToPrimitive(bean, ctx);
+			if (bean instanceof Containerable) {
+				return (XNodeImpl) prismContext.xnodeSerializer().context(ctx).serializeRealValue(bean, new QName("dummy"))
+						.getSubnode();
+			} else if (bean instanceof Enum) {
+				return marshalEnum((Enum) bean, ctx);
+			} else if (bean.getClass().getAnnotation(XmlType.class) != null) {
+				return marshalXmlType(bean, ctx);
+			} else {
+				return marshalToPrimitive(bean, ctx);
+			}
+		} catch (Throwable t) {
+			LOGGER.error("Couldn't marshal an object:\n{}", inputBean, t);
+			throw t;
 		}
 	}
 
