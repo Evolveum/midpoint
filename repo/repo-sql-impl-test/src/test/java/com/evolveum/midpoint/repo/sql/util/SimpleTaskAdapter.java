@@ -876,7 +876,7 @@ public class SimpleTaskAdapter implements Task {
 
     @NotNull
     @Override
-    public Set<TracingRootType> getTracingRequestedFor() {
+    public Collection<TracingRootType> getTracingRequestedFor() {
         return emptySet();
     }
 

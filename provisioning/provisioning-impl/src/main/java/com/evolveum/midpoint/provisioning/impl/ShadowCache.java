@@ -93,9 +93,9 @@ import java.util.Optional;
 @Component
 public class ShadowCache {
 	
-	public static String OP_DELAYED_OPERATION = ShadowCache.class.getName() + ".delayedOperation";
-	public static String OP_OPERATION_RETRY = ShadowCache.class.getName() + ".operationRetry";
-	public static String OP_RESOURCE_OPERATION = ShadowCache.class.getName() + ".resourceOperation";
+	private static final String OP_DELAYED_OPERATION = ShadowCache.class.getName() + ".delayedOperation";
+	private static final String OP_OPERATION_RETRY = ShadowCache.class.getName() + ".operationRetry";
+	private static final String OP_RESOURCE_OPERATION = ShadowCache.class.getName() + ".resourceOperation";
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")

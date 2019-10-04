@@ -23,9 +23,6 @@ public interface NotificationManager {
     Transport getTransport(String name);
 
     // event may be null
-    void processEvent(Event event);
-
-    // event may be null
     void processEvent(Event event, Task task, OperationResult result);
 
 

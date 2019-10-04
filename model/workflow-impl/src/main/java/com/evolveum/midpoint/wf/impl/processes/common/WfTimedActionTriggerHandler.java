@@ -176,7 +176,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputies, null);
 		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(null, cause, action);
 		notificationHelper.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction,
-				aCase, result);
+				aCase, opTask, result);
 	}
 
 	private void executeActions(WorkItemActionsType actions, CaseWorkItemType workItem, CaseType aCase,
@@ -215,10 +215,11 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 			CaseType aCase, XMLGregorianCalendar now, Task opTask, OperationResult result)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		WorkItemEscalationLevelType escLevel = escalate ? ApprovalContextUtil.createEscalationLevelInformation(delegateAction) : null;
-		List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, aCase, opTask, result);
-		workItemManager.delegateWorkItem(WorkItemId.of(workItem), delegates,
-				delegateAction.getDelegationMethod(), escLevel,
-				delegateAction.getDuration(), ApprovalContextUtil.createCause(delegateAction), now, opTask, result);
+		WorkItemDelegationRequestType request = new WorkItemDelegationRequestType(prismContext);
+		request.getDelegate().addAll(computeDelegateTo(delegateAction, workItem, aCase, opTask, result));
+		request.setMethod(delegateAction.getDelegationMethod());
+		workItemManager.delegateWorkItem(WorkItemId.of(workItem), request, escLevel, delegateAction.getDuration(),
+				ApprovalContextUtil.createCause(delegateAction), now, opTask, result);
 	}
 
 	private List<ObjectReferenceType> computeDelegateTo(DelegateWorkItemActionType delegateAction, CaseWorkItemType workItem,
@@ -231,9 +232,6 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 			rv.addAll(evaluationHelper.evaluateRefExpressions(delegateAction.getApproverExpression(),
 					variables, "computing delegates", opTask, result));
 		}
-//		if (!delegateAction.getApproverRelation().isEmpty()) {
-//			throw new UnsupportedOperationException("Approver relation in delegate/escalate action is not supported yet.");
-//		}
 		return rv;
 	}
 
@@ -243,17 +241,16 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 	}
 
 	private void executeNotificationAction(CaseWorkItemType workItem, @NotNull WorkItemNotificationActionType notificationAction,
-			CaseType aCase, Task opTask,
-			OperationResult result) throws SchemaException {
+			CaseType aCase, Task opTask, OperationResult result) throws SchemaException {
 		WorkItemTypeUtil.assertHasCaseOid(workItem);
 		WorkItemEventCauseInformationType cause = ApprovalContextUtil.createCause(notificationAction);
 		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 			List<ObjectReferenceType> assigneesAndDeputies = miscHelper.getAssigneesAndDeputies(workItem, opTask, result);
 			for (ObjectReferenceType assigneeOrDeputy : assigneesAndDeputies) {
-				notificationHelper.notifyWorkItemCustom(assigneeOrDeputy, workItem, cause, aCase, notificationAction, result);
+				notificationHelper.notifyWorkItemCustom(assigneeOrDeputy, workItem, cause, aCase, notificationAction, opTask, result);
 			}
 		} else {
-			notificationHelper.notifyWorkItemCustom(null, workItem, cause, aCase, notificationAction, result);
+			notificationHelper.notifyWorkItemCustom(null, workItem, cause, aCase, notificationAction, opTask, result);
 		}
 
 	}

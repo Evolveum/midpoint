@@ -88,11 +88,6 @@ public class NotificationManagerImpl implements NotificationManager {
         }
     }
 
-    public void processEvent(@Nullable Event event) {
-		Task task = taskManager.createTaskInstance(OPERATION_PROCESS_EVENT);
-        processEvent(event, task, task.getResult());
-    }
-
     public void processEvent(@Nullable Event event, Task task, OperationResult result) {
         if (event == null) {
             return;

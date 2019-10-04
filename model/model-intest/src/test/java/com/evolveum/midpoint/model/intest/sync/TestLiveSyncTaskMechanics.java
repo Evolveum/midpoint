@@ -16,6 +16,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -75,11 +76,14 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 	private static final File TASK_ERROR_IMPRECISE_FILE = new File(TEST_DIR, "task-intsync-error-imprecise.xml");
 	private static final String TASK_ERROR_IMPRECISE_OID = "c554ec0f-95c3-40ac-b069-876708d28393";
 
+	private static final TestResource TASK_DRY_RUN = new TestResource(TEST_DIR, "task-intsync-dry-run.xml", "8b5b3b2d-6ef7-4cc8-8507-42778e0d869f");
+	private static final TestResource TASK_DRY_RUN_WITH_UPDATE = new TestResource(TEST_DIR, "task-intsync-dry-run-with-update.xml", "ebcc7393-e886-40ae-8a9f-dfa72230c658");
+
 	private static final String USER_P = "user-p-";
 	private static final String USER_I = "user-i-";
 
 	private static final int ERROR_ON = 4;
-	private static final int USERS = 1000;
+	private static final int USERS = 100;
 
 	public static long delay = 1;                 // referenced from resource-dummy-interrupted-sync.xml
 	public static String errorOn = null;           // referenced from resource-dummy-interrupted-sync.xml
@@ -121,6 +125,12 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 
 		addObject(TASK_ERROR_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer());
 		waitForTaskFinish(TASK_ERROR_IMPRECISE_OID, false);
+
+		addObject(TASK_DRY_RUN.file, initTask, initResult, workerThreadsCustomizer());
+		waitForTaskFinish(TASK_DRY_RUN.oid, false);
+
+		addObject(TASK_DRY_RUN_WITH_UPDATE.file, initTask, initResult, workerThreadsCustomizer());
+		waitForTaskFinish(TASK_DRY_RUN_WITH_UPDATE.oid, false);
 
 		assertUsers(getNumberOfUsers());
 		for (int i = 0; i < USERS; i++) {
@@ -571,6 +581,85 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
 			assertObjects(UserType.class, query, ERROR_ON);
 		}
 	}
+
+	/**
+	 * Dry run. Should process all records, but create no users and not update the token.
+	 */
+	@Test
+	public void test140DryRun() throws Exception {
+		final String TEST_NAME = "test140DryRun";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		ObjectQuery query = getStartsWithQuery(USER_P);
+		deleteUsers(query, result);
+
+		// Changes are provided and processed normally.
+		interruptedSyncController.getDummyResource().setOperationDelayOffset(0);
+		delay = 0;
+		errorOn = null;
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		waitForTaskNextRun(TASK_DRY_RUN.oid, false, 10000, true);
+
+		// THEN
+		displayThen(TEST_NAME);
+
+		Task taskAfter = taskManager.getTaskWithResult(TASK_DRY_RUN.oid, result);
+		display("Task after", taskAfter);
+		assertSuccess(taskAfter.getResult());
+		assertTaskClosed(taskAfter);
+
+		Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
+		assertEquals("Wrong token value", (Integer) 0, token);
+
+		assertObjects(UserType.class, query, 0);
+	}
+
+	/**
+	 * Dry run with update. Should process all records, but create no users and then update the token.
+	 */
+	@Test
+	public void test150DryRunWithUpdate() throws Exception {
+		final String TEST_NAME = "test150DryRunWithUpdate";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		ObjectQuery query = getStartsWithQuery(USER_P);
+		deleteUsers(query, result);
+
+		// Changes are provided and processed normally.
+		interruptedSyncController.getDummyResource().setOperationDelayOffset(0);
+		delay = 0;
+		errorOn = null;
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		waitForTaskNextRun(TASK_DRY_RUN_WITH_UPDATE.oid, false, 10000, true);
+
+		// THEN
+		displayThen(TEST_NAME);
+
+		Task taskAfter = taskManager.getTaskWithResult(TASK_DRY_RUN_WITH_UPDATE.oid, result);
+		display("Task after", taskAfter);
+		assertSuccess(taskAfter.getResult());
+		assertTaskClosed(taskAfter);
+
+		Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
+		assertEquals("Wrong token value", (Integer) USERS, token);
+
+		assertObjects(UserType.class, query, 0);
+	}
+
 
 	private ObjectQuery getStartsWithQuery(String s) {
 		return prismContext.queryFor(UserType.class)

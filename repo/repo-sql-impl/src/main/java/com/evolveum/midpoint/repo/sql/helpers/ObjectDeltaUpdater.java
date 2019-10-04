@@ -946,24 +946,45 @@ public class ObjectDeltaUpdater {
         }
     }
 
-    private void handleBasicOrEmbedded(Object bean, ItemDelta delta, Attribute attribute) {
+    private void handleBasicOrEmbedded(Object bean, ItemDelta<?,?> delta, Attribute attribute) {
         Class outputType = getRealOutputType(attribute);
 
-        PrismValue anyPrismValue = delta.getAnyValue();
-
-        Object value;
-        if (delta.isDelete()
-                || (delta.isReplace() && (anyPrismValue == null || anyPrismValue.isEmpty()))) {
-            value = null;
+        PrismValue prismValue;
+        if (delta.isAdd()) {
+            Set<PrismValue> uniqueValuesToAdd = new HashSet<>(delta.getValuesToAdd());  // but what about matching rules?
+            assert !uniqueValuesToAdd.isEmpty();
+            if (uniqueValuesToAdd.size() > 1) {
+                // Maybe WARN or ERROR would be better?
+                throw new IllegalStateException("More than one value to be put into single-valued repository item. Values = "
+                        + uniqueValuesToAdd + ", attribute = " + attribute.getName());
+            }
+            prismValue = uniqueValuesToAdd.iterator().next();
+        } else if (delta.isDelete()) {
+            assert !delta.isReplace();
+            prismValue = null;
+        } else if (delta.isReplace()) {
+            Set<PrismValue> uniqueValuesToReplace = new HashSet<>(delta.getValuesToReplace());  // but what about matching rules?
+            if (uniqueValuesToReplace.size() > 1) {
+                // Maybe WARN or ERROR would be better?
+                throw new IllegalStateException("More than one value to be put into single-valued repository item. Values = "
+                        + uniqueValuesToReplace + ", attribute = " + attribute.getName());
+            } else if (uniqueValuesToReplace.size() == 1) {
+                prismValue = uniqueValuesToReplace.iterator().next();
+            } else {
+                prismValue = null;
+            }
         } else {
-            value = anyPrismValue.getRealValue();
+            LOGGER.warn("Empty delta {} for attribute {} of {}", delta, attribute.getName(), bean.getClass().getName());
+            return;
         }
 
+        Object value = prismValue != null ? prismValue.getRealValue() : null;
+
         //noinspection unchecked
-        value = prismEntityMapper.map(value, outputType);
+        Object valueMapped = prismEntityMapper.map(value, outputType);
 
         try {
-            PropertyUtils.setSimpleProperty(bean, attribute.getName(), value);
+            PropertyUtils.setSimpleProperty(bean, attribute.getName(), valueMapped);
         } catch (Exception ex) {
             throw new SystemException("Couldn't set simple property for '" + attribute.getName() + "'", ex);
         }

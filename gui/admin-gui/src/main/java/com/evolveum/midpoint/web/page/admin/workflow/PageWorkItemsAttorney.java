@@ -37,9 +37,6 @@ public class PageWorkItemsAttorney extends PageCaseWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItemsAttorney.class);
 
-    private static final String DOT_CLASS = PageWorkItems.class.getName() + ".";
-
-
     public PageWorkItemsAttorney(PageParameters pageParameters) {
         super(pageParameters);
     }

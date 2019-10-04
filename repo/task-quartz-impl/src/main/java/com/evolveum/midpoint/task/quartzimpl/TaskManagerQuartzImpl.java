@@ -9,6 +9,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 import java.text.ParseException;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.TaskTypeUtil;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -104,20 +106,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InfrastructureConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskUnpauseActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -157,6 +145,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Autowired private Protector protector;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private Tracer tracer;
+
+    private GlobalTracingOverride globalTracingOverride;
 
 	private InfrastructureConfigurationType infrastructureConfiguration;
 	private String webContextPath;
@@ -1412,10 +1402,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     	if (task instanceof Task) {
 		    ((InternalTaskInterface) task).addSubtask(subtaskBean);
 	    } else if (task instanceof TaskType) {
-    		TaskTypeUtil.addSubtask((TaskType) task, subtaskBean, relationRegistry.getDefaultRelation());
+    		TaskTypeUtil.addSubtask((TaskType) task, subtaskBean, prismContext);
 	    } else if (task instanceof PrismObject<?>) {
 		    //noinspection unchecked
-		    TaskTypeUtil.addSubtask(((PrismObject<TaskType>) task).asObjectable(), subtaskBean, relationRegistry.getDefaultRelation());
+		    TaskTypeUtil.addSubtask(((PrismObject<TaskType>) task).asObjectable(), subtaskBean, prismContext);
 	    } else {
 		    throw new IllegalArgumentException("task: " + task);
 	    }
@@ -2566,5 +2556,31 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	@Override
 	public Tracer getTracer() {
 		return tracer;
+	}
+
+	@Override
+	public boolean isTracingOverridden() {
+		return globalTracingOverride != null;
+	}
+
+	@NotNull
+	@Override
+	public Collection<TracingRootType> getGlobalTracingRequestedFor() {
+		return globalTracingOverride != null ? globalTracingOverride.roots : emptySet();
+	}
+
+	@Override
+	public TracingProfileType getGlobalTracingProfile() {
+		return globalTracingOverride != null ? globalTracingOverride.profile : null;
+	}
+
+	@Override
+	public void setGlobalTracingOverride(@NotNull Collection<TracingRootType> roots, @NotNull TracingProfileType profile) {
+		globalTracingOverride = new GlobalTracingOverride(roots, profile);
+	}
+
+	@Override
+	public void removeGlobalTracingOverride() {
+		globalTracingOverride = null;
 	}
 }

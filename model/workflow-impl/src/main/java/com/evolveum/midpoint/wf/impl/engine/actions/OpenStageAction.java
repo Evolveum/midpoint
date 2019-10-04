@@ -71,6 +71,7 @@ class OpenStageAction extends InternalAction {
 
 				StageComputeHelper.ComputationResult preStageComputationResult =
 						engine.stageComputeHelper.computeStageApprovers(stageDef,
+								ctx.getCurrentCase(),
 								() -> engine.stageComputeHelper
 										.getDefaultVariables(ctx.getCurrentCase(), ctx.getWfContext(), ctx.getTask().getChannel(),
 												result),

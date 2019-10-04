@@ -94,9 +94,10 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-		    Task task, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        workItemManager.delegateWorkItem(workItemId, delegates, method, null, null, null, null, task, parentResult);
+    public void delegateWorkItem(WorkItemId workItemId, WorkItemDelegationRequestType delegationRequest,
+		    Task task, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+		    ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        workItemManager.delegateWorkItem(workItemId, delegationRequest, null, null, null, null, task, parentResult);
     }
     //endregion
 

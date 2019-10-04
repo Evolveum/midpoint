@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,43 +27,41 @@ public interface WorkflowListener {
 
 	/**
 	 * This method is called by wf module when a process instance successfully starts.
-	 * @param aCase
-	 * @param result implementer should report its result here
-	 */
-	void onProcessInstanceStart(CaseType aCase, OperationResult result);
+     * @param result implementer should report its result here
+     */
+	void onProcessInstanceStart(CaseType aCase, Task task, OperationResult result);
 
 	/**
 	 * This method is called by wf module when a process instance ends.
-	 * @param aCase
 	 * @param result implementer should report its result here
 	 */
-	void onProcessInstanceEnd(CaseType aCase, OperationResult result);
+	void onProcessInstanceEnd(CaseType aCase, Task task, OperationResult result);
 
 	/**
      * This method is called by wf module when a work item is created.
 	 */
     void onWorkItemCreation(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
-		    CaseType aCase, OperationResult result);
+		    CaseType aCase, Task task, OperationResult result);
 
     /**
      * This method is called by wf module when a work item is completed.
 	 */
     void onWorkItemDeletion(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
 		    @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-		    CaseType aCase, OperationResult result);
+		    CaseType aCase, Task task, OperationResult result);
 
     void onWorkItemCustomEvent(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
 		    @NotNull WorkItemNotificationActionType notificationAction, @Nullable WorkItemEventCauseInformationType cause,
-		    CaseType aCase, OperationResult result);
+		    CaseType aCase, Task task, OperationResult result);
 
 	/**
 	 * EXPERIMENTAL
 	 */
 	void onWorkItemAllocationChangeCurrentActors(@NotNull CaseWorkItemType workItem,
 			@NotNull WorkItemAllocationChangeOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			Duration timeBefore, CaseType aCase, OperationResult result);
+			Duration timeBefore, CaseType aCase, Task task, OperationResult result);
 
 	void onWorkItemAllocationChangeNewActors(@NotNull CaseWorkItemType workItem,
 			@NotNull WorkItemAllocationChangeOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			CaseType aCase, OperationResult result);
+			CaseType aCase, Task task, OperationResult result);
 }
