@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,6 +98,15 @@ public class BeanMarshaller {
 				return marshalEnum((Enum) bean, ctx);
 			} else if (bean.getClass().getAnnotation(XmlType.class) != null) {
 				return marshalXmlType(bean, ctx);
+			} else if (bean instanceof Referencable) {
+				// i.e. we are Referencable but not ObjectReferenceType (e.g. DefaultReferencableImpl)
+				PrismReferenceValue referenceValue = ((Referencable) bean).asReferenceValue();
+				XNodeImpl xnode = (XNodeImpl) prismContext.xnodeSerializer().context(ctx)
+						.serialize(referenceValue, new QName("dummy"))
+						.getSubnode();
+				xnode.setTypeQName(ObjectUtils.defaultIfNull(prismContext.getDefaultReferenceTypeName(), ObjectReferenceType.COMPLEX_TYPE));
+				xnode.setExplicitTypeDeclaration(true);     // probably not much correct, but...
+				return xnode;
 			} else {
 				return marshalToPrimitive(bean, ctx);
 			}

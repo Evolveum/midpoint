@@ -102,6 +102,9 @@ public class PrismContextImpl implements PrismContext {
 
 	private QName objectsElementName;
 
+	// ugly hack
+	private QName defaultReferenceTypeName;
+
 	static {
 		PrismPrettyPrinter.initialize();
 	}
@@ -314,6 +317,15 @@ public class PrismContextImpl implements PrismContext {
 
 	public void setObjectsElementName(QName objectsElementName) {
 		this.objectsElementName = objectsElementName;
+	}
+
+	@Override
+	public QName getDefaultReferenceTypeName() {
+		return defaultReferenceTypeName;
+	}
+
+	public void setDefaultReferenceTypeName(QName defaultReferenceTypeName) {
+		this.defaultReferenceTypeName = defaultReferenceTypeName;
 	}
 
 	//endregion
