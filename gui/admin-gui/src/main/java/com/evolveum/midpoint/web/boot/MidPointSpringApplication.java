@@ -163,8 +163,8 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
 			if (manager != null) {
 				try {
 					manager.backgroundProcess();
-				} catch (Exception var8) {
-//					log.warn(sm.getString("standardContext.backgroundProcess.manager", new Object[]{manager}), var8);
+				} catch (Exception e) {
+					LOGGER.error("Couldn't execute backgroundProcess on session manager.", e);
 				}
 			}
 		}
