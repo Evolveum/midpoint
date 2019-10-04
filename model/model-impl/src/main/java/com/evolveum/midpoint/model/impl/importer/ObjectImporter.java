@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -311,11 +313,7 @@ public class ObjectImporter {
         }
 
         try {
-			String oid = addObject(object, isTrue(options.isOverwrite()), options, task, result);
-
-            if (object.canRepresent(TaskType.class)) {
-            	taskManager.onTaskCreate(oid, result);
-            }
+			addObject(object, isTrue(options.isOverwrite()), options, task, result);
             result.recordSuccess();
 
         } catch (ObjectAlreadyExistsException e) {
@@ -336,9 +334,6 @@ public class ObjectImporter {
          	 	 			object.setOid(deletedOid);
          	 	 		}
          	 	 		addObject(object, false, options, task, result);
-	         	 	 	if (object.canRepresent(TaskType.class)) {
-	         	 	 		taskManager.onTaskCreate(object.getOid(), result);
-	         	 	 	}
 	         	 	 	result.recordSuccess();
          	 	 	} else {
          	 	 		// cannot delete, throw original exception
@@ -365,7 +360,7 @@ public class ObjectImporter {
         }
     }
 
-    private <T extends ObjectType> String addObject(PrismObject<T> object, boolean overwrite, ImportOptionsType importOptions,
+    private <T extends ObjectType> void addObject(PrismObject<T> object, boolean overwrite, ImportOptionsType importOptions,
 		    Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 
     	ObjectDelta<T> delta = DeltaFactory.Object.createAddDelta(object);
@@ -386,14 +381,19 @@ public class ObjectImporter {
 			modelOptions.setNoCrypt(true);
 		}
 
-		modelService.executeChanges(deltas, modelOptions, task, parentResult);
-		String oidOfAddedObject = deltas.iterator().next().getOid();
-		
-		if (isTrue(importOptions.isFetchResourceSchema()) && object.canRepresent(ResourceType.COMPLEX_TYPE)) {
-			modelService.testResource(oidOfAddedObject, task);
-		}
-
-		return oidOfAddedObject;
+	    Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = modelService
+			    .executeChanges(deltas, modelOptions, task, parentResult);
+	    String oidOfAddedObject = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
+	    if (oidOfAddedObject == null) {
+	    	LOGGER.warn("No OID of added object. Executed deltas:\n{}", DebugUtil.debugDump(executedDeltas));
+	    } else {
+		    if (object.canRepresent(TaskType.class)) {
+			    taskManager.onTaskCreate(oidOfAddedObject, parentResult);
+		    }
+		    if (object.canRepresent(ResourceType.COMPLEX_TYPE) && isTrue(importOptions.isFetchResourceSchema())) {
+			    modelService.testResource(oidOfAddedObject, task);
+		    }
+	    }
     }
 
     /**

@@ -394,6 +394,58 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertUserEmployeeNumber(user.getOid(), "new");
     }
 
+    @Test   // MID-4801
+    public void test055DeleteUserEmployeeNumberWrong() throws Exception {
+        final String TEST_NAME = "test055DeleteUserEmployeeNumberWrong";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+        UserType user = new UserType(prismContext)
+                .oid("055")
+                .name("user055")
+                .employeeNumber("old");
+
+        repositoryService.addObject(user.asPrismObject(), null, result);
+        assertUserEmployeeNumber(user.getOid(), "old");
+
+        List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_EMPLOYEE_NUMBER)
+                    .delete("oldWrong")
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, user.getOid(), modifications, getModifyOptions(), result);
+
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, user.getOid(), null, result);
+        display("user after", userAfter);
+        assertEquals("Wrong employeeNumber after operation", "old", userAfter.asObjectable().getEmployeeNumber());
+
+        assertUserEmployeeNumber(user.getOid(), "old");
+    }
+
+    @Test   // MID-4801
+    public void test056EmptyUserEmployeeNumberDelta() throws Exception {
+        final String TEST_NAME = "test056EmptyUserEmployeeNumberDelta";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+        UserType user = new UserType(prismContext)
+                .oid("056")
+                .name("user056")
+                .employeeNumber("old");
+
+        repositoryService.addObject(user.asPrismObject(), null, result);
+        assertUserEmployeeNumber(user.getOid(), "old");
+
+        List<ItemDelta<?, ?>> modifications = new ArrayList<>();
+        modifications.add(prismContext.deltaFactory().property().createDelta(UserType.F_EMPLOYEE_NUMBER, UserType.class));
+        repositoryService.modifyObject(UserType.class, user.getOid(), modifications, getModifyOptions(), result);
+
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, user.getOid(), null, result);
+        display("user after", userAfter);
+        assertEquals("Wrong employeeNumber after operation", "old", userAfter.asObjectable().getEmployeeNumber());
+
+        assertUserEmployeeNumber(user.getOid(), "old");
+    }
+
     private void assertTaskOwner(String taskOid, String expectedOwnerOid) {
         Session session = open();
         //noinspection unchecked
