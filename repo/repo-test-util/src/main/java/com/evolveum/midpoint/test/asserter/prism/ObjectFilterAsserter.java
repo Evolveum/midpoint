@@ -7,12 +7,15 @@
 package com.evolveum.midpoint.test.asserter.prism;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
@@ -21,6 +24,8 @@ import com.evolveum.midpoint.test.asserter.PropertyDeltaAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.testng.AssertJUnit;
+
+import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -87,6 +92,41 @@ public class ObjectFilterAsserter<RA> extends AbstractAsserter<RA> {
 		}
 		return this;
 	}
+
+	public ObjectFilterAsserter<RA> assertEq() {
+		assertClass(EqualFilter.class);
+		return this;
+	}
+
+	public ObjectFilterAsserter<RA> assertEq(ItemPath expectedItemPath, Object expectedValue) {
+		assertClass(EqualFilter.class);
+		ItemPath actualItemPath = ((EqualFilter) filter).getPath();
+		AssertJUnit.assertTrue("Wrong path in eq clause, expected "+expectedItemPath+", but was "+actualItemPath+"; in "+desc(), expectedItemPath.equivalent(actualItemPath));
+		PrismValue actualPVal = ((EqualFilter) filter).getSingleValue();
+		Object actualValue = actualPVal.getRealValue();
+		AssertJUnit.assertTrue("Wrong value in eq clause, expected "+expectedValue+", but was "+actualValue+"; in "+desc(), expectedValue.equals(actualValue));
+		return this;
+	}
+
+	public ObjectFilterAsserter<RA> assertType() {
+		assertClass(TypeFilter.class);
+		return this;
+	}
+
+	public ObjectFilterAsserter<RA> assertType(QName expectedTypeName) {
+		assertClass(TypeFilter.class);
+		QName actualType = ((TypeFilter) filter).getType();
+		AssertJUnit.assertTrue("Wrong type in type clause, expected "+expectedTypeName+", but was "+actualType+"; in "+desc(), expectedTypeName.equals(actualType));
+		return this;
+	}
+
+	public ObjectFilterAsserter<ObjectFilterAsserter<RA>> type(QName expectedTypeName) {
+		assertType(expectedTypeName);
+		ObjectFilter subfilter = ((TypeFilter) this.filter).getFilter();
+		ObjectFilterAsserter<ObjectFilterAsserter<RA>> asserter = new ObjectFilterAsserter<>(subfilter, this, "type subfilter in "+desc());
+		copySetupTo(asserter);
+		return asserter;
+	}
 	
 	// TODO
 	
@@ -103,4 +143,6 @@ public class ObjectFilterAsserter<RA> extends AbstractAsserter<RA> {
 		IntegrationTestTools.display(message, filter);
 		return this;
 	}
+
+
 }

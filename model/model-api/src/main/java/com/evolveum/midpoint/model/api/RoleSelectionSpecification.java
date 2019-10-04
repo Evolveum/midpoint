@@ -11,9 +11,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -28,6 +26,10 @@ public class RoleSelectionSpecification implements DebugDumpable {
 
 	ObjectFilter globalFilter = null;
 	private final Map<QName,ObjectFilter> relationMap = new HashMap<>();
+
+	public int size() {
+		return relationMap.size();
+	}
 
 	public ObjectFilter getGlobalFilter() {
 		return globalFilter;
@@ -94,7 +96,7 @@ public class RoleSelectionSpecification implements DebugDumpable {
 		out.globalFilter = operator.apply(this.globalFilter, other.globalFilter);
 		out.relationMap.putAll(this.relationMap);
 		other.relationMap.forEach(
-				(otherKey, otherValue) -> out.relationMap.merge(otherKey, otherValue, operator::apply)
+				(otherKey, otherValue) -> out.relationMap.merge(otherKey, otherValue, operator)
 		);
 		return out;
 	}

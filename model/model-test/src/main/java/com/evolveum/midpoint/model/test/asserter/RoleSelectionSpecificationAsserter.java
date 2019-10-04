@@ -43,6 +43,11 @@ public class RoleSelectionSpecificationAsserter<RA> extends AbstractAsserter<RA>
 		return this;
 	}
 
+	public RoleSelectionSpecificationAsserter<RA> assertSize(int expectedSize) {
+		AssertJUnit.assertEquals("Unexpected size of " + desc(), expectedSize, roleSelectionSpec.size());
+		return this;
+	}
+
 	public RoleSelectionSpecificationAsserter<RA> assertNoAccess() {
 		assertNotNull("Null " + desc(), roleSelectionSpec);
 		globalFilter().assertNone();
