@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.catalina.Context;
+import org.apache.catalina.Manager;
 import org.apache.catalina.Valve;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +32,15 @@ import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.stereotype.Component;
 
 import java.lang.management.ManagementFactory;
@@ -73,11 +79,13 @@ import java.util.List;
 @Profile("!test")
 @SpringBootConfiguration
 @ComponentScan(basePackages = {"com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
+@EnableScheduling
 public class MidPointSpringApplication extends AbstractSpringBootApplication {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
 	
 	private static ConfigurableApplicationContext applicationContext = null;
+	private Context tomcatContext;
 	
 	 public static void main(String[] args) {
 	    	System.out.println("ClassPath: "+ System.getProperty("java.class.path"));
@@ -137,6 +145,30 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
 
         return application.sources(MidPointSpringApplication.class);
     }
+
+	private void setTomcatContext(Context context) {
+		this.tomcatContext = context;
+	}
+
+	@Bean
+	public TaskScheduler taskScheduler() {
+		return new ConcurrentTaskScheduler();
+	}
+
+	@Scheduled(fixedDelayString = "${server.tomcat.session-manager-delay:10000}", initialDelayString = "${server.tomcat.session-manager-delay:10000}")
+	public void invalidExpiredSessions() {
+		Context context = this.tomcatContext;
+		if (context != null) {
+			Manager manager = context.getManager();
+			if (manager != null) {
+				try {
+					manager.backgroundProcess();
+				} catch (Exception var8) {
+//					log.warn(sm.getString("standardContext.backgroundProcess.manager", new Object[]{manager}), var8);
+				}
+			}
+		}
+	}
 	
     @Component
 	@EnableConfigurationProperties(ServerProperties.class)
@@ -144,8 +176,6 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
     	
     	@Value("${server.servlet.session.timeout}")
     	private int sessionTimeout;
-		@Value("${server.tomcat.background-processor-delay:10}")
-		private int backgroundProcessorDelay;
     	@Value("${server.servlet.context-path}")
 		private String servletPath;
 
@@ -172,19 +202,19 @@ public class MidPointSpringApplication extends AbstractSpringBootApplication {
     			customizeTomcat((TomcatServletWebServerFactory) serverFactory);
     		}            
     	}
-    
+
     	private void customizeTomcat(TomcatServletWebServerFactory tomcatFactory) {
-			// Set background-processor-delay property.
+			// set tomcat context.
 			TomcatContextCustomizer contextCustomizer = new TomcatContextCustomizer() {
 				@Override
 				public void customize(Context context) {
-					context.setBackgroundProcessorDelay(backgroundProcessorDelay);
+					setTomcatContext(context);
 				}
 			};
 			List<TomcatContextCustomizer> contextCustomizers = new ArrayList<TomcatContextCustomizer>();
 			contextCustomizers.add(contextCustomizer);
 			tomcatFactory.setTomcatContextCustomizers(contextCustomizers);
-            
+
     		// Tomcat valve used to redirect root URL (/) to real application URL (/midpoint/).
     		// See comments in TomcatRootValve
     		Valve rootValve = new TomcatRootValve(servletPath);
