@@ -76,13 +76,13 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 			Panel panel = componentFactory.createPanel(panelCtx);
 			item.add(panel);
 			return panel;
-		} else if (getModelObject() != null && QNameUtil.match(CaseType.F_PARENT_REF, getModelObject().getPath().asSingleName())) {
+		} else if (isObjectNavigationPanel()) {
 			FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
 			feedback.setOutputMarkupId(true);
 			item.add(feedback);
-			item.getModelObject().getParent().setReadOnly(false);
-			IconedObjectNamePanel iconedObjectNamePanel =
-					new IconedObjectNamePanel(ID_VALUE, (ObjectReferenceType) item.getModelObject().getRealValue());
+
+			IconedObjectNamePanel iconedObjectNamePanel = new IconedObjectNamePanel(ID_VALUE,
+					(ObjectReferenceType) item.getModelObject().getRealValue());
 			iconedObjectNamePanel.setOutputMarkupId(true);
 			item.add(iconedObjectNamePanel);
 
@@ -168,6 +168,29 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 		WebPrismUtil.createNewValueWrapper(referenceWrapper, newValue, getPageBase(), target);
 		
 		target.add(PrismReferencePanel.this);
+	}
+
+	@Override
+	protected boolean isRemoveButtonVisible() {
+		if (isObjectNavigationPanel()){
+			return false;
+		} else {
+			return super.isRemoveButtonVisible();
+		}
+	}
+
+	private boolean isObjectNavigationPanel(){
+		if (getModelObject() != null && QNameUtil.match(CaseType.F_PARENT_REF, getModelObject().getPath().asSingleName())){
+			boolean isObjectReferenceType = false;
+			try {
+				isObjectReferenceType = getModelObject().getValue() != null &&
+						getModelObject().getValue().getRealValue() instanceof  ObjectReferenceType;
+			} catch (SchemaException e){
+				LOGGER.warn("Unable to get single value from multi-value property,  ", e.getLocalizedMessage());
+			}
+			return isObjectReferenceType;
+		}
+		return false;
 	}
 
 }
