@@ -143,7 +143,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 		assertMembers(ALUMNI_NAME, task, result, BANDERSON_USERNAME);
 
 		assertUserAfterByUsername(BANDERSON_USERNAME)
-				.display();
+				.triggers()
+				.assertTriggers(1);
 	}
 
 
@@ -176,7 +177,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 		assertMembers(ALUMNI_NAME, task, result, BANDERSON_USERNAME, JLEWIS685_USERNAME);
 
 		assertUserAfterByUsername(JLEWIS685_USERNAME)
-				.display();
+				.triggers()
+				.assertTriggers(1);
 	}
 
 	/**
@@ -237,7 +239,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 		assertMembers(ALUMNI_NAME, task, result, JLEWIS685_USERNAME, NOBODY_USERNAME);
 
 		assertUserAfterByUsername(BANDERSON_USERNAME)
-				.display();
+				.triggers()
+				.assertTriggers(1);
 	}
 
 	private Task createTestTask(String TEST_NAME) {

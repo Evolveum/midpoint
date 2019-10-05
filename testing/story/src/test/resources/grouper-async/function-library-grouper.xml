@@ -86,6 +86,8 @@
 				import com.evolveum.midpoint.prism.delta.*
 
 				PLAIN_GROUP_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, 'CustomPlainGroupObjectClass')
+				TRIGGER_FIRE_AFTER = 60000
+				TRIGGER_SAFETY_MARGIN = 10000
 
 				esbEvent = midpoint.getMessageBodyAsMap(message)['esbEvent'][0]
 				log.info('esbEvent = {}', esbEvent)
@@ -129,8 +131,10 @@
 					delta.changeType = ChangeTypeType.MODIFY
 					delta.itemDelta.add(itemDelta)
 
-					// We hope we'll process this change in 10 seconds
-					addTrigger(subjectId, System.currentTimeMillis() + 10000)
+					added = midpoint
+							.getOptimizingTriggerCreator(TRIGGER_FIRE_AFTER, TRIGGER_SAFETY_MARGIN)
+							.createForNamedUser(subjectId)
+					log.info('Recompute trigger for {}: {}', subjectId, added ? 'added' : 'not added (already present or user not found)')
 
 					return UcfChangeUtil.create(PLAIN_GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
 				} else if (eventType == 'GROUP_ADD' || eventType == 'GROUP_DELETE') {
@@ -171,16 +175,6 @@
 							}
 						}
 						false
-					}
-				}
-
-				def addTrigger(String username, long timestamp) {
-					user = midpoint.searchObjectByName(UserType.class, username)
-					if (user != null) {
-						midpoint.addRecomputeTrigger(user, timestamp)
-						log.info('Recompute trigger added to {} to {}', user, new java.util.Date(timestamp))
-					} else {
-						log.warn('User {} couldn\'t be found', username)
 					}
 				}
 			</code>

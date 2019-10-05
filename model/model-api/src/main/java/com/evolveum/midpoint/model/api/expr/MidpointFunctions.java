@@ -1193,4 +1193,7 @@ public interface MidpointFunctions {
 			throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException;
 
 	RepositoryService getRepositoryService();
+
+	@NotNull
+	OptimizingTriggerCreator getOptimizingTriggerCreator(long fireAfter, long safetyMargin);
 }

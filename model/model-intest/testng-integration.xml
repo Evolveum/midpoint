@@ -34,6 +34,7 @@
             <class name="com.evolveum.midpoint.model.intest.TestInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.TestVolatility"/>
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>
+            <class name="com.evolveum.midpoint.model.intest.TestOptimizingTriggerCreator"/>
             <class name="com.evolveum.midpoint.model.intest.TestIteration"/>
             <class name="com.evolveum.midpoint.model.intest.TestTolerantAttributes"/>
             <class name="com.evolveum.midpoint.model.intest.TestScriptHooks"/>
