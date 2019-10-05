@@ -101,7 +101,7 @@ class DomToSchemaProcessor {
 			// Make sure that the schema parser sees all the namespace declarations
 			DOMUtil.fixNamespaceDeclarations(schema);
 			try {
-				TransformerFactory transfac = TransformerFactory.newInstance();
+				TransformerFactory transfac = DOMUtil.setupTransformerFactory();
 				Transformer trans = transfac.newTransformer();
 				trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
 				trans.setOutputProperty(OutputKeys.INDENT, "yes");
