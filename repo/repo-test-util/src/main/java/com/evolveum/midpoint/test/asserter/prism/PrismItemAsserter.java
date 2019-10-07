@@ -48,7 +48,12 @@ public abstract class PrismItemAsserter<I extends Item, RA> extends AbstractAsse
 		assertEquals("Wrong number of values in "+desc(), expected, item.size());
 		return this;
 	}
-	
+
+	public PrismItemAsserter<I,RA> assertNullOrNoValues() {
+		assertTrue("Wrong number of values in "+desc()+": "+item, item == null || item.hasNoValues());
+		return this;
+	}
+
 	public PrismItemAsserter<I,RA> assertComplete() {
 		assertFalse("Expected complete item, but it was incomplete "+desc(), item.isIncomplete());
 		return this;

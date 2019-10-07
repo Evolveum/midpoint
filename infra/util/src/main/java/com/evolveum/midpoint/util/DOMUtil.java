@@ -171,27 +171,7 @@ public class DOMUtil {
 
 		transformerThreadLocal = ThreadLocal.withInitial(() -> {
 			try {
-				//setTransformerFactoryIfPresent("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");            // too many whitespaces in Java11
-				//setTransformerFactoryIfPresent("org.apache.xalan.xsltc.trax.TransformerFactoryImpl");                             // too few whitespaces
-
-				String className = "org.apache.xalan.processor.TransformerFactoryImpl";
-				setTransformerFactoryIfPresent(className);                               											// a bit slower
-
-				ClassLoader cl = null;
-				try {
-					Class clazz = Class.forName(className);
-					if (clazz != null) {
-						cl = clazz.getClassLoader();
-					}
-				} catch (Exception ex) {
-				}
-
-				TransformerFactory transformerFactory;
-				if (cl != null) {
-					transformerFactory = TransformerFactory.newInstance(className, cl);
-				} else {
-					transformerFactory = TransformerFactory.newInstance();
-				}
+				TransformerFactory transformerFactory = setupTransformerFactory();
 
 				//System.out.println("TF = " + transformerFactory.getClass().getName());
 				Transformer trans = transformerFactory.newTransformer();
@@ -205,7 +185,19 @@ public class DOMUtil {
 		});
 	}
 
+	public static TransformerFactory setupTransformerFactory() {
+		//setTransformerFactoryIfPresent("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");            // too many whitespaces in Java11
+		//setTransformerFactoryIfPresent("org.apache.xalan.xsltc.trax.TransformerFactoryImpl");                             // too few whitespaces
+		setTransformerFactoryIfPresent("org.apache.xalan.processor.TransformerFactoryImpl");                               											// a bit slower
+
+		return TransformerFactory.newInstance();
+	}
+
 	private static void setTransformerFactoryIfPresent(String className) {
+		if (!DOMUtilSettings.isAddTransformerFactorySystemProperty()) {
+			return;
+		}
+
 		String propertyName = TransformerFactory.class.getName();
 		try {
 			Class.forName(className);

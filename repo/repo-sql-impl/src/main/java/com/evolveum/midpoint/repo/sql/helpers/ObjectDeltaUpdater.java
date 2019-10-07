@@ -951,30 +951,21 @@ public class ObjectDeltaUpdater {
 
         PrismValue prismValue;
         if (delta.isAdd()) {
-            Set<PrismValue> uniqueValuesToAdd = new HashSet<>(delta.getValuesToAdd());  // but what about matching rules?
-            assert !uniqueValuesToAdd.isEmpty();
-            if (uniqueValuesToAdd.size() > 1) {
-                // Maybe WARN or ERROR would be better?
-                throw new IllegalStateException("More than one value to be put into single-valued repository item. Values = "
-                        + uniqueValuesToAdd + ", attribute = " + attribute.getName());
-            }
-            prismValue = uniqueValuesToAdd.iterator().next();
-        } else if (delta.isDelete()) {
-            assert !delta.isReplace();
-            prismValue = null;
+            assert !delta.getValuesToAdd().isEmpty();
+            prismValue = getSingleValue(attribute, delta.getValuesToAdd());
         } else if (delta.isReplace()) {
-            Set<PrismValue> uniqueValuesToReplace = new HashSet<>(delta.getValuesToReplace());  // but what about matching rules?
-            if (uniqueValuesToReplace.size() > 1) {
-                // Maybe WARN or ERROR would be better?
-                throw new IllegalStateException("More than one value to be put into single-valued repository item. Values = "
-                        + uniqueValuesToReplace + ", attribute = " + attribute.getName());
-            } else if (uniqueValuesToReplace.size() == 1) {
-                prismValue = uniqueValuesToReplace.iterator().next();
+            if (!delta.getValuesToReplace().isEmpty()) {
+                prismValue = getSingleValue(attribute, delta.getValuesToReplace());
             } else {
                 prismValue = null;
             }
+        } else if (delta.isDelete()) {
+            // No values to add nor to replace, only deletions. Because we narrowed the delta before, we know that this delete
+            // delta is relevant - i.e. after its application, the (single) value of property will be removed.
+            prismValue = null;
         } else {
-            LOGGER.warn("Empty delta {} for attribute {} of {}", delta, attribute.getName(), bean.getClass().getName());
+            // This should not occur. The narrowing process eliminates empty deltas.
+            LOGGER.warn("Empty delta {} for attribute {} of {} -- skipping it", delta, attribute.getName(), bean.getClass().getName());
             return;
         }
 
@@ -988,6 +979,21 @@ public class ObjectDeltaUpdater {
         } catch (Exception ex) {
             throw new SystemException("Couldn't set simple property for '" + attribute.getName() + "'", ex);
         }
+    }
+
+    private PrismValue getSingleValue(Attribute<?,?> attribute, Collection<? extends PrismValue> valuesToSet) {
+        Set<PrismValue> uniqueValues = new HashSet<>(valuesToSet);
+        // This uniqueness check might be too strict: the values can be different from the point of default equality,
+        // yet the final verdict (when applying the delta to prism structure) can be that they are equal.
+        // Therefore we issue only a warning here.
+        // TODO We should either use the same "equals" algorithm as used for delta application, or we should apply the delta
+        //  first and here only take the result. But this is really a nitpicking now. ;)
+        if (uniqueValues.size() > 1) {
+            LOGGER.warn("More than one value to be put into single-valued repository item. This operation will probably "
+                    + "fail later because of delta execution in prism. If not, please report an error to the developers. "
+                    + "Values = {}, attribute = {}", uniqueValues, attribute);
+        }
+        return uniqueValues.iterator().next();
     }
 
     private void handleElementCollection(Collection collection, ItemDelta delta, Attribute attribute, Object bean, PrismObject prismObject, PrismIdentifierGenerator idGenerator) {
