@@ -31,6 +31,10 @@ public class RoleSelectionSpecification implements DebugDumpable {
 		return relationMap.size();
 	}
 
+	public Map<QName, ObjectFilter> getRelationMap() {
+		return relationMap;
+	}
+
 	public ObjectFilter getGlobalFilter() {
 		return globalFilter;
 	}
