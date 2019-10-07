@@ -70,6 +70,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     private static final String ID_REQUESTED_BY = "requestedBy";
     private static final String ID_REQUESTED_FOR = "requestedFor";
     private static final String ID_APPROVER = "approver";
+    private static final String ID_PARENT_CASE_CONTAINER = "parentCaseContainer";
     private static final String ID_PARENT_CASE = "parentCase";
     private static final String ID_TARGET = "target";
     private static final String ID_REASON = "reason";
@@ -140,12 +141,16 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         approver.setOutputMarkupId(true);
         add(approver);
 
+        WebMarkupContainer parentCaseContainer = new WebMarkupContainer(ID_PARENT_CASE_CONTAINER);
+        parentCaseContainer.add(new VisibleBehaviour(() -> getPageBase() instanceof PageCaseWorkItem));
+        parentCaseContainer.setOutputMarkupId(true);
+        add(parentCaseContainer);
+
         IconedObjectNamePanel parentCaseLink = new IconedObjectNamePanel(ID_PARENT_CASE,
                 getModelObject() != null && CaseTypeUtil.getCase(getModelObject()) != null ?
                         Model.of(CaseTypeUtil.getCase(getModelObject())) : Model.of());
-        parentCaseLink.add(new VisibleBehaviour(() -> getPageBase() instanceof PageCaseWorkItem));
         parentCaseLink.setOutputMarkupId(true);
-        add(parentCaseLink);
+        parentCaseContainer.add(parentCaseLink);
 
         IconedObjectNamePanel target = new IconedObjectNamePanel(ID_TARGET,
                 WorkItemTypeUtil.getTargetReference(getModelObject()));
