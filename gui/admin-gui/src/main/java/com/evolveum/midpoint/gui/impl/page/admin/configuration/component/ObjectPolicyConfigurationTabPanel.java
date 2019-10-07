@@ -15,6 +15,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -48,10 +49,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguratio
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 
 /**
  * @author skublik
@@ -206,7 +203,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 			
 			@Override
 			public String getCssClass() {
-				return " col-md-2 ";
+				return " col-lg-1 col-md-2 ";
 			}
 			
 		});
@@ -215,12 +212,14 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 			
 			@Override
 			public String getCssClass() {
-				return " col-md-3 ";
+				return " col-md-2 ";
 			}
 			
 		});
 		
 		columns.add(new PrismReferenceWrapperColumn(getModel(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, ColumnType.VALUE, getPageBase()));
+
+		columns.add(new PrismReferenceWrapperColumn(getModel(), ItemPath.create(ObjectPolicyConfigurationType.F_APPLICABLE_POLICIES, ApplicablePoliciesType.F_POLICY_GROUP_REF), ColumnType.VALUE, getPageBase()));
 
 		columns.add(new PrismContainerWrapperColumn<ObjectPolicyConfigurationType>(getModel(),
 				ItemPath.create(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE), getPageBase()) {
