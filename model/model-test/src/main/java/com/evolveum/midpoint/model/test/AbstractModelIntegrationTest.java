@@ -1839,14 +1839,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return assertShadow(shadow, message);
 	}
 
-	protected PrismObject<ShadowType> findShadowByNameViaModel(ShadowKindType kind, String intent, String name, PrismObject<ResourceType> resource, Task task, OperationResult result)
+	protected PrismObject<ShadowType> findShadowByNameViaModel(ShadowKindType kind, String intent, String name,
+			PrismObject<ResourceType> resource, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException {
+		return findShadowByNameViaModel(kind, intent, name, resource, schemaHelper.getOperationOptionsBuilder().noFetch().build(),
+				task, result);
+	}
+
+	protected PrismObject<ShadowType> findShadowByNameViaModel(ShadowKindType kind, String intent, String name,
+			PrismObject<ResourceType> resource, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
+			OperationResult result)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 		RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(kind,intent);
 		ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
-		List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query,
-				schemaHelper.getOperationOptionsBuilder().noFetch().build(), task, result);
+		List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, options, task, result);
 		if (shadows.isEmpty()) {
 			return null;
 		}

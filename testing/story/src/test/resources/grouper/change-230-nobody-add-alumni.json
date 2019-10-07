@@ -12,7 +12,7 @@
       "id": "32193201930199999999999238888888",
       "sequenceNumber": "230",
       "eventType": "MEMBERSHIP_ADD",
-      "groupName": "ref:alumni"
+      "groupName": "ref:affiliation:alumni"
     }
   ]
 }
