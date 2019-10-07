@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -69,6 +70,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     private static final String ID_REQUESTED_BY = "requestedBy";
     private static final String ID_REQUESTED_FOR = "requestedFor";
     private static final String ID_APPROVER = "approver";
+    private static final String ID_PARENT_CASE = "parentCase";
     private static final String ID_TARGET = "target";
     private static final String ID_REASON = "reason";
     private static final String ID_COMMENT = "requesterCommentMessage";
@@ -137,6 +139,13 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
                 getModelObject().getAssigneeRef().get(0) : null);
         approver.setOutputMarkupId(true);
         add(approver);
+
+        IconedObjectNamePanel parentCaseLink = new IconedObjectNamePanel(ID_PARENT_CASE,
+                getModelObject() != null && CaseTypeUtil.getCase(getModelObject()) != null ?
+                        Model.of(CaseTypeUtil.getCase(getModelObject())) : Model.of());
+        parentCaseLink.add(new VisibleBehaviour(() -> getPageBase() instanceof PageCaseWorkItem));
+        parentCaseLink.setOutputMarkupId(true);
+        add(parentCaseLink);
 
         IconedObjectNamePanel target = new IconedObjectNamePanel(ID_TARGET,
                 WorkItemTypeUtil.getTargetReference(getModelObject()));
