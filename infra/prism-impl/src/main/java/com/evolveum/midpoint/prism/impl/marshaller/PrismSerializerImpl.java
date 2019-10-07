@@ -156,6 +156,8 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 			return serialize(((Objectable) realValue).asPrismObject(), itemName);		// to preserve OID and name
 		} else if (realValue instanceof Containerable) {
 			prismValue = ((Containerable) realValue).asPrismContainerValue();
+//		} else if (realValue instanceof Referencable) {     // TODO enable in 4.1
+//			prismValue = ((Referencable) realValue).asReferenceValue();
 		} else {
 			prismValue = new PrismPropertyValueImpl<>(realValue);
 		}

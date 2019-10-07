@@ -12,6 +12,8 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.DefaultReferencableImpl;
+import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
@@ -23,6 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -56,6 +59,22 @@ public class TestSerialization {
 		trace.getInput().add(input1);
 		QName fakeQName = new QName(PrismConstants.NS_TYPES, "trace");
 		String xml = prismContext.xmlSerializer().serializeAnyData(trace, fakeQName);
+		System.out.println(xml);
+	}
+
+	@Test
+	public void testSerializeDeltaSetTripleType() throws Exception {
+		System.out.println("===[ testSerializeDeltaSetTripleType ]===");
+
+		PrismContext prismContext = getPrismContext();
+
+		PrismReferenceValue refValue = new PrismReferenceValueImpl("123456");
+		DefaultReferencableImpl referencable = new DefaultReferencableImpl(refValue);
+		DeltaSetTripleType triple = new DeltaSetTripleType();
+		triple.getPlus().add(referencable);
+
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "triple");
+		String xml = prismContext.xmlSerializer().serializeAnyData(triple, fakeQName);
 		System.out.println(xml);
 	}
 

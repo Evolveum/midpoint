@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -27,22 +27,6 @@ public class TaskUtil {
 	public static List<String> tasksToOids(List<Task> tasks) {
 		return tasks.stream().map(Task::getOid).collect(Collectors.toList());
 	}
-
-//	public static TaskWorkManagementType adaptHandlerUri(PrismProperty<TaskWorkManagementType> cfg,
-//			String handlerUri) {
-//		if (cfg == null || cfg.getRealValue() == null) {
-//			return null;
-//		} else if (cfg.getRealValue().getWorkers() != null && cfg.getRealValue().getWorkers().getHandlerUri() != null) {
-//			return cfg.getRealValue();
-//		} else {
-//			TaskWorkManagementType clone = cfg.getRealValue().clone();
-//			if (clone.getWorkers() == null) {
-//				clone.setWorkers(new WorkersManagementType());
-//			}
-//			clone.getWorkers().setHandlerUri(handlerUri);
-//			return clone;
-//		}
-//	}
 
 	public static Task findByIdentifier(@NotNull String identifier, @NotNull Collection<Task> tasks) {
 		return tasks.stream().filter(t -> identifier.equals(t.getTaskIdentifier())).findFirst().orElse(null);

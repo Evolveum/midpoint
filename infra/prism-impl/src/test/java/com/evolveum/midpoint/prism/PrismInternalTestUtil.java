@@ -26,17 +26,13 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
-import com.evolveum.midpoint.prism.foo.AccountConstructionType;
+import com.evolveum.midpoint.prism.foo.*;
 
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.foo.ActivationType;
-import com.evolveum.midpoint.prism.foo.AssignmentType;
-import com.evolveum.midpoint.prism.foo.ObjectFactory;
-import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
