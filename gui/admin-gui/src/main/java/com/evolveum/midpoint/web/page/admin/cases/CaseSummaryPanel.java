@@ -92,17 +92,7 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
         return null;
     }
 
-    @Override
-    protected ObjectReferenceType getReferencedObjectToNavigate(){
-        return getModelObject().getParentRef();
-    }
-
-    @Override
-    protected IModel<String> getReferenceObjectTitleModel(){
-        return createStringResource("CaseWorkItemSummaryPanel.viewParentCaseButton");
-    }
-
-    @Override
+   @Override
     protected boolean isIdentifierVisible() {
         return false;
     }

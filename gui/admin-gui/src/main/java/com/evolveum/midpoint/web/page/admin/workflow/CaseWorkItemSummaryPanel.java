@@ -129,22 +129,6 @@ public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemT
 	}
 
 	@Override
-	protected ObjectReferenceType getReferencedObjectToNavigate(){
-		if (getModelObject() == null || CaseTypeUtil.getCase(getModelObject()) == null){
-			return null;
-		}
-		ObjectReferenceType caseReference = new ObjectReferenceType();
-		caseReference.setOid(CaseTypeUtil.getCase(getModelObject()).getOid());
-		caseReference.setType(CaseType.COMPLEX_TYPE);
-		return caseReference;
-	}
-
-	@Override
-	protected IModel<String> getReferenceObjectTitleModel(){
-		return createStringResource("CaseWorkItemSummaryPanel.viewParentCaseButton");
-	}
-
-	@Override
 	protected IModel<String> getTitle2Model() {
 		return new IModel<String>() {
 			@Override

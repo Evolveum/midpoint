@@ -493,6 +493,9 @@ public class ObjectTypeUtil {
     public static List<ObjectReferenceType> getAsObjectReferenceTypeList(PrismReference prismReference) throws SchemaException {
 		List<ObjectReferenceType> rv = new ArrayList<>();
 		for (PrismReferenceValue prv : prismReference.getValues()) {
+			if (prismReference == null || prismReference.getOid() == null) {
+				continue;
+			}
 			rv.add(createObjectRef(prv.clone()));
 		}
 		return rv;
