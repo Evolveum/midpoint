@@ -11,6 +11,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.data.IconedObjectNamePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -39,9 +42,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 /**
  * @author katka
@@ -76,6 +76,17 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 			Panel panel = componentFactory.createPanel(panelCtx);
 			item.add(panel);
 			return panel;
+		} else if (isObjectNavigationPanel()) {
+			FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
+			feedback.setOutputMarkupId(true);
+			item.add(feedback);
+
+			IconedObjectNamePanel iconedObjectNamePanel = new IconedObjectNamePanel(ID_VALUE,
+					(ObjectReferenceType) item.getModelObject().getRealValue());
+			iconedObjectNamePanel.setOutputMarkupId(true);
+			item.add(iconedObjectNamePanel);
+
+			return iconedObjectNamePanel;
 		} else {
 			FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
 			feedback.setOutputMarkupId(true);
@@ -157,6 +168,29 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 		WebPrismUtil.createNewValueWrapper(referenceWrapper, newValue, getPageBase(), target);
 		
 		target.add(PrismReferencePanel.this);
+	}
+
+	@Override
+	protected boolean isRemoveButtonVisible() {
+		if (isObjectNavigationPanel()){
+			return false;
+		} else {
+			return super.isRemoveButtonVisible();
+		}
+	}
+
+	private boolean isObjectNavigationPanel(){
+		if (getModelObject() != null && QNameUtil.match(CaseType.F_PARENT_REF, getModelObject().getPath().asSingleName())){
+			boolean isObjectReferenceType = false;
+			try {
+				isObjectReferenceType = getModelObject().getValue() != null &&
+						getModelObject().getValue().getRealValue() instanceof  ObjectReferenceType;
+			} catch (SchemaException e){
+				LOGGER.warn("Unable to get single value from multi-value property,  ", e.getLocalizedMessage());
+			}
+			return isObjectReferenceType;
+		}
+		return false;
 	}
 
 }

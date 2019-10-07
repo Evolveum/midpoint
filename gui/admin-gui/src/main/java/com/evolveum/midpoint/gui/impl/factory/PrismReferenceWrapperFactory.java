@@ -8,6 +8,11 @@ package com.evolveum.midpoint.gui.impl.factory;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -33,6 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
  */
 @Component
 public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWrapperFactoryImpl<PrismReferenceWrapper<R>, PrismReferenceValue, PrismReference, PrismReferenceValueWrapperImpl<R>>{
+
+	private static final Trace LOGGER = TraceManager.getTrace(PrismReferenceWrapperFactory.class);
 
 	@Override
 	public boolean match(ItemDefinition<?> def) {
@@ -73,7 +80,26 @@ public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWr
 		PrismReferenceValueWrapperImpl<R> refValue = new PrismReferenceValueWrapperImpl<>(parent, value, status);
 		return refValue;
 	}
-	
+
+	@Override
+	protected boolean determineReadOnly(PrismReferenceWrapper<R> itemWrapper, WrapperContext context) {
+		if (QNameUtil.match(CaseType.F_PARENT_REF, itemWrapper.getPath().asSingleName())){
+			boolean isObjectReferenceType = false;
+			try {
+				isObjectReferenceType = itemWrapper.getValue() != null
+						&& itemWrapper.getValue().getRealValue() instanceof  ObjectReferenceType;
+			} catch (SchemaException e){
+				LOGGER.warn("Unable to get single value from multi-value property,  ", e.getLocalizedMessage());
+			}
+			if (isObjectReferenceType) {
+				WrapperContext contextClone = context.clone();
+				contextClone.setReadOnly(false);
+				return super.determineReadOnly(itemWrapper, contextClone);
+			}
+		}
+		return super.determineReadOnly(itemWrapper, context);
+	}
+
 //	@Override
 //	protected boolean canCreateNewWrapper(ItemDefinition<?> def) {
 //		//TODO compare full path instead of def.getName(). The issue is, that another complex type can have targetRef or target specified and then 

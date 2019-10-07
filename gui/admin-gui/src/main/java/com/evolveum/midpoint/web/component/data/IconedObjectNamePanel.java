@@ -16,12 +16,17 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+
+import javax.xml.namespace.QName;
 
 
 /**
@@ -31,7 +36,8 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
-    private static final String ID_NAME = "name";
+    private static final String ID_NAME = "nameLink";
+    private static final String ID_NAME_TEXT = "nameLinkText";
 
     private static final String DOT_CLASS = IconedObjectNamePanel.class.getName() + ".";
     private static final String OPERATION_LOAD_REFERENCED_OBJECT = DOT_CLASS + "loadReferencedObject";
@@ -61,10 +67,11 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
     		referencedObjectModel = new LoadableModel<AHT>() {
                 @Override
                 protected AHT load() {
-                    if (objectReference != null) {
+                    if (objectReference != null && objectReference.getType() != null &&
+                            StringUtils.isNotEmpty(objectReference.getOid())) {
                     	PageBase pageBase = IconedObjectNamePanel.this.getPageBase();
                         OperationResult result = new OperationResult(OPERATION_LOAD_REFERENCED_OBJECT);
-                        PrismObject<AHT> assignmentHolder = WebModelServiceUtils.resolveReferenceNoFetch(objectReference, pageBase,
+                        PrismObject<AHT> assignmentHolder = WebModelServiceUtils.loadObject(objectReference, pageBase,
                                 pageBase.createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT), result);
                         return assignmentHolder != null ? assignmentHolder.asObjectable() : null;
                     } else {
@@ -91,11 +98,26 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
 //        imagePanel.add(new VisibleBehaviour(() -> displayType != null && displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass())));
         add(imagePanel);
 
-        Label nameLabel = new Label(ID_NAME, Model.of(WebComponentUtil.getEffectiveName(referencedObjectModel.getObject(), AbstractRoleType.F_DISPLAY_NAME)));
-        nameLabel.setOutputMarkupId(true);
-        add(nameLabel);
+        AjaxLink<AHT> nameLink = new AjaxLink<AHT>(ID_NAME, referencedObjectModel) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                if (referencedObjectModel != null && referencedObjectModel.getObject() != null) {
+                    WebComponentUtil.dispatchToObjectDetailsPage(referencedObjectModel.getObject().asPrismObject(),
+                            IconedObjectNamePanel.this);
+                }
+            }
+        };
+        nameLink.add(new EnableBehaviour(() -> referencedObjectModel != null && referencedObjectModel.getObject() != null
+                && !new QName("dummy").getLocalPart().equals(
+                        referencedObjectModel.getObject().asPrismContainer().getElementName().getLocalPart())));
+        nameLink.setOutputMarkupId(true);
+        add(nameLink);
 
-        //todo navigate to object icon or name label as link ?
+        Label nameLinkText = new Label(ID_NAME_TEXT, Model.of(WebComponentUtil.getEffectiveName(referencedObjectModel.getObject(),
+                AbstractRoleType.F_DISPLAY_NAME)));
+        nameLinkText.setOutputMarkupId(true);
+        nameLink.add(nameLinkText);
+
     }
 
 }

@@ -183,7 +183,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		return true;
 	}
 	
-	private boolean determineReadOnly(IW itemWrapper, WrapperContext context) {
+	protected boolean determineReadOnly(IW itemWrapper, WrapperContext context) {
 		
 		Boolean readOnly = context.getReadOnly();
 		if (readOnly != null) {
