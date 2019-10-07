@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.*;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.Validate;
@@ -46,23 +47,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
 public class CustomFunctions {
 	
-	Trace LOGGER = TraceManager.getTrace(CustomFunctions.class);
+	private Trace LOGGER = TraceManager.getTrace(CustomFunctions.class);
 	
 	private ExpressionFactory expressionFactory;
 	private FunctionLibraryType library;
 	private ExpressionProfile expressionProfile;
-	private OperationResult result;
-	private Task task;
 	private PrismContext prismContext;
+	/**
+	 * Operation result existing at the initialization time. It is used only if we cannot obtain current operation
+	 * result in any other way.
+ 	 */
+	private OperationResult initializationTimeResult;
+	/**
+	 * Operation result existing at the initialization time. It is used only if we cannot obtain current operation
+	 * result in any other way.
+	 */
+	private Task initializationTimeTask;
 
-	
-	public CustomFunctions(FunctionLibraryType library, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile, OperationResult result, Task task) {
+	public CustomFunctions(FunctionLibraryType library, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile,
+			OperationResult result, Task task) {
 		this.library = library;
 		this.expressionFactory = expressionFactory;
 		this.expressionProfile = expressionProfile;
 		this.prismContext = expressionFactory.getPrismContext();
-		this.result = result;
-		this.task = task;
+		this.initializationTimeResult = result;
+		this.initializationTimeTask = task;
 	}
 	
 	/**
@@ -71,6 +80,31 @@ public class CustomFunctions {
 	 */
 	public <V extends PrismValue, D extends ItemDefinition> Object execute(String functionName, Map<String, Object> params) throws ExpressionEvaluationException {
 		Validate.notNull(functionName, "Function name must be specified");
+
+		ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
+		Task task;
+		OperationResult result;
+		if (ctx != null) {
+			if (ctx.getTask() != null) {
+				task = ctx.getTask();
+			} else {
+				LOGGER.warn("No task in ScriptExpressionEvaluationContext for the current thread found. Using "
+						+ "initialization-time task: {}", initializationTimeTask);
+				task = initializationTimeTask;
+			}
+			if (ctx.getResult() != null) {
+				result = ctx.getResult();
+			} else {
+				LOGGER.warn("No operation result in ScriptExpressionEvaluationContext for the current thread found. Using "
+						+ "initialization-time op. result");
+				result = initializationTimeResult;
+			}
+		} else {
+			LOGGER.warn("No ScriptExpressionEvaluationContext for current thread found. Using initialization-time task "
+					+ "and operation result: {}", initializationTimeTask);
+			task = initializationTimeTask;
+			result = initializationTimeResult;
+		}
 		
 		List<ExpressionType> functions = library.getFunction().stream().filter(expression -> functionName.equals(expression.getName())).collect(Collectors.toList());
 		
@@ -84,16 +118,18 @@ public class CustomFunctions {
 			if (MapUtils.isNotEmpty(params)) {
 				for (Map.Entry<String, Object> entry : params.entrySet()) {
 					variables.put(entry.getKey(), convertInput(entry, expressionType));
-				};
+				}
 			}
 			
 			QName returnType = expressionType.getReturnType();
 			if (returnType == null) {
 				returnType = DOMUtil.XSD_STRING;
 			}
-			
+
+			//noinspection unchecked
 			D outputDefinition = (D) prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
 			if (outputDefinition == null) {
+				//noinspection unchecked
 				outputDefinition = (D) prismContext.definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, returnType);
 			}
 			if (expressionType.getReturnMultiplicity() != null && expressionType.getReturnMultiplicity() == ExpressionReturnMultiplicityType.MULTI) {
@@ -116,7 +152,7 @@ public class CustomFunctions {
 			
 			Collection<V> nonNegativeValues = outputTriple.getNonNegativeValues();
 			
-			if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
+			if (nonNegativeValues.isEmpty()) {
 				return null;
 			}
 			
@@ -160,7 +196,7 @@ public class CustomFunctions {
 		
 		ItemDefinition def = ExpressionUtil.determineDefinitionFromValueClass(prismContext, entry.getKey(), valueClass, paramType);
 		
-		return new TypedValue(value, def);
+		return new TypedValue<>(value, def);
 	}
 
 }

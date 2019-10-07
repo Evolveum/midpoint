@@ -1818,6 +1818,40 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return asserter;
 	}
 
+	protected ShadowAsserter<Void> assertShadowByName(ShadowKindType kind, String intent, String name,
+			PrismObject<ResourceType> resource, String message, OperationResult result)
+			throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException {
+		PrismObject<ShadowType> shadow = findShadowByName(kind, intent, name, resource, result);
+		assertNotNull("No shadow with name '"+name+"'", shadow);
+		return assertShadow(shadow, message);
+	}
+
+	protected ShadowAsserter<Void> assertShadowByNameViaModel(ShadowKindType kind, String intent, String name,
+			PrismObject<ResourceType> resource, String message, Task task, OperationResult result)
+			throws ConfigurationException, SchemaException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException {
+		PrismObject<ShadowType> shadow = findShadowByNameViaModel(kind, intent, name, resource, task, result);
+		assertNotNull("No shadow with name '"+name+"'", shadow);
+		return assertShadow(shadow, message);
+	}
+
+	protected PrismObject<ShadowType> findShadowByNameViaModel(ShadowKindType kind, String intent, String name, PrismObject<ResourceType> resource, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException {
+		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+		RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(kind,intent);
+		ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
+		List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query,
+				schemaHelper.getOperationOptionsBuilder().noFetch().build(), task, result);
+		if (shadows.isEmpty()) {
+			return null;
+		}
+		assert shadows.size() == 1 : "Too many shadows found for name "+name+" on "+resource+": "+shadows;
+		return shadows.iterator().next();
+	}
+
+
 	protected ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
@@ -3805,6 +3839,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		    PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
 		    SchemaException {
 		addObject(resource.file, task, result);
+    }
+
+    protected <T extends ObjectType> PrismObject<T> repoAddObject(TestResource resource, OperationResult result)
+		    throws IOException, ObjectAlreadyExistsException, SchemaException, EncryptionException {
+		return repoAddObjectFromFile(resource.file, result);
     }
 
     // not going through model to avoid conflicts (because the task starts execution during the clockwork operation)
