@@ -69,6 +69,8 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 
 		resourceGrouper = importAndGetObjectFromFile(ResourceType.class, RESOURCE_GROUPER_FILE, RESOURCE_GROUPER_OID,
 				initTask, initResult);
+
+		//setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
 	}
 
 	@Test
@@ -82,7 +84,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
 	}
 
 	private Task createTestTask(String TEST_NAME) {
-		return taskManager.createTaskInstance(TestAsyncUpdateGrouperJson.class.getName() + "." + TEST_NAME);
+		return createTask(TestAsyncUpdateGrouperJson.class.getName() + "." + TEST_NAME);
 	}
 
 	/**

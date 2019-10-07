@@ -89,7 +89,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         getDetailsPanelContainer().add(cancelButton);
 
         CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL,
-                new LoadableModel<>() {
+                new LoadableModel<CaseWorkItemType>() {
                     private static final long serialVersionUID = 1L;
 
                     @Override

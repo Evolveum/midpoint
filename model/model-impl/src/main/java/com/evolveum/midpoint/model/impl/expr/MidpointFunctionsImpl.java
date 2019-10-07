@@ -19,11 +19,14 @@ import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.expr.triggerSetter.OptimizingTriggerCreatorImpl;
+import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalState;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -48,10 +51,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -128,6 +127,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private SynchronizationExpressionsEvaluator correlationConfirmationEvaluator;
 	@Autowired private ArchetypeManager archetypeManager;
+	@Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -1906,5 +1906,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public RepositoryService getRepositoryService() {
 		return repositoryService;
+	}
+
+	@NotNull
+	@Override
+	public OptimizingTriggerCreator getOptimizingTriggerCreator(long fireAfter, long safetyMargin) {
+		return new OptimizingTriggerCreatorImpl(triggerCreatorGlobalState, this, fireAfter, safetyMargin);
 	}
 }

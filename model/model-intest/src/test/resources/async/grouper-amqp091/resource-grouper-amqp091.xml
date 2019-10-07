@@ -80,6 +80,9 @@
 					EXPORTED_GROUP_PREFIX = 'ref:'
 					RELEVANT_SOURCE_ID = 'ldap'
 
+					log.info('*** Variables:')
+					this.binding.variables.each {k,v -> log.info('- {} = {}', k, v)}
+
 					esbEvent = midpoint.getMessageBodyAsMap(message)['esbEvent'][0]
 					log.info('esbEvent = {}', esbEvent)
 					eventType = esbEvent['eventType']

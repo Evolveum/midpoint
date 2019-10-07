@@ -1828,6 +1828,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return addWorkflowLogging(createModelLoggingTracingProfile());
 	}
 
+	protected TracingProfileType createModelAndProvisioningLoggingTracingProfile() {
+		return addProvisioningLogging(createModelLoggingTracingProfile());
+	}
+
 	protected TracingProfileType addProvisioningLogging(TracingProfileType profile) {
 		return profile.getLoggingOverride()
 				.beginLevelOverride()

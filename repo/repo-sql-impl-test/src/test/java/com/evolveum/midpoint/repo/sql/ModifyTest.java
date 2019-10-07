@@ -1,7 +1,7 @@
 /*
   * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,6 +18,7 @@ import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -97,6 +98,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     private static final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
     private static final QName QNAME_WEAPON = new QName("http://example.com/p", "weapon");
+    private static final QName QNAME_FUNERAL_DATE = new QName("http://example.com/p", "funeralDate");
 
 	@BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -1486,5 +1488,47 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismTestUtil.display("jack after", jackAfter);
 
         jackAfter.checkConsistence();
+    }
+
+    @Test  // MID-5826 - fortunately, in 4.0 this works due to reworked handling of extension values in repo
+    public void test450ReplaceExtensionItem() throws Exception {
+        final String TEST_NAME = "test400ReplaceExtensionItem";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<UserType> user = prismContext.createObjectable(UserType.class)
+                .name("test400")
+                .oid("oid-400")
+                .asPrismObject();
+        repositoryService.addObject(user, null, result);
+
+        assertExtensionDateValue(user.getOid(), 0);
+
+        XMLGregorianCalendar dateTime = XmlTypeConverter.createXMLGregorianCalendar("2022-04-05T16:14:58");
+
+        List<ItemDelta<?, ?>> itemDeltasSet = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, QNAME_FUNERAL_DATE).replace(dateTime)
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltasSet, getModifyOptions(), result);
+
+        assertExtensionDateValue(user.getOid(), 1);
+
+        List<ItemDelta<?, ?>> itemDeltasUnset = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, QNAME_FUNERAL_DATE).replace()
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltasUnset, getModifyOptions(), result);
+
+        assertExtensionDateValue(user.getOid(), 0);
+    }
+
+    private void assertExtensionDateValue(String objectOid, int expected) {
+        Session session = open();
+        //noinspection unchecked
+        List<Timestamp> values = session.createQuery("select d.value from ROExtDate d where d.ownerOid = '" + objectOid + "'").list();
+        System.out.println("Values: " + values);
+        assertEquals("Wrong # of extension values found", expected, values.size());
+        close(session);
     }
 }

@@ -133,7 +133,8 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 					ExpressionType transformExpression = connectorInstance.getTransformExpression();
 					if (transformExpression != null) {
 						changeBeans = connectorInstance.getUcfExpressionEvaluator().evaluate(transformExpression, variables,
-								SchemaConstantsGenerated.C_UCF_CHANGE, "computing UCF change from async update", result);
+								SchemaConstantsGenerated.C_UCF_CHANGE, "computing UCF change from async update",
+								task, result);
 					} else {
 						changeBeans = unwrapMessage(message);
 					}
