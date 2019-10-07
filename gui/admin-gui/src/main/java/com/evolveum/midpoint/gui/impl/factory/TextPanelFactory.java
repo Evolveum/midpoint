@@ -60,7 +60,7 @@ public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> implemen
 
 			@Override
 			public Iterator<T> getIterator(String input) {
-				return (Iterator<T>) prepareAutoCompleteList(input, lookupTable).iterator();
+				return (Iterator<T>) prepareAutoCompleteList(input, lookupTable, panelCtx.getPageBase().getLocalizationService()).iterator();
 			}
 		};
 	}
