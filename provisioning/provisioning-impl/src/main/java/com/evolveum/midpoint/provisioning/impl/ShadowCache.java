@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandler;
 import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandlerLocator;
+import com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -252,7 +253,6 @@ public class ShadowCache {
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repositoryShadow);
 		try {
 
-			
 			try {
 				
 				resourceShadow = resourceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
@@ -289,30 +289,23 @@ public class ShadowCache {
 			resourceShadow.asObjectable().setIntent(repositoryShadow.asObjectable().getIntent());
 			ProvisioningContext shadowCtx = ctx.spawn(resourceShadow);
 
-			resourceManager.modifyResourceAvailabilityStatus(resource.asPrismObject(),
-					AvailabilityStatusType.UP, parentResult);
+			resourceManager.modifyResourceAvailabilityStatus(resource.asPrismObject(), AvailabilityStatusType.UP, parentResult);
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump(1));
 				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump(1));
 			}
 
-			repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repositoryShadow,
-					shadowState, parentResult);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDump(1));
-			}
+			repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repositoryShadow, null, shadowState, parentResult);
+			LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDumpLazily(1));
+
 			// Complete the shadow by adding attributes from the resource object
-			PrismObject<ShadowType> resultShadow = completeShadow(shadowCtx, resourceShadow, repositoryShadow, false, parentResult);
+			PrismObject<ShadowType> assembledShadow = completeShadow(shadowCtx, resourceShadow, repositoryShadow, false, parentResult);
+			LOGGER.trace("Shadow when assembled:\n{}", assembledShadow.debugDumpLazily(1));
 
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump(1));
-			}
+			PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, assembledShadow, options, now);
+			LOGGER.trace("Futurized assembled shadow:\n{}", resultShadow.debugDumpLazily(1));
 
-			resultShadow = futurizeShadow(ctx, repositoryShadow, resultShadow, options, now);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Futurized assembled shadow:\n{}", resultShadow.debugDump(1));
-			}
 			parentResult.recordSuccess();
 			validateShadow(resultShadow, true);
 			return resultShadow;
@@ -329,9 +322,9 @@ public class ShadowCache {
 					// is returned
 					parentResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
 				}
-				handledShadow = futurizeShadow(ctx, handledShadow, null, options, now);
-				validateShadow(handledShadow, true);
-				return handledShadow;
+				PrismObject<ShadowType> futurizedShadow = futurizeShadow(ctx, handledShadow, null, options, now);
+				validateShadow(futurizedShadow, true);
+				return futurizedShadow;
 
 			} catch (GenericFrameworkException | ObjectAlreadyExistsException | PolicyViolationException e) {
 				throw new SystemException(e.getMessage(), e);
@@ -344,7 +337,6 @@ public class ShadowCache {
 			// fetch for protected objects?
 			if (!ShadowUtil.isProtected(resourceShadow)) {
 				InternalMonitor.recordCount(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-
 			}
 		}
 	}
@@ -1911,9 +1903,12 @@ public class ShadowCache {
 						// shadow should have proper kind/intent
 						ProvisioningContext shadowCtx = shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 						// TODO: shadowState
-						repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repoShadow, null, parentResult);
+						repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repoShadow, null,
+								null, parentResult);
 						
 						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, isDoDiscovery, objResult);
+
+						// TODO do we want also to futurize the shadow like in getObject?
 						
 						//check and fix kind/intent
 						ShadowType repoShadowType = repoShadow.asObjectable();

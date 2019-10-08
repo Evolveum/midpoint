@@ -30,11 +30,6 @@ public class TestAsyncUpdateCachingIndexOnly extends TestAsyncUpdateCaching {
 	}
 
 	@Override
-	protected int getNumberOfAccountAttributes() {
-		return 3;
-	}
-
-	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		// These are experimental features, so they need to be explicitly enabled. This will be eliminated later,
 		// when we make them enabled by default.

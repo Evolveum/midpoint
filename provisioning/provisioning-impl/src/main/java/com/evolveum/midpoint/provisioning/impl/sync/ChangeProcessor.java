@@ -15,7 +15,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
-import com.evolveum.midpoint.provisioning.impl.ShadowManager;
+import com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -260,7 +260,7 @@ public class ChangeProcessor {
             PrismObject<ShadowType> currentShadow = shadowCache.completeShadow(ctx, change.getCurrentShadow(), oldShadow, false, parentResult);
             change.setCurrentShadow(currentShadow);
             // TODO: shadowState
-            shadowManager.updateShadow(ctx, currentShadow, oldShadow, null, parentResult);
+            shadowManager.updateShadow(ctx, currentShadow, oldShadow, change.getObjectDelta(), null, parentResult);
         }
 
         if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
