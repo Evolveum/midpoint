@@ -1,102 +1,143 @@
 /**
- * Copyright (c) 2015 Evolveum and contributors
+ * Copyright (c) 2015-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0 
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.UnaryOperator;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author semancik
  *
  */
-public class RoleSelectionSpecification {
+public class RoleSelectionSpecification implements DebugDumpable {
 
-	private List<? extends DisplayableValue<String>> roleTypes = null;
-	private ObjectFilter filter = null;
+	ObjectFilter globalFilter = null;
+	private final Map<QName,ObjectFilter> relationMap = new HashMap<>();
 
-	/**
-	 * Returns null if there is no information about role types that can or cannot be assigned.
-     * Returns empty list list if the user is not authorized to assign anything.
-	 */
-	public List<? extends DisplayableValue<String>> getRoleTypes() {
-		return roleTypes;
+	public int size() {
+		return relationMap.size();
 	}
 
-	public void setNoRoleTypes() {
-		roleTypes = new ArrayList<>();
+	public Map<QName, ObjectFilter> getRelationMap() {
+		return relationMap;
 	}
 
-	public void addRoleType(DisplayableValue<String> roleType) {
-		if (roleTypes == null) {
-			roleTypes = new ArrayList<>();
+	public ObjectFilter getGlobalFilter() {
+		return globalFilter;
+	}
+
+	public void setGlobalFilter(ObjectFilter filter) {
+		globalFilter = filter;
+	}
+
+	public ObjectFilter getRelationFilter(QName relation) {
+		return relationMap.get(relation);
+	}
+
+	public void setFilters(List<QName> relations, ObjectFilter objectFilter) {
+		for (QName relation : relations) {
+			ObjectFilter relationFilter = relationMap.get(relation);
+			if (relationFilter == null) {
+				relationFilter = objectFilter;
+			}
+			relationMap.put(relation, relationFilter);
 		}
-		((Collection)roleTypes).add(roleType);
 	}
 
-	public void addRoleTypes(Collection<? extends DisplayableValue<String>> roleTypes) {
-		if (this.roleTypes == null) {
-			this.roleTypes = new ArrayList<>();
+	public boolean isAll() {
+		// Is this correct?
+		return ObjectQueryUtil.isAll(globalFilter);
+	}
+
+	public boolean isNone() {
+		// Is this correct?
+		return ObjectQueryUtil.isNone(globalFilter);
+	}
+
+	public RoleSelectionSpecification and(RoleSelectionSpecification other, PrismContext prismContext) {
+		if (other == null) {
+			return this;
 		}
-		this.roleTypes.addAll((Collection)roleTypes);
+		if (other == this) {
+			return this;
+		}
+		return applyBinary(other, (a, b) -> ObjectQueryUtil.filterAnd(a, b, prismContext) );
 	}
 
-	/**
-	 * Returns "additional filter" that should be used to search for assignible roles.
-	 * This filter should be AND-ed with any application level filter.
-	 * It can return null. The null filter means "ALL" (AllFilter).
-	 * If this returns NoneFilter then no roles can be assigned to the user.
-	 */
-	public ObjectFilter getFilter() {
-		return filter;
+	public RoleSelectionSpecification or(RoleSelectionSpecification other, PrismContext prismContext) {
+		if (other == null) {
+			return this;
+		}
+		if (other == this) {
+			return this;
+		}
+		return applyBinary(other, (a, b) -> ObjectQueryUtil.filterOr(a, b, prismContext) );
 	}
 
-	public void setFilter(ObjectFilter filter) {
-		this.filter = filter;
+	public RoleSelectionSpecification not(PrismContext prismContext) {
+		return applyUnary((a) -> prismContext.queryFactory().createNot(a));
+	}
+
+	public RoleSelectionSpecification simplify(PrismContext prismContext) {
+		return applyUnary((a) -> ObjectQueryUtil.simplify(a, prismContext));
+	}
+
+	private RoleSelectionSpecification applyBinary(RoleSelectionSpecification other, BinaryOperator<ObjectFilter> operator) {
+		RoleSelectionSpecification out = new RoleSelectionSpecification();
+		out.globalFilter = operator.apply(this.globalFilter, other.globalFilter);
+		out.relationMap.putAll(this.relationMap);
+		other.relationMap.forEach(
+				(otherKey, otherValue) -> out.relationMap.merge(otherKey, otherValue, operator)
+		);
+		return out;
+	}
+
+	private RoleSelectionSpecification applyUnary(UnaryOperator<ObjectFilter> operator) {
+		RoleSelectionSpecification out = new RoleSelectionSpecification();
+		out.globalFilter = operator.apply(this.globalFilter);
+		this.relationMap.forEach(
+				(thisKey, thisValue) -> out.relationMap.put(thisKey, operator.apply(thisValue))
+		);
+		return out;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		RoleSelectionSpecification that = (RoleSelectionSpecification) o;
+		return relationMap.equals(that.relationMap);
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((filter == null) ? 0 : filter.hashCode());
-		result = prime * result + ((roleTypes == null) ? 0 : roleTypes.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		RoleSelectionSpecification other = (RoleSelectionSpecification) obj;
-		if (filter == null) {
-			if (other.filter != null)
-				return false;
-		} else if (!filter.equals(other.filter))
-			return false;
-		if (roleTypes == null) {
-			if (other.roleTypes != null)
-				return false;
-		} else if (!roleTypes.equals(other.roleTypes))
-			return false;
-		return true;
+		return Objects.hash(relationMap);
 	}
 
 	@Override
 	public String toString() {
-		return "RoleSelectionSpecification(" + roleTypes + ": "+filter+")";
+		return "RoleSelectionSpecification(" + globalFilter + " : " + relationMap + ")";
 	}
 
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(RoleSelectionSpecification.class, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "globalFilter", globalFilter, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "relationMap", relationMap, indent + 1);
+		return sb.toString();
+	}
 
 }

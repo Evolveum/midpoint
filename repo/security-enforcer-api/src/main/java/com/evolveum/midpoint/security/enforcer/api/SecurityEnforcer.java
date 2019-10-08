@@ -71,10 +71,16 @@ public interface SecurityEnforcer {
 			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver,
 			Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
+	MidPointPrincipal getMidPointPrincipal();
+
 	<O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
-	 * TODO
+	 * Returns a filter that applies to all the objects/targets for which the principal is authorized.
+	 *
+	 * E.g. it can return a filter of all assignable roles for a principlal. In that case #assign authorization is used,
+	 * and object is the user which should hold the assignment.
+	 *
 	 * If it returns NoneFilter then no search should be done. The principal is not authorized for this operation at all.
 	 * It may return null in case that the original filter was also null.
 	 *
@@ -98,6 +104,16 @@ public interface SecurityEnforcer {
 	<T extends ObjectType, O extends ObjectType> boolean canSearch(String[] operationUrls, AuthorizationPhaseType phase,
 			Class<T> searchResultType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
+	<T extends ObjectType, O extends ObjectType, F> F computeSecurityFilter(MidPointPrincipal principal,
+																			String[] operationUrls,
+																			AuthorizationPhaseType phase,
+																			Class<T> searchResultType,
+																			PrismObject<O> object,
+																			ObjectFilter origFilter,
+																			String limitAuthorizationAction,
+																			List<OrderConstraintsType> paramOrderConstraints,
+																			FilterGizmo<F> gizmo,
+																			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 	/**
 	 * Returns decisions for individual items for "assign" authorization. This is usually applicable to assignment parameters.
 	 */

@@ -2927,13 +2927,29 @@ public final class WebComponentUtil {
 
 	public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type, AssignmentOrder assignmentOrder,
 														OperationResult result, Task task, PageBase pageBase) {
+		return getAssignableRolesFilter(focusObject, type, null, assignmentOrder, result, task, pageBase);
+	}
+
+	public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
+														QName relation, AssignmentOrder assignmentOrder,
+														OperationResult result, Task task, PageBase pageBase) {
 		ObjectFilter filter = null;
 		LOGGER.debug("Loading objects which can be assigned");
 		try {
 			ModelInteractionService mis = pageBase.getModelInteractionService();
 			RoleSelectionSpecification roleSpec =
 					mis.getAssignableRoleSpecification(focusObject, type, assignmentOrder.getOrder(), task, result);
-			filter = roleSpec.getFilter();
+			filter = roleSpec.getGlobalFilter();
+			if (relation != null){
+				ObjectFilter relationFilter = roleSpec.getRelationFilter(relation);
+				if (filter == null){
+					return relationFilter;
+				} else if (relationFilter == null){
+					return filter;
+				} else {
+					return pageBase.getPrismContext().queryFactory().createOr(filter, relationFilter);
+				}
+			}
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
 			result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.getAssignableRolesFilter.fatalError").getString(), ex);
@@ -2944,6 +2960,29 @@ public final class WebComponentUtil {
 			pageBase.showResult(result);
 		}
 		return filter;
+	}
+
+	public static List<QName> getAssignableRelationsList(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
+														 AssignmentOrder assignmentOrder,
+														 OperationResult result, Task task, PageBase pageBase){
+		List<QName> relationsList = null;
+		LOGGER.debug("Loading assignable relations list");
+		try {
+			ModelInteractionService mis = pageBase.getModelInteractionService();
+			RoleSelectionSpecification roleSpec =
+					mis.getAssignableRoleSpecification(focusObject, type, assignmentOrder.getOrder(), task, result);
+			relationsList = roleSpec != null && roleSpec.getGlobalFilter() == null && roleSpec.getRelationMap() != null ?
+					new ArrayList<QName>(roleSpec.getRelationMap().keySet()) : null;
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load assignable relations list", ex);
+			result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.getAssignableRelationsList.fatalError").getString(), ex);
+		} finally {
+			result.recomputeStatus();
+		}
+		if (!result.isSuccess() && !result.isHandledError()) {
+			pageBase.showResult(result);
+		}
+		return relationsList;
 	}
 
 	public static String formatDurationWordsForLocal(long durationMillis, boolean suppressLeadingZeroElements,
