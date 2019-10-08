@@ -1,0 +1,128 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" 
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" 
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" 
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" 
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      oid="8da46694-bd71-4e1e-bfd7-73865ae2ea9a">
+    <name>metarole-ldap-group</name>
+    <description>A metarole for archetyped LDAP groups</description>
+    <!--
+        This metarole supports LDAP groups that correspond to appropriately archetyped
+        org objects.
+        
+        The schema is the following:
+        
+        org -> archetype -> this metarole
+        
+        e.g.
+        
+        affiliation_member -> archetype affiliation -> metarole-ldap-group
+        or org-grouper-sysadmin -> archetype midpoint-group -> metarole-ldap-group   
+            
+        1) An org has appropriate archetype e.g. affiliation_member has an archetype of affiliation;
+        org-grouper-sysadmin has an archetype of midpoint-group.
+        
+        2) This archetype defines LDAP root the particular class of orgs e.g.  
+        ou=Affiliations,ou=Groups,dc=internet2,dc=edu for affiliations or
+        ou=midpoint,ou=Groups,dc=internet2,dc=edu for midPoint-defined groups.
+        
+        3) To avoid code duplication, these archetypes delegate everything related
+        to LDAP to this metarole.
+        
+        This metarole does the three things:
+        
+        1) It ensures that extension/ldapDn is filled in for particular org object.
+        This property is then used by LDAP resource outbound mappings to provide
+        a value for ri:dn attribute.
+        
+        The value of extension/ldapDn is determined as 
+        
+        cn=identifier (in org) + ldapRootDn (in archetype)
+        
+        2) It ensures that appropriate group object is created in LDAP.
+        This is done by inducing a construction with kind=entitlement,
+        intent=group to the org object (i.e. inducement order=2).
+        
+        3) It ensures that appropriate group membership is created in LDAP
+        for any user that has an assignment to the org object. This is done
+        by inducing a construction with default kind and intent (i.e. regular
+        account) to the user that has assigned the org object (i.e. inducement order=3).
+     --> 
+
+    <!--  Fills-in extension/ldapDn in org object -->
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <name>ldapDn</name>
+                <strength>strong</strength>
+                <source>
+                    <path>identifier</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            if (identifier == null) {
+                                null
+                            } else {
+                                // identifier = e.g. 'member'
+                                metarole = assignmentPath[-2].source        // e.g. metarole-affiliation
+                                log.info('metarole = {}', metarole)
+                                if (metarole == null) {
+                                    throw new IllegalStateException('No metarole in assignment path: ' + assignmentPath)
+                                }
+                                'cn=' + identifier + ',' + basic.getExtensionPropertyValue(metarole, 'ldapRootDn')
+                            }
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>extension/ldapDn</path>
+                </target>
+            </mapping>
+        </focusMappings>
+        <order>2</order>        <!--  order=2 means the org object: org->archetype->metarole -->
+    </inducement>
+     
+    <!--  Provides LDAP group for the org object -->
+    <inducement>
+        <construction>
+            <resourceRef oid="0a37121f-d515-4a23-9b6d-554c5ef61272" relation="org:default" type="c:ResourceType" />    
+            <kind>entitlement</kind>
+            <intent>group</intent>
+        </construction>
+        <order>2</order>        <!--  order=2 means the org object: org->archetype->metarole -->
+    </inducement>
+    
+    <!--  Provides LDAP group membership for the org object members (users) -->
+    <inducement>
+        <construction>
+            <resourceRef oid="0a37121f-d515-4a23-9b6d-554c5ef61272" relation="org:default" type="c:ResourceType" />    
+            <association>
+                <c:ref>ri:group</c:ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>group</intent>
+                            </projectionDiscriminator>
+                            <assignmentPathIndex>1</assignmentPathIndex>        <!--  derive from the immediately assigned org -->
+                        </associationFromLink>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>3</order>        <!--  order=3 means the user object; user has an assignment to the org: user->org->archetype->metarole -->
+    </inducement>
+</role>

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -77,8 +79,11 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 
 	protected MatchingRule<String> caseIgnoreMatchingRule;
 
+	@Autowired protected MatchingRuleRegistry matchingRuleRegistry;
+
 	@Autowired
-	protected MatchingRuleRegistry matchingRuleRegistry;
+	@Qualifier("sqlRepositoryServiceImpl")
+	protected SqlRepositoryServiceImpl sqlRepositoryService;
 
 	protected PrismObject<UserType> userAdministrator;
 
