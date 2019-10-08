@@ -8,11 +8,21 @@ package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
+import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -61,9 +71,81 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     private static final String OPERATION_LOAD_SHADOW_OBJECT = DOT_CLASS + "loadReferencedShadowObject";
     private static final String OPERATION_LOAD_RESOURCE_OBJECT = DOT_CLASS + "loadResourceObject";
 
+    private MidpointFormValidator validator;
+
     public InducedEntitlementsPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> inducementContainerWrapperModel){
         super(id, inducementContainerWrapperModel);
 
+        createValidator();
+    }
+
+    private void createValidator() {
+        validator = new MidpointFormValidator() {
+                @Override
+                public Collection<SimpleValidationError> validateObject(PrismObject<? extends ObjectType> object, Collection<ObjectDelta<? extends ObjectType>> deltas) {
+                    List<SimpleValidationError> errors = new ArrayList<SimpleValidationError>();
+                    for (ObjectDelta delta : deltas) {
+                        if (AbstractRoleType.class.isAssignableFrom(delta.getObjectTypeClass())) {
+                            switch (delta.getChangeType()) {
+                                case MODIFY:
+                                    Collection<ItemDelta> itemDeltas = delta.getModifications();
+                                    for (ItemDelta itemDelta : itemDeltas) {
+                                        if (itemDelta.getPath().equivalent(AbstractRoleType.F_INDUCEMENT) && itemDelta.getValuesToAdd() != null) {
+                                            for (PrismValue value : (Collection<PrismValue>) itemDelta.getValuesToAdd()) {
+                                                errors.addAll(validateInducement((AssignmentType) value.getRealValue()));
+                                            }
+                                        }
+                                    }
+                                    break;
+                                case ADD:
+                                    if (delta != null && delta.getObjectToAdd().asObjectable() != null) {
+                                        for (AssignmentType assignment : ((AbstractRoleType)object.asObjectable()).getInducement()) {
+                                            errors.addAll(validateInducement(assignment));
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    return errors;
+                }
+
+                private Collection<SimpleValidationError> validateInducement(AssignmentType assignment) {
+                    List<SimpleValidationError> errors = new ArrayList<SimpleValidationError>();
+                    com.evolveum.midpoint.prism.Item association = assignment.asPrismContainerValue().findItem(ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION));
+                    if (association != null && !association.getValues().isEmpty()) {
+                        for (PrismContainerValue associationValue : (List<PrismContainerValue>) association.getValues()){
+                            com.evolveum.midpoint.prism.Item outbound = associationValue.findItem(ResourceObjectAssociationType.F_OUTBOUND);
+                            if (outbound == null || outbound.getValues().isEmpty()){
+                                SimpleValidationError error = new SimpleValidationError();
+                                error.setMessage(getPageBase().createStringResource("InducedEntitlementsPanel.validator.message").getString());
+                                ItemPathType path = new ItemPathType();
+                                path.setItemPath(ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceObjectAssociationType.F_OUTBOUND));
+                                error.setAttribute(path);
+                                errors.add(error);
+                            }
+                        }
+                    }
+                    return errors;
+                }
+
+                @Override
+                public Collection<SimpleValidationError> validateAssignment(AssignmentType assignment) {
+                    return new ArrayList<SimpleValidationError>();
+                }
+            };
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        if (getPageBase() instanceof PageAdminObjectDetails) {
+            PageAdminObjectDetails page = (PageAdminObjectDetails) getPageBase();
+            if (!page.getFormValidatorRegistry().getValidators().contains(validator)) {
+                page.getFormValidatorRegistry().registerValidator(validator);
+            }
+        }
     }
 
     @Override
@@ -80,6 +162,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     private ObjectTabStorage getInducedEntitlementsTabStorage(){
         return getParentPage().getSessionStorage().getInducedEntitlementsTabStorage();
     }
+
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
