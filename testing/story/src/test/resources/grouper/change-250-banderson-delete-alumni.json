@@ -12,7 +12,7 @@
       "id": "43294320943029403294023113333333",
       "sequenceNumber": "250",
       "eventType": "MEMBERSHIP_DELETE",
-      "groupName": "ref:alumni"
+      "groupName": "ref:affiliation:alumni"
     }
   ]
 }

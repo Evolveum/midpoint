@@ -1367,15 +1367,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertSteadyResources();
     }
 
-
-    @Test
-    public void test300RoleTypes() throws Exception {
-		final String TEST_NAME="test300RoleTypes";
-        displayTestTitle(TEST_NAME);
-
-        assertRoleTypes(getUser(USER_JACK_OID), "application","system", "it");
-    }
-    
     /**
      * MID-4660, MID-4491, MID-3581
      */

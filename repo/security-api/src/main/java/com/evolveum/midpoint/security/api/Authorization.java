@@ -127,7 +127,8 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 	public List<OwnedObjectSelectorType> getTarget() {
 		return authorizationType.getTarget();
 	}
-	
+
+	@NotNull
 	public List<QName> getRelation() {
 		return authorizationType.getRelation();
 	}

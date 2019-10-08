@@ -589,10 +589,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertReadCasesAllow();
 		assertSearch(TaskType.class, null, 2);
 
-        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertNotNull("Null role spec "+roleSpec, roleSpec);
-        assertNull("Non-null role types in spec "+roleSpec, roleSpec.getRoleTypes());
-        assertFilter(roleSpec.getFilter(), null);
+		assertAssignableRoleSpecification(getUser(USER_JACK_OID))
+				.relationDefault()
+					.filter()
+						.assertAll();
 
         assertAuditReadAllow();
 	}
@@ -608,10 +608,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertReadCertCasesDeny();
 		assertReadCasesDeny();
 
-        RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(userJack);
-        assertNotNull("Null role spec "+roleSpec, roleSpec);
-        assertRoleTypes(roleSpec);
-        assertFilter(roleSpec.getFilter(), NoneFilter.class);
+		assertAssignableRoleSpecification(userJack)
+				.assertNoAccess();
 
         assertAuditReadDeny();
 	}
@@ -818,6 +816,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
 
         assertSearch(UserType.class, null, expectedNumAllUsers);
+		assertSearch(UserType.class, prismContext.queryFactory().createQuery(prismContext.queryFactory().createAll()), expectedNumAllUsers);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 1);
 	}

@@ -416,7 +416,9 @@ public class ObjectQueryUtil {
 			ExistsFilter simplifiedFilter = ((ExistsFilter) filter).cloneEmpty();
 			simplifiedFilter.setFilter(simplifiedSubfilter);
 			return simplifiedFilter;
-		} else if (filter instanceof UndefinedFilter || filter instanceof AllFilter) {
+		} else if (filter instanceof AllFilter) {
+			return filter;
+		} else if (filter instanceof UndefinedFilter) {
 			return null;
 		} else if (filter instanceof InOidFilter) {
 			if (isEmpty(((InOidFilter) filter).getOids())) {

@@ -37,6 +37,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.asserter.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
@@ -107,10 +108,6 @@ import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.model.test.asserter.AssignmentCandidatesSpecificationAsserter;
-import com.evolveum.midpoint.model.test.asserter.CompiledUserProfileAsserter;
-import com.evolveum.midpoint.model.test.asserter.EvaluatedPolicyRulesAsserter;
-import com.evolveum.midpoint.model.test.asserter.ModelContextAsserter;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -1839,14 +1836,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return assertShadow(shadow, message);
 	}
 
-	protected PrismObject<ShadowType> findShadowByNameViaModel(ShadowKindType kind, String intent, String name, PrismObject<ResourceType> resource, Task task, OperationResult result)
+	protected PrismObject<ShadowType> findShadowByNameViaModel(ShadowKindType kind, String intent, String name,
+			PrismObject<ResourceType> resource, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException {
+		return findShadowByNameViaModel(kind, intent, name, resource, schemaHelper.getOperationOptionsBuilder().noFetch().build(),
+				task, result);
+	}
+
+	protected PrismObject<ShadowType> findShadowByNameViaModel(ShadowKindType kind, String intent, String name,
+			PrismObject<ResourceType> resource, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
+			OperationResult result)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException {
 		RefinedResourceSchema rSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 		RefinedObjectClassDefinition rOcDef = rSchema.getRefinedDefinition(kind,intent);
 		ObjectQuery query = createShadowQuerySecondaryIdentifier(rOcDef, name, resource);
-		List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query,
-				schemaHelper.getOperationOptionsBuilder().noFetch().build(), task, result);
+		List<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, options, task, result);
 		if (shadows.isEmpty()) {
 			return null;
 		}
@@ -5080,19 +5086,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return editSchema;
 	}
 
-	protected <F extends FocusType> void assertRoleTypes(PrismObject<F> focus, String... expectedRoleTypes) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
-		assertRoleTypes(getAssignableRoleSpecification(focus), expectedRoleTypes);
-	}
-
-	protected <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
-		return getAssignableRoleSpecification(focus, 0);
+	protected <H extends AssignmentHolderType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<H> targetHolder) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+		return getAssignableRoleSpecification(targetHolder, 0);
 	}
 	
-	protected <F extends FocusType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, int assignmentOrder) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+	protected <H extends AssignmentHolderType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<H> focus, int assignmentOrder) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		return getAssignableRoleSpecification(focus, AbstractRoleType.class, 0);
 	}
 	
-	protected <F extends FocusType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Class<R> targetType, int assignmentOrder) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+	protected <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<H> focus, Class<R> targetType, int assignmentOrder) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName()+".getAssignableRoleSpecification");
 		OperationResult result = task.getResult();
 		RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(focus, targetType, assignmentOrder, task, result);
@@ -5100,31 +5102,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return spec;
 	}
 
-	protected void assertRoleTypes(RoleSelectionSpecification roleSpec, String... expectedRoleTypes) {
-		assertNotNull("Null role spec", roleSpec);
-        display("Role spec", roleSpec);
-        List<? extends DisplayableValue<String>> roleTypes = roleSpec.getRoleTypes();
-        if ((roleTypes == null || roleTypes.isEmpty()) && expectedRoleTypes.length == 0) {
-        	return;
-        }
-        assertNotNull("Null roleTypes in roleSpec "+roleSpec, roleTypes);
-        if (roleTypes.size() != expectedRoleTypes.length) {
-        	AssertJUnit.fail("Expected role types "+Arrays.toString(expectedRoleTypes)+" but got "+roleTypes);
-        }
-        for(String expectedRoleType: expectedRoleTypes) {
-        	boolean found = false;
-        	for (DisplayableValue<String> roleTypeDval: roleTypes) {
-        		if (expectedRoleType.equals(roleTypeDval.getValue())) {
-        			found = true;
-        			break;
-        		}
-        	}
-        	if (!found) {
-        		AssertJUnit.fail("Expected role type "+expectedRoleType+" but it was not present (got "+roleTypes+")");
-        	}
-        }
+	protected <H extends AssignmentHolderType> RoleSelectionSpecificationAsserter<Void> assertAssignableRoleSpecification(PrismObject<H> targetHolder) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+		RoleSelectionSpecification spec = getAssignableRoleSpecification(targetHolder);
+		RoleSelectionSpecificationAsserter<Void> asserter = new RoleSelectionSpecificationAsserter<Void>(spec, null, "for holder "+targetHolder);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
 	}
-	
+
+	protected <H extends AssignmentHolderType> RoleSelectionSpecificationAsserter<Void> assertAssignableRoleSpecification(PrismObject<H> targetHolder, int order) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+		RoleSelectionSpecification spec = getAssignableRoleSpecification(targetHolder, order);
+		RoleSelectionSpecificationAsserter<Void> asserter = new RoleSelectionSpecificationAsserter<Void>(spec, null, "for holder "+targetHolder+", order "+order);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
+
+	protected <H extends AssignmentHolderType> RoleSelectionSpecificationAsserter<Void> assertAssignableRoleSpecification(PrismObject<H> targetHolder, Class<? extends AbstractRoleType> roleType, int order) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+		RoleSelectionSpecification spec = getAssignableRoleSpecification(targetHolder, roleType, order);
+		RoleSelectionSpecificationAsserter<Void> asserter = new RoleSelectionSpecificationAsserter<Void>(spec, null, "for holder "+targetHolder+", role type "+roleType.getSimpleName()+",  order "+order);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
+	}
+
 	protected void assertAllowRequestAssignmentItems(String userOid, String targetRoleOid, ItemPath... expectedAllowedItemPaths)
 			throws SchemaException, SecurityViolationException, CommunicationException, ObjectNotFoundException, ConfigurationException, ExpressionEvaluationException {
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".assertAllowRequestItems");

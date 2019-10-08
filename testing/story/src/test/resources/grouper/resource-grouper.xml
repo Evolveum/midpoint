@@ -27,7 +27,7 @@
     <connectorConfiguration>
         <conf:sources>
             <other>
-                <className>com.evolveum.midpoint.testing.story.async.MockAsyncUpdateSource</className>
+                <className>com.evolveum.midpoint.testing.story.grouper.MockAsyncUpdateSource</className>
             </other>
         </conf:sources>
         <conf:transformExpression>
@@ -118,6 +118,50 @@
             <intent>group</intent>
             <objectClass>ri:CustomPlainGroupObjectClass</objectClass>
             <default>true</default>
+            <attribute>
+                <ref>icfs:name</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>extension/grouperName</path>
+                    </target>
+                </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.schema.util.*
+                                import com.evolveum.midpoint.schema.constants.*
+
+                                if (input == null) {
+                                    null
+                                } else {
+                                    archetypeOid = '5f2b96d2-49b5-4a8a-9601-14457309a69b'       // generic-grouper-group archetype
+                                    switch (input) {
+                                        case ~/ref:affiliation:.*/: archetypeOid = '56f53812-047d-4b69-83e8-519a73d161e1'; break;   // affiliation archetype
+                                        case ~/ref:dept:.*/: archetypeOid = '1cec5f78-8fba-459b-9547-ef7485009f40'; break;          // department archetype
+                                        case ~/ref:course:.*/: archetypeOid = '3dab9a72-118b-4e40-a138-bb691c335eca'; break;        // course archetype
+                                        case ~/app:mailinglist:.*/: archetypeOid = '1645d1dc-1f7c-4508-b50b-97b501ccdee3'; break;   // mailing-list archetype
+                                    }
+                                    ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, prismContext)
+                                }
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>assignment</path>
+                        <set>
+                            <predefined>all</predefined>    <!--  we tolerate no other assignments -->
+                        </set>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:member</ref>
+                <fetchStrategy>explicit</fetchStrategy>
+                <storageStrategy>indexOnly</storageStrategy>
+            </attribute>
         </objectType>
     </schemaHandling>
     <synchronization>
@@ -126,6 +170,40 @@
             <kind>entitlement</kind>
             <intent>group</intent>
             <objectClass>ri:CustomPlainGroupObjectClass</objectClass>
+            <focusType>OrgType</focusType>
+            <correlation>
+                <q:equal>
+                    <q:path>extension/grouperName</q:path>
+                    <expression>
+                        <path>
+                            $account/attributes/name
+                        </path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <!-- a separate task will take care of deleted groups -->
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
         </objectSynchronization>
     </synchronization>
     <caching>
