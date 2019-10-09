@@ -1837,11 +1837,34 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertAllow("unassign business role to barbossa (owner)",
         		(task, result) -> unassignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, SchemaConstants.ORG_OWNER, task, result));
 
-        user = getUser(USER_JACK_OID);
-        assertAssignments(user, 1);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertAssignments(userJack, 1);
         
         PrismObject<UserType> userBarbossa = getUser(USER_BARBOSSA_OID);
         assertAssignments(userBarbossa, 0);
+
+        assertAssignableRoleSpecification(userJack)
+                .assertSize(3)
+                .relationDefault()
+                    .filter()
+                        .type(RoleType.COMPLEX_TYPE)
+                            .assertEq(RoleType.F_REQUESTABLE, true)
+                            .end()
+                        .end()
+                    .end()
+                .relation(SchemaConstants.ORG_APPROVER)
+                    .filter()
+                        .type(RoleType.COMPLEX_TYPE)
+                            .assertNull()
+                            .end()
+                        .end()
+                    .end()
+                .relation(SchemaConstants.ORG_OWNER)
+                    .filter()
+                        .type(RoleType.COMPLEX_TYPE)
+                            .assertNull()
+                            .end()
+                        .end();
 
         assertGlobalStateUntouched();
 	}
@@ -3020,10 +3043,11 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         userJack = getUser(USER_JACK_OID);
         assertAssignments(userJack, 2);
-        
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec, "application", "nonexistent");
-        assertFilter(spec.getFilter(), TypeFilter.class);
+
+        assertAssignableRoleSpecification(getUser(USER_JACK_OID))
+                .relationDefault()
+                    .filter()
+                        .assertClass(TypeFilter.class);
 
         assertAllowRequestAssignmentItems(USER_JACK_OID, ROLE_APPLICATION_1_OID,
         		SchemaConstants.PATH_ASSIGNMENT_TARGET_REF, 

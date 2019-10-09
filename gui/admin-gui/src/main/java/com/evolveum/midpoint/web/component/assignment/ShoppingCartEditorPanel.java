@@ -100,4 +100,9 @@ public class ShoppingCartEditorPanel extends AssignmentEditorPanel {
             }
         };
     }
+
+    @Override
+    protected boolean isRelationEditable(){
+        return false;
+    }
 }

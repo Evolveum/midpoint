@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -46,6 +47,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -76,6 +78,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     private static final String ID_REASON = "reason";
     private static final String ID_COMMENT = "requesterCommentMessage";
     private static final String ID_DELTAS_TO_APPROVE = "deltasToBeApproved";
+    private static final String ID_ADDITIONAL_INFORMATION = "additionalInformation";
     private static final String ID_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
     private static final String ID_APPROVER_CONTAINER = "commentContainer";
     private static final String ID_APPROVER_COMMENT = "approverComment";
@@ -176,6 +179,10 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
             add(new WebMarkupContainer(ID_DELTAS_TO_APPROVE));
         }
 
+        InformationListPanel additionalInformation = new InformationListPanel(ID_ADDITIONAL_INFORMATION,
+                Model.ofList(getModelObject().getAdditionalInformation()));
+        additionalInformation.setOutputMarkupId(true);
+        add(additionalInformation);
 
         ApprovalStageDefinitionType level = ApprovalContextUtil.getCurrentStageDefinition(parentCase);
         WebMarkupContainer additionalAttributes = new WebMarkupContainer(ID_ADDITIONAL_ATTRIBUTES);

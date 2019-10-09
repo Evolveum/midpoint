@@ -69,41 +69,25 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
     }
 
     private void initLayout() {
-        CaseWorkItemsPanel workItemsPanel;
-        if (pageParameters != null) {
-            workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST, pageParameters){
-                private static final long serialVersionUID = 1L;
+        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST) {
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                protected ObjectFilter getCaseWorkItemsFilter(){
-                    return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
-                            SecurityUtils.getPrincipalUser(),
-                            OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
-                            .desc(F_CREATE_TIMESTAMP)
-                            .buildFilter();
+            @Override
+            protected List<InlineMenuItem> createRowActions() {
+                List<InlineMenuItem> menu = super.createRowActions();
+
+                List<InlineMenuItem> additionalMenu = PageCaseWorkItems.this.createRowActions();
+                if (additionalMenu != null) {
+                    menu.addAll(additionalMenu);
                 }
-            };
-        } else {
-            workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST){
-                private static final long serialVersionUID = 1L;
+                return menu;
+            }
 
-                @Override
-                protected List<InlineMenuItem> createRowActions() {
-                    List<InlineMenuItem> menu = super.createRowActions();
-
-                    List<InlineMenuItem> additionalMenu = PageCaseWorkItems.this.createRowActions();
-                    if (additionalMenu != null){
-                        menu.addAll(additionalMenu);
-                    }
-                    return menu;
-                }
-
-                @Override
-                protected ObjectFilter getCaseWorkItemsFilter(){
-                    return PageCaseWorkItems.this.getCaseWorkItemsFilter();
-                }
-            };
-        }
+            @Override
+            protected ObjectFilter getCaseWorkItemsFilter() {
+                return PageCaseWorkItems.this.getCaseWorkItemsFilter();
+            }
+        };
         workItemsPanel.setOutputMarkupId(true);
         add(workItemsPanel);
     }
@@ -118,6 +102,10 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
 
     protected CaseWorkItemsPanel getCaseWorkItemsTable() {
         return (CaseWorkItemsPanel) get(createComponentPath(ID_CASE_WORK_ITEMS_TABLE));
+    }
+
+    protected PageParameters getWorkItemsPageParameters(){
+        return pageParameters;
     }
 
 }

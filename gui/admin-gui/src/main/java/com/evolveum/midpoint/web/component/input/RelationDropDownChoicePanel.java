@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -71,7 +72,7 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
         DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), new ListModel<>(supportedRelations), getRenderer(), 
         		getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4",
                 getRelationLabelModel() == null || StringUtils.isEmpty(getRelationLabelModel().getObject()) ? "" : "col-md-8", !allowNull);
-        
+        input.getInput().add(new EnableBehaviour(() -> isRelationDropDownEnabled()));
         input.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         input.getInput().add(new OnChangeAjaxBehavior() {
             private static final long serialVersionUID = 1L;
@@ -120,6 +121,10 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
                 return Integer.toString(index);
             }
         };
+    }
+
+    protected boolean isRelationDropDownEnabled(){
+        return true;
     }
 
     protected IModel<String> getRelationLabelModel(){

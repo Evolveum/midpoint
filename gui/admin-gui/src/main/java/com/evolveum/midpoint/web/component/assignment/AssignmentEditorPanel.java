@@ -989,8 +989,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			protected IModel<String> getRelationLabelModel(){
 				return Model.of();
 			}
+
+			@Override
+			protected boolean isRelationDropDownEnabled(){
+				return isRelationEditable();
+			}
 		};
-		relationDropDown.setEnabled(getModel().getObject().isEditable());
 		relationDropDown.add(new VisibleEnableBehaviour() {
 
 			private static final long serialVersionUID = 1L;
@@ -1002,6 +1006,10 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		});
 		relationContainer.add(relationDropDown);
 
+	}
+
+	protected boolean isRelationEditable(){
+		return getModel().getObject().isEditable();
 	}
 	
 	private List<QName> getSupportedRelations() {
