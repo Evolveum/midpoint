@@ -6,7 +6,10 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
   
-<!-- Resource with special polystring mapping all the way to the connector. -->
+<!-- Complex OpenDJ Resource:
+   * special polystring mapping all the way to the connector (MID-5210)
+   * search scope limited to "one" (MID-5485)
+   -->
 
 <resource oid="10000000-0000-0000-0000-000000000003"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -225,6 +228,34 @@
                 </outbound>
             </attribute>
 
+			<!-- MID-5790 -->
+			<association>
+				<ref>ri:ldapProjectGroup</ref>
+				<displayName>LDAP Project Group Membership</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<kind>entitlement</kind>
+				<intent>ldapProjectGroup</intent>
+				<direction>objectToSubject</direction>
+				<associationAttribute>ri:uniqueMember</associationAttribute>
+				<valueAttribute>ri:dn</valueAttribute>
+				<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+				<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+				<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+			</association>
+			<association>
+				<ref>ri:ldapOrgGroup</ref>
+				<displayName>LDAP Org Group Membership</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<kind>entitlement</kind>
+				<intent>ldapOrgGroup</intent>
+				<direction>objectToSubject</direction>
+				<associationAttribute>ri:uniqueMember</associationAttribute>
+				<valueAttribute>ri:dn</valueAttribute>
+				<shortcutAssociationAttribute>ri:isMemberOf</shortcutAssociationAttribute>
+				<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+				<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+			</association>
+
 			<protected>
        			<filter>
 	       			<q:equal>
@@ -248,6 +279,96 @@
             </credentials>
 
         </objectType>
+
+		<!-- MID-5790 -->
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>ldapProjectGroup</intent>
+			<displayName>LDAP Project Group</displayName>
+			<objectClass>ri:groupOfUniqueNames</objectClass>
+			<baseContext>
+				<objectClass>ri:organizationalUnit</objectClass>
+				<filter>
+					<q:equal>
+						<q:path>attributes/dn</q:path>
+						<q:value>ou=groups,dc=example,dc=com</q:value>
+					</q:equal>
+				</filter>
+			</baseContext>
+			<attribute>
+				<ref>ri:dn</ref>
+				<displayName>Distinguished Name</displayName>
+				<outbound>
+					<!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								basic.composeDnWithSuffix('cn', name, 'ou=groups,dc=example,dc=com')
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:cn</ref>
+				<limitations>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
+				<outbound>
+					<source>
+						<path>name</path>
+					</source>
+				</outbound>
+			</attribute>
+		</objectType>
+
+		<!-- MID-5790 -->
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>ldapOrgGroup</intent>
+			<displayName>LDAP Organization Group</displayName>
+			<objectClass>ri:groupOfUniqueNames</objectClass>
+			<baseContext>
+				<objectClass>ri:organizationalUnit</objectClass>
+				<filter>
+					<q:equal>
+						<q:path>attributes/dn</q:path>
+						<q:value>ou=orgStruct,dc=example,dc=com</q:value>
+					</q:equal>
+				</filter>
+			</baseContext>
+			<attribute>
+				<ref>ri:dn</ref>
+				<displayName>Distinguished Name</displayName>
+				<outbound>
+					<!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								basic.composeDnWithSuffix('cn', name, 'ou=orgStruct,dc=example,dc=com')
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:cn</ref>
+				<limitations>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
+				<outbound>
+					<source>
+						<path>name</path>
+					</source>
+				</outbound>
+			</attribute>
+		</objectType>
         
 	</schemaHandling>
 	

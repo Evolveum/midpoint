@@ -55,6 +55,8 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
             @Override
             protected void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected,
                                                    AjaxRequestTarget target) {
+                setSelected(selected);
+                refreshContentPannels();
                 RoleCatalogTabPanel.this.selectTreeItemPerformed(selected, target);
             }
 
