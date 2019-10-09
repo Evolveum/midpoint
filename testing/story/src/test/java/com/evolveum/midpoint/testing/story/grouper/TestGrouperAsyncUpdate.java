@@ -360,13 +360,11 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
-		if (false) {        // Disabled because of MID-5832
-			assertMembers(ALUMNI_NAME, task, result, JLEWIS685_USERNAME, NOBODY_USERNAME);
+		assertMembers(ALUMNI_NAME, task, result, JLEWIS685_USERNAME, NOBODY_USERNAME);
 
-			assertUserAfterByUsername(BANDERSON_USERNAME)
-					.triggers()
-					.assertTriggers(1);
-		}
+		assertUserAfterByUsername(BANDERSON_USERNAME)
+				.triggers()
+				.assertTriggers(1);
 	}
 
 	private Task createTestTask(String TEST_NAME) {

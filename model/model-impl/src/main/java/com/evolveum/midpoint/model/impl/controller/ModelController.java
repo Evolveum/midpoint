@@ -2309,23 +2309,22 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		PrismObject<ShadowType> oldShadow;
 		LOGGER.trace("resolving old object");
 		if (!StringUtils.isEmpty(oldShadowOid)) {
+			// FIXME we should not get object from resource here: it should be sufficient to retrieve object from the repository
+			//  (and even that can be skipped, if identifiers are correctly set) ... MID-5834
 			oldShadow = getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
-			eventDescription.setOldShadow(oldShadow);
+			eventDescription.setOldRepoShadow(oldShadow);
 			LOGGER.trace("old object resolved to: {}", oldShadow.debugDumpLazily());
 		} else {
 			LOGGER.trace("Old shadow null");
 		}
 
-		PrismObject<ShadowType> currentShadow = null;
-		ShadowType currentShadowType = changeDescription.getCurrentShadow();
-		LOGGER.trace("resolving current shadow");
-		if (currentShadowType != null) {
-			prismContext.adopt(currentShadowType);
-			currentShadow = currentShadowType.asPrismObject();
-			LOGGER.trace("current shadow resolved to {}", currentShadow.debugDumpLazily());
+		ShadowType currentResourceObjectBean = changeDescription.getCurrentShadow();
+		if (currentResourceObjectBean != null) {
+			PrismObject<ShadowType> currentResourceObject = currentResourceObjectBean.asPrismObject();
+			prismContext.adopt(currentResourceObject);
+			LOGGER.trace("current resource object:\n{}", currentResourceObject.debugDumpLazily());
+			eventDescription.setCurrentResourceObject(currentResourceObject);
 		}
-
-		eventDescription.setCurrentShadow(currentShadow);
 
 		ObjectDeltaType deltaType = changeDescription.getObjectDelta();
 

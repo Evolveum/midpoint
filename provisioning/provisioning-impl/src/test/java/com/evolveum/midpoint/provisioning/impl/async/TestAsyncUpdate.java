@@ -71,6 +71,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 	private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-first-occurrence.xml");
 	private static final File CHANGE_110 = new File(TEST_DIR, "change-110-banderson-delta-add-values.xml");
+	private static final File CHANGE_112 = new File(TEST_DIR, "change-112-banderson-delta-add-more-values.xml");
 	private static final File CHANGE_115 = new File(TEST_DIR, "change-115-banderson-delta-delete-values.xml");
 	private static final File CHANGE_117 = new File(TEST_DIR, "change-117-banderson-delta-replace-values.xml");
 	private static final File CHANGE_120 = new File(TEST_DIR, "change-120-banderson-new-state.xml");
@@ -85,16 +86,16 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	private static final Trace LOGGER = TraceManager.getTrace(TestAsyncUpdate.class);
 
 	private static final long TIMEOUT = 5000L;
-	public static final String ATTR_TEST = "test";
-	public static final String ATTR_MEMBER_OF = "memberOf";
+	private static final String ATTR_TEST = "test";
+	private static final String ATTR_MEMBER_OF = "memberOf";
 
 	protected PrismObject<ResourceType> resource;
 
-	@Override
-	protected TracingProfileType getTestMethodTracingProfile() {
-		return createModelAndProvisioningLoggingTracingProfile()
-				.fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-	}
+//	@Override
+//	protected TracingProfileType getTestMethodTracingProfile() {
+//		return createModelAndProvisioningLoggingTracingProfile()
+//				.fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+//	}
 
 	@Override
 	protected boolean isAutoTaskManagementEnabled() {
@@ -114,7 +115,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		InternalsConfig.setSanityChecks(true);
 
-		setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
+//		setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
 	}
 
 	@NotNull
@@ -312,6 +313,47 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		}
 	}
 
+	@Test
+	public void test112ListeningForValueAddMore(ITestContext ctx) throws Exception {
+		Task task = getTask(ctx);
+		OperationResult result = getResult(ctx);
+
+		prepareMessage(CHANGE_112);
+
+		syncServiceMock.reset();
+
+		setDummyAccountTestAttribute("banderson", "value1", "value2", "value3", "value4");
+
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		dumpAsyncUpdateListeningActivity(handle, task, result);
+		syncServiceMock.waitForNotifyChange(TIMEOUT);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+
+		PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
+		assertNotNull("Old shadow missing", oldShadow);
+		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+
+		assertNotNull("Delta is missing", lastChange.getObjectDelta());
+		assertTrue("Delta is not a MODIFY one", lastChange.getObjectDelta().isModify());
+		Collection<? extends ItemDelta<?, ?>> modifications = lastChange.getObjectDelta().getModifications();
+		assertEquals("Wrong # of modifications", 2, modifications.size());
+		Iterator<? extends ItemDelta<?, ?>> iterator = modifications.iterator();
+		assertEquals("Wrong # of values added (first mod)", 1, iterator.next().getValuesToAdd().size());
+		assertEquals("Wrong # of values added (second mod)", 1, iterator.next().getValuesToAdd().size());
+		assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
+
+		ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
+		if (isCached()) {
+			asserter.attributes()
+					.attribute(ATTR_TEST).assertRealValues("value1", "value2", "value3", "value4").end()
+					.attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group2", "group3", "group4", "group5", "group6", "group7").end();
+		}
+	}
+
 	@Test // MID-5832
 	public void test115ListeningForValueDelete(ITestContext ctx) throws Exception {
 		Task task = getTask(ctx);
@@ -321,7 +363,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		syncServiceMock.reset();
 
-		setDummyAccountTestAttribute("banderson", "value1", "value3");
+		setDummyAccountTestAttribute("banderson", "value1", "value3", "value4");
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
 		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
@@ -348,8 +390,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
 		if (isCached()) {
 			asserter.attributes()
-					.attribute(ATTR_TEST).assertRealValues("value1", "value3").end()
-					.attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group4", "group5", "group6").end();
+					.attribute(ATTR_TEST).assertRealValues("value1", "value3", "value4").end()
+					.attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group4", "group5", "group6", "group7").end();
 		}
 	}
 

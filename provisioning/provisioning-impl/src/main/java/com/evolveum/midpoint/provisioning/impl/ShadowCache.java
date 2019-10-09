@@ -296,7 +296,7 @@ public class ShadowCache {
 				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump(1));
 			}
 
-			repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repositoryShadow, null, shadowState, parentResult);
+			repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, null, repositoryShadow, shadowState, parentResult);
 			LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDumpLazily(1));
 
 			// Complete the shadow by adding attributes from the resource object
@@ -1903,7 +1903,7 @@ public class ShadowCache {
 						// shadow should have proper kind/intent
 						ProvisioningContext shadowCtx = shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 						// TODO: shadowState
-						repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repoShadow, null,
+						repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, null, repoShadow,
 								null, parentResult);
 						
 						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, isDoDiscovery, objResult);

@@ -485,7 +485,7 @@ public class ShadowManager {
 
 		assert !change.isDelete();
 
-		PrismObject<ShadowType> shadow = change.getCurrentShadow();
+		PrismObject<ShadowType> shadow = change.getCurrentResourceObject();
 		
 		if (shadow == null) {
 			if (change.isAdd()) {
@@ -1832,37 +1832,39 @@ public class ShadowManager {
 	}
 	
 	/**
-	 * Updates repository shadow based on shadow or delta from resource.
+	 * Updates repository shadow based on object or delta from resource.
 	 * Handles rename cases, change of auxiliary object classes, etc.
 	 *
-	 * @param explicitShadowDelta This is delta coming from the resource (if known).
+	 * @param currentResourceObject Current state of the resource object (if known).
+	 * @param resourceObjectDelta Delta coming from the resource (if known).
+	 *
+	 * TODO should the currentResourceObject be already "shadowized", i.e. completed?
 	 *
 	 * @return repository shadow as it should look like after the update
 	 */
 	public PrismObject<ShadowType> updateShadow(@NotNull ProvisioningContext ctx,
-			@NotNull PrismObject<ShadowType> resourceShadowNew,
-			@NotNull PrismObject<ShadowType> repoShadowOld,
-			ObjectDelta<ShadowType> explicitShadowDelta,
-			ShadowState shadowState, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+			@NotNull PrismObject<ShadowType> currentResourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
+			@NotNull PrismObject<ShadowType> oldShadow, ShadowState shadowState, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
+			ExpressionEvaluationException {
 
-		ObjectDelta<ShadowType> computedShadowDelta = shadowDeltaComputer.computeShadowDelta(ctx, repoShadowOld, resourceShadowNew,
-				explicitShadowDelta, shadowState);
+		ObjectDelta<ShadowType> computedShadowDelta = shadowDeltaComputer.computeShadowDelta(ctx, oldShadow, currentResourceObject,
+				resourceObjectDelta, shadowState);
 
 		if (!computedShadowDelta.isEmpty()) {
-			LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadowOld, computedShadowDelta.debugDumpLazily(1));
+			LOGGER.trace("Updating repo shadow {} with delta:\n{}", oldShadow, computedShadowDelta.debugDumpLazily(1));
 			ConstraintsChecker.onShadowModifyOperation(computedShadowDelta.getModifications());
 			try {
-				repositoryService.modifyObject(ShadowType.class, repoShadowOld.getOid(), computedShadowDelta.getModifications(), parentResult);
+				repositoryService.modifyObject(ShadowType.class, oldShadow.getOid(), computedShadowDelta.getModifications(), parentResult);
 			} catch (ObjectAlreadyExistsException e) {
 				throw new SystemException(e.getMessage(), e);       // This should not happen for shadows
 			}
-			PrismObject<ShadowType> repoShadowNew = repoShadowOld.clone();
-			computedShadowDelta.applyTo(repoShadowNew);
-			return repoShadowNew;
+			PrismObject<ShadowType> newShadow = oldShadow.clone();
+			computedShadowDelta.applyTo(newShadow);
+			return newShadow;
 		} else {
-			LOGGER.trace("No need to update repo shadow {} (empty delta)", repoShadowOld);
-			return repoShadowOld;
+			LOGGER.trace("No need to update repo shadow {} (empty delta)", oldShadow);
+			return oldShadow;
 		}		
 	}
 
