@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -27,7 +28,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -39,7 +39,6 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -103,6 +102,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         // WHEN
+        displayWhen(TEST_NAME);
         assertSuperuserAccess(NUMBER_OF_ALL_USERS);
 
         assertGlobalStateUntouched();
@@ -2269,9 +2269,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
 
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec, "application", "nonexistent");
-        assertFilter(spec.getFilter(), TypeFilter.class);
+        assertAssignableRoleSpecification(getUser(USER_JACK_OID))
+                .relationDefault()
+                    .filter()
+                        .assertClass(TypeFilter.class);
 
         assertAllowRequestAssignmentItems(USER_JACK_OID, ROLE_APPLICATION_1_OID,
         		SchemaConstants.PATH_ASSIGNMENT_TARGET_REF, 
@@ -2323,9 +2324,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
 
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec);
-        assertFilter(spec.getFilter(), TypeFilter.class);
+        assertAssignableRoleSpecification(getUser(USER_JACK_OID))
+                .relationDefault()
+                    .filter()
+                        .assertClass(TypeFilter.class);
 
         assertAllowRequestAssignmentItems(USER_JACK_OID, ROLE_APPLICATION_1_OID,
         		SchemaConstants.PATH_ASSIGNMENT_DESCRIPTION,
@@ -2434,9 +2436,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
 
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec);
-        assertFilter(spec.getFilter(), TypeFilter.class);
+        assertAssignableRoleSpecification(getUser(USER_JACK_OID))
+            .relationDefault()
+                .filter()
+                    .assertClass(TypeFilter.class);
 
         assertGlobalStateUntouched();
 	}
@@ -2481,14 +2484,13 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 1);
 
-        RoleSelectionSpecification assignableSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID), 0);
-        assertRoleTypes(assignableSpec);
-        assertFilter(assignableSpec.getFilter(), TypeFilter.class);
+        assertAssignableRoleSpecification(getUser(USER_JACK_OID))
+            .relationDefault()
+                .filter()
+                    .assertClass(TypeFilter.class);
 
-        RoleSelectionSpecification induceableSpec = getAssignableRoleSpecification(getRole(ROLE_ASSIGN_REQUESTABLE_ROLES_OID), RoleType.class, 1);
-        display("Induceable role spec", induceableSpec);
-        assertRoleTypes(induceableSpec);
-        assertFilter(induceableSpec.getFilter(), NoneFilter.class);
+        assertAssignableRoleSpecification(getRole(ROLE_ASSIGN_REQUESTABLE_ROLES_OID), RoleType.class, 1)
+            .assertNoAccess();
 
         assertGlobalStateUntouched();
 	}
@@ -2521,12 +2523,13 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		user = getUser(USER_JACK_OID);
 		assertAssignments(user, OrgType.class,1);
 
-		RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-		assertRoleTypes(spec);
+        ObjectFilter jackAssignableRoleFilter = assertAssignableRoleSpecification(getUser(USER_JACK_OID))
+                .relationDefault()
+                    .filter()
+                        .getFilter();
 
 		ObjectQuery query = prismContext.queryFactory().createQuery();
-
-		query.addFilter(spec.getFilter());
+		query.addFilter(jackAssignableRoleFilter);
 		assertSearch(AbstractRoleType.class, query, 9);
 
 		assertAllow("unassign business role from jack",
@@ -2582,14 +2585,15 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         user = getUser(USER_JACK_OID);
         assertAssignments(user, 2);
 
-        RoleSelectionSpecification assignableSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID), 0);
-        assertRoleTypes(assignableSpec);
-        assertFilter(assignableSpec.getFilter(), TypeFilter.class);
+        assertAssignableRoleSpecification(getUser(USER_JACK_OID))
+                .relationDefault()
+                    .filter()
+                        .assertClass(TypeFilter.class);
 
-        RoleSelectionSpecification induceableSpec = getAssignableRoleSpecification(getRole(ROLE_ASSIGN_REQUESTABLE_ROLES_OID), RoleType.class, 1);
-        display("Induceable role spec", induceableSpec);
-        assertRoleTypes(induceableSpec);
-        assertFilter(induceableSpec.getFilter(), null);
+        assertAssignableRoleSpecification(getRole(ROLE_ASSIGN_REQUESTABLE_ROLES_OID), RoleType.class, 1)
+                .relationDefault()
+                    .filter()
+                        .assertNull();
 
         assertGlobalStateUntouched();
 	}
@@ -2638,9 +2642,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         display("user after (expected 1 assignments)", user);
         assertAssignments(user, 1);
 
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec);
-        assertFilter(spec.getFilter(), TypeFilter.class);
+        assertAssignableRoleSpecification(user)
+                .relationDefault()
+                    .filter()
+                        .assertClass(TypeFilter.class);
 
         assertGlobalStateUntouched();
 	}
@@ -2722,9 +2727,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         display("user after (expected 1 assignments)", user);
         assertAssignments(user, 1);
 
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec);
-        assertFilter(spec.getFilter(), TypeFilter.class);
+        assertAssignableRoleSpecification(user)
+                .relationDefault()
+                    .filter()
+                        .assertClass(TypeFilter.class);
 
         assertGlobalStateUntouched();
 	}
@@ -2790,9 +2796,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         display("user after (expected 2 assignments)", user);
         assertAssignments(user, 1);
 
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec);
-        assertFilter(spec.getFilter(), TypeFilter.class);
+        assertAssignableRoleSpecification(user)
+                .relationDefault()
+                    .filter()
+                        .assertClass(TypeFilter.class);
 
         assertGlobalStateUntouched();
 	}
@@ -2843,9 +2850,10 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         display("user after (expected 1 assignments)", user);
         assertAssignments(user, 1);
 
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec);
-        assertFilter(spec.getFilter(), TypeFilter.class);
+        assertAssignableRoleSpecification(user)
+                .relationDefault()
+                    .filter()
+                        .assertClass(TypeFilter.class);
 
         assertGlobalStateUntouched();
 	}
@@ -3132,22 +3140,26 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // WHEN
         displayWhen(TEST_NAME);
 
-        RoleSelectionSpecification specJack = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        display("Spec (jack)", specJack);
-        assertRoleTypes(specJack);
+        ObjectFilter jackAssignableRoleFilter = assertAssignableRoleSpecification(getUser(USER_JACK_OID))
+                .relationDefault()
+                    .filter()
+                        .assertNotNull()
+                        .getFilter();
 
         Task task = taskManager.createTaskInstance();
         SearchResultList<PrismObject<AbstractRoleType>> assignableRolesJack =
-        		modelService.searchObjects(AbstractRoleType.class, prismContext.queryFactory().createQuery(specJack.getFilter()), null, task, task.getResult());
+        		modelService.searchObjects(AbstractRoleType.class, prismContext.queryFactory().createQuery(jackAssignableRoleFilter), null, task, task.getResult());
         display("Assignable roles", assignableRolesJack);
         assertObjectOids("Wrong assignable roles (jack)", assignableRolesJack, ROLE_BUSINESS_3_OID);
 
-        RoleSelectionSpecification specRum = getAssignableRoleSpecification(getUser(userRumRogersOid));
-        display("Spec (rum)", specRum);
-        assertRoleTypes(specRum);
+        ObjectFilter rumAssignableRoleFilter = assertAssignableRoleSpecification(getUser(userRumRogersOid))
+                .relationDefault()
+                    .filter()
+                        .assertClass(TypeFilter.class)
+                        .getFilter();
 
         SearchResultList<PrismObject<AbstractRoleType>> assignableRolesRum =
-        		modelService.searchObjects(AbstractRoleType.class, prismContext.queryFactory().createQuery(specRum.getFilter()), null, task, task.getResult());
+        		modelService.searchObjects(AbstractRoleType.class, prismContext.queryFactory().createQuery(rumAssignableRoleFilter), null, task, task.getResult());
         display("Assignable roles", assignableRolesRum);
         assertObjectOids("Wrong assignable roles (rum)", assignableRolesRum, ROLE_BUSINESS_3_OID);
 

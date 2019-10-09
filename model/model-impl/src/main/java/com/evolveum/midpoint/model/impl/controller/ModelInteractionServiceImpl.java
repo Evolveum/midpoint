@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.security.enforcer.api.FilterGizmo;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
@@ -484,11 +485,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public <F extends FocusType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<F> focus, Class<R> targetType, int assignmentOrder, Task task, OperationResult parentResult)
+	public <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<H> focus, Class<R> targetType, int assignmentOrder, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
 		OperationResult result = parentResult.createMinorSubresult(GET_ASSIGNABLE_ROLE_SPECIFICATION);
-
-		RoleSelectionSpecification spec = new RoleSelectionSpecification();
 
 		ObjectSecurityConstraints securityConstraints;
 		try {
@@ -503,208 +502,121 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (securityConstraints == null) {
 			return null;
 		}
+
+		// Global decisions: processing #modify authorizations: allow/deny for all items or allow/deny for assignment/inducement item.
 		ItemPath assignmentPath;
 		if (assignmentOrder == 0) {
 			assignmentPath = SchemaConstants.PATH_ASSIGNMENT;
 		} else {
 			assignmentPath = SchemaConstants.PATH_INDUCEMENT;
 		}
-		AuthorizationDecisionType decision = securityConstraints.findItemDecision(assignmentPath,
+		AuthorizationDecisionType assignmentItemDecision = securityConstraints.findItemDecision(assignmentPath,
 				ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
-		LOGGER.trace("getAssignableRoleSpecification decision for {}:{}", assignmentPath, decision);
-		if (decision == AuthorizationDecisionType.ALLOW) {
-			getAllRoleTypesSpec(spec, result);
+		LOGGER.trace("getAssignableRoleSpecification decision for {}:{}", assignmentPath, assignmentItemDecision);
+		if (assignmentItemDecision == AuthorizationDecisionType.ALLOW) {
+			RoleSelectionSpecification spec = new RoleSelectionSpecification();
+			spec.setGlobalFilter(prismContext.queryFactory().createAll());
 			result.recordSuccess();
 			return spec;
 		}
-		if (decision == AuthorizationDecisionType.DENY) {
+		if (assignmentItemDecision == AuthorizationDecisionType.DENY) {
 			result.recordSuccess();
-			spec.setNoRoleTypes();
-			spec.setFilter(FilterCreationUtil.createNone(prismContext));
+			RoleSelectionSpecification spec = new RoleSelectionSpecification();
+			spec.setGlobalFilter(prismContext.queryFactory().createNone());
 			return spec;
 		}
-		decision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
-		if (decision == AuthorizationDecisionType.ALLOW) {
-			getAllRoleTypesSpec(spec, result);
+		AuthorizationDecisionType allItemsDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
+		if (allItemsDecision == AuthorizationDecisionType.ALLOW) {
+			RoleSelectionSpecification spec = new RoleSelectionSpecification();
+			spec.setGlobalFilter(prismContext.queryFactory().createAll());
 			result.recordSuccess();
 			return spec;
 		}
-		if (decision == AuthorizationDecisionType.DENY) {
+		if (allItemsDecision == AuthorizationDecisionType.DENY) {
 			result.recordSuccess();
-			spec.setNoRoleTypes();
-			spec.setFilter(FilterCreationUtil.createNone(prismContext));
+			RoleSelectionSpecification spec = new RoleSelectionSpecification();
+			spec.setGlobalFilter(prismContext.queryFactory().createNone());
 			return spec;
 		}
 
+		// Assignment decisions: processing #assign authorizations
+		MidPointPrincipal principal = securityEnforcer.getMidPointPrincipal();
 		OrderConstraintsType orderConstraints = new OrderConstraintsType();
 		orderConstraints.setOrder(assignmentOrder);
 		List<OrderConstraintsType> orderConstraintsList = new ArrayList<>(1);
 		orderConstraintsList.add(orderConstraints);
+
+		FilterGizmo<RoleSelectionSpecification> gizmo =  new FilterGizmoAssignableRoles(prismContext);
+
 		try {
-			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
-					AuthorizationPhaseType.REQUEST, targetType, focus, FilterCreationUtil.createAll(prismContext), null, orderConstraintsList, task, result);
-			LOGGER.trace("assignableRoleSpec filter: {}", filter);
-			spec.setFilter(filter);
-			if (filter instanceof NoneFilter) {
-				result.recordSuccess();
-				spec.setNoRoleTypes();
-				return spec;
-			} else if (filter == null || filter instanceof AllFilter) {
-				getAllRoleTypesSpec(spec, result);
-				result.recordSuccess();
-				return spec;
-			} else if (filter instanceof OrFilter) {
-				Collection<RoleSelectionSpecEntry> allRoleTypeDvals = new ArrayList<>();
-				for (ObjectFilter subfilter: ((OrFilter)filter).getConditions()) {
-					Collection<RoleSelectionSpecEntry> roleTypeDvals =  getRoleSelectionSpecEntries(subfilter);
-					if (roleTypeDvals == null || roleTypeDvals.isEmpty()) {
-						// This branch of the OR clause does not have any constraint for roleType
-						// therefore all role types are possible (regardless of other branches, this is OR)
-						spec = new RoleSelectionSpecification();
-						spec.setFilter(filter);
-						getAllRoleTypesSpec(spec, result);
-						result.recordSuccess();
-						return spec;
-					} else {
-						allRoleTypeDvals.addAll(roleTypeDvals);
-					}
-				}
-				addRoleTypeSpecEntries(spec, allRoleTypeDvals, result);
-			} else {
-				Collection<RoleSelectionSpecEntry> roleTypeDvals = getRoleSelectionSpecEntries(filter);
-				if (roleTypeDvals == null || roleTypeDvals.isEmpty()) {
-					getAllRoleTypesSpec(spec, result);
-					result.recordSuccess();
-					return spec;
-				} else {
-					addRoleTypeSpecEntries(spec, roleTypeDvals, result);
-				}
-			}
+
+			RoleSelectionSpecification spec = securityEnforcer.computeSecurityFilter(principal, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN, AuthorizationPhaseType.REQUEST,
+					targetType, focus, prismContext.queryFactory().createAll(), null, orderConstraintsList, gizmo, task, result);
+
 			result.recordSuccess();
 			return spec;
+
 		} catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException e) {
 			result.recordFatalError(e);
 			throw e;
 		}
+
+//
+//		// Assignment decisions: processing #assign authorizations
+//		OrderConstraintsType orderConstraints = new OrderConstraintsType();
+//		orderConstraints.setOrder(assignmentOrder);
+//		List<OrderConstraintsType> orderConstraintsList = new ArrayList<>(1);
+//		orderConstraintsList.add(orderConstraints);
+//		try {
+//			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
+//					AuthorizationPhaseType.REQUEST, targetType, focus, FilterCreationUtil.createAll(prismContext), null, orderConstraintsList, task, result);
+//			LOGGER.trace("assignableRoleSpec filter: {}", filter);
+//			spec.setFilter(filter);
+//			if (filter instanceof NoneFilter) {
+//				result.recordSuccess();
+//				spec.setNoRoleTypes();
+//				return spec;
+//			} else if (filter == null || filter instanceof AllFilter) {
+//				getGlobalAssignableRoleSpecification(spec, result);
+//				result.recordSuccess();
+//				return spec;
+//			} else if (filter instanceof OrFilter) {
+//				Collection<RoleSelectionSpecEntry> allRoleTypeDvals = new ArrayList<>();
+//				for (ObjectFilter subfilter: ((OrFilter)filter).getConditions()) {
+//					Collection<RoleSelectionSpecEntry> roleTypeDvals =  getRoleSelectionSpecEntries(subfilter);
+//					if (roleTypeDvals == null || roleTypeDvals.isEmpty()) {
+//						// This branch of the OR clause does not have any constraint for roleType
+//						// therefore all role types are possible (regardless of other branches, this is OR)
+//						spec = new RoleSelectionSpecification();
+//						spec.setFilter(filter);
+//						getGlobalAssignableRoleSpecification(spec, result);
+//						result.recordSuccess();
+//						return spec;
+//					} else {
+//						allRoleTypeDvals.addAll(roleTypeDvals);
+//					}
+//				}
+//				addRoleTypeSpecEntries(spec, allRoleTypeDvals, result);
+//			} else {
+//				Collection<RoleSelectionSpecEntry> roleTypeDvals = getRoleSelectionSpecEntries(filter);
+//				if (roleTypeDvals == null || roleTypeDvals.isEmpty()) {
+//					getGlobalAssignableRoleSpecification(spec, result);
+//					result.recordSuccess();
+//					return spec;
+//				} else {
+//					addRoleTypeSpecEntries(spec, roleTypeDvals, result);
+//				}
+//			}
+//			result.recordSuccess();
+//			return spec;
+//		} catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException e) {
+//			result.recordFatalError(e);
+//			throw e;
+//		}
+
+
 	}
 
-	private void addRoleTypeSpecEntries(RoleSelectionSpecification spec,
-			Collection<RoleSelectionSpecEntry> roleTypeDvals, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		if (roleTypeDvals == null || roleTypeDvals.isEmpty()) {
-			getAllRoleTypesSpec(spec, result);
-		} else {
-			if (RoleSelectionSpecEntry.hasNegative(roleTypeDvals)) {
-				Collection<RoleSelectionSpecEntry> positiveList = RoleSelectionSpecEntry.getPositive(roleTypeDvals);
-				if (positiveList == null || positiveList.isEmpty()) {
-					positiveList = getRoleSpecEntriesForAllRoles(result);
-				}
-				if (positiveList == null || positiveList.isEmpty()) {
-					return;
-				}
-				for (RoleSelectionSpecEntry positiveEntry: positiveList) {
-					if (!RoleSelectionSpecEntry.hasNegativeValue(roleTypeDvals,positiveEntry.getValue())) {
-						spec.addRoleType(positiveEntry);
-					}
-				}
-
-			} else {
-				spec.addRoleTypes(roleTypeDvals);
-			}
-		}
-	}
-
-	private RoleSelectionSpecification getAllRoleTypesSpec(RoleSelectionSpecification spec, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		Collection<RoleSelectionSpecEntry> allEntries = getRoleSpecEntriesForAllRoles(result);
-		if (allEntries == null || allEntries.isEmpty()) {
-			return spec;
-		}
-		spec.addRoleTypes(allEntries);
-		return spec;
-	}
-
-	private Collection<RoleSelectionSpecEntry> getRoleSpecEntriesForAllRoles(OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		ObjectTemplateType objectTemplateType = schemaTransformer.determineObjectTemplate(RoleType.class, AuthorizationPhaseType.REQUEST, result);
-		if (objectTemplateType == null) {
-			return null;
-		}
-		Collection<RoleSelectionSpecEntry> allEntries = new ArrayList();
-		for(ObjectTemplateItemDefinitionType itemDef: objectTemplateType.getItem()) {
-			ItemPathType ref = itemDef.getRef();
-			if (ref == null) {
-				continue;
-			}
-			ItemPath itemPath = ref.getItemPath();
-			QName itemName = ItemPath.toNameOrNull(itemPath.first());
-			if (itemName == null) {
-				continue;
-			}
-			if (QNameUtil.match(RoleType.F_ROLE_TYPE, itemName)) {      // TODO what about roleType->subtype migration (MID-4818)?
-				ObjectReferenceType valueEnumerationRef = itemDef.getValueEnumerationRef();
-				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
-					return allEntries;
-				}
-				Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-						.item(LookupTableType.F_ROW).retrieve()
-						.build();
-				PrismObject<LookupTableType> lookup = cacheRepositoryService.getObject(LookupTableType.class, valueEnumerationRef.getOid(),
-						options, result);
-				for (LookupTableRowType row: lookup.asObjectable().getRow()) {
-					PolyStringType polyLabel = row.getLabel();
-					String key = row.getKey();
-					String label = key;
-					if (polyLabel != null) {
-						label = polyLabel.getOrig();
-					}
-					RoleSelectionSpecEntry roleTypeDval = new RoleSelectionSpecEntry(key, label, null);
-					allEntries.add(roleTypeDval);
-				}
-				return allEntries;
-			}
-		}
-		return allEntries;
-	}
-
-	private Collection<RoleSelectionSpecEntry> getRoleSelectionSpecEntries(ObjectFilter filter) throws SchemaException {
-		LOGGER.trace("getRoleSelectionSpec({})", filter);
-		if (filter == null || filter instanceof AllFilter) {
-			return null;
-		} else if (filter instanceof EqualFilter<?>) {
-			return createSingleDisplayableValueCollection(getRoleSelectionSpecEq((EqualFilter)filter));
-		} else if (filter instanceof AndFilter) {
-			for (ObjectFilter subfilter: ((AndFilter)filter).getConditions()) {
-				if (subfilter instanceof EqualFilter<?>) {
-					RoleSelectionSpecEntry roleTypeDval = getRoleSelectionSpecEq((EqualFilter)subfilter);
-					if (roleTypeDval != null) {
-						return createSingleDisplayableValueCollection(roleTypeDval);
-					}
-				}
-			}
-			return null;
-		} else if (filter instanceof OrFilter) {
-			Collection<RoleSelectionSpecEntry> col = new ArrayList<>(((OrFilter)filter).getConditions().size());
-			for (ObjectFilter subfilter: ((OrFilter)filter).getConditions()) {
-				if (subfilter instanceof EqualFilter<?>) {
-					RoleSelectionSpecEntry roleTypeDval = getRoleSelectionSpecEq((EqualFilter)subfilter);
-					if (roleTypeDval != null) {
-						col.add(roleTypeDval);
-					}
-				}
-			}
-			return col;
-		} else if (filter instanceof TypeFilter) {
-			return getRoleSelectionSpecEntries(((TypeFilter)filter).getFilter());
-		} else if (filter instanceof NotFilter) {
-			Collection<RoleSelectionSpecEntry> subRoleSelectionSpec = getRoleSelectionSpecEntries(((NotFilter)filter).getFilter());
-			RoleSelectionSpecEntry.negate(subRoleSelectionSpec);
-			return subRoleSelectionSpec;
-		} else if (filter instanceof RefFilter || filter instanceof InOidFilter) {
-			return null;
-		} else {
-			throw new UnsupportedOperationException("Unexpected filter "+filter);
-		}
-	}
 
 	private Collection<RoleSelectionSpecEntry> createSingleDisplayableValueCollection(
 			RoleSelectionSpecEntry dval) {
