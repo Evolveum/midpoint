@@ -113,8 +113,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
 	public static final String ACCOUNT_GUYBRUSH_DUMMY_ORANGE_USERNAME = "guybrush";
 
-	private static final QName RESOURCE_DUMMY_GROUP_OBJECTCLASS = new QName(RESOURCE_DUMMY_NAMESPACE, "GroupObjectClass");
-
 	private static final String USER_WALLY_NAME = "wally";
 	private static final String USER_WALLY_FULLNAME = "Wally B. Feed";
 
@@ -336,11 +334,29 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
+        assertGroupMember(GROUP_DUMMY_LANDLUBERS_NAME, USER_WALLY_NAME, getDummyResource());
 		assertGroupMember(GROUP_DUMMY_MAPMAKERS_NAME, USER_WALLY_NAME, getDummyResource());
-	}
+
+        PrismObject<ShadowType> groupLandlubersShadow = findShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_LANDLUBERS_NAME, getDummyResourceObject(), result);
+        PrismObject<ShadowType> groupMapmakersShadow = findShadowByName(RESOURCE_DUMMY_GROUP_OBJECTCLASS, GROUP_DUMMY_MAPMAKERS_NAME, getDummyResourceObject(), result);
+        assertShadow(groupMapmakersShadow, "mapmakers shadow")
+                // Group shadows are not well classified here. Mapmakers group was created from midPoint. MidPoint just discovered it.
+                // And as there is no synchronization configuration for this, the kind/intent are not set correctly.
+                // However, associations should work (acceptably) well anyway.
+                .assertKind(ShadowKindType.UNKNOWN);
+
+        String accountWallyOid = assertUserAfterByUsername(USER_WALLY_NAME)
+            .singleLink()
+                .getOid();
+
+        assertModelShadow(accountWallyOid)
+            .associations()
+                .assertSize(2)
+                .association(RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME)
+                    .assertShadowOids(groupLandlubersShadow.getOid(), groupMapmakersShadow.getOid());
+    }
 
     @Test
     public void test224UnassignRoleMapmakerFromWally() throws Exception {
@@ -605,7 +621,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
     /**
      * after renaming user largo it should be also propagated to the associations
-     * @throws Exception
      */
     @Test
     public void test317RenameLargo() throws Exception {
