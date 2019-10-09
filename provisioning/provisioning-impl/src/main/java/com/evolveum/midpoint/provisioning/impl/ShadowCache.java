@@ -71,10 +71,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Shadow cache is a facade that covers all the operations with shadows. It
@@ -303,6 +300,7 @@ public class ShadowCache {
 				LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDump(1));
 			}
 			// Complete the shadow by adding attributes from the resource object
+			// This also completes the associations by adding shadowRefs
 			PrismObject<ShadowType> resultShadow = completeShadow(shadowCtx, resourceShadow, repositoryShadow, false, parentResult);
 
 			if (LOGGER.isTraceEnabled()) {
@@ -2471,7 +2469,7 @@ public class ShadowCache {
 	/**
 	 * Make sure that the shadow is complete, e.g. that all the mandatory fields
 	 * are filled (e.g name, resourceRef, ...) Also transforms the shadow with
-	 * respect to simulated capabilities. 
+	 * respect to simulated capabilities. Also shadowRefs are added to associations.
 	 */
 	public PrismObject<ShadowType> completeShadow(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow, boolean isDoDiscovery,
@@ -2562,85 +2560,7 @@ public class ShadowCache {
 		if (resourceAssociationContainer != null) {
 			PrismContainer<ShadowAssociationType> associationContainer = resourceAssociationContainer.clone();
 			resultShadow.addReplaceExisting(associationContainer);
-			if (associationContainer != null) {
-				for (PrismContainerValue<ShadowAssociationType> associationCVal : associationContainer
-						.getValues()) {
-					ResourceAttributeContainer identifierContainer = ShadowUtil
-							.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
-					Collection<ResourceAttribute<?>> entitlementIdentifiers = identifierContainer
-							.getAttributes();
-					if (entitlementIdentifiers == null || entitlementIdentifiers.isEmpty()) {
-						throw new IllegalStateException(
-								"No entitlement identifiers present for association " + associationCVal + " " + ctx.getDesc());
-					}
-					ShadowAssociationType shadowAssociationType = associationCVal.asContainerable();
-					QName associationName = shadowAssociationType.getName();
-					RefinedAssociationDefinition rEntitlementAssociation = ctx.getObjectClassDefinition()
-							.findAssociationDefinition(associationName);
-					if (rEntitlementAssociation == null) {
-						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("Entitlement association with name {} couldn't be found in {} {}\nresource shadow:\n{}\nrepo shadow:\n{}",
-									associationName, ctx.getObjectClassDefinition(), ctx.getDesc(),
-									resourceShadow.debugDump(1), repoShadow==null?null:repoShadow.debugDump(1));
-							LOGGER.trace("Full refined definition: {}", ctx.getObjectClassDefinition().debugDump());
-						}
-						throw new SchemaException("Entitlement association with name " + associationName
-								+ " couldn't be found in " + ctx.getObjectClassDefinition() + " " + ctx.getDesc() + ", with using shadow coordinates " + ctx.isUseRefinedDefinition());
-					}
-					ShadowKindType entitlementKind = rEntitlementAssociation.getKind();
-					if (entitlementKind == null) {
-						entitlementKind = ShadowKindType.ENTITLEMENT;
-					}
-					for (String entitlementIntent : rEntitlementAssociation.getIntents()) {
-						ProvisioningContext ctxEntitlement = ctx.spawn(entitlementKind, entitlementIntent);
-
-						PrismObject<ShadowType> entitlementRepoShadow;
-						PrismObject<ShadowType> entitlementShadow = (PrismObject<ShadowType>) identifierContainer
-								.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
-						if (entitlementShadow == null) {
-							try {
-								entitlementRepoShadow = shadowManager.lookupShadowInRepository(ctxEntitlement,
-										identifierContainer, parentResult);
-								if (entitlementRepoShadow == null) {
-
-									entitlementShadow = resourceObjectConverter.locateResourceObject(
-											ctxEntitlement, entitlementIdentifiers, parentResult);
-
-									// Try to look up repo shadow again, this
-									// time with full resource shadow. When we
-									// have searched before we might
-									// have only some identifiers. The shadow
-									// might still be there, but it may be
-									// renamed
-									entitlementRepoShadow = acquireRepositoryShadow(ctxEntitlement, entitlementShadow, false, isDoDiscovery, parentResult);
-								}
-							} catch (ObjectNotFoundException e) {
-								// The entitlement to which we point is not
-								// there.
-								// Simply ignore this association value.
-								parentResult.muteLastSubresultError();
-								LOGGER.warn(
-										"The entitlement identified by {} referenced from {} does not exist. Skipping.",
-										new Object[] { associationCVal, resourceShadow });
-								continue;
-							} catch (SchemaException e) {
-								// The entitlement to which we point is not bad.
-								// Simply ignore this association value.
-								parentResult.muteLastSubresultError();
-								LOGGER.warn(
-										"The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}-{}",
-										associationCVal, resourceShadow, e.getMessage(), e);
-								continue;
-							}
-						} else {
-							entitlementRepoShadow = acquireRepositoryShadow(ctxEntitlement,
-									entitlementShadow, false, isDoDiscovery, parentResult);
-						}
-						ObjectReferenceType shadowRefType = ObjectTypeUtil.createObjectRef(entitlementRepoShadow, prismContext);
-						shadowAssociationType.setShadowRef(shadowRefType);
-					}
-				}
-			}
+			completeAssociations(ctx, resourceShadow, repoShadow, isDoDiscovery, associationContainer, parentResult);
 		}
 
 		resultShadowType.setCachingMetadata(resourceShadowType.getCachingMetadata());
@@ -2653,7 +2573,114 @@ public class ShadowCache {
 
 		return resultShadow;
 	}
-	
+
+	private void completeAssociations(ProvisioningContext ctx, PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow, boolean isDoDiscovery, PrismContainer<ShadowAssociationType> associationContainer, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, SecurityViolationException, EncryptionException {
+		if (associationContainer == null) {
+			return;
+		}
+
+		Iterator<PrismContainerValue<ShadowAssociationType>> iterator = associationContainer.getValues().iterator();
+		while (iterator.hasNext()) {
+			PrismContainerValue<ShadowAssociationType> associationCVal = iterator.next();
+
+			ResourceAttributeContainer identifierContainer = ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
+			Collection<ResourceAttribute<?>> entitlementIdentifiers = identifierContainer.getAttributes();
+			if (entitlementIdentifiers == null || entitlementIdentifiers.isEmpty()) {
+				throw new IllegalStateException("No entitlement identifiers present for association " + associationCVal + " " + ctx.getDesc());
+			}
+			ShadowAssociationType shadowAssociationType = associationCVal.asContainerable();
+			QName associationName = shadowAssociationType.getName();
+			RefinedAssociationDefinition rEntitlementAssociationDef = ctx.getObjectClassDefinition().findAssociationDefinition(associationName);
+			if (rEntitlementAssociationDef == null) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Entitlement association with name {} couldn't be found in {} {}\nresource shadow:\n{}\nrepo shadow:\n{}",
+							associationName, ctx.getObjectClassDefinition(), ctx.getDesc(),
+							resourceShadow.debugDump(1), repoShadow == null ? null : repoShadow.debugDump(1));
+					LOGGER.trace("Full refined definition: {}", ctx.getObjectClassDefinition().debugDump());
+				}
+				throw new SchemaException("Entitlement association with name " + associationName
+						+ " couldn't be found in " + ctx.getObjectClassDefinition() + " " + ctx.getDesc() + ", with using shadow coordinates " + ctx.isUseRefinedDefinition());
+			}
+			ShadowKindType entitlementKind = rEntitlementAssociationDef.getKind();
+			if (entitlementKind == null) {
+				entitlementKind = ShadowKindType.ENTITLEMENT;
+			}
+
+			for (String entitlementIntent : rEntitlementAssociationDef.getIntents()) {
+				ProvisioningContext ctxEntitlement = ctx.spawn(entitlementKind, entitlementIntent);
+
+				PrismObject<ShadowType> entitlementRepoShadow;
+				PrismObject<ShadowType> entitlementShadow = identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
+				if (entitlementShadow == null) {
+					try {
+						entitlementRepoShadow = shadowManager.lookupShadowInRepository(ctxEntitlement, identifierContainer, parentResult);
+						if (entitlementRepoShadow == null) {
+
+							entitlementShadow = resourceObjectConverter.locateResourceObject(ctxEntitlement, entitlementIdentifiers, parentResult);
+
+							// Try to look up repo shadow again, this time with full resource shadow. When we
+							// have searched before we might have only some identifiers. The shadow
+							// might still be there, but it may be renamed
+							entitlementRepoShadow = acquireRepositoryShadow(ctxEntitlement, entitlementShadow, false, isDoDiscovery, parentResult);
+						}
+					} catch (ObjectNotFoundException e) {
+						// The entitlement to which we point is not there.
+						// Simply ignore this association value.
+						parentResult.muteLastSubresultError();
+						LOGGER.warn("The entitlement identified by {} referenced from {} does not exist. Skipping.", associationCVal, resourceShadow);
+						continue;
+					} catch (SchemaException e) {
+						// The entitlement to which we point is not bad.
+						// Simply ignore this association value.
+						parentResult.muteLastSubresultError();
+						LOGGER.warn("The entitlement identified by {} referenced from {} violates the schema. Skipping. Original error: {}-{}",
+									associationCVal, resourceShadow, e.getMessage(), e);
+						continue;
+					}
+				} else {
+					entitlementRepoShadow = acquireRepositoryShadow(ctxEntitlement,
+							entitlementShadow, false, isDoDiscovery, parentResult);
+				}
+				if (doesAssociationMatch(rEntitlementAssociationDef, entitlementRepoShadow)) {
+					ObjectReferenceType shadowRefType = ObjectTypeUtil.createObjectRef(entitlementRepoShadow, prismContext);
+					shadowAssociationType.setShadowRef(shadowRefType);
+				} else {
+					// We have association value that does not match its definition. This may happen because the association attribute
+					// may be shared among several associations. The EntitlementConverter code has no way to tell them apart.
+					// We can do that only if we have shadow or full resource object. And that is available at this point only.
+					// Therefore just silently filter out the association values that do not belong here.
+					// See MID-5790
+					iterator.remove();
+				}
+			}
+		}
+	}
+
+	private boolean doesAssociationMatch(RefinedAssociationDefinition rEntitlementAssociationDef, PrismObject<ShadowType> entitlementRepoShadow) {
+		ShadowKindType shadowKind = ShadowUtil.getKind(entitlementRepoShadow.asObjectable());
+		String shadowIntent = ShadowUtil.getIntent(entitlementRepoShadow.asObjectable());
+		if (shadowKind == null || shadowKind == ShadowKindType.UNKNOWN || shadowIntent == null) {
+			// We have unclassified shadow here. This should not happen in a well-configured system. But the world is a tough place.
+			// In case that this happens let's just keep all such shadows in all associations. This is how midPoint worked before,
+			// therefore we will get better compatibility. But it is also better for visibility. MidPoint will show data that are
+			// wrong. But it will at least show something. The alternative would be to show nothing, which is not really friendly
+			// for debugging.
+			return true;
+		}
+		ShadowKindType defKind = rEntitlementAssociationDef.getKind();
+		if (defKind == null) {
+			defKind = ShadowKindType.ENTITLEMENT;
+		}
+		if (!defKind.equals(shadowKind)) {
+			return false;
+		}
+		Collection<String> defIntents = rEntitlementAssociationDef.getIntents();
+		if (!defIntents.contains(shadowIntent)) {
+			return false;
+		}
+		return true;
+	}
+
 	private void transplantPasswordMetadata(ShadowType repoShadowType, ShadowType resultAccountShadow) {
 		CredentialsType repoCreds = repoShadowType.getCredentials();
 		if (repoCreds == null) {

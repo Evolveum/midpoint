@@ -121,8 +121,8 @@ public class DecisionDto extends Selectable {
 		} else if (e instanceof WorkItemDelegationEventType){
 			WorkItemDelegationEventType event = (WorkItemDelegationEventType) e;
 			ObjectReferenceType origAssigneeRef = CollectionUtils.isNotEmpty(event.getAssigneeBefore()) ? event.getAssigneeBefore().get(0) : null;
-			if (event.getCause() != null){
-
+			if (event.getComment() != null){
+				rv.comment = event.getComment();
 			}
 			rv.originalAssignee =  origAssigneeRef != null ? WebModelServiceUtils.resolveReferenceName(origAssigneeRef, pageBase) : null;
 			return rv;
