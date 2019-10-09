@@ -260,10 +260,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
 				private static final long serialVersionUID = 1L;
 
-				@Override
-				public boolean isEnabled() {
-					return !item.getModelObject().isReadOnly();
-				}
+				//TODO decide if we need to set enable behavior here
+				//see also ItemPanel.getEnableBehaviourOfValuePanel(), may be it's enough
+//				@Override
+//				public boolean isEnabled() {
+//					return !item.getModelObject().isReadOnly();
+//				}
 
 				@Override
 				public boolean isVisible() {

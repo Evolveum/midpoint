@@ -28,6 +28,7 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
 	}
 	
 	private boolean editEnabled = true;
+	private boolean isLink = false;
 
 	@Override
 	public void setRealValue(T realValueReferencable) {
@@ -53,4 +54,11 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
 		this.editEnabled = editEnabled;
 	}
 
+	public boolean isLink() {
+		return isLink;
+	}
+
+	public void setLink(boolean link) {
+		isLink = link;
+	}
 }
