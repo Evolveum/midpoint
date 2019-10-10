@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.ITestContext;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
@@ -83,6 +84,17 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	protected PrismObject<ResourceType> resource;
 
 	@Override
+	protected TracingProfileType getTestMethodTracingProfile() {
+		return createModelAndProvisioningLoggingTracingProfile()
+				.fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+	}
+
+	@Override
+	protected boolean isAutoTaskManagementEnabled() {
+		return true;
+	}
+
+	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		// We need to switch off the encryption checks. Some values cannot be encrypted as we do
 		// not have a definition here
@@ -94,6 +106,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		resource = addResourceFromFile(getResourceFile(), getConnectorTypes(), false, initResult);
 
 		InternalsConfig.setSanityChecks(true);
+
+		setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
 	}
 
 	@NotNull
@@ -102,13 +116,9 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	protected abstract File getResourceFile();
 
 	@Test
-	public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
-		TestUtil.displayTestTitle(TEST_NAME);
-
+	public void test000Sanity(ITestContext ctx) throws Exception {
+		OperationResult result = getResult(ctx);
 		assertNotNull("Resource is null", resource);
-
-		OperationResult result = new OperationResult(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
 
 		ResourceType repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_ASYNC_OID, null, result).asObjectable();
 		assertNotNull("No connector ref", repoResource.getConnectorRef());
@@ -124,12 +134,9 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	}
 
 	@Test
-	public void test003Connection() throws Exception {
-		final String TEST_NAME = "test003Connection";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+	public void test003Connection(ITestContext ctx) throws Exception {
+		Task task = getTask(ctx);
+		OperationResult result = getResult(ctx);
 
 		// Check that there is a schema, but no capabilities before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_ASYNC_OID,
@@ -174,12 +181,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	}
 
 	@Test
-	public void test004Configuration() throws Exception {
-		final String TEST_NAME = "test004Configuration";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		OperationResult result = new OperationResult(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
-
+	public void test004Configuration(ITestContext ctx) throws Exception {
+		OperationResult result = getResult(ctx);
 		// WHEN
 		resource = provisioningService.getObject(ResourceType.class, RESOURCE_ASYNC_OID, null, null, result);
 
@@ -191,8 +194,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 	@Test
 	public void test005ParsedSchema() throws Exception {
-		final String TEST_NAME = "test005ParsedSchema";
-		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		// THEN
@@ -220,12 +221,11 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	}
 
 	@Test
-	public void test100ListeningForShadowAdd() throws Exception {
-		final String TEST_NAME = "test100ListeningForShadowAdd";
-		TestUtil.displayTestTitle(TEST_NAME);
+	public void test100ListeningForShadowAdd(ITestContext ctx) throws Exception {
+		Task task = getTask(ctx);
+		OperationResult result = getResult(ctx);
+
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
 
 		prepareMessage(CHANGE_100);
 
@@ -265,12 +265,9 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	}
 
 	@Test
-	public void test110ListeningForValueAdd() throws Exception {
-		final String TEST_NAME = "test110ListeningForValueAdd";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
+	public void test110ListeningForValueAdd(ITestContext ctx) throws Exception {
+		Task task = getTask(ctx);
+		OperationResult result = getResult(ctx);
 
 		prepareMessage(CHANGE_110);
 
@@ -307,12 +304,9 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	}
 
 	@Test
-	public void test120ListeningForShadowReplace() throws Exception {
-		final String TEST_NAME = "test120ListeningForShadowReplace";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
+	public void test120ListeningForShadowReplace(ITestContext ctx) throws Exception {
+		Task task = getTask(ctx);
+		OperationResult result = getResult(ctx);
 
 		prepareMessage(CHANGE_120);
 
@@ -343,17 +337,14 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	}
 
 	@Test
-	public void test125ListeningForNotificationOnly() throws Exception {
+	public void test125ListeningForNotificationOnly(ITestContext ctx) throws Exception {
+		Task task = getTask(ctx);
+		OperationResult result = getResult(ctx);
+
 		if (!hasReadCapability()) {
 			System.out.println("Skipping this test because there's no real read capability");
 			return;
 		}
-
-		final String TEST_NAME = "test125ListeningForNotificationOnly";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
 
 		prepareMessage(CHANGE_125);
 
@@ -386,12 +377,9 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	}
 
 	@Test
-	public void test130ListeningForShadowDelete() throws Exception {
-		final String TEST_NAME = "test130ListeningForShadowDelete";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestAsyncUpdate.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
+	public void test130ListeningForShadowDelete(ITestContext ctx) throws Exception {
+		Task task = getTask(ctx);
+		OperationResult result = getResult(ctx);
 
 		prepareMessage(CHANGE_130);
 

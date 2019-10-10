@@ -56,6 +56,8 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TracerImpl.class);
 	private static final String MACRO_TIMESTAMP = "timestamp";
+	private static final String MACRO_OPERATION_NAME = "operationName";
+	private static final String MACRO_OPERATION_NAME_SHORT = "operationNameShort";
 	private static final String MACRO_TEST_NAME = "testName";
 	private static final String MACRO_TEST_NAME_SHORT = "testNameShort";
 	private static final String MACRO_FOCUS_NAME = "focusName";
@@ -241,6 +243,9 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		Map<String, String> rv = new HashMap<>();
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS");
 		rv.put(MACRO_TIMESTAMP, df.format(new Date()));
+		String operationName = result.getOperation();
+		rv.put(MACRO_OPERATION_NAME, operationName);
+		rv.put(MACRO_OPERATION_NAME_SHORT, shorten(operationName));
 		String testName;
 		if (TestNameHolder.getCurrentTestName() != null) {
 			testName = TestNameHolder.getCurrentTestName();
@@ -248,12 +253,20 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 			testName = task.getResult().getOperation();
 		}
 		rv.put(MACRO_TEST_NAME, testName);  // e.g. com.evolveum.midpoint.model.intest.TestIteration.test532GuybrushModifyDescription or simply TestIteration.test532GuybrushModifyDescription
-		int testNameIndex = StringUtils.lastOrdinalIndexOf(testName, ".", 2);
-		rv.put(MACRO_TEST_NAME_SHORT, testNameIndex >= 0 ? testName.substring(testNameIndex+1) : testName);
+		rv.put(MACRO_TEST_NAME_SHORT, shorten(testName));
 		rv.put(MACRO_FOCUS_NAME, getFocusName(result));
 		rv.put(MACRO_MILLISECONDS, getMilliseconds(result));
 		rv.put(MACRO_RANDOM, String.valueOf((long) (Math.random() * 1000000000000000L)));
 		return rv;
+	}
+
+	private String shorten(String qualifiedName) {
+		if (qualifiedName != null) {
+			int secondLastDotIndex = StringUtils.lastOrdinalIndexOf(qualifiedName, ".", 2);
+			return secondLastDotIndex >= 0 ? qualifiedName.substring(secondLastDotIndex+1) : qualifiedName;
+		} else {
+			return null;
+		}
 	}
 
 	private String getFocusName(OperationResult result) {

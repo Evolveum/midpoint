@@ -112,6 +112,9 @@ public interface PrismProperty<T> extends Item<PrismPropertyValue<T>,PrismProper
 
 	void addRealValue(T valueToAdd);
 
+	// TODO Or should we add boolean parameter here?
+	void addRealValueSkipUniquenessCheck(T valueToAdd);
+
 	void addRealValues(T... valuesToAdd);
 
 	boolean deleteValues(Collection<PrismPropertyValue<T>> pValuesToDelete);

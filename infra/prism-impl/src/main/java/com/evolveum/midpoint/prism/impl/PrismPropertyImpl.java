@@ -254,7 +254,12 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
 	    addValue(new PrismPropertyValueImpl<>(valueToAdd));
     }
 
-    public void addRealValues(T... valuesToAdd) {
+	@Override
+	public void addRealValueSkipUniquenessCheck(T valueToAdd) {
+		addValue(new PrismPropertyValueImpl<>(valueToAdd), false);
+	}
+
+	public void addRealValues(T... valuesToAdd) {
 	    for (T valueToAdd : valuesToAdd) {
 		    addRealValue(valueToAdd);
 	    }

@@ -1235,7 +1235,7 @@ public class ResourceObjectConverter {
 			CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
 		LOGGER.trace("Searching resource objects, query: {}", query);
-		
+
 		RefinedObjectClassDefinition objectClassDef = ctx.getObjectClassDefinition();
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
 		SearchHierarchyConstraints searchHierarchyConstraints = entitlementConverter.determineSearchHierarchyConstraints(ctx, parentResult);
