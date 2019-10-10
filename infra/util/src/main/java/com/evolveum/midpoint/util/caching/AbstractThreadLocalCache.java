@@ -10,6 +10,7 @@ package com.evolveum.midpoint.util.caching;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -33,8 +34,8 @@ public abstract class AbstractThreadLocalCache {
         if (inst == null) {
             logger.trace("Cache: creating for thread {}", currentThread.getName());
             try {
-                inst = cacheClass.newInstance();
-            } catch (InstantiationException|IllegalAccessException e) {
+                inst = cacheClass.getDeclaredConstructor().newInstance();
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                 throw new SystemException("Couldn't instantiate cache: " + e.getMessage(), e);
             }
             inst.setConfiguration(configuration);
