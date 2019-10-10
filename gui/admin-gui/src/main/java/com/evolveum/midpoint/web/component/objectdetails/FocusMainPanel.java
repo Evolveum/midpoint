@@ -249,7 +249,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 		}
 
 		tabs.add(
-				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.tasks"),
+				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.cases"),
 						getTabVisibility(ComponentConstants.UI_FOCUS_TAB_TASKS_URL, false, parentPage)){
 
 					private static final long serialVersionUID = 1L;
