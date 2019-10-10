@@ -146,8 +146,7 @@ public class BeanUnmarshaller {
 			PrimitiveXNodeImpl<T> prim = (PrimitiveXNodeImpl) xnode;
 			if (XmlTypeConverter.canConvert(beanClass)) {
 				QName xsdType = XsdTypeMapper.toXsdType(beanClass);
-				Object parsedValue = prim.getParsedValue(xsdType, beanClass);
-				return postConvertUnmarshal(parsedValue, pc);
+				return prim.getParsedValue(xsdType, beanClass);
 			} else if (beanClass.isEnum()) {
 				return unmarshalEnumFromPrimitive(prim, beanClass, pc);
 			}
@@ -1111,8 +1110,7 @@ public class BeanUnmarshaller {
 
 	private ItemPathType unmarshalItemPath(PrimitiveXNodeImpl<ItemPathType> primitiveXNode, Class beanClass, ParsingContext parsingContext)
 			throws SchemaException {
-		ItemPathType parsedValue = primitiveXNode.getParsedValue(ItemPathType.COMPLEX_TYPE, ItemPathType.class);
-		return postConvertUnmarshal(parsedValue, parsingContext);
+		return primitiveXNode.getParsedValue(ItemPathType.COMPLEX_TYPE, ItemPathType.class);
 	}
 
 	private Object unmarshalPolyStringFromPrimitive(PrimitiveXNodeImpl<?> node, Class<?> beanClass, ParsingContext parsingContext)

@@ -82,9 +82,11 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	@Override
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
-        PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
-        try {
+		PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
+		AssignmentType assignmentType = newAssignment.asContainerable();
+		try {
 			newAssignment.findOrCreateContainer(AssignmentType.F_POLICY_RULE);
+			assignmentType.setPolicyRule(new PolicyRuleType());
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create policy rule assignment: {}", e.getMessage(), e);
 			getSession().error("Cannot create policyRule assignment.");

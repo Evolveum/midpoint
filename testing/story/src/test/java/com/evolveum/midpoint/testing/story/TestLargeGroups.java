@@ -26,6 +26,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -110,6 +111,22 @@ public class TestLargeGroups extends AbstractStoryTest {
 			group1.addMember(String.format("member-%09d", i));
 		}
 
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				// MID-5838
+				.item(ShadowType.F_ATTRIBUTES, ATTR_MEMBERS).retrieve()
+				.build();
+		assert100LargeGroupSearch(ctx, options, MEMBERS);
+
+		// Legacy behavior (MID-5838)
+		Collection<SelectorOptions<GetOperationOptions>> badOptions = schemaHelper.getOperationOptionsBuilder()
+				.item(/*ShadowType.F_ATTRIBUTES,*/ ATTR_MEMBERS).retrieve()
+				.build();
+		assert100LargeGroupSearch(ctx, badOptions, MEMBERS);
+	}
+
+	private void assert100LargeGroupSearch(ITestContext ctx, Collection<SelectorOptions<GetOperationOptions>> options, final int MEMBERS) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+		Task task = getTask(ctx);
+		OperationResult result = getResult(ctx);
 		ResourceAttributeDefinition<Object> nameDefinition = libraryMidpointFunctions
 				.getAttributeDefinition(resourceDummy, dummyResourceCtl.getGroupObjectClass(), SchemaConstants.ICFS_NAME);
 		ObjectQuery query = prismContext.queryFor(ShadowType.class)
@@ -118,9 +135,7 @@ public class TestLargeGroups extends AbstractStoryTest {
 				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), nameDefinition)
 					.eq("group1")
 				.build();
-		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-				.item(/*ShadowType.F_ATTRIBUTES, */ATTR_MEMBERS).retrieve()
-				.build();
+
 		SearchResultList<PrismObject<ShadowType>> groups = provisioningService
 				.searchObjects(ShadowType.class, query, options, task, result);
 
