@@ -18,7 +18,6 @@ import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.ShadowAttributesAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismPropertyAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -78,9 +77,12 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 	private static final String NOBODY_USERNAME = "nobody";
 
 	private static final String ALUMNI_NAME = "ref:affiliation:alumni";
+	private static final String STAFF_NAME = "ref:affiliation:staff";
 
 	private static final File CHANGE_110 = new File(TEST_DIR, "change-110-alumni-add.json");
+	private static final File CHANGE_115 = new File(TEST_DIR, "change-115-staff-add.json");
 	private static final File CHANGE_200 = new File(TEST_DIR, "change-200-banderson-add-alumni.json");
+	private static final File CHANGE_210 = new File(TEST_DIR, "change-210-banderson-add-staff.json");
 	private static final File CHANGE_220 = new File(TEST_DIR, "change-220-jlewis685-add-alumni.json");
 	private static final File CHANGE_230 = new File(TEST_DIR, "change-230-nobody-add-alumni.json");
 	private static final File CHANGE_250 = new File(TEST_DIR, "change-250-banderson-delete-alumni.json");
@@ -89,12 +91,14 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 	private static final String DN_BANDERSON = "uid=banderson,ou=people,dc=example,dc=com";
 	private static final String DN_JLEWIS685 = "uid=jlewis685,ou=people,dc=example,dc=com";
-	public static final String DN_ALUMNI = "cn=alumni,ou=Affiliations,ou=Groups,dc=example,dc=com";
+	private static final String DN_ALUMNI = "cn=alumni,ou=Affiliations,ou=Groups,dc=example,dc=com";
+	private static final String DN_STAFF = "cn=staff,ou=Affiliations,ou=Groups,dc=example,dc=com";
 
 	private PrismObject<ResourceType> resourceGrouper;
 	private PrismObject<ResourceType> resourceLdap;
 
-	private String alumniOid;
+	private String orgAlumniOid;
+	private String orgStaffOid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -126,6 +130,17 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 		setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
 	}
 
+    @Override
+    protected boolean isAutoTaskManagementEnabled() {
+        return true;
+    }
+
+	@Override
+	protected TracingProfileType getTestMethodTracingProfile() {
+		return createModelAndProvisioningLoggingTracingProfile()
+				.fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+	}
+
 	@Override
 	protected File getSystemConfigurationFile() {
 		return SYSTEM_CONFIGURATION_FILE;
@@ -143,9 +158,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 	@Test
 	public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTestTask(TEST_NAME);
+        Task task = getTask();
 
 		assertSuccess(modelService.testResource(RESOURCE_LDAP.oid, task));
 		assertSuccess(modelService.testResource(RESOURCE_GROUPER.oid, task));
@@ -153,10 +166,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 	@Test
 	public void test010CreateUsers() throws Exception {
-		final String TEST_NAME = "test010CreateUsers";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTestTask(TEST_NAME);
-		OperationResult result = task.getResult();
+		Task task = getTask();
+		OperationResult result = getResult();
 
 		addObject(USER_BANDERSON, task, result);
 		addObject(USER_JLEWIS685, task, result);
@@ -172,10 +183,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 	 */
 	@Test
 	public void test110AddAlumni() throws Exception {
-		final String TEST_NAME = "test110AddAlumni";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTestTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
 		// GIVEN
 
@@ -190,14 +199,13 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		// THEN
 
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		assertMembers(ALUMNI_NAME, task, result);
 
-		alumniOid = assertOrgByName("affiliation_alumni", "alumni after")
+		orgAlumniOid = assertOrgByName("affiliation_alumni", "alumni after")
 				.extension()
-						.property(EXT_GROUPER_NAME).singleValue().assertValue("ref:affiliation:alumni").end().end()
+						.property(EXT_GROUPER_NAME).singleValue().assertValue(ALUMNI_NAME).end().end()
 						.property(EXT_LDAP_DN).singleValue().assertValue(DN_ALUMNI).end().end()
 				.end()
 				.assertAssignments(1)           // archetype, todo assert target
@@ -208,14 +216,49 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 	}
 
 	/**
+	 * GROUP_ADD event for ref:affiliation:staff.
+	 */
+	@Test
+	public void test115AddStaff() throws Exception {
+        Task task = getTask();
+        OperationResult result = getResult();
+
+		// GIVEN
+
+		MockAsyncUpdateSource.INSTANCE.reset();
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_115));
+
+		// WHEN
+
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+
+		// THEN
+
+		assertSuccess(result);
+
+		assertMembers(STAFF_NAME, task, result);
+
+		orgStaffOid = assertOrgByName("affiliation_staff", "staff after")
+				.extension()
+						.property(EXT_GROUPER_NAME).singleValue().assertValue(STAFF_NAME).end().end()
+						.property(EXT_LDAP_DN).singleValue().assertValue(DN_STAFF).end().end()
+				.end()
+				.assertAssignments(1)           // archetype, todo assert target
+				.assertDisplayName("Affiliation: staff")
+				.assertIdentifier("staff")
+				.assertLinks(2)                // todo assert details
+				.getOid();
+	}
+
+	/**
 	 * Adding ref:affiliation:alumni membership for banderson.
 	 */
 	@Test
 	public void test200AddAlumniForAnderson() throws Exception {
-		final String TEST_NAME = "test200AddAlumniForAnderson";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTestTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
 		// GIVEN
 
@@ -230,8 +273,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		// THEN
 
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		assertMembers(ALUMNI_NAME, task, result, BANDERSON_USERNAME);
 
@@ -241,14 +283,12 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 	}
 
 	/**
-	 * Anderson should obtain an assignment.
+	 * Anderson should obtain the assignment.
 	 */
 	@Test
 	public void test202RecomputeAnderson() throws Exception {
-		final String TEST_NAME = "test202RecomputeAnderson";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTestTask(TEST_NAME);
-		OperationResult result = task.getResult();
+		Task task = getTask();
+		OperationResult result = getResult();
 
 		// WHEN
 
@@ -256,14 +296,13 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		// THEN
 
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		assertUserAfterByUsername(BANDERSON_USERNAME)
 				.assignments()
-						.assertAssignments(2)
-						.assertRole(ROLE_LDAP_BASIC.oid)
-						.assertOrg(alumniOid)
+				.assertAssignments(2)
+					.assertRole(ROLE_LDAP_BASIC.oid)
+					.assertOrg(orgAlumniOid)
 				.end()
 				.links()
 					.assertLinks(1)
@@ -273,14 +312,75 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 	}
 
 	/**
+	 * Adding ref:affiliation:staff membership for banderson.
+	 */
+	@Test
+	public void test210AddStaffForAnderson() throws Exception {
+        Task task = getTask();
+        OperationResult result = getResult();
+
+		// GIVEN
+
+		MockAsyncUpdateSource.INSTANCE.reset();
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_210));
+
+		// WHEN
+
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+
+		// THEN
+
+		assertSuccess(result);
+
+		assertMembers(ALUMNI_NAME, task, result, BANDERSON_USERNAME);
+		assertMembers(STAFF_NAME, task, result, BANDERSON_USERNAME);
+
+		assertUserAfterByUsername(BANDERSON_USERNAME)
+				.triggers()
+				.assertTriggers(1);
+	}
+
+	/**
+	 * Anderson should obtain the second assignment.
+	 */
+	@Test
+	public void test212RecomputeAnderson() throws Exception {
+		Task task = getTask();
+		OperationResult result = getResult();
+
+		// WHEN
+
+		recomputeUser(USER_BANDERSON.oid, task, result);
+
+		// THEN
+
+		assertSuccess(result);
+
+		assertUserAfterByUsername(BANDERSON_USERNAME)
+				.assignments()
+				.assertAssignments(3)
+					.assertRole(ROLE_LDAP_BASIC.oid)
+					.assertOrg(orgAlumniOid)
+					.assertOrg(orgStaffOid)
+				.end()
+				.links()
+					.assertLinks(1)
+					.projectionOnResource(resourceLdap.getOid());
+
+		openDJController.assertUniqueMember(DN_ALUMNI, DN_BANDERSON);
+		openDJController.assertUniqueMember(DN_STAFF, DN_BANDERSON);
+	}
+
+
+	/**
 	 * Adding ref:affiliation:alumni membership for jlewis685.
 	 */
 	@Test
 	public void test220AddAlumniForLewis() throws Exception {
-		final String TEST_NAME = "test220AddAlumniForLewis";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTestTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
 		// GIVEN
 
@@ -295,8 +395,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		// THEN
 
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		assertMembers(ALUMNI_NAME, task, result, BANDERSON_USERNAME, JLEWIS685_USERNAME);
 
@@ -305,15 +404,42 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 				.assertTriggers(1);
 	}
 
+    /**
+     * Lewis should obtain an assignment.
+     */
+    @Test
+    public void test222RecomputeLewis() throws Exception {
+        Task task = getTask();
+        OperationResult result = getResult();
+
+        // WHEN
+
+        recomputeUser(USER_JLEWIS685.oid, task, result);
+
+        // THEN
+
+	    assertSuccess(result);
+
+        assertUserAfterByUsername(JLEWIS685_USERNAME)
+                .assignments()
+                    .assertAssignments(2)
+                    .assertRole(ROLE_LDAP_BASIC.oid)
+                    .assertOrg(orgAlumniOid)
+                .end()
+                .links()
+                    .assertLinks(1)
+                    .projectionOnResource(resourceLdap.getOid());
+
+        openDJController.assertUniqueMember(DN_ALUMNI, DN_JLEWIS685);
+    }
+
 	/**
 	 * Adding ref:affiliation:alumni membership for non-existing user (nobody).
 	 */
 	@Test
 	public void test230AddAlumniForNobody() throws Exception {
-		final String TEST_NAME = "test230AddAlumniForNobody";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTestTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
 		// GIVEN
 
@@ -328,8 +454,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		// THEN
 
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		assertMembers(ALUMNI_NAME, task, result, BANDERSON_USERNAME, JLEWIS685_USERNAME, NOBODY_USERNAME);
 	}
@@ -339,10 +464,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 	 */
 	@Test
 	public void test250DeleteAlumniForAnderson() throws Exception {
-		final String TEST_NAME = "test250DeleteAlumniForAnderson";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = createTestTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
 		// GIVEN
 
@@ -357,8 +480,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		// THEN
 
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		assertMembers(ALUMNI_NAME, task, result, JLEWIS685_USERNAME, NOBODY_USERNAME);
 
@@ -367,8 +489,33 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 				.assertTriggers(1);
 	}
 
-	private Task createTestTask(String TEST_NAME) {
-		return createTask(TestGrouperAsyncUpdate.class.getName() + "." + TEST_NAME);
+	/**
+	 * Anderson should lose the first assignment.
+	 */
+	@Test
+	public void test252RecomputeAnderson() throws Exception {
+		Task task = getTask();
+		OperationResult result = getResult();
+
+		// WHEN
+
+		recomputeUser(USER_BANDERSON.oid, task, result);
+
+		// THEN
+
+		assertSuccess(result);
+
+		assertUserAfterByUsername(BANDERSON_USERNAME)
+				.assignments()
+					.assertAssignments(2)
+					.assertRole(ROLE_LDAP_BASIC.oid)
+					.assertOrg(orgStaffOid)
+				.end()
+				.links()
+					.assertLinks(1)
+					.projectionOnResource(resourceLdap.getOid());
+
+		openDJController.assertUniqueMember(DN_STAFF, DN_BANDERSON);
 	}
 
 	private AsyncUpdateMessageType getAmqp091Message(File file) throws IOException {

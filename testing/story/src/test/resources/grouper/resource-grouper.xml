@@ -209,4 +209,11 @@
     <caching>
         <cachingStategy>passive</cachingStategy>
     </caching>
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <configured>
+            <cap:read>
+                <cap:cachingOnly>true</cap:cachingOnly>
+            </cap:read>
+        </configured>
+    </capabilities>
 </resource>

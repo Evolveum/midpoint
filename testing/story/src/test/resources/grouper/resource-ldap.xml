@@ -39,6 +39,7 @@
 			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
 			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
 			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+			<icfcldap:usePermissiveModify>always</icfcldap:usePermissiveModify>
 		</icfc:configurationProperties>
 		<icfc:resultsHandlerConfiguration>
 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -69,7 +70,7 @@
                     <minOccurs>0</minOccurs>
                 </limitations>
                 <tolerant>false</tolerant>
-				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<matchingRule>mr:distinguishedName</matchingRule>
                 <outbound>
                     <strength>strong</strength>
                     <source>
@@ -192,7 +193,7 @@
             </attribute>
             <attribute>
                 <ref>ri:dn</ref>
-                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <matchingRule>mr:distinguishedName</matchingRule>
                 <outbound>
                     <strength>strong</strength>
                     <source>
@@ -209,6 +210,11 @@
                         <path>identifier</path>
                     </source>
                 </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:uniqueMember</ref>
+                <matchingRule>mr:distinguishedName</matchingRule>
+				<fetchStrategy>minimal</fetchStrategy>
             </attribute>
         </objectType>
 	</schemaHandling>
@@ -304,6 +310,6 @@
         </objectSynchronization>
 	</synchronization>
     <consistency>
-        <avoidDuplicateValues>true</avoidDuplicateValues>
+        <avoidDuplicateValues>false</avoidDuplicateValues>
     </consistency>
 </resource>
