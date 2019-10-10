@@ -32,7 +32,7 @@
 
                 #if($modulo == 0)
                     <tr class="rowColor">
-                        <td class="colFirst"><a href="#item-$itemDefinition.Name.LocalPart">$itemDefinition.Name.LocalPart</a></td>
+                        <td class="colFirst"><a href="#item-$itemDefinition.ItemName.LocalPart">$itemDefinition.ItemName.LocalPart</a></td>
                         <td class="colOne">
                             $itemDefinition.DocClassName<br/>
                             #if ($typeUrl)
@@ -48,7 +48,7 @@
                     </tr>
                 #else
                 <tr class="altColor">
-                    <td class="colFirst"><a href="#item-$itemDefinition.Name.LocalPart">$itemDefinition.Name.LocalPart</a></td>
+                    <td class="colFirst"><a href="#item-$itemDefinition.ItemName.LocalPart">$itemDefinition.ItemName.LocalPart</a></td>
                     <td class="colOne">
                         $itemDefinition.DocClassName<br/>
                         #if ($typeUrl)
@@ -75,11 +75,11 @@
                 <h3>Items</h3>
 
                 #foreach($itemDefinition in $definition.getDefinitions())
-                <a name="$itemDefinition.Name.LocalPart"></a>
+                <a name="$itemDefinition.ItemName.LocalPart"></a>
                 <ul class="blockList">
                     <li class="blockList">
                         <h4>
-                            <a id="item-$itemDefinition.Name.LocalPart">$itemDefinition.Name.LocalPart</a>
+                            <a id="item-$itemDefinition.ItemName.LocalPart">$itemDefinition.ItemName.LocalPart</a>
                         </h4>
                         <p class="block">Flags: $!itemDefinition.debugFlags()</p>
                         <p class="block">Multiplicity: $itemDefinition.debugMultiplicity()</p>
