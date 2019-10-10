@@ -1,0 +1,13 @@
+dn: uid=morgan,ou=people,dc=example,dc=com
+uid: morgan
+cn: Captain Henry Morgan
+sn: Morgan
+givenname: Will
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: governor@jamaica.net
+userpassword: y0H0H0andAbottleOFrum
+

@@ -104,23 +104,22 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
-	
-	private static final String REPO_DIR_NAME = "src/test/resources/consistency/repo/";
-	private static final String REQUEST_DIR_NAME = "src/test/resources/consistency/request/";
 
-	private static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
+	private static final String TEST_DIR = "src/test/resources/consistency/";
+
+	private static final String SYSTEM_CONFIGURATION_FILENAME = TEST_DIR + "system-configuration.xml";
 	
-	private static final String ROLE_SUPERUSER_FILENAME = REPO_DIR_NAME + "role-superuser.xml";
+	private static final String ROLE_SUPERUSER_FILENAME = TEST_DIR + "role-superuser.xml";
     private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
     
-    private static final String ROLE_LDAP_ADMINS_FILENAME = REPO_DIR_NAME + "role-admins.xml";
+    private static final String ROLE_LDAP_ADMINS_FILENAME = TEST_DIR + "role-admins.xml";
     private static final String ROLE_LDAP_ADMINS_OID = "88888888-8888-8888-8888-000000000009";
     private static final String ROLE_LDAP_ADMINS_DN = "cn=admins,ou=groups,dc=example,dc=com";
 
-	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = REPO_DIR_NAME + "sample-configuration-object.xml";
+	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = TEST_DIR + "sample-configuration-object.xml";
     private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
 	
-	private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj.xml";
+	private static final String RESOURCE_OPENDJ_FILENAME = TEST_DIR + "resource-opendj.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
 	private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_OPENDJ_NS,"inetOrgPerson");
@@ -131,130 +130,114 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 	private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector";
 
-	private static final String USER_TEMPLATE_FILENAME = REPO_DIR_NAME + "user-template.xml";
+	private static final String USER_TEMPLATE_FILENAME = TEST_DIR + "user-template.xml";
 
-	private static final String USER_ADMINISTRATOR_FILENAME = REPO_DIR_NAME + "user-administrator.xml";
+	private static final String USER_ADMINISTRATOR_FILENAME = TEST_DIR + "user-administrator.xml";
 	private static final String USER_ADMINISTRATOR_NAME = "administrator";
 
-	private static final String USER_JACK_FILENAME = REPO_DIR_NAME + "user-jack.xml";
+	private static final String USER_JACK_FILENAME = TEST_DIR + "user-jack.xml";
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 
-	private static final String USER_DENIELS_FILENAME = REPO_DIR_NAME + "user-deniels.xml";
+	private static final String USER_DENIELS_FILENAME = TEST_DIR + "user-deniels.xml";
 	private static final String USER_DENIELS_OID = "c0c010c0-d34d-b33f-f00d-222111111111";
 
-	private static final String USER_JACKIE_FILENAME = REPO_DIR_NAME + "user-jackie.xml";
+	private static final String USER_JACKIE_FILENAME = TEST_DIR + "user-jackie.xml";
 	private static final File USER_JACKIE_FILE = new File(USER_JACKIE_FILENAME);
 	private static final String USER_JACKIE_OID = "c0c010c0-d34d-b33f-f00d-111111114444";
 
-	private static final String USER_WILL_FILENAME = REPO_DIR_NAME + "user-will.xml";
+	private static final String USER_WILL_FILENAME = TEST_DIR + "user-will.xml";
 	private static final String USER_WILL_OID = "c0c010c0-d34d-b33f-f00d-111111115555";
 
-	private static final String USER_GUYBRUSH_FILENAME = REPO_DIR_NAME + "user-guybrush.xml";
+	private static final String USER_GUYBRUSH_FILENAME = TEST_DIR + "user-guybrush.xml";
 	private static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111222";
 
-	private static final String USER_GUYBRUSH_NOT_FOUND_FILENAME = REPO_DIR_NAME + "user-guybrush-modify-not-found.xml";
+	private static final String USER_GUYBRUSH_NOT_FOUND_FILENAME = TEST_DIR + "user-guybrush-modify-not-found.xml";
 	private static final String USER_GUYBRUSH_NOT_FOUND_OID = "c0c010c0-d34d-b33f-f00d-111111111333";
 	
-	private static final String USER_HECTOR_NOT_FOUND_FILENAME = REPO_DIR_NAME + "user-hector.xml";
+	private static final String USER_HECTOR_NOT_FOUND_FILENAME = TEST_DIR + "user-hector.xml";
 	private static final String USER_HECTOR_NOT_FOUND_OID = "c0c010c0-d34d-b33f-f00d-111111222333";	
 
-	private static final String USER_E_FILENAME = REPO_DIR_NAME + "user-e.xml";
+	private static final String USER_E_FILENAME = TEST_DIR + "user-e.xml";
 	private static final String USER_E_OID = "c0c010c0-d34d-b33f-f00d-111111111100";
 	
-	private static final String USER_ELAINE_FILENAME = REPO_DIR_NAME + "user-elaine.xml";
+	private static final String USER_ELAINE_FILENAME = TEST_DIR + "user-elaine.xml";
 	private static final File USER_ELAINE_FILE = new File(USER_ELAINE_FILENAME);
 	private static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-111111116666";
 	
-	private static final String USER_HERMAN_FILENAME = REPO_DIR_NAME + "user-herman.xml";
+	private static final String USER_HERMAN_FILENAME = TEST_DIR + "user-herman.xml";
 	private static final String USER_HERMAN_OID = "c0c010c0-d34d-b33f-f00d-111111119999";
 	
-	private static final String USER_MORGAN_FILENAME = REQUEST_DIR_NAME + "user-morgan.xml";
+	private static final String USER_MORGAN_FILENAME = TEST_DIR + "user-morgan.xml";
 	private static final File USER_MORGAN_FILE = new File(USER_MORGAN_FILENAME);
 	private static final String USER_MORGAN_OID = "c0c010c0-d34d-b33f-f00d-171171117777";
 	
-	private static final String USER_CHUCK_FILENAME = REQUEST_DIR_NAME + "user-chuck.xml";
+	private static final String USER_CHUCK_FILENAME = TEST_DIR + "user-chuck.xml";
 	private static final File USER_CHUCK_FILE = new File(USER_CHUCK_FILENAME);
 	private static final String USER_CHUCK_OID = "c0c010c0-d34d-b33f-f00d-171171118888";
 	
-	private static final String USER_ANGELIKA_FILENAME = REPO_DIR_NAME + "user-angelika.xml";
+	private static final String USER_ANGELIKA_FILENAME = TEST_DIR + "user-angelika.xml";
 	private static final String USER_ANGELIKA_OID = "c0c010c0-d34d-b33f-f00d-111111111888";
 	
-	private static final String USER_ALICE_FILENAME = REPO_DIR_NAME + "user-alice.xml";
+	private static final String USER_ALICE_FILENAME = TEST_DIR + "user-alice.xml";
 	private static final String USER_ALICE_OID = "c0c010c0-d34d-b33f-f00d-111111111999";
 	
-	private static final String USER_BOB_NO_GIVEN_NAME_FILENAME = REPO_DIR_NAME + "user-bob-no-given-name.xml";
+	private static final String USER_BOB_NO_GIVEN_NAME_FILENAME = TEST_DIR + "user-bob-no-given-name.xml";
 	private static final String USER_BOB_NO_GIVEN_NAME_OID = "c0c010c0-d34d-b33f-f00d-222111222999";
 	
-	private static final String USER_JOHN_WEAK_FILENAME = REPO_DIR_NAME + "user-john.xml";
+	private static final String USER_JOHN_WEAK_FILENAME = TEST_DIR + "user-john.xml";
 	private static final String USER_JOHN_WEAK_OID = "c0c010c0-d34d-b33f-f00d-999111111888";
 	
-	private static final String USER_DONALD_FILENAME = REPO_DIR_NAME + "user-donald.xml";
+	private static final String USER_DONALD_FILENAME = TEST_DIR + "user-donald.xml";
 	private static final String USER_DONALD_OID = "c0c010c0-d34d-b33f-f00d-999111111777";
 	private static final String ACCOUNT_DONALD_LDAP_UID = "donald";
 	private static final String ACCOUNT_DONALD_LDAP_DN = "uid=" + ACCOUNT_DONALD_LDAP_UID + "," + OPENDJ_PEOPLE_SUFFIX;
 	
-	private static final String USER_DISCOVERY_FILENAME = REPO_DIR_NAME + "user-discovery.xml";
+	private static final String USER_DISCOVERY_FILENAME = TEST_DIR + "user-discovery.xml";
 	private static final String USER_DISCOVERY_OID = "c0c010c0-d34d-b33f-f00d-111112226666";
 	
-	private static final String USER_ABOMBA_FILENAME = REPO_DIR_NAME + "user-abomba.xml";
+	private static final String USER_ABOMBA_FILENAME = TEST_DIR + "user-abomba.xml";
 	private static final String USER_ABOMBA_OID = "c0c010c0-d34d-b33f-f00d-016016111111";
 	
-	private static final String USER_ABOM_FILENAME = REPO_DIR_NAME + "user-abom.xml";
+	private static final String USER_ABOM_FILENAME = TEST_DIR + "user-abom.xml";
 	private static final String USER_ABOM_OID = "c0c010c0-d34d-b33f-f00d-111111016016";
 	
-	private static final File ACCOUNT_GUYBRUSH_FILE = new File(REPO_DIR_NAME, "account-guybrush.xml");
+	private static final File ACCOUNT_GUYBRUSH_FILE = new File(TEST_DIR, "account-guybrush.xml");
 	private static final String ACCOUNT_GUYBRUSH_OID = "a0c010c0-d34d-b33f-f00d-111111111222";
 	
-	private static final File ACCOUNT_HECTOR_FILE = new File(REPO_DIR_NAME, "account-hector-not-found.xml");
+	private static final File ACCOUNT_HECTOR_FILE = new File(TEST_DIR, "account-hector-not-found.xml");
 	private static final String ACCOUNT_HECTOR_OID = "a0c010c0-d34d-b33f-f00d-111111222333";
 
-	private static final File ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILE = new File(REPO_DIR_NAME, "account-guybrush-not-found.xml");
+	private static final File ACCOUNT_GUYBRUSH_MODIFY_DELETE_FILE = new File(TEST_DIR, "account-guybrush-not-found.xml");
 	private static final String ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID = "a0c010c0-d34d-b33f-f00d-111111111333";
 
-	private static final String ACCOUNT_DENIELS_FILENAME = REPO_DIR_NAME + "account-deniels.xml";
+	private static final String ACCOUNT_DENIELS_FILENAME = TEST_DIR + "account-deniels.xml";
 	private static final File ACCOUNT_DENIELS_FILE = new File(ACCOUNT_DENIELS_FILENAME);
 	private static final String ACCOUNT_DENIELS_OID = "a0c010c0-d34d-b33f-f00d-111111111555";
 	private static final String ACCOUNT_DENIELS_LDAP_UID = "deniels";
 	private static final String ACCOUNT_DENIELS_LDAP_DN = "uid=" + ACCOUNT_DENIELS_LDAP_UID + "," + OPENDJ_PEOPLE_SUFFIX;
 	
-	private static final String ACCOUNT_CHUCK_FILENAME = REPO_DIR_NAME + "account-chuck.xml";
+	private static final String ACCOUNT_CHUCK_FILENAME = TEST_DIR + "account-chuck.xml";
 	
-	private static final String ACCOUNT_HERMAN_FILENAME = REPO_DIR_NAME + "account-herman.xml";
+	private static final String ACCOUNT_HERMAN_FILENAME = TEST_DIR + "account-herman.xml";
 	private static final String ACCOUNT_HERMAN_OID = "22220000-2200-0000-0000-333300003333";
 
-	private static final File ACCOUNT_JACKIE_FILE = new File(REQUEST_DIR_NAME, "add-account-jack.xml");
+	private static final File ACCOUNT_JACKIE_FILE = new File(TEST_DIR, "account-jack.xml");
 	private static final String ACCOUNT_JACKIE_OID = "22220000-2222-5555-0000-333300003333";
 	private static final String ACCOUNT_JACKIE_LDAP_UID = "jackie";
 	private static final String ACCOUNT_JACKIE_LDAP_DN = "uid=" + ACCOUNT_JACKIE_LDAP_UID + "," + OPENDJ_PEOPLE_SUFFIX;
 
-	private static final File REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE = new File(REQUEST_DIR_NAME, "user-modify-assign-account.xml");
-	private static final File REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY_FILE = new File(REQUEST_DIR_NAME, "user-modify-add-account-directly.xml");
-	private static final File REQUEST_USER_MODIFY_DELETE_ACCOUNT_FILE = new File(REQUEST_DIR_NAME, "user-modify-delete-account.xml");
-	private static final File REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM_FILE = new File(REQUEST_DIR_NAME, "user-modify-delete-account-communication-problem.xml");
-	private static final File REQUEST_USER_MODIFY_ASSIGN_ROLE_ADMINS_FILE = new File(REQUEST_DIR_NAME, "user-modify-assign-role-admin.xml");
-	
-	private static final File REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE = new File(REQUEST_DIR_NAME, "account-guybrush-modify-attributes.xml");
-	private static final File REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE = new File(REQUEST_DIR_NAME, "account-modify-attrs-communication-problem.xml");
-//	private static final File REQUEST_ADD_ACCOUNT_JACKIE_FILE = new File(REQUEST_DIR_NAME, "add-account-jack.xml");
-	private static final File REQUEST_USER_MODIFY_WEAK_MAPPING_COMMUNICATION_PROBLEM_FILE = new File(REQUEST_DIR_NAME, "user-modify-employeeType.xml");
-	private static final File REQUEST_USER_MODIFY_WEAK_STRONG_MAPPING_COMMUNICATION_PROBLEM_FILE = new File(REQUEST_DIR_NAME, "user-modify-employeeType-givenName.xml");
-	private static final File REQUEST_RESOURCE_MODIFY_RESOURCE_SCHEMA_FILE = new File(REQUEST_DIR_NAME, "resource-modify-resource-schema.xml");
-	private static final File REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION_FILE = new File(REQUEST_DIR_NAME, "resource-modify-synchronization.xml");
-	private static final File REQUEST_USER_MODIFY_CHANGE_PASSWORD_1_FILE = new File(REQUEST_DIR_NAME, "user-modify-change-password-1.xml");
-	private static final File REQUEST_USER_MODIFY_CHANGE_PASSWORD_2_FILE = new File(REQUEST_DIR_NAME, "user-modify-change-password-2.xml");
-
-	private static final File TASK_OPENDJ_RECONCILIATION_FILE = new File(REPO_DIR_NAME, "task-opendj-reconciliation.xml");
+	private static final File TASK_OPENDJ_RECONCILIATION_FILE = new File(TEST_DIR, "task-opendj-reconciliation.xml");
 	private static final String TASK_OPENDJ_RECONCILIATION_OID = "91919191-76e0-59e2-86d6-3d4f02d30000";
 
-	private static final File LDIF_WILL_FILE = new File(REQUEST_DIR_NAME, "will.ldif");
-	private static final File LDIF_ELAINE_FILE = new File(REQUEST_DIR_NAME, "elaine.ldif");
-	private static final File LDIF_MORGAN_FILE = new File(REQUEST_DIR_NAME, "morgan.ldif");
-	private static final File LDIF_DISCOVERY_FILE = new File(REQUEST_DIR_NAME, "discovery.ldif");
+	private static final File LDIF_WILL_FILE = new File(TEST_DIR, "will.ldif");
+	private static final File LDIF_ELAINE_FILE = new File(TEST_DIR, "elaine.ldif");
+	private static final File LDIF_MORGAN_FILE = new File(TEST_DIR, "morgan.ldif");
+	private static final File LDIF_DISCOVERY_FILE = new File(TEST_DIR, "discovery.ldif");
 	
-	private static final File LDIF_CREATE_USERS_OU_FILE = new File(REQUEST_DIR_NAME, "usersOu.ldif");
-	private static final File LDIF_CREATE_ADMINS_GROUP_FILE = new File(REQUEST_DIR_NAME, "adminsGroup.ldif");
+	private static final File LDIF_CREATE_USERS_OU_FILE = new File(TEST_DIR, "usersOu.ldif");
+	private static final File LDIF_CREATE_ADMINS_GROUP_FILE = new File(TEST_DIR, "adminsGroup.ldif");
 	
-	private static final File LDIF_MODIFY_RENAME_FILE = new File(REQUEST_DIR_NAME, "modify-rename.ldif");
+	private static final File LDIF_MODIFY_RENAME_FILE = new File(TEST_DIR, "modify-rename.ldif");
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestConsistencyMechanism.class);
 
@@ -587,7 +570,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 					
 		// WHEN
 		assignAccountToUser(USER_JACKIE_OID, RESOURCE_OPENDJ_OID, "internal");
-//		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_JACKIE_OID, UserType.class, task, null, parentResult);
 
 		// THEN		
 		//expected thet the dn and ri:uid will be jackie1 because jackie already exists and is liked to another user..
@@ -671,55 +653,36 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	public void test124AddAccountDirectAlreadyExists() throws Exception {
 		final String TEST_NAME = "test124AddAccountDirectAlreadyExists";
 		displayTestTitle(TEST_NAME);
-		OperationResult parentResult = new OperationResult(TEST_NAME);
-		Task task = taskManager.createTaskInstance();
+		Task task = createTask(TEST_NAME);
+		OperationResult parentResult = task.getResult();
 
-		SchemaHandlingType oldSchemaHandling = resourceTypeOpenDjrepo
-				.getSchemaHandling();
-		SynchronizationType oldSynchronization = resourceTypeOpenDjrepo
-				.getSynchronization();
+
 		try {
 
-			// we will reapply this schema handling after this test finish
-			ObjectDeltaType omt = unmarshallValueFromFile(REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION_FILE, ObjectDeltaType.class);
-			ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(omt, prismContext);
-			
-			repositoryService.modifyObject(ResourceType.class, RESOURCE_OPENDJ_OID, objectDelta.getModifications(), parentResult);
-			requestToExecuteChanges(REQUEST_RESOURCE_MODIFY_RESOURCE_SCHEMA_FILE,
-					RESOURCE_OPENDJ_OID, ResourceType.class, task, null,
-					parentResult);
+			repoAddObjectFromFile(USER_ABOMBA_FILENAME, parentResult);
 
-			PrismObject<ResourceType> res = repositoryService
-					.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
-							parentResult);
-			// LOGGER.trace("resource schema handling after modify: {}",
-			// prismContext.silentMarshalObject(res.asObjectable(), LOGGER));
+			ObjectDelta<UserType> abombaDelta = createModifyUserAddAccount(USER_ABOMBA_OID, resourceTypeOpenDjrepo.asPrismObject(), "contractor");
+			executeChanges(abombaDelta, null, task, parentResult);
 
-			repoAddObjectFromFile(USER_ABOMBA_FILENAME,
-					parentResult);
-			requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY_FILE,
-					USER_ABOMBA_OID, UserType.class, task, null, parentResult);
+			assertUser(USER_ABOMBA_OID, "User before")
+					.assertLinks(1);
 
-			String abombaOid = assertUserOneAccountRef(USER_ABOMBA_OID);
+			String abombaOid = getLinkRefOid(USER_ABOMBA_OID, RESOURCE_OPENDJ_OID);
 
-			ShadowType abombaShadow = repositoryService.getObject(
-					ShadowType.class, abombaOid, null, parentResult)
-					.asObjectable();
-			assertShadowName(abombaShadow,
-					"uid=abomba,OU=people,DC=example,DC=com");
+			ShadowType abombaShadow = repositoryService.getObject(ShadowType.class, abombaOid, null, parentResult).asObjectable();
+			assertShadowName(abombaShadow,"uid=abomba,OU=people,DC=example,DC=com");
 
-			repoAddObjectFromFile(USER_ABOM_FILENAME,
-					parentResult);
-			requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY_FILE,
-					USER_ABOM_OID, UserType.class, task, null, parentResult);
+			repoAddObjectFromFile(USER_ABOM_FILENAME, parentResult);
+			ObjectDelta<UserType> abomDelta = createModifyUserAddAccount(USER_ABOM_OID, resourceTypeOpenDjrepo.asPrismObject(), "contractor");
+			executeChanges(abomDelta, null, task, parentResult);
 
-			String abomOid = assertUserOneAccountRef(USER_ABOM_OID);
+			assertUser(USER_ABOM_OID, "User before")
+					.assertLinks(1);
 
-			ShadowType abomShadow = repositoryService.getObject(
-					ShadowType.class, abomOid, null, parentResult)
-					.asObjectable();
-			assertShadowName(abomShadow,
-					"uid=abomba1,OU=people,DC=example,DC=com");
+			String abomOid = getLinkRefOid(USER_ABOMBA_OID, RESOURCE_OPENDJ_OID);
+
+			ShadowType abomShadow = repositoryService.getObject(ShadowType.class, abomOid, null, parentResult).asObjectable();
+			assertShadowName(abomShadow, "uid=abomba1,OU=people,DC=example,DC=com");
 
 			ReferenceDelta abombaDeleteAccDelta = prismContext.deltaFactory().reference()
 					.createModificationDelete(ShadowType.class,
@@ -751,20 +714,16 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 				fail("Expected that shadow abom does not exist, but it is");
 			} catch (ObjectNotFoundException ex) {
 				// this is expected
-			} catch (Exception ex) {
-				fail("Expected object not found exception but got " + ex);
 			}
 
 			LOGGER.info("starting second execution request for user abomba");
 			OperationResult result = new OperationResult("Add account already exist result.");
-			requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY_FILE,
-					USER_ABOMBA_OID, UserType.class, task, null, result);
+			ObjectDelta<UserType> abombaDelta2 = createModifyUserAddAccount(USER_ABOMBA_OID, resourceTypeOpenDjrepo.asPrismObject(), "contractor");
+			executeChanges(abombaDelta2, null, task, parentResult);
 
 			
 			String abombaOid2 = assertUserOneAccountRef(USER_ABOMBA_OID);
-			ShadowType abombaShadow2 = repositoryService.getObject(
-					ShadowType.class, abombaOid2, null, result)
-					.asObjectable();
+			ShadowType abombaShadow2 = repositoryService.getObject(ShadowType.class, abombaOid2, null, result).asObjectable();
 			assertShadowName(abombaShadow2,
 					"uid=abomba,OU=people,DC=example,DC=com");
 
@@ -774,20 +733,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			LOGGER.info("Displaying execute changes result");
 			display(result);
 			
-			// return the previous changes of resource back
-			Collection<? extends ItemDelta> schemaHandlingDelta = prismContext.deltaFactory().container()
-					.createModificationReplaceContainerCollection(
-							ResourceType.F_SCHEMA_HANDLING,
-							resourceTypeOpenDjrepo.asPrismObject()
-									.getDefinition(), oldSchemaHandling.asPrismContainerValue().clone());
-			PropertyDelta syncDelta = prismContext.deltaFactory().property()
-					.createModificationReplaceProperty(
-							ResourceType.F_SYNCHRONIZATION,
-							resourceTypeOpenDjrepo.asPrismObject()
-									.getDefinition(), oldSynchronization);
-			((Collection) schemaHandlingDelta).add(syncDelta);
-			repositoryService.modifyObject(ResourceType.class,
-					RESOURCE_OPENDJ_OID, schemaHandlingDelta, parentResult);
+
 		} catch (Exception ex) {
 			LOGGER.info("error: " + ex.getMessage(), ex);
 			throw ex;
@@ -869,7 +815,14 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 					.replace("cabin")
 				.asObjectDelta(ACCOUNT_GUYBRUSH_OID);
 
-		executeChanges(delta, null, task, result);
+		try {
+			executeChanges(delta, null, task, result);
+			fail("Unexpected succes while modifying non-exsiting object");
+		} catch (ObjectNotFoundException e) {
+			//this is expected
+		} catch (Throwable e) {
+			fail("Unexpected exception furing modifying object, " + e.getMessage());
+		}
 //		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE, ACCOUNT_GUYBRUSH_OID, ShadowType.class, task, null, result);
 
 		// THEN
@@ -1166,12 +1119,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 
 		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
-		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
 		assignAccount(UserType.class, USER_E_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
-
 		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
-//
-//		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_E_OID, UserType.class, task, null, parentResult);
 
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
@@ -1235,7 +1184,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
 		executeChanges(delta, null, task, parentResult);
 		XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
-//		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE, accountOid, ShadowType.class, task, null, parentResult);
 		
 		//THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1795,10 +1743,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			.assertLinks(0);
 
 		//and add account to the user while resource is UP
-		
-		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
 		assignAccountToUser(USER_ALICE_OID, RESOURCE_OPENDJ_OID, "internal");
-//		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_ALICE_OID, UserType.class, task, null, parentResult);
 		
 		//then stop openDJ
 		openDJController.stop();
@@ -2243,8 +2188,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 							.assertHasModification(createAttributePath(LDAP_ATTRIBUTE_GIVENNAME))
 							.assertNoModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_TYPE));
 
-		recomputeUser(USER_DONALD_OID);
+		//WHEN
+		displayWhen(TEST_NAME);
+		recomputeUser(USER_DONALD_OID, ModelExecuteOptions.createReconcile(), task, parentResult);
 
+		//THEN
+		displayThen(TEST_NAME);
 		assertModelShadow(shadowOid)
 				.attributes()
 					.assertValue(LDAP_ATTRIBUTE_GIVENNAME, "don")
@@ -2308,10 +2257,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 								.assertNoModification(createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_TYPE))
 								.assertHasModification(ShadowType.F_ASSOCIATION);
 
+
 		//THEN
 		openDJController.assumeRunning();
 
-		recomputeUser(USER_DONALD_OID);
+		recomputeUser(USER_DONALD_OID, ModelExecuteOptions.createReconcile(), task, parentResult);
 
 		assertModelShadow(shadowOid)
 				.attributes()
@@ -2362,10 +2312,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		assertUserNoAccountRef(USER_DISCOVERY_OID, parentResult);
 				
 		Task task = taskManager.createTaskInstance();
-		
-		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGN_ACCOUNT_FILE, USER_DISCOVERY_OID, UserType.class, task, null, parentResult);
-		
+
+		assignAccount(UserType.class, USER_DISCOVERY_OID, RESOURCE_OPENDJ_OID, "internal", task, parentResult);
+
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
 		assertEquals("Expected success but got: " + parentResult.getStatus(), OperationResultStatus.HANDLED_ERROR, parentResult.getStatus());
@@ -2523,6 +2472,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         display("Adding user", user);
         
         //REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
+		//WHEN
+		displayWhen(TEST_NAME);
 		assignAccount(UserType.class, USER_HERMAN_OID, RESOURCE_OPENDJ_OID, "internal", task, result);
 
 		// THEN
@@ -2746,15 +2697,22 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		//and add account to the user while resource is UP
 		
 		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY_FILE, USER_ALICE_OID, UserType.class, task, null, parentResult);
-		
+		ObjectDelta<UserType> addDelta = createModifyUserAddAccount(USER_ALICE_OID, resourceTypeOpenDjrepo.asPrismObject());
+		executeChanges(addDelta, null, task, parentResult);
+
 		//then stop openDJ
 		openDJController.stop();
 		
 		String accountOid = assertUserOneAccountRef(USER_ALICE_OID);
 
 		//and make some modifications to the account while resource is DOWN
-		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM_FILE, accountOid, ShadowType.class, task, null, parentResult);
+		//WHEN
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory()
+				.object()
+					.createModificationAddProperty(ShadowType.class, accountOid, createAttributePath(LDAP_ATTRIBUTE_EMPLOYEE_NUMBER), "emp4321");
+		delta.addModificationReplaceProperty(createAttributePath(LDAP_ATTRIBUTE_GIVENNAME), "Aliceeee");
+
+		executeChanges(delta, null, task, parentResult);
 
 		//check the state after execution
 		checkPostponedAccountBasic(accountOid, FailedOperationTypeType.MODIFY, true, parentResult);
