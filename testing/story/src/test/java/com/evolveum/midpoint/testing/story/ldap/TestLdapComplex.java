@@ -19,8 +19,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -32,8 +32,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -47,26 +45,34 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
+ * Complex LDAP tests:
+ *
  * Testing PolyString all the way to LDAP connector. The PolyString data should be translated
  * to LDAP "language tag" attributes (attribute options).
  * MID-5210
+ *
+ * search scope limited to "one" (MID-5485)
+ *
+ *
+ *
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestLdapPolyString extends AbstractLdapTest {
+public class TestLdapComplex extends AbstractLdapTest {
 
-	public static final File TEST_DIR = new File(LDAP_TEST_DIR, "polystring");
+	public static final File TEST_DIR = new File(LDAP_TEST_DIR, "complex");
 
 	private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
+
+	private static final File ORG_PROJECT_TOP_FILE = new File(TEST_DIR, "org-project-top.xml");
+	private static final String ORG_PROJECT_TOP_OID = "4547657c-e9bc-11e9-87d6-ef7cd13d2828";
+
+	private static final File ORG_FUNCTIONAL_TOP_FILE = new File(TEST_DIR, "org-functional-top.xml");
+	private static final String ORG_FUNCTIONAL_TOP_OID = "44dff496-e9bc-11e9-8c17-4fc5d5f4d2cf";
 
 	private static final String[] JACK_FULL_NAME_LANG_EN_SK = {
 			"en", "Jack Sparrow",
@@ -119,10 +125,26 @@ public class TestLdapPolyString extends AbstractLdapTest {
 
 	private static final String USER_JACK_BLAHBLAH = "BlahBlahBlah!";
 
+	private static final String INTENT_LDAP_PROJECT_GROUP = "ldapProjectGroup";
+	private static final String INTENT_LDAP_ORG_GROUP = "ldapOrgGroup";
+
+	private static final String ASSOCIATION_LDAP_PROJECT_GROUP = "ldapProjectGroup";
+	private static final String ASSOCIATION_LDAP_ORG_GROUP = "ldapOrgGroup";
+
+	private static final String PROJECT_KEELHAUL_NAME = "Keelhaul";
+	private static final String PROJECT_WALK_THE_PLANK_NAME = "Walk the Plank";
+	private static final String ORG_RUM_DEPARTMENT_NAME = "Rum department";
+
 
 	private PrismObject<ResourceType> resourceOpenDj;
 
 	private String accountJackOid;
+	private String projectKeelhaulOid;
+	private String projectWalkThePlankOid;
+	private String orgRumDepartmentOid;
+	private String groupKeelhaulOid;
+	private String groupWalkThePlankOid;
+	private String groupRumDepartmentOid;
 
 	@Override
     protected void startResources() throws Exception {
@@ -141,6 +163,13 @@ public class TestLdapPolyString extends AbstractLdapTest {
 		// Resources
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);	
 		openDJController.setResource(resourceOpenDj);
+
+		openDJController.addEntry("dn: ou=orgStruct,dc=example,dc=com\n"+
+				"objectClass: organizationalUnit\n"+
+				"ou: orgStruct");
+
+		importObjectFromFile(ORG_PROJECT_TOP_FILE);
+		importObjectFromFile(ORG_FUNCTIONAL_TOP_FILE);
 
 		DebugUtil.setDetailedDebugDump(true);
 	}
@@ -934,8 +963,8 @@ public class TestLdapPolyString extends AbstractLdapTest {
         assertSuccess(result);
         
         display("Found shadows", shadows);
-        // 4 account shadows, 1 shadow for ou=people
-        assertEquals("Unexpected number of shadows", 5, shadows.size());
+        // 4 account shadows, 1 shadow for ou=people, 1 shadow for ou=groups,dc=example,dc=com
+        assertEquals("Unexpected number of shadows", 6, shadows.size());
         PrismObject<ShadowType> peopleShadow = null;
         for (PrismObject<ShadowType> shadow : shadows) {
         	if (StringUtils.equalsIgnoreCase(shadow.getName().getOrig(),OPENDJ_PEOPLE_SUFFIX)) {
@@ -982,7 +1011,261 @@ public class TestLdapPolyString extends AbstractLdapTest {
 
 	}
 
-	
+	/**
+	 * Normal search, of groups, nothing special. More-or-less configuration sanity check.
+	 * MID-5790
+	 */
+	@Test
+	public void test400SearchLdapProjectGroups() throws Exception {
+		final String TEST_NAME = "test400SearchLdapProjectGroups";
+		displayTestTitle(TEST_NAME);
+
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		// Group "pirates" already exists
+		searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 1);
+
+	}
+
+	/**
+	 * Normal search, of groups, nothing special. More-or-less configuration sanity check.
+	 * MID-5790
+	 */
+	@Test
+	public void test401SearchLdapOrgGroups() throws Exception {
+		final String TEST_NAME = "test401SearchLdapOrgGroups";
+		displayTestTitle(TEST_NAME);
+
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP, prismContext);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 0);
+
+	}
+
+	/**
+	 * Create a project org. LDAP group should be created.
+	 */
+	@Test
+	public void test410CreateProjectKeelhaul() throws Exception {
+		final String TEST_NAME = "test410CreateProjectKeelhaul";
+		displayTestTitle(TEST_NAME);
+
+		PrismObject<OrgType> projectKeelhaul = createObject(OrgType.class, PROJECT_KEELHAUL_NAME);
+		projectKeelhaul.asObjectable()
+				.beginAssignment()
+					.targetRef(ORG_PROJECT_TOP_OID, OrgType.COMPLEX_TYPE);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		addObject(projectKeelhaul);
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<OrgType> orgKeelhaul = findObjectByName(OrgType.class, PROJECT_KEELHAUL_NAME);
+		projectKeelhaulOid = orgKeelhaul.getOid();
+		groupKeelhaulOid = assertOrg(orgKeelhaul, "after")
+				.links()
+					.single()
+					.getOid();
+
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
+		searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 2);
+	}
+
+	/**
+	 * Create a project org. LDAP group should be created.
+	 */
+	@Test
+	public void test412CreateProjectWalkThePlank() throws Exception {
+		final String TEST_NAME = "test412CreateProjectWalkThePlank";
+		displayTestTitle(TEST_NAME);
+
+		PrismObject<OrgType> projectKeelhaul = createObject(OrgType.class, PROJECT_WALK_THE_PLANK_NAME);
+		projectKeelhaul.asObjectable()
+				.beginAssignment()
+				.targetRef(ORG_PROJECT_TOP_OID, OrgType.COMPLEX_TYPE);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		addObject(projectKeelhaul);
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<OrgType> orgWalkThePlank = findObjectByName(OrgType.class, PROJECT_WALK_THE_PLANK_NAME);
+		projectWalkThePlankOid = orgWalkThePlank.getOid();
+		groupWalkThePlankOid = assertOrg(orgWalkThePlank, "after")
+				.links()
+					.single()
+					.getOid();
+
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
+		searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 3);
+
+		query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP, prismContext);
+		searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 0);
+	}
+
+	/**
+	 * Create a project org. LDAP group should be created.
+	 */
+	@Test
+	public void test415CreateOrgRumDepartment() throws Exception {
+		final String TEST_NAME = "test415CreateOrgRumDepartment";
+		displayTestTitle(TEST_NAME);
+
+		PrismObject<OrgType> orgBefore = createObject(OrgType.class, ORG_RUM_DEPARTMENT_NAME);
+		orgBefore.asObjectable()
+				.beginAssignment()
+				.targetRef(ORG_FUNCTIONAL_TOP_OID, OrgType.COMPLEX_TYPE);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		addObject(orgBefore);
+
+		// THEN
+		displayThen(TEST_NAME);
+		PrismObject<OrgType> orgAfter = findObjectByName(OrgType.class, ORG_RUM_DEPARTMENT_NAME);
+		orgRumDepartmentOid = orgAfter.getOid();
+		assertNotNull("Null org oid", orgRumDepartmentOid);
+		groupRumDepartmentOid = assertOrg(orgAfter, "after")
+				.links()
+					.single()
+					.getOid();
+
+		ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_PROJECT_GROUP, prismContext);
+		searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 3);
+
+		query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, INTENT_LDAP_ORG_GROUP, prismContext);
+		searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 1);
+	}
+
+	/**
+	 * Assign Jack to project. Group association should appear.
+	 * MID-5790
+	 */
+	@Test
+	public void test420AssignJackToKeelhaul() throws Exception {
+		final String TEST_NAME = "test412AssignJackToKeelhaul";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		String accountJackOid = assertUserBefore(USER_JACK_OID)
+				.singleLink()
+					.target()
+						.assertResource(RESOURCE_OPENDJ_OID)
+						.end()
+				.getOid();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignOrg(USER_JACK_OID, projectKeelhaulOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		openDJController.assertUniqueMembers("cn="+PROJECT_KEELHAUL_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
+		openDJController.assertUniqueMembers("cn="+PROJECT_WALK_THE_PLANK_NAME+",ou=groups,dc=example,dc=com" /* no value */);
+		openDJController.assertUniqueMembers("cn="+ORG_RUM_DEPARTMENT_NAME+",ou=orgStruct,dc=example,dc=com" /* no value */);
+
+		assertModelShadow(accountJackOid)
+				.associations()
+					.association(ASSOCIATION_LDAP_PROJECT_GROUP)
+						.assertShadowOids(groupKeelhaulOid)
+						.end()
+					.association(ASSOCIATION_LDAP_ORG_GROUP)
+						// MID-5790
+						.assertNone();
+	}
+
+	/**
+	 * Assign Jack to another project. Another group association should appear.
+	 * MID-5790
+	 */
+	@Test
+	public void test422AssignJackToWalkThePlank() throws Exception {
+		final String TEST_NAME = "test414AssignJackToWalkThePlank";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		String accountJackOid = assertUserBefore(USER_JACK_OID)
+				.singleLink()
+					.target()
+						.assertResource(RESOURCE_OPENDJ_OID)
+						.end()
+				.getOid();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignOrg(USER_JACK_OID, projectWalkThePlankOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		openDJController.assertUniqueMembers("cn="+PROJECT_KEELHAUL_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
+		openDJController.assertUniqueMembers("cn="+PROJECT_WALK_THE_PLANK_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
+		openDJController.assertUniqueMembers("cn="+ORG_RUM_DEPARTMENT_NAME+",ou=orgStruct,dc=example,dc=com" /* no value */);
+
+		assertModelShadow(accountJackOid)
+				.associations()
+					.association(ASSOCIATION_LDAP_PROJECT_GROUP)
+						.assertShadowOids(groupKeelhaulOid, groupWalkThePlankOid)
+						.end()
+					.association(ASSOCIATION_LDAP_ORG_GROUP)
+						// MID-5790
+						.assertNone();
+	}
+
+	/**
+	 * Same routine, but with org.
+	 * MID-5790
+	 */
+	@Test
+	public void test424AssignJackToRumDepartment() throws Exception {
+		final String TEST_NAME = "test424AssignJackToRumDepartment";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		String accountJackOid = assertUserBefore(USER_JACK_OID)
+				.singleLink()
+					.target()
+						.assertResource(RESOURCE_OPENDJ_OID)
+						.end()
+				.getOid();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignOrg(USER_JACK_OID, orgRumDepartmentOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		openDJController.assertUniqueMembers("cn="+PROJECT_KEELHAUL_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
+		openDJController.assertUniqueMembers("cn="+PROJECT_WALK_THE_PLANK_NAME+",ou=groups,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
+		openDJController.assertUniqueMembers("cn="+ORG_RUM_DEPARTMENT_NAME+",ou=orgStruct,dc=example,dc=com", "uid="+USER_JACK_USERNAME+",ou=people,dc=example,dc=com");
+
+		assertModelShadow(accountJackOid)
+				.associations()
+					.association(ASSOCIATION_LDAP_PROJECT_GROUP)
+						.assertShadowOids(groupKeelhaulOid, groupWalkThePlankOid)
+						.end()
+					.association(ASSOCIATION_LDAP_ORG_GROUP)
+						// MID-5790
+						.assertShadowOids(groupRumDepartmentOid);
+	}
+
 	private List<PrismContainerValue<?>> createTitleMapValues(String... params) throws SchemaException {
 		List<PrismContainerValue<?>> cvals = new ArrayList<>();
 		for(int i = 0; i < params.length; i+=2) {

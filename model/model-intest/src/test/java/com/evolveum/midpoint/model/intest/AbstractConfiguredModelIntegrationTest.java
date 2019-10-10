@@ -109,6 +109,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_DRINK = "rum";
 	protected static final String RESOURCE_DUMMY_QUOTE = "Arr!";
 	protected static final String RESOURCE_DUMMY_USELESS_STRING = "USEless";
+	protected static final QName RESOURCE_DUMMY_GROUP_OBJECTCLASS = new QName(RESOURCE_DUMMY_NAMESPACE, "GroupObjectClass");
+	protected static final QName RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, "group");
+	protected static final QName RESOURCE_DUMMY_ASSOCIATION_PRIV_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, "priv");
 
 	// RED resource has STRONG mappings
 	protected static final File RESOURCE_DUMMY_RED_FILE = new File(COMMON_DIR, "resource-dummy-red.xml");

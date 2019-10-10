@@ -5881,9 +5881,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected OrgAsserter<Void> assertOrg(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = getObject(OrgType.class, oid);
+		OrgAsserter<Void> asserter = assertOrg(org, message);
+		asserter.assertOid(oid);
+		return asserter;
+	}
+
+	protected OrgAsserter<Void> assertOrg(PrismObject<OrgType> org, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		OrgAsserter<Void> asserter = OrgAsserter.forOrg(org, message);
 		initializeAsserter(asserter);
-		asserter.assertOid(oid);
 		return asserter;
 	}
 	

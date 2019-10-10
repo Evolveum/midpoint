@@ -278,6 +278,17 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 		assertNull("Unexpected attributes in "+desc(), getObject().findContainer(ShadowType.F_ATTRIBUTES));
 		return this;
 	}
+
+	public ShadowAssociationsAsserter<RA> associations() {
+		ShadowAssociationsAsserter<RA> asserter = new ShadowAssociationsAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+
+	public ShadowAsserter<RA> assertNoAssociations() {
+		assertNull("Unexpected associations in "+desc(), getObject().findContainer(ShadowType.F_ASSOCIATION));
+		return this;
+	}
 	
 	public ShadowAsserter<RA> assertNoLegacyConsistency() {
 		// Nothing to do. Those are gone in midPoint 4.0.

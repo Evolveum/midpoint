@@ -91,11 +91,11 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 	protected PrismObject<ResourceType> resource;
 
-//	@Override
-//	protected TracingProfileType getTestMethodTracingProfile() {
-//		return createModelAndProvisioningLoggingTracingProfile()
-//				.fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-//	}
+	@Override
+	protected TracingProfileType getTestMethodTracingProfile() {
+		return createModelAndProvisioningLoggingTracingProfile()
+				.fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+	}
 
 	@Override
 	protected boolean isAutoTaskManagementEnabled() {
@@ -115,7 +115,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		InternalsConfig.setSanityChecks(true);
 
-//		setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
+		setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
 	}
 
 	@NotNull

@@ -81,25 +81,6 @@ public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWr
 		return refValue;
 	}
 
-	@Override
-	protected boolean determineReadOnly(PrismReferenceWrapper<R> itemWrapper, WrapperContext context) {
-		if (QNameUtil.match(CaseType.F_PARENT_REF, itemWrapper.getPath().asSingleName())){
-			boolean isObjectReferenceType = false;
-			try {
-				isObjectReferenceType = itemWrapper.getValue() != null
-						&& itemWrapper.getValue().getRealValue() instanceof  ObjectReferenceType;
-			} catch (SchemaException e){
-				LOGGER.warn("Unable to get single value from multi-value property,  ", e.getLocalizedMessage());
-			}
-			if (isObjectReferenceType) {
-				WrapperContext contextClone = context.clone();
-				contextClone.setReadOnly(false);
-				return super.determineReadOnly(itemWrapper, contextClone);
-			}
-		}
-		return super.determineReadOnly(itemWrapper, context);
-	}
-
 //	@Override
 //	protected boolean canCreateNewWrapper(ItemDefinition<?> def) {
 //		//TODO compare full path instead of def.getName(). The issue is, that another complex type can have targetRef or target specified and then 

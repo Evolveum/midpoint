@@ -145,6 +145,11 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		realProperty.addRealValue(valueToAdd);
 	}
 
+	@Override
+	public void addRealValueSkipUniquenessCheck(T valueToAdd) {
+		realProperty.addRealValueSkipUniquenessCheck(valueToAdd);
+	}
+
 	public void addRealValues(T... valuesToAdd) {
 		realProperty.addRealValues(valuesToAdd);
 	}
