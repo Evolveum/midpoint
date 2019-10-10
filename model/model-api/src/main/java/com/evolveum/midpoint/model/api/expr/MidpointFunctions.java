@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -1196,4 +1197,12 @@ public interface MidpointFunctions {
 
 	@NotNull
 	OptimizingTriggerCreator getOptimizingTriggerCreator(long fireAfter, long safetyMargin);
+
+	@NotNull
+    <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, QName objectClassName,
+		    QName attributeName) throws SchemaException;
+
+	@NotNull
+	<T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, String objectClassName,
+			String attributeName) throws SchemaException;
 }

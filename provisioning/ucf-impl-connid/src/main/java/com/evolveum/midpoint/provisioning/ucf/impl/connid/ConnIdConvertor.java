@@ -277,13 +277,16 @@ public class ConnIdConvertor {
 				resourceAttribute
 						.setIncomplete(connIdAttr.getAttributeValueCompleteness() == AttributeValueCompleteness.INCOMPLETE);
 
-				// if true, we need to convert whole connector object to the
+				// Note: we skip uniqueness checks here because the attribute in the resource object is created from scratch.
+				// I.e. its values will be unique (assuming that values coming from the resource are unique).
+
+				// if full == true, we need to convert whole connector object to the
 				// resource object also with the null-values attributes
 				if (full) {
 					// Convert the values. While most values do not need conversions, some of them may need it (e.g. GuardedString)
 					for (Object connIdValue : values) {
 						Object value = convertValueFromConnId(connIdValue, qname);
-						resourceAttribute.addRealValue(value);
+						resourceAttribute.addRealValueSkipUniquenessCheck(value);
 					}
 
 					LOGGER.trace("Converted attribute {}", resourceAttribute);
@@ -297,7 +300,7 @@ public class ConnIdConvertor {
 					for (Object connIdValue : values) {
 						if (connIdValue != null) {
 							Object value = convertValueFromConnId(connIdValue, qname);
-							resourceAttribute.addRealValue(value);
+							resourceAttribute.addRealValueSkipUniquenessCheck(value);
 						}
 					}
 
