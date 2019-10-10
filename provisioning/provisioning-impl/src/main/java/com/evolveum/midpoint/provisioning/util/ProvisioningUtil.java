@@ -159,7 +159,9 @@ public class ProvisioningUtil {
 			if (fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 				explicit.add(attributeDefinition);
 			} else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL ||
-					SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false))) {
+					(SelectorOptions.hasToLoadPath(ctx.getPrismContext().path(ShadowType.F_ATTRIBUTES, attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false) ||
+					// Following clause is legacy (MID-5838)
+					SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false)))) {
 				explicit.add(attributeDefinition);
 			}
 		}
