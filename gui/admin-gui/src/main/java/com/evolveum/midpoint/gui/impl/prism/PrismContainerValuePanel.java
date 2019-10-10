@@ -260,10 +260,12 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
 				private static final long serialVersionUID = 1L;
 
-				@Override
-				public boolean isEnabled() {
-					return !item.getModelObject().isReadOnly();
-				}
+				//TODO decide if we need to set enable behavior here
+				//see also ItemPanel.getEnableBehaviourOfValuePanel(), may be it's enough
+//				@Override
+//				public boolean isEnabled() {
+//					return !item.getModelObject().isReadOnly();
+//				}
 
 				@Override
 				public boolean isVisible() {
@@ -460,7 +462,9 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 		containers.forEach(container -> {
 			try {
 				ItemWrapper iw = getPageBase().createItemWrapper(container, getModelObject(), ctx);
-				((List) getModelObject().getItems()).add(iw);
+				if (iw != null) {
+					((List) getModelObject().getItems()).add(iw);
+				}
 			} catch (SchemaException e) {
 				OperationResult result = ctx.getResult();
 				result.recordFatalError(createStringResource("PrismContainerValuePanel.message.prepareNewContainers.fatalError", container).getString(), e);

@@ -41,10 +41,11 @@ public class InformationPanel extends BasePanel<InformationType> {
 			@Override
 			public LocalizableMessageType getObject() {
 				InformationType info = getModelObject();
-				return getLocalizableMessageOrDefault(info.getLocalizableTitle(), info.getTitle());
+				return info != null ? getLocalizableMessageOrDefault(info.getLocalizableTitle(), info.getTitle()) : null;
 			}
 		}, this));
-		titleLabel.add(new VisibleBehaviour(() -> getModelObject().getLocalizableTitle() != null && getModelObject().getTitle() != null));
+		titleLabel.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getLocalizableTitle() != null
+				&& getModelObject().getTitle() != null));
 		add(titleLabel);
 
 		ListView<InformationPartType> list = new ListView<InformationPartType>(ID_PARTS,
@@ -52,8 +53,9 @@ public class InformationPanel extends BasePanel<InformationType> {
 			@Override
 			protected void populateItem(ListItem<InformationPartType> item) {
 				InformationPartType part = item.getModelObject();
-				Label label = new Label(ID_PART, WebComponentUtil.resolveLocalizableMessage(
-						getLocalizableMessageOrDefault(part.getLocalizableText(), part.getText()), InformationPanel.this));
+				Label label = new Label(ID_PART, part != null ? WebComponentUtil.resolveLocalizableMessage(
+						getLocalizableMessageOrDefault(part.getLocalizableText(), part.getText()), InformationPanel.this)
+						: "");
 				if (Boolean.TRUE.equals(part.isHasMarkup())) {
 					label.setEscapeModelStrings(false);
 				}

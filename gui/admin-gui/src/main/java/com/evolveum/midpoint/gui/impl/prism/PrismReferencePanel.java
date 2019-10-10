@@ -11,28 +11,23 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.data.IconedObjectNamePanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.validation.IValidatable;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferencePanelContext;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -67,30 +62,20 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 
 	@Override
 	protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
+		FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
+		feedback.setOutputMarkupId(true);
+		item.add(feedback);
+
 		if (componentFactory != null) {
 			PrismReferencePanelContext<?> panelCtx = new PrismReferencePanelContext<>(getModel());
 			panelCtx.setComponentId(ID_VALUE);
 			panelCtx.setParentComponent(this);
 			panelCtx.setRealValueModel((IModel)item.getModel());
-			
+
 			Panel panel = componentFactory.createPanel(panelCtx);
 			item.add(panel);
 			return panel;
-		} else if (isObjectNavigationPanel()) {
-			FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
-			feedback.setOutputMarkupId(true);
-			item.add(feedback);
-
-			IconedObjectNamePanel iconedObjectNamePanel = new IconedObjectNamePanel(ID_VALUE,
-					(ObjectReferenceType) item.getModelObject().getRealValue());
-			iconedObjectNamePanel.setOutputMarkupId(true);
-			item.add(iconedObjectNamePanel);
-
-			return iconedObjectNamePanel;
 		} else {
-			FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
-			feedback.setOutputMarkupId(true);
-			item.add(feedback);
 			ValueChoosePanel<R> panel = new ValueChoosePanel<R>(ID_VALUE, new ItemRealValueModel<>(item.getModel())) {
 
 				private static final long serialVersionUID = 1L;
@@ -171,26 +156,16 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 	}
 
 	@Override
-	protected boolean isRemoveButtonVisible() {
-		if (isObjectNavigationPanel()){
-			return false;
-		} else {
-			return super.isRemoveButtonVisible();
-		}
+	protected EnableBehaviour getEnableBehaviourOfValuePanel(PrismReferenceWrapper<R> iw) {
+		return new EnableBehaviour(() -> !iw.isReadOnly() || isLink(iw));
 	}
 
-	private boolean isObjectNavigationPanel(){
-		if (getModelObject() != null && QNameUtil.match(CaseType.F_PARENT_REF, getModelObject().getPath().asSingleName())){
-			boolean isObjectReferenceType = false;
-			try {
-				isObjectReferenceType = getModelObject().getValue() != null &&
-						getModelObject().getValue().getRealValue() instanceof  ObjectReferenceType;
-			} catch (SchemaException e){
-				LOGGER.warn("Unable to get single value from multi-value property,  ", e.getLocalizedMessage());
-			}
-			return isObjectReferenceType;
+	private boolean isLink(PrismReferenceWrapper<R> iw){
+		boolean isLink = false;
+		if (CollectionUtils.isNotEmpty(iw.getValues()) && iw.getValues().size() == 1) {
+			isLink = iw.getValues().get(0).isLink();
 		}
-		return false;
+		return isLink;
 	}
 
 }

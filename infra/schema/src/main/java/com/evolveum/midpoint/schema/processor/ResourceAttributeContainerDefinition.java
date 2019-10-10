@@ -56,7 +56,7 @@ public interface ResourceAttributeContainerDefinition extends PrismContainerDefi
 	@NotNull
 	ResourceAttributeContainerDefinition clone();
 
-	ResourceAttributeDefinition findAttributeDefinition(QName elementQName, boolean caseInsensitive);
+	<T> ResourceAttributeDefinition<T> findAttributeDefinition(QName elementQName, boolean caseInsensitive);
 
 	ResourceAttributeDefinition findAttributeDefinition(ItemPath elementPath);
 
