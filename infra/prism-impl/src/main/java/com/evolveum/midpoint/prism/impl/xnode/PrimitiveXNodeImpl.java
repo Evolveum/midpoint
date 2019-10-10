@@ -81,10 +81,12 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
 		return getParsedValue(typeName, null, XNodeProcessorEvaluationMode.STRICT);
 	}
 
+	// @post: return value is type-compliant with expectedClass (if both are non-null)
 	public T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass) throws SchemaException {
 		return getParsedValue(typeName, expectedClass, XNodeProcessorEvaluationMode.STRICT);
 	}
 
+	// @post: return value is type-compliant with expectedClass (if both are non-null)
 	public T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		if (!isParsed()) {
 			parseValue(typeName, mode);
