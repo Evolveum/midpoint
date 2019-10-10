@@ -462,7 +462,9 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 		containers.forEach(container -> {
 			try {
 				ItemWrapper iw = getPageBase().createItemWrapper(container, getModelObject(), ctx);
-				((List) getModelObject().getItems()).add(iw);
+				if (iw != null) {
+					((List) getModelObject().getItems()).add(iw);
+				}
 			} catch (SchemaException e) {
 				OperationResult result = ctx.getResult();
 				result.recordFatalError(createStringResource("PrismContainerValuePanel.message.prepareNewContainers.fatalError", container).getString(), e);

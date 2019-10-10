@@ -723,8 +723,8 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 	protected void addCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
 		specificContainers.add(getSpecificContainerPanel(modelObject));
 	}
-	
-protected Panel getSpecificContainerPanel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+
+	protected Panel getSpecificContainerPanel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
 		
 		ItemPath assignmentPath = modelObject.getObject().getPath();
 		try {
@@ -755,8 +755,8 @@ protected IModel<PrismContainerWrapper> getSpecificContainerModel(IModel<PrismCo
 		return (IModel) constructionModel;
 	}
 	if (PolicyRuleType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-		IModel<PrismContainerWrapper<PolicyRuleType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_POLICY_RULE);
-		return (IModel) constructionModel;
+		IModel<PrismContainerWrapper<PolicyRuleType>> policyRuleModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_POLICY_RULE);
+		return (IModel) policyRuleModel;
 	}
 	return Model.of();
 }
