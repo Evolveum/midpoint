@@ -289,7 +289,7 @@ public class ResourceObjectConverter {
 		// Execute entitlement modification on other objects (if needed)
 		executeEntitlementChangesAdd(ctx, shadowClone, scripts, connOptions, result);
 		
-		LOGGER.trace("Added resource object {}", shadow);
+		LOGGER.trace("Added resource object {}", shadow.debugDump());
 
 		computeResultStatus(result);
 		

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.api;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.util.ShortDumpable;
 
 public class ProvisioningOperationOptions implements Serializable, ShortDumpable {
@@ -47,7 +48,13 @@ public class ProvisioningOperationOptions implements Serializable, ShortDumpable
 	 * operation cannot be executed as specified identity.
 	 */
 	private String runAsAccountOid;
-	
+
+	/**
+	 * if set to true, postoponed retry operations are executed even though
+	 * the retry period hasn't ended yet.
+	 */
+	private Boolean forceRetry;
+
 	public Boolean getCompletePostponed() {
 		return completePostponed;
 	}
@@ -206,6 +213,32 @@ public class ProvisioningOperationOptions implements Serializable, ShortDumpable
 		ProvisioningOperationOptions opts = new ProvisioningOperationOptions();
 		opts.setRunAsAccountOid(runAsAccountOid);
 		return opts;
+	}
+
+	public Boolean getForceRetry() {
+		return forceRetry;
+	}
+
+	public void setForceRetry(Boolean forceRetry) {
+		this.forceRetry = forceRetry;
+	}
+
+	public static boolean isForceRetry(ProvisioningOperationOptions options) {
+		if (options == null) {
+			return true;
+		}
+
+		if (options.forceRetry == null) {
+			return true;
+		}
+
+		return options.forceRetry;
+	}
+
+	public static ProvisioningOperationOptions createForceRetry(boolean forceRetry) {
+		ProvisioningOperationOptions options = new ProvisioningOperationOptions();
+		options.setForceRetry(forceRetry);
+		return options;
 	}
 
 	@Override

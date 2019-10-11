@@ -921,7 +921,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
 		try {
 
-			shadowCache.refreshShadow(shadow, task, result);
+			shadowCache.refreshShadow(shadow, options, task, result);
 
 		} catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": "+ e.getMessage(), e);
