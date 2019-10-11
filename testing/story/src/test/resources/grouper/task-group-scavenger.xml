@@ -8,7 +8,7 @@
 
 <!--
 
-Looks for groups with the lifecycleState of 'archiving' and completes their deletion:
+Looks for groups with the lifecycleState of 'retired' and completes their deletion:
  - unassigns all the users (simply by recomputing them)
 
 -->
@@ -48,11 +48,11 @@ Looks for groups with the lifecycleState of 'archiving' and completes their dele
 								log.error('Couldn\'t recompute {}: {}', member, t.message, t)
 							}
 						}
-						log.info('Members recomputed; checking if the org is still in "archiving" state')
+						log.info('Members recomputed; checking if the org is still in "retired" state')
 						orgAfter = midpoint.repositoryService.getObject(OrgType.class, input.oid, null, result)
 						currentState = orgAfter.asObjectable().lifecycleState
 						log.info('Current state = {}', currentState)
-						if (currentState == 'archiving') {
+						if (currentState == 'retired') {
 							log.info('Deleting the org: {}', orgAfter)
 							midpoint.deleteObject(OrgType.class, orgAfter.oid, null)
 						} else {
@@ -69,7 +69,7 @@ Looks for groups with the lifecycleState of 'archiving' and completes their dele
 			<q:filter>
 				<q:equal>
 					<q:path>lifecycleState</q:path>
-					<q:value>archiving</q:value>
+					<q:value>retired</q:value>
 				</q:equal>
 			</q:filter>
 		</mext:objectQuery>

@@ -35,7 +35,7 @@
 		<type>OrgType</type>
 		<lifecycleStateModel>
 			<state>
-				<name>archiving</name>
+				<name>retired</name>
 				<!-- object in this model is active but on its way to deletion -->
 			</state>
 		</lifecycleStateModel>

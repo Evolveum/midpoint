@@ -613,7 +613,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		assertOrgByName("affiliation_staff", "staff after deletion")
 				.display()
-				.assertLifecycleState("archiving")
+				.assertLifecycleState("retired")
 				.extension()
 					.property(EXT_GROUPER_NAME).singleValue().assertValue(STAFF_NAME).end().end()
 					.property(EXT_LDAP_DN).singleValue().assertValue(DN_STAFF).end().end()
