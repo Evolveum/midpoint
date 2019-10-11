@@ -187,10 +187,12 @@
             </reaction>
             <reaction>
                 <situation>deleted</situation>
-                <action>
-                    <!-- a separate task will take care of deleted groups -->
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-                </action>
+                <!-- a separate task will take care of deleted groups -->
+                <!-- we don't even need to unlink the shadow -->
+<!--                <action>-->
+<!--                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>-->
+<!--                </action>-->
+                <synchronize>true</synchronize>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>

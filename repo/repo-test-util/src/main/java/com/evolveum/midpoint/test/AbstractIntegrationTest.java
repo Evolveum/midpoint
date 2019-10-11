@@ -331,6 +331,18 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 	}
 
+	protected OperationResult createSubresult(String methodName) {
+		String className = this.getClass().getName();
+		MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
+		OperationResult parent;
+		if (ctx != null) {
+			parent = ctx.getResult();
+		} else {
+			parent = new OperationResult(className + ".parent");
+		}
+		return parent.createSubresult(className + "." + methodName);
+	}
+
 	protected OperationResult getResult() {
 		MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
 		if (ctx != null) {

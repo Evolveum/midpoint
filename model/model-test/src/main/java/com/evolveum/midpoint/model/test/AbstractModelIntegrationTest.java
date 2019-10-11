@@ -3588,25 +3588,33 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			LOGGER.warn("Sleep interrupted: {}", e.getMessage(), e);
 		}
 
-		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".restartTask");
-		Task task = taskManager.getTaskWithResult(taskOid, result);
-		LOGGER.info("Restarting task {}", taskOid);
-		if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
-			LOGGER.debug("Task {} is suspended, resuming it", task);
-			taskManager.resumeTask(task, result);
-		} else if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
-			LOGGER.debug("Task {} is closed, scheduling it to run now", task);
-			taskManager.scheduleTasksNow(singleton(taskOid), result);
-		} else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-			if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
-				// Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
-				LOGGER.debug("Task {} is running, waiting while it finishes before restarting", task);
-				waitForTaskFinish(taskOid, false);
+		OperationResult result = createSubresult("restartTask");
+		try {
+			Task task = taskManager.getTaskWithResult(taskOid, result);
+			LOGGER.info("Restarting task {}", taskOid);
+			if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+				LOGGER.debug("Task {} is suspended, resuming it", task);
+				taskManager.resumeTask(task, result);
+			} else if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+				LOGGER.debug("Task {} is closed, scheduling it to run now", task);
+				taskManager.scheduleTasksNow(singleton(taskOid), result);
+			} else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+				if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
+					// Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
+					LOGGER.debug("Task {} is running, waiting while it finishes before restarting", task);
+					waitForTaskFinish(taskOid, false);
+				}
+				LOGGER.debug("Task {} is finished, scheduling it to run now", task);
+				taskManager.scheduleTasksNow(singleton(taskOid), result);
+			} else {
+				throw new IllegalStateException(
+						"Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
 			}
-			LOGGER.debug("Task {} is finished, scheduling it to run now", task);
-			taskManager.scheduleTasksNow(singleton(taskOid), result);
-		} else {
-			throw new IllegalStateException("Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 	

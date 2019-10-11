@@ -28,13 +28,13 @@
                     
                     memberDef = prismContext.definitionFactory().createPropertyDefinition(MEMBER_NAME, DOMUtil.XSD_STRING)
                     memberDef.setMaxOccurs(-1)
-                    
-                    // TODO check for exists/dead
+
                     shadowQuery = prismContext.queryFor(ShadowType.class)
                         .item(ShadowType.F_RESOURCE_REF).ref(GROUPER_RESOURCE_OID)
                         .and().item(ShadowType.F_SYNCHRONIZATION_SITUATION).eq(SynchronizationSituationType.LINKED)
                         .and().item(ShadowType.F_KIND).eq(ShadowKindType.ENTITLEMENT)
                         .and().item(ShadowType.F_INTENT).eq('group')
+                        .and().block().item(ShadowType.F_DEAD).isNull().or().item(ShadowType.F_DEAD).eq(false).endBlock()
                         .and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, MEMBER_NAME), memberDef).eq(basic.stringify(name))
                         .build()
                         

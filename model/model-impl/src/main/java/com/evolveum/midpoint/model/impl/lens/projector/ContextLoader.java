@@ -107,6 +107,9 @@ public class ContextLoader {
 		ProjectorComponentTraceType trace;
 		if (result.isTraced()) {
 			trace = new ProjectorComponentTraceType(prismContext);
+			if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
+				trace.setInputLensContextText(context.debugDump());
+			}
 			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
 			result.addTrace(trace);
 		} else {
@@ -194,6 +197,9 @@ public class ContextLoader {
 			throw e;
 		} finally {
 			if (trace != null) {
+				if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
+					trace.setOutputLensContextText(context.debugDump());
+				}
 				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
 			}
 		}
@@ -327,6 +333,9 @@ public class ContextLoader {
 		FocusLoadedTraceType trace;
 		if (result.isTraced()) {
 			trace = new FocusLoadedTraceType();
+			if (result.isTracingNormal(FocusLoadedTraceType.class)) {
+				trace.setInputLensContextText(context.debugDump());
+			}
 			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
 			result.addTrace(trace);
 		} else {
@@ -392,6 +401,9 @@ public class ContextLoader {
 			throw t;
 		} finally {
 			if (trace != null) {
+				if (result.isTracingNormal(FocusLoadedTraceType.class)) {
+					trace.setOutputLensContextText(context.debugDump());
+				}
 				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
 			}
 			result.computeStatusIfUnknown();
@@ -1444,6 +1456,9 @@ public class ContextLoader {
 		FullShadowLoadedTraceType trace;
 		if (result.isTraced()) {
 			trace = new FullShadowLoadedTraceType(prismContext);
+			if (result.isTracingNormal(FullShadowLoadedTraceType.class)) {
+				trace.setInputLensContextText(context.debugDump());
+			}
 			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
 			result.addTrace(trace);
 		} else {
@@ -1512,6 +1527,9 @@ public class ContextLoader {
 			throw t;
 		} finally {
 			if (trace != null) {
+				if (result.isTracingNormal(FullShadowLoadedTraceType.class)) {
+					trace.setOutputLensContextText(context.debugDump());
+				}
 				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
 			}
 			result.computeStatusIfUnknown();

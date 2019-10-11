@@ -148,6 +148,38 @@
                     <path>displayName</path>
                 </target>
             </mapping>
+
+            <mapping>
+                <name>lifecycle state</name>
+                <description>This mapping sets org lifecycle state to be either "active" or "archiving", depending on
+                    whether Grouper group for this org still exists. Orgs in the latter state are on the way to deletion:
+                    their members are unassigned and after no members are there, the org is automatically deleted.</description>
+                <strength>strong</strength>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.model.impl.expr.*
+                            import com.evolveum.midpoint.schema.*
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
+                            GROUPER_RESOURCE_OID = '1eff65de-5bb6-483d-9edf-8cc2c2ee0233'
+
+                            modelContext = ModelExpressionThreadLocalHolder.lensContext
+                            rsd = new ResourceShadowDiscriminator(GROUPER_RESOURCE_OID, ShadowKindType.ENTITLEMENT, 'group', null, false)
+                            if (modelContext.findProjectionContext(rsd) != null) {
+                                log.info('Projection context for Grouper group found, marking as "active"')
+                                'active'
+                            } else {
+                                log.info('No projection context for Grouper group, marking as "archiving"')
+                                'archiving'
+                            }
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>lifecycleState</path>
+                </target>
+            </mapping>
         </focusMappings>
         
         <!-- 

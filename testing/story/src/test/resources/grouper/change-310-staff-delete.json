@@ -9,7 +9,7 @@
       "id": "00000000000000000000000000000003",
       "sequenceNumber": "310",
       "eventType": "GROUP_DELETE",
-      "name": "ref:staff"
+      "name": "ref:affiliation:staff"
     }
   ]
 }

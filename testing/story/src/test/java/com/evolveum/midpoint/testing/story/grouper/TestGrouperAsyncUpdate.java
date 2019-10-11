@@ -68,6 +68,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 	private static final TestResource USER_BANDERSON = new TestResource(TEST_DIR, "user-banderson.xml", "4f439db5-181e-4297-9f7d-b3115524dbe8");
 	private static final TestResource USER_JLEWIS685 = new TestResource(TEST_DIR, "user-jlewis685.xml", "8b7bd936-b863-45d0-aabe-734fa3e22081");
 
+	private static final TestResource TASK_GROUP_SCAVENGER = new TestResource(TEST_DIR, "task-group-scavenger.xml", "1d7bef40-953e-443e-8e9a-ec6e313668c4");
+
 	private static final String NS_EXT = "http://grouper-demo.tier.internet2.edu";
 	public static final QName EXT_GROUPER_NAME = new QName(NS_EXT, "grouperName");
 	public static final QName EXT_LDAP_DN = new QName(NS_EXT, "ldapDn");
@@ -84,8 +86,10 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 	private static final File CHANGE_200 = new File(TEST_DIR, "change-200-banderson-add-alumni.json");
 	private static final File CHANGE_210 = new File(TEST_DIR, "change-210-banderson-add-staff.json");
 	private static final File CHANGE_220 = new File(TEST_DIR, "change-220-jlewis685-add-alumni.json");
+	private static final File CHANGE_221 = new File(TEST_DIR, "change-221-jlewis685-add-staff.json");
 	private static final File CHANGE_230 = new File(TEST_DIR, "change-230-nobody-add-alumni.json");
 	private static final File CHANGE_250 = new File(TEST_DIR, "change-250-banderson-delete-alumni.json");
+	private static final File CHANGE_310 = new File(TEST_DIR, "change-310-staff-delete.json");
 
 	private static final ItemName ATTR_MEMBER = new ItemName(MidPointConstants.NS_RI, "member");
 
@@ -126,6 +130,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		addObject(ROLE_LDAP_BASIC, initTask, initResult);
 		addObject(TEMPLATE_USER, initTask, initResult);
+
+		addObject(TASK_GROUP_SCAVENGER, initTask, initResult);
 
 		setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
 	}
@@ -204,6 +210,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 		assertMembers(ALUMNI_NAME, task, result);
 
 		orgAlumniOid = assertOrgByName("affiliation_alumni", "alumni after")
+				.display()
+				.assertLifecycleState("active")
 				.extension()
 						.property(EXT_GROUPER_NAME).singleValue().assertValue(ALUMNI_NAME).end().end()
 						.property(EXT_LDAP_DN).singleValue().assertValue(DN_ALUMNI).end().end()
@@ -212,6 +220,18 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 				.assertDisplayName("Affiliation: alumni")
 				.assertIdentifier("alumni")
 				.assertLinks(2)                // todo assert details
+				.links()
+					.projectionOnResource(RESOURCE_GROUPER.oid)
+						.target()
+							.assertNotDead()
+						.end()
+					.end()
+					.projectionOnResource(RESOURCE_LDAP.oid)
+						.target()
+							.assertNotDead()
+						.end()
+					.end()
+				.end()
 				.getOid();
 	}
 
@@ -241,6 +261,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 		assertMembers(STAFF_NAME, task, result);
 
 		orgStaffOid = assertOrgByName("affiliation_staff", "staff after")
+				.display()
+				.assertLifecycleState("active")
 				.extension()
 						.property(EXT_GROUPER_NAME).singleValue().assertValue(STAFF_NAME).end().end()
 						.property(EXT_LDAP_DN).singleValue().assertValue(DN_STAFF).end().end()
@@ -249,6 +271,18 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 				.assertDisplayName("Affiliation: staff")
 				.assertIdentifier("staff")
 				.assertLinks(2)                // todo assert details
+				.links()
+					.projectionOnResource(RESOURCE_GROUPER.oid)
+						.target()
+							.assertNotDead()
+						.end()
+					.end()
+					.projectionOnResource(RESOURCE_LDAP.oid)
+						.target()
+							.assertNotDead()
+						.end()
+					.end()
+				.end()
 				.getOid();
 	}
 
@@ -404,8 +438,39 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 				.assertTriggers(1);
 	}
 
+	/**
+	 * Adding ref:affiliation:staff membership for jlewis685.
+	 */
+	@Test
+	public void test221AddStaffForLewis() throws Exception {
+        Task task = getTask();
+        OperationResult result = getResult();
+
+		// GIVEN
+
+		MockAsyncUpdateSource.INSTANCE.reset();
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_221));
+
+		// WHEN
+
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+
+		// THEN
+
+		assertSuccess(result);
+
+		assertMembers(ALUMNI_NAME, task, result, BANDERSON_USERNAME, JLEWIS685_USERNAME);
+		assertMembers(STAFF_NAME, task, result, BANDERSON_USERNAME, JLEWIS685_USERNAME);
+
+		assertUserAfterByUsername(JLEWIS685_USERNAME)
+				.triggers()
+				.assertTriggers(1);
+	}
+
     /**
-     * Lewis should obtain an assignment.
+     * Lewis should obtain two assignments.
      */
     @Test
     public void test222RecomputeLewis() throws Exception {
@@ -422,15 +487,17 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
         assertUserAfterByUsername(JLEWIS685_USERNAME)
                 .assignments()
-                    .assertAssignments(2)
+                    .assertAssignments(3)
                     .assertRole(ROLE_LDAP_BASIC.oid)
                     .assertOrg(orgAlumniOid)
+                    .assertOrg(orgStaffOid)
                 .end()
                 .links()
                     .assertLinks(1)
                     .projectionOnResource(resourceLdap.getOid());
 
         openDJController.assertUniqueMember(DN_ALUMNI, DN_JLEWIS685);
+        openDJController.assertUniqueMember(DN_STAFF, DN_JLEWIS685);
     }
 
 	/**
@@ -516,6 +583,101 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 					.projectionOnResource(resourceLdap.getOid());
 
 		openDJController.assertUniqueMember(DN_STAFF, DN_BANDERSON);
+	}
+
+	/**
+	 * Deleting ref:affiliation:staff group.
+	 */
+	@Test
+	public void test310DeleteStaff() throws Exception {
+		Task task = getTask();
+		OperationResult result = getResult();
+
+		// GIVEN
+
+		MockAsyncUpdateSource.INSTANCE.reset();
+		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_310));
+
+		executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_BANDERSON.oid), null, task, result);
+		executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_JLEWIS685.oid), null, task, result);
+
+		// WHEN
+
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+
+		// THEN
+
+		assertSuccess(result);
+
+		assertOrgByName("affiliation_staff", "staff after deletion")
+				.display()
+				.assertLifecycleState("archiving")
+				.extension()
+					.property(EXT_GROUPER_NAME).singleValue().assertValue(STAFF_NAME).end().end()
+					.property(EXT_LDAP_DN).singleValue().assertValue(DN_STAFF).end().end()
+				.end()
+				.assertAssignments(1)           // archetype, todo assert target
+					.assertDisplayName("Affiliation: staff")
+					.assertIdentifier("staff")
+				.links()
+					.projectionOnResource(RESOURCE_GROUPER.oid)
+						.target()
+							.assertDead()
+						.end()
+					.end()
+					.projectionOnResource(RESOURCE_LDAP.oid)
+						.target()
+							.assertNotDead()
+						.end()
+					.end()
+				.end();
+	}
+
+	/**
+	 * Completes the deletion of staff group.
+	 */
+	@Test
+	public void test312ScavengeGroups() throws Exception {
+		Task task = getTask();
+		OperationResult result = getResult();
+
+		// GIVEN
+
+
+		// WHEN
+
+		rerunTask(TASK_GROUP_SCAVENGER.oid);
+
+		// THEN
+
+		assertSuccess(result);
+
+		assertNoObject(OrgType.class, orgStaffOid, task, result);
+		assertUserAfterByUsername(BANDERSON_USERNAME)
+				.assignments()
+					.assertAssignments(1)
+					.assertRole(ROLE_LDAP_BASIC.oid)
+				.end()
+				.links()
+					.assertLinks(1)
+					.projectionOnResource(resourceLdap.getOid());
+
+		assertUserAfterByUsername(JLEWIS685_USERNAME)
+				.assignments()
+					.assertAssignments(2)
+					.assertRole(ROLE_LDAP_BASIC.oid)
+					.assertOrg(orgAlumniOid)
+				.end()
+				.links()
+					.assertLinks(1)
+					.projectionOnResource(resourceLdap.getOid());
+
+		openDJController.assertNoEntry(DN_STAFF);
+
+		openDJController.assertNoUniqueMember(DN_ALUMNI, DN_BANDERSON);
+		openDJController.assertUniqueMember(DN_ALUMNI, DN_JLEWIS685);
 	}
 
 	private AsyncUpdateMessageType getAmqp091Message(File file) throws IOException {
