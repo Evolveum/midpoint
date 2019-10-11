@@ -17,12 +17,10 @@
             <class name="com.evolveum.midpoint.testing.conntest.TestOpenDj"/>
             <class name="com.evolveum.midpoint.testing.conntest.TestOpenDjUnsafe"/>
             <class name="com.evolveum.midpoint.testing.conntest.TestOpenDjDumber"/>
-            <class name="com.evolveum.midpoint.testing.conntest.Test389DsNsUniqueIdPhobos"/>
-            <class name="com.evolveum.midpoint.testing.conntest.Test389DsDnPhobos"/>
-            <class name="com.evolveum.midpoint.testing.conntest.TestEDirDeimos"/>
             <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapMedusa"/>
             <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapRawMedusa"/>
             <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapChimera"/>
+            <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapChimeraStrange"/>
             <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapChimeraRunAs"/>
             <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapChimeraNativeSchema"/>
         </classes>

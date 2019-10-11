@@ -588,6 +588,8 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 				.rootNode(getFocusOdo())
 				.addVariableDefinition(ExpressionConstants.VAR_USER, getFocusOdo())
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, getFocusOdo())
+				.addAliasRegistration(ExpressionConstants.VAR_USER, null)
+				.addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
 				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, getSource(), ObjectType.class)
 				.addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, getSource(), ObjectType.class)
 				.addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, orderOneObject, ObjectType.class);

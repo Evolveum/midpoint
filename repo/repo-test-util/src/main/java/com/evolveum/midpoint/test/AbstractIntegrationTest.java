@@ -52,14 +52,10 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
+import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -93,8 +89,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.testng.Assert;
-import org.testng.AssertJUnit;
+import org.testng.*;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 import org.w3c.dom.Element;
@@ -111,6 +107,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -146,6 +143,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected static final Random RND = new Random();
 
 	private static final float FLOAT_EPSILON = 0.001f;
+
+	protected static final String ATTR_TASK = "task";
+	protected static final String ATTR_RESULT = "result";
 
 	// Values used to check if something is unchanged or changed properly
 
@@ -229,6 +229,75 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void unsetSystemInitialized() {
 		initializedClasses.remove(this.getClass());
+	}
+
+	/**
+	 * Creates appropriate task and result and set it into ITestContext.
+	 *
+	 * EXPERIMENTAL. Probably requires single-threaded test methods execution (if ITestContext is shared).
+	 */
+	@BeforeMethod
+	public void setTaskAndResult(ITestContext ctx, Method testMethod) throws SchemaException {
+		if (!isAutoTaskManagementEnabled()) {
+			return;
+		}
+
+		String testShortName = testMethod.getDeclaringClass().getSimpleName() + "." + testMethod.getName();
+		String testFullName = testMethod.getDeclaringClass().getName() + "." + testMethod.getName();
+		TestUtil.displayTestTitle(testShortName);
+		Task task = createTask(testFullName);
+		OperationResult rootResult = task.getResult();
+		TracingProfileType tracingProfile = getTestMethodTracingProfile();
+		CompiledTracingProfile compiledTracingProfile = tracingProfile != null ?
+				tracer.compileProfile(tracingProfile, rootResult) : null;
+		OperationResult result = rootResult.subresult(testFullName + "Run")
+				.tracingProfile(compiledTracingProfile)
+				.build();
+		ctx.setAttribute(ATTR_TASK, task);
+		ctx.setAttribute(ATTR_RESULT, result);
+	}
+
+	protected TracingProfileType getTestMethodTracingProfile() {
+		return null;
+	}
+
+	// To be enabled only for specific test classes (until agreed in devel team).
+	// TEMPORARY
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	protected boolean isAutoTaskManagementEnabled() {
+		return false;
+	}
+
+	/**
+	 * Stores a trace of the operation result, if requested.
+	 */
+	@AfterMethod
+	public void storeTraceIfRequested(ITestContext ctx, Method testMethod) {
+		if (!isAutoTaskManagementEnabled()) {
+			return;
+		}
+
+		System.out.println("After method: " + testMethod.getName());
+		Task task = getTask(ctx);
+		if (task != null) {
+			OperationResult result = getResult(ctx);
+			if (result != null) {
+				result.computeStatusIfUnknown();
+				if (result.isTraced()) {
+					System.out.println("Storing the trace.");
+					tracer.storeTrace(task, result);
+				}
+				task.getResult().computeStatusIfUnknown();
+			}
+		}
+	}
+
+	protected OperationResult getResult(IAttributes attrs) {
+		return (OperationResult) attrs.getAttribute(ATTR_RESULT);
+	}
+
+	protected Task getTask(IAttributes attrs) {
+		return (Task) attrs.getAttribute(ATTR_TASK);
 	}
 
 	abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;
@@ -1664,6 +1733,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.displaySkip(testName);
 	}
 
+	/**
+	 * Used to display string HEREHERE both in test output and in logfiles. This can be used
+	 * to conveniently correlate a place in the test, output and logfiles.
+	 */
+	protected void displayHEREHERE() {
+		IntegrationTestTools.display("HEREHERE");
+	}
+
 	protected void display(String str) {
 		IntegrationTestTools.display(str);
 	}
@@ -1780,7 +1857,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			operationName = this.getClass().getName() + "." + operationName;
 		}
 		Task task = taskManager.createTaskInstance(operationName);
-//		setModelLoggingTracing(task);
+//		setModelAndProvisioningLoggingTracing(task);
 		return task;
 	}
 
@@ -1794,6 +1871,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected void setModelAndWorkflowLoggingTracing(Task task) {
 		setTracing(task, addWorkflowLogging(createModelLoggingTracingProfile()));
+		task.addTracingRequest(TracingRootType.WORKFLOW_OPERATION);
+	}
+
+	protected void setModelAndProvisioningLoggingTracing(Task task) {
+		setTracing(task, addProvisioningLogging(createModelLoggingTracingProfile()));
 	}
 
 	protected void setHibernateLoggingTracing(Task task) {
@@ -1804,6 +1886,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		task.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
 		task.setTracingProfile(profile);
 	}
+
+	protected static final String TEST_METHOD_TRACING_FILENAME_PATTERN = "trace %{timestamp} %{operationNameShort} %{milliseconds}";
+	protected static final String DEFAULT_TRACING_FILENAME_PATTERN = "trace %{timestamp} %{testNameShort} %{operationNameShort} %{focusName} %{milliseconds}";
 
 	protected TracingProfileType createModelLoggingTracingProfile() {
 		return createDefaultTracingProfile()
@@ -1819,6 +1904,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return profile.getLoggingOverride()
 				.beginLevelOverride()
 					.logger("com.evolveum.midpoint.wf")
+					.level(LoggingLevelType.TRACE)
+				.<LoggingOverrideType>end()
+				.end();
+	}
+
+	protected TracingProfileType createModelAndWorkflowLoggingTracingProfile() {
+		return addWorkflowLogging(createModelLoggingTracingProfile());
+	}
+
+	protected TracingProfileType createModelAndProvisioningLoggingTracingProfile() {
+		return addProvisioningLogging(createModelLoggingTracingProfile());
+	}
+
+	protected TracingProfileType addProvisioningLogging(TracingProfileType profile) {
+		return profile.getLoggingOverride()
+				.beginLevelOverride()
+					.logger("com.evolveum.midpoint.provisioning")
 					.level(LoggingLevelType.TRACE)
 				.<LoggingOverrideType>end()
 				.end();
@@ -1844,7 +1946,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				.beginTracingTypeProfile()
 					.level(TracingLevelType.NORMAL)
 				.<TracingProfileType>end()
-				.fileNamePattern("trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}");
+				.fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN);
 	}
 
 	protected Task createTracedTask(String operationName) {
@@ -1866,7 +1968,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				.beginTracingTypeProfile()
 					.level(TracingLevelType.NORMAL)
 				.<TracingProfileType>end()
-				.fileNamePattern("trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}"));
+				.fileNamePattern(DEFAULT_TRACING_FILENAME_PATTERN));
 		return task;
 	}
 
@@ -2688,5 +2790,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			System.err.println("Couldn't truncate log file");
 			e.printStackTrace(System.err);
 		}
+	}
+
+	protected void setGlobalTracingOverride(@NotNull TracingProfileType profile) {
+		taskManager.setGlobalTracingOverride(Arrays.asList(TracingRootType.values()), profile);
+	}
+
+	protected void removeGlobalTracingOverride() {
+		taskManager.removeGlobalTracingOverride();
 	}
 }

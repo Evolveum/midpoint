@@ -24,10 +24,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -36,7 +33,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  *
@@ -95,7 +94,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
 	private Level originalProfilingLevel;
 
-	RunningTaskQuartzImpl(TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService) {
+	RunningTaskQuartzImpl(@NotNull TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService) {
 		super(taskManager, taskPrism, repositoryService);
 	}
 
@@ -354,16 +353,39 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
 	@Override
 	public boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingRootType defaultTracingRoot) {
-		Integer interval = coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_INTERVAL);
-		if (interval != null && interval != 0 && objectsSeen%interval == 0) {
-			Tracer tracer = taskManager.getTracer();
+		ProcessTracingConfigurationType config = coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_TRACING);
+		int interval;
+		if (config != null) {
+			interval = defaultIfNull(config.getInterval(), 1);
+		} else {
+			// the old way
+			interval = defaultIfNull(
+					coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_INTERVAL), 0);
+		}
+
+		if (interval != 0 && objectsSeen % interval == 0) {
+			TracingProfileType tracingProfileConfigured;
+			Collection<TracingRootType> pointsConfigured;
+			if (config != null) {
+				tracingProfileConfigured = config.getTracingProfile();
+				pointsConfigured = config.getTracingPoint();
+			} else {
+				// the old way
+				tracingProfileConfigured = coordinatorTask
+						.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_PROFILE);
+				PrismProperty<TracingRootType> tracingRootProperty = coordinatorTask
+						.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_ROOT);
+				pointsConfigured = tracingRootProperty != null ? tracingRootProperty.getRealValues() : emptyList();
+			}
+
 			LOGGER.info("Starting tracing for object number {} (interval is {})", this.objectsSeen, interval);
-			TracingProfileType tracingProfile = coordinatorTask.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_PROFILE);
-			PrismProperty<TracingRootType> tracingRootProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_ROOT);
-			Collection<TracingRootType> points = tracingRootProperty != null && !tracingRootProperty.isEmpty() ?
-					tracingRootProperty.getRealValues() : singleton(defaultTracingRoot);
+
+			TracingProfileType tracingProfile =
+					tracingProfileConfigured != null ? tracingProfileConfigured : taskManager.getTracer().getDefaultProfile();
+			Collection<TracingRootType> points = pointsConfigured.isEmpty() ? singleton(defaultTracingRoot) : pointsConfigured;
+
 			points.forEach(this::addTracingRequest);
-			setTracingProfile(tracingProfile != null ? tracingProfile : tracer.getDefaultProfile());
+			setTracingProfile(tracingProfile);
 			return true;
 		} else {
 			return false;

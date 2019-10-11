@@ -18,6 +18,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
@@ -127,8 +128,7 @@ public class ConnIdConvertor {
 			}
 
 			T shadow = shadowPrism.asObjectable();
-			ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) shadowPrism
-					.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+			ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) (PrismContainer)shadowPrism.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 			ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
 			shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 
@@ -247,11 +247,8 @@ public class ConnIdConvertor {
 					continue;
 				}
 
-				ItemName qname = ItemName
-						.fromQName(connIdNameMapper
-								.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition));
-				ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition
-						.findAttributeDefinition(qname, caseIgnoreAttributeNames);
+				ItemName qname = ItemName.fromQName(connIdNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition));
+				ResourceAttributeDefinition<Object> attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 				if (attributeDefinition == null) {
 					// Try to locate definition in auxiliary object classes
@@ -280,13 +277,16 @@ public class ConnIdConvertor {
 				resourceAttribute
 						.setIncomplete(connIdAttr.getAttributeValueCompleteness() == AttributeValueCompleteness.INCOMPLETE);
 
-				// if true, we need to convert whole connector object to the
+				// Note: we skip uniqueness checks here because the attribute in the resource object is created from scratch.
+				// I.e. its values will be unique (assuming that values coming from the resource are unique).
+
+				// if full == true, we need to convert whole connector object to the
 				// resource object also with the null-values attributes
 				if (full) {
 					// Convert the values. While most values do not need conversions, some of them may need it (e.g. GuardedString)
 					for (Object connIdValue : values) {
 						Object value = convertValueFromConnId(connIdValue, qname);
-						resourceAttribute.addRealValue(value);
+						resourceAttribute.addRealValueSkipUniquenessCheck(value);
 					}
 
 					LOGGER.trace("Converted attribute {}", resourceAttribute);
@@ -300,7 +300,7 @@ public class ConnIdConvertor {
 					for (Object connIdValue : values) {
 						if (connIdValue != null) {
 							Object value = convertValueFromConnId(connIdValue, qname);
-							resourceAttribute.addRealValue(value);
+							resourceAttribute.addRealValueSkipUniquenessCheck(value);
 						}
 					}
 

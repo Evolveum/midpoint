@@ -22,7 +22,6 @@
         <div class="box-body no-padding">
             <table class="table table-condensed table-striped">
                 <tr>
-                    <!-- TODO what to do with custom panels ? -->
                     <td class="col-md-3">
                         <wicket:message key="workItemPanel.requestedBy"/>
                     </td>
@@ -46,6 +45,12 @@
                     </td>
                     <td class="col-md-9"><span wicket:id="approver"/></td>
                 </tr>
+                <tr wicket:id="parentCaseContainer">
+                    <td class="col-md-3">
+                        <wicket:message key="workItemPanel.parentCase"/>
+                    </td>
+                    <td class="col-md-9"><span wicket:id="parentCase"/></td>
+                </tr>
                 <tr>
                     <td class="col-md-3">
                         <wicket:message key="workItemPanel.reason"/>
@@ -63,6 +68,8 @@
     </div>
 
     <div wicket:id="deltasToBeApproved"/>
+
+    <div style="margin-top:20px" wicket:id="additionalInformation"/>
 
     <div class="box box-info" wicket:id="additionalAttributes">
         <div class="box-header">

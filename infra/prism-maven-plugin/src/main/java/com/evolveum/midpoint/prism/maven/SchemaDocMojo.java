@@ -94,7 +94,7 @@ public class SchemaDocMojo extends AbstractMojo {
     }
 
     public void execute() throws MojoExecutionException, MojoFailureException {
-        getLog().info( "SchemaDoc plugin started" );
+        getLog().debug( "SchemaDoc plugin started" );
 
         PrismContext prismContext = createInitializedPrismContext();
 
@@ -133,11 +133,11 @@ public class SchemaDocMojo extends AbstractMojo {
         }
         projectHelper.attachArtifact(project, "zip", "schemadoc", archiveFile);
 
-        getLog().info( "SchemaDoc plugin finished" );
+        getLog().debug( "SchemaDoc plugin finished" );
     }
 
     private void renderSchemaIndex(SchemaRegistry schemaRegistry, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
-        getLog().info("Rendering schema index");
+        getLog().debug("Rendering schema index");
         VelocityContext velocityContext = new VelocityContext();
         populateVelocityContextBase(velocityContext, prismContext, pathGenerator, null, ".");
         velocityContext.put(VELOCITY_CONTEXT_VAR_SCHEMA_REGISTRY, schemaRegistry);
@@ -150,7 +150,7 @@ public class SchemaDocMojo extends AbstractMojo {
     }
 
     private void renderSchema(PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
-        getLog().info("Processing schema: "+schema);
+        getLog().debug("Processing schema: "+schema);
         VelocityContext velocityContext = new VelocityContext();
         populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "..");
 
@@ -173,7 +173,7 @@ public class SchemaDocMojo extends AbstractMojo {
     }
 
     private void renderObjectDefinition(PrismObjectDefinition objectDefinition, PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
-        getLog().info("  Processing object definition: "+objectDefinition);
+        getLog().debug("  Processing object definition: "+objectDefinition);
 
         VelocityContext velocityContext = new VelocityContext();
         populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "../..");
@@ -187,7 +187,7 @@ public class SchemaDocMojo extends AbstractMojo {
     }
 
     private void renderComplexTypeDefinition(ComplexTypeDefinition typeDefinition, PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
-        getLog().info("  Processing complex type definition: "+typeDefinition);
+        getLog().debug("  Processing complex type definition: "+typeDefinition);
 
         VelocityContext velocityContext = new VelocityContext();
         populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "../..");
@@ -211,7 +211,7 @@ public class SchemaDocMojo extends AbstractMojo {
     }
 
     private File initializeOutDir() throws MojoFailureException {
-        getLog().info("Output dir: "+destDir);
+        getLog().debug("Output dir: "+destDir);
         if ( destDir.exists() && !destDir.isDirectory() ) {
             throw new MojoFailureException("Destination directory is not a directory: "+destDir);
         }
@@ -227,7 +227,7 @@ public class SchemaDocMojo extends AbstractMojo {
             SchemaRegistryImpl schemaRegistry = createSchemaRegistry();
 
             for (File schemaFile: schemaFiles) {
-                getLog().info("SchemaDoc: registering schema file: "+schemaFile);
+                getLog().debug("SchemaDoc: registering schema file: "+schemaFile);
                 if (!schemaFile.exists()) {
                     throw new MojoFailureException("Schema file "+schemaFile+" does not exist");
                 }
@@ -236,7 +236,7 @@ public class SchemaDocMojo extends AbstractMojo {
 
             if (catalogFiles != null && catalogFiles.length > 0) {
                 for (File catalogFile : catalogFiles) {
-                    getLog().info("SchemaDoc: using catalog file: " + catalogFile);
+                    getLog().debug("SchemaDoc: using catalog file: " + catalogFile);
                     if (!catalogFile.exists()) {
                         throw new IOException("Catalog file '" + catalogFile + "' does not exist.");
                     }

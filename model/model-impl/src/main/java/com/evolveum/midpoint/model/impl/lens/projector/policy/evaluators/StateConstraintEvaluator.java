@@ -63,6 +63,8 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 
 	private static final Trace LOGGER = TraceManager.getTrace(StateConstraintEvaluator.class);
 
+	private static final String OP_EVALUATE = StateConstraintEvaluator.class.getName() + ".evaluate";
+
 	private static final String OBJECT_CONSTRAINT_KEY_PREFIX = "objectState.";
 	private static final String ASSIGNMENT_CONSTRAINT_KEY_PREFIX = "assignmentState.";
 	private static final String KEY_NAMED = "named";
@@ -76,19 +78,29 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
 
 	@Override
 	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger<?> evaluate(JAXBElement<StatePolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<AH> rctx, OperationResult result)
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_ASSIGNMENT_STATE)) {
-			if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
-				return null;            // assignment state can be evaluated only in the context of an assignment
+		OperationResult result = parentResult.subresult(OP_EVALUATE)
+				.setMinor()
+				.build();
+		try {
+			if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_ASSIGNMENT_STATE)) {
+				if (!(rctx instanceof AssignmentPolicyRuleEvaluationContext)) {
+					return null;            // assignment state can be evaluated only in the context of an assignment
+				} else {
+					return evaluateForAssignment(constraint, (AssignmentPolicyRuleEvaluationContext<AH>) rctx, result);
+				}
+			} else if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_OBJECT_STATE)) {
+				return evaluateForObject(constraint, rctx, result);
 			} else {
-				return evaluateForAssignment(constraint, (AssignmentPolicyRuleEvaluationContext<AH>) rctx, result);
+				throw new AssertionError("unexpected state constraint " + constraint.getName());
 			}
-		} else if (QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_OBJECT_STATE)) {
-			return evaluateForObject(constraint, rctx, result);
-		} else {
-			throw new AssertionError("unexpected state constraint " + constraint.getName());
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 

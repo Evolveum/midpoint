@@ -290,18 +290,19 @@ public class DashboardServiceImpl implements DashboardService {
 	private static ExpressionVariables createVariables(PrismObject<? extends ObjectType> object,
 			IntegerStatType statType, Collection<String> policySituations) {
 		ExpressionVariables variables = new ExpressionVariables();
-		if(statType != null || policySituations != null) {
+		if (statType != null || policySituations != null) {
 			VariablesMap variablesMap = new VariablesMap();
-			if(statType != null ) {
+			if (statType != null) {
 				variablesMap.put(ExpressionConstants.VAR_INPUT, statType, statType.getClass());
 				variablesMap.put(VAR_PROPORTIONAL, statType, statType.getClass());
+				variablesMap.registerAlias(VAR_PROPORTIONAL, ExpressionConstants.VAR_INPUT);
 			}
-			if(policySituations != null) {
+			if (policySituations != null) {
 				variablesMap.put(VAR_POLICY_SITUATIONS, policySituations, EvaluatedPolicyRule.class);
 			}
-			variables.addVariableDefinitions(variablesMap );
+			variables.addVariableDefinitions(variablesMap);
 		}
-		if(object != null) {
+		if (object != null) {
 			variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
 		}
 		

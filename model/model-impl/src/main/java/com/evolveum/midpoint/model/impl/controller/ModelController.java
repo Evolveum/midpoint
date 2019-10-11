@@ -36,7 +36,6 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.cache.CacheRegistry;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -2093,9 +2092,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-		    Task task, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getWorkflowManagerChecked().delegateWorkItem(workItemId, delegates, method, task, parentResult);
+    public void delegateWorkItem(WorkItemId workItemId, WorkItemDelegationRequestType delegationRequest,
+		    Task task, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException,
+		    ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        getWorkflowManagerChecked().delegateWorkItem(workItemId, delegationRequest, task, parentResult);
     }
 
 	//endregion

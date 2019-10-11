@@ -17,6 +17,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -40,7 +41,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.APPROVE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.REJECT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
@@ -61,9 +61,8 @@ public class StageComputeHelper {
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
-	public ExpressionVariables getDefaultVariables(CaseType aCase,
-			ApprovalContextType wfContext, String requestChannel, OperationResult result)
-			throws SchemaException {
+	public ExpressionVariables getDefaultVariables(CaseType aCase, ApprovalContextType wfContext, String requestChannel,
+			OperationResult result) throws SchemaException {
 
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.put(ExpressionConstants.VAR_REQUESTER, miscHelper.resolveTypedObjectReference(aCase.getRequestorRef(), result));
@@ -73,6 +72,7 @@ public class StageComputeHelper {
 		variables.put(ExpressionConstants.VAR_OBJECT_DELTA, getFocusPrimaryDelta(wfContext), ObjectDelta.class);
 		variables.put(ExpressionConstants.VAR_CHANNEL, requestChannel, String.class);
 		variables.put(ExpressionConstants.VAR_APPROVAL_CONTEXT, wfContext, ApprovalContextType.class);
+		variables.put(ExpressionConstants.VAR_THE_CASE, aCase, List.class);
 		// todo other variables?
 
 		return variables;
@@ -124,21 +124,21 @@ public class StageComputeHelper {
 	}
 
 	// TODO method name
-	public ComputationResult computeStageApprovers(ApprovalStageDefinitionType stageDef, VariablesProvider variablesProvider,
-			Task opTask, OperationResult opResult) {
+	public ComputationResult computeStageApprovers(ApprovalStageDefinitionType stageDef, CaseType theCase,
+			VariablesProvider variablesProvider, Task opTask, OperationResult opResult) {
 		ComputationResult rv = new ComputationResult();
 		ExpressionVariables expressionVariables = null;
 		VariablesProvider enhancedVariablesProvider = () -> {
 			ExpressionVariables variables = variablesProvider.get();
 			variables.put(ExpressionConstants.VAR_STAGE_DEFINITION, stageDef, ApprovalStageDefinitionType.class);
+			variables.put(ExpressionConstants.VAR_POLICY_RULES,
+					ApprovalContextUtil.getRulesForStage(theCase.getApprovalContext(), stageDef.getNumber()), List.class);
 			return variables;
 		};
 
 		if (rv.predeterminedOutcome == null && stageDef.getAutomaticallyCompleted() != null) {
 			try {
-				if (expressionVariables == null) {
-					expressionVariables = enhancedVariablesProvider.get();
-				}
+				expressionVariables = enhancedVariablesProvider.get();
 				String outcome = evaluateAutoCompleteExpression(stageDef, expressionVariables, opTask, opResult);
 				if (outcome != null) {
 					rv.predeterminedOutcome = ApprovalUtils.approvalLevelOutcomeFromUri(outcome);

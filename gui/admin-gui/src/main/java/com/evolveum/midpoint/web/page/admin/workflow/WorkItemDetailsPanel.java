@@ -13,7 +13,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -27,13 +27,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.IconedObjectNamePanel;
+import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -69,10 +70,13 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     private static final String ID_REQUESTED_BY = "requestedBy";
     private static final String ID_REQUESTED_FOR = "requestedFor";
     private static final String ID_APPROVER = "approver";
+    private static final String ID_PARENT_CASE_CONTAINER = "parentCaseContainer";
+    private static final String ID_PARENT_CASE = "parentCase";
     private static final String ID_TARGET = "target";
     private static final String ID_REASON = "reason";
     private static final String ID_COMMENT = "requesterCommentMessage";
     private static final String ID_DELTAS_TO_APPROVE = "deltasToBeApproved";
+    private static final String ID_ADDITIONAL_INFORMATION = "additionalInformation";
     private static final String ID_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
     private static final String ID_APPROVER_CONTAINER = "commentContainer";
     private static final String ID_APPROVER_COMMENT = "approverComment";
@@ -108,38 +112,61 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     }
 
     private void initLayout(){
-        IconedObjectNamePanel requestedBy = new IconedObjectNamePanel(ID_REQUESTED_BY,
-                WorkItemTypeUtil.getRequestorReference(getModelObject()));
+        LinkedReferencePanel requestedBy = new LinkedReferencePanel(ID_REQUESTED_BY,
+                Model.of(WorkItemTypeUtil.getRequestorReference(getModelObject())));
         requestedBy.setOutputMarkupId(true);
         add(requestedBy);
 
-        //todo fix what is requested for object ?
-        IconedObjectNamePanel requestedFor;
+        LinkedReferencePanel requestedFor;
         AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(CaseTypeUtil.getCase(getModelObject()));
         if (object == null) {
-        	requestedFor = new IconedObjectNamePanel(ID_REQUESTED_FOR,
-                    WorkItemTypeUtil.getObjectReference(getModelObject()));
+        	requestedFor = new LinkedReferencePanel(ID_REQUESTED_FOR,
+                    Model.of(WorkItemTypeUtil.getObjectReference(getModelObject())));
         } else {
-        	requestedFor = new IconedObjectNamePanel(ID_REQUESTED_FOR, new IModel<AssignmentHolderType>() {
+            ObjectReferenceType ort = new ObjectReferenceType();
+            ort.setOid(object.getOid());
+            ort.setType(WebComponentUtil.classToQName(getPageBase().getPrismContext(), object.getClass()));
 
-				@Override
-				public AssignmentHolderType getObject() {
-					return object;
-				}
-			});
+            PrismReferenceValue referenceValue = getPageBase().getPrismContext().itemFactory()
+                    .createReferenceValue(object.getOid(),
+                            WebComponentUtil.classToQName(getPageBase().getPrismContext(), object.getClass()));
+            referenceValue.setObject(object.asPrismObject());
+
+            ort.setupReferenceValue(referenceValue);
+
+        	requestedFor = new LinkedReferencePanel(ID_REQUESTED_FOR, Model.of(ort));
         }
         requestedFor.setOutputMarkupId(true);
         add(requestedFor);
 
 
-        IconedObjectNamePanel approver = new IconedObjectNamePanel(ID_APPROVER,
+        LinkedReferencePanel approver = new LinkedReferencePanel(ID_APPROVER,
                 getModelObject() != null && getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
-                getModelObject().getAssigneeRef().get(0) : null);
+                Model.of(getModelObject().getAssigneeRef().get(0)) : Model.of());
         approver.setOutputMarkupId(true);
         add(approver);
 
-        IconedObjectNamePanel target = new IconedObjectNamePanel(ID_TARGET,
-                WorkItemTypeUtil.getTargetReference(getModelObject()));
+        WebMarkupContainer parentCaseContainer = new WebMarkupContainer(ID_PARENT_CASE_CONTAINER);
+        parentCaseContainer.add(new VisibleBehaviour(() -> getPageBase() instanceof PageCaseWorkItem));
+        parentCaseContainer.setOutputMarkupId(true);
+        add(parentCaseContainer);
+
+        CaseType parentCaseObj = getModelObject() != null && CaseTypeUtil.getCase(getModelObject()) != null ?
+                CaseTypeUtil.getCase(getModelObject()) : null;
+        ObjectReferenceType parentCaseRef = null;
+        if (parentCaseObj != null) {
+            parentCaseRef = new ObjectReferenceType();
+            parentCaseRef.setOid(parentCaseObj.getOid());
+            parentCaseRef.setType(CaseType.COMPLEX_TYPE);
+            parentCaseRef.setupReferenceValue(getPageBase().getPrismContext().itemFactory()
+                    .createReferenceValue(parentCaseObj.asPrismObject()));
+        }
+        LinkedReferencePanel parentCaseLink = new LinkedReferencePanel(ID_PARENT_CASE, Model.of(parentCaseRef));
+        parentCaseLink.setOutputMarkupId(true);
+        parentCaseContainer.add(parentCaseLink);
+
+        LinkedReferencePanel target = new LinkedReferencePanel(ID_TARGET,
+                Model.of(WorkItemTypeUtil.getTargetReference(getModelObject())));
         target.setOutputMarkupId(true);
         add(target);
 
@@ -162,6 +189,10 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
             add(new WebMarkupContainer(ID_DELTAS_TO_APPROVE));
         }
 
+        InformationListPanel additionalInformation = new InformationListPanel(ID_ADDITIONAL_INFORMATION,
+                Model.ofList(getModelObject().getAdditionalInformation()));
+        additionalInformation.setOutputMarkupId(true);
+        add(additionalInformation);
 
         ApprovalStageDefinitionType level = ApprovalContextUtil.getCurrentStageDefinition(parentCase);
         WebMarkupContainer additionalAttributes = new WebMarkupContainer(ID_ADDITIONAL_ATTRIBUTES);

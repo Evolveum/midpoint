@@ -37,7 +37,13 @@
 					</compositionStrategy>
 					<approverExpression>
 						<script>
-							<code>'00000001-d34d-b33f-f00d-L00000000023'</code>
+							<code>
+								log.info('policyRules = {}', policyRules)
+								if (policyRules == null || policyRules.isEmpty()) {
+									throw new AssertionError('No policy rules')		// MID-5564
+								}
+								'00000001-d34d-b33f-f00d-L00000000023'
+							</code>
 						</script>
 					</approverExpression>
 				</approval>

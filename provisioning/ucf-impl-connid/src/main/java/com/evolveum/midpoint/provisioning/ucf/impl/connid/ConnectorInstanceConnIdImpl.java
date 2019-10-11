@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.xml.namespace.QName;
@@ -1560,7 +1561,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 	@Override
 	public PrismProperty<?> deserializeToken(Object serializedToken) {
-		return createTokenProperty(serializedToken);
+		return createTokenPropertyFromRealValue(serializedToken);
 	}
 
 	@Override
@@ -1582,7 +1583,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		icfResult.addContext("connector", connIdConnectorFacade.getClass());
 		icfResult.addArbitraryObjectAsParam("icfObjectClass", icfObjectClass);
 
-		SyncToken syncToken = null;
+		SyncToken syncToken;
 		try {
 			InternalMonitor.recordConnectorOperation("getLatestSyncToken");
 			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_GET_LATEST_SYNC_TOKEN, objectClassDef);
@@ -1614,24 +1615,23 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			return null;
 		}
 
-		PrismProperty<T> property = getToken(syncToken);
 		result.recordSuccess();
-		return property;
+		return createTokenProperty(syncToken);
 	}
 
 	@Override
-	public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+	public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> initialTokenProperty,
 			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
 			ChangeHandler changeHandler, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		OperationResult result = parentResult.subresult(OP_FETCH_CHANGES)
 				.addArbitraryObjectAsContext("objectClass", objectClass)
-				.addArbitraryObjectAsParam("lastToken", lastToken)
+				.addArbitraryObjectAsParam("initialToken", initialTokenProperty)
 				.build();
 		try {
-			SyncToken syncToken = getSyncToken(lastToken);
-			LOGGER.trace("Sync token created from the property last token: {}", syncToken == null ? null : syncToken.getValue());
+			SyncToken initialToken = getSyncToken(initialTokenProperty);
+			LOGGER.trace("Initial token: {}", initialToken == null ? null : initialToken.getValue());
 
 			// get icf object class
 			ObjectClass requestConnIdObjectClass;
@@ -1651,9 +1651,18 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
 			connIdResult.addContext("connector", connIdConnectorFacade.getClass());
 			connIdResult.addArbitraryObjectAsParam("objectClass", requestConnIdObjectClass);
-			connIdResult.addArbitraryObjectAsParam("syncToken", syncToken);
+			connIdResult.addArbitraryObjectAsParam("initialToken", initialToken);
 
 			AtomicInteger deltasProcessed = new AtomicInteger(0);
+			/*
+			 * We assume that the only way how changes are _not_ fetched is that we explicitly tell ConnId to stop
+			 * fetching them by returning 'false' from the handler.handle() method. (Or an exception occurs in the sync()
+			 * method.)
+			 *
+			 * In other words, we assume that if we tell ConnId to continue feeding changes to us, we are sure that on
+			 * successful exit from sync() method all changes were processed.
+			 */
+			AtomicBoolean allChangesFetched = new AtomicBoolean(true);
 			SyncResultsHandler syncHandler = delta -> {
 				recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
 				LOGGER.trace("Detected sync delta: {}", delta);
@@ -1664,13 +1673,21 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				Change change = null;
 				try {
 					change = getChangeFromSyncDelta(requestConnIdObjectClass, objectClass, delta, handleResult);
-					boolean doContinue = changeHandler.handleChange(change, handleResult);
+					boolean canContinue = changeHandler.handleChange(change, handleResult);
 					int processed = deltasProcessed.incrementAndGet();
-					return doContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || processed < maxChanges);
+					boolean doContinue = canContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || processed < maxChanges);
+					if (!doContinue) {
+						allChangesFetched.set(false);
+					}
+					return doContinue;
 				} catch (Throwable t) {
-					PrismProperty<?> token = delta.getToken() != null ? getToken(delta.getToken()) : null;
+					PrismProperty<?> token = delta.getToken() != null ? createTokenProperty(delta.getToken()) : null;
 					handleResult.recordFatalError(t);
-					return changeHandler.handleError(token, change, t, handleResult);
+					boolean doContinue = changeHandler.handleError(token, change, t, handleResult);
+					if (!doContinue) {
+						allChangesFetched.set(false);
+					}
+					return doContinue;
 				} finally {
 					handleResult.computeStatusIfUnknown();
 					handleResult.cleanupResult();
@@ -1679,11 +1696,15 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				}
 			};
 
-			SyncToken lastReceivedToken;
+			SyncToken finalToken;
 			try {
 				InternalMonitor.recordConnectorOperation("sync");
 				recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
-				lastReceivedToken = connIdConnectorFacade.sync(requestConnIdObjectClass, syncToken, syncHandler, options);
+				finalToken = connIdConnectorFacade.sync(requestConnIdObjectClass, initialToken, syncHandler, options);
+				// Note that finalToken value is not quite reliable. The SyncApiOp documentation is not clear on its semantics;
+				// it is only from SyncTokenResultsHandler (SPI) documentation and SyncImpl class that we know this value is
+				// non-null when all changes were fetched. And some of the connectors return null even then.
+				LOGGER.trace("connector sync method returned: {}", finalToken);
 				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
 				connIdResult.computeStatus();
 				connIdResult.cleanupResult();
@@ -1713,10 +1734,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				result.recordStatus(OperationResultStatus.SUCCESS, "Interrupted by task suspension");
 			}
 
-			if (lastReceivedToken != null) {
-				Change lastChange = new Change(getToken(lastReceivedToken));
-				LOGGER.trace("Adding last change: {}", lastChange);
-				changeHandler.handleChange(lastChange, result);
+			if (allChangesFetched.get()) {
+				// We might consider finalToken value here. I.e. it it's non null, we could declare all changes to be fetched.
+				// But as mentioned above, this is not supported explicitly in SyncApiOp. So let's be a bit conservative.
+				LOGGER.trace("Signalling 'all changes fetched' with finalToken = {}", finalToken);
+				changeHandler.handleAllChangesFetched(createTokenProperty(finalToken), result);
 			}
 
 			result.recordSuccess();
@@ -2310,7 +2332,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
 			Uid uid = connIdDelta.getUid();
 			Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(uid, deltaObjectClass, resourceSchema);
-			change = new Change(uid.getUidValue(), identifiers, objectDelta, getToken(connIdDelta.getToken()));
+			change = new Change(uid.getUidValue(), identifiers, objectDelta, createTokenProperty(connIdDelta.getToken()));
 
 		} else if (icfDeltaType == SyncDeltaType.CREATE || icfDeltaType == SyncDeltaType.CREATE_OR_UPDATE || icfDeltaType == SyncDeltaType.UPDATE) {
 
@@ -2327,9 +2349,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			if (icfDeltaType == SyncDeltaType.CREATE) {
 				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
 				objectDelta.setObjectToAdd(currentShadow);
-				change = new Change(uid.getUidValue(), identifiers, objectDelta, getToken(connIdDelta.getToken()));
+				change = new Change(uid.getUidValue(), identifiers, objectDelta, createTokenProperty(connIdDelta.getToken()));
 			} else {
-				change = new Change(uid.getUidValue(), identifiers, currentShadow, getToken(connIdDelta.getToken()));
+				change = new Change(uid.getUidValue(), identifiers, currentShadow, createTokenProperty(connIdDelta.getToken()));
 			}
 
 		} else {
@@ -2357,21 +2379,25 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 	}
 
-	private <T> PrismProperty<T> getToken(SyncToken syncToken) {
-		//noinspection unchecked
-		T object = (T) syncToken.getValue();
-		return createTokenProperty(object);
+	private <T> PrismProperty<T> createTokenProperty(SyncToken syncToken) {
+		if (syncToken != null) {
+			//noinspection unchecked
+			T realValue = (T) syncToken.getValue();
+			return createTokenPropertyFromRealValue(realValue);
+		} else {
+			return null;
+		}
 	}
 
-	private <T> PrismProperty<T> createTokenProperty(T object) {
-		QName type = XsdTypeMapper.toXsdType(object.getClass());
+	private <T> PrismProperty<T> createTokenPropertyFromRealValue(T realValue) {
+		QName type = XsdTypeMapper.toXsdType(realValue.getClass());
 
 		MutablePrismPropertyDefinition<T> propDef = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.SYNC_TOKEN, type);
 		propDef.setDynamic(true);
 		propDef.setMaxOccurs(1);
 		propDef.setIndexed(false);          // redundant, as dynamic extension items are not indexed by default
 		PrismProperty<T> property = propDef.instantiate();
-		property.addRealValue(object);
+		property.addRealValue(realValue);
 		return property;
 	}
 

@@ -65,31 +65,20 @@ public class PersonaProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PersonaProcessor.class);
 
-	@Autowired(required=true)
-    private ConstructionProcessor constructionProcessor;
+	private static final String OP_EXECUTE_PERSONA_DELTA = PersonaProcessor.class.getName() + ".executePersonaDelta";
 
-	@Autowired(required=true)
-	private ObjectTemplateProcessor objectTemplateProcessor;
-
-	@Autowired(required=true)
-	@Qualifier("modelObjectResolver")
+	@Autowired private ConstructionProcessor constructionProcessor;
+	@Autowired private ObjectTemplateProcessor objectTemplateProcessor;
+	@Autowired @Qualifier("modelObjectResolver")
     private ObjectResolver objectResolver;
 
-	@Autowired
-	@Qualifier("cacheRepositoryService")
+	@Autowired @Qualifier("cacheRepositoryService")
 	private transient RepositoryService repositoryService;
 
-	@Autowired(required = true)
-	private ContextFactory contextFactory;
-
-	@Autowired(required = true)
-	private Clockwork clockwork;
-
-	@Autowired(required=true)
-	private Clock clock;
-
-	@Autowired(required=true)
-	private PrismContext prismContext;
+	@Autowired private ContextFactory contextFactory;
+	@Autowired private Clockwork clockwork;
+	@Autowired private Clock clock;
+	@Autowired private PrismContext prismContext;
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <O extends ObjectType> HookOperationMode processPersonaChanges(LensContext<O> context, Task task, OperationResult result) 
@@ -355,17 +344,30 @@ public class PersonaProcessor {
 		repositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
 	}
 
-	private <O extends ObjectType> String executePersonaDelta(ObjectDelta<O> delta, String ownerOid, Task task, OperationResult result) 
+	private <O extends ObjectType> String executePersonaDelta(ObjectDelta<O> delta, String ownerOid, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException, PreconditionViolationException {
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
-		LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, null, task, result);
-		// Persona changes are all "secondary" changes, trigerred by roles and policies. We do not want to authorize
-		// them as REQUEST. Assignment of the persona role was REQUEST. Changes in persona itself is all EXECUTION.
-		context.setExecutionPhaseOnly(true);
-		context.setOwnerOid(ownerOid);
-		clockwork.run(context, task, result);
-		return ObjectDeltaOperation.findFocusDeltaOidInCollection(context.getExecutedDeltas());
+		OperationResult result = parentResult.subresult(OP_EXECUTE_PERSONA_DELTA)
+				.build();
+		try {
+			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+			LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, null, task, result);
+			// Persona changes are all "secondary" changes, triggered by roles and policies. We do not want to authorize
+			// them as REQUEST. Assignment of the persona role was REQUEST. Changes in persona itself is all EXECUTION.
+			context.setExecutionPhaseOnly(true);
+			context.setOwnerOid(ownerOid);
+			clockwork.run(context, task, result);
+			String personaOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(context.getExecutedDeltas());
+			if (delta.isAdd() && personaOid == null) {
+				LOGGER.warn("Persona delta execution resulted in no OID:\n{}", DebugUtil.debugDump(context.getExecutedDeltas()));
+			}
+			return personaOid;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
 	}
 
 	class PersonaKey implements HumanReadableDescribable {

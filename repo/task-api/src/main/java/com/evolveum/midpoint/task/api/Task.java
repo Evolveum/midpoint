@@ -9,7 +9,6 @@ package com.evolveum.midpoint.task.api;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -978,7 +977,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	boolean isScavenger();
 
 	@NotNull
-	Set<TracingRootType> getTracingRequestedFor();
+    Collection<TracingRootType> getTracingRequestedFor();
 
 	void addTracingRequest(TracingRootType point);
 

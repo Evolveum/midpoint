@@ -41,7 +41,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -63,8 +62,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private String oid = null;
 	private int iteration;
     private String iterationToken;
-    
-    transient private SecurityPolicyType securityPolicy;
+
+	transient private SecurityPolicyType securityPolicy;
 
 	/**
 	 * These are policy state modifications that should be applied.
@@ -77,7 +76,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	 * ---
 	 * Although placed in LensElementContext, support for this data is currently implemented only for focus, not for projections.
 	 */
-	@NotNull private transient final List<ItemDelta<?,?>> pendingObjectPolicyStateModifications = new ArrayList<>();
+	@NotNull private final List<ItemDelta<?,?>> pendingObjectPolicyStateModifications = new ArrayList<>();
 
 	/**
 	 * Policy state modifications for assignments.
@@ -85,7 +84,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	 * Although we put here also deltas for assignments that are to be deleted, we do not execute these
 	 * (because we implement execution only for the standard exit-path from the clockwork).
 	 */
-	@NotNull private transient final Map<AssignmentSpec, List<ItemDelta<?,?>>> pendingAssignmentPolicyStateModifications = new HashMap<>();
+	@NotNull private final Map<AssignmentSpec, List<ItemDelta<?,?>>> pendingAssignmentPolicyStateModifications = new HashMap<>();
 
     /**
      * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
@@ -101,8 +100,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
 	private transient PrismObjectDefinition<O> objectDefinition = null;
 
-	transient private final Collection<EvaluatedPolicyRule> policyRules = new ArrayList<>();
-    transient private final Collection<String> policySituations = new ArrayList<>();
+	private final Collection<EvaluatedPolicyRule> policyRules = new ArrayList<>();
+    private final Collection<String> policySituations = new ArrayList<>();
 
 	public LensElementContext(Class<O> objectTypeClass, LensContext<? extends ObjectType> lensContext) {
 		super();
@@ -453,7 +452,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 
-    @Contract(pure = true)
     public PrismObjectDefinition<O> getObjectDefinition() {
 		if (objectDefinition == null) {
 			if (objectOld != null) {
@@ -555,7 +553,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		}
 	}
 
-	protected boolean isRequireSecondardyDeltaOid() {
+	protected boolean isRequireSecondaryDeltaOid() {
 		return primaryDelta == null;
 	}
 
@@ -616,6 +614,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public abstract LensElementContext<O> clone(LensContext<? extends ObjectType> lensContext);
 
 	protected void copyValues(LensElementContext<O> clone, LensContext lensContext) {
+		//noinspection unchecked
 		clone.lensContext = lensContext;
 		// This is de-facto immutable
 		clone.objectDefinition = this.objectDefinition;

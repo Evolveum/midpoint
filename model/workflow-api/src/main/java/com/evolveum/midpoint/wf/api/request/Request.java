@@ -17,8 +17,8 @@ import java.io.Serializable;
  */
 public abstract class Request implements Serializable {
 
-	@NotNull private final String caseOid;
-	private final WorkItemEventCauseInformationType causeInformation;
+	@NotNull protected final String caseOid;
+	protected final WorkItemEventCauseInformationType causeInformation;
 
 	public Request(@NotNull String caseOid,
 			WorkItemEventCauseInformationType causeInformation) {

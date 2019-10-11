@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.wf.impl.engine.helpers;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.wf.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -31,8 +32,8 @@ public abstract class DelayedNotification {
 		}
 
 		@Override
-		public void send(WorkflowListener listener, OperationResult result) {
-			listener.onProcessInstanceStart(aCase, result);
+		public void send(WorkflowListener listener, Task task, OperationResult result) {
+			listener.onProcessInstanceStart(aCase, task, result);
 		}
 	}
 
@@ -42,8 +43,8 @@ public abstract class DelayedNotification {
 		}
 
 		@Override
-		public void send(WorkflowListener listener, OperationResult result) {
-			listener.onProcessInstanceEnd(aCase, result);
+		public void send(WorkflowListener listener, Task task, OperationResult result) {
+			listener.onProcessInstanceEnd(aCase, task, result);
 		}
 	}
 
@@ -70,8 +71,8 @@ public abstract class DelayedNotification {
 		public final ObjectReferenceType assignee;
 
 		@Override
-		public void send(WorkflowListener listener, OperationResult result) {
-			listener.onWorkItemCreation(assignee, workItem, aCase, result);
+		public void send(WorkflowListener listener, Task task, OperationResult result) {
+			listener.onWorkItemCreation(assignee, workItem, aCase, task, result);
 		}
 	}
 
@@ -85,8 +86,8 @@ public abstract class DelayedNotification {
 		public final ObjectReferenceType assignee;
 
 		@Override
-		public void send(WorkflowListener listener, OperationResult result) {
-			listener.onWorkItemDeletion(assignee, workItem, operationInfo, sourceInfo, aCase, result);
+		public void send(WorkflowListener listener, Task task, OperationResult result) {
+			listener.onWorkItemDeletion(assignee, workItem, operationInfo, sourceInfo, aCase, task, result);
 		}
 	}
 
@@ -106,8 +107,8 @@ public abstract class DelayedNotification {
 		public final WorkItemEventCauseInformationType cause;
 
 		@Override
-		public void send(WorkflowListener listener, OperationResult result) {
-			listener.onWorkItemCustomEvent(assignee, workItem, notificationAction, cause, aCase, result);
+		public void send(WorkflowListener listener, Task task, OperationResult result) {
+			listener.onWorkItemCustomEvent(assignee, workItem, notificationAction, cause, aCase, task, result);
 		}
 	}
 
@@ -121,8 +122,8 @@ public abstract class DelayedNotification {
 		public final Duration timeBefore;
 
 		@Override
-		public void send(WorkflowListener listener, OperationResult result) {
-			listener.onWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBefore, aCase, result);
+		public void send(WorkflowListener listener, Task task, OperationResult result) {
+			listener.onWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBefore, aCase, task, result);
 		}
 	}
 
@@ -133,10 +134,10 @@ public abstract class DelayedNotification {
 		}
 
 		@Override
-		public void send(WorkflowListener listener, OperationResult result) {
-			listener.onWorkItemAllocationChangeNewActors(workItem, operationInfo, sourceInfo, aCase, result);
+		public void send(WorkflowListener listener, Task task, OperationResult result) {
+			listener.onWorkItemAllocationChangeNewActors(workItem, operationInfo, sourceInfo, aCase, task, result);
 		}
 	}
 
-	public abstract void send(WorkflowListener listener, OperationResult result);
+	public abstract void send(WorkflowListener listener, Task task, OperationResult result);
 }

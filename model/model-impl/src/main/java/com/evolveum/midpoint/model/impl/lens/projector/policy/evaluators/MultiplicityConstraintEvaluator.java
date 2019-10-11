@@ -53,6 +53,8 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
 @Component
 public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluator<MultiplicityPolicyConstraintType> {
 
+	private static final String OP_EVALUATE = MultiplicityConstraintEvaluator.class.getName() + ".evaluate";
+
 	private static final String CONSTRAINT_KEY_PREFIX = "multiplicityConstraint.";
 	private static final String KEY_MIN = "min.";
 	private static final String KEY_MAX = "max.";
@@ -66,14 +68,24 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 
 	@Override
 	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<MultiplicityPolicyConstraintType> constraint,
-			PolicyRuleEvaluationContext<AH> rctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-		if (rctx instanceof ObjectPolicyRuleEvaluationContext) {
-			return evaluateForObject(constraint, (ObjectPolicyRuleEvaluationContext<AH>) rctx, result);
-		} else if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
-			return evaluateForAssignment(constraint, (AssignmentPolicyRuleEvaluationContext<AH>) rctx, result);
-		} else {
-			return null;
+			PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException,
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		OperationResult result = parentResult.subresult(OP_EVALUATE)
+				.setMinor()
+				.build();
+		try {
+			if (rctx instanceof ObjectPolicyRuleEvaluationContext) {
+				return evaluateForObject(constraint, (ObjectPolicyRuleEvaluationContext<AH>) rctx, result);
+			} else if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
+				return evaluateForAssignment(constraint, (AssignmentPolicyRuleEvaluationContext<AH>) rctx, result);
+			} else {
+				return null;
+			}
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 

@@ -112,6 +112,8 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
 		repoAddObjectFromFile(ARCHETYPE_APPROVAL_CASE_FILE, initResult).getOid();
 
 		userJackOid = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
+
+		//setGlobalTracingOverride(createModelAndWorkflowLoggingTracingProfile());
 	}
 
 	@Override

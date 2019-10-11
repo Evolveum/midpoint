@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -68,6 +67,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	private static final Trace LOGGER = TraceManager.getTrace(LensProjectionContext.class);
 
 	private ObjectDelta<ShadowType> syncDelta;
+
+	/**
+	 * Is this projection the source of the synchronization? (The syncDelta attribute could be used for this but in
+	 * reality it is not always present.) We need this information e.g. when it's not possible to record a clockwork
+	 * exception to focus (e.g. as in MID-5801). The alternate way is to record it into shadow representing the synchronization
+	 * source, e.g. the object being imported, reconciled, or live-synced.
+	 */
+	private boolean synchronizationSource;
 
 	private ObjectDelta<ShadowType> secondaryDelta;
 
@@ -976,7 +983,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public void checkConsistence(String contextDesc) {
 		super.checkConsistence(contextDesc);
 		if (secondaryDelta != null) {
-			boolean requireOid = isRequireSecondardyDeltaOid();
+			boolean requireOid = isRequireSecondaryDeltaOid();
 			// Secondary delta may not have OID yet (as it may relate to ADD primary delta that doesn't have OID yet)
 			checkConsistence(secondaryDelta, requireOid, getElementDesc() + " secondary delta in " + this + (contextDesc == null ? "" : " in " + contextDesc));
 		}
@@ -1033,7 +1040,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	}
 	}
 
-	protected boolean isRequireSecondardyDeltaOid() {
+	protected boolean isRequireSecondaryDeltaOid() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD ||
 				synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN ||
 				synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE) {
@@ -1043,7 +1050,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			// These may not have the OID yet
 			return false;
 		}
-		return super.isRequireSecondardyDeltaOid();
+		return super.isRequireSecondaryDeltaOid();
 	}
 
 	@Override
@@ -1130,6 +1137,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		}
 		clone.secondaryDelta = cloneDelta(this.secondaryDelta);
 		clone.wave = this.wave;
+		clone.synchronizationSource = this.synchronizationSource;
 	}
 
 	private Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> cloneSqueezedAttributes() {
@@ -1554,5 +1562,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	public String getResourceName() {
 		ResourceType resource = getResource();
 		return resource != null ? PolyString.getOrig(resource.getName()) : getResourceOid();
+	}
+
+	public boolean isSynchronizationSource() {
+		return synchronizationSource;
+	}
+
+	public void setSynchronizationSource(boolean synchronizationSource) {
+		this.synchronizationSource = synchronizationSource;
 	}
 }

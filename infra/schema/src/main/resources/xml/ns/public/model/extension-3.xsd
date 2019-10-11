@@ -90,6 +90,22 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="updateLiveSyncTokenInDryRun" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Indicates if the LiveSync token should be updated when running in dry run mode. If false (the default) then
+                LiveSync will not update token to a new value so it will process objects fetched on the next run (either dry
+                or normal). If true, it will update the token, and therefore marks objects as processed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Retry LiveSync Errors</a:displayName>
+                <a:displayOrder>801</a:displayOrder>
+           	 	<a:minOccurs>0</a:minOccurs>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <!-- we might consider making this part of resource configuration -->
     <xsd:element name="liveSyncBatchSize" type="xsd:int">
         <xsd:annotation>
@@ -513,6 +529,20 @@
                 <a:displayOrder>853</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>unbounded</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="tracing" type="c:ProcessTracingConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Replaces tracingInterval, tracingProfile, tracingRoot items.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Tracing configuration</a:displayName>
+                <a:displayOrder>854</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>        <!-- will be unbounded, eventually -->
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

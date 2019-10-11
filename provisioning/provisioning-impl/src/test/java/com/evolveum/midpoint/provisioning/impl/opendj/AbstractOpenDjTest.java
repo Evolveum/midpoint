@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -38,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
-public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
+public abstract class AbstractOpenDjTest extends AbstractProvisioningIntegrationTest {
 
 	protected static final File TEST_DIR = new File("src/test/resources/opendj");
 	

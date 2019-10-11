@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+ 
+<org oid="4547657c-e9bc-11e9-87d6-ef7cd13d2828"
+	 xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+     xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+	<name>Projects</name>
+	<orgType>project</orgType>
+	<inducement>
+		<construction>
+			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+			<kind>entitlement</kind>
+			<intent>ldapProjectGroup</intent>
+		</construction>
+	</inducement>
+	<inducement>
+		<construction>
+			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+			<kind>account</kind>
+			<intent>default</intent>
+			<association>
+				<ref>ri:ldapProjectGroup</ref>
+				<outbound>
+					<expression>
+						<associationFromLink>
+							<projectionDiscriminator>
+								<kind>entitlement</kind>
+								<intent>ldapProjectGroup</intent>
+							</projectionDiscriminator>
+						</associationFromLink>
+					</expression>
+				</outbound>
+			</association>
+		</construction>
+		<order>2</order>
+		<focusType>UserType</focusType>
+	</inducement>
+</org>

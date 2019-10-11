@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.TestNameHolder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -55,6 +56,8 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TracerImpl.class);
 	private static final String MACRO_TIMESTAMP = "timestamp";
+	private static final String MACRO_OPERATION_NAME = "operationName";
+	private static final String MACRO_OPERATION_NAME_SHORT = "operationNameShort";
 	private static final String MACRO_TEST_NAME = "testName";
 	private static final String MACRO_TEST_NAME_SHORT = "testNameShort";
 	private static final String MACRO_FOCUS_NAME = "focusName";
@@ -69,7 +72,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService repositoryService;
 
-	private SystemConfigurationType systemConfiguration;
+	private SystemConfigurationType systemConfiguration;            // can be null during some tests
 
 	private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
 	private static final String TRACE_DIR = MIDPOINT_HOME + "trace/";
@@ -93,32 +96,34 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		TracingProfileType tracingProfile = compiledTracingProfile.getDefinition();
 		result.clearTracingProfile();
 
-		boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
-		Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
-		File file = createFileName(zip, tracingProfile, templateParameters);
-		try {
-			TracingOutputType tracingOutput = createTracingOutput(task, result, tracingProfile);
-			String xml = prismContext.xmlSerializer().serializeRealValue(tracingOutput);
-			if (zip) {
-				MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
-				LOGGER.info("Trace was written to {} ({} chars uncompressed)", file, xml.length());
-			} else {
-				try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
-					pw.write(xml);
-					LOGGER.info("Trace was written to {} ({} chars)", file, xml.length());
+		if (!Boolean.FALSE.equals(tracingProfile.isCreateTraceFile())) {
+			boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
+			Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
+			File file = createFileName(zip, tracingProfile, templateParameters);
+			try {
+				TracingOutputType tracingOutput = createTracingOutput(task, result, tracingProfile);
+				String xml = prismContext.xmlSerializer().serializeRealValue(tracingOutput);
+				if (zip) {
+					MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
+					LOGGER.info("Trace was written to {} ({} chars uncompressed)", file, xml.length());
+				} else {
+					try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
+						pw.write(xml);
+						LOGGER.info("Trace was written to {} ({} chars)", file, xml.length());
+					}
 				}
+				if (!Boolean.FALSE.equals(tracingProfile.isCreateRepoObject())) {
+					ReportOutputType reportOutputObject = new ReportOutputType(prismContext)
+							.name(createObjectName(tracingProfile, templateParameters))
+							.archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE)
+							.filePath(file.getAbsolutePath())
+							.nodeRef(ObjectTypeUtil.createObjectRef(taskManager.getLocalNode(), prismContext));
+					repositoryService.addObject(reportOutputObject.asPrismObject(), null, result);
+				}
+			} catch (IOException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't write trace ({})", e, file);
+				throw new SystemException(e);
 			}
-			if (!Boolean.FALSE.equals(tracingProfile.isCreateRepoObject())) {
-				ReportOutputType reportOutputObject = new ReportOutputType(prismContext)
-						.name(createObjectName(tracingProfile, templateParameters))
-						.archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE)
-						.filePath(file.getAbsolutePath())
-						.nodeRef(ObjectTypeUtil.createObjectRef(taskManager.getLocalNode(), prismContext));
-				repositoryService.addObject(reportOutputObject.asPrismObject(), null, result);
-			}
-		} catch (IOException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't write trace ({})", e, file);
-			throw new SystemException(e);
 		}
 	}
 
@@ -139,13 +144,21 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 	private TracingEnvironmentType createTracingEnvironmentDescription(Task task, TracingProfileType tracingProfile) {
 		TracingEnvironmentType environment = new TracingEnvironmentType(prismContext);
 		if (!Boolean.TRUE.equals(tracingProfile.isHideDeploymentInformation())) {
-			DeploymentInformationType deployment = systemConfiguration.getDeploymentInformation();
+			DeploymentInformationType deployment = systemConfiguration != null ? systemConfiguration.getDeploymentInformation() : null;
 			if (deployment != null) {
 				DeploymentInformationType deploymentClone = deployment.clone();
 				deploymentClone.setSubscriptionIdentifier(null);
 				environment.setDeployment(deploymentClone);
 			}
 		}
+//		NodeType localNode = taskManager.getLocalNode();
+//		if (localNode != null) {
+//			NodeType nodeClone = localNode.clone();
+//			nodeClone.setSecret(null);
+//			nodeClone.setSecretUpdateTimestamp(null);
+//			nodeClone.setOid(null);
+//			environment.setNode(nodeClone);
+//		}
 		TaskType taskClone = task.getClonedTaskObject().asObjectable();
 		if (taskClone.getResult() != null) {
 			taskClone.getResult().getPartialResults().clear();
@@ -184,7 +197,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 				PrismReferenceValue refVal = (PrismReferenceValue) visitable;
 				//noinspection unchecked
 				PrismObject<? extends ObjectType> object = refVal.getObject();
-				if (object != null) {
+				if (object != null && !object.isEmpty()) {
 					long entryId = findOrCreateEntry(object);
 					refVal.setObject(null);
 					refVal.setOid(SchemaConstants.TRACE_DICTIONARY_PREFIX + entryId);
@@ -230,14 +243,30 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		Map<String, String> rv = new HashMap<>();
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS");
 		rv.put(MACRO_TIMESTAMP, df.format(new Date()));
-		String testName = task.getResult().getOperation();
-		rv.put(MACRO_TEST_NAME, testName);  // e.g. com.evolveum.midpoint.model.intest.TestIteration.test532GuybrushModifyDescription
-		int testNameIndex = StringUtils.lastOrdinalIndexOf(testName, ".", 2);
-		rv.put(MACRO_TEST_NAME_SHORT, testNameIndex >= 0 ? testName.substring(testNameIndex+1) : testName);
+		String operationName = result.getOperation();
+		rv.put(MACRO_OPERATION_NAME, operationName);
+		rv.put(MACRO_OPERATION_NAME_SHORT, shorten(operationName));
+		String testName;
+		if (TestNameHolder.getCurrentTestName() != null) {
+			testName = TestNameHolder.getCurrentTestName();
+		} else {
+			testName = task.getResult().getOperation();
+		}
+		rv.put(MACRO_TEST_NAME, testName);  // e.g. com.evolveum.midpoint.model.intest.TestIteration.test532GuybrushModifyDescription or simply TestIteration.test532GuybrushModifyDescription
+		rv.put(MACRO_TEST_NAME_SHORT, shorten(testName));
 		rv.put(MACRO_FOCUS_NAME, getFocusName(result));
 		rv.put(MACRO_MILLISECONDS, getMilliseconds(result));
 		rv.put(MACRO_RANDOM, String.valueOf((long) (Math.random() * 1000000000000000L)));
 		return rv;
+	}
+
+	private String shorten(String qualifiedName) {
+		if (qualifiedName != null) {
+			int secondLastDotIndex = StringUtils.lastOrdinalIndexOf(qualifiedName, ".", 2);
+			return secondLastDotIndex >= 0 ? qualifiedName.substring(secondLastDotIndex+1) : qualifiedName;
+		} else {
+			return null;
+		}
 	}
 
 	private String getFocusName(OperationResult result) {

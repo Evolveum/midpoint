@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_ASSIGNMENT_SHOP_KART_URL,
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL,
                 label = "PageAssignmentShoppingCart.auth.requestAssignment.label",
                 description = "PageAssignmentShoppingCart.auth.requestAssignment.description")})
 public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends PageSelf {

@@ -87,6 +87,7 @@ import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
@@ -206,6 +207,7 @@ public final class WebComponentUtil {
 		objectDetailsPageMap.put(ValuePolicyType.class, PageValuePolicy.class);
 		objectDetailsPageMap.put(CaseType.class, PageCase.class);
 		objectDetailsPageMap.put(ArchetypeType.class, PageArchetype.class);
+		objectDetailsPageMap.put(ShadowType.class, PageAccount.class);
 	}
 
 	static{
@@ -2925,13 +2927,29 @@ public final class WebComponentUtil {
 
 	public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type, AssignmentOrder assignmentOrder,
 														OperationResult result, Task task, PageBase pageBase) {
+		return getAssignableRolesFilter(focusObject, type, null, assignmentOrder, result, task, pageBase);
+	}
+
+	public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
+														QName relation, AssignmentOrder assignmentOrder,
+														OperationResult result, Task task, PageBase pageBase) {
 		ObjectFilter filter = null;
 		LOGGER.debug("Loading objects which can be assigned");
 		try {
 			ModelInteractionService mis = pageBase.getModelInteractionService();
 			RoleSelectionSpecification roleSpec =
 					mis.getAssignableRoleSpecification(focusObject, type, assignmentOrder.getOrder(), task, result);
-			filter = roleSpec.getFilter();
+			filter = roleSpec.getGlobalFilter();
+			if (relation != null){
+				ObjectFilter relationFilter = roleSpec.getRelationFilter(relation);
+				if (filter == null){
+					return relationFilter;
+				} else if (relationFilter == null){
+					return filter;
+				} else {
+					return pageBase.getPrismContext().queryFactory().createOr(filter, relationFilter);
+				}
+			}
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
 			result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.getAssignableRolesFilter.fatalError").getString(), ex);
@@ -2942,6 +2960,29 @@ public final class WebComponentUtil {
 			pageBase.showResult(result);
 		}
 		return filter;
+	}
+
+	public static List<QName> getAssignableRelationsList(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type,
+														 AssignmentOrder assignmentOrder,
+														 OperationResult result, Task task, PageBase pageBase){
+		List<QName> relationsList = null;
+		LOGGER.debug("Loading assignable relations list");
+		try {
+			ModelInteractionService mis = pageBase.getModelInteractionService();
+			RoleSelectionSpecification roleSpec =
+					mis.getAssignableRoleSpecification(focusObject, type, assignmentOrder.getOrder(), task, result);
+			relationsList = roleSpec != null && roleSpec.getGlobalFilter() == null && roleSpec.getRelationMap() != null ?
+					new ArrayList<QName>(roleSpec.getRelationMap().keySet()) : null;
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load assignable relations list", ex);
+			result.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.getAssignableRelationsList.fatalError").getString(), ex);
+		} finally {
+			result.recomputeStatus();
+		}
+		if (!result.isSuccess() && !result.isHandledError()) {
+			pageBase.showResult(result);
+		}
+		return relationsList;
 	}
 
 	public static String formatDurationWordsForLocal(long durationMillis, boolean suppressLeadingZeroElements,
@@ -3578,15 +3619,13 @@ public final class WebComponentUtil {
 	}
 
 	public static void workItemApproveActionPerformed(AjaxRequestTarget target, CaseWorkItemType workItem, AbstractWorkItemOutputType workItemOutput,
-												Component formPanel, PrismObject<UserType> powerDonor, boolean approved, String operation, PageBase pageBase) {
+												Component formPanel, PrismObject<UserType> powerDonor, boolean approved, OperationResult result, PageBase pageBase) {
 		if (workItem == null){
 			return;
 		}
 		CaseType parentCase = CaseWorkItemUtil.getCase(workItem);
-		OperationResult result;
 		if (CaseTypeUtil.isManualProvisioningCase(parentCase)){
-			Task task = pageBase.createSimpleTask(operation);
-			result = new OperationResult(operation);
+			Task task = pageBase.createSimpleTask(result.getOperation());
 			try {
 				AbstractWorkItemOutputType output = workItem.getOutput();
 				if (output == null) {
@@ -3607,8 +3646,7 @@ public final class WebComponentUtil {
 			}
 		} else {
 
-			Task task = pageBase.createSimpleTask(operation);
-			result = task.getResult();
+			Task task = pageBase.createSimpleTask(result.getOperation());
 			try {
 				try {
 					ObjectDelta additionalDelta = null;
@@ -3637,7 +3675,7 @@ public final class WebComponentUtil {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
 			}
 		}
-		pageBase.processResult(target, result, false);
+		result.computeStatusIfUnknown();
 	}
 
 	public static List<ObjectOrdering> createMetadataOrdering(SortParam<String> sortParam, String metadataProperty, PrismContext prismContext){

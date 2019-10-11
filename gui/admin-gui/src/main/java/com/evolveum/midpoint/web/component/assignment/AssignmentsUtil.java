@@ -471,7 +471,7 @@ public class AssignmentsUtil {
 		if (targetRef.asReferenceValue().getObject() != null) {
             // object assignment
             return targetRef.asReferenceValue().getObject().getComplexTypeDefinition().getTypeName();
-        } else if (assignment.getTargetRef() != null) {
+        } else if (assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null) {
             return assignment.getTargetRef().getType();
         }
         if (assignment.getPolicyRule() != null){

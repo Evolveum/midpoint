@@ -39,21 +39,34 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
 
 	private static final Trace LOGGER = TraceManager.getTrace(DelegateWorkItemsAction.class);
 
+	private static final String OP_EXECUTE = DelegateWorkItemsAction.class.getName() + ".execute";
+
 	public DelegateWorkItemsAction(EngineInvocationContext ctx, DelegateWorkItemsRequest request) {
 		super(ctx, request);
 	}
 
 	@Override
-	public Action execute(OperationResult result)
+	public Action execute(OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException {
-		traceEnter(LOGGER);
-		XMLGregorianCalendar now = request.getNow() != null ? request.getNow() : XmlTypeConverter.createXMLGregorianCalendar();
-		for (DelegateWorkItemsRequest.SingleDelegation delegation : request.getDelegations()) {
-			executeDelegation(delegation, now, result);
+		OperationResult result = parentResult.subresult(OP_EXECUTE)
+				.setMinor()
+				.build();
+		try {
+			traceEnter(LOGGER);
+			XMLGregorianCalendar now =
+					request.getNow() != null ? request.getNow() : XmlTypeConverter.createXMLGregorianCalendar();
+			for (DelegateWorkItemsRequest.SingleDelegation delegation : request.getDelegations()) {
+				executeDelegation(delegation, now, result);
+			}
+			traceExit(LOGGER, null);
+			return null;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-		traceExit(LOGGER, null);
-		return null;
 	}
 
 	// TODO check work item state;
@@ -118,6 +131,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
 		WorkItemDelegationEventType event = ApprovalContextUtil
 				.createDelegationEvent(newEscalationInfo, assigneesBefore, delegatedTo,
 				delegation.getMethod(), causeInformation, engine.prismContext);
+		event.setComment(delegation.getComment());
 		if (newEscalationInfo != null) {
 			workItem.setEscalationLevel(newEscalationInfo);
 		}

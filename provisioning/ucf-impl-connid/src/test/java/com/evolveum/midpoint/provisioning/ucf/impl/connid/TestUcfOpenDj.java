@@ -391,13 +391,8 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		List<Change> changes = handler.getChanges();
 		display("Changes", changes);
 
-		// Just one pseudo-change that updates the token
-		AssertJUnit.assertEquals(1, changes.size());
-		Change change = changes.get(0);
-		assertNull(change.getCurrentShadow());
-		assertNull(change.getIdentifiers());
-		assertNull(change.getObjectDelta());
-		assertNotNull(change.getToken());
+		// No changes (token-only changes are gone in 4.0.1)
+		AssertJUnit.assertEquals(0, changes.size());
 	}
 
 	private PrismProperty createProperty(String propertyName, String propertyValue) {

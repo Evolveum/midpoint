@@ -240,7 +240,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 					.assignmentNew(CloneUtil.clone(getAssignmentBean(assignmentIdi, false)))
 					.primaryAssignmentMode(PlusMinusZeroType.fromValue(primaryAssignmentMode))
 					.evaluateOld(evaluateOld)
-					.text("Source: " + (source != null ? source.asPrismObject().debugDump() : "null"))
+					.textSource(source != null ? source.asPrismObject().debugDump() : "null")
 					.sourceDescription(sourceDescription);
 			result.addTrace(trace);
 		} else {
@@ -274,7 +274,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
 			LOGGER.trace("Assignment evaluation finished:\n{}", ctx.evalAssignment.debugDumpLazily());
 			if (trace != null) {
-				trace.text("Result:\n" + ctx.evalAssignment.debugDump());
+				trace.setTextResult(ctx.evalAssignment.debugDump());
 			}
 			result.computeStatusIfUnknown();
 			return ctx.evalAssignment;
@@ -415,7 +415,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 			result.addReturn("evaluateContent", evaluateContent);
 			result.addReturn("isValid", isValid);
 			if (trace != null) {
-				trace.text("Path segment at return:\n" + segment.debugDump());
+				trace.setTextResult(segment.debugDump());
 			}
 		} catch (Throwable t) {
 			result.recordFatalError(t.getMessage(), t);
@@ -1368,11 +1368,13 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 				.originObject(source)
 				.defaultTargetDefinition(prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
 				.addVariableDefinitions(getAssignmentEvaluationVariables())
+				.rootNode(focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
+				.addAliasRegistration(ExpressionConstants.VAR_USER, null)
+				.addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
 				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source, ObjectType.class)
-				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_EVALUATOR, this, AssignmentEvaluator.class)
-				.rootNode(focusOdo);
+				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_EVALUATOR, this, AssignmentEvaluator.class);
         builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables, prismContext);
 
 		MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();

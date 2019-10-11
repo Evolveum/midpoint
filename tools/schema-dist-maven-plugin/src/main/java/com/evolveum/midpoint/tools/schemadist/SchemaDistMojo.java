@@ -59,7 +59,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.util.DOMUtil;
 
 @Mojo( name = "schemadist", requiresDependencyResolution = ResolutionScope.COMPILE)
-@Execute( goal = "schemadist", phase = LifecyclePhase.PACKAGE)
+@Execute( goal = "schemadist" )
 public class SchemaDistMojo extends AbstractMojo {
 
     @Parameter
@@ -165,7 +165,7 @@ public class SchemaDistMojo extends AbstractMojo {
     }
 
     public void execute() throws MojoExecutionException, MojoFailureException {
-        getLog().info( "SchemaDist plugin started" );
+        getLog().debug( "SchemaDist plugin started" );
 
         try {
 			processArtifactItems();
@@ -175,11 +175,12 @@ public class SchemaDistMojo extends AbstractMojo {
         final File outDir = initializeOutDir(outputDirectory);
 
         CatalogManager catalogManager = new CatalogManager();
-        catalogManager.setVerbosity(999);
+		catalogManager.setVerbosity(0);
+//        catalogManager.setVerbosity(999);
 
         for (ArtifactItem artifactItem: artifactItems) {
         	Artifact artifact = artifactItem.getArtifact();
-        	getLog().info( "SchemaDist unpacking artifact " + artifact);
+        	getLog().debug( "SchemaDist unpacking artifact " + artifact);
         	File workDir = new File(workDirectory, artifact.getArtifactId());
         	initializeOutDir(workDir);
         	artifactItem.setWorkDir(workDir);
@@ -224,7 +225,7 @@ public class SchemaDistMojo extends AbstractMojo {
 
         for (ArtifactItem artifactItem: artifactItems) {
         	Artifact artifact = artifactItem.getArtifact();
-        	getLog().info( "SchemaDist processing artifact " + artifact);
+        	getLog().debug( "SchemaDist processing artifact " + artifact);
         	final File workDir = artifactItem.getWorkDir();
         	FileVisitor<Path> fileVisitor = new FileVisitor<Path>() {
 				@Override
@@ -275,7 +276,7 @@ public class SchemaDistMojo extends AbstractMojo {
 			}
 
         }
-        getLog().info( "SchemaDist plugin finished" );
+        getLog().debug( "SchemaDist plugin finished" );
     }
 
 	private void processXsd(Path filePath, File workDir, File outDir) throws MojoExecutionException, MojoFailureException {
@@ -395,7 +396,7 @@ public class SchemaDistMojo extends AbstractMojo {
 	}
 
 	private File initializeOutDir(File dir) throws MojoFailureException {
-        getLog().info("Output dir: "+dir);
+        getLog().debug("Output dir: "+dir);
         if ( dir.exists() && !dir.isDirectory() ) {
             throw new MojoFailureException("Output directory is not a directory: "+dir);
         }

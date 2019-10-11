@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -107,9 +106,9 @@ public class ApprovalSchemaExecutionInformationHelper {
 			stageExecution.setNumber(stageDef.getNumber());
 			stageExecution.setDefinition(stageDef);
 			if (stageDef.getNumber() <= currentStageNumber) {
-				stageExecution.setExecutionRecord(createStageExecutionRecord(aCase, wfc, stageDef.getNumber(), currentStageNumber));
+				stageExecution.setExecutionRecord(createStageExecutionRecord(aCase, stageDef.getNumber(), currentStageNumber));
 			} else {
-				stageExecution.setExecutionPreview(createStageExecutionPreview(aCase, wfc, opTask.getChannel(), stageDef, opTask, result));
+				stageExecution.setExecutionPreview(createStageExecutionPreview(aCase, opTask.getChannel(), stageDef, opTask, result));
 			}
 			rv.getStage().add(stageExecution);
 		}
@@ -119,13 +118,14 @@ public class ApprovalSchemaExecutionInformationHelper {
 		return rv;
 	}
 
-	private ApprovalStageExecutionPreviewType createStageExecutionPreview(
-			CaseType aCase, ApprovalContextType wfc, String requestChannel,
+	private ApprovalStageExecutionPreviewType createStageExecutionPreview(CaseType aCase, String requestChannel,
 			ApprovalStageDefinitionType stageDef, Task opTask, OperationResult result) {
 		ApprovalStageExecutionPreviewType rv = new ApprovalStageExecutionPreviewType(prismContext);
 		try {
 			StageComputeHelper.ComputationResult computationResult = computeHelper
-					.computeStageApprovers(stageDef, () -> computeHelper.getDefaultVariables(aCase, wfc, requestChannel, result), opTask, result);
+					.computeStageApprovers(stageDef, aCase,
+							() -> computeHelper.getDefaultVariables(aCase, aCase.getApprovalContext(), requestChannel, result),
+							opTask, result);
 			rv.getExpectedApproverRef().addAll(computationResult.getApproverRefs());
 			rv.setExpectedAutomatedOutcome(computationResult.getPredeterminedOutcome());
 			rv.setExpectedAutomatedCompletionReason(computationResult.getAutomatedCompletionReason());
@@ -137,9 +137,8 @@ public class ApprovalSchemaExecutionInformationHelper {
 		return rv;
 	}
 
-	private ApprovalStageExecutionRecordType createStageExecutionRecord(
-			CaseType aCase, ApprovalContextType wfc,
-			Integer stageNumberObject, int currentStageNumber) {
+	private ApprovalStageExecutionRecordType createStageExecutionRecord(CaseType aCase, Integer stageNumberObject,
+			int currentStageNumber) {
 		int stageNumber = stageNumberObject;
 		ApprovalStageExecutionRecordType rv = new ApprovalStageExecutionRecordType(prismContext);
 		aCase.getEvent().stream()

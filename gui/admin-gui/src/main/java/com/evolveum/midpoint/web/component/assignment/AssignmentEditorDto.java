@@ -221,6 +221,9 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		AssignmentSelectorType assignmentSelectorType = assignment.getLimitTargetContent();
 		if (assignmentSelectorType != null && assignmentSelectorType.getTargetRef() != null){
 			for (ObjectReferenceType objectRef : assignmentSelectorType.getTargetRef()){
+				if (objectRef == null || objectRef.getType() == null){
+					continue;
+				}
 				AssignmentInfoDto dto = new AssignmentInfoDto();
 				Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(objectRef.getType()).getClassDefinition();
 				dto.setTargetClass(targetClass);

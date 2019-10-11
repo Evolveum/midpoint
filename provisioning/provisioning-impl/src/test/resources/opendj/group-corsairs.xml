@@ -16,7 +16,7 @@
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
 	<objectClass>ri:groupOfUniqueNames</objectClass>
 	<kind>entitlement</kind>
-	<intent>group</intent>
+	<intent>ldapGroup</intent>
 	<attributes>
 		<ri:dn>cn=CorsairS,ou=gROUPs,dc=example,dc=COM</ri:dn>
 		<ri:cn>corsairs</ri:cn>

@@ -17,21 +17,13 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -656,12 +648,6 @@ public class OpenDJController extends AbstractResourceController {
 				objectClassValues.contains(unexpected));
 	}
 
-	public void assertUniqueMember(Entry groupEntry, String accountDn) throws DirectoryException {
-		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
-		assertContainsDn("No member "+accountDn+" in group "+getDn(groupEntry),
-				members, accountDn);
-	}
-
 	public static void assertContainsDn(String message, Collection<String> actualValues, String expectedValue) throws DirectoryException {
 		AssertJUnit.assertNotNull(message+", expected "+expectedValue+", got null", actualValues);
 		DN expectedDn = DN.decode(expectedValue);
@@ -672,6 +658,38 @@ public class OpenDJController extends AbstractResourceController {
 			}
 		}
 		AssertJUnit.fail(message+", expected "+expectedValue+", got "+actualValues);
+	}
+
+	public static void assertDns(String message, Collection<String> actualValues, String... expectedValues) throws DirectoryException {
+		if (actualValues == null && expectedValues.length == 0) {
+			return;
+		}
+		if (!MiscUtil.unorderedCollectionEquals(actualValues, Arrays.asList(expectedValues),
+				(actualValue, expectedValue) -> {
+					DN actualDn = null;
+					DN expectedDn = null;
+					try {
+						actualDn = DN.decode(actualValue);
+						expectedDn = DN.decode(expectedValue);
+					} catch (DirectoryException e) {
+						throw new SystemException("DN decode problem: "+e.getMessage(), e);
+					}
+					return actualDn.compareTo(expectedDn) == 0;
+				})) {
+			AssertJUnit.fail(message+", expected "+ ArrayUtils.toString(expectedValues)+", got "+actualValues);
+		}
+	}
+
+	public void assertUniqueMember(Entry groupEntry, String accountDn) throws DirectoryException {
+		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
+		assertContainsDn("No member "+accountDn+" in group "+getDn(groupEntry),
+				members, accountDn);
+	}
+
+	public void assertUniqueMembers(Entry groupEntry, String... accountDns) throws DirectoryException {
+		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
+		assertDns("Wrong members in group "+getDn(groupEntry),
+				members, accountDns);
 	}
 
 	public void assertUniqueMember(String groupDn, String accountDn) throws DirectoryException {
@@ -688,6 +706,11 @@ public class OpenDJController extends AbstractResourceController {
 		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
 		MidPointAsserts.assertNotContainsCaseIgnore("Member "+accountDn+" in group "+getDn(groupEntry),
 				members, accountDn);
+	}
+
+	public void assertUniqueMembers(String groupDn, String... accountDns) throws DirectoryException {
+		Entry groupEntry = fetchEntry(groupDn);
+		assertUniqueMembers(groupEntry, accountDns);
 	}
 
 	public static void assertAttribute(Entry response, String name, String... values) {

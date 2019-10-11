@@ -92,6 +92,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		InternalsConfig.encryptionChecks = false;
+		repositoryService.postInit(initResult);         // initialize caches here
 		provisioningService.postInit(initResult);
 	}
 	

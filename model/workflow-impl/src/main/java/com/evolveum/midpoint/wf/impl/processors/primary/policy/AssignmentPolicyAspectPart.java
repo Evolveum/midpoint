@@ -54,6 +54,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -74,6 +75,8 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 public class AssignmentPolicyAspectPart {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPolicyAspectPart.class);
+	private static final String OP_EXTRACT_ASSIGNMENT_BASED_INSTRUCTIONS = AssignmentPolicyAspectPart.class.getName() +
+			".extractAssignmentBasedInstructions";
 
 	@Autowired private PolicyRuleBasedAspect main;
 	@Autowired protected ApprovalSchemaHelper approvalSchemaHelper;
@@ -83,42 +86,73 @@ public class AssignmentPolicyAspectPart {
 	@Autowired protected ModelInteractionService modelInteractionService;
 
 	void extractAssignmentBasedInstructions(ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<UserType> requester,
-			List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx, OperationResult result)
+			List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException {
 
-		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) ctx.modelContext).getEvaluatedAssignmentTriple();
-		LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
-		if (evaluatedAssignmentTriple == null) {
-			return;
+		OperationResult result = parentResult.subresult(OP_EXTRACT_ASSIGNMENT_BASED_INSTRUCTIONS)
+				.setMinor()
+				.build();
+		ApprovalProcessStartInstructionCreationTraceType trace;
+		if (result.isTracingNormal(ApprovalProcessStartInstructionCreationTraceType.class)) {
+			trace = new ApprovalProcessStartInstructionCreationTraceType(prismContext);
+			result.addTrace(trace);
+		} else {
+			trace = null;
 		}
-
-		int instructionsBefore = instructions.size();
-		for (EvaluatedAssignment<?> assignmentAdded : evaluatedAssignmentTriple.getPlusSet()) {
-			addIgnoreNull(instructions,
-					createInstructionFromAssignment(assignmentAdded, PLUS, objectTreeDeltas, requester, ctx, result));
-		}
-		for (EvaluatedAssignment<?> assignmentRemoved : evaluatedAssignmentTriple.getMinusSet()) {
-			addIgnoreNull(instructions,
-					createInstructionFromAssignment(assignmentRemoved, MINUS, objectTreeDeltas, requester, ctx, result));
-		}
-		for (EvaluatedAssignment<?> assignmentModified : evaluatedAssignmentTriple.getZeroSet()) {
-			addIgnoreNull(instructions,
-					createInstructionFromAssignment(assignmentModified, PlusMinusZero.ZERO, objectTreeDeltas, requester, ctx, result));
-		}
-		int instructionsAdded = instructions.size() - instructionsBefore;
-		CompiledUserProfile adminGuiConfiguration;
 		try {
-			adminGuiConfiguration = modelInteractionService.getCompiledUserProfile(ctx.task, result);
-		} catch (CommunicationException | ConfigurationException | SecurityViolationException
-				| ExpressionEvaluationException e) {
-			throw new SystemException(e.getMessage(), e);
-		}
-		Integer limit = adminGuiConfiguration.getRoleManagement() != null ?
-				adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit() : null;
-		LOGGER.trace("Assignment-related approval instructions: {}; limit is {}", instructionsAdded, limit);
-		if (limit != null && instructionsAdded > limit) {
-			// TODO think about better error reporting
-			throw new IllegalStateException("Assignment approval request limit (" + limit + ") exceeded: you are trying to submit " + instructionsAdded + " requests");
+			DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) ctx.modelContext)
+					.getEvaluatedAssignmentTriple();
+			LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
+			if (evaluatedAssignmentTriple == null) {
+				return;
+			}
+
+			List<PcpStartInstruction> newInstructions = new ArrayList<>();
+			for (EvaluatedAssignment<?> assignmentAdded : evaluatedAssignmentTriple.getPlusSet()) {
+				addIgnoreNull(newInstructions,
+						createInstructionFromAssignment(assignmentAdded, PLUS, objectTreeDeltas, requester, ctx, result));
+			}
+			for (EvaluatedAssignment<?> assignmentRemoved : evaluatedAssignmentTriple.getMinusSet()) {
+				addIgnoreNull(newInstructions,
+						createInstructionFromAssignment(assignmentRemoved, MINUS, objectTreeDeltas, requester, ctx, result));
+			}
+			for (EvaluatedAssignment<?> assignmentModified : evaluatedAssignmentTriple.getZeroSet()) {
+				addIgnoreNull(newInstructions,
+						createInstructionFromAssignment(assignmentModified, PlusMinusZero.ZERO, objectTreeDeltas, requester, ctx,
+								result));
+			}
+			int newInstructionsCount = newInstructions.size();
+			if (trace != null) {
+				for (PcpStartInstruction newInstruction : newInstructions) {
+					trace.getCaseRef().add(ObjectTypeUtil.createObjectRefWithFullObject(newInstruction.getCase(), prismContext));
+				}
+			}
+			instructions.addAll(newInstructions);
+			CompiledUserProfile adminGuiConfiguration;
+			try {
+				adminGuiConfiguration = modelInteractionService.getCompiledUserProfile(ctx.task, result);
+			} catch (CommunicationException | ConfigurationException | SecurityViolationException
+					| ExpressionEvaluationException e) {
+				throw new SystemException(e.getMessage(), e);
+			}
+			Integer limit = adminGuiConfiguration.getRoleManagement() != null ?
+					adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit() : null;
+			LOGGER.trace("Assignment-related approval instructions: {}; limit is {}", newInstructionsCount, limit);
+			if (limit != null && newInstructionsCount > limit) {
+				// TODO think about better error reporting
+				throw new IllegalStateException(
+						"Assignment approval request limit (" + limit + ") exceeded: you are trying to submit "
+								+ newInstructionsCount + " requests");
+			}
+			if (limit != null) {
+				result.addContext("assignmentApprovalRequestLimit", limit);
+			}
+			result.addReturn("instructionsCreated", newInstructions.size());
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 

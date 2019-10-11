@@ -12,9 +12,12 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.DefaultReferencableImpl;
+import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
@@ -22,6 +25,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetResponseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -41,6 +45,73 @@ public class TestSerialization {
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+	}
+
+	@Test
+	public void testSerializeTrace() throws Exception {
+		System.out.println("===[ testSerializeTrace ]===");
+
+		PrismContext prismContext = getPrismContext();
+		ValueTransformationTraceType trace = new ValueTransformationTraceType(prismContext);
+		NamedValueType input1 = new NamedValueType();
+		input1.setName(new QName("myRef"));
+		input1.setValue(new ObjectReferenceType().oid("123").type(UserType.COMPLEX_TYPE));
+		trace.getInput().add(input1);
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "trace");
+		String xml = prismContext.xmlSerializer().serializeAnyData(trace, fakeQName);
+		System.out.println(xml);
+	}
+
+	@Test
+	public void testSerializeDeltaSetTripleType() throws Exception {
+		System.out.println("===[ testSerializeDeltaSetTripleType ]===");
+
+		PrismContext prismContext = getPrismContext();
+
+		PrismReferenceValue refValue = new PrismReferenceValueImpl("123456");
+		DefaultReferencableImpl referencable = new DefaultReferencableImpl(refValue);
+		DeltaSetTripleType triple = new DeltaSetTripleType();
+		triple.getPlus().add(referencable);
+
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "triple");
+		String xml = prismContext.xmlSerializer().serializeAnyData(triple, fakeQName);
+		System.out.println(xml);
+	}
+
+	@Test
+	public void testSerializeNamedReference() throws Exception {
+		System.out.println("===[ testSerializeNamedReference ]===");
+
+		PrismContext prismContext = getPrismContext();
+		ObjectReferenceType reference = new ObjectReferenceType()
+				.oid("66662a3b-76eb-4465-8374-742f6e2f54b4")
+				.type(UserType.COMPLEX_TYPE)
+				.targetName("joe");
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "ref");
+		String xml = prismContext.xmlSerializer().serializeAnyData(reference, fakeQName);
+		System.out.println(xml);
+	}
+
+	@Test
+	public void testSerializeFullReference() throws Exception {
+		System.out.println("===[ testSerializeFullReference ]===");
+
+		PrismContext prismContext = getPrismContext();
+
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "ref");
+		MutablePrismReferenceDefinition definition = prismContext.definitionFactory().createReferenceDefinition(fakeQName, ObjectReferenceType.COMPLEX_TYPE);
+		definition.setComposite(true);
+		PrismReference reference = definition.instantiate();
+
+		UserType joe = new UserType(prismContext)
+				.name("joe")
+				.oid("66662a3b-76eb-4465-8374-742f6e2f54b4")
+				.description("description");
+		ObjectReferenceType referenceRealValue = ObjectTypeUtil.createObjectRefWithFullObject(joe, prismContext);
+		reference.add(referenceRealValue.asReferenceValue());
+
+		String xml = prismContext.xmlSerializer().serialize(reference);
+		System.out.println(xml);
 	}
 
 	@Test

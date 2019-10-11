@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  *
  */
@@ -26,18 +28,14 @@ public class DelegateWorkItemsRequest extends Request {
 
 	public static class SingleDelegation {
 		private final long workItemId;
-		@NotNull private final List<ObjectReferenceType> delegates;
-		@NotNull private final WorkItemDelegationMethodType method;
+		@NotNull private final WorkItemDelegationRequestType delegationRequest;
 		private final WorkItemEscalationLevelType targetEscalationInfo;
 		private final Duration newDuration;
 
-		public SingleDelegation(long workItemId,
-				@NotNull List<ObjectReferenceType> delegates,
-				@NotNull WorkItemDelegationMethodType method,
+		public SingleDelegation(long workItemId, @NotNull WorkItemDelegationRequestType delegationRequest,
 				WorkItemEscalationLevelType targetEscalationInfo, Duration newDuration) {
 			this.workItemId = workItemId;
-			this.delegates = delegates;
-			this.method = method;
+			this.delegationRequest = delegationRequest;
 			this.targetEscalationInfo = targetEscalationInfo;
 			this.newDuration = newDuration;
 		}
@@ -48,12 +46,16 @@ public class DelegateWorkItemsRequest extends Request {
 
 		@NotNull
 		public List<ObjectReferenceType> getDelegates() {
-			return delegates;
+			return delegationRequest.getDelegate();
 		}
 
 		@NotNull
 		public WorkItemDelegationMethodType getMethod() {
-			return method;
+			return defaultIfNull(delegationRequest.getMethod(), WorkItemDelegationMethodType.REPLACE_ASSIGNEES);
+		}
+
+		public String getComment() {
+			return delegationRequest.getComment();
 		}
 
 		public WorkItemEscalationLevelType getTargetEscalationInfo() {
@@ -68,8 +70,7 @@ public class DelegateWorkItemsRequest extends Request {
 		public String toString() {
 			return "SingleDelegation{" +
 					"workItemId=" + workItemId +
-					", delegates=" + delegates +
-					", method=" + method +
+					", delegationRequest=" + delegationRequest +
 					", targetEscalationInfo=" + targetEscalationInfo +
 					", newDuration=" + newDuration +
 					'}';
@@ -92,5 +93,15 @@ public class DelegateWorkItemsRequest extends Request {
 	@Nullable
 	public XMLGregorianCalendar getNow() {
 		return now;
+	}
+
+	@Override
+	public String toString() {
+		return "DelegateWorkItemsRequest{" +
+				"now=" + now +
+				", delegations=" + delegations +
+				", caseOid='" + caseOid + '\'' +
+				", causeInformation=" + causeInformation +
+				'}';
 	}
 }

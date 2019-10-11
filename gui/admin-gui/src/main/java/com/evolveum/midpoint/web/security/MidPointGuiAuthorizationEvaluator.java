@@ -17,10 +17,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.*;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
-import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
-import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.enforcer.api.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -162,6 +159,11 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 			AuthorizationParameters<O,T> params, OwnerResolver ownerResolver, Task task, OperationResult result)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		securityEnforcer.authorize(operationUrl, phase, params, ownerResolver, task, result);
+	}
+
+	@Override
+	public MidPointPrincipal getMidPointPrincipal() {
+		return securityEnforcer.getMidPointPrincipal();
 	}
 
 	// Spring security invokes this method
@@ -311,7 +313,12 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		return securityEnforcer.canSearch(operationUrls, phase, objectType, object, includeSpecial, filter, task, result);
 	}
-	
+
+	@Override
+	public <T extends ObjectType, O extends ObjectType, F> F computeSecurityFilter(MidPointPrincipal principal, String[] operationUrls, AuthorizationPhaseType phase, Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction, List<OrderConstraintsType> paramOrderConstraints, FilterGizmo<F> gizmo, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return securityEnforcer.computeSecurityFilter(principal, operationUrls, phase, searchResultType, object, origFilter, limitAuthorizationAction, paramOrderConstraints, gizmo, task, result);
+	}
+
 	@Override
 	public MidPointPrincipal createDonorPrincipal(MidPointPrincipal attorneyPrincipal,
 			String attorneyAuthorizationAction, PrismObject<UserType> donor, Task task,

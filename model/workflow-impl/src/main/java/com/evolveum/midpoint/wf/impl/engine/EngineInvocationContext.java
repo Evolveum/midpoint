@@ -53,6 +53,8 @@ public class EngineInvocationContext implements DebugDumpable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(EngineInvocationContext.class);
 
+	private static final String OP_COMMIT = EngineInvocationContext.class.getName() + ".commit";
+
 	@NotNull private final CaseType originalCase;
 	@NotNull private final CaseType currentCase;
 	@NotNull private final Task opTask;
@@ -79,6 +81,12 @@ public class EngineInvocationContext implements DebugDumpable {
 
 	@NotNull
 	public CaseType getCase() {
+		return currentCase;
+	}
+
+	// TODO what's the difference between getCase() and getCurrentCase() ?
+	@NotNull
+	public CaseType getCurrentCase() {
 		return currentCase;
 	}
 
@@ -127,43 +135,53 @@ public class EngineInvocationContext implements DebugDumpable {
 		pendingAuditRecords.add(record);
 	}
 
-	public void commit(OperationResult result)
+	public void commit(OperationResult parentResult)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException {
+		OperationResult result = parentResult.subresult(OP_COMMIT)
+				.setMinor()
+				.build();
+		try {
+			boolean approvalCase = isApprovalCase();
 
-		boolean approvalCase = isApprovalCase();
+			if (currentCase.getOid() == null) {
+				String newOid = engine.repositoryService.addObject(currentCase.asPrismObject(), null, result);
+				originalCase.setOid(newOid);
+			} else {
+				ObjectDelta<CaseType> diff = originalCase.asPrismObject()
+						.diff(currentCase.asPrismObject(), ParameterizedEquivalenceStrategy.LITERAL);
+				assert diff.isModify();
+				Collection<? extends ItemDelta<?, ?>> modifications = diff.getModifications();
 
-		if (currentCase.getOid() == null) {
-			String newOid = engine.repositoryService.addObject(currentCase.asPrismObject(), null, result);
-			originalCase.setOid(newOid);
-		} else {
-			ObjectDelta<CaseType> diff = originalCase.asPrismObject()
-					.diff(currentCase.asPrismObject(), ParameterizedEquivalenceStrategy.LITERAL);
-			assert diff.isModify();
-			Collection<? extends ItemDelta<?, ?>> modifications = diff.getModifications();
+				LOGGER.trace("Modifications to be applied to case {}:\n{}", getCaseOid(),
+						DebugUtil.debugDumpLazily(modifications));
 
-			LOGGER.trace("Modifications to be applied to case {}:\n{}", getCaseOid(), DebugUtil.debugDumpLazily(modifications));
-
-			engine.repositoryService.modifyObject(CaseType.class, getCaseOid(), modifications,
-					new VersionPrecondition<>(originalCase.asPrismObject()), null, result);
-		}
-
-		if (wasClosed) {
-			try {
-				if (approvalCase) {
-					engine.primaryChangeProcessor.onProcessEnd(this, result);
-				} else {
-					engine.executionHelper.closeCaseInRepository(currentCase, result);
-				}
-
-				engine.auditHelper.prepareProcessEndRecord(this, result);
-				prepareNotification(new DelayedNotification.ProcessEnd(currentCase));
-			} catch (PreconditionViolationException e) {
-				throw new SystemException(e);
+				engine.repositoryService.modifyObject(CaseType.class, getCaseOid(), modifications,
+						new VersionPrecondition<>(originalCase.asPrismObject()), null, result);
 			}
-		}
 
-		engine.auditHelper.auditPreparedRecords(this);
-		engine.notificationHelper.sendPreparedNotifications(this, result);
+			if (wasClosed) {
+				try {
+					if (approvalCase) {
+						engine.primaryChangeProcessor.onProcessEnd(this, result);
+					} else {
+						engine.executionHelper.closeCaseInRepository(currentCase, result);
+					}
+
+					engine.auditHelper.prepareProcessEndRecord(this, result);
+					prepareNotification(new DelayedNotification.ProcessEnd(currentCase));
+				} catch (PreconditionViolationException e) {
+					throw new SystemException(e);
+				}
+			}
+
+			engine.auditHelper.auditPreparedRecords(this, result);
+			engine.notificationHelper.sendPreparedNotifications(this, result);
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
 	}
 
 	public int getNumberOfStages() {
@@ -280,11 +298,6 @@ public class EngineInvocationContext implements DebugDumpable {
 	@NotNull
 	public WorkflowEngine getEngine() {
 		return engine;
-	}
-
-	@NotNull
-	public CaseType getCurrentCase() {
-		return currentCase;
 	}
 
 	public boolean isApprovalCase() {

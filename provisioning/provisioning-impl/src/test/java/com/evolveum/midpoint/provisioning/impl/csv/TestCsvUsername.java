@@ -103,4 +103,9 @@ public class TestCsvUsername extends AbstractCsvTest {
 	protected void assertAccountJackAttributesRepo(ShadowType repoShadowType) {
         assertEquals("Wrong identifier (repo)", ACCOUNT_JACK_USERNAME, getAttributeValue(repoShadowType, ATTR_USERNAME_QNAME));
 	}
+	
+	@Override
+	protected QName getQNameOfUID() {
+		return ATTR_USERNAME_QNAME;
+	}
 }

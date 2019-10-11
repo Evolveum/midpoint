@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
@@ -29,7 +30,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by honchar
@@ -42,29 +42,28 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private static final String DOT_CLASS = CaseWorkItemActionsPanel.class.getName() + ".";
     private static final String OPERATION_SAVE_WORK_ITEM = DOT_CLASS + "saveWorkItem";
     private static final String OPERATION_CLAIM_ITEMS = DOT_CLASS + "claimItem";
-    private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_CLASS + "delegateWorkItem";
+    private static final String OPERATION_FORWARD_WORK_ITEM = DOT_CLASS + "forwardWorkItem";
     private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_CLASS + "completeWorkItem";
     private static final String OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION = DOT_CLASS + "isAuthorizedToApproveAndReject";
     private static final String OPERATION_CHECK_DELEGATE_AUTHORIZATION = DOT_CLASS + "isAuthorizedToDelegate";
 
-
     private static final String ID_WORK_ITEM_APPROVE_BUTTON = "workItemApproveButton";
     private static final String ID_WORK_ITEM_REJECT_BUTTON = "workItemRejectButton";
-    private static final String ID_WORK_ITEM_DELEGATE_BUTTON = "workItemDelegateButton";
+    private static final String ID_WORK_ITEM_FORWARD_BUTTON = "workItemForwardButton";
     private static final String ID_WORK_ITEM_CLAIM_BUTTON = "workItemClaimButton";
     private static final String ID_ACTION_BUTTONS = "actionButtons";
 
-    public CaseWorkItemActionsPanel(String id, IModel<CaseWorkItemType> caseWorkItemModel){
+    public CaseWorkItemActionsPanel(String id, IModel<CaseWorkItemType> caseWorkItemModel) {
         super(id, caseWorkItemModel);
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         WebMarkupContainer actionButtonsContainer = new WebMarkupContainer(ID_ACTION_BUTTONS);
         actionButtonsContainer.setOutputMarkupId(true);
         actionButtonsContainer.add(new VisibleBehaviour(() -> CaseWorkItemUtil.isCaseWorkItemNotClosed(CaseWorkItemActionsPanel.this.getModelObject())));
@@ -75,9 +74,10 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
                 WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(true),
-                        getCustomForm(), getPowerDonor(), true, OPERATION_COMPLETE_WORK_ITEM, getPageBase());
-                		CaseWorkItemActionsPanel.this.getPageBase().redirectBack();
+                        getCustomForm(), getPowerDonor(), true, completionResult, getPageBase());
+                CaseWorkItemActionsPanel.this.getPageBase().redirectBack();
 
             }
         };
@@ -90,8 +90,9 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                OperationResult completionResult = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
                 WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(false),
-                        getCustomForm(), getPowerDonor(), false, OPERATION_COMPLETE_WORK_ITEM, getPageBase());
+                        getCustomForm(), getPowerDonor(), false, completionResult, getPageBase());
                 CaseWorkItemActionsPanel.this.getPageBase().redirectBack();
             }
         };
@@ -99,18 +100,18 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         workItemRejectButton.add(new VisibleBehaviour(() -> isApproveRejectButtonVisible()));
         actionButtonsContainer.add(workItemRejectButton);
 
-        AjaxButton workItemDelegateButton = new AjaxButton(ID_WORK_ITEM_DELEGATE_BUTTON,
+        AjaxButton workItemForwardButton = new AjaxButton(ID_WORK_ITEM_FORWARD_BUTTON,
                 createStringResource("pageWorkItem.button.forward")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                delegatePerformed(ajaxRequestTarget);
+                forwardPerformed(ajaxRequestTarget);
             }
         };
-        workItemDelegateButton.setOutputMarkupId(true);
-        workItemDelegateButton.add(new VisibleBehaviour(() -> isDelegateButtonVisible()));
-        actionButtonsContainer.add(workItemDelegateButton);
+        workItemForwardButton.setOutputMarkupId(true);
+        workItemForwardButton.add(new VisibleBehaviour(() -> isForwardButtonVisible()));
+        actionButtonsContainer.add(workItemForwardButton);
 
         AjaxButton workItemClaimButton = new AjaxButton(ID_WORK_ITEM_CLAIM_BUTTON,
                 createStringResource("pageWorkItem.button.claim")) {
@@ -131,13 +132,19 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         return getModelObject();
     }
 
-
-    protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved){
+    protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved) {
         return new AbstractWorkItemOutputType(getPrismContext())
                 .outcome(ApprovalUtils.toUri(approved));
     }
 
-    private void delegatePerformed(AjaxRequestTarget target) {
+    protected WorkItemDelegationRequestType getDelegationRequest(UserType delegate) {
+        PrismContext prismContext = getPrismContext();
+        return new WorkItemDelegationRequestType(prismContext)
+                .delegate(ObjectTypeUtil.createObjectRef(delegate, prismContext))
+                .method(WorkItemDelegationMethodType.REPLACE_ASSIGNEES);
+    }
+
+    private void forwardPerformed(AjaxRequestTarget target) {
         ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
                 getPageBase().getMainPopupBodyId(), UserType.class,
                 Collections.singletonList(UserType.COMPLEX_TYPE), false, getPageBase(), null) {
@@ -146,7 +153,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
                 CaseWorkItemActionsPanel.this.getPageBase().hideMainPopup(target);
-                delegateConfirmedPerformed(target, user);
+                forwardConfirmedPerformed(target, user);
             }
 
         };
@@ -154,21 +161,20 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         getPageBase().showMainPopup(panel, target);
     }
 
-    private void delegateConfirmedPerformed(AjaxRequestTarget target, UserType delegate) {
-        Task task = getPageBase().createSimpleTask(OPERATION_DELEGATE_WORK_ITEM);
+    private void forwardConfirmedPerformed(AjaxRequestTarget target, UserType delegate) {
+        Task task = getPageBase().createSimpleTask(OPERATION_FORWARD_WORK_ITEM);
         OperationResult result = task.getResult();
         try {
-            List<ObjectReferenceType> delegates = Collections.singletonList(ObjectTypeUtil.createObjectRef(delegate, getPrismContext()));
             try {
                 WebComponentUtil.assumePowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
-                getPageBase().getWorkflowService().delegateWorkItem(WorkItemId.of(getModelObject()), delegates, WorkItemDelegationMethodType.REPLACE_ASSIGNEES,
-                        task, result);
+                WorkItemDelegationRequestType delegationRequest = getDelegationRequest(delegate);
+                getPageBase().getWorkflowService().delegateWorkItem(WorkItemId.of(getModelObject()), delegationRequest, task, result);
             } finally {
                 WebComponentUtil.dropPowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
             }
         } catch (Exception ex) {
-            result.recordFatalError(getString("CaseWorkItemActionsPanel.message.delegateConfirmedPerformed.fatalError"), ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delegate work item", ex);
+            result.recordFatalError(getString("CaseWorkItemActionsPanel.message.forwardConfirmedPerformed.fatalError"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't forward work item", ex);
         }
         getPageBase().processResult(target, result, false);
         getPageBase().redirectBack();
@@ -187,7 +193,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         return null;
     }
 
-    private IModel<String> getApproveButtonTitleModel(){
+    private IModel<String> getApproveButtonTitleModel() {
         return new IModel<String>() {
             @Override
             public String getObject() {
@@ -199,7 +205,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         };
     }
 
-    private IModel<String> getRejectButtonTitleModel(){
+    private IModel<String> getRejectButtonTitleModel() {
         return new IModel<String>() {
             @Override
             public String getObject() {
@@ -211,34 +217,34 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         };
     }
 
-    private boolean isApproveRejectButtonVisible(){
+    private boolean isApproveRejectButtonVisible() {
         boolean isAuthorized = false;
         try {
             OperationResult result = new OperationResult(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
             Task task = getPageBase().createSimpleTask(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
             isAuthorized =  getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result);
-        } catch (Exception ex){
-            LOGGER.error("Cannot check current user authorization to submit work item, ", ex.getLocalizedMessage());
+        } catch (Exception ex) {
+            LOGGER.error("Cannot check current user authorization to submit work item: {}", ex.getLocalizedMessage(), ex);
         }
         return CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
                 !CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) && isAuthorized;
 
     }
 
-    private boolean isDelegateButtonVisible(){
+    private boolean isForwardButtonVisible() {
         boolean isAuthorized = false;
         try {
             OperationResult result = new OperationResult(OPERATION_CHECK_DELEGATE_AUTHORIZATION);
             Task task = getPageBase().createSimpleTask(OPERATION_CHECK_DELEGATE_AUTHORIZATION);
             isAuthorized =  getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result);
-        } catch (Exception ex){
-            LOGGER.error("Cannot check current user authorization to submit work item, ", ex.getLocalizedMessage());
+        } catch (Exception ex) {
+            LOGGER.error("Cannot check current user authorization to submit work item: {}", ex.getLocalizedMessage(), ex);
         }
         return CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
                 !CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) && isAuthorized;
     }
 
-    private boolean isClaimButtonVisible(){
+    private boolean isClaimButtonVisible() {
         return CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
                 CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) &&
                 getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject());

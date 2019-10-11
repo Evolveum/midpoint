@@ -438,7 +438,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.trace("NAME: {} - {}", namePolyType.getOrig(), namePolyType.getNorm());
         }
 
-        OperationResult subResult = result.createSubresult(ADD_OBJECT)
+        OperationResult subResult = result.subresult(ADD_OBJECT)
                 .addQualifier(object.asObjectable().getClass().getSimpleName())
                 .addParam("object", object)
                 .addParam("options", options.toString())
@@ -475,6 +475,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
         	OperationLogger.logAdd(object, options, subResult);
+        	subResult.computeStatusIfUnknown();
         }
     }
 

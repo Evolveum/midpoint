@@ -108,8 +108,7 @@ public class BaseHelper {
 		rollbackTransaction(session, ex, message, result, fatal);
 	}
 
-	void rollbackTransaction(Session session, Throwable ex, String message, OperationResult result,
-			boolean fatal) {
+	void rollbackTransaction(Session session, Throwable ex, String message, OperationResult result, boolean fatal) {
 		if (StringUtils.isEmpty(message) && ex != null) {
 			message = ex.getMessage();
 		}

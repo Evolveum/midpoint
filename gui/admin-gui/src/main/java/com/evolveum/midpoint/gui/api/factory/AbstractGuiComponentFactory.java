@@ -7,48 +7,21 @@
 
 package com.evolveum.midpoint.gui.api.factory;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LambdaModel;
-import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.factory.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.factory.PrismPropertyPanelContext;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFactory<PrismPropertyPanelContext<T>> {
@@ -119,7 +92,7 @@ public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFact
 	
 	protected abstract Panel getPanel(PrismPropertyPanelContext<T> panelCtx);
 	
-	protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable) {
+	protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable, LocalizationService localizationService) {
 		List<String> values = new ArrayList<>();
 
 		if (lookupTable == null) {
@@ -130,14 +103,20 @@ public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFact
 
 		if (input == null || input.isEmpty()) {
 			for (LookupTableRowType row : rows) {
-				values.add(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null));
+
+				PolyString polystring = null;
+				if (row.getLabel() != null) {
+					polystring = setTranslateToPolystring(row);
+				}
+				values.add(localizationService.translate(polystring));
 			}
 		} else {
 			for (LookupTableRowType row : rows) {
 				if (row.getLabel() == null) {
 					continue;
 				}
-				String rowLabel = WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel().toPolyString());
+				PolyString polystring = setTranslateToPolystring(row);
+				String rowLabel = localizationService.translate(polystring);
 				if (rowLabel != null && rowLabel.toLowerCase().contains(input.toLowerCase())) {
 					values.add(rowLabel);
 				}
@@ -145,5 +124,24 @@ public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFact
 		}
 		return values;
 	}
-			
+
+	private PolyString setTranslateToPolystring(LookupTableRowType row){
+		PolyString polystring = row.getLabel().toPolyString();
+		if (StringUtils.isNotBlank(polystring.getOrig())) {
+			if (polystring.getTranslation() == null) {
+				PolyStringTranslationType translation = new PolyStringTranslationType();
+				translation.setKey(polystring.getOrig());
+				if (StringUtils.isBlank(translation.getFallback())) {
+					translation.setFallback(polystring.getOrig());
+				}
+				polystring.setTranslation(translation);
+			} else if (StringUtils.isNotBlank(polystring.getTranslation().getKey())) {
+				polystring.getTranslation().setKey(polystring.getOrig());
+				if (StringUtils.isBlank(polystring.getTranslation().getFallback())) {
+					polystring.getTranslation().setFallback(polystring.getOrig());
+				}
+			}
+		}
+		return polystring;
+	}
 }

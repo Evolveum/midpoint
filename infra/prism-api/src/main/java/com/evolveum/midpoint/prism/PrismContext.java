@@ -283,6 +283,14 @@ public interface PrismContext extends ProtectorCreator {
 	 */
 	QName getObjectsElementName();
 
+	/**
+	 * Type name for serialization of Referencable that's not of XML type (e.g. DefaultReferencableImpl).
+	 * In midPoint it's c:ObjectReferenceType.
+	 *
+	 * VERY EXPERIMENTAL. Maybe we should simply use t:ObjectReferenceType in such cases.
+	 */
+	QName getDefaultReferenceTypeName();
+
 	boolean isDefaultRelation(QName relation);
 
 	// TODO improve this method to avoid false positives when unqualified relations are defined (minor priority, as that's unsupported anyway)

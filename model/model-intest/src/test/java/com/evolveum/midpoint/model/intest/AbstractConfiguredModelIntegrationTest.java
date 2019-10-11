@@ -109,6 +109,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_DRINK = "rum";
 	protected static final String RESOURCE_DUMMY_QUOTE = "Arr!";
 	protected static final String RESOURCE_DUMMY_USELESS_STRING = "USEless";
+	protected static final QName RESOURCE_DUMMY_GROUP_OBJECTCLASS = new QName(RESOURCE_DUMMY_NAMESPACE, "GroupObjectClass");
+	protected static final QName RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, "group");
+	protected static final QName RESOURCE_DUMMY_ASSOCIATION_PRIV_QNAME = new QName(RESOURCE_DUMMY_NAMESPACE, "priv");
 
 	// RED resource has STRONG mappings
 	protected static final File RESOURCE_DUMMY_RED_FILE = new File(COMMON_DIR, "resource-dummy-red.xml");
@@ -361,6 +364,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File USER_DRAKE_FILE = new File(COMMON_DIR, "user-drake.xml");
 	protected static final String USER_DRAKE_OID = "c0c010c0-d34d-b33f-f00d-11d1d1d1d1d1";
 	protected static final String USER_DRAKE_USERNAME = "drake";
+	protected static final String USER_DRAKE_FULLNAME = "Francis Drake";
 
 	public static final File ACCOUNT_JACK_DUMMY_FILE = new File(COMMON_DIR, "account-jack-dummy.xml");
 	public static final File ACCOUNT_JACK_DUMMY_RED_FILE = new File(COMMON_DIR, "account-jack-dummy-red.xml");

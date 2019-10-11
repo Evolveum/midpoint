@@ -303,7 +303,8 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 	}
 
 	@Override
-	public ResourceAttributeDefinition findAttributeDefinition(QName elementQName, boolean caseInsensitive) {
+	public <T> ResourceAttributeDefinition<T> findAttributeDefinition(QName elementQName, boolean caseInsensitive) {
+		//noinspection unchecked
 		return findLocalItemDefinition(ItemName.fromQName(elementQName), ResourceAttributeDefinition.class, caseInsensitive);
 	}
 

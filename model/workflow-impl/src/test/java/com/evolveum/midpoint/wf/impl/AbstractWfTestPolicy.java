@@ -8,10 +8,12 @@
 package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -66,8 +68,10 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 	private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 
 	@Autowired protected Clockwork clockwork;
+	@Autowired protected ClockworkMedic clockworkMedic;
 	@Autowired protected TaskManager taskManager;
 	@Autowired protected WorkflowManager workflowManager;
+	@Autowired protected WorkflowService workflowService;
 	@Autowired protected WorkflowEngine workflowEngine;
 	@Autowired protected WorkItemManager workItemManager;
 	@Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
@@ -117,18 +121,30 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 		public List<ApprovalInstruction> getApprovalSequence() {
 			return null;
 		}
+
+		public void setTracing(Task opTask) {
+		}
 	}
 
-	protected <F extends FocusType> void executeTest(String testName, TestDetails testDetails, int expectedSubTaskCount)
+	protected <F extends FocusType> OperationResult executeTest(String testName, TestDetails testDetails, int expectedSubTaskCount)
 			throws Exception {
 
 		// GIVEN
 		prepareNotifications();
 		dummyAuditService.clear();
 
-		Task opTask = taskManager.createTaskInstance(AbstractWfTestPolicy.class.getName() + "." + testName);
+		Task opTask = createTask(AbstractWfTestPolicy.class.getName() + "." + testName);
+
+		boolean USE_FULL_TRACING = false;
+		//noinspection ConstantConditions
+		if (USE_FULL_TRACING) {
+			setModelAndWorkflowLoggingTracing(opTask);
+		} else {
+			testDetails.setTracing(opTask);
+		}
+
 		opTask.setOwner(userAdministrator);
-		OperationResult result = new OperationResult("execution");
+		OperationResult result = opTask.getResult();
 
 		LensContext<F> modelContext = testDetails.createModelContext(result);
 		display("Model context at test start", modelContext);
@@ -138,7 +154,13 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 
 		// WHEN
 
-		HookOperationMode mode = clockwork.run(modelContext, opTask, result);
+		HookOperationMode mode;
+		clockworkMedic.enterModelMethod(true);
+		try {
+			mode = clockwork.run(modelContext, opTask, result);
+		} finally {
+			clockworkMedic.exitModelMethod(true);
+		}
 
 		// THEN
 
@@ -262,6 +284,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 		// Check audit
 		display("Audit", dummyAuditService);
 		display("Output context", modelContext);
+		return result;
 	}
 
 	protected void assertWfContextAfterClockworkRun(CaseType rootCase, List<CaseType> subcases, List<CaseWorkItemType> workItems,
@@ -385,11 +408,14 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 
 		protected void afterFirstClockworkRun(CaseType rootCase, List<CaseType> subcases, List<CaseWorkItemType> workItems,
 				OperationResult result) throws Exception { }
+
+		public void setTracing(Task opTask) {
+		}
 	}
 
-	protected <F extends FocusType> void executeTest2(String testName, TestDetails2<F> testDetails2, int expectedSubTaskCount,
+	protected <F extends FocusType> OperationResult executeTest2(String testName, TestDetails2<F> testDetails2, int expectedSubTaskCount,
 			boolean immediate) throws Exception {
-		executeTest(testName, new TestDetails() {
+		return executeTest(testName, new TestDetails() {
 			@Override
 			protected LensContext<F> createModelContext(OperationResult result) throws Exception {
 				PrismObject<F> focus = testDetails2.getFocus(result);
@@ -462,6 +488,11 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 			@Override
 			public List<ApprovalInstruction> getApprovalSequence() {
 				return testDetails2.getApprovalSequence();
+			}
+
+			@Override
+			public void setTracing(Task opTask) {
+				testDetails2.setTracing(opTask);
 			}
 		}, expectedSubTaskCount);
 	}

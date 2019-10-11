@@ -67,10 +67,6 @@ public final class Change implements DebugDumpable {
     	this.objectDelta = objectDelta;
     }
 
-    public Change(PrismProperty<?> token) {
-        this.token = token;
-    }
-
     private Change() {
     }
 
@@ -127,10 +123,6 @@ public final class Change implements DebugDumpable {
 
 	public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
 		this.currentShadow = currentShadow;
-	}
-
-	public boolean isTokenOnly() {
-		return identifiers == null && objectDelta == null && currentShadow == null && token != null;
 	}
 
 	public void setNotificationOnly(boolean notificationOnly) {

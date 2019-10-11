@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -63,6 +64,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
     private static final String DOT_CLASS = AbstractShoppingCartTabPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
+    private static final String OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST = DOT_CLASS + "loadAssignableRelationsList";
     private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     private static final Trace LOGGER = TraceManager.getTrace(AbstractShoppingCartTabPanel.class);
 
@@ -221,14 +223,18 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         relationContainer.setOutputMarkupId(true);
         parametersPanel.add(relationContainer);
 
-        List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
+        List<QName> assignableRelationsList = getAvailableRelationsList();
+        if (CollectionUtils.isNotEmpty(assignableRelationsList)){
+            getRoleCatalogStorage().setSelectedRelation(assignableRelationsList.get(0));
+        }
         relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, getRoleCatalogStorage().getSelectedRelation(),
-                availableRelations, false){
+                assignableRelationsList, false){
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onValueChanged(AjaxRequestTarget target){
                 getRoleCatalogStorage().setSelectedRelation(getRelationValue());
+                target.add(AbstractShoppingCartTabPanel.this);
             }
 
             @Override
@@ -236,6 +242,18 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 return Model.of();
             }
         });
+    }
+
+    private List<QName> getAvailableRelationsList(){
+        List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST);
+        OperationResult result = task.getResult();
+        List<QName> assignableRelationsList = WebComponentUtil.getAssignableRelationsList(getTargetUser().asPrismObject(), (Class) ObjectTypes.getObjectTypeClass(getQueryType()),
+                WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
+        if (CollectionUtils.isEmpty(assignableRelationsList)){
+            return availableRelations;
+        }
+        return assignableRelationsList;
     }
 
     private void initButtonsPanel(WebMarkupContainer parametersPanel){
@@ -418,7 +436,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
         return WebComponentUtil.getAssignableRolesFilter(getTargetUser().asPrismObject(), (Class) ObjectTypes.getObjectTypeClass(getQueryType()),
-                WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
+                getNewAssignmentRelation(), WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
     }
 
     protected abstract QName getQueryType();

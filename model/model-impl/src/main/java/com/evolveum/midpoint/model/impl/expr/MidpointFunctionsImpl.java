@@ -19,11 +19,14 @@ import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.api.expr.OptimizingTriggerCreator;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
+import com.evolveum.midpoint.model.impl.expr.triggerSetter.OptimizingTriggerCreatorImpl;
+import com.evolveum.midpoint.model.impl.expr.triggerSetter.TriggerCreatorGlobalState;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -49,7 +52,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -128,6 +130,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private SynchronizationExpressionsEvaluator correlationConfirmationEvaluator;
 	@Autowired private ArchetypeManager archetypeManager;
+	@Autowired private TriggerCreatorGlobalState triggerCreatorGlobalState;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -569,7 +572,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		}
 		return projectionContext.isFullShadow();
 	}
-	
+
 	@Override
 	public boolean isProjectionExists() {
 		ModelProjectionContext projectionContext = getProjectionContext();
@@ -763,7 +766,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public <F extends ObjectType> ModelContext<F> getModelContext() {
 		return ModelExpressionThreadLocalHolder.getLensContext();
 	}
-	
+
 	@Override
 	public <F extends ObjectType> ModelElementContext<F> getFocusContext() {
 		LensContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
@@ -772,12 +775,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		}
 		return (ModelElementContext<F>) lensContext.getFocusContext();
 	}
-	
+
 	@Override
 	public ModelProjectionContext getProjectionContext() {
 		return ModelExpressionThreadLocalHolder.getProjectionContext();
 	}
-	
+
 	@Override
 	public <V extends PrismValue, D extends ItemDefinition> Mapping<V,D> getMapping() {
 		return ModelExpressionThreadLocalHolder.getMapping();
@@ -880,7 +883,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throw new SchemaException("No definition for type " + type);
 		}
 		return modelService.getObject(
-				objectDefinition.getCompileTimeClass(), reference.getOid(), 
+				objectDefinition.getCompileTimeClass(), reference.getOid(),
 				SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase()), getCurrentTask(), getCurrentResult())
 			.asObjectable();
 	}
@@ -909,7 +912,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public <T extends ObjectType> T getObject(Class<T> type, String oid) throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		PrismObject<T> prismObject = modelService.getObject(type, oid, 
+		PrismObject<T> prismObject = modelService.getObject(type, oid,
 				getDefaultGetOptionCollection(),
 				getCurrentTask(), getCurrentResult());
 		return prismObject.asObjectable();
@@ -1047,7 +1050,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ExpressionEvaluationException, CommunicationException {
 		return modelService.findShadowOwner(accountOid, getCurrentTask(), getCurrentResult());
 	}
-	
+
 	@Override
 	public <F extends FocusType> PrismObject<F> searchShadowOwner(String accountOid)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException,
@@ -1072,7 +1075,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ObjectNotFoundException, SecurityViolationException,
 			CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return MiscSchemaUtil.toObjectableList(
-				modelService.searchObjects(type, query, 
+				modelService.searchObjects(type, query,
 						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult()));
 	}
 
@@ -1092,7 +1095,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
-		modelService.searchObjectsIterative(type, query, handler, 
+		modelService.searchObjectsIterative(type, query, handler,
 				getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 	}
 
@@ -1102,7 +1105,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService
-				.searchObjects(type, nameQuery, 
+				.searchObjects(type, nameQuery,
 						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
 			return null;
@@ -1119,7 +1122,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService
-				.searchObjects(type, nameQuery, 
+				.searchObjects(type, nameQuery,
 						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
 			return null;
@@ -1136,7 +1139,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			SchemaException, ExpressionEvaluationException {
 		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService
-				.searchObjects(type, nameQuery, 
+				.searchObjects(type, nameQuery,
 						getDefaultGetOptionCollection(), getCurrentTask(), getCurrentResult());
 		if (foundObjects.isEmpty()) {
 			return null;
@@ -1411,8 +1414,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (shadow.getKind() != null && shadow.getKind() != ShadowKindType.ACCOUNT) {
 			return null;
 		}
-		ProtectedStringType passwordPs = FocusTypeUtil.getPasswordValue((UserType) focus);
-		if (passwordPs != null && passwordPs.canGetCleartext()) {
+		ProtectedStringType focusPasswordPs = FocusTypeUtil.getPasswordValue((UserType) focus);
+		if (focusPasswordPs != null && focusPasswordPs.canGetCleartext()) {
 			return null;
 		}
 		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil
@@ -1556,19 +1559,19 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (shadowRef.asReferenceValue().getObject() != null){
 			return (ShadowType) shadowAssociationType.getShadowRef().asReferenceValue().getObject().asObjectable();
 		}
-		
+
 		LensProjectionContext projectionCtx = (LensProjectionContext) getProjectionContext();
 		if (projectionCtx == null) {
 			LOGGER.trace("No projection found. Skipping resolving entitlement");
 			return null;
 		}
-		
+
 		Map<String, PrismObject<ShadowType>> entitlementMap = projectionCtx.getEntitlementMap();
 		if (entitlementMap == null) {
 			LOGGER.trace("No entitlement map present in projection context {}", projectionCtx);
 			return null;
 		}
-		
+
 		PrismObject<ShadowType> entitlement = entitlementMap.get(shadowRef.getOid());
 		if (entitlement == null) {
 			LOGGER.trace("No entitlement with oid {} found among resolved entitlement {}.", shadowRef, entitlementMap);
@@ -1576,9 +1579,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		}
 		LOGGER.trace("Returning resolved entitlement: {}", entitlement);
 		return entitlement.asObjectable();
-		
+
 	}
-	
+
 	@Override
 	public ExtensionType collectExtensions(AssignmentPathType path, int startAt)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
@@ -1664,17 +1667,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public String translate(LocalizableMessageType message) {
 		return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), Locale.getDefault());
 	}
-	
+
 	@Override
-	public Object executeAdHocProvisioningScript(ResourceType resource, String language, String code) 
+	public Object executeAdHocProvisioningScript(ResourceType resource, String language, String code)
 			throws SchemaException, ObjectNotFoundException,
 			ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ObjectAlreadyExistsException {
 		return executeAdHocProvisioningScript(resource.getOid(), language, code);
 	}
-	
+
 	@Override
-	public Object executeAdHocProvisioningScript(String resourceOid, String language, String code) 
+	public Object executeAdHocProvisioningScript(String resourceOid, String language, String code)
 					throws SchemaException, ObjectNotFoundException,
 					ExpressionEvaluationException, CommunicationException, ConfigurationException,
 					SecurityViolationException, ObjectAlreadyExistsException {
@@ -1682,10 +1685,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		script.setCode(code);
 		script.setLanguage(language);
 		script.setHost(ProvisioningScriptHostType.RESOURCE);
-		
+
 		return provisioningService.executeScript(resourceOid, script, getCurrentTask(), getCurrentResult());
 	}
-	
+
 	@Override
 	public Boolean isEvaluateNew() {
 		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
@@ -1737,7 +1740,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		}
 		return rv;
 	}
-	
+
 	private Collection<SelectorOptions<GetOperationOptions>> getDefaultGetOptionCollection() {
 		return SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
 	}
@@ -1760,32 +1763,32 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		ObjectSynchronizationDiscriminatorType discriminator = new ObjectSynchronizationDiscriminatorType();
 		discriminator.setKind(kind);
 		discriminator.setIntent(intent);
-		
+
 		SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(),
 				resource.asPrismObject(), getCurrentTask().getChannel(), getPrismContext(), getCurrentTask(), getCurrentResult());
-		
+
 		ObjectSynchronizationType applicablePolicy = null;
-		
+
 		try {
-			
+
 			SystemConfigurationType systemConfiguration = modelInteractionService.getSystemConfiguration(getCurrentResult());
 			syncCtx.setSystemConfiguration(systemConfiguration.asPrismObject());
-			
+
 			for (ObjectSynchronizationType objectSync : synchronization.getObjectSynchronization()) {
-				
+
 				if (SynchronizationServiceUtils.isPolicyApplicable(objectSync, discriminator, expressionFactory, syncCtx)) {
 					applicablePolicy = objectSync;
 					break;
 				}
 			}
-			
+
 			if (applicablePolicy == null) {
 				return null;
 			}
-			
+
 			List<PrismObject<F>> correlatedFocuses = correlationConfirmationEvaluator.findFocusesByCorrelationRule(type, shadow, applicablePolicy.getCorrelation(), resource, systemConfiguration, syncCtx.getTask(), syncCtx.getResult());
 			return MiscSchemaUtil.toObjectableList(correlatedFocuses);
-			
+
 		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
 				| ConfigurationException | SecurityViolationException e) {
 			LOGGER.error("Cannot find applicable policy for kind={}, intent={}. Reason: {}", kind, intent, e.getMessage(), e);
@@ -1814,7 +1817,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
 		return prismContext.deltaFor(objectClass);
 	}
-	
+
 	// MID-5243
 	@Override
 	public <O extends ObjectType> boolean hasArchetype(O object, String archetypeOid) {
@@ -1824,7 +1827,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (!(object instanceof AssignmentHolderType)) {
 			return archetypeOid == null;
 		}
-		
+
 		LensContext<O> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
 		if (lensContext != null) {
 			LensFocusContext<O> focusContext = lensContext.getFocusContext();
@@ -1833,7 +1836,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				return archetypeType.getOid().equals(archetypeOid);
 			}
 		}
-		
+
 		List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)object).getArchetypeRef();
 		if (archetypeOid == null) {
 			return archetypeRefs.isEmpty();
@@ -1845,7 +1848,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		}
 		return false;
 	}
-	
+
 	// MID-5243
 	@Override
 	public <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException {
@@ -1859,7 +1862,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		}
 		return archetype.asObjectable();
 	}
-	
+
 	// MID-5243
 	@Override
 	public <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException {
@@ -1906,5 +1909,38 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public RepositoryService getRepositoryService() {
 		return repositoryService;
+	}
+
+	@NotNull
+	@Override
+	public OptimizingTriggerCreator getOptimizingTriggerCreator(long fireAfter, long safetyMargin) {
+		return new OptimizingTriggerCreatorImpl(triggerCreatorGlobalState, this, fireAfter, safetyMargin);
+	}
+
+	@NotNull
+	@Override
+	public <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, QName objectClassName,
+			QName attributeName) throws SchemaException {
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		if (resourceSchema == null) {
+			throw new SchemaException("No resource schema in " + resource);
+		}
+		ObjectClassComplexTypeDefinition ocDef = resourceSchema.findObjectClassDefinition(objectClassName);
+		if (ocDef == null) {
+			throw new SchemaException("No definition of object class " + objectClassName + " in " + resource);
+		}
+		ResourceAttributeDefinition<T> attrDef = ocDef.findAttributeDefinition(attributeName);
+		if (attrDef == null) {
+			throw new SchemaException("No definition of attribute " + attributeName + " in object class " + objectClassName
+					+ " in " + resource);
+		}
+		return attrDef;
+	}
+
+	@NotNull
+	@Override
+	public <T> ResourceAttributeDefinition<T> getAttributeDefinition(PrismObject<ResourceType> resource, String objectClassName,
+			String attributeName) throws SchemaException {
+		return getAttributeDefinition(resource, new QName(objectClassName), new QName(attributeName));
 	}
 }

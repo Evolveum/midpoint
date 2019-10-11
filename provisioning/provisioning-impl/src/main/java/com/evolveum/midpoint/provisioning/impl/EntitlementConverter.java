@@ -164,7 +164,10 @@ class EntitlementConverter {
 			throw new SchemaException("No value attribute defined in entitlement association '"+associationName+"' in "+resourceType);
 		}
 
-		RefinedAttributeDefinition valueAttrDef = entitlementDef.findAttributeDefinition(valueAttrName);
+		RefinedAttributeDefinition<T> valueAttrDef = entitlementDef.findAttributeDefinition(valueAttrName);
+		if (valueAttrDef == null) {
+			throw new SchemaException("No definition for value attribute "+valueAttrName+" defined in entitlement association '"+associationName+"' in "+resourceType);
+		}
 
         for (PrismPropertyValue<T> assocAttrPVal : assocAttr.getValues()) {
 
@@ -177,7 +180,10 @@ class EntitlementConverter {
                     ShadowAssociationType.F_IDENTIFIERS, entitlementDef.toResourceAttributeContainerDefinition(), prismContext);
             associationCVal.add(identifiersContainer);
             identifiersContainer.add(valueAttribute);
-            LOGGER.trace("Assocciation attribute value resolved to valueAtrribute {}  and identifiers container {}", valueAttribute, identifiersContainer);
+            // NOTE: Those values are not filtered according to kind/intent of the association target. Therefore there may be values
+			// that do not belong here (see MID-5790). But that is OK for now. We will filter those values out later when
+			// read the shadows and determine shadow OID
+            LOGGER.trace("Association attribute value resolved to valueAtrribute {}  and identifiers container {}", valueAttribute, identifiersContainer);
         }
     }
 

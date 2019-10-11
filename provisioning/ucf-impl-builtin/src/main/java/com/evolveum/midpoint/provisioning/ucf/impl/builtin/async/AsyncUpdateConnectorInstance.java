@@ -22,6 +22,9 @@ import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityContextManagerAware;
 import com.evolveum.midpoint.task.api.StateReporter;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskManagerAware;
+import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -47,7 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("DefaultAnnotationParam")
 @ManagedConnector(type="AsyncUpdateConnector", version="1.0.0")
 public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstance implements UcfExpressionEvaluatorAware,
-		SecurityContextManagerAware {
+		SecurityContextManagerAware, TracerAware, TaskManagerAware {
 	
 	@SuppressWarnings("unused")
 	private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdateConnectorInstance.class);
@@ -65,6 +68,10 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	private UcfExpressionEvaluator ucfExpressionEvaluator;
 
 	private SecurityContextManager securityContextManager;
+
+	private Tracer tracer;
+
+	private TaskManager taskManager;
 
 	/**
 	 * Open listening activities. Needed mainly to be able to restart them on configuration change.
@@ -143,7 +150,7 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	private void startListeningInternal(ConnectorInstanceListeningActivity listeningActivity)
 			throws SchemaException {
 		TransformationalAsyncUpdateMessageListener messageListener = new TransformationalAsyncUpdateMessageListener(
-				listeningActivity.changeListener, listeningActivity.authentication, this);
+				listeningActivity.changeListener, listeningActivity.authentication, this, tracer, taskManager);
 		Collection<AsyncUpdateSource> sources = sourceManager.createSources(configuration.getAllSources());
 		try {
 			for (AsyncUpdateSource source : sources) {
@@ -208,6 +215,26 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	@Override
 	public void setSecurityContextManager(SecurityContextManager securityContextManager) {
 		this.securityContextManager = securityContextManager;
+	}
+
+	@Override
+	public Tracer getTracer() {
+		return tracer;
+	}
+
+	@Override
+	public void setTracer(Tracer tracer) {
+		this.tracer = tracer;
+	}
+
+	@Override
+	public TaskManager getTaskManager() {
+		return taskManager;
+	}
+
+	@Override
+	public void setTaskManager(TaskManager taskManager) {
+		this.taskManager = taskManager;
 	}
 
 	ExpressionType getTransformExpression() {
