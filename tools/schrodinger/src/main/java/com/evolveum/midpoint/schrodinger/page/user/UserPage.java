@@ -136,6 +136,7 @@ public class UserPage extends AssignmentHolderDetailsPage {
         return new AssignmentHolderBasicTab<UserPage>(this, element);
     }
 
+    @Override
     public AssignmentsTab<UserPage> selectTabAssignments(){
         SelenideElement element = findTabPanel().clickTab("pageAdminFocus.assignments");
 
