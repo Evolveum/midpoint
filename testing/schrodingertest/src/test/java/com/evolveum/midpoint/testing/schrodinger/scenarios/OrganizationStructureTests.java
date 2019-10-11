@@ -11,6 +11,7 @@ import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
+import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
@@ -81,7 +82,7 @@ public class OrganizationStructureTests extends TestBase {
                 .clickByName(TEST_USER_GUYBRUSH_NAME)
                     .selectTabAssignments()
                         .clickAddAssignemnt()
-                            .selectType(TYPE_SELECTOR_ORG)
+                            .selectType(ConstantsUtil.ASSIGNMENT_TYPE_SELECTOR_ORG)
                             .table()
                                 .search()
                                     .byName()

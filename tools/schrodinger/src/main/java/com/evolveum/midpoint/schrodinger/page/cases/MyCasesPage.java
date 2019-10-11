@@ -11,6 +11,6 @@ import com.evolveum.midpoint.schrodinger.page.BasicPage;
 /**
  * Created by Kate Honchar
  */
-public class MyCasesPage extends BasicPage {
+public class MyCasesPage extends CasesPage {
 
 }
