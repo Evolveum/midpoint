@@ -2265,33 +2265,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 		assertModelShadow(shadowOid)
 				.attributes()
-				.assertValue(LDAP_ATTRIBUTE_GIVENNAME, "don")
+				.assertValue(LDAP_ATTRIBUTE_GIVENNAME, "donalld")
 				.assertValue(LDAP_ATTRIBUTE_EMPLOYEE_TYPE, "manager");
 
 		openDJController.assertUniqueMember(ROLE_LDAP_ADMINS_DN, ACCOUNT_DONALD_LDAP_DN);
-
-		// TODO FIX THIS!!!
-//		ObjectDelta deltaInAccount = DeltaConvertor.createObjectDelta(johnAccountType.getObjectChange(), prismContext);
-//		assertTrue("Delta stored in account must contain association modification", deltaInAccount.hasItemDelta(
-//				ShadowType.F_ASSOCIATION));
-////		assertFalse("Delta stored in account must not contain employeeType modification", deltaInAccount.hasItemDelta(prismContext.path(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType"))));
-//		assertNotNull("Donald's account must contain reference on the resource", johnAccountType.getResourceRef());
-//
-//
-//		//THEN recompute the user - postponed changes should be applied
-//		openDJController.assumeRunning();
-//		LOGGER.info("recompute user - account with weak mapping after stopping opendj.");
-//		ObjectDelta<UserType> emptyDelta = prismContext.deltaFactory().object()
-//				.createEmptyModifyDelta(UserType.class, USER_DONALD_OID);
-//		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-//		deltas.add(emptyDelta);
-//		modelService.executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, parentResult);
-//
-//
-//		accountOid = assertUserOneAccountRef(USER_DONALD_OID);
-//		johnAccountType = checkNormalizedShadowWithAttributes(accountOid, "donald", "donalld", "trump", "donald trump", false, task, parentResult);
-//
-//		openDJController.assertUniqueMember("cn=admins,ou=groups,dc=example,dc=com", "uid=donald,ou=people,dc=example,dc=com");
 		//TODO: check on user if it was processed successfully (add this check also to previous (30) test..
 	}
 	
@@ -2772,7 +2749,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		UserType userE = repositoryService.getObject(UserType.class, USER_E_OID, null, result).asObjectable();
 		String accountOid = assertUserOneAccountRef(USER_E_OID);
 		
-		ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e", "Jackkk", "e", "e", true, null, result);
+		ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e", "eeeee", "e", "e", true, null, result);
 		assertAttribute(eAccount, "employeeNumber", "emp4321");
 		ResourceAttributeContainer attributeContainer = ShadowUtil
 				.getAttributesContainer(eAccount);
@@ -2789,17 +2766,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		assertAttribute(modifiedAccount, "employeeNumber", "emp4321");
 
 		
-		// check if the account was deleted during the reconciliation process
-		try {
-			modelService.getObject(ShadowType.class, ACCOUNT_DENIELS_OID, null, null, result);
-			fail("Expected ObjectNotFoundException but haven't got one.");
-		} catch (Exception ex) {
-			if (!(ex instanceof ObjectNotFoundException)) {
-				fail("Expected ObjectNotFoundException but got " + ex);
-			}
+		// check if the account was marked as dead during the reconciliation process
+		assertRepoShadow(ACCOUNT_DENIELS_OID)
+				.assertDead();
 
-		}
-		
 		String elaineAccountOid = assertUserOneAccountRef(USER_ELAINE_OID);
 		modifiedAccount = checkNormalizedShadowBasic(elaineAccountOid, "elaine", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
 		assertAttribute(modifiedAccount, getOpenDjSecondaryIdentifierQName(), "uid=elaine,ou=people,dc=example,dc=com");
@@ -2843,7 +2813,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		UserType userE = repositoryService.getObject(UserType.class, USER_E_OID, null, result).asObjectable();
 		String accountOid = assertUserOneAccountRef(USER_E_OID);
 		
-		ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e123", "Jackkk", "e", "e", true, null, result);
+		ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e123", "eeeee", "e", "e", true, null, result);
 		assertAttribute(eAccount, "employeeNumber", "emp4321");
 		ResourceAttributeContainer attributeContainer = ShadowUtil
 				.getAttributesContainer(eAccount);
@@ -2883,7 +2853,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			public void timeout() {
 				// No reaction, the test will fail right after return from this
 			}
-		}, 10000);
+		}, 30000);
 		AssertJUnit.assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),
 				taskManager.getLocallyRunningTasks(new OperationResult("dummy")));
 	}
@@ -3039,31 +3009,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 				.getObject(UserType.class, userOid, null, parentResult);
 		assertEquals(0, user.asObjectable().getLinkRef().size());
 	}
-	
-//	private String checkRepoShadow(PrismObject<ShadowType> repoShadow) {
-//		ShadowType repoShadowType = repoShadow.asObjectable();
-//		String uid = null;
-//        boolean hasOthers = false;
-//        List<Object> xmlAttributes = repoShadowType.getAttributes().getAny();
-//        for (Object element : xmlAttributes) {
-//            if (getOpenDjPrimaryIdentifierQName().equals(JAXBUtil.getElementQName(element)) || getOpenDjPrimaryIdentifierQName().equals(JAXBUtil.getElementQName(element))) {
-//                if (uid != null) {
-//                    AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
-//                } else {
-//                    uid = ((Element) element).getTextContent();
-//                }
-//            } else if (SchemaConstants.ICFS_NAME.equals(JAXBUtil.getElementQName(element)) || getOpenDjSecondaryIdentifierQName().equals(JAXBUtil.getElementQName(element))) {
-//            	// This is OK
-//        	} else {
-//                hasOthers = true;
-//            }
-//        }
-//
-//        assertFalse("Shadow "+repoShadow+" has unexpected elements", hasOthers);
-//        assertNotNull(uid);
-//
-//        return uid;
-//	}
     
     private QName getOpenDjPrimaryIdentifierQName() {
     	return new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
@@ -3075,11 +3020,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	
 	private String checkUser(String userOid, Task task, OperationResult parentResult) throws Exception{
 		PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, parentResult);
-		return checkUser(user);
-	}
-	
-	private String checkRepoUser(String userOid, OperationResult parentResult) throws Exception{
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, parentResult);
 		return checkUser(user);
 	}
 	
@@ -3117,13 +3057,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			assertAttribute(shadow, "sn", sn);
 		}
 		assertAttribute(shadow, "cn", cn);
-	}
-	
-	
-	private void checkPostponedAccountWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, String employeeNumber, FailedOperationTypeType failedOperation, boolean modify, Task task, OperationResult parentResult) throws Exception{
-		ShadowType account = checkPostponedAccountWithAttributes(accountOid, uid, givenName, sn, cn, failedOperation, modify, task, parentResult);
-		display("account shadow (postponed operation)", account);
-		assertAttribute(account, "employeeNumber", employeeNumber);
 	}
 	
 	private ShadowType checkPostponedAccountWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, FailedOperationTypeType failedOperation, boolean modify, Task task, OperationResult parentResult) throws Exception{
