@@ -242,8 +242,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			return;
 		}
 
-		String testShortName = testMethod.getName();
-		String testFullName = testMethod.getDeclaringClass().getName() + "." + testShortName;
+		String testShortName = testMethod.getDeclaringClass().getSimpleName() + "." + testMethod.getName();
+		String testFullName = testMethod.getDeclaringClass().getName() + "." + testMethod.getName();
 		TestUtil.displayTestTitle(testShortName);
 		Task task = createTask(testFullName);
 		OperationResult rootResult = task.getResult();
