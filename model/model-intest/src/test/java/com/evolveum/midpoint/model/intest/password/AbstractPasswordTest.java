@@ -332,8 +332,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
@@ -2433,8 +2432,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_RAPP_OID);
 		display("User after", userAfter);
@@ -3027,8 +3025,52 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertNoUserPasswordNotifications();
 
 	}
-	// TODO: employeeType->WRECK
-	
+
+	/**
+	 * Add user without a password, but with an assignment. Check that the account is provisioned.
+	 * The account will always be in a proposed state, even if password encryption is used.
+	 * The default lifecycle algorithm does not consider generated password to be good enough for the account to be active.
+	 * MID-5629
+	 */
+	@Test
+	public void test420AddUserDrakeWithAssignment() throws Exception {
+		final String TEST_NAME = "test420AddUserDrakeWithAssignment";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_DRAKE_FILE);
+		UserType userBeforeType = userBefore.asObjectable();
+		userBeforeType.getAssignment().add(createConstructionAssignment(RESOURCE_DUMMY_ORANGE_OID, null, null));
+		assertNull("Unexpected credentials", userBeforeType.getCredentials());
+		display("User before", userBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		addObject(userBefore, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		String accountOid = assertUserAfter(USER_DRAKE_OID)
+				.singleLink()
+					.getOid();
+
+		assertRepoShadow(accountOid)
+				// Lifecycle state is always proposed, even for encrypted passwords.
+				// The default lifecycle algorithm does not consider generated password to be good enough for the account to be active.
+				.assertLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
+
+		assertModelShadow(accountOid)
+				.assertLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
+
+		// Check account in dummy resource
+		assertDummyAccount(RESOURCE_DUMMY_ORANGE_NAME, USER_DRAKE_USERNAME, USER_DRAKE_FULLNAME, true);
+	}
+
 	/**
 	 * MID-4397
 	 */

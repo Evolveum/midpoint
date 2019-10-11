@@ -1414,8 +1414,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (shadow.getKind() != null && shadow.getKind() != ShadowKindType.ACCOUNT) {
 			return null;
 		}
-		ProtectedStringType passwordPs = FocusTypeUtil.getPasswordValue((UserType) focus);
-		if (passwordPs != null && passwordPs.canGetCleartext()) {
+		ProtectedStringType focusPasswordPs = FocusTypeUtil.getPasswordValue((UserType) focus);
+		if (focusPasswordPs != null && focusPasswordPs.canGetCleartext()) {
 			return null;
 		}
 		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil
