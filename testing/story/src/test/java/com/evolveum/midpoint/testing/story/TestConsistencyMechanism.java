@@ -888,7 +888,13 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 					.add("capsize", "fighting")
 				.asObjectDelta(ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID);
 
-		executeChanges(delta, null, task, parentResult);
+		try {
+			executeChanges(delta, null, task, parentResult);
+			fail("Unexpected existence of account");
+		} catch (ObjectNotFoundException e) {
+			//expected, because we requested the direct modification on non-existing account
+			// if the modification is indirect (let's say on focus, the error should not occur)
+		}
 //		requestToExecuteChanges(REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT_FILE, ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID, ShadowType.class, task, null, parentResult);
 
 		// THEN
@@ -905,12 +911,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		assertNotNull(accountAfter);
 		display("Modified shadow", accountAfter);
 
-		ShadowAsserter.forShadow(accountAfter)
-				.assertName("uid=guybrush123,ou=people,dc=example,dc=com")
-				.attributes()
-					.assertValue(new ItemName(MidPointConstants.NS_RI, "roomNumber"),"cabin")
-					.assertValue(new ItemName(MidPointConstants.NS_RI, "businessCategory"), "capsize", "fighting")
-				.end();
+//		ShadowAsserter.forShadow(accountAfter)
+//				.assertName("uid=guybrush123,ou=people,dc=example,dc=com")
+//				.attributes()
+//					.assertValue(new ItemName(MidPointConstants.NS_RI, "roomNumber"),"cabin")
+//					.assertValue(new ItemName(MidPointConstants.NS_RI, "businessCategory"), "capsize", "fighting")
+//				.end();
 
 	}
 
@@ -2839,26 +2845,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		assertEquals("Wrong shadow name. ", "uid=e123,ou=people,dc=example,dc=com", repoShadow.asObjectable().getName().getOrig());
 		
 	}
-	
-	@Test
-	public void test999Shutdown() throws Exception {
-		taskManager.shutdown();
-		waitFor("waiting for task manager shutdown", new Checker() {
-			@Override
-			public boolean check() throws CommonException {
-				return taskManager.getLocallyRunningTasks(new OperationResult("dummy")).isEmpty();
-			}
 
-			@Override
-			public void timeout() {
-				// No reaction, the test will fail right after return from this
-			}
-		}, 30000);
-		AssertJUnit.assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),
-				taskManager.getLocallyRunningTasks(new OperationResult("dummy")));
-	}
-	
-	
 	private void checkRepoOpenDjResource() throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(TestConsistencyMechanism.class.getName()
 				+ ".checkRepoOpenDjResource");
@@ -3010,11 +2997,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		assertEquals(0, user.asObjectable().getLinkRef().size());
 	}
     
-    private QName getOpenDjPrimaryIdentifierQName() {
-    	return new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME);
-	}
-
-	private QName getOpenDjSecondaryIdentifierQName() {
+  	private QName getOpenDjSecondaryIdentifierQName() {
 		return new QName(RESOURCE_OPENDJ_NS, RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME);
 	}
 	
@@ -3033,20 +3016,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		return accountOid;
 	}
-	
-	private void checkAccount(String accountOid, String uid, String givenName, String sn, String cn, Task task, OperationResult parentResult) throws Exception{
-		PrismObject<ShadowType> newAccount = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
-		assertNotNull("Shadow must not be null", newAccount);
-		ShadowType createdShadow = newAccount.asObjectable();
-		display("Created account: ", createdShadow);
-
-		AssertJUnit.assertNotNull(createdShadow);
-		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, createdShadow.getResourceRef().getOid());
-		assertAttributeNotNull(createdShadow, getOpenDjPrimaryIdentifierQName());
-		
-		assertAttributes(createdShadow, uid, givenName, sn, cn);
-		
-	}
 		
 	private void assertAttributes(ShadowType shadow, String uid, String givenName, String sn, String cn){
 		assertAttribute(shadow, "uid", uid);
@@ -3057,14 +3026,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 			assertAttribute(shadow, "sn", sn);
 		}
 		assertAttribute(shadow, "cn", cn);
-	}
-	
-	private ShadowType checkPostponedAccountWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, FailedOperationTypeType failedOperation, boolean modify, Task task, OperationResult parentResult) throws Exception{
-		ShadowType failedAccountType = checkPostponedAccountBasic(accountOid, failedOperation, modify, parentResult);
-		provisioningService.applyDefinition(failedAccountType.asPrismObject(), task, parentResult);
-		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
-		assertAttributes(failedAccountType, uid, givenName, sn, cn);
-		return failedAccountType;
 	}
 	
 	private ShadowType checkPostponedAccountBasic(PrismObject<ShadowType> failedAccount, FailedOperationTypeType failedOperation, boolean modify, OperationResult parentResult) throws Exception{
@@ -3090,17 +3051,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		PrismObject<ShadowType> faieldAccount = repositoryService.getObject(ShadowType.class, accountOid, null, parentResult);
 		return checkPostponedAccountBasic(faieldAccount, failedOperation, modify, parentResult);
 	}
-	
-	private void requestToExecuteChanges(File requestFile, String objectOid,
-			Class type, Task task, ModelExecuteOptions options, OperationResult parentResult)
-			throws Exception {
-		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltas(type, requestFile, objectOid);
-		display("Executing deltas", deltas);
-		
-		// WHEN
-		modelService.executeChanges(deltas, options, task, parentResult);
-	}
-	
+
 	private Collection<ObjectDelta<? extends ObjectType>> createDeltas(Class type, File requestFile, String objectOid) throws IOException, SchemaException, JAXBException{
 		
 		try{
@@ -3126,12 +3077,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		Collection<PropertyDelta> modifications = new ArrayList<>();
 		modifications.add(resourceStatusDelta);
 		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, parentResult);
-	}
-
-	private void checkNormalizedShadowWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, String employeeType, boolean modify, Task task, OperationResult parentResult) throws Exception{
-		ShadowType resourceAccount = checkNormalizedShadowBasic(accountOid, uid, modify, null, task, parentResult);
-		assertAttributes(resourceAccount, uid, givenName, sn, cn);
-		assertAttribute(resourceAccount, "employeeType", employeeType);
 	}
 	
 	private ShadowType checkNormalizedShadowWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, boolean modify, Task task, OperationResult parentResult) throws Exception{

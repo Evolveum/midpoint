@@ -8,18 +8,14 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collection;
-import java.util.List;
 
 public class RefreshShadowOperaton implements DebugDumpable {
 
@@ -27,6 +23,7 @@ public class RefreshShadowOperaton implements DebugDumpable {
 
     private PrismObject<ShadowType> refreshedShadow;
     private Collection<ObjectDeltaOperation<ShadowType>> executedDeltas;
+    private OperationResult refreshResult;
 
     public Collection<ObjectDeltaOperation<ShadowType>> getExecutedDeltas() {
         return executedDeltas;
@@ -44,46 +41,12 @@ public class RefreshShadowOperaton implements DebugDumpable {
         this.refreshedShadow = refreshedShadow;
     }
 
-    public OperationResult findFailedResult() {
-        if (executedDeltas == null) {
-            LOGGER.info("No executed deltas recorded, result is null.");
-            return null;
-        }
-
-        for (ObjectDeltaOperation<ShadowType> odo : executedDeltas) {
-            OperationResult result = odo.getExecutionResult();
-            if (result.isSuccess()) {
-                LOGGER.info("Operation successful, continue to search for an error.");
-                continue;
-            }
-
-            if (result.isError()) {
-                LOGGER.info("Failed operation found, returning result: {}", result.debugDump());
-                return result;
-            }
-
-            if (result.isInProgress()) {
-                return findFailedResult(result);
-            }
-        }
-
-        return null;
+    public OperationResult getRefreshResult() {
+        return refreshResult;
     }
 
-    private OperationResult findFailedResult(OperationResult result) {
-        if (CollectionUtils.isEmpty(result.getSubresults())) {
-            return null;
-        }
-        for (OperationResult subResult : result.getSubresults()) {
-            if (subResult.isError()) {
-                return subResult;
-            }
-        }
-
-        for (OperationResult subResult : result.getSubresults()) {
-            return findFailedResult(subResult);
-        }
-        return null;
+    public void setRefreshResult(OperationResult refreshResult) {
+        this.refreshResult = refreshResult;
     }
 
     public Exception getCause(OperationResult result) {

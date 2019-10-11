@@ -93,6 +93,7 @@ public class ShadowCache {
 	private static final String OP_DELAYED_OPERATION = ShadowCache.class.getName() + ".delayedOperation";
 	private static final String OP_OPERATION_RETRY = ShadowCache.class.getName() + ".operationRetry";
 	private static final String OP_RESOURCE_OPERATION = ShadowCache.class.getName() + ".resourceOperation";
+	private static final String OP_REFRESH_RETRY = ShadowCache.class.getName() + ".refreshRetry";
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -978,8 +979,7 @@ public class ShadowCache {
 
 
 					if (!shouldExecuteModify(refreshShadowOperaton)) {
-						parentResult.recordFatalError("Cannot execute modify because previous errors during refresh.");
-						ProvisioningUtil.postponeModify(ctx, repoShadow, modifications, opState, parentResult, parentResult);
+						ProvisioningUtil.postponeModify(ctx, repoShadow, modifications, opState, refreshShadowOperaton.getRefreshResult(), parentResult);
 						shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, now, parentResult);
 						return repoShadow.getOid();
 					} else {
@@ -1565,9 +1565,12 @@ public class ShadowCache {
 			PrismObject<ShadowType> repoShadow, List<PendingOperationType> sortedOperations, 
 			ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
 		ShadowType shadowType = repoShadow.asObjectable();
+		OperationResult retryResult = new OperationResult(OP_REFRESH_RETRY);
 		if (ShadowUtil.isDead(shadowType)) {
 			RefreshShadowOperaton rso = new RefreshShadowOperaton();
+			retryResult.recordSuccess();
 			rso.setRefreshedShadow(repoShadow);
+			rso.setRefreshResult(retryResult);
 			return rso;
 		}
 		
@@ -1631,6 +1634,10 @@ public class ShadowCache {
 				retryOperation(ctx, pendingDelta, opState, task, result);
 				repoShadow = opState.getRepoShadow();
 				result.computeStatus();
+				if (result.isError()) {
+					retryResult.setStatus(result.getStatus());
+				}
+				//TODO maybe add whole "result" as subresult to the retryResult?
 				result.muteError();
 			} catch (CommunicationException | GenericFrameworkException | ObjectAlreadyExistsException | SchemaException | ObjectNotFoundException | ConfigurationException | SecurityViolationException e) {
 				// This is final failure: the error is not handled.
@@ -1641,11 +1648,13 @@ public class ShadowCache {
 				// The retry itself was a success. Operation that was retried might have failed.
 				// And that is recorded in the shadow. But we have successfully retried the operation.
 				result.recordHandledError(e);
+				retryResult.recordFatalError("Operation " + pendingDelta + " on " + repoShadow + " ended with an error after " + attemptNumber + " retries: " + e.getMessage());
 			} catch (Throwable e) {
 				// This is unexpected error during retry. This means that there was other
 				// failure that we did not expected. This is likely to be bug - or maybe wrong
 				// error handling. This means that the retry was a failure.
 				result.recordFatalError(e);
+				retryResult.recordFatalError(e);
 			}
 
 			objectDeltaOperation.setExecutionResult(result);
@@ -1655,6 +1664,10 @@ public class ShadowCache {
 		RefreshShadowOperaton rso = new RefreshShadowOperaton();
 		rso.setExecutedDeltas(executedDeltas);
 		rso.setRefreshedShadow(repoShadow);
+		parentResult.computeStatus();
+
+		rso.setRefreshResult(retryResult);
+
 		LOGGER.trace("refreshshadowOperaton {}", rso.debugDump());
 		return rso;
 	}
