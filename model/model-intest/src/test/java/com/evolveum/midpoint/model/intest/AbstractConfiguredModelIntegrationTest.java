@@ -364,6 +364,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File USER_DRAKE_FILE = new File(COMMON_DIR, "user-drake.xml");
 	protected static final String USER_DRAKE_OID = "c0c010c0-d34d-b33f-f00d-11d1d1d1d1d1";
 	protected static final String USER_DRAKE_USERNAME = "drake";
+	protected static final String USER_DRAKE_FULLNAME = "Francis Drake";
 
 	public static final File ACCOUNT_JACK_DUMMY_FILE = new File(COMMON_DIR, "account-jack-dummy.xml");
 	public static final File ACCOUNT_JACK_DUMMY_RED_FILE = new File(COMMON_DIR, "account-jack-dummy-red.xml");
