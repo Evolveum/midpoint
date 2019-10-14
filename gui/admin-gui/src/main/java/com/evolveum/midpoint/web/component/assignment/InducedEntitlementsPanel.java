@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
+import com.evolveum.midpoint.web.util.validation.MidpointFormValidatorImpl;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -80,7 +81,10 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     private void createValidator() {
-        validator = new MidpointFormValidator() {
+        validator = new MidpointFormValidatorImpl() {
+
+                private static final long serialVersionUID = 1L;
+
                 @Override
                 public Collection<SimpleValidationError> validateObject(PrismObject<? extends ObjectType> object, Collection<ObjectDelta<? extends ObjectType>> deltas) {
                     List<SimpleValidationError> errors = new ArrayList<SimpleValidationError>();

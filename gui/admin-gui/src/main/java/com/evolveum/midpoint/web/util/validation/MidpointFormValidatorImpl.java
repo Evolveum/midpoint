@@ -14,6 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -23,7 +24,9 @@ import java.util.List;
  *
  *  @author shood
  * */
-public class MidpointFormValidatorImpl implements MidpointFormValidator {
+public class MidpointFormValidatorImpl implements MidpointFormValidator, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Override
     public Collection<SimpleValidationError> validateObject(PrismObject<? extends ObjectType> object, Collection<ObjectDelta<? extends ObjectType>> deltas) {
