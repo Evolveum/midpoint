@@ -99,7 +99,7 @@ public class PrismForm<T> extends Component<T> {
 
     public Boolean compareInputAttributeValue(String name, String expectedValue) {
         SelenideElement property = findProperty(name);
-        SelenideElement value = property.$(By.xpath(".//input[contains(@class,\"form-control\")]"));
+        SelenideElement value = property.parent().$(By.xpath(".//input[contains(@class,\"form-control\")]"));
         String valueElement = value.getValue();
 
         if (!valueElement.isEmpty()) {
@@ -274,7 +274,8 @@ public class PrismForm<T> extends Component<T> {
         SelenideElement panelHeader = $(By.linkText(containerHeaderKey))
                 .parent()
                 .parent();
-        panelHeader.$(Schrodinger.byDataId("addButton"))
+        panelHeader.scrollTo();
+        panelHeader.find(By.className("fa-plus-circle"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
                 .click();
 
@@ -291,11 +292,12 @@ public class PrismForm<T> extends Component<T> {
     public SelenideElement getPrismPropertiesPanel(String containerHeaderKey){
         expandContainerPropertiesPanel(containerHeaderKey);
 
-        SelenideElement containerHeaderPanel = $(Schrodinger.byDataResourceKey("div", containerHeaderKey));
+        SelenideElement containerHeaderPanel = $(Schrodinger.byDataResourceKey("a", containerHeaderKey));
         return containerHeaderPanel
                 .parent()
-                .$(By.className("prism-properties"))
-                .shouldBe(Condition.visible)
+                .parent()
+                .parent()
+                .find(By.className("prism-properties"))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
     }
