@@ -9,7 +9,7 @@
 
 <!-- Orange dummy resource for testing associations with resource-provided referential integrity.
      It also have very little outbound expressions and it has some strange inbound expressions.
-     Also, it has schema exetended with the "mate" attribute, which is used for account-account association. -->
+     Also, it has schema extended with the "mate" attribute, which is used for account-account association. -->
 
 <resource oid="10000000-0000-0000-0000-000000001104"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -414,7 +414,17 @@
             
             <credentials>
                 <password>
-                    <outbound/>
+                    <outbound>
+						<expression>
+							<asIs/>
+						</expression>
+					</outbound>
+					<outbound>
+						<strength>weak</strength>
+						<expression>
+							<generate/>
+						</expression>
+					</outbound>
                 </password>
             </credentials>
             

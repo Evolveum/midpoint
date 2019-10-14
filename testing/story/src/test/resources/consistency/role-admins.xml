@@ -30,7 +30,7 @@
                             </q:equal>
                         </filter>
                     <searchStrategy>onResourceIfNeeded</searchStrategy>
-                    </associationTargetSearch>
+               </associationTargetSearch>
                   
                </expression>
             </outbound>

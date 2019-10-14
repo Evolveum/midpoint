@@ -777,7 +777,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			RepositoryCache.enter(cacheConfigurationManager);
 			OperationResult provisioningResult = new OperationResult(OperationConstants.RECONCILIATION+".finishOperation");
 			try {
-				ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
+//				ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
+				ProvisioningOperationOptions options = ProvisioningOperationOptions.createForceRetry(Boolean.TRUE);
                 ModelImplUtils.clearRequestee(task);
 				provisioningService.refreshShadow(shadow, options, task, provisioningResult);
 //				retryFailedOperation(shadow.asObjectable(), opResult);

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
@@ -49,7 +50,9 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -62,25 +65,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceConsistencyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
@@ -159,7 +144,9 @@ public class ProvisioningUtil {
 			if (fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 				explicit.add(attributeDefinition);
 			} else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL ||
-					SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false))) {
+					(SelectorOptions.hasToLoadPath(ctx.getPrismContext().path(ShadowType.F_ATTRIBUTES, attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false) ||
+					// Following clause is legacy (MID-5838)
+					SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false)))) {
 				explicit.add(attributeDefinition);
 			}
 		}
@@ -726,6 +713,25 @@ public class ProvisioningUtil {
 		}
 		
 		return resource.getConsistency().isDiscovery();
+	}
+
+	public static OperationResultStatus postponeModify(ProvisioningContext ctx,
+												   PrismObject<ShadowType> repoShadow,
+												   Collection<? extends ItemDelta> modifications,
+												   ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+												   OperationResult failedOperationResult,
+												   OperationResult result) {
+		LOGGER.trace("Postponing MODIFY operation for {}", repoShadow);
+		opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
+		AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncResult = new AsynchronousOperationReturnValue<>();
+		asyncResult.setOperationResult(failedOperationResult);
+		asyncResult.setOperationType(PendingOperationTypeType.RETRY);
+		opState.setAsyncResult(asyncResult);
+		if (opState.getAttemptNumber() == null) {
+			opState.setAttemptNumber(1);
+		}
+		result.recordInProgress();
+		return OperationResultStatus.IN_PROGRESS;
 	}
 	
 }

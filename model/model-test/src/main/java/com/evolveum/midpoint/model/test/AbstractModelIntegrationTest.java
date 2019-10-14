@@ -2919,12 +2919,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException {
+		return createModifyUserAddAccount(userOid, resource, null);
+	}
+
+	protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource, String intent) throws SchemaException {
 		PrismObject<ShadowType> account = getAccountShadowDefinition().instantiate();
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resource.getOid());
 		account.asObjectable().setResourceRef(resourceRef);
 		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-		account.asObjectable().setObjectClass(refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition().getTypeName());
+		RefinedObjectClassDefinition rocd = null;
+		if (StringUtils.isNotBlank(intent)) {
+			rocd = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, intent);
+			account.asObjectable().setIntent(intent);
+		} else {
+			rocd = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+		}
+		account.asObjectable().setObjectClass(rocd.getObjectClassDefinition().getTypeName());
+		account.asObjectable().setKind(ShadowKindType.ACCOUNT);
+
 
 		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid
 		);

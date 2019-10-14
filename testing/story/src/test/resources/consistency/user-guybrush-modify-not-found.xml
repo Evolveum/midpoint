@@ -15,15 +15,8 @@
      <assignment>
 		<construction>
 			<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-			This is inconsistent with the actual resource value (by purpose, so we can test reconcile)
-<!-- 			<attribute> -->
-<!-- 				<ref>ri:o</ref> -->
-<!-- 				<value>Pirate Brethren, Inc.</value> -->
-<!-- 			</attribute> -->
-<!-- 			<attribute> -->
-<!-- 				<ref>ri:l</ref> -->
-<!-- 				<value>Caribbean</value> -->
-<!-- 			</attribute> -->
+            <kind>account</kind>
+            <intent>internal</intent>
 		</construction>
 	</assignment>
     

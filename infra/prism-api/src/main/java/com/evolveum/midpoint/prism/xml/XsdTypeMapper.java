@@ -111,12 +111,14 @@ public class XsdTypeMapper {
         }
     }
 
+    @NotNull
     public static QName toXsdType(Class javaClass) {
         QName xsdType = getJavaToXsdMapping(javaClass);
-        if (xsdType == null) {
+        if (xsdType != null) {
+            return xsdType;
+        } else {
             throw new IllegalArgumentException("No XSD mapping for Java type " + javaClass.getCanonicalName());
         }
-        return xsdType;
     }
 
     public static QName getJavaToXsdMapping(Class<?> type) {

@@ -775,6 +775,21 @@ public class ShadowUtil {
 		}
 	}
 
+	public static ProtectedStringType getPasswordValue(ShadowType shadowType) {
+		if (shadowType == null) {
+			return null;
+		}
+		CredentialsType creds = shadowType.getCredentials();
+		if (creds == null) {
+			return null;
+		}
+		PasswordType passwd = creds.getPassword();
+		if (passwd == null) {
+			return null;
+		}
+		return passwd.getValue();
+	}
+
 	public static String shortDumpShadow(PrismObject<ShadowType> shadow) {
 		if (shadow == null) {
 			return "null";

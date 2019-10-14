@@ -2443,7 +2443,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		OperationResult result = task.getResult();
 
 		ShadowType object = parseObjectType(GROUP_SWASHBUCKLERS_FILE, ShadowType.class);
-		IntegrationTestTools.display("Adding object", object);
+		display("Adding object", object);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -2469,7 +2469,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		Entry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
 		display("LDAP group", ldapEntry);
-		assertNotNull("No LDAP group entry");
+		assertNotNull("No LDAP group entry", ldapEntry);
 		String groupDn = ldapEntry.getDN().toString();
 		assertEquals("Wrong group DN", dnMatchingRule.normalize(GROUP_SWASHBUCKLERS_DN), dnMatchingRule.normalize(groupDn));
 
@@ -2488,26 +2488,34 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		IntegrationTestTools.display("Adding object", object);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
 
 		// THEN
+		displayThen(TEST_NAME);
 		assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
 
-		ShadowType shadowType =  getShadowRepo(ACCOUNT_MORGAN_OID).asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", ACCOUNT_MORGAN_DN, shadowType.getName());
+		assertRepoShadow(ACCOUNT_MORGAN_OID)
+				.assertName(ACCOUNT_MORGAN_DN);
 
-		ShadowType provisioningShadowType = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
-				null, taskManager.createTaskInstance(), result).asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)",
-				ACCOUNT_MORGAN_DN, provisioningShadowType.getName());
+		ShadowAsserter<Void> provisioningShadowAsserter = assertShadowProvisioning(ACCOUNT_MORGAN_OID)
+				.assertName(ACCOUNT_MORGAN_DN)
+				.associations()
+					.assertSize(1)
+					.association(ASSOCIATION_GROUP_NAME)
+						.assertShadowOids(GROUP_SWASHBUCKLERS_OID)
+						.end()
+					.end();
 
-		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, getPrimaryIdentifierQName());
+		String uid = provisioningShadowAsserter
+				.attributes()
+					.getValue(getPrimaryIdentifierQName());
 		assertNotNull(uid);
 
-		List<ShadowAssociationType> associations = provisioningShadowType.getAssociation();
-		assertEquals("Unexpected number of associations", 1, associations.size());
-		ShadowAssociationType association = associations.get(0);
-		assertEquals("Wrong group OID in association", GROUP_SWASHBUCKLERS_OID, association.getShadowRef().getOid());
+//		List<ShadowAssociationType> associations = provisioningShadowType.getAssociation();
+//		assertEquals("Unexpected number of associations", 1, associations.size());
+//		ShadowAssociationType association = associations.get(0);
+//		assertEquals("Wrong group OID in association", GROUP_SWASHBUCKLERS_OID, association.getShadowRef().getOid());
 
 		Entry accountEntry = openDJController.searchAndAssertByEntryUuid(uid);
 		display("LDAP account", accountEntry);

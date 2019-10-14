@@ -18,7 +18,8 @@
 	<name>ht</name>
 	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="ResourceType"/>
 	<objectClass>ri:inetOrgPerson</objectClass>
-	<intent>default</intent>
+	<intent>internal</intent>
+	<kind>account</kind>
 	<attributes>
 		<ri:dn>uid=ht,ou=people,dc=example,dc=com</ri:dn>
 		<ri:uid>ht</ri:uid>
