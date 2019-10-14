@@ -225,11 +225,11 @@ public class ProvisioningOperationOptions implements Serializable, ShortDumpable
 
 	public static boolean isForceRetry(ProvisioningOperationOptions options) {
 		if (options == null) {
-			return true;
+			return false;
 		}
 
 		if (options.forceRetry == null) {
-			return true;
+			return false;
 		}
 
 		return options.forceRetry;

@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -192,7 +193,8 @@ public class ShadowCache {
 		
 		if (shouldRefreshOnRead(resource, rootOptions)) {
 			LOGGER.trace("Refreshing {} before reading", repositoryShadow);
-			RefreshShadowOperaton refreshShadowOperaton = refreshShadow(repositoryShadow, null, task, parentResult);
+			ProvisioningOperationOptions refreshOpts = toProvisioningOperationOptions(rootOptions);
+			RefreshShadowOperaton refreshShadowOperaton = refreshShadow(repositoryShadow, refreshOpts, task, parentResult);
 			if (refreshShadowOperaton != null) {
 				repositoryShadow = refreshShadowOperaton.getRefreshedShadow();
 			}
@@ -351,8 +353,19 @@ public class ShadowCache {
 		}
 	}
 
+	private ProvisioningOperationOptions toProvisioningOperationOptions(GetOperationOptions getOpts) {
+		if (getOpts == null) {
+			return null;
+		}
+
+		ProvisioningOperationOptions provisioningOpts = new ProvisioningOperationOptions();
+		// for now, we are interested in forceRetry option. In the future, there can be more.
+		provisioningOpts.setForceRetry(getOpts.getForceRetry());
+		return provisioningOpts;
+	}
+
 	private boolean shouldRefreshOnRead(ResourceType resource, GetOperationOptions rootOptions) {
-		return GetOperationOptions.isForceRefresh(rootOptions) || ResourceTypeUtil.isRefreshOnRead(resource);
+		return GetOperationOptions.isForceRefresh(rootOptions) || GetOperationOptions.isForceRetry(rootOptions) || ResourceTypeUtil.isRefreshOnRead(resource);
 	}
 
 	private PrismObject<ShadowType> processNoFetchGet(ProvisioningContext ctx,
@@ -920,6 +933,14 @@ public class ShadowCache {
 		
 		ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState = new ProvisioningOperationState<>();
 		opState.setRepoShadow(repoShadow);
+
+		// if not explicitly we want to force retry operations during modify
+		// it is quite cheap and probably more safe then not do it
+		if (options == null) {
+			options = ProvisioningOperationOptions.createForceRetry(Boolean.TRUE);
+		} else if (options.getForceRetry() == null) {
+			options.setForceRetry(Boolean.TRUE);
+		}
 		
 		return modifyShadowAttempt(ctx, modifications, scripts, options, opState, task, parentResult);
 	}
@@ -2137,22 +2158,38 @@ public class ShadowCache {
 		}
 
 		// TODO: do something about shadows with mathcing secondary identifiers? We do not need to care about these any longer, do we?
+		//MID-5844
 		// we need it for the consistency. following is the use case. Account is beeing created on the resource
 		// but the resource cannot be reached by midPoint. Meanwhile the account is created manually in the resource
 		// when reconciliation runs, origin account created while resource was not reachable doesn't contain primary identifier
-		// so we tather try also secondary identifier to be sure nothing goes wrong
+		// so we rather try also secondary identifier to be sure nothing goes wrong
 //		PrismObject<ShadowType> repoShadow;
-		PrismObject<ShadowType> shadowBySecondaryIdentifier = shadowManager.lookupConflictingShadowBySecondaryIdentifiers(ctx,
-				resourceShadow, parentResult);
-		if (shadowBySecondaryIdentifier != null) {
-			shadowCaretaker.applyAttributesDefinition(ctx, shadowBySecondaryIdentifier);
-			shadowBySecondaryIdentifier = completeShadow(ctx, resourceShadow, shadowBySecondaryIdentifier, isDoDiscovery, parentResult);
-			Task task = taskManager.createTaskInstance();
-			ResourceOperationDescription failureDescription = ProvisioningUtil.createResourceFailureDescription(shadowBySecondaryIdentifier, ctx.getResource(), null, parentResult);
-			changeNotificationDispatcher.notifyFailure(failureDescription, task, parentResult);
-			shadowManager.deleteConflictedShadowFromRepo(shadowBySecondaryIdentifier, parentResult);
-		}
-		
+
+//		PrismObject<ShadowType> shadowBySecondaryIdentifier = shadowManager.lookupConflictingShadowBySecondaryIdentifiers(ctx,
+//				resourceShadow, parentResult);
+//
+//		// check if the shadow contains primary identifier. if it does, we can skip the next session
+//		if (shadowBySecondaryIdentifier != null) {
+//
+//			ShadowType shadowType = shadowBySecondaryIdentifier.asObjectable();
+//			String currentPrimaryIdentifier = shadowManager.determinePrimaryIdentifierValue(ctx, shadowBySecondaryIdentifier);
+//
+//			LOGGER.info("###CURRENT PI: {}", currentPrimaryIdentifier);
+//			String expectedPrimaryIdentifier = shadowManager.determinePrimaryIdentifierValue(ctx, resourceShadow);
+//			LOGGER.info("### EXPECTED PI: {}", expectedPrimaryIdentifier);
+//
+//			if (!StringUtils.equals(currentPrimaryIdentifier, expectedPrimaryIdentifier)) {
+//				shadowCaretaker.applyAttributesDefinition(ctx, shadowBySecondaryIdentifier);
+//				shadowBySecondaryIdentifier = completeShadow(ctx, resourceShadow, shadowBySecondaryIdentifier, isDoDiscovery, parentResult);
+//				Task task = taskManager.createTaskInstance();
+//				ResourceOperationDescription failureDescription = ProvisioningUtil.createResourceFailureDescription(shadowBySecondaryIdentifier, ctx.getResource(), null, parentResult);
+//				shadowBySecondaryIdentifier.asObjectable().setDead(Boolean.TRUE);
+//				changeNotificationDispatcher.notifyFailure(failureDescription, task, parentResult);
+//				shadowManager.deleteConflictedShadowFromRepo(shadowBySecondaryIdentifier, parentResult);
+//			}
+//
+//		}
+//
 		
 		// The resource object obviously exists on the resource, but appropriate shadow does
 		// not exist in the repository we need to create the shadow to align repo state to the

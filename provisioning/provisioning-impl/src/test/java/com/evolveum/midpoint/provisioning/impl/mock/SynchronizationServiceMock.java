@@ -235,7 +235,9 @@ public class SynchronizationServiceMock implements ResourceObjectChangeListener,
 		assertNotNull("No parent result", parentResult);
 
 		assertNotNull("Current shadow not present", opDescription.getCurrentShadow());
-		assertNotNull("Delta not present", opDescription.getObjectDelta());
+		if (!failure) {
+			assertNotNull("Delta not present", opDescription.getObjectDelta());
+		}
 		if (opDescription.getCurrentShadow() != null) {
 			ShadowType currentShadowType = opDescription.getCurrentShadow().asObjectable();
 			if (currentShadowType != null) {

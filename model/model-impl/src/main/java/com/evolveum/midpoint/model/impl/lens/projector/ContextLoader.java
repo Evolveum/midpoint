@@ -659,12 +659,12 @@ public class ContextLoader {
 			}
 			PrismObject<ShadowType> shadow = linkRefVal.getObject();
 			if (shadow == null) {
-				// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
-				// We need to fetch from provisioning and not repository so the correct definition will be set.
 				GetOperationOptions rootOpts = null;
 				if (context.isDoReconciliationForAllProjections()) {
-					rootOpts = GetOperationOptions.createForceRefresh();
+					rootOpts = GetOperationOptions.createForceRetry();
 				} else {
+					// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
+					// We need to fetch from provisioning and not repository so the correct definition will be set.
 					rootOpts = GetOperationOptions.createNoFetch();
 					rootOpts.setPointInTimeType(PointInTimeType.FUTURE);
 				}

@@ -1729,7 +1729,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		//and set the resource availability status to UP
 		TestUtil.info("OpenDJ started, resource UP");
 
-		PrismObject<ShadowType> shadow = getShadowModel(shadowOid, GetOperationOptions.createForceRefresh(), true);
+		PrismObject<ShadowType> shadow = getShadowModel(shadowOid, GetOperationOptions.createForceRetry(), true);
 		//TODO more asserts
 	}
 		
@@ -1803,7 +1803,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
 		//and then try to get account -> result is that the modifications will be applied to the account
 		XMLGregorianCalendar lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
-		PrismObject<ShadowType> shadowAfter = getShadowModel(shadowOid, GetOperationOptions.createForceRefresh(), true);
+		PrismObject<ShadowType> shadowAfter = getShadowModel(shadowOid, GetOperationOptions.createForceRetry(), true);
 		XMLGregorianCalendar lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
 
 		ShadowAsserter.forShadow(shadowAfter)
@@ -1898,7 +1898,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		
 		// WHEN (restore)
 		//and then try to get account -> result is that the modifications will be applied to the account
-		PrismObject<ShadowType> shadowAfter = getShadowModel(shadowOid, GetOperationOptions.createForceRefresh(), true);
+		PrismObject<ShadowType> shadowAfter = getShadowModel(shadowOid, GetOperationOptions.createForceRetry(), true);
 		ShadowAsserter.forShadow(shadowAfter)
 				.assertNotDead()
 				.display()
@@ -2718,7 +2718,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	}	
 	
 	// This should run last. It starts a task that may interfere with other tests
-	@Test
+	//MID-5844
+	@Test(enabled = false)
 	public void test800Reconciliation() throws Exception {
 		final String TEST_NAME = "test800Reconciliation";
         displayTestTitle(TEST_NAME);
@@ -2786,8 +2787,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		assertAttribute(jack2Shadow, "cn", "jackNew2a");
 
 	}
-	
-	@Test
+
+	//MID-5844
+	@Test(enabled = false)
 	public void test801TestReconciliationRename() throws Exception {
 		final String TEST_NAME = "test801TestReconciliationRename";
         displayTestTitle(TEST_NAME);
