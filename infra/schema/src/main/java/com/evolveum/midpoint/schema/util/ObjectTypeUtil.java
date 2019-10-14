@@ -571,7 +571,7 @@ public class ObjectTypeUtil {
     	return object != null ? (ObjectType) object.asObjectable() : null;
 	}
 
-	public static <T extends Objectable> PrismObject<T> toPrismObject(T objectable) {
+	public static <T extends Objectable> PrismObject<T> asPrismObject(T objectable) {
 		//noinspection unchecked
 		return objectable != null ? objectable.asPrismObject() : null;
 	}

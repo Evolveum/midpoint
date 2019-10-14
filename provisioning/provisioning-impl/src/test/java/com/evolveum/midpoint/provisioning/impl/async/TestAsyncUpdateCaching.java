@@ -31,7 +31,7 @@ public class TestAsyncUpdateCaching extends TestAsyncUpdate {
 	}
 
 	@Override
-	protected int getNumberOfAccountAttributes() {
-		return 4;
+	boolean isCached() {
+		return true;
 	}
 }

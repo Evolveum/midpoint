@@ -441,9 +441,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		AssertJUnit.assertEquals(1, changes.size());
 		Change change = changes.get(0);
 		assertNotNull("null change", change);
-		PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
-		assertNotNull("null current shadow", currentShadow);
-		PrismAsserts.assertParentConsistency(currentShadow);
+		PrismObject<ShadowType> currentResourceObject = change.getCurrentResourceObject();
+		assertNotNull("null current resource object", currentResourceObject);
+		PrismAsserts.assertParentConsistency(currentResourceObject);
 		Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();
 		assertNotNull("null identifiers", identifiers);
 		assertFalse("empty identifiers", identifiers.isEmpty());

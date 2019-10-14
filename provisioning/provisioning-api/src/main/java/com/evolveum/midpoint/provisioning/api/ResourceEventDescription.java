@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0 
@@ -17,19 +17,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class ResourceEventDescription implements Serializable, DebugDumpable{
 
-	private PrismObject<ShadowType> oldShadow;
-	private PrismObject<ShadowType> currentShadow;
+	private PrismObject<ShadowType> oldRepoShadow;
+	private PrismObject<ShadowType> currentResourceObject;
 	private ObjectDelta<ShadowType> delta;
 	private String sourceChannel;
 //	private PrismObject<ResourceType> resource;
 
 
-	public PrismObject<ShadowType> getCurrentShadow() {
-		return currentShadow;
+	public PrismObject<ShadowType> getCurrentResourceObject() {
+		return currentResourceObject;
 	}
 
-	public PrismObject<ShadowType> getOldShadow() {
-		return oldShadow;
+	public PrismObject<ShadowType> getOldRepoShadow() {
+		return oldRepoShadow;
 	}
 
 	public ObjectDelta<ShadowType> getDelta() {
@@ -47,12 +47,12 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 		this.delta = delta;
 	}
 
-	public void setOldShadow(PrismObject<ShadowType> oldShadow) {
-		this.oldShadow = oldShadow;
+	public void setOldRepoShadow(PrismObject<ShadowType> oldRepoShadow) {
+		this.oldRepoShadow = oldRepoShadow;
 	}
 
-	public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
-		this.currentShadow = currentShadow;
+	public void setCurrentResourceObject(PrismObject<ShadowType> currentResourceObject) {
+		this.currentResourceObject = currentResourceObject;
 	}
 
 	public void setSourceChannel(String sourceChannel) {
@@ -60,8 +60,8 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 	}
 
 	 public boolean isProtected() {
-	    	if ((currentShadow != null && ShadowUtil.isProtected(currentShadow))
-	    			|| (oldShadow != null && ShadowUtil.isProtected(oldShadow))) {
+	    	if ((currentResourceObject != null && ShadowUtil.isProtected(currentResourceObject))
+	    			|| (oldRepoShadow != null && ShadowUtil.isProtected(oldRepoShadow))) {
 	    		return true;
 	    	}
 	    	if (delta != null && delta.isAdd() && ShadowUtil.isProtected(delta.getObjectToAdd())) {
@@ -72,8 +72,8 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 
 	 @Override
 		public String toString() {
-			return "ResourceEventDescription(delta=" + delta + ", currentShadow="
-					+ SchemaDebugUtil.prettyPrint(currentShadow) + ", oldShadow=" + SchemaDebugUtil.prettyPrint(oldShadow) + ", sourceChannel=" + sourceChannel
+			return "ResourceEventDescription(delta=" + delta + ", currentResourceObject="
+					+ SchemaDebugUtil.prettyPrint(currentResourceObject) + ", oldRepoShadow=" + SchemaDebugUtil.prettyPrint(oldRepoShadow) + ", sourceChannel=" + sourceChannel
 					+ ")";
 		}
 
@@ -107,22 +107,22 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 			sb.append("\n");
 			SchemaDebugUtil.indentDebugDump(sb, indent+1);
 
-			sb.append("oldShadow:");
-			if (oldShadow == null) {
+			sb.append("oldRepoShadow:");
+			if (oldRepoShadow == null) {
 				sb.append(" null");
 			} else {
-				sb.append(oldShadow.debugDump(indent+2));
+				sb.append(oldRepoShadow.debugDump(indent+2));
 			}
 
 			sb.append("\n");
 			SchemaDebugUtil.indentDebugDump(sb, indent+1);
 
-			sb.append("currentShadow:");
-			if (currentShadow == null) {
+			sb.append("currentResourceObject:");
+			if (currentResourceObject == null) {
 				sb.append(" null\n");
 			} else {
 				sb.append("\n");
-				sb.append(currentShadow.debugDump(indent+2));
+				sb.append(currentResourceObject.debugDump(indent+2));
 			}
 
 			return sb.toString();
@@ -135,10 +135,10 @@ public class ResourceEventDescription implements Serializable, DebugDumpable{
 
 	public PrismObject<ShadowType> getShadow() {
 		PrismObject<ShadowType> shadow;
-		if (getCurrentShadow() != null) {
-			shadow = getCurrentShadow();
-		} else if (getOldShadow() != null) {
-			shadow = getOldShadow();
+		if (getCurrentResourceObject() != null) {
+			shadow = getCurrentResourceObject();
+		} else if (getOldRepoShadow() != null) {
+			shadow = getOldRepoShadow();
 		} else if (getDelta() != null && getDelta().isAdd()) {
 			if (getDelta().getObjectToAdd() == null) {
 				throw new IllegalStateException("Found ADD delta, but no object to add was specified.");

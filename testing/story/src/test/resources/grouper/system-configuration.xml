@@ -31,6 +31,15 @@
 		<type>UserType</type>
 		<objectTemplateRef oid="8098b124-c20c-4965-8adf-e528abedf7a4"/>
 	</defaultObjectPolicyConfiguration>
+	<defaultObjectPolicyConfiguration>
+		<type>OrgType</type>
+		<lifecycleStateModel>
+			<state>
+				<name>retired</name>
+				<!-- object in this model is active but on its way to deletion -->
+			</state>
+		</lifecycleStateModel>
+	</defaultObjectPolicyConfiguration>
     <notificationConfiguration>
 	    <handler>
 			<simpleWorkflowNotifier>

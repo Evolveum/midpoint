@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * @author semancik
@@ -90,13 +91,21 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 	}
 	
 	// TODO: change to ShadowAttributeAsserter later
-		public <T> PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> attribute(String attrName) {
-			PrismProperty<T> attribute = findAttribute(attrName);
-			PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> asserter = new PrismPropertyAsserter<>(attribute, this, "attribute "+attrName+" in "+desc());
-			copySetupTo(asserter);
-			return asserter;
-		}
+	public <T> PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> attribute(String attrName) {
+		PrismProperty<T> attribute = findAttribute(attrName);
+		PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> asserter = new PrismPropertyAsserter<>(attribute, this, "attribute "+attrName+" in "+desc());
+		copySetupTo(asserter);
+		return asserter;
+	}
 	
+	// TODO: change to ShadowAttributeAsserter later
+	public <T> PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> attribute(QName attrName) {
+		PrismProperty<T> attribute = findAttribute(attrName);
+		PrismPropertyAsserter<T,ShadowAttributesAsserter<R>> asserter = new PrismPropertyAsserter<>(attribute, this, "attribute "+attrName+" in "+desc());
+		copySetupTo(asserter);
+		return asserter;
+	}
+
 	public ShadowAttributesAsserter<R> assertAny() {
 		assertNotNull("No attributes container in "+desc(), getAttributesContainer());
 		PrismContainerValue<ShadowAttributesType> containerValue = getAttributesContainer().getValue();
@@ -117,27 +126,41 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 		return sb.toString();
 	}
 
+	public <T> PrismPropertyAsserter<T, ShadowAttributesAsserter<R>> primaryIdentifier() {
+		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(getShadow());
+		assertFalse("No primary identifier in "+desc(), CollectionUtils.isEmpty(primaryIdentifiers));
+		assertEquals("Wrong # of primary identifiers in "+desc(), 1, primaryIdentifiers.size());
+		return attribute(primaryIdentifiers.iterator().next().getElementName());
+	}
+
 	public ShadowAttributesAsserter<R> assertHasPrimaryIdentifier() {
 		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(getShadow());
-		assertFalse("No primary identifiers in "+desc(), primaryIdentifiers.isEmpty());
+		assertFalse("No primary identifiers in "+desc(), CollectionUtils.isEmpty(primaryIdentifiers));
 		return this;
 	}
-	
+
 	public ShadowAttributesAsserter<R> assertNoPrimaryIdentifier() {
 		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(getShadow());
-		assertTrue("Unexpected primary identifiers in "+desc()+": "+primaryIdentifiers, primaryIdentifiers.isEmpty());
+		assertTrue("Unexpected primary identifiers in "+desc()+": "+primaryIdentifiers, CollectionUtils.isEmpty(primaryIdentifiers));
 		return this;
 	}
-	
+
+	public <T> PrismPropertyAsserter<T, ShadowAttributesAsserter<R>> secondaryIdentifier() {
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(getShadow());
+		assertFalse("No secondary identifier in "+desc(), CollectionUtils.isEmpty(secondaryIdentifiers));
+		assertEquals("Wrong # of secondary identifiers in "+desc(), 1, secondaryIdentifiers.size());
+		return attribute(secondaryIdentifiers.iterator().next().getElementName());
+	}
+
 	public ShadowAttributesAsserter<R> assertHasSecondaryIdentifier() {
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(getShadow());
-		assertFalse("No secondary identifiers in "+desc(), secondaryIdentifiers.isEmpty());
+		assertFalse("No secondary identifiers in "+desc(), CollectionUtils.isEmpty(secondaryIdentifiers));
 		return this;
 	}
 	
 	public ShadowAttributesAsserter<R> assertNoSecondaryIdentifier() {
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(getShadow());
-		assertTrue("Unexpected secondary identifiers in "+desc()+": "+secondaryIdentifiers, secondaryIdentifiers.isEmpty());
+		assertTrue("Unexpected secondary identifiers in "+desc()+": "+secondaryIdentifiers, CollectionUtils.isEmpty(secondaryIdentifiers));
 		return this;
 	}
 	
