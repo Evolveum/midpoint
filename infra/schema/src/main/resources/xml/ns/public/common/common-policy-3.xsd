@@ -2235,7 +2235,7 @@
                     		for activation in these hardcoded states ("undefined" for active and deprecated
                     		states, "archived" for archived state, "disabled" for all other states). To turn off this default behaviour
                     		those hardcoded lifecycle states need to be explicitly defined in the state model
-                    		and the forcedActivationStatus property shoule be left undefined.
+                    		and the forcedActivationStatus property should be left undefined.
                     	</p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2249,10 +2249,10 @@
 					<xsd:documentation>
 						<p>
                     		There are cases when you need to force midpoint thinks that user has assigned some
-                    		role. The assignemnt actually doesn't exist but there is a need to preted as it does.
+                    		role. The assignment actually doesn't exist but there is a need to pretend as it does.
                     		This can be used e.g. for post-authentication flow. The user has assigned all business,
                     		application, etc. roles but we don't want to consider these roles during his
-                    		post-authentication proces. Instead, we want to pretend he has "temporary" role assigned
+                    		post-authentication process. Instead, we want to pretend he has "temporary" role assigned
                     		which allows him to perform post-authentication.
                     	</p>
 					</xsd:documentation>
@@ -2340,10 +2340,10 @@
     		<xsd:documentation>
     			<p>
     				There are cases when you need to force midpoint thinks that user has assigned some
-                    role. The assignemnt actually doesn't exist but there is a need to preted as it does.
+                    role. The assignment actually doesn't exist but there is a need to pretend as it does.
                     This can be used e.g. for post-authentication flow. The user has assigned all business,
                     application, etc. roles but we don't want to consider these roles during his
-                    post-authentication proces. Instead, we want to pretend he has "temporary" role assigned
+                    post-authentication process. Instead, we want to pretend he has "temporary" role assigned
                     which allows him to perform post-authentication.
     			</p>
     		</xsd:documentation>

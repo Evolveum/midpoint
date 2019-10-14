@@ -95,7 +95,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Abstract unit test for use in higher layes of the system (repo and abobe).
+ * Abstract unit test for use in higher layers of the system (repo and above).
  * Does not initialize any parts of the system except for prism.
  * Implements some common convenience methods.
  * 

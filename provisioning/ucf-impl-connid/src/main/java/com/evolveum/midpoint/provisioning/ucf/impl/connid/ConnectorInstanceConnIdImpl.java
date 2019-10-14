@@ -2332,7 +2332,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
 			Uid uid = connIdDelta.getUid();
 			Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(uid, deltaObjectClass, resourceSchema);
-			change = new Change(uid.getUidValue(), identifiers, objectDelta, createTokenProperty(connIdDelta.getToken()));
+			change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()));
 
 		} else if (icfDeltaType == SyncDeltaType.CREATE || icfDeltaType == SyncDeltaType.CREATE_OR_UPDATE || icfDeltaType == SyncDeltaType.UPDATE) {
 
@@ -2341,17 +2341,17 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(deltaObjectClass);
 			LOGGER.trace("Object definition: {}", objectDefinition);
 
-			PrismObject<ShadowType> currentShadow = connIdConvertor.convertToResourceObject(connIdDelta.getObject(),
+			PrismObject<ShadowType> currentResourceObject = connIdConvertor.convertToResourceObject(connIdDelta.getObject(),
 					objectDefinition, false, caseIgnoreAttributeNames, legacySchema, result);
-			LOGGER.trace("Got current shadow: {}", currentShadow.debugDumpLazily());
-			Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(currentShadow);
+			LOGGER.trace("Got (current) resource object: {}", currentResourceObject.debugDumpLazily());
+			Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(currentResourceObject);
 
 			if (icfDeltaType == SyncDeltaType.CREATE) {
 				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
-				objectDelta.setObjectToAdd(currentShadow);
-				change = new Change(uid.getUidValue(), identifiers, objectDelta, createTokenProperty(connIdDelta.getToken()));
+				objectDelta.setObjectToAdd(currentResourceObject);
+				change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()));
 			} else {
-				change = new Change(uid.getUidValue(), identifiers, currentShadow, createTokenProperty(connIdDelta.getToken()));
+				change = new Change(uid.getUidValue(), identifiers, currentResourceObject, null, createTokenProperty(connIdDelta.getToken()));
 			}
 
 		} else {

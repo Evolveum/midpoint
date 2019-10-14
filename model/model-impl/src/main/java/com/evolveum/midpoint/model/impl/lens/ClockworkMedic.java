@@ -195,6 +195,9 @@ public class ClockworkMedic {
 			ProjectorComponentTraceType trace;
 			if (result.isTraced()) {
 				trace = new ProjectorComponentTraceType();
+				if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
+					trace.setInputLensContextText(context.debugDump());
+				}
 				trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
 				result.addTrace(trace);
 			} else {
@@ -215,6 +218,9 @@ public class ClockworkMedic {
 			} finally {
 				result.computeStatusIfUnknown();
 				if (trace != null) {
+					if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
+						trace.setOutputLensContextText(context.debugDump());
+					}
 					trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
 				}
 				if (clockworkInspector != null) {

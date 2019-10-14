@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<user oid="c0c010c0-d34d-b33f-f00d-222111111111"
+   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>deniels</name>
+
+    <linkRef oid="a0c010c0-d34d-b33f-f00d-111111111555" type="c:ShadowType"/>
+
+    <fullName>Jack Deniels</fullName>
+    <givenName>Jack</givenName>
+    <familyName>Deniels</familyName>
+    <honorificPrefix>Mgr.</honorificPrefix>
+    
+    <honorificSuffix>PhD.</honorificSuffix>
+    <emailAddress>jack.deniels@evolveum.com</emailAddress>
+    <telephoneNumber>555-1234</telephoneNumber>
+    <employeeNumber>emp666</employeeNumber>
+    <employeeType>DRINKER</employeeType>
+    <organizationalUnit>Leaders</organizationalUnit>
+    <locality>Black Pearl</locality>
+
+    <credentials>
+        <password>
+        	<value>
+	            <t:clearValue>deadmentellnotales</t:clearValue>
+            </value>
+        </password>
+    </credentials>
+    
+</user>

@@ -1642,7 +1642,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected <O extends ObjectType> PrismObject<O> findObjectByName(Class<O> type, String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".findObjectByName");
+		Task task = getOrCreateTask("findObjectByName");
         OperationResult result = task.getResult();
 		List<PrismObject<O>> objects = modelService.searchObjects(type, createNameQuery(name), null, task, result);
 		if (objects.isEmpty()) {
@@ -2919,12 +2919,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException {
+		return createModifyUserAddAccount(userOid, resource, null);
+	}
+
+	protected ObjectDelta<UserType> createModifyUserAddAccount(String userOid, PrismObject<ResourceType> resource, String intent) throws SchemaException {
 		PrismObject<ShadowType> account = getAccountShadowDefinition().instantiate();
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resource.getOid());
 		account.asObjectable().setResourceRef(resourceRef);
 		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-		account.asObjectable().setObjectClass(refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition().getTypeName());
+		RefinedObjectClassDefinition rocd = null;
+		if (StringUtils.isNotBlank(intent)) {
+			rocd = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, intent);
+			account.asObjectable().setIntent(intent);
+		} else {
+			rocd = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+		}
+		account.asObjectable().setObjectClass(rocd.getObjectClassDefinition().getTypeName());
+		account.asObjectable().setKind(ShadowKindType.ACCOUNT);
+
 
 		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid
 		);
@@ -3588,25 +3601,33 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			LOGGER.warn("Sleep interrupted: {}", e.getMessage(), e);
 		}
 
-		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".restartTask");
-		Task task = taskManager.getTaskWithResult(taskOid, result);
-		LOGGER.info("Restarting task {}", taskOid);
-		if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
-			LOGGER.debug("Task {} is suspended, resuming it", task);
-			taskManager.resumeTask(task, result);
-		} else if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
-			LOGGER.debug("Task {} is closed, scheduling it to run now", task);
-			taskManager.scheduleTasksNow(singleton(taskOid), result);
-		} else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
-			if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
-				// Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
-				LOGGER.debug("Task {} is running, waiting while it finishes before restarting", task);
-				waitForTaskFinish(taskOid, false);
+		OperationResult result = createSubresult("restartTask");
+		try {
+			Task task = taskManager.getTaskWithResult(taskOid, result);
+			LOGGER.info("Restarting task {}", taskOid);
+			if (task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
+				LOGGER.debug("Task {} is suspended, resuming it", task);
+				taskManager.resumeTask(task, result);
+			} else if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+				LOGGER.debug("Task {} is closed, scheduling it to run now", task);
+				taskManager.scheduleTasksNow(singleton(taskOid), result);
+			} else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+				if (taskManager.getLocallyRunningTaskByIdentifier(task.getTaskIdentifier()) != null) {
+					// Task is really executing. Let's wait until it finishes; hopefully it won't start again (TODO)
+					LOGGER.debug("Task {} is running, waiting while it finishes before restarting", task);
+					waitForTaskFinish(taskOid, false);
+				}
+				LOGGER.debug("Task {} is finished, scheduling it to run now", task);
+				taskManager.scheduleTasksNow(singleton(taskOid), result);
+			} else {
+				throw new IllegalStateException(
+						"Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
 			}
-			LOGGER.debug("Task {} is finished, scheduling it to run now", task);
-			taskManager.scheduleTasksNow(singleton(taskOid), result);
-		} else {
-			throw new IllegalStateException("Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 	

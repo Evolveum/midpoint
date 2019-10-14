@@ -41,6 +41,11 @@
 			<artifactId>schema</artifactId>
 			<version>4.0.1-SNAPSHOT</version>
 		</dependency>
+	  <dependency>
+		  <groupId>com.evolveum.midpoint.infra</groupId>
+		  <artifactId>common</artifactId>
+		  <version>4.0.1-SNAPSHOT</version>
+	  </dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>prism-api</artifactId>

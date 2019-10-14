@@ -48,7 +48,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestExistentialIssues"/>
             <class name="com.evolveum.midpoint.testing.story.TestServiceAccounts"/>
             <class name="com.evolveum.midpoint.testing.story.TestLimitedResources"/>
-            <!-- MID-3353 <class name="com.evolveum.midpoint.testing.story.TestConsistencyMechanism"/>  -->
+          <!--MID-3353 -->   <class name="com.evolveum.midpoint.testing.story.TestConsistencyMechanism"/>
             <class name="com.evolveum.midpoint.testing.story.TestDelayedEnable"/>
             <class name="com.evolveum.midpoint.testing.story.TestMisbehavingResources"/>
             <class name="com.evolveum.midpoint.testing.story.TestInboundOutboundAssociation"/>

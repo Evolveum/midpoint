@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.errorhandling;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -121,24 +122,14 @@ public abstract class ErrorHandler {
 				throws SchemaException, GenericFrameworkException, CommunicationException,
 				ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
 				SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
-	
+
 	protected OperationResultStatus postponeModify(ProvisioningContext ctx,
 			PrismObject<ShadowType> repoShadow,
 			Collection<? extends ItemDelta> modifications,
 			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
 			OperationResult failedOperationResult,
 			OperationResult result) {
-		LOGGER.trace("Postponing MODIFY operation for {}", repoShadow);
-		opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
-		AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncResult = new AsynchronousOperationReturnValue<>();
-		asyncResult.setOperationResult(failedOperationResult);
-		asyncResult.setOperationType(PendingOperationTypeType.RETRY);
-		opState.setAsyncResult(asyncResult);
-		if (opState.getAttemptNumber() == null) {
-			opState.setAttemptNumber(1);
-		}
-		result.recordInProgress();
-		return OperationResultStatus.IN_PROGRESS;
+		return ProvisioningUtil.postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
 	}
 	
 	protected OperationResultStatus postponeDelete(ProvisioningContext ctx,

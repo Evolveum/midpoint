@@ -15,7 +15,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -26,11 +28,13 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,7 +51,6 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import static com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil.checkRepoAccountShadow;
-import static com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil.checkRepoShadow;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -67,7 +70,10 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	private static final String RESOURCE_ASYNC_OID = "fb04d113-ebf8-41b4-b13b-990a597d110b";
 
 	private static final File CHANGE_100 = new File(TEST_DIR, "change-100-banderson-first-occurrence.xml");
-	private static final File CHANGE_110 = new File(TEST_DIR, "change-110-banderson-delta.xml");
+	private static final File CHANGE_110 = new File(TEST_DIR, "change-110-banderson-delta-add-values.xml");
+	private static final File CHANGE_112 = new File(TEST_DIR, "change-112-banderson-delta-add-more-values.xml");
+	private static final File CHANGE_115 = new File(TEST_DIR, "change-115-banderson-delta-delete-values.xml");
+	private static final File CHANGE_117 = new File(TEST_DIR, "change-117-banderson-delta-replace-values.xml");
 	private static final File CHANGE_120 = new File(TEST_DIR, "change-120-banderson-new-state.xml");
 	private static final File CHANGE_125 = new File(TEST_DIR, "change-125-banderson-notification-only.xml");
 	private static final File CHANGE_130 = new File(TEST_DIR, "change-130-banderson-delete.xml");
@@ -80,6 +86,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	private static final Trace LOGGER = TraceManager.getTrace(TestAsyncUpdate.class);
 
 	private static final long TIMEOUT = 5000L;
+	private static final String ATTR_TEST = "test";
+	private static final String ATTR_MEMBER_OF = "memberOf";
 
 	protected PrismObject<ResourceType> resource;
 
@@ -297,10 +305,135 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		assertEquals("Wrong # of values added (second mod)", 6, iterator.next().getValuesToAdd().size());
 		assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
 
-		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername("banderson", resource, result);
-		assertNotNull("Shadow is not present in the repository", accountRepo);
-		display("Repository shadow", accountRepo);
-		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
+		ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
+		if (isCached()) {
+			asserter.attributes()
+					.attribute(ATTR_TEST).assertRealValues("value1", "value2", "value3").end()
+					.attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group2", "group3", "group4", "group5", "group6").end();
+		}
+	}
+
+	@Test
+	public void test112ListeningForValueAddMore(ITestContext ctx) throws Exception {
+		Task task = getTask(ctx);
+		OperationResult result = getResult(ctx);
+
+		prepareMessage(CHANGE_112);
+
+		syncServiceMock.reset();
+
+		setDummyAccountTestAttribute("banderson", "value1", "value2", "value3", "value4");
+
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		dumpAsyncUpdateListeningActivity(handle, task, result);
+		syncServiceMock.waitForNotifyChange(TIMEOUT);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+
+		PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
+		assertNotNull("Old shadow missing", oldShadow);
+		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+
+		assertNotNull("Delta is missing", lastChange.getObjectDelta());
+		assertTrue("Delta is not a MODIFY one", lastChange.getObjectDelta().isModify());
+		Collection<? extends ItemDelta<?, ?>> modifications = lastChange.getObjectDelta().getModifications();
+		assertEquals("Wrong # of modifications", 2, modifications.size());
+		Iterator<? extends ItemDelta<?, ?>> iterator = modifications.iterator();
+		assertEquals("Wrong # of values added (first mod)", 1, iterator.next().getValuesToAdd().size());
+		assertEquals("Wrong # of values added (second mod)", 1, iterator.next().getValuesToAdd().size());
+		assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
+
+		ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
+		if (isCached()) {
+			asserter.attributes()
+					.attribute(ATTR_TEST).assertRealValues("value1", "value2", "value3", "value4").end()
+					.attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group2", "group3", "group4", "group5", "group6", "group7").end();
+		}
+	}
+
+	@Test // MID-5832
+	public void test115ListeningForValueDelete(ITestContext ctx) throws Exception {
+		Task task = getTask(ctx);
+		OperationResult result = getResult(ctx);
+
+		prepareMessage(CHANGE_115);
+
+		syncServiceMock.reset();
+
+		setDummyAccountTestAttribute("banderson", "value1", "value3", "value4");
+
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		dumpAsyncUpdateListeningActivity(handle, task, result);
+		syncServiceMock.waitForNotifyChange(TIMEOUT);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+
+		PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
+		assertNotNull("Old shadow missing", oldShadow);
+		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+
+		assertNotNull("Delta is missing", lastChange.getObjectDelta());
+		assertTrue("Delta is not a MODIFY one", lastChange.getObjectDelta().isModify());
+		Collection<? extends ItemDelta<?, ?>> modifications = lastChange.getObjectDelta().getModifications();
+		assertEquals("Wrong # of modifications", 2, modifications.size());
+		Iterator<? extends ItemDelta<?, ?>> iterator = modifications.iterator();
+		assertEquals("Wrong # of values deleted (first mod)", 1, iterator.next().getValuesToDelete().size());
+		assertEquals("Wrong # of values deleted (second mod)", 2, iterator.next().getValuesToDelete().size());
+		assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
+
+		ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
+		if (isCached()) {
+			asserter.attributes()
+					.attribute(ATTR_TEST).assertRealValues("value1", "value3", "value4").end()
+					.attribute(ATTR_MEMBER_OF).assertRealValues("group1", "group4", "group5", "group6", "group7").end();
+		}
+	}
+
+	@Test // MID-5832
+	public void test117ListeningForValueReplace(ITestContext ctx) throws Exception {
+		Task task = getTask(ctx);
+		OperationResult result = getResult(ctx);
+
+		prepareMessage(CHANGE_117);
+
+		syncServiceMock.reset();
+
+		setDummyAccountTestAttribute("banderson", "value100");
+
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_ASYNC_OID);
+		String handle = provisioningService.startListeningForAsyncUpdates(coords, task, result);
+		dumpAsyncUpdateListeningActivity(handle, task, result);
+		syncServiceMock.waitForNotifyChange(TIMEOUT);
+		provisioningService.stopListeningForAsyncUpdates(handle, task, result);
+
+		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
+		display("The change", lastChange);
+
+		PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
+		assertNotNull("Old shadow missing", oldShadow);
+		assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
+
+		assertNotNull("Delta is missing", lastChange.getObjectDelta());
+		assertTrue("Delta is not a MODIFY one", lastChange.getObjectDelta().isModify());
+		Collection<? extends ItemDelta<?, ?>> modifications = lastChange.getObjectDelta().getModifications();
+		assertEquals("Wrong # of modifications", 2, modifications.size());
+		Iterator<? extends ItemDelta<?, ?>> iterator = modifications.iterator();
+		assertEquals("Wrong # of values replaced (first mod)", 1, iterator.next().getValuesToReplace().size());
+		assertEquals("Wrong # of values replaced (second mod)", 2, iterator.next().getValuesToReplace().size());
+		assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
+
+		ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
+		if (isCached()) {
+			asserter.attributes()
+					.attribute(ATTR_TEST).assertRealValues("value100").end()
+					.attribute(ATTR_MEMBER_OF).assertRealValues("group100", "group101").end();
+		}
 	}
 
 	@Test
@@ -330,10 +463,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		assertNull("Delta is present although it should not be", lastChange.getObjectDelta());
 		assertNotNull("Current shadow is missing", lastChange.getCurrentShadow());
 
-		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername("banderson", resource, result);
-		assertNotNull("Shadow is not present in the repository", accountRepo);
-		display("Repository shadow", accountRepo);
-		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
+		ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
 	}
 
 	@Test
@@ -370,10 +500,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
 		display("change current shadow", lastChange.getCurrentShadow());
 
-		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername("banderson", resource, result);
-		assertNotNull("Shadow is not present in the repository", accountRepo);
-		display("Repository shadow", accountRepo);
-		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
+		ShadowAsserter<Void> asserter = getAndersonFull(false, task, result);
 	}
 
 	@Test
@@ -403,10 +530,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		//assertNull("Current shadow is present while not expecting it", lastChange.getCurrentShadow());
 		//current shadow was added during the processing
 
-		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername("banderson", resource, result);
-		assertNotNull("Shadow is not present in the repository", accountRepo);
-		display("Repository shadow", accountRepo);
-		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
+		getAndersonFull(true, task, result);
 	}
 
 	@SuppressWarnings("SameParameterValue")
@@ -417,7 +541,11 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	void setDummyAccountTestAttribute(String name, String... values) {
 	}
 
-	abstract int getNumberOfAccountAttributes();
+	private int getNumberOfAccountAttributes() {
+		return isCached() ? 4 : 2;
+	}
+
+	abstract boolean isCached();
 
 	boolean hasReadCapability() {
 		return false;
@@ -427,5 +555,41 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 			throws java.io.IOException, com.evolveum.midpoint.util.exception.SchemaException, TimeoutException {
 		MockAsyncUpdateSource.INSTANCE.reset();
 		MockAsyncUpdateSource.INSTANCE.prepareMessage(prismContext.parserFor(messageFile).parseRealValue());
+	}
+
+	@Contract("false,_,_ -> !null")
+	private ShadowAsserter<Void> getAndersonFull(boolean dead, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ShadowType> shadowRepo = findAccountShadowByUsername("banderson", resource, result);
+		assertNotNull("No Anderson shadow in repo", shadowRepo);
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				.noFetch()
+				.retrieve()
+				.build();
+		try {
+			PrismObject<ShadowType> shadow = provisioningService
+					.getObject(ShadowType.class, shadowRepo.getOid(), options, task, result);
+			if (dead) {
+				fail("Shadow should be gone now but it is not: " + shadow.debugDump());
+			}
+			return assertShadow(shadow, "after")
+					.assertKind(ShadowKindType.ACCOUNT)
+					.attributes()
+						.assertSize(getNumberOfAccountAttributes())
+						.primaryIdentifier()
+							.assertRealValues("banderson")
+						.end()
+						.secondaryIdentifier()
+							.assertRealValues("banderson")
+						.end()
+					.end();
+		} catch (ObjectNotFoundException e) {
+			if (!dead) {
+				e.printStackTrace();
+				fail("Shadow is gone but it should not be");
+			}
+			return null;
+		}
 	}
 }

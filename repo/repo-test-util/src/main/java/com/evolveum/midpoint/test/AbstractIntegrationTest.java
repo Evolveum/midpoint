@@ -247,14 +247,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.displayTestTitle(testShortName);
 		Task task = createTask(testFullName);
 		OperationResult rootResult = task.getResult();
+
 		TracingProfileType tracingProfile = getTestMethodTracingProfile();
 		CompiledTracingProfile compiledTracingProfile = tracingProfile != null ?
 				tracer.compileProfile(tracingProfile, rootResult) : null;
 		OperationResult result = rootResult.subresult(testFullName + "Run")
 				.tracingProfile(compiledTracingProfile)
 				.build();
+
+		// This is quite a hack. We need to provide traced result to all clients that need to access it via the task.
+		// (I.e. not via the test context.)
+		task.setResult(result);
+
 		ctx.setAttribute(ATTR_TASK, task);
 		ctx.setAttribute(ATTR_RESULT, result);
+
+		MidpointTestMethodContext.setup(task, result);
 	}
 
 	protected TracingProfileType getTestMethodTracingProfile() {
@@ -290,14 +298,66 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				task.getResult().computeStatusIfUnknown();
 			}
 		}
+
+		// Beware of any other after methods. They might need this context.
+		MidpointTestMethodContext.destroy();
 	}
 
+	@Deprecated
 	protected OperationResult getResult(IAttributes attrs) {
 		return (OperationResult) attrs.getAttribute(ATTR_RESULT);
 	}
 
+	@Deprecated
 	protected Task getTask(IAttributes attrs) {
 		return (Task) attrs.getAttribute(ATTR_TASK);
+	}
+
+	protected Task getTask() {
+		MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
+		if (ctx != null) {
+			return ctx.getTask();
+		} else {
+			return createAdHocTestContext().getTask();
+		}
+	}
+
+	protected Task getOrCreateTask(String methodName) {
+		MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
+		if (ctx != null) {
+			return ctx.getTask();
+		} else {
+			return taskManager.createTaskInstance(this.getClass().getName() + "." + methodName);
+		}
+	}
+
+	protected OperationResult createSubresult(String methodName) {
+		String className = this.getClass().getName();
+		MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
+		OperationResult parent;
+		if (ctx != null) {
+			parent = ctx.getResult();
+		} else {
+			parent = new OperationResult(className + ".parent");
+		}
+		return parent.createSubresult(className + "." + methodName);
+	}
+
+	protected OperationResult getResult() {
+		MidpointTestMethodContext ctx = MidpointTestMethodContext.get();
+		if (ctx != null) {
+			return ctx.getResult();
+		} else {
+			return createAdHocTestContext().getResult();
+		}
+	}
+
+	@NotNull
+	private MidpointTestMethodContext createAdHocTestContext() {
+		LOGGER.warn("No test context for current thread: creating new");
+		System.out.println("No test context for current thread: creating new");
+		Task task = taskManager.createTaskInstance(this.getClass().getName() + ".unknownMethod");
+		return MidpointTestMethodContext.setup(task, task.getResult());
 	}
 
 	abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;

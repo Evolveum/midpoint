@@ -107,6 +107,9 @@ public class ContextLoader {
 		ProjectorComponentTraceType trace;
 		if (result.isTraced()) {
 			trace = new ProjectorComponentTraceType(prismContext);
+			if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
+				trace.setInputLensContextText(context.debugDump());
+			}
 			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
 			result.addTrace(trace);
 		} else {
@@ -194,6 +197,9 @@ public class ContextLoader {
 			throw e;
 		} finally {
 			if (trace != null) {
+				if (result.isTracingNormal(ProjectorComponentTraceType.class)) {
+					trace.setOutputLensContextText(context.debugDump());
+				}
 				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
 			}
 		}
@@ -327,6 +333,9 @@ public class ContextLoader {
 		FocusLoadedTraceType trace;
 		if (result.isTraced()) {
 			trace = new FocusLoadedTraceType();
+			if (result.isTracingNormal(FocusLoadedTraceType.class)) {
+				trace.setInputLensContextText(context.debugDump());
+			}
 			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
 			result.addTrace(trace);
 		} else {
@@ -392,6 +401,9 @@ public class ContextLoader {
 			throw t;
 		} finally {
 			if (trace != null) {
+				if (result.isTracingNormal(FocusLoadedTraceType.class)) {
+					trace.setOutputLensContextText(context.debugDump());
+				}
 				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
 			}
 			result.computeStatusIfUnknown();
@@ -659,10 +671,16 @@ public class ContextLoader {
 			}
 			PrismObject<ShadowType> shadow = linkRefVal.getObject();
 			if (shadow == null) {
-				// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
-				// We need to fetch from provisioning and not repository so the correct definition will be set.
-				GetOperationOptions rootOpts = GetOperationOptions.createNoFetch();
-				rootOpts.setPointInTimeType(PointInTimeType.FUTURE);
+				GetOperationOptions rootOpts = null;
+				if (context.isDoReconciliationForAllProjections()) {
+					rootOpts = GetOperationOptions.createForceRetry();
+				} else {
+					// Using NO_FETCH so we avoid reading in a full account. This is more efficient as we don't need full account here.
+					// We need to fetch from provisioning and not repository so the correct definition will be set.
+					rootOpts = GetOperationOptions.createNoFetch();
+					rootOpts.setPointInTimeType(PointInTimeType.FUTURE);
+				}
+
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOpts);
 				LOGGER.trace("Loading shadow {} from linkRef, options={}", oid, options);
 				try {
@@ -1028,7 +1046,7 @@ public class ContextLoader {
 							LOGGER.trace("Projection {} already exists in context\nExisting:\n{}\nNew:\n{}", rsd,
 									existingShadow.debugDump(1), newShadow.debugDump(1));
 						}
-						if (!ShadowUtil.isDead(newShadow.asObjectable())) {
+						if (!ShadowUtil.isDead(existingShadow.asObjectable())) {
 							throw new PolicyViolationException("Projection "+rsd+" already exists in context (existing "+existingShadow+", new "+projection);
 						}
 						// Dead shadow. This is somehow expected, fix it and we can go on
@@ -1444,6 +1462,9 @@ public class ContextLoader {
 		FullShadowLoadedTraceType trace;
 		if (result.isTraced()) {
 			trace = new FullShadowLoadedTraceType(prismContext);
+			if (result.isTracingNormal(FullShadowLoadedTraceType.class)) {
+				trace.setInputLensContextText(context.debugDump());
+			}
 			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
 			result.addTrace(trace);
 		} else {
@@ -1512,6 +1533,9 @@ public class ContextLoader {
 			throw t;
 		} finally {
 			if (trace != null) {
+				if (result.isTracingNormal(FullShadowLoadedTraceType.class)) {
+					trace.setOutputLensContextText(context.debugDump());
+				}
 				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
 			}
 			result.computeStatusIfUnknown();

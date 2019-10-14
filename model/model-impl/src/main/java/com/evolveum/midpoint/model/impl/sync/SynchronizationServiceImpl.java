@@ -114,6 +114,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 		if (change.isCleanDeadShadow()) {
 			cleanDeadShadow(change, subResult);
+			subResult.computeStatus();
 			return;
 		}
 
@@ -212,6 +213,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			}
 		} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
 			LOGGER.error("SYNCHRONIZATION: Error in synchronization - clean up dead shadows. Change: {}", change, e);
+			subResult.recordFatalError("Error while cleaning dead shadow, " + e.getMessage(), e);
 			//nothing more to do. and we don't want to trow exception to not cancel the whole execution.
 		}
 

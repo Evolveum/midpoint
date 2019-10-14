@@ -813,6 +813,26 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="inputLensContextText" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Lens (model) context at input (text dump).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="outputLensContextText" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Lens (model) context at output (text dump).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
