@@ -40,4 +40,6 @@ public class ConstantsUtil {
     public static final String ASSIGNMENT_TYPE_SELECTOR_SERVICE = "Service";
     public static final String ASSIGNMENT_TYPE_SELECTOR_RESOURCE = "Resource";
 
+    //styles
+    public static final String OBJECT_USER_BOX_COLOR = "object-user-box";
 }

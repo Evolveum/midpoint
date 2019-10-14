@@ -10,6 +10,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -22,9 +23,19 @@ public abstract class AssignmentHolderObjectListPage<T extends AssignmentHolderO
     public abstract T table();
 
     protected SelenideElement getTableBoxElement(){
-        SelenideElement box = $(By.cssSelector(".box.boxed-table.object-user-box"))
+        StringBuilder tableStyle = new StringBuilder(".box.boxed-table");
+        String additionalTableClass = getTableAdditionalClass();
+        if (StringUtils.isNotEmpty(additionalTableClass)){
+            tableStyle.append(".");
+            tableStyle.append(additionalTableClass);
+        }
+        SelenideElement box = $(By.cssSelector(".box.boxed-table"))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
         return box;
+    }
+
+    protected String getTableAdditionalClass(){
+        return null;
     }
 
 }
