@@ -27,7 +27,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
 
 	/**
 	 * The (almost) highest level of recognition. Useful e.g. for comparing values for the purpose of XML editing.
-	 * Still, ignores e.g. definitions, parent objects, immutability flag, etc.
+	 * Still, ignores e.g. definitions, parent objects, origin, immutability flag, etc.
 	 *
 	 * Corresponds to pre-4.0 flags ignoreMetadata = false, literal = true.
 	 */
@@ -39,7 +39,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
 	 *
 	 * Currently this is the default for equals/hashCode.
 	 *
-	 * Corresponds to pre-4.0 flags ignoreMetadata = false, literal = false.
+	 * Roughly corresponds to pre-4.0 flags ignoreMetadata = false, literal = false.
 	 */
 	public static final ParameterizedEquivalenceStrategy NOT_LITERAL;
 
@@ -101,7 +101,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
 		LITERAL.consideringOperationalData = true;
 		LITERAL.consideringContainerIds = true;
 		LITERAL.consideringDifferentContainerIds = true;
-		LITERAL.consideringValueOrigin = true;
+		LITERAL.consideringValueOrigin = false;
 		LITERAL.consideringReferenceFilters = true;
 		LITERAL.compareElementNames = true;
 		putIntoNiceNames(LITERAL, "LITERAL");
@@ -111,7 +111,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
 		NOT_LITERAL.consideringOperationalData = true;
 		NOT_LITERAL.consideringContainerIds = true;
 		NOT_LITERAL.consideringDifferentContainerIds = true;
-		NOT_LITERAL.consideringValueOrigin = true;
+		NOT_LITERAL.consideringValueOrigin = false;
 		NOT_LITERAL.consideringReferenceFilters = true;
 		NOT_LITERAL.compareElementNames = true;
 		putIntoNiceNames(NOT_LITERAL, "NOT_LITERAL");
