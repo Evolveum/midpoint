@@ -115,7 +115,7 @@ public class CaseTests extends TestBase {
                     .inputValue(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME)
                     .updateSearch()
                  .and()
-                 .clickByName(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME);
+                 .containsLinkTextPartially(ConstantsUtil.CASE_CREATION_TEST_CASE_NAME);
 
      }
 

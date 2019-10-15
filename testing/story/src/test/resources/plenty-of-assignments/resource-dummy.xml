@@ -107,8 +107,8 @@
 				<displayName>Ship</displayName>
 				<inbound>
 					<expression>
+						<allowEmptyValues>false</allowEmptyValues>
 						<script>
-							<allowEmptyValues>false</allowEmptyValues>		<!-- FIXME -->
 							<code>'The crew of ' + input</code>
 						</script>
 					</expression>

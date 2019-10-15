@@ -92,7 +92,6 @@
 				<inbound>
 					<trace>true</trace>
 					<authoritative>true</authoritative>
-               		<tolerant>false</tolerant>			<!-- FIXME -->
 					<strength>strong</strength>
 					<expression>
 						<assignmentTargetSearch>
@@ -123,21 +122,23 @@
 				                        import com.evolveum.midpoint.schema.constants.*
 				                        import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 				                        
-				                        if (assignment.target != null) {
-				                        	log.info("### (association) target roleType " + assignment.target.roleType)
-				                        	inRange = 'group'.equals(assignment.target.subtype)
-				                        	log.info("########## (association) inRange: " + inRange)
-				                        	return inRange
-				                        }
-				                        
 				                        if (assignment.targetRef != null) {
-				                        	role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
-				                        	log.info("### (association) role name " + role.name.orig)
-				                        	log.info("### (association) role.roleType " + role.subtype)
-				                        	inRange = ('group').equals(role.subtype)
-				                        	log.info("########## (association) inRange: " + inRange)
-				                        	return inRange
+											if (assignment.targetRef.object != null) {
+												log.info("### (association) target roleType " + assignment.targetRef.objectable.roleType)
+												inRange = 'group'.equals(assignment.targetRef.objectable..subtype)
+												log.info("########## (association) inRange: " + inRange)
+												return inRange
+											} else {
+												role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
+												log.info("### (association) role name " + role.name.orig)
+												log.info("### (association) role.roleType " + role.subtype)
+												inRange = ('group').equals(role.subtype)
+												log.info("########## (association) inRange: " + inRange)
+												return inRange
+											}
 				                        }
+
+										return false
 				                    </code>
 				                </script>
 				            </condition>

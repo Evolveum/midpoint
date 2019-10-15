@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHo
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.user.UsersPageTable;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import org.openqa.selenium.By;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -26,4 +27,10 @@ public class ListUsersPage extends AssignmentHolderObjectListPage<UsersPageTable
     public UsersPageTable table() {
         return new UsersPageTable(this, getTableBoxElement());
     }
+
+    @Override
+    protected String getTableAdditionalClass(){
+        return ConstantsUtil.OBJECT_USER_BOX_COLOR;
+    }
+
 }

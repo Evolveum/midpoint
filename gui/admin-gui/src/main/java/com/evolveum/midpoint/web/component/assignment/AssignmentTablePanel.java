@@ -159,10 +159,18 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 
 	protected void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item){
 		AssignmentEditorPanel editor = new AssignmentEditorPanel(ID_ROW, item.getModel()){
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected boolean ignoreMandatoryAttributes(){
 				return AssignmentTablePanel.this.ignoreMandatoryAttributes();
 			}
+
+			@Override
+			protected boolean isRelationEditable(){
+				return AssignmentTablePanel.this.isRelationEditable();
+			}
+
 		};
 		item.add(editor);
 
@@ -297,6 +305,10 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 			items.add(item);
 		}
 		return items;
+	}
+
+	protected boolean isRelationEditable(){
+		return true;
 	}
 
 	protected void showAllAssignments(AjaxRequestTarget target) {
