@@ -117,6 +117,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
         AssignmentTablePanel panel = new AssignmentTablePanel<UserType>(ID_ASSIGNMENT_TABLE_PANEL,
                 assignmentsModel){
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected List<InlineMenuItem> createAssignmentMenu() {
                 List<InlineMenuItem> items = new ArrayList<>();
@@ -138,11 +140,17 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 items.add(item);
                 return items;
             }
-            
+
             @Override
-            		public IModel<String> getLabel() {
-            			return createStringResource("PageAssignmentsList.assignmentsToRequest");
-            		}
+            public IModel<String> getLabel() {
+                return createStringResource("PageAssignmentsList.assignmentsToRequest");
+            }
+
+            @Override
+            protected boolean isRelationEditable() {
+                return false;
+            }
+
         };
         mainForm.add(panel);
 
@@ -153,23 +161,23 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                         return getSessionStorage().getRoleCatalog().getTargetUserList();
                     }
                 },
-                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")){
+                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected String getUserButtonLabel(){
+            protected String getUserButtonLabel() {
                 return getTargetUserSelectionButtonLabel(getModelObject());
             }
 
             @Override
-            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
+            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target) {
                 super.onDeleteSelectedUsersPerformed(target);
                 getSessionStorage().getRoleCatalog().setTargetUserList(new ArrayList<>());
                 targetUserChangePerformed(target);
             }
 
             @Override
-            protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList){
+            protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList) {
                 getSessionStorage().getRoleCatalog().setTargetUserList(usersList);
                 targetUserChangePerformed(target);
             }
