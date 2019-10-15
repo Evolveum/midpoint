@@ -155,7 +155,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 			} finally {
 				result.computeStatusIfUnknown();
 				if (result.isTraced()) {
-					tracer.storeTrace(task, result);
+					tracer.storeTrace(task, result, null);
 				}
 			}
 

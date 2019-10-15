@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.task.quartzimpl.tracing;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
@@ -74,6 +74,8 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
 	private SystemConfigurationType systemConfiguration;            // can be null during some tests
 
+	private static final String OP_STORE_TRACE = TracerImpl.class.getName() + ".storeTrace";
+
 	private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
 	private static final String TRACE_DIR = MIDPOINT_HOME + "trace/";
 	private static final String ZIP_ENTRY_NAME = "trace.xml";
@@ -91,39 +93,57 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 	}
 
 	@Override
-	public void storeTrace(Task task, OperationResult result) {
-		CompiledTracingProfile compiledTracingProfile = result.getTracingProfile();
-		TracingProfileType tracingProfile = compiledTracingProfile.getDefinition();
-		result.clearTracingProfile();
+	public void storeTrace(Task task, OperationResult result, @Nullable OperationResult parentResult) {
+		OperationResult thisOpResult;
+		if (parentResult != null) {
+			thisOpResult = parentResult.createMinorSubresult(OP_STORE_TRACE);
+		} else {
+			thisOpResult = new OperationResult(OP_STORE_TRACE);
+		}
 
-		if (!Boolean.FALSE.equals(tracingProfile.isCreateTraceFile())) {
-			boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
-			Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
-			File file = createFileName(zip, tracingProfile, templateParameters);
-			try {
-				TracingOutputType tracingOutput = createTracingOutput(task, result, tracingProfile);
-				String xml = prismContext.xmlSerializer().serializeRealValue(tracingOutput);
-				if (zip) {
-					MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
-					LOGGER.info("Trace was written to {} ({} chars uncompressed)", file, xml.length());
-				} else {
-					try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
-						pw.write(xml);
-						LOGGER.info("Trace was written to {} ({} chars)", file, xml.length());
+		try {
+			CompiledTracingProfile compiledTracingProfile = result.getTracingProfile();
+			TracingProfileType tracingProfile = compiledTracingProfile.getDefinition();
+			result.clearTracingProfile();
+
+			if (!Boolean.FALSE.equals(tracingProfile.isCreateTraceFile())) {
+				boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
+				Map<String, String> templateParameters = createTemplateParameters(task,
+						result);      // todo evaluate lazily if needed
+				File file = createFileName(zip, tracingProfile, templateParameters);
+				try {
+					long start = System.currentTimeMillis();
+					TracingOutputType tracingOutput = createTracingOutput(task, result, tracingProfile);
+					String xml = prismContext.xmlSerializer().serializeRealValue(tracingOutput);
+					if (zip) {
+						MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
+						LOGGER.info("Trace was written to {} ({} chars uncompressed) in {} milliseconds", file, xml.length(),
+								System.currentTimeMillis() - start);
+					} else {
+						try (PrintWriter pw = new PrintWriter(new FileWriter(file))) {
+							pw.write(xml);
+							LOGGER.info("Trace was written to {} ({} chars) in {} milliseconds", file, xml.length(),
+									System.currentTimeMillis() - start);
+						}
 					}
+					if (!Boolean.FALSE.equals(tracingProfile.isCreateRepoObject())) {
+						ReportOutputType reportOutputObject = new ReportOutputType(prismContext)
+								.name(createObjectName(tracingProfile, templateParameters))
+								.archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE)
+								.filePath(file.getAbsolutePath())
+								.nodeRef(ObjectTypeUtil.createObjectRef(taskManager.getLocalNode(), prismContext));
+						repositoryService.addObject(reportOutputObject.asPrismObject(), null, thisOpResult);
+					}
+				} catch (IOException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't write trace ({})", e, file);
+					throw new SystemException(e);
 				}
-				if (!Boolean.FALSE.equals(tracingProfile.isCreateRepoObject())) {
-					ReportOutputType reportOutputObject = new ReportOutputType(prismContext)
-							.name(createObjectName(tracingProfile, templateParameters))
-							.archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE)
-							.filePath(file.getAbsolutePath())
-							.nodeRef(ObjectTypeUtil.createObjectRef(taskManager.getLocalNode(), prismContext));
-					repositoryService.addObject(reportOutputObject.asPrismObject(), null, result);
-				}
-			} catch (IOException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't write trace ({})", e, file);
-				throw new SystemException(e);
 			}
+		} catch (Throwable t) {
+			thisOpResult.recordFatalError(t);
+			throw t;
+		} finally {
+			thisOpResult.computeStatusIfUnknown();
 		}
 	}
 
@@ -135,9 +155,21 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		output.setEnvironment(createTracingEnvironmentDescription(task, tracingProfile));
 
 		OperationResultType resultBean = result.createOperationResultType();
-		output.setDictionary(extractDictionary(resultBean));
+
+		List<TraceDictionaryType> embeddedDictionaries = extractDictionaries(result);
+		TraceDictionaryType dictionary = extractDictionary(embeddedDictionaries, resultBean);
+		output.setDictionary(dictionary);
+		result.setExtractedDictionary(dictionary);
+		System.out.println("dictionary entries: " + output.getDictionary().getEntry().size());
 		output.setResult(resultBean);
 		return output;
+	}
+
+	private List<TraceDictionaryType> extractDictionaries(OperationResult result) {
+		return result.getResultStream()
+				.filter(r -> r.getExtractedDictionary() != null)
+				.map(OperationResult::getExtractedDictionary)
+				.collect(Collectors.toList());
 	}
 
 	@NotNull
@@ -171,11 +203,17 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 	// raw versions of ObjectReferenceType holding full object
 	private static class ExtractingVisitor implements Visitor {
 
+		private final long started = System.currentTimeMillis();
 		private final TraceDictionaryType dictionary;
+		private final int dictionaryId;
 		private final PrismContext prismContext;
+		private int comparisons = 0;
+		private int objectsChecked = 0;
+		private int objectsAdded = 0;
 
-		private ExtractingVisitor(TraceDictionaryType dictionary, PrismContext prismContext) {
+		private ExtractingVisitor(TraceDictionaryType dictionary, int dictionaryId, PrismContext prismContext) {
 			this.dictionary = dictionary;
+			this.dictionaryId = dictionaryId;
 			this.prismContext = prismContext;
 		}
 
@@ -198,40 +236,96 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 				//noinspection unchecked
 				PrismObject<? extends ObjectType> object = refVal.getObject();
 				if (object != null && !object.isEmpty()) {
-					long entryId = findOrCreateEntry(object);
+					String qualifiedEntryId = findOrCreateEntry(object);
 					refVal.setObject(null);
-					refVal.setOid(SchemaConstants.TRACE_DICTIONARY_PREFIX + entryId);
+					refVal.setOid(SchemaConstants.TRACE_DICTIONARY_PREFIX + qualifiedEntryId);
+					if (object.getDefinition() != null) {
+						refVal.setTargetType(object.getDefinition().getTypeName());
+					}
 				}
 			}
 		}
 
-		private long findOrCreateEntry(PrismObject<? extends ObjectType> object) {
-			long max = 0;
+		private String findOrCreateEntry(PrismObject<? extends ObjectType> object) {
+			long started = System.currentTimeMillis();
+			int maxEntryId = 0;
+
+			objectsChecked++;
+			PrismObject<? extends ObjectType> objectToStore = stripFetchResult(object);
+
 			for (TraceDictionaryEntryType entry : dictionary.getEntry()) {
 				PrismObject dictionaryObject = entry.getObject().asReferenceValue().getObject();
-				if (Objects.equals(object.getOid(), dictionaryObject.getOid()) &&   // todo remove if POV implements this
-						Objects.equals(object.getVersion(), dictionaryObject.getVersion()) &&   // todo remove if POV implements this
-						object.equals(dictionaryObject, EquivalenceStrategy.LITERAL)) {
-					return entry.getIdentifier();
+				if (Objects.equals(objectToStore.getOid(), dictionaryObject.getOid()) &&
+						Objects.equals(objectToStore.getVersion(), dictionaryObject.getVersion())) {
+					comparisons++;
+					boolean equals = objectToStore.equals(dictionaryObject);
+					if (equals) {
+						LOGGER.trace("Found existing entry #{}:{}: {} [in {} ms]", entry.getOriginDictionaryId(),
+								entry.getIdentifier(), objectToStore, System.currentTimeMillis() - started);
+						return entry.getOriginDictionaryId() + ":" + entry.getIdentifier();
+					} else {
+						LOGGER.trace("Found object with the same OID {} and same version '{}' but with different content",
+								objectToStore.getOid(), objectToStore.getVersion());
+					}
 				}
-				if (entry.getIdentifier() > max) {
-					max = entry.getIdentifier();
+				if (entry.getIdentifier() > maxEntryId) {
+					// We intentionally ignore context for entries.
+					maxEntryId = entry.getIdentifier();
 				}
 			}
-			long newId = max + 1;
-//			System.out.println("Inserting object as entry #" + newId + ": " + object);
+			int newEntryId = maxEntryId + 1;
+			LOGGER.trace("Inserting object as entry #{}:{}: {} [in {} ms]", dictionaryId, newEntryId, objectToStore,
+					System.currentTimeMillis()-started);
+
 			dictionary.beginEntry()
-					.identifier(newId)
-					.object(ObjectTypeUtil.createObjectRefWithFullObject(object, prismContext));
-			return newId;
+					.identifier(newEntryId)
+					.originDictionaryId(dictionaryId)
+					.object(ObjectTypeUtil.createObjectRefWithFullObject(objectToStore, prismContext));
+			objectsAdded++;
+			System.out.println("# of entries = " + dictionary.getEntry().size() + ", added = " + objectsAdded);
+			return dictionaryId + ":" + newEntryId;
+		}
+
+		@NotNull
+		private PrismObject<? extends ObjectType> stripFetchResult(PrismObject<? extends ObjectType> object) {
+			PrismObject<? extends ObjectType> objectToStore;
+			if (object.asObjectable().getFetchResult() != null) {
+				objectToStore = object.clone();
+				objectToStore.asObjectable().setFetchResult(null);
+			} else {
+				objectToStore = object;
+			}
+			return objectToStore;
+		}
+
+		private void logDiagnosticInformation() {
+			LOGGER.trace("Extracted dictionary: {} objects added in {} ms ({} total), using {} object comparisons while checking {} objects",
+					objectsAdded, System.currentTimeMillis()-started, dictionary.getEntry().size(), comparisons, objectsChecked);
 		}
 	}
 
-	private TraceDictionaryType extractDictionary(OperationResultType resultBean) {
+	private TraceDictionaryType extractDictionary(List<TraceDictionaryType> embeddedDictionaries, OperationResultType resultBean) {
 		TraceDictionaryType dictionary = new TraceDictionaryType(prismContext);
-		ExtractingVisitor extractingVisitor = new ExtractingVisitor(dictionary, prismContext);
+
+		embeddedDictionaries.forEach(embeddedDictionary ->
+                dictionary.getEntry().addAll(CloneUtil.cloneCollectionMembers(embeddedDictionary.getEntry())));
+
+		int newDictionaryId = generateDictionaryId(embeddedDictionaries);
+		dictionary.setIdentifier(newDictionaryId);
+
+		ExtractingVisitor extractingVisitor = new ExtractingVisitor(dictionary, newDictionaryId, prismContext);
 		extractDictionary(resultBean, extractingVisitor);
+		extractingVisitor.logDiagnosticInformation();
+
 		return dictionary;
+	}
+
+	private int generateDictionaryId(List<TraceDictionaryType> embedded) {
+        int max = embedded.stream()
+                .map(TraceDictionaryType::getIdentifier)
+                .max(Integer::compareTo)
+                .orElse(0);
+        return max + 1;
 	}
 
 	private void extractDictionary(OperationResultType resultBean, ExtractingVisitor extractingVisitor) {

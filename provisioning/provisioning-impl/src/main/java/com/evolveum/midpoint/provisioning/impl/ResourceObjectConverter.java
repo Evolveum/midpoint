@@ -1823,7 +1823,7 @@ public class ResourceObjectConverter {
 					} finally {
 						result.computeStatusIfUnknown();
 						if (tracingRequested) {
-							tracer.storeTrace(task, result);
+							tracer.storeTrace(task, result, parentResult);
 						}
 					}
 				} finally {

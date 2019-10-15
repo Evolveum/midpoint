@@ -293,7 +293,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				result.computeStatusIfUnknown();
 				if (result.isTraced()) {
 					System.out.println("Storing the trace.");
-					tracer.storeTrace(task, result);
+					tracer.storeTrace(task, result, null);
 				}
 				task.getResult().computeStatusIfUnknown();
 			}
