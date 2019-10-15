@@ -85,7 +85,7 @@
                 import com.evolveum.midpoint.schema.constants.*
 				import com.evolveum.midpoint.prism.delta.*
 
-				PLAIN_GROUP_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, 'CustomPlainGroupObjectClass')
+				GROUP_OBJECT_CLASS = new ItemName(MidPointConstants.NS_RI, 'GroupObjectClass')
 				TRIGGER_FIRE_AFTER = 60000
 				TRIGGER_SAFETY_MARGIN = 10000
 
@@ -125,7 +125,7 @@
 					ObjectDeltaType delta
 					itemDelta = new ItemDeltaType()
 					itemDelta.modificationType = eventType == 'MEMBERSHIP_ADD' ? ModificationTypeType.ADD : ModificationTypeType.DELETE
-					itemDelta.path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, 'member'))
+					itemDelta.path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, 'members'))
 					itemDelta.value.add(RawType.fromPropertyRealValue(subjectId, null, prismContext))
 					delta = new ObjectDeltaType()
 					delta.changeType = ChangeTypeType.MODIFY
@@ -136,7 +136,7 @@
 							.createForNamedUser(subjectId)
 					log.info('Recompute trigger for {}: {}', subjectId, added ? 'added' : 'not added (already present or user not found)')
 
-					return UcfChangeUtil.create(PLAIN_GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
+					return UcfChangeUtil.create(GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
 				} else if (eventType == 'GROUP_ADD' || eventType == 'GROUP_DELETE') {
 					groupName = esbEvent['name']
 					groupId = esbEvent['id']
@@ -155,7 +155,7 @@
 					} else {
 						delta = null
 					}
-					return UcfChangeUtil.create(PLAIN_GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
+					return UcfChangeUtil.create(GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
 				} else {
 					log.warn('Unsupported event type: {} -> {}', eventType, esbEvent)
 					return null

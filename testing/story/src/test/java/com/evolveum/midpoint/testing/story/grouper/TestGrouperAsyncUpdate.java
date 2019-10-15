@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.testing.story.grouper;
 
+import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -14,6 +16,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.ShadowAttributesAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismPropertyAsserter;
@@ -91,14 +94,18 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 	private static final File CHANGE_250 = new File(TEST_DIR, "change-250-banderson-delete-alumni.json");
 	private static final File CHANGE_310 = new File(TEST_DIR, "change-310-staff-delete.json");
 
-	private static final ItemName ATTR_MEMBER = new ItemName(MidPointConstants.NS_RI, "member");
+	private static final ItemName ATTR_MEMBER = new ItemName(MidPointConstants.NS_RI, "members");
 
 	private static final String DN_BANDERSON = "uid=banderson,ou=people,dc=example,dc=com";
 	private static final String DN_JLEWIS685 = "uid=jlewis685,ou=people,dc=example,dc=com";
 	private static final String DN_ALUMNI = "cn=alumni,ou=Affiliations,ou=Groups,dc=example,dc=com";
 	private static final String DN_STAFF = "cn=staff,ou=Affiliations,ou=Groups,dc=example,dc=com";
 
+	private static final String GROUPER_DUMMY_RESOURCE_ID = "grouper";
 	private PrismObject<ResourceType> resourceGrouper;
+	private DummyResourceContoller grouperResourceCtl;
+	private DummyResource grouperDummyResource;
+
 	private PrismObject<ResourceType> resourceLdap;
 
 	private String orgAlumniOid;
@@ -118,7 +125,12 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		repoAddObject(LIB_GROUPER, initResult);
 
+		grouperResourceCtl = DummyResourceContoller.create(GROUPER_DUMMY_RESOURCE_ID);
+		grouperResourceCtl.populateWithDefaultSchema();
+		grouperDummyResource = grouperResourceCtl.getDummyResource();
 		resourceGrouper = importAndGetObjectFromFile(ResourceType.class, RESOURCE_GROUPER.file, RESOURCE_GROUPER.oid, initTask, initResult);
+		grouperResourceCtl.setResource(resourceGrouper);
+
 		resourceLdap = importAndGetObjectFromFile(ResourceType.class, RESOURCE_LDAP.file, RESOURCE_LDAP.oid, initTask, initResult);
 		openDJController.setResource(resourceLdap);
 
@@ -196,6 +208,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		MockAsyncUpdateSource.INSTANCE.reset();
 		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_110));
+		grouperDummyResource.addGroup(new DummyGroup(ALUMNI_NAME));
 
 		// WHEN
 
@@ -247,7 +260,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		MockAsyncUpdateSource.INSTANCE.reset();
 		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_115));
-
+		grouperDummyResource.addGroup(new DummyGroup(STAFF_NAME));
 		// WHEN
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
@@ -298,6 +311,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		MockAsyncUpdateSource.INSTANCE.reset();
 		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_200));
+		grouperDummyResource.getGroupByName(ALUMNI_NAME).addMember(BANDERSON_USERNAME);
 
 		// WHEN
 
@@ -357,6 +371,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		MockAsyncUpdateSource.INSTANCE.reset();
 		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_210));
+		grouperDummyResource.getGroupByName(STAFF_NAME).addMember(BANDERSON_USERNAME);
 
 		// WHEN
 
@@ -420,6 +435,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		MockAsyncUpdateSource.INSTANCE.reset();
 		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_220));
+		grouperDummyResource.getGroupByName(ALUMNI_NAME).addMember(JLEWIS685_USERNAME);
 
 		// WHEN
 
@@ -450,6 +466,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		MockAsyncUpdateSource.INSTANCE.reset();
 		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_221));
+		grouperDummyResource.getGroupByName(STAFF_NAME).addMember(JLEWIS685_USERNAME);
 
 		// WHEN
 
@@ -512,6 +529,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		MockAsyncUpdateSource.INSTANCE.reset();
 		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_230));
+		grouperDummyResource.getGroupByName(ALUMNI_NAME).addMember(NOBODY_USERNAME);
 
 		// WHEN
 
@@ -538,6 +556,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		MockAsyncUpdateSource.INSTANCE.reset();
 		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_250));
+		grouperDummyResource.getGroupByName(ALUMNI_NAME).removeMember(BANDERSON_USERNAME);
 
 		// WHEN
 
@@ -597,6 +616,7 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 
 		MockAsyncUpdateSource.INSTANCE.reset();
 		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_310));
+		grouperDummyResource.deleteGroupByName(STAFF_NAME);
 
 		executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_BANDERSON.oid), null, task, result);
 		executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_JLEWIS685.oid), null, task, result);
