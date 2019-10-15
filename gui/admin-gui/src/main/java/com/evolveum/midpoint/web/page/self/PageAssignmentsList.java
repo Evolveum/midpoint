@@ -278,9 +278,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             result.recomputeStatus();
         }
 
-        findBackgroundTaskOperation(result);
-        if (backgroundTaskOperationResult != null
-                && StringUtils.isNotEmpty(backgroundTaskOperationResult.getAsynchronousOperationReference())){
+        if (hasBackgroundTaskOperation(result)){
             result.setMessage(createStringResource("PageAssignmentsList.requestInProgress").getString());
             showResult(result);
             clearStorage();
@@ -340,9 +338,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                         "Failed to execute operaton " + result.getOperation(), e);
                 target.add(getFeedbackPanel());
             }
-            findBackgroundTaskOperation(result);
-            if (backgroundTaskOperationResult != null
-                    && StringUtils.isNotEmpty(backgroundTaskOperationResult.getAsynchronousOperationReference())) {
+            if (hasBackgroundTaskOperation(result)) {
                 result.setMessage(createStringResource("PageAssignmentsList.requestInProgress").getString());
                 showResult(result);
                 clearStorage();
@@ -411,24 +407,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
 
-    private void findBackgroundTaskOperation(OperationResult result){
-        if (backgroundTaskOperationResult != null) {
-            return;
-        } else {
-            List<OperationResult> subresults = result.getSubresults();
-            if (subresults == null || subresults.size() == 0) {
-                return;
-            }
-            for (OperationResult subresult : subresults) {
-                if (subresult.getOperation().equals(OPERATION_WF_TASK_CREATED)) {
-                    backgroundTaskOperationResult = subresult;
-                    return;
-                } else {
-                    findBackgroundTaskOperation(subresult);
-                }
-            }
-        }
-        return;
+    private boolean hasBackgroundTaskOperation(OperationResult result){
+        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        return StringUtils.isNotEmpty(caseOid);
     }
 
     private void handleModifyAssignmentDelta(AssignmentEditorDto assDto,
