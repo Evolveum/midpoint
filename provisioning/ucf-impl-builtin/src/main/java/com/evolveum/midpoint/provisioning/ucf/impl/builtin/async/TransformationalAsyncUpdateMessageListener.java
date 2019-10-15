@@ -48,6 +48,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -95,6 +96,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 			securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
 
 			Task task = taskManager.createTaskInstance(OP_ON_MESSAGE_PREPARATION);
+			task.setChannel(CHANGE_CHANNEL_ASYNC_UPDATE_URI);
 			if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
 				task.setOwner(((MidPointPrincipal) authentication.getPrincipal()).getUser().asPrismObject().clone());
 			}

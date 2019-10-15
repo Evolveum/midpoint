@@ -149,6 +149,11 @@
             </correlation>
             <reaction>
                 <situation>linked</situation>
+                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#asyncUpdate</channel>
+                <synchronize>false</synchronize>
+            </reaction>
+            <reaction>
+                <situation>linked</situation>
                 <synchronize>true</synchronize>
             </reaction>
             <reaction>

@@ -322,7 +322,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		String desc = "synchronization divider type ";
 		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, syncCtx.getApplicableShadow(), null,
 				syncCtx.getResource(), syncCtx.getSystemConfiguration(), null, syncCtx.getPrismContext());
-		variables.put(ExpressionConstants.VAR_CHANNEL, syncCtx.getChanel(), String.class);
+		variables.put(ExpressionConstants.VAR_CHANNEL, syncCtx.getChannel(), String.class);
 		try {
 			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 			//noinspection unchecked
@@ -380,7 +380,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		if (!syncCtx.hasApplicablePolicy()) {
 			String message = "SYNCHRONIZATION no matching policy for " + syncCtx.getApplicableShadow() + " ("
 					+ syncCtx.getApplicableShadow().asObjectable().getObjectClass() + ") " + " on " + syncCtx.getResource()
-					+ ", ignoring change from channel " + syncCtx.getChanel();
+					+ ", ignoring change from channel " + syncCtx.getChannel();
 			LOGGER.debug(message);
 			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, false);
 			executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, subResult);
@@ -392,7 +392,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		
 		if (!syncCtx.isSynchronizationEnabled()) {
 			String message = "SYNCHRONIZATION is not enabled for " + syncCtx.getResource()
-					+ " ignoring change from channel " + syncCtx.getChanel();
+					+ " ignoring change from channel " + syncCtx.getChannel();
 			LOGGER.debug(message);
 			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true);
 			executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, subResult);

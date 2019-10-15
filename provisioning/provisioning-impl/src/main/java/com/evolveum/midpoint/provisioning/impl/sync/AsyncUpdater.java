@@ -45,6 +45,7 @@ public class AsyncUpdater {
         InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
         ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, callerTask, callerResult);
+
         ChangeListener listener = (change, listenerTask, listenerResult) -> {
             ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, false);
             changeProcessor.execute(request, listenerTask, null, listenerResult);

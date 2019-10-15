@@ -56,7 +56,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 	private PrismObject<ShadowType> currentShadow;
 	private PrismObject<ResourceType> resource;
 	private PrismObject<SystemConfigurationType> systemConfiguration;
-	private String chanel;
+	private String channel;
 	private ExpressionProfile expressionProfile;
 	
 	private Task task;
@@ -81,11 +81,11 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 
 	private PrismContext prismContext;
 	
-	public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow, PrismObject<ResourceType> resource, String chanel, PrismContext prismContext, Task task, OperationResult result) {
+	public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow, PrismObject<ResourceType> resource, String channel, PrismContext prismContext, Task task, OperationResult result) {
 		this.applicableShadow = applicableShadow;
 		this.currentShadow = currentShadow;
 		this.resource = resource;
-		this.chanel = chanel;
+		this.channel = channel;
 		this.task = task;
 		this.result = result;
 		this.prismContext = prismContext;
@@ -125,7 +125,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 		return isApplicable;
 	}
 	
-	//TODO multi-threded tasks?
+	//TODO multi-threaded tasks?
 	private <T> T getTaskPropertyValue(QName propertyName) {
 		PrismProperty<T> prop = task.getExtensionPropertyOrClone(ItemName.fromQName(propertyName));
 		if (prop == null || prop.isEmpty()) {
@@ -197,19 +197,18 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 				throw new ConfigurationException("No situation defined for a reaction in " + resource);
 			}
 			if (reactionSituation.equals(situation)) {
-				if (syncReaction.getChannel() != null && !syncReaction.getChannel().isEmpty()) {
+				if (syncReaction.getChannel().isEmpty()) {
+					defaultReaction = syncReaction;
+				} else {
 					if (syncReaction.getChannel().contains("") || syncReaction.getChannel().contains(null)) {
 						defaultReaction = syncReaction;
 					}
-					if (syncReaction.getChannel().contains(chanel)) {
+					if (syncReaction.getChannel().contains(channel)) {
 						reaction = syncReaction;
 						return reaction;
 					} else {
-						LOGGER.trace("Skipping reaction {} because the channel does not match {}", reaction, chanel);
-						continue;
+						LOGGER.trace("Skipping reaction {} because the channel does not match {}", reaction, channel);
 					}
-				} else {
-					defaultReaction = syncReaction;
 				}
 			}
 		}
@@ -243,8 +242,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 	}
 	
 	public Boolean isLimitPropagation() {
-		if (StringUtils.isNotBlank(chanel)) {
-			QName channelQName = QNameUtil.uriToQName(chanel);
+		if (StringUtils.isNotBlank(channel)) {
+			QName channelQName = QNameUtil.uriToQName(channel);
 			// Discovery channel is used when compensating some inconsistent
 			// state. Therefore we do not want to propagate changes to other
 			// resources. We only want to resolve the problem and continue in
@@ -344,8 +343,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 	public PrismObject<SystemConfigurationType> getSystemConfiguration() {
 		return systemConfiguration;
 	}
-	public String getChanel() {
-		return chanel;
+	public String getChannel() {
+		return channel;
 	}
 	public void setApplicableShadow(PrismObject<ShadowType> applicableShadow) {
 		this.applicableShadow = applicableShadow;
@@ -359,8 +358,8 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 	public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
 		this.systemConfiguration = systemConfiguration;
 	}
-	public void setChanel(String chanel) {
-		this.chanel = chanel;
+	public void setChannel(String channel) {
+		this.channel = channel;
 	}
 	
 //	public SynchronizationReactionType getReaction() {
@@ -448,7 +447,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 		DebugUtil.debugDumpWithLabelLn(sb, "currentShadow", currentShadow, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "resource", resource, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "systemConfiguration", systemConfiguration, indent + 1);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "chanel", chanel, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "channel", channel, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "expressionProfile", expressionProfile, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "objectSynchronization", objectSynchronization, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "focusClass", focusClass, indent + 1);

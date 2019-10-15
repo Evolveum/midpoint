@@ -160,7 +160,6 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		TraceDictionaryType dictionary = extractDictionary(embeddedDictionaries, resultBean);
 		output.setDictionary(dictionary);
 		result.setExtractedDictionary(dictionary);
-		System.out.println("dictionary entries: " + output.getDictionary().getEntry().size());
 		output.setResult(resultBean);
 		return output;
 	}
@@ -282,7 +281,6 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 					.originDictionaryId(dictionaryId)
 					.object(ObjectTypeUtil.createObjectRefWithFullObject(objectToStore, prismContext));
 			objectsAdded++;
-			System.out.println("# of entries = " + dictionary.getEntry().size() + ", added = " + objectsAdded);
 			return dictionaryId + ":" + newEntryId;
 		}
 

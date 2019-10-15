@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -313,6 +314,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 		MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_200));
 		grouperDummyResource.getGroupByName(ALUMNI_NAME).addMember(BANDERSON_USERNAME);
 
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+
 		// WHEN
 
 		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_GROUPER.oid);
@@ -328,6 +331,10 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 		assertUserAfterByUsername(BANDERSON_USERNAME)
 				.triggers()
 				.assertTriggers(1);
+
+		// Async update is not counted as a connector operation (at least not now). We should have no other ops,
+		// in particular we do NOT want the clockwork to run! (MID-5853)
+		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 0);
 	}
 
 	/**
