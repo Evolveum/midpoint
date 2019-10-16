@@ -233,13 +233,19 @@ public class ShadowCaretaker {
 		if (repoShadow == null) {
 			return resourceShadow;
 		}
-		List<PendingOperationType> pendingOperations = repoShadow.asObjectable().getPendingOperation();
+
 		PrismObject<ShadowType> resultShadow;
 		if (resourceShadow == null) {
 			resultShadow = repoShadow;
 		} else {
 			resultShadow = resourceShadow;
 		}
+
+		if (ShadowUtil.isDead(resultShadow)) {
+			return resultShadow;
+		}
+
+		List<PendingOperationType> pendingOperations = repoShadow.asObjectable().getPendingOperation();
 		if (pendingOperations.isEmpty()) {
 			return resultShadow;
 		}

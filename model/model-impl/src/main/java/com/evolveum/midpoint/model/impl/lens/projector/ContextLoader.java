@@ -647,9 +647,9 @@ public class ContextLoader {
 			}
 			LensProjectionContext existingAccountContext = findAccountContext(oid, context);
 
-			if (!canBeLoaded(context, existingAccountContext)) {
-				continue;
-			}
+//			if (!canBeLoaded(context, existingAccountContext)) {
+//				continue;
+//			}
 
 			if (existingAccountContext != null) {
 				// TODO: do we need to reload the account inside here? yes we need
@@ -981,15 +981,15 @@ public class ContextLoader {
 		}
 	}
 
-	private <F extends ObjectType> boolean canBeLoaded(LensContext<F> context, LensProjectionContext projCtx){
-		if (QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY).equals(context.getChannel()) && projCtx == null && ModelExecuteOptions.isLimitPropagation(context.getOptions())) {
-			// avoid to create projection context if the channel which
-			// triggered this operation is discovery..we need only
-			// projection context of discovered shadow
-			return false;
-		}
-		return true;
-	}
+//	private <F extends ObjectType> boolean canBeLoaded(LensContext<F> context, LensProjectionContext projCtx){
+//		if (QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY).equals(context.getChannel()) && projCtx == null && ModelExecuteOptions.isLimitPropagation(context.getOptions())) {
+//			// avoid to create projection context if the channel which
+//			// triggered this operation is discovery..we need only
+//			// projection context of discovered shadow
+//			return false;
+//		}
+//		return true;
+//	}
 
 	private <F extends FocusType> LensProjectionContext getOrCreateAccountContext(LensContext<F> context,
 			PrismObject<ShadowType> projection, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -1034,7 +1034,7 @@ public class ContextLoader {
 							LOGGER.trace("Projection {} already exists in context\nExisting:\n{}\nNew:\n{}", rsd,
 									existingShadow.debugDump(1), newShadow.debugDump(1));
 						}
-						if (!ShadowUtil.isDead(existingShadow.asObjectable())) {
+						if (!ShadowUtil.isDead(newShadow.asObjectable())) {
 							throw new PolicyViolationException("Projection "+rsd+" already exists in context (existing "+existingShadow+", new "+projection);
 						}
 						// Dead shadow. This is somehow expected, fix it and we can go on
