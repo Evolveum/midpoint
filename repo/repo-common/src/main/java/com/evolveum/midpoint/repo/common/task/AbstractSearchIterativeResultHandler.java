@@ -418,7 +418,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			}
 
 			if (tracingRequested) {
-				taskManager.getTracer().storeTrace(workerTask, result);
+				taskManager.getTracer().storeTrace(workerTask, result, parentResult);
 				TracingAppender.terminateCollecting();  // todo reconsider
 				LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
 			}

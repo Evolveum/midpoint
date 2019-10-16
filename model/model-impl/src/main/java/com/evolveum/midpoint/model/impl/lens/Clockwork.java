@@ -236,7 +236,7 @@ public class Clockwork {
 		} finally {
 			recordTraceAtEnd(context, trace, result);
 			if (tracingRequested) {
-				tracer.storeTrace(task, result);
+				tracer.storeTrace(task, result, parentResult);
 				TracingAppender.terminateCollecting();  // todo reconsider
 				LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
 			}

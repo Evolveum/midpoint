@@ -91,13 +91,14 @@ public class WorkItemManager {
 			throw e;
 		} finally {
             result.computeStatusIfUnknown();
-            storeTraceIfRequested(tracingRequested, task, result);
+            storeTraceIfRequested(tracingRequested, task, result, parentResult);
         }
     }
 
-    private void storeTraceIfRequested(boolean tracingRequested, Task task, OperationResult result) {
+    private void storeTraceIfRequested(boolean tracingRequested, Task task, OperationResult result,
+		    OperationResult parentResult) {
         if (tracingRequested) {
-            tracer.storeTrace(task, result);
+            tracer.storeTrace(task, result, parentResult);
             TracingAppender.terminateCollecting();  // todo reconsider
             LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
         }
@@ -131,7 +132,7 @@ public class WorkItemManager {
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
-            storeTraceIfRequested(tracingRequested, task, result);
+            storeTraceIfRequested(tracingRequested, task, result, parentResult);
         }
     }
 
@@ -153,7 +154,7 @@ public class WorkItemManager {
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
-            storeTraceIfRequested(tracingRequested, task, result);
+            storeTraceIfRequested(tracingRequested, task, result, parentResult);
 		}
 	}
 
@@ -175,7 +176,7 @@ public class WorkItemManager {
 			throw e;
         } finally {
 			result.computeStatusIfUnknown();
-            storeTraceIfRequested(tracingRequested, task, result);
+            storeTraceIfRequested(tracingRequested, task, result, parentResult);
 		}
     }
 
@@ -215,7 +216,7 @@ public class WorkItemManager {
 			throw new IllegalStateException(e);
 		} finally {
 			result.computeStatusIfUnknown();
-            storeTraceIfRequested(tracingRequested, task, result);
+            storeTraceIfRequested(tracingRequested, task, result, parentResult);
         }
 	}
 

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
+import org.jetbrains.annotations.Nullable;
 
 /**
  *
@@ -22,8 +23,9 @@ public interface Tracer {
 	 *
 	 * @param task Task containing the context information necessary e.g. to derive name of the trace file.
 	 * @param result Result that is to be serialized and stored.
+	 * @param parentResult Parent result where this operation should be recorded (if any).
 	 */
-	void storeTrace(Task task, OperationResult result);
+	void storeTrace(Task task, OperationResult result, @Nullable OperationResult parentResult);
 
 	/**
 	 * Resolves a tracing profile - i.e. replaces references to other (named) profiles with their content.

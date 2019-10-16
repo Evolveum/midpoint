@@ -153,6 +153,12 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private boolean collectingLogEntries;               // NOT SERIALIZED
 	private boolean startedLoggingOverride;             // NOT SERIALIZED
 
+	/**
+	 * After a trace rooted at this operation result is stored, the dictionary that was extracted is stored here.
+	 * It is necessary to correctly interpret traces in this result and its subresults.
+	 */
+	private TraceDictionaryType extractedDictionary;    // NOT SERIALIZED
+
 	private final List<TraceType> traces = new ArrayList<>();
 
 	// Caller can specify the reason of the operation invocation.
@@ -2413,5 +2419,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public List<LogSegmentType> getLogSegments() {
 		return logSegments;
+	}
+
+	public TraceDictionaryType getExtractedDictionary() {
+		return extractedDictionary;
+	}
+
+	public void setExtractedDictionary(TraceDictionaryType extractedDictionary) {
+		this.extractedDictionary = extractedDictionary;
 	}
 }

@@ -85,6 +85,15 @@ public class ChangeProcessor {
                 return;
             }
 
+            // This is a bit of hack to propagate information about async update channel to upper layers
+            // e.g. to implement MID-5853. In async update scenario the task here is the newly-created
+            // that is used to execute the request. On the other hand, the task in globalCtx is the original
+            // one that was used to start listening for changes. TODO This is to be cleaned up.
+            // But for the time being let's forward with this hack.
+            if (SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI.equals(task.getChannel())) {
+                ctx.setChannelOverride(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+            }
+
             if (change.getObjectDelta() != null) {
                 shadowCaretaker.applyAttributesDefinition(ctx, change.getObjectDelta());
             }

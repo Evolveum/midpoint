@@ -37,7 +37,9 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.test.asserter.LinksAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.ShadowReferenceAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -2719,7 +2721,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	
 	// This should run last. It starts a task that may interfere with other tests
 	//MID-5844
-	@Test(enabled = false)
+	@Test//(enabled = false)
 	public void test800Reconciliation() throws Exception {
 		final String TEST_NAME = "test800Reconciliation";
         displayTestTitle(TEST_NAME);
@@ -2777,9 +2779,37 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 		assertRepoShadow(ACCOUNT_DENIELS_OID)
 				.assertDead();
 
-		String elaineAccountOid = assertUserOneAccountRef(USER_ELAINE_OID);
-		modifiedAccount = checkNormalizedShadowBasic(elaineAccountOid, "elaine", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
-		assertAttribute(modifiedAccount, getOpenDjSecondaryIdentifierQName(), "uid=elaine,ou=people,dc=example,dc=com");
+		LinksAsserter linksAsserter = assertUser(USER_ELAINE_OID, "User after recon")
+				.assertLinks(2)
+				.links();
+
+		ShadowReferenceAsserter notDeadShadow = linksAsserter.by()
+						.dead(false)
+						.find();
+
+
+		assertModelShadow(notDeadShadow.getOid())
+							.display()
+							.attributes()
+								.assertHasPrimaryIdentifier()
+								.assertHasSecondaryIdentifier()
+								.end()
+							.end();
+
+		ShadowReferenceAsserter deadShadow = linksAsserter.by()
+						.dead(true)
+						.find();
+
+		assertModelShadowNoFetch(deadShadow.getOid())
+							.display()
+							.attributes()
+								.assertNoPrimaryIdentifier()
+							.end()
+							.pendingOperations()
+								.singleOperation()
+									.display()
+									.delta()
+									.assertAdd();
 
 		accountOid = assertUserOneAccountRef(USER_JACKIE_OID);
 		ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, "jack2", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
@@ -2789,7 +2819,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	}
 
 	//MID-5844
-	@Test(enabled = false)
+	@Test//(enabled = false)
 	public void test801TestReconciliationRename() throws Exception {
 		final String TEST_NAME = "test801TestReconciliationRename";
         displayTestTitle(TEST_NAME);

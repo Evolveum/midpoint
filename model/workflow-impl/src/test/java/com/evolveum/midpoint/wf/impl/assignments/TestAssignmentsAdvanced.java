@@ -1212,7 +1212,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 		result.computeStatus();
 		//noinspection ConstantConditions
 		if (TRACE) {
-			tracer.storeTrace(task, result);
+			tracer.storeTrace(task, result, null);
 		}
 
 		// we do not assert success here, because there are (intentional) exceptions in some of the expressions

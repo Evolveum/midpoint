@@ -116,7 +116,7 @@ public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerVa
 
 	// TODO consider the strategy
 	@Override
-	public int hashCode(ParameterizedEquivalenceStrategy strategy) {
+	public int hashCode(@NotNull ParameterizedEquivalenceStrategy strategy) {
 		return Objects.hash(super.hashCode(strategy), oid);
 	}
 

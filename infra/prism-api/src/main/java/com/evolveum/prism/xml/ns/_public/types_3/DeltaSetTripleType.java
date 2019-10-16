@@ -29,7 +29,7 @@ import java.util.List;
     "plus",
     "minus"
 })
-public class DeltaSetTripleType implements Serializable, JaxbVisitable {
+public class DeltaSetTripleType implements Serializable, JaxbVisitable, Cloneable {
 
     @XmlElement
     @Raw
