@@ -802,7 +802,7 @@ public class TestTrafo extends AbstractStoryTest {
 	}
 
 	/**
-	 * Attempt to add two employees that are boh "John Smith". This is the first user. Everything shouyld do as normal.
+	 * Attempt to add two employees that are boh "John Smith". This is the first user. Everything should work as normal.
 	 * Note: this is a different case than jack-angelica. Jack and Angelica are "externists". Smithes are employees (type "T")
 	 */
 	@Test
@@ -821,8 +821,7 @@ public class TestTrafo extends AbstractStoryTest {
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userSmith = getUser(USER_SMITH111_OID);
 		display("User smith111 after change execution", userSmith);
@@ -942,8 +941,7 @@ public class TestTrafo extends AbstractStoryTest {
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userSmith = getUser(USER_SMITH222_OID);
 		display("User smith222 after change execution", userSmith);

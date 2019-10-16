@@ -466,6 +466,9 @@ public abstract class DummyObject implements DebugDumpable {
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(getClass().getSimpleName());
 		sb.append(": ").append(name);
+		if (id != null && !id.equals(name)) {
+			sb.append(" (").append(id).append(")");
+		}
 		if (!auxiliaryObjectClassNames.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabelToString(sb, "Auxiliary object classes", auxiliaryObjectClassNames, indent + 1);
