@@ -72,7 +72,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
 		LOGGER.trace("Received event notification with the description: {}", eventDescription.debugDumpLazily());
 
-		if (eventDescription.getCurrentShadow() == null && eventDescription.getDelta() == null) {
+		if (eventDescription.getCurrentResourceObject() == null && eventDescription.getDelta() == null) {
 			throw new IllegalStateException("Neither current shadow, nor delta specified. It is required to have at least one of them specified.");
 		}
 
@@ -84,12 +84,12 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
 		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
 
-		// TODO reconsider this
+		// TODO reconsider this... MID-5834 (e.g. is this OK with index-only attributes? probably not)
 		if (ctx.getCachingStrategy() == CachingStategyType.PASSIVE) {
-			if (eventDescription.getCurrentShadow() == null && eventDescription.getOldShadow() != null && eventDescription.getDelta() != null) {
-				PrismObject<ShadowType> newShadow = eventDescription.getOldShadow().clone();
+			if (eventDescription.getCurrentResourceObject() == null && eventDescription.getOldRepoShadow() != null && eventDescription.getDelta() != null) {
+				PrismObject<ShadowType> newShadow = eventDescription.getOldRepoShadow().clone();
 				eventDescription.getDelta().applyTo(newShadow);
-				eventDescription.setCurrentShadow(newShadow);
+				eventDescription.setCurrentResourceObject(newShadow);
 			}
 		}
 
@@ -107,8 +107,9 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 			LOGGER.warn("More than one primary identifier real value in {}: {}", eventDescription, primaryIdentifierRealValues);
 			primaryIdentifierRealValue = null;
 		}
-		Change change = new Change(primaryIdentifierRealValue, primaryIdentifiers, eventDescription.getCurrentShadow(),
-				eventDescription.getOldShadow(), eventDescription.getDelta());
+		Change change = new Change(primaryIdentifierRealValue, primaryIdentifiers, eventDescription.getCurrentResourceObject(),
+				eventDescription.getDelta());
+		change.setOldRepoShadow(eventDescription.getOldRepoShadow());
 		change.setObjectClassDefinition(ShadowUtil.getObjectClassDefinition(shadow));
 
 		LOGGER.trace("Starting to synchronize change: {}", change);
@@ -118,12 +119,12 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
 	private void applyDefinitions(ResourceEventDescription eventDescription,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		if (eventDescription.getCurrentShadow() != null){
-			shadowCache.applyDefinition(eventDescription.getCurrentShadow(), parentResult);
+		if (eventDescription.getCurrentResourceObject() != null){
+			shadowCache.applyDefinition(eventDescription.getCurrentResourceObject(), parentResult);
 		}
 
-		if (eventDescription.getOldShadow() != null){
-			shadowCache.applyDefinition(eventDescription.getOldShadow(), parentResult);
+		if (eventDescription.getOldRepoShadow() != null){
+			shadowCache.applyDefinition(eventDescription.getOldRepoShadow(), parentResult);
 		}
 
 		if (eventDescription.getDelta() != null) {

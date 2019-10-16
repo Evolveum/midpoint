@@ -7,15 +7,20 @@
 
 package com.evolveum.midpoint.provisioning.impl.sync;
 
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
-import com.evolveum.midpoint.provisioning.impl.ShadowManager;
+import com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -80,21 +85,30 @@ public class ChangeProcessor {
                 return;
             }
 
+            // This is a bit of hack to propagate information about async update channel to upper layers
+            // e.g. to implement MID-5853. In async update scenario the task here is the newly-created
+            // that is used to execute the request. On the other hand, the task in globalCtx is the original
+            // one that was used to start listening for changes. TODO This is to be cleaned up.
+            // But for the time being let's forward with this hack.
+            if (SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI.equals(task.getChannel())) {
+                ctx.setChannelOverride(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+            }
+
             if (change.getObjectDelta() != null) {
                 shadowCaretaker.applyAttributesDefinition(ctx, change.getObjectDelta());
             }
-            if (change.getOldShadow() != null) {
-                shadowCaretaker.applyAttributesDefinition(ctx, change.getOldShadow());
+            if (change.getOldRepoShadow() != null) {
+                shadowCaretaker.applyAttributesDefinition(ctx, change.getOldRepoShadow());
             }
-            if (change.getCurrentShadow() != null) {
-                shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());  // maybe redundant
+            if (change.getCurrentResourceObject() != null) {
+                shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentResourceObject());  // maybe redundant
             }
 
             preProcessChange(ctx, change, result);
 
             // This is the case when we want to skip processing of change because the shadow was not found nor created.
             // The usual reason is that this is the delete delta and the object was already deleted on both resource and in repo.
-            if (change.getOldShadow() == null) {
+            if (change.getOldRepoShadow() == null) {
                 assert change.isDelete();
                 LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was "
                         + "deleted on the resource meantime).");
@@ -181,17 +195,17 @@ public class ChangeProcessor {
             } else {
                 // A specialty for DELETE changes: we try to determine the object class if not specified in the change
                 // It is needed e.g. for some LDAP servers doing live synchronization.
-                if (change.getOldShadow() == null) {
+                if (change.getOldRepoShadow() == null) {
                     PrismObject<ShadowType> existing = shadowManager.findOrAddShadowFromChange(globalCtx, change, parentResult);
                     if (existing == null) {
                         LOGGER.debug("No old shadow for delete synchronization event {}, we probably did not know about "
                                 + "that object anyway, so well be ignoring this event", change);
                         return null;
                     } else {
-                        change.setOldShadow(existing);
+                        change.setOldRepoShadow(existing);
                     }
                 }
-                return globalCtx.spawn(change.getOldShadow());
+                return globalCtx.spawn(change.getOldRepoShadow());
             }
         } else {
             return globalCtx.spawn(change.getObjectClassDefinition().getTypeName());
@@ -208,11 +222,11 @@ public class ChangeProcessor {
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ObjectNotFoundException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
-        if (change.getOldShadow() == null) {
+        if (change.getOldRepoShadow() == null) {
             PrismObject<ShadowType> repoShadow = shadowManager.findOrAddShadowFromChange(ctx, change, parentResult);
             if (repoShadow != null) {
                 shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
-                change.setOldShadow(repoShadow);
+                change.setOldRepoShadow(repoShadow);
             } else {
                 assert change.isDelete();
                 LOGGER.debug("No old shadow for synchronization event {}, the shadow must be gone in the meantime "
@@ -221,46 +235,54 @@ public class ChangeProcessor {
             }
         }
 
-        @NotNull PrismObject<ShadowType> oldShadow = change.getOldShadow();
+        @NotNull PrismObject<ShadowType> oldShadow = change.getOldRepoShadow();
         LOGGER.trace("Processing change, old shadow: {}", ShadowUtil.shortDumpShadow(oldShadow));
 
         ProvisioningUtil.setProtectedFlag(ctx, oldShadow, matchingRuleRegistry, relationRegistry);
 
-        if (change.getCurrentShadow() == null && !change.isDelete()) {
-            // Temporary measure: let us determine the current shadow; either by fetching it from the resource
+        if (change.getCurrentResourceObject() == null && !change.isDelete()) {
+            LOGGER.trace("Going to compute current resource object because it's null and delta is not delete");
+            // Temporary measure: let us determine the current resource object; either by fetching it from the resource
             // (if possible) or by taking cached values and applying the delta. In the future we might implement
             // pure delta changes that do not need to know the current state.
             if (change.isAdd()) {
-                change.setCurrentShadow(change.getObjectDelta().getObjectToAdd().clone());
+                change.setCurrentResourceObject(change.getObjectDelta().getObjectToAdd().clone());
+                LOGGER.trace("...taken from ADD delta:\n{}", change.getCurrentResourceObject().debugDumpLazily());
             } else {
                 if (ctx.getCachingStrategy() == CachingStategyType.PASSIVE) {
-                    PrismObject<ShadowType> currentShadow = oldShadow.clone();
+                    PrismObject<ShadowType> resourceObject = oldShadow.clone();     // this might not be correct w.r.t. index-only attributes!
                     if (change.getObjectDelta() != null) {
-                        change.getObjectDelta().applyTo(currentShadow);
+                        change.getObjectDelta().applyTo(resourceObject);
+                        markIndexOnlyItemsAsIncomplete(resourceObject, change.getObjectDelta(), ctx);
+                        LOGGER.trace("...taken from old shadow + delta:\n{}", resourceObject.debugDumpLazily());
+                    } else {
+                        LOGGER.trace("...taken from old shadow:\n{}", resourceObject.debugDumpLazily());
                     }
-                    change.setCurrentShadow(currentShadow);
+                    change.setCurrentResourceObject(resourceObject);
                 } else {
                     // no caching; let us retrieve the object from the resource
                     Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
                             .doNotDiscovery().build();
-                    PrismObject<ShadowType> currentShadow;
+                    PrismObject<ShadowType> resourceObject;
                     try {
-                        currentShadow = shadowCache.getShadow(oldShadow.getOid(), oldShadow, options, ctx.getTask(), parentResult);
+                        resourceObject = shadowCache.getShadow(oldShadow.getOid(), oldShadow, options, ctx.getTask(), parentResult);
                     } catch (ObjectNotFoundException e) {
                         // The object on the resource does not exist (any more?).
                         LOGGER.warn("Object {} does not exist on the resource any more", oldShadow);
                         throw e;            // TODO
                     }
-                    change.setCurrentShadow(currentShadow);
+                    LOGGER.trace("...taken from the resource:\n{}", resourceObject.debugDumpLazily());
+                    change.setCurrentResourceObject(resourceObject);
                 }
             }
         }
-        assert change.getCurrentShadow() != null || change.isDelete();
-        if (change.getCurrentShadow() != null) {
-            PrismObject<ShadowType> currentShadow = shadowCache.completeShadow(ctx, change.getCurrentShadow(), oldShadow, false, parentResult);
-            change.setCurrentShadow(currentShadow);
-            // TODO: shadowState
-            shadowManager.updateShadow(ctx, currentShadow, oldShadow, null, parentResult);
+        assert change.getCurrentResourceObject() != null || change.isDelete();
+        if (change.getCurrentResourceObject() != null) {
+            // TODO do we need to complete the shadow now? Why? MID-5834
+            PrismObject<ShadowType> currentShadow = shadowCache.completeShadow(ctx, change.getCurrentResourceObject(), oldShadow, false, parentResult);
+            change.setCurrentResourceObject(currentShadow);
+            // TODO: shadowState MID-5834
+            shadowManager.updateShadow(ctx, currentShadow, change.getObjectDelta(), oldShadow, null, parentResult);
         }
 
         if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
@@ -268,13 +290,33 @@ public class ChangeProcessor {
         }
 
         if (change.isDelete()) {
-            PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
+            PrismObject<ShadowType> currentShadow = change.getCurrentResourceObject();
             if (currentShadow == null) {
                 currentShadow = oldShadow.clone();
-                change.setCurrentShadow(currentShadow);         // todo why is this? [pmed]
+                change.setCurrentResourceObject(currentShadow);         // todo why is this? MID-5834
             }
             if (!ShadowUtil.isDead(currentShadow) || ShadowUtil.isExists(currentShadow)) {
                 shadowManager.markShadowTombstone(currentShadow, parentResult);
+            }
+        }
+    }
+
+    /**
+     * Index-only items in the resource object delta are necessarily incomplete: their old value was taken from repo
+     * (i.e. was empty before delta application). We mark them as such. One of direct consequences is that updateShadow method
+     * will know that it cannot use this data to update cached (index-only) attributes in repo shadow.
+     */
+    private void markIndexOnlyItemsAsIncomplete(PrismObject<ShadowType> resourceObject,
+            ObjectDelta<ShadowType> resourceObjectDelta, ProvisioningContext ctx)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(resourceObject);
+        for (RefinedAttributeDefinition<?> attrDef : ocDef.getAttributeDefinitions()) {
+            if (attrDef.isIndexOnly()) {
+                ItemPath path = ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getItemName());
+                LOGGER.trace("Marking item {} as incomplete because it's index-only", path);
+                //noinspection unchecked
+                resourceObject.findCreateItem(path, Item.class, attrDef, true).setIncomplete(true);
             }
         }
     }
@@ -284,8 +326,8 @@ public class ChangeProcessor {
         ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
         shadowChangeDescription.setObjectDelta(change.getObjectDelta());
         shadowChangeDescription.setResource(resourceType.asPrismObject());
-        shadowChangeDescription.setOldShadow(change.getOldShadow());
-        shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
+        shadowChangeDescription.setOldShadow(change.getOldRepoShadow());
+        shadowChangeDescription.setCurrentShadow(change.getCurrentResourceObject());
         shadowChangeDescription.setSourceChannel(channel != null ? channel : SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
         return shadowChangeDescription;
     }

@@ -236,7 +236,7 @@ public class Clockwork {
 		} finally {
 			recordTraceAtEnd(context, trace, result);
 			if (tracingRequested) {
-				tracer.storeTrace(task, result);
+				tracer.storeTrace(task, result, parentResult);
 				TracingAppender.terminateCollecting();  // todo reconsider
 				LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
 			}
@@ -266,10 +266,7 @@ public class Clockwork {
 	private <F extends ObjectType> ClockworkRunTraceType recordTraceAtStart(LensContext<F> context, Task task,
 			OperationResult result) throws SchemaException {
 		ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
-		TracingLevelType level = result.getTracingLevel(trace.getClass());
-		if (level.ordinal() >= TracingLevelType.MINIMAL.ordinal()) {
-			trace.getText().add(context.debugDump());   // todo
-		}
+		trace.setInputLensContextText(context.debugDump());
 		trace.setInputLensContext(context.toLensContextType(getExportTypeTraceOrReduced(trace, result)));
 		result.addTrace(trace);
 		return trace;
@@ -278,6 +275,7 @@ public class Clockwork {
 	private <F extends ObjectType> void recordTraceAtEnd(LensContext<F> context, ClockworkRunTraceType trace,
 			OperationResult result) throws SchemaException {
 		if (trace != null) {
+			trace.setOutputLensContextText(context.debugDump());
 			trace.setOutputLensContext(context.toLensContextType(getExportTypeTraceOrReduced(trace, result)));
 			if (context.getFocusContext() != null) {    // todo reconsider this
 				PrismObject<F> objectAny = context.getFocusContext().getObjectAny();
@@ -537,6 +535,9 @@ public class Clockwork {
 		ClockworkClickTraceType trace;
 		if (result.isTraced()) {
 			trace = new ClockworkClickTraceType(prismContext);
+			if (result.isTracingNormal(ClockworkClickTraceType.class)) {
+				trace.setInputLensContextText(context.debugDump());
+			}
 			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
 			result.getTraces().add(trace);
 		} else {
@@ -627,6 +628,9 @@ public class Clockwork {
 			throw e;
 		} finally {
 			if (trace != null) {
+				if (result.isTracingNormal(ClockworkClickTraceType.class)) {
+					trace.setOutputLensContextText(context.debugDump());
+				}
 				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
 			}
 			result.computeStatusIfUnknown();

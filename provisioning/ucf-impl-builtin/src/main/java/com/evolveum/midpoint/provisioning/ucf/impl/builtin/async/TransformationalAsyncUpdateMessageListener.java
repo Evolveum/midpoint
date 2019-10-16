@@ -48,7 +48,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toPrismObject;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -95,6 +96,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 			securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
 
 			Task task = taskManager.createTaskInstance(OP_ON_MESSAGE_PREPARATION);
+			task.setChannel(CHANGE_CHANNEL_ASYNC_UPDATE_URI);
 			if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
 				task.setOwner(((MidPointPrincipal) authentication.getPrincipal()).getUser().asPrismObject().clone());
 			}
@@ -155,7 +157,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 			} finally {
 				result.computeStatusIfUnknown();
 				if (result.isTraced()) {
-					tracer.storeTrace(task, result);
+					tracer.storeTrace(task, result, null);
 				}
 			}
 
@@ -214,9 +216,9 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 		setFromDefaults(changeBean.getObject(), objectClassName);
 		Holder<Object> primaryIdentifierRealValueHolder = new Holder<>();
 		Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef, primaryIdentifierRealValueHolder);
-		Change change = new Change(primaryIdentifierRealValueHolder.getValue(), identifiers, toPrismObject(changeBean.getObject()), null, delta);
+		Change change = new Change(primaryIdentifierRealValueHolder.getValue(), identifiers, asPrismObject(changeBean.getObject()), delta);
 		change.setObjectClassDefinition(objectClassDef);
-		if (change.getCurrentShadow() == null && change.getObjectDelta() == null) {
+		if (change.getCurrentResourceObject() == null && change.getObjectDelta() == null) {
 			change.setNotificationOnly(true);
 		}
 		return change;

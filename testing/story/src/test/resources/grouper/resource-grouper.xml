@@ -15,108 +15,74 @@
 		  xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async/AsyncUpdateConnector"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-    <name>Grouper Resource (async only)</name>
+    <name>Grouper Resource (dummy + async)</name>
     <connectorRef type="c:ConnectorType">
         <filter>
-            <q:equal>
-                <q:path>connectorType</q:path>
-                <q:value>AsyncUpdateConnector</q:value>
-            </q:equal>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
         </filter>
     </connectorRef>
-    <connectorConfiguration>
-        <conf:sources>
-            <other>
-                <className>com.evolveum.midpoint.testing.story.grouper.MockAsyncUpdateSource</className>
-            </other>
-        </conf:sources>
-        <conf:transformExpression>
-            <script>
-                <code>
-                    // ------------------ START OF CONFIGURATION ------------------
-
-                    parameters = [
-                            superGroup: 'etc:midpointGroups',
-                            groupIncludePattern: [ 'midpoint:.*', 'app:.*', 'test:.*', 'ref:.*' ],
-                            groupExcludePattern: [ '.*_(includes|excludes|systemOfRecord|systemOfRecordAndIncludes)' ],
-                            relevantSourceId: 'ldap'
-                    ]
-
-                    // ------------------ END OF CONFIGURATION ------------------
-
-                    parameters.put('message', message)
-                    grouper.execute('createUcfChange', parameters)
-                </code>
-            </script>
-        </conf:transformExpression>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>grouper</icfi:instanceId>
+        </icfc:configurationProperties>
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
-    <schema>
-        <cachingMetadata>
-            <retrievalTimestamp>2019-09-25T11:23:46.975Z</retrievalTimestamp>
-            <serialNumber>fa455ffe1c4a1dca-7187fb0b3d831fc9</serialNumber>
-        </cachingMetadata>
-        <definition>
-            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
-                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
-                <xsd:complexType name="CustomPlainGroupObjectClass">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <ra:resourceObject/>
-                            <ra:identifier>icfs:uid</ra:identifier>
-                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                            <ra:nativeObjectClass>PlainGroup</ra:nativeObjectClass>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                    <xsd:sequence>
-                        <xsd:element minOccurs="0" name="extension" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>120</a:displayOrder>
-                                    <ra:frameworkAttributeName>extension</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element ref="icfs:name">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId Name</a:displayName>
-                                    <a:displayOrder>110</a:displayOrder>
-                                    <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element maxOccurs="unbounded" minOccurs="0" name="member" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayOrder>130</a:displayOrder>
-                                    <ra:frameworkAttributeName>member</ra:frameworkAttributeName>
-                                    <ra:returnedByDefault>false</ra:returnedByDefault>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element minOccurs="0" ref="icfs:uid">
-                            <xsd:annotation>
-                                <xsd:appinfo>
-                                    <a:displayName>ConnId UID</a:displayName>
-                                    <a:displayOrder>100</a:displayOrder>
-                                    <a:access>read</a:access>
-                                </xsd:appinfo>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:schema>
-        </definition>
-    </schema>
+    <additionalConnector>
+        <name>AMQP async update connector</name>
+        <connectorRef type="c:ConnectorType">
+            <filter>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>AsyncUpdateConnector</q:value>
+                </q:equal>
+            </filter>
+        </connectorRef>
+        <connectorConfiguration>
+            <conf:sources>
+                <other>
+                    <className>com.evolveum.midpoint.testing.story.grouper.MockAsyncUpdateSource</className>
+                </other>
+            </conf:sources>
+            <conf:transformExpression>
+                <script>
+                    <code>
+                        // ------------------ START OF CONFIGURATION ------------------
+
+                        parameters = [
+                                superGroup: 'etc:midpointGroups',
+                                groupIncludePattern: [ 'midpoint:.*', 'app:.*', 'test:.*', 'ref:.*' ],
+                                groupExcludePattern: [ '.*_(includes|excludes|systemOfRecord|systemOfRecordAndIncludes)' ],
+                                relevantSourceId: 'ldap'
+                        ]
+
+                        // ------------------ END OF CONFIGURATION ------------------
+
+                        parameters.put('message', message)
+                        grouper.execute('createUcfChange', parameters)
+                </code>
+                </script>
+            </conf:transformExpression>
+        </connectorConfiguration>
+    </additionalConnector>
     <schemaHandling>
         <objectType>
             <kind>entitlement</kind>
             <intent>group</intent>
-            <objectClass>ri:CustomPlainGroupObjectClass</objectClass>
+            <objectClass>ri:GroupObjectClass</objectClass>
             <default>true</default>
             <attribute>
                 <ref>icfs:name</ref>
@@ -158,7 +124,7 @@
                 </inbound>
             </attribute>
             <attribute>
-                <ref>ri:member</ref>
+                <ref>ri:members</ref>
                 <fetchStrategy>explicit</fetchStrategy>
                 <storageStrategy>indexOnly</storageStrategy>
             </attribute>
@@ -169,7 +135,7 @@
             <enabled>true</enabled>
             <kind>entitlement</kind>
             <intent>group</intent>
-            <objectClass>ri:CustomPlainGroupObjectClass</objectClass>
+            <objectClass>ri:GroupObjectClass</objectClass>
             <focusType>OrgType</focusType>
             <correlation>
                 <q:equal>
@@ -183,14 +149,18 @@
             </correlation>
             <reaction>
                 <situation>linked</situation>
+                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#asyncUpdate</channel>
+                <synchronize>false</synchronize>
+            </reaction>
+            <reaction>
+                <situation>linked</situation>
                 <synchronize>true</synchronize>
             </reaction>
             <reaction>
                 <situation>deleted</situation>
-                <action>
-                    <!-- a separate task will take care of deleted groups -->
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-                </action>
+                <!-- a separate task will take care of deleted groups -->
+                <!-- we don't even need to unlink the shadow -->
+                <synchronize>true</synchronize>
             </reaction>
             <reaction>
                 <situation>unlinked</situation>

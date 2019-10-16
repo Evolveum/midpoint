@@ -117,6 +117,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
         AssignmentTablePanel panel = new AssignmentTablePanel<UserType>(ID_ASSIGNMENT_TABLE_PANEL,
                 assignmentsModel){
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected List<InlineMenuItem> createAssignmentMenu() {
                 List<InlineMenuItem> items = new ArrayList<>();
@@ -138,11 +140,17 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 items.add(item);
                 return items;
             }
-            
+
             @Override
-            		public IModel<String> getLabel() {
-            			return createStringResource("PageAssignmentsList.assignmentsToRequest");
-            		}
+            public IModel<String> getLabel() {
+                return createStringResource("PageAssignmentsList.assignmentsToRequest");
+            }
+
+            @Override
+            protected boolean isRelationEditable() {
+                return false;
+            }
+
         };
         mainForm.add(panel);
 
@@ -153,23 +161,23 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                         return getSessionStorage().getRoleCatalog().getTargetUserList();
                     }
                 },
-                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")){
+                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected String getUserButtonLabel(){
+            protected String getUserButtonLabel() {
                 return getTargetUserSelectionButtonLabel(getModelObject());
             }
 
             @Override
-            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
+            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target) {
                 super.onDeleteSelectedUsersPerformed(target);
                 getSessionStorage().getRoleCatalog().setTargetUserList(new ArrayList<>());
                 targetUserChangePerformed(target);
             }
 
             @Override
-            protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList){
+            protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList) {
                 getSessionStorage().getRoleCatalog().setTargetUserList(usersList);
                 targetUserChangePerformed(target);
             }
@@ -278,9 +286,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             result.recomputeStatus();
         }
 
-        findBackgroundTaskOperation(result);
-        if (backgroundTaskOperationResult != null
-                && StringUtils.isNotEmpty(backgroundTaskOperationResult.getAsynchronousOperationReference())){
+        if (hasBackgroundTaskOperation(result)){
             result.setMessage(createStringResource("PageAssignmentsList.requestInProgress").getString());
             showResult(result);
             clearStorage();
@@ -340,9 +346,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                         "Failed to execute operaton " + result.getOperation(), e);
                 target.add(getFeedbackPanel());
             }
-            findBackgroundTaskOperation(result);
-            if (backgroundTaskOperationResult != null
-                    && StringUtils.isNotEmpty(backgroundTaskOperationResult.getAsynchronousOperationReference())) {
+            if (hasBackgroundTaskOperation(result)) {
                 result.setMessage(createStringResource("PageAssignmentsList.requestInProgress").getString());
                 showResult(result);
                 clearStorage();
@@ -411,24 +415,9 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
 
-    private void findBackgroundTaskOperation(OperationResult result){
-        if (backgroundTaskOperationResult != null) {
-            return;
-        } else {
-            List<OperationResult> subresults = result.getSubresults();
-            if (subresults == null || subresults.size() == 0) {
-                return;
-            }
-            for (OperationResult subresult : subresults) {
-                if (subresult.getOperation().equals(OPERATION_WF_TASK_CREATED)) {
-                    backgroundTaskOperationResult = subresult;
-                    return;
-                } else {
-                    findBackgroundTaskOperation(subresult);
-                }
-            }
-        }
-        return;
+    private boolean hasBackgroundTaskOperation(OperationResult result){
+        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        return StringUtils.isNotEmpty(caseOid);
     }
 
     private void handleModifyAssignmentDelta(AssignmentEditorDto assDto,

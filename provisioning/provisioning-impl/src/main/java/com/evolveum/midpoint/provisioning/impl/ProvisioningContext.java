@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.StateReporter;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,6 +57,8 @@ public class ProvisioningContext extends StateReporter {
 	private ResourceType resource;
 	private Map<Class<? extends CapabilityType>,ConnectorInstance> connectorMap;
 	private RefinedResourceSchema refinedSchema;
+
+	private String channelOverride;
 
 	public ProvisioningContext(@NotNull ResourceManager resourceManager, OperationResult parentResult) {
 		this.resourceManager = resourceManager;
@@ -198,7 +201,12 @@ public class ProvisioningContext extends StateReporter {
 	}
 
 	public String getChannel() {
-		return getTask()==null?null:getTask().getChannel();
+		Task task = getTask();
+		if (task != null && channelOverride == null) {
+			return task.getChannel();
+		} else {
+			return channelOverride;
+		}
 	}
 
 	public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -356,5 +364,13 @@ public class ProvisioningContext extends StateReporter {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			ExpressionEvaluationException {
 		return ProvisioningUtil.getCachingStrategy(this);
+	}
+
+	public String getChannelOverride() {
+		return channelOverride;
+	}
+
+	public void setChannelOverride(String channelOverride) {
+		this.channelOverride = channelOverride;
 	}
 }

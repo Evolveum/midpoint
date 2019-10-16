@@ -1823,7 +1823,7 @@ public class ResourceObjectConverter {
 					} finally {
 						result.computeStatusIfUnknown();
 						if (tracingRequested) {
-							tracer.storeTrace(task, result);
+							tracer.storeTrace(task, result, parentResult);
 						}
 					}
 				} finally {
@@ -1904,14 +1904,14 @@ public class ResourceObjectConverter {
 		}
 
 		if (change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
-			if (change.getCurrentShadow() == null) {
+			if (change.getCurrentResourceObject() == null) {
 				// There is no current shadow in a change. Add it by fetching it explicitly.
 				try {
 					// TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented [pmed]
 					LOGGER.trace("Re-fetching object {} because it is not in the change", change.getIdentifiers());
 					PrismObject<ShadowType> currentShadow = fetchResourceObject(shadowCtx,
 							change.getIdentifiers(), shadowAttrsToReturn, true, result);	// todo consider whether it is always necessary to fetch the entitlements
-					change.setCurrentShadow(currentShadow);
+					change.setCurrentResourceObject(currentShadow);
 				} catch (ObjectNotFoundException ex) {
 					result.recordHandledError(
 							"Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);
@@ -1929,12 +1929,12 @@ public class ResourceObjectConverter {
 					LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
 					currentShadow = connector.fetchObject(identification, shadowAttrsToReturn, ctx, result);
 				} else {
-					currentShadow = change.getCurrentShadow();
+					currentShadow = change.getCurrentResourceObject();
 				}
 
 				PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx, currentShadow,
 						true, result);
-				change.setCurrentShadow(processedCurrentShadow);
+				change.setCurrentResourceObject(processedCurrentShadow);
 			}
 		}
 		LOGGER.trace("Processed change\n:{}", change.debugDumpLazily());
@@ -1976,11 +1976,11 @@ public class ResourceObjectConverter {
 					change.setObjectClassDefinition(shadowCtx.getObjectClassDefinition());
 				}
 
-				if (change.getCurrentShadow() != null) {
-					shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());
+				if (change.getCurrentResourceObject() != null) {
+					shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentResourceObject());
 					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
-							change.getCurrentShadow(), true, listenerResult);
-					change.setCurrentShadow(processedCurrentShadow);
+							change.getCurrentResourceObject(), true, listenerResult);
+					change.setCurrentResourceObject(processedCurrentShadow);
 				} else {
 					// we will fetch current shadow later
 				}
@@ -1998,8 +1998,8 @@ public class ResourceObjectConverter {
 	}
 
 	private void setResourceOidIfMissing(Change change, String resourceOid) {
-		setResourceOidIfMissing(change.getOldShadow(), resourceOid);
-		setResourceOidIfMissing(change.getCurrentShadow(), resourceOid);
+		setResourceOidIfMissing(change.getOldRepoShadow(), resourceOid);
+		setResourceOidIfMissing(change.getCurrentResourceObject(), resourceOid);
 		if (change.getObjectDelta() != null) {
 			setResourceOidIfMissing(change.getObjectDelta().getObjectToAdd(), resourceOid);
 		}

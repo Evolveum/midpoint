@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.errorhandling;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -29,7 +28,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
-import com.evolveum.midpoint.provisioning.impl.ShadowManager;
+import com.evolveum.midpoint.provisioning.impl.shadowmanager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
