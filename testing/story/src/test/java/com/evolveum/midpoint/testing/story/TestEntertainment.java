@@ -89,7 +89,7 @@ public class TestEntertainment extends AbstractStoryTest {
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestEntertainment.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
@@ -111,7 +111,7 @@ public class TestEntertainment extends AbstractStoryTest {
 	public void test001AddParentOrg() throws Exception {
 		final String TEST_NAME = "test001AddParentOrg";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestEntertainment.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
@@ -143,7 +143,7 @@ public class TestEntertainment extends AbstractStoryTest {
 	public void test002AddChildOrg() throws Exception {
 		final String TEST_NAME = "test002AddChildOrg";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestEntertainment.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
