@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0 
@@ -43,11 +43,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DummyPropertyImpl<T> implements PrismProperty<T> {
 	private static final long serialVersionUID = 1L;
-	
-	private final ItemPath path;
+
+	@NotNull private final ItemPath path;
 	private final PrismProperty<T> realProperty;
 	
-	public DummyPropertyImpl(PrismProperty<T> realProperty, ItemPath path) {
+	public DummyPropertyImpl(PrismProperty<T> realProperty, @NotNull ItemPath path) {
 		super();
 		this.path = path;
 		this.realProperty = realProperty;
@@ -85,6 +85,7 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		return realProperty.getValue();
 	}
 
+	@NotNull
 	public Collection<T> getRealValues() {
 		return realProperty.getRealValues();
 	}
@@ -239,10 +240,12 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		throw new UnsupportedOperationException();
 	}
 
+	@NotNull
 	public ItemPath getPath() {
 		return path;
 	}
 
+	@NotNull
 	public Map<String, Object> getUserData() {
 		return realProperty.getUserData();
 	}
@@ -272,15 +275,15 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		return realProperty.isSingleValue();
 	}
 
-	public boolean add(PrismPropertyValue<T> newValue, boolean checkUniqueness) throws SchemaException {
+	public boolean add(@NotNull PrismPropertyValue<T> newValue, boolean checkUniqueness) throws SchemaException {
 		return realProperty.add(newValue, checkUniqueness);
 	}
 
-	public boolean add(PrismPropertyValue<T> newValue) throws SchemaException {
+	public boolean add(@NotNull PrismPropertyValue<T> newValue) throws SchemaException {
 		return realProperty.add(newValue);
 	}
 
-	public boolean add(PrismPropertyValue<T> newValue, EquivalenceStrategy equivalenceStrategy)
+	public boolean add(@NotNull PrismPropertyValue<T> newValue, @NotNull EquivalenceStrategy equivalenceStrategy)
 			throws SchemaException {
 		return realProperty.add(newValue, equivalenceStrategy);
 	}
@@ -298,7 +301,7 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		return realProperty.remove(value);
 	}
 
-	public boolean remove(PrismPropertyValue<T> value, EquivalenceStrategy strategy) {
+	public boolean remove(PrismPropertyValue<T> value, @NotNull EquivalenceStrategy strategy) {
 		return realProperty.remove(value, strategy);
 	}
 
@@ -323,11 +326,11 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		return realProperty.equals(obj);
 	}
 
-	public boolean equals(Object obj, EquivalenceStrategy equivalenceStrategy) {
+	public boolean equals(Object obj, @NotNull EquivalenceStrategy equivalenceStrategy) {
 		return realProperty.equals(obj, equivalenceStrategy);
 	}
 
-	public boolean equals(Object obj, ParameterizedEquivalenceStrategy equivalenceStrategy) {
+	public boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy equivalenceStrategy) {
 		return realProperty.equals(obj, equivalenceStrategy);
 	}
 
@@ -335,11 +338,11 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		return realProperty.hashCode();
 	}
 
-	public int hashCode(EquivalenceStrategy equivalenceStrategy) {
+	public int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy) {
 		return realProperty.hashCode(equivalenceStrategy);
 	}
 
-	public int hashCode(ParameterizedEquivalenceStrategy equivalenceStrategy) {
+	public int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy) {
 		return realProperty.hashCode(equivalenceStrategy);
 	}
 
@@ -347,7 +350,7 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		return realProperty.contains(value);
 	}
 
-	public boolean contains(PrismPropertyValue<T> value, EquivalenceStrategy strategy) {
+	public boolean contains(PrismPropertyValue<T> value, @NotNull EquivalenceStrategy strategy) {
 		return realProperty.contains(value, strategy);
 	}
 
@@ -365,7 +368,7 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		return realProperty.containsEquivalentValue(value, comparator);
 	}
 
-	public PrismPropertyValue<T> findValue(PrismPropertyValue<T> value, EquivalenceStrategy strategy) {
+	public PrismPropertyValue<T> findValue(PrismPropertyValue<T> value, @NotNull EquivalenceStrategy strategy) {
 		return realProperty.findValue(value, strategy);
 	}
 
@@ -381,7 +384,7 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 
 	public ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> diff(
 			Item<PrismPropertyValue<T>, PrismPropertyDefinition<T>> other,
-			ParameterizedEquivalenceStrategy strategy) {
+			@NotNull ParameterizedEquivalenceStrategy strategy) {
 		return realProperty.diff(other, strategy);
 	}
 
@@ -398,7 +401,7 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		realProperty.merge(otherItem);
 	}
 
-	public void acceptParentVisitor(Visitor visitor) {
+	public void acceptParentVisitor(@NotNull Visitor visitor) {
 		realProperty.acceptParentVisitor(visitor);
 	}
 
@@ -501,6 +504,7 @@ public class DummyPropertyImpl<T> implements PrismProperty<T> {
 		realProperty.modifyUnfrozen(mutator);
 	}
 
+	@NotNull
 	public Collection<PrismValue> getAllValues(ItemPath path) {
 		return realProperty.getAllValues(path);
 	}

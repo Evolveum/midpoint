@@ -815,10 +815,14 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
     @Override
     public int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy) {
+	    if (definition != null && definition.isRuntimeSchema() && !equivalenceStrategy.isHashRuntimeSchemaItems()) {
+		    //System.out.println("HashCode is 0 because of runtime: " + this);
+		    return 0;
+	    }
 	    int valuesHash = MiscUtil.unorderedCollectionHashcode(values, null);
 	    if (valuesHash == 0) {
-		    // empty or non-significant container. We do not want this to destroy hashcode of
-		    // parent item
+		    // empty or non-significant container. We do not want this to destroy hashcode of parent item
+		    //System.out.println("HashCode is 0 because values hashCode is 0: " + this);
 		    return 0;
 	    }
 	    final int prime = 31;
@@ -828,6 +832,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		    result = prime * result + ((localElementName == null) ? 0 : localElementName.hashCode());
 	    }
 	    result = prime * result + valuesHash;
+	    //System.out.println("HashCode is " + result + " for: " + this);
 	    return result;
     }
 
