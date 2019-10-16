@@ -173,12 +173,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
             @Override
             protected String getStorageKey() {
-                StringValue collectionName = getCollectionNameParameterValue();
-                String collectionNameValue = collectionName != null ? collectionName.toString() : "";
-                String key = isCollectionViewPage() ? WebComponentUtil.getObjectListPageStorageKey(collectionNameValue) :
-                        super.getStorageKey();
-//WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName()
-                return key;
+                return PageAdminObjectList.this.getStorageKey();
             }
 
             protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
@@ -199,6 +194,14 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     protected abstract List<InlineMenuItem> createRowActions();
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
+
+    protected String getStorageKey(){
+        StringValue collectionName = getCollectionNameParameterValue();
+        String collectionNameValue = collectionName != null ? collectionName.toString() : "";
+        String key = isCollectionViewPage() ? WebComponentUtil.getObjectListPageStorageKey(collectionNameValue) :
+                WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName());
+        return key;
+    }
 
     protected boolean isCreateNewObjectEnabled(){
         return true;

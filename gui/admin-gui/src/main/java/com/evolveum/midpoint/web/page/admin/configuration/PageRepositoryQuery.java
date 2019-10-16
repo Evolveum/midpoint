@@ -392,7 +392,6 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 			}
 			Search search = SearchFactory.createSearch(request.getType(), this);
 			search.setAdvancedQuery(filterAsString);
-			search.setShowAdvanced(true);
 			search.setSearchType(SearchBoxModeType.ADVANCED);
 			if (!search.isAdvancedQueryValid(getPrismContext())) {
 				// shouldn't occur because the query was already parsed
