@@ -51,7 +51,7 @@ public class AndFilterImpl extends NaryLogicalFilterImpl implements AndFilter {
 	
 	@Override
 	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		for (ObjectFilter filter : getConditions()){
+		for (ObjectFilter filter : getConditions()) {
 			if (!filter.match(value, matchingRuleRegistry)) {
 				return false;
 			}

@@ -102,7 +102,7 @@ public class EqualFilterImpl<T> extends PropertyValueFilterImpl<T> implements Eq
 
 	@Override
 	public boolean match(PrismContainerValue objectValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		if (!super.match(objectValue, matchingRuleRegistry)){
+		if (!super.match(objectValue, matchingRuleRegistry)) {
 			return false;
 		}
 		Collection<PrismValue> objectItemValues = getObjectItemValues(objectValue);

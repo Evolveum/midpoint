@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0 
@@ -46,10 +46,10 @@ import org.jetbrains.annotations.NotNull;
 public class DummyContainerImpl<C extends Containerable> implements PrismContainer<C> {
 	private static final long serialVersionUID = 1L;
 	
-	private final ItemPath path;
+	@NotNull private final ItemPath path;
 	private final PrismContainer<C> realContainer;
 
-	public DummyContainerImpl(PrismContainer<C> realContainer, ItemPath path) {
+	public DummyContainerImpl(PrismContainer<C> realContainer, @NotNull ItemPath path) {
 		this.realContainer = realContainer;
 		this.path = path;
 	}
@@ -70,7 +70,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.getCompileTimeClass();
 	}
 
-	public boolean canRepresent(Class<?> compileTimeClass) {
+	public boolean canRepresent(@NotNull Class<?> compileTimeClass) {
 		return realContainer.canRepresent(compileTimeClass);
 	}
 
@@ -86,15 +86,17 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.getDisplayName();
 	}
 
+	@NotNull
 	public Collection<C> getRealValues() {
 		return realContainer.getRealValues();
 	}
 
+	@NotNull
 	public C getRealValue() {
 		return realContainer.getRealValue();
 	}
 
-	public void setValue(PrismContainerValue<C> value) throws SchemaException {
+	public void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException {
 		realContainer.setValue(value);
 	}
 
@@ -199,6 +201,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.findCreateItem(itemQName, type, create);
 	}
 
+	@NotNull
 	public ItemPath getPath() {
 		return path;
 	}
@@ -212,6 +215,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.findItem(path);
 	}
 
+	@NotNull
 	public Map<String, Object> getUserData() {
 		return realContainer.getUserData();
 	}
@@ -314,7 +318,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.isSingleValue();
 	}
 
-	public boolean add(PrismContainerValue<C> newValue, boolean checkUniqueness) throws SchemaException {
+	public boolean add(@NotNull PrismContainerValue<C> newValue, boolean checkUniqueness) throws SchemaException {
 		return realContainer.add(newValue, checkUniqueness);
 	}
 
@@ -335,7 +339,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		realContainer.assertDefinitions(tolarateRaw, sourceDescription);
 	}
 
-	public boolean add(PrismContainerValue<C> newValue) throws SchemaException {
+	public boolean add(@NotNull PrismContainerValue<C> newValue) throws SchemaException {
 		return realContainer.add(newValue);
 	}
 
@@ -351,7 +355,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.diffModifications(other);
 	}
 
-	public boolean add(PrismContainerValue<C> newValue, EquivalenceStrategy equivalenceStrategy)
+	public boolean add(@NotNull PrismContainerValue<C> newValue, @NotNull EquivalenceStrategy equivalenceStrategy)
 			throws SchemaException {
 		return realContainer.add(newValue, equivalenceStrategy);
 	}
@@ -403,7 +407,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.remove(value);
 	}
 
-	public boolean remove(PrismContainerValue<C> value, EquivalenceStrategy strategy) {
+	public boolean remove(PrismContainerValue<C> value, @NotNull EquivalenceStrategy strategy) {
 		return realContainer.remove(value, strategy);
 	}
 
@@ -432,11 +436,11 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.equals(obj);
 	}
 
-	public boolean equals(Object obj, EquivalenceStrategy equivalenceStrategy) {
+	public boolean equals(Object obj, @NotNull EquivalenceStrategy equivalenceStrategy) {
 		return realContainer.equals(obj, equivalenceStrategy);
 	}
 
-	public boolean equals(Object obj, ParameterizedEquivalenceStrategy equivalenceStrategy) {
+	public boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy equivalenceStrategy) {
 		return realContainer.equals(obj, equivalenceStrategy);
 	}
 
@@ -444,11 +448,11 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.hashCode();
 	}
 
-	public int hashCode(EquivalenceStrategy equivalenceStrategy) {
+	public int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy) {
 		return realContainer.hashCode(equivalenceStrategy);
 	}
 
-	public int hashCode(ParameterizedEquivalenceStrategy equivalenceStrategy) {
+	public int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy) {
 		return realContainer.hashCode(equivalenceStrategy);
 	}
 
@@ -456,7 +460,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.contains(value);
 	}
 
-	public boolean contains(PrismContainerValue<C> value, EquivalenceStrategy strategy) {
+	public boolean contains(PrismContainerValue<C> value, @NotNull EquivalenceStrategy strategy) {
 		return realContainer.contains(value, strategy);
 	}
 
@@ -474,7 +478,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		return realContainer.containsEquivalentValue(value, comparator);
 	}
 
-	public PrismContainerValue<C> findValue(PrismContainerValue<C> value, EquivalenceStrategy strategy) {
+	public PrismContainerValue<C> findValue(PrismContainerValue<C> value, @NotNull EquivalenceStrategy strategy) {
 		return realContainer.findValue(value, strategy);
 	}
 
@@ -490,7 +494,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 
 	public ItemDelta<PrismContainerValue<C>, PrismContainerDefinition<C>> diff(
 			Item<PrismContainerValue<C>, PrismContainerDefinition<C>> other,
-			ParameterizedEquivalenceStrategy strategy) {
+			@NotNull ParameterizedEquivalenceStrategy strategy) {
 		return realContainer.diff(other, strategy);
 	}
 
@@ -507,7 +511,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		realContainer.merge(otherItem);
 	}
 
-	public void acceptParentVisitor(Visitor visitor) {
+	public void acceptParentVisitor(@NotNull Visitor visitor) {
 		realContainer.acceptParentVisitor(visitor);
 	}
 
@@ -594,6 +598,7 @@ public class DummyContainerImpl<C extends Containerable> implements PrismContain
 		realContainer.modifyUnfrozen(mutator);
 	}
 
+	@NotNull
 	public Collection<PrismValue> getAllValues(ItemPath path) {
 		return realContainer.getAllValues(path);
 	}

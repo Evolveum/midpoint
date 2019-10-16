@@ -140,7 +140,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
     public void test010importActiveUserRUR() throws Exception {
 		final String TEST_NAME = "test010importActiveUserRUR";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMachineIntelligence.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -173,7 +173,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
     public void test011importInactiveUserChappie() throws Exception {
 		final String TEST_NAME = "test011importInactiveUserChappie";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestMachineIntelligence.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN

@@ -2287,9 +2287,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private void addCollectionsMenuItems(List<MenuItem> menu, QName type, Class<? extends PageAdminObjectList> redirectToPage) {
         List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(type);
-        if (objectViews == null) {
-            return;
-        }
         List<MenuItem> collectionMenuItems = new ArrayList<>(objectViews.size());
         objectViews.forEach(objectView -> {
         	CollectionRefSpecificationType collectionRefSpec = objectView.getCollection();

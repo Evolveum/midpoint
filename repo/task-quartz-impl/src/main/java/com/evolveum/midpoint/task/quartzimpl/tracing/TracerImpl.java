@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.util.TestNameHolder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -63,6 +64,9 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 	private static final String MACRO_FOCUS_NAME = "focusName";
 	private static final String MACRO_MILLISECONDS = "milliseconds";
 	private static final String MACRO_RANDOM = "random";
+
+	// To be used during tests to check for MID-5851
+	public static boolean checkHashCodeEqualsRelation = false;
 
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
@@ -259,6 +263,9 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 					comparisons++;
 					boolean equals = objectToStore.equals(dictionaryObject);
 					if (equals) {
+						if (checkHashCodeEqualsRelation) {
+							checkHashCodes(objectToStore, dictionaryObject);
+						}
 						LOGGER.trace("Found existing entry #{}:{}: {} [in {} ms]", entry.getOriginDictionaryId(),
 								entry.getIdentifier(), objectToStore, System.currentTimeMillis() - started);
 						return entry.getOriginDictionaryId() + ":" + entry.getIdentifier();
@@ -282,6 +289,21 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 					.object(ObjectTypeUtil.createObjectRefWithFullObject(objectToStore, prismContext));
 			objectsAdded++;
 			return dictionaryId + ":" + newEntryId;
+		}
+
+		// These objects are equal. They hashcodes should be also. This is a helping hand given to tests. See MID-5851.
+		private void checkHashCodes(PrismObject object1, PrismObject object2) {
+			int hash1 = object1.hashCode();
+			int hash2 = object2.hashCode();
+			if (hash1 != hash2) {
+				System.out.println("Hash 1 = " + hash1);
+				System.out.println("Hash 2 = " + hash2);
+				System.out.println("Object 1:\n" + object1.debugDump());
+				System.out.println("Object 2:\n" + object2.debugDump());
+				//noinspection unchecked
+				System.out.println("Diff:\n" + DebugUtil.debugDump(object1.diff(object2)));
+				throw new AssertionError("Objects " + object1 + " and " + object2 + " are equal but their hashcodes are different");
+			}
 		}
 
 		@NotNull

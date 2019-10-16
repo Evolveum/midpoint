@@ -247,20 +247,22 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         DummyAccount oldAccount = dummyResourceUuid.getAccountByUsername(ACCOUNT_AUGUSTUS_NAME);
+        display("Deleting account", oldAccount);
         dummyResourceUuid.deleteAccountByName(ACCOUNT_AUGUSTUS_NAME);
         assertNoDummyAccount(ACCOUNT_AUGUSTUS_NAME, ACCOUNT_AUGUSTUS_NAME);
 
-        DummyAccount account = new DummyAccount(ACCOUNT_AUGUSTUS_NAME);
-		account.setEnabled(true);
-		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_AUGUSTUS_FULLNAME);
-		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, USER_AUGUSTUS_NAME);
-		dummyResourceUuid.addAccount(account);
-		account = dummyResourceUuid.getAccountByUsername(ACCOUNT_AUGUSTUS_NAME);
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_AUGUSTUS_NAME);
+		newAccount.setEnabled(true);
+		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_AUGUSTUS_FULLNAME);
+		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, USER_AUGUSTUS_NAME);
+		dummyResourceUuid.addAccount(newAccount);
+		newAccount = dummyResourceUuid.getAccountByUsername(ACCOUNT_AUGUSTUS_NAME);
+		display("Created account", newAccount);
 
-		assertFalse("Account IDs not changed", oldAccount.getId().equals(account.getId()));
+		assertFalse("Account IDs not changed", oldAccount.getId().equals(newAccount.getId()));
 
 		display("Old shadow OID", augustusShadowOid);
-		display("Account ID "+ oldAccount.getId() + " -> " + account.getId());
+		display("Account ID "+ oldAccount.getId() + " -> " + newAccount.getId());
 
 		Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
 

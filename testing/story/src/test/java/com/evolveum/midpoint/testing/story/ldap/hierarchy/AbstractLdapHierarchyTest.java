@@ -36,7 +36,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.testing.story.TestTrafo;
 import com.evolveum.midpoint.testing.story.ldap.AbstractLdapTest;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -160,7 +159,7 @@ public abstract class AbstractLdapHierarchyTest extends AbstractLdapTest {
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(AbstractLdapHierarchyTest.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);

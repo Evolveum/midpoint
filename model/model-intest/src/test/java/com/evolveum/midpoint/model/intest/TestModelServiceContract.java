@@ -112,7 +112,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 //		InternalMonitor.setTraceResourceSchemaOperations(true);
 		InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
 
-		//setGlobalTracingOverride(createModelAndWorkflowLoggingTracingProfile());
+//		setGlobalTracingOverride(addNotificationsLogging(createModelLoggingTracingProfile()));
 	}
 
 	@Test
@@ -237,7 +237,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
     }
-
 
     @Test
     public void test100ModifyUserAddAccount() throws Exception {

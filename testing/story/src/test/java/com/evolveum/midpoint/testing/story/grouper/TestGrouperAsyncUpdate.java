@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.quartzimpl.tracing.TracerImpl;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.ShadowAttributesAsserter;
@@ -115,6 +116,8 @@ public class TestGrouperAsyncUpdate extends AbstractStoryTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+
+		TracerImpl.checkHashCodeEqualsRelation = true;          // temporary
 
 		// These are experimental features, so they need to be explicitly enabled. This will be eliminated later,
 		// when we make them enabled by default.

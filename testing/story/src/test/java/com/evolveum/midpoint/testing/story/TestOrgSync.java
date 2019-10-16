@@ -38,7 +38,6 @@ import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListen
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -53,7 +52,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -302,7 +300,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
 		TestUtil.assertSuccess(testResultHr);
@@ -324,7 +322,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test100AddHrAccountHerman() throws Exception {
 		final String TEST_NAME = "test100AddHrAccountHerman";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_HERMAN_FIST_NAME);
@@ -364,7 +362,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test105AddHrAccountLemonhead() throws Exception {
 		final String TEST_NAME = "test105AddHrAccountLemonhead";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_LEMONHEAD_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_LEMONHEAD_FIST_NAME);
@@ -409,7 +407,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test106AddHrAccountSharptooth() throws Exception {
 		final String TEST_NAME = "test106AddHrAccountSharptooth";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_SHARPTOOTH_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_SHARPTOOTH_FIST_NAME);
@@ -453,7 +451,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test107AddHrAccountRedskull() throws Exception {
 		final String TEST_NAME = "test107AddHrAccountRedskull";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_REDSKULL_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_REDSKULL_FIST_NAME);
@@ -537,7 +535,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test109HrDeleteRedskull() throws Exception {
 		final String TEST_NAME = "test109HrDeleteRedskull";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -567,7 +565,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test110AddHrAccountGuybrush() throws Exception {
 		final String TEST_NAME = "test110AddHrAccountGuybrush";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_GUYBRUSH_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_GUYBRUSH_FIST_NAME);
@@ -613,7 +611,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test115AddHrAccountMancomb() throws Exception {
 		final String TEST_NAME = "test115AddHrAccountMancomb";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_MANCOMB_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_MANCOMB_FIST_NAME);
@@ -660,7 +658,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test117AddHrAccountCobb() throws Exception {
 		final String TEST_NAME = "test117AddHrAccountCobb";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_COBB_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_COBB_FIST_NAME);
@@ -707,7 +705,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test130AddHrAccountLargo() throws Exception {
 		final String TEST_NAME = "test130AddHrAccountLargo";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_LARGO_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_LARGO_FIST_NAME);
@@ -760,7 +758,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test140AddHrAccountWally() throws Exception {
 		final String TEST_NAME = "test140AddHrAccountWally";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_WALLY_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_WALLY_FIST_NAME);
@@ -804,7 +802,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test142AddHrAccountAugustus() throws Exception {
 		final String TEST_NAME = "test142AddHrAccountAugustus";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_AUGUSTUS_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_AUGUSTUS_FIST_NAME);
@@ -848,7 +846,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test185AddHrAccountStan() throws Exception {
 		final String TEST_NAME = "test185AddHrAccountStan";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_STAN_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_STAN_FIST_NAME);
@@ -894,7 +892,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test186AddHrAccountCapsize() throws Exception {
 		final String TEST_NAME = "test186AddHrAccountCapsize";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_CAPSIZE_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_CAPSIZE_FIST_NAME);
@@ -940,7 +938,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test187AddHrAccountRogersSr() throws Exception {
 		final String TEST_NAME = "test187AddHrAccountRogersSr";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_ROGERSSR_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_ROGERSSR_FIST_NAME);
@@ -987,7 +985,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	public void test190AddHrAccountTeleke() throws Exception {
 		final String TEST_NAME = "test190AddHrAccountTeleke";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount newAccount = new DummyAccount(ACCOUNT_TELEKE_USERNAME);
 		newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_TELEKE_FIST_NAME);

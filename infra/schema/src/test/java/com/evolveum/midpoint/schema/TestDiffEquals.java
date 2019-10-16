@@ -11,6 +11,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -18,6 +20,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -36,6 +39,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.LITERAL;
+import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.NOT_LITERAL;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -538,5 +543,56 @@ public class TestDiffEquals {
 				diffWithMetadataNotLiteral.isEmpty());
 	}
 
+    // MID-5851
+    @Test
+    public void testRawValuesHashCode() throws SchemaException {
+        LOGGER.info("\n\n===[ testRawValuesHashCode ]===\n");
+        System.out.println("\n\n===[ testRawValuesHashCode ]===\n");
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+        QName extensionPropertyName = new QName(NS_TEST_RI, "extensionProperty");
+
+        MutablePrismPropertyDefinition<String> extensionPropertyDef = prismContext.definitionFactory()
+                .createPropertyDefinition(extensionPropertyName, DOMUtil.XSD_STRING);
+        extensionPropertyDef.setRuntimeSchema(true);
+
+        PrismProperty<String> propertyParsed = extensionPropertyDef.instantiate();
+        PrismProperty<String> propertyRaw = extensionPropertyDef.instantiate();
+        propertyParsed.setRealValue("value");
+        propertyRaw.setValue(prismContext.itemFactory().createPropertyValue(new PrimitiveXNodeImpl<String>("value")));
+
+        PrismObject<UserType> userParsed = new UserType(prismContext)
+                .name("user")
+                .asPrismObject();
+        userParsed.getOrCreateExtension().add(propertyParsed);
+
+        PrismObject<UserType> userRaw = new UserType(prismContext)
+                .name("user")
+                .asPrismObject();
+        userRaw.getOrCreateExtension().add(propertyRaw);
+
+        assertHashAndEquals(userParsed, userRaw, null);
+        assertHashAndEquals(userParsed, userRaw, LITERAL);
+        assertHashAndEquals(userParsed, userRaw, NOT_LITERAL);
+    }
+
+    private void assertHashAndEquals(PrismObject<UserType> user1, PrismObject<UserType> user2,
+            ParameterizedEquivalenceStrategy strategy) {
+	    int hash1, hash2;
+        if (strategy == null) {
+            if (!user1.equals(user2)) {
+                fail("Objects are not equal. Diff:\n" + DebugUtil.debugDump(user1.diff(user2)));
+            }
+            hash1 = user1.hashCode();
+            hash2 = user2.hashCode();
+        } else {
+            if (!user1.equals(user2, strategy)) {
+                fail("Objects are not equal under " + strategy + ". Diff:\n" + DebugUtil.debugDump(user1.diff(user2, strategy)));
+            }
+            hash1 = user1.hashCode(strategy);
+            hash2 = user2.hashCode(strategy);
+        }
+        assertEquals("Hashcodes are not equal (strategy=" + strategy + ")", hash1, hash2);
+    }
 
 }

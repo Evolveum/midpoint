@@ -131,7 +131,7 @@ public class TestReconNullValue extends AbstractStoryTest {
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestReconNullValue.class.getName() + "." + TEST_NAME);
 
 		OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
 		TestUtil.assertSuccess(testResultOpenDj);
