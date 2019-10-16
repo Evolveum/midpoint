@@ -164,7 +164,7 @@ public class TestUniversity extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTitle(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
         TestUtil.assertSuccess(testResultHr);

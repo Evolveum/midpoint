@@ -136,7 +136,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestMapleLeaf.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);

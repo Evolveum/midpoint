@@ -16,7 +16,6 @@ import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
-import com.evolveum.midpoint.testing.story.TestTrafo;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.mysql.cj.jdbc.Driver;
@@ -112,7 +111,7 @@ public class TestImport extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestImport.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_SOURCE_OID, task);
         TestUtil.assertSuccess(testResultHr);
@@ -126,7 +125,7 @@ public class TestImport extends AbstractStoryTest {
     public void test100RunImport() throws Exception {
 		final String TEST_NAME = "test100RunImport";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestImport.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
