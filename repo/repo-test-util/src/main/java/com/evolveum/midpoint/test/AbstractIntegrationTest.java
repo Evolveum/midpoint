@@ -1969,6 +1969,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				.end();
 	}
 
+	protected TracingProfileType addNotificationsLogging(TracingProfileType profile) {
+		return profile.getLoggingOverride()
+				.beginLevelOverride()
+					.logger("com.evolveum.midpoint.notifications")
+					.level(LoggingLevelType.TRACE)
+				.<LoggingOverrideType>end()
+				.end();
+	}
+
 	protected TracingProfileType createModelAndWorkflowLoggingTracingProfile() {
 		return addWorkflowLogging(createModelLoggingTracingProfile());
 	}

@@ -152,6 +152,6 @@ public class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
 
     @Override
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        return false;
+        throw new UnsupportedOperationException("Matching object and ORG filter is not supported yet");
     }
 }
