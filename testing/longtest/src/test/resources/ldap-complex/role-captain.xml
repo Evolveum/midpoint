@@ -35,7 +35,7 @@
 									<q:value>captains</q:value>
 								</q:equal>
             				</filter>
-            				<searchOnResource>true</searchOnResource>
+							<searchStrategy>onResource</searchStrategy>
             			</associationTargetSearch>
             		</expression>
             	</outbound>
