@@ -85,6 +85,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 	private static final String OPERATION_LOAD_ATTRIBUTES = DOT_CLASS + "loadAttributes";
 	private static final String OPERATION_LOAD_TARGET_OBJECT = DOT_CLASS + "loadItemSecurityDecisions";
+	private static final String OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT = DOT_CLASS + "loadAssignmentTargetUserObject";
 	private static final String OPERATION_LOAD_RELATION_DEFINITIONS = DOT_CLASS + "loadRelationDefinitions";
 
 	private static final String ID_HEADER_ROW = "headerRow";
@@ -1135,12 +1136,14 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			operationObject = ((PageAdminFocus)pageBase).getObjectWrapper().getObject();
 		} else if ((pageBase instanceof PageAssignmentDetails || pageBase instanceof PageAssignmentsList) //shopping cart assignment details panels
 				&& !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()){
-			List<UserType> targetUserList = pageBase.getSessionStorage().getRoleCatalog().getTargetUserList();
-			if (targetUserList == null || targetUserList.size() == 0){
-				operationObject = pageBase.getPrincipalUser().asPrismObject();
-			} else {
-				operationObject = targetUserList.get(0).asPrismObject();
-			}
+			String targetUserOid = pageBase.getSessionStorage().getRoleCatalog().isSelfRequest() ?
+					pageBase.getPrincipalUser().getOid() :
+					pageBase.getSessionStorage().getRoleCatalog().getTargetUserOidsList().get(0);
+			Task task = pageBase.createSimpleTask(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);
+			OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);
+			operationObject = WebModelServiceUtils.loadObject(UserType.class,
+					targetUserOid, pageBase, task, result);
+
 		}
 		if (operationObject == null) {
 			return null;

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.page.self;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.wicket.AttributeModifier;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -66,9 +67,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
     private static final String OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST = DOT_CLASS + "loadAssignableRelationsList";
     private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
+    private static final String OPERATION_LOAD_ASSIGNMENT_TARGET_USER = DOT_CLASS + "loadAssignmentTargetUser";
     private static final Trace LOGGER = TraceManager.getTrace(AbstractShoppingCartTabPanel.class);
 
     private RoleManagementConfigurationType roleManagementConfig;
+    LoadableModel<UserType> targetUserModel;
 
     public AbstractShoppingCartTabPanel(String id, RoleManagementConfigurationType roleManagementConfig){
         super(id);
@@ -78,7 +81,21 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     @Override
     protected void onInitialize(){
         super.onInitialize();
+        targetUserModel = new LoadableModel<UserType>(true) {
+            @Override
+            protected UserType load() {
+                return getTargetUser();
+            }
+        };
         initLayout();
+    }
+
+    @Override
+    protected void onDetach() {
+        super.onDetach();
+        if (targetUserModel != null){
+            targetUserModel.reset();
+        }
     }
 
     private void initLayout(){
@@ -181,7 +198,8 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 new IModel<List<UserType>>() {
                     @Override
                     public List<UserType> getObject() {
-                        return getRoleCatalogStorage().getTargetUserList();
+                        return WebComponentUtil.loadTargetUsersListForShoppingCart(OPERATION_LOAD_ASSIGNMENT_TARGET_USER,
+                                AbstractShoppingCartTabPanel.this.getPageBase());
                     }
                 },
                 true, createStringResource("AssignmentCatalogPanel.selectTargetUser")){
@@ -200,7 +218,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
             @Override
             protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
                 super.onDeleteSelectedUsersPerformed(target);
-                getRoleCatalogStorage().setTargetUserList(new ArrayList<>());
+                getRoleCatalogStorage().setTargetUserOidsList(new ArrayList<>());
 
                 target.add(AbstractShoppingCartTabPanel.this);
 //                target.add(parametersPanel.get(ID_TARGET_USER_PANEL));
@@ -208,7 +226,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
             @Override
             protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList){
-                getRoleCatalogStorage().setTargetUserList(usersList);
+                if (CollectionUtils.isNotEmpty(usersList)){
+                    List<String> usersOidsList = new ArrayList<>();
+                    usersList.forEach(user -> usersOidsList.add(user.getOid()));
+                    getRoleCatalogStorage().setTargetUserOidsList(usersOidsList);
+                }
                 target.add(AbstractShoppingCartTabPanel.this);
 //                target.add(parametersPanel.get(ID_TARGET_USER_PANEL));
             }
@@ -386,7 +408,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     private boolean isAlreadyAssigned(PrismObject<AbstractRoleType> obj, AssignmentEditorDto assignmentDto){
-        UserType user = getTargetUser();
+        UserType user = targetUserModel.getObject();
         if (user == null || user.getAssignment() == null){
             return false;
         }
@@ -433,19 +455,33 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     private ObjectFilter getAssignableRolesFilter() {
+        if (getRoleCatalogStorage().isMultiUserRequest()){
+            return null;
+        }
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
-        return WebComponentUtil.getAssignableRolesFilter(getTargetUser().asPrismObject(), (Class) ObjectTypes.getObjectTypeClass(getQueryType()),
+        UserType targetUser = targetUserModel.getObject();
+        if (targetUser == null){
+            return null;
+        }
+        return WebComponentUtil.getAssignableRolesFilter(targetUser.asPrismObject(), (Class) ObjectTypes.getObjectTypeClass(getQueryType()),
                 getNewAssignmentRelation(), WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
     }
 
     protected abstract QName getQueryType();
 
     private UserType getTargetUser(){
-        if (getRoleCatalogStorage().isSelfRequest()){
-            return getPageBase().getPrincipalUser();
+        String targetUserOid = getRoleCatalogStorage().isSelfRequest() ?
+                getPageBase().getPrincipalUser().getOid()
+                : getRoleCatalogStorage().getTargetUserOidsList().get(0);
+        if (StringUtils.isEmpty(targetUserOid)){
+            return null;
         }
-        return getRoleCatalogStorage().getTargetUserList().get(0);
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_USER);
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNMENT_TARGET_USER);
+
+        PrismObject<UserType> targetUser = WebModelServiceUtils.loadObject(UserType.class, targetUserOid, getPageBase(), task, result);
+        return targetUser != null ? targetUser.asObjectable() : null;
     }
 
     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
