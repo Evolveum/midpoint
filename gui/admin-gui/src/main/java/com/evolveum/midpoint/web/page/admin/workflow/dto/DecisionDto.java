@@ -87,8 +87,8 @@ public class DecisionDto extends Selectable {
 
 		// we want to show user decisions, automatic decisions and delegations
 		DecisionDto rv = new DecisionDto();
-		rv.user = WebComponentUtil.getName(e.getInitiatorRef());
-		rv.attorney = WebComponentUtil.getName(e.getAttorneyRef());
+		rv.user = WebModelServiceUtils.resolveReferenceName(e.getInitiatorRef(), pageBase);
+		rv.attorney = WebModelServiceUtils.resolveReferenceName(e.getAttorneyRef(), pageBase);
 		rv.stage = ApprovalContextUtil.getStageInfoTODO(e.getStageNumber());
 		rv.time = XmlTypeConverter.toDate(e.getTimestamp());
 
