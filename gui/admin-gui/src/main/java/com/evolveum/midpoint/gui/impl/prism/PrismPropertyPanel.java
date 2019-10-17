@@ -7,12 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.prism;
 
+import com.evolveum.midpoint.gui.api.Validatable;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.factory.PrismPropertyPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -127,8 +129,8 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 			}
 		}
 
-		if (component instanceof InputPanel) {
-			InputPanel inputPanel = (InputPanel) component;
+		if (component instanceof Validatable) {
+			Validatable inputPanel = (Validatable) component;
 			// adding valid from/to date range validator, if necessary
 			ExpressionValidator<T> expressionValidator = new ExpressionValidator<T>(
 					LambdaModel.of(modelObject::getFormComponentValidator), getPageBase()) {
@@ -140,8 +142,29 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 					return getObject();
 				}
 			};
-			inputPanel.getBaseFormComponent().add(expressionValidator);
-			// form.add(expressionValidator);
+			inputPanel.getValidatableComponent().add(expressionValidator);
+
+			inputPanel.getValidatableComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected void onUpdate(AjaxRequestTarget target) {
+					target.add(getPageBase().getFeedbackPanel());
+					target.add(feedback);
+				}
+
+				@Override
+				protected void onError(AjaxRequestTarget target, RuntimeException e) {
+					target.add(getPageBase().getFeedbackPanel());
+					target.add(feedback);
+				}
+
+			});
+		}
+
+		if (component instanceof InputPanel) {
+			InputPanel inputPanel = (InputPanel) component;
 
 			final List<FormComponent> formComponents = inputPanel.getFormComponents();
 			for (FormComponent<T> formComponent : formComponents) {

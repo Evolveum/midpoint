@@ -142,22 +142,23 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                             });
                 }
 
-                tabs.add(
-                        new CountablePanelTab(parentPage.createStringResource("PageCase.events"),
-                                getTabVisibility(ComponentConstants.UI_CASE_TAB_EVENTS_URL, false, parentPage)) {
-
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public WebMarkupContainer createPanel(String panelId) {
-                                return new CaseEventsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
-                            }
-
-                            @Override
-                            public String getCount() {
-                                return Integer.toString(countEvents());
-                            }
-                        });
+                // commented now as it doesn't display informative data
+//                tabs.add(
+//                        new CountablePanelTab(parentPage.createStringResource("PageCase.events"),
+//                                getTabVisibility(ComponentConstants.UI_CASE_TAB_EVENTS_URL, false, parentPage)) {
+//
+//                            private static final long serialVersionUID = 1L;
+//
+//                            @Override
+//                            public WebMarkupContainer createPanel(String panelId) {
+//                                return new CaseEventsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+//                            }
+//
+//                            @Override
+//                            public String getCount() {
+//                                return Integer.toString(countEvents());
+//                            }
+//                        });
                 return tabs;
             }
 

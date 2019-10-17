@@ -1014,7 +1014,7 @@ public class ShadowCache {
 							ex.getClass(), ex.getMessage(), ex);
 					finalOperationStatus = handleModifyError(ctx, repoShadow, modifications, options, opState, ex, parentResult.getLastSubresult(), task, parentResult);
 				}
-				
+
 				LOGGER.debug("MODIFY {}: resource operation executed, operation state: {}", repoShadow, opState.shortDumpLazily());
 				
 			} else {
