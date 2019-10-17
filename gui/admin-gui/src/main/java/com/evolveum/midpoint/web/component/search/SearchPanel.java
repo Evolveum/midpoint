@@ -531,19 +531,6 @@ public class SearchPanel extends BasePanel<Search> {
         };
     }
 
-    private VisibleEnableBehaviour createAdvancedVisibleBehaviour(final boolean showAdvanced) {
-        return new VisibleEnableBehaviour() {
-        	
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                Search search = getModelObject();
-                return showAdvanced ? search.isShowAdvanced() : !search.isShowAdvanced();
-            }
-        };
-    }
-
     private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType searchType) {
         return new VisibleEnableBehaviour() {
         	

@@ -129,9 +129,10 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 	}
 
     private void initSearch(String text){
-        PageStorage storage = getSessionStorage().getPageStorageMap().get(SessionStorage.KEY_USERS);
+		String storageKey = getStorageKey();
+        PageStorage storage = getSessionStorage().getPageStorageMap().get(storageKey);
         if (storage == null) {
-            storage = getSessionStorage().initPageStorage(SessionStorage.KEY_USERS);
+            storage = getSessionStorage().initPageStorage(storageKey);
         }
         Search search = SearchFactory.createSearch(UserType.class, this);
 		if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
@@ -141,7 +142,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
             searchItem.getValues().add(new SearchValue<>(text));
         }
         storage.setSearch(search);
-        getSessionStorage().getPageStorageMap().put(SessionStorage.KEY_USERS, storage);
+        getSessionStorage().getPageStorageMap().put(storageKey, storage);
 
     }
 

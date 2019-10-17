@@ -437,7 +437,6 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
-
 	/**
      * Creates specific subclass of ItemDelta appropriate for type of item that this definition
      * represents (e.g. PropertyDelta, ContainerDelta, ...)
@@ -448,7 +447,6 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
 	/**
 	 * Accepts a visitor that visits each item/value on the way to the structure root.
-	 * @param visitor
 	 */
 	void acceptParentVisitor(@NotNull Visitor visitor);
 
@@ -479,7 +477,8 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 	static <T extends Item> Collection<T> cloneCollection(Collection<T> items) {
     	Collection<T> clones = new ArrayList<>(items.size());
     	for (T item: items) {
-    		clones.add((T)item.clone());
+		    //noinspection unchecked
+		    clones.add((T)item.clone());
     	}
     	return clones;
     }
@@ -488,9 +487,11 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      * Sets all parents to null. This is good if the items are to be "transplanted" into a
      * different Containerable.
      */
+	@SuppressWarnings("unused")
 	static <T extends Item> Collection<T> resetParentCollection(Collection<T> items) {
     	for (T item: items) {
-    		item.setParent(null);
+		    //noinspection unchecked
+		    item.setParent(null);
     	}
     	return items;
 	}
@@ -527,6 +528,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
 	boolean hasNoValues();
 
+	@SuppressWarnings("unused")
 	static boolean hasNoValues(Item<?, ?> item) {
 		return item == null || item.getValues().isEmpty();
 	}

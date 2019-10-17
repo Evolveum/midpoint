@@ -296,11 +296,7 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     public boolean isShowAdvanced() {
-        return showAdvanced;
-    }
-
-    public void setShowAdvanced(boolean showAdvanced) {
-        this.showAdvanced = showAdvanced;
+        return SearchBoxModeType.ADVANCED.equals(searchType);
     }
 
     public String getAdvancedQuery() {

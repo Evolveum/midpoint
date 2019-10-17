@@ -125,7 +125,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestNullAttribute.class.getName() + "." + TEST_NAME);
 
 		OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
 		TestUtil.assertSuccess(testResult);

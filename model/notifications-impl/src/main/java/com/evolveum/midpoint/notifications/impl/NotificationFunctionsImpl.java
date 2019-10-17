@@ -89,7 +89,7 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
 			ShadowType.F_ACTIVATION.append(ActivationType.F_ENABLE_TIMESTAMP),
 			ShadowType.F_ITERATION,
 			ShadowType.F_ITERATION_TOKEN,
-			UserType.F_LINK_REF,
+			FocusType.F_LINK_REF,
 			ShadowType.F_TRIGGER));
 
 

@@ -47,4 +47,14 @@
 			<class name="com.evolveum.midpoint.testing.schrodinger.scenarios.CaseTests"/>
 		</classes>
 	</test>
+	<test name="Schrodinger.UserTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+		<classes>
+			<class name="com.evolveum.midpoint.testing.schrodinger.UserTest"/>
+		</classes>
+	</test>
+	<test name="Schrodinger.page.QueryPlaygroundPageTest" preserve-order="true" parallel="false" verbose="3" enabled="true">
+		<classes>
+			<class name="com.evolveum.midpoint.testing.schrodinger.page.QueryPlaygroundPageTest"/>
+		</classes>
+	</test>
 </suite>

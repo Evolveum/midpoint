@@ -50,6 +50,7 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 	public ResourceAttributeContainerDefinitionImpl(QName name, ObjectClassComplexTypeDefinition complexTypeDefinition,  PrismContext prismContext) {
 		super(name, complexTypeDefinition, prismContext);
 		super.setCompileTimeClass(ShadowAttributesType.class);
+		isRuntimeSchema = true;
 	}
 
 	@Override

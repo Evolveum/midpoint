@@ -388,19 +388,19 @@
 			
 			<reaction>
 	            <situation>linked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+	            <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri></action>
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+	            <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri></action>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	            <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri></action>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+	            <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri></action>
 				<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
 	        </reaction>
 

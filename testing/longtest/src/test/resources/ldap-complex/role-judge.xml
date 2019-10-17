@@ -28,7 +28,7 @@
 									<q:value>judges</q:value>
 								</q:equal>
             				</filter>
-            				<searchOnResource>true</searchOnResource>
+							<searchStrategy>onResource</searchStrategy>
             			</associationTargetSearch>
             		</expression>
             	</outbound>

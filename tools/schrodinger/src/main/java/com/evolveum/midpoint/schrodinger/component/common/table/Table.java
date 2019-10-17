@@ -67,11 +67,11 @@ public class Table<T> extends Component<T> {
     }
 
     public boolean containsText(String value){
-        return $(byText(value)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).is(Condition.visible);
+        return $(byText(value)).is(Condition.visible);
     }
 
     public boolean containsLinkTextPartially(String value){
-        return $(byPartialLinkText(value)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).is(Condition.visible);
+        return $(byPartialLinkText(value)).is(Condition.visible);
     }
 
     public boolean buttonToolBarExists(){

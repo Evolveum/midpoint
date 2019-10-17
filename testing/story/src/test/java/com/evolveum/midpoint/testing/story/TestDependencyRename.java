@@ -6,60 +6,25 @@ package com.evolveum.midpoint.testing.story;
  * and European Union Public License. See LICENSE file for details.
  */
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.SearchResultEntry;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
-import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListener;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import java.io.File;
+
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author Radovan Semancik
@@ -139,7 +104,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 	public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
 
 		OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_PHONEBOOK_OID, task);
 		TestUtil.assertSuccess(testResultHr);
@@ -154,7 +119,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 	public void test100AddUserHerman() throws Exception {
 		final String TEST_NAME = "test100AddUserHerman";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		PrismObject<UserType> userBefore = getUserDefinition().instantiate();
@@ -185,7 +150,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 	public void test110HermanAssignRoleBasic() throws Exception {
 		final String TEST_NAME = "test110HermanAssignRoleBasic";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
@@ -220,7 +185,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 	public void test112HermanRename() throws Exception {
 		final String TEST_NAME = "test112HermanRename";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
@@ -255,7 +220,7 @@ public class TestDependencyRename extends AbstractStoryTest {
 	public void test120AddUserCapsizeWithBasicRole() throws Exception {
 		final String TEST_NAME = "test120AddUserCapsizeWithBasicRole";
 		TestUtil.displayTestTitle(this, TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestDependencyRename.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
 		PrismObject<UserType> userBefore = getUserDefinition().instantiate();

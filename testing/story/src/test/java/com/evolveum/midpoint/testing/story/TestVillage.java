@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -266,7 +265,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_SOURCE_OID, task);
         TestUtil.assertSuccess(testResultHr);
@@ -290,7 +289,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test020ResourceOpenDjGet() throws Exception {
 		final String TEST_NAME = "test020ResourceOpenDjGet";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         rememberCounter(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
@@ -328,7 +327,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test022ResourceOpenDjRefinedSchema() throws Exception {
 		final String TEST_NAME = "test022ResourceOpenDjRefinedSchema";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<ResourceType> resourceBefore = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
@@ -381,7 +380,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test100AddSrcAccountHerman() throws Exception {
 		final String TEST_NAME = "test100AddSrcAccountHerman";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_HERMAN_FIST_NAME);
@@ -403,7 +402,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test101HermanAssignBasicRole() throws Exception {
 		final String TEST_NAME = "test101HermanAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -421,7 +420,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test102HermanUnAssignBasicRole() throws Exception {
 		final String TEST_NAME = "test102HermanUnAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -439,7 +438,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test103HermanAssignBasicAndSimpleRole() throws Exception {
 		final String TEST_NAME = "test103HermanAssignBasicAndSimpleRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -459,7 +458,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test104HermanUnAssignSimpleRoleThenBasic() throws Exception {
 		final String TEST_NAME = "test104HermanUnAssignSimpleRoleThenBasic";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -488,7 +487,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test105ModifySrcAccountHermanRemoveLoc() throws Exception {
 		final String TEST_NAME = "test105ModifySrcAccountHermanRemoveLoc";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
@@ -506,7 +505,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test106HermanAssignBasicRole() throws Exception {
 		final String TEST_NAME = "test106HermanAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -524,7 +523,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test107ModifySrcAccountHermanAddLoc() throws Exception {
 		final String TEST_NAME = "test107ModifySrcAccountHermanAddLoc";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
@@ -543,7 +542,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test108ModifySrcAccountHermanRemoveLoc() throws Exception {
 		final String TEST_NAME = "test108ModifySrcAccountHermanRemoveLoc";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
@@ -562,7 +561,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test109HermanUnAssignBasicRole() throws Exception {
 		final String TEST_NAME = "test109HermanUnAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
 
@@ -580,7 +579,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test110AddSrcAccountLemonhead() throws Exception {
 		final String TEST_NAME = "test110AddSrcAccountLemonhead";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_LEMONHEAD_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_LEMONHEAD_FIST_NAME);
@@ -607,7 +606,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test120AddSrcAccountWally() throws Exception {
 		final String TEST_NAME = "test120AddSrcAccountWally";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_WALLY_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_WALLY_FIST_NAME);
@@ -627,7 +626,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test121WallyAssignBasicRole() throws Exception {
 		final String TEST_NAME = "test121WallyAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
 
@@ -644,7 +643,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test122WallyUnAssignBasicRole() throws Exception {
 		final String TEST_NAME = "test122WallyUnAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
 
@@ -664,7 +663,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test130AddSrcAccountMancomb() throws Exception {
 		final String TEST_NAME = "test130AddSrcAccountMancomb";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount newAccount = new DummyAccount(ACCOUNT_MANCOMB_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_MANCOMB_FIST_NAME);
@@ -686,7 +685,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test131MancombAssignBasicRole() throws Exception {
 		final String TEST_NAME = "test131WallyAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_MANCOMB_NAME);
 
@@ -703,7 +702,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test132MancombUnAssignBasicRole() throws Exception {
 		final String TEST_NAME = "test132MancombUnAssignBasicRole";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         PrismObject<UserType> user = findUserByUsername(USER_MANCOMB_NAME);
 
@@ -724,7 +723,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test150ModifySrcAccountHermanReplaceOrg() throws Exception {
 		final String TEST_NAME = "test150ModifySrcAccountHermanReplaceOrg";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
@@ -748,7 +747,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test152ModifySrcAccountHermanDeleteOrg() throws Exception {
 		final String TEST_NAME = "test152ModifySrcAccountHermanDeleteOrg";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
 
         DummyAccount account = dummyResourceSrc.getAccountByUsername(ACCOUNT_HERMAN_USERNAME);
 
@@ -865,7 +864,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test310ProjectJollyRogerNestedGroup() throws Exception {
 		final String TEST_NAME = "test310ProjectJollyRogerNestedGroup";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         openDJController.addEntry("dn: "+GROUP_JOLLYROGERS_DN+"\n"+
@@ -903,7 +902,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test319DeleteProjectJollyRoger() throws Exception {
 		final String TEST_NAME = "test319DeleteProjectJollyRoger";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -928,7 +927,7 @@ public class TestVillage extends AbstractStoryTest {
     public void test350AddRepoUserNoEmployeeNumberRecompute() throws Exception {
 		final String TEST_NAME = "test350AddRepoUserNoEmployeeNumberRecompute";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_MURRAY_FILE);

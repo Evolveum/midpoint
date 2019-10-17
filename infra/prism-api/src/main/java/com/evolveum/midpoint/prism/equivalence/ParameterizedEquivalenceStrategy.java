@@ -23,6 +23,7 @@ import java.util.Map;
  *  Basically, REAL_VALUE is oriented towards the effective content of the item or value.
  *  Contrary to IGNORE_METADATA it ignores element names and reference filters (if OID is present).
  */
+@SuppressWarnings("unused")
 public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
 
 	/**
@@ -183,6 +184,18 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
 	private boolean consideringReferenceFilters;            // F
 	private boolean compareElementNames;                    // E
 
+	/**
+	 *  Whether we hash runtime-schema items. Setting this to "true" is dangerous because these can hold unparsed (raw) values
+	 *  so hashing them can break equals-hashcode contract. (See MID-5851.) Note that although statically (compile-time)
+	 *  defined items can hold raw values as well the probability is much lesser.
+	 *
+	 *  This excludes e.g. attributes, extension items and resource/connector configuration elements.
+	 *
+	 *  On the other hand we must be a bit careful because if we exclude too much from hashing, we can run into
+	 *  performance issues (see MID-5852).
+	 */
+	private boolean hashRuntimeSchemaItems;                 // R
+
 	public String getDescription() {
 		return (literalDomComparison ? "L" : "-") +
 				(consideringOperationalData ? "O" : "-") +
@@ -190,9 +203,9 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
 				(consideringDifferentContainerIds ? "i" : "-") +
 				(consideringValueOrigin ? "o" : "-") +
 				(consideringReferenceFilters ? "F" : "-") +
-				(compareElementNames ? "E" : "-");
+				(compareElementNames ? "E" : "-") +
+				(hashRuntimeSchemaItems ? "R" : "-");
 	}
-
 
 	@Override
 	public boolean equals(Item<?, ?> first, Item<?, ?> second) {
@@ -258,6 +271,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
 		this.consideringDifferentContainerIds = consideringDifferentContainerIds;
 	}
 
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public boolean isConsideringOperationalData() {
 		return consideringOperationalData;
 	}
@@ -272,6 +286,14 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
 
 	public void setConsideringReferenceFilters(boolean consideringReferenceFilters) {
 		this.consideringReferenceFilters = consideringReferenceFilters;
+	}
+
+	public boolean isHashRuntimeSchemaItems() {
+		return hashRuntimeSchemaItems;
+	}
+
+	public void setHashRuntimeSchemaItems(boolean hashRuntimeSchemaItems) {
+		this.hashRuntimeSchemaItems = hashRuntimeSchemaItems;
 	}
 
 	@Override

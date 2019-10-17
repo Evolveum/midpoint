@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0 
@@ -46,9 +46,9 @@ import org.jetbrains.annotations.NotNull;
 public class DummyReferenceImpl implements PrismReference {
 	
 	private final PrismReference realReference;
-	private final ItemPath path;
+	@NotNull private final ItemPath path;
 	
-	public DummyReferenceImpl(PrismReference realReference, ItemPath path) {
+	public DummyReferenceImpl(PrismReference realReference, @NotNull ItemPath path) {
 		super();
 		this.realReference = realReference;
 		this.path = path;
@@ -66,6 +66,7 @@ public class DummyReferenceImpl implements PrismReference {
 		return realReference.getRealValue();
 	}
 
+	@NotNull
 	public Collection<Referencable> getRealValues() {
 		return realReference.getRealValues();
 	}
@@ -163,10 +164,12 @@ public class DummyReferenceImpl implements PrismReference {
 		throw new UnsupportedOperationException();
 	}
 
+	@NotNull
 	public ItemPath getPath() {
 		return path;
 	}
 
+	@NotNull
 	public Map<String, Object> getUserData() {
 		return realReference.getUserData();
 	}
@@ -200,15 +203,15 @@ public class DummyReferenceImpl implements PrismReference {
 		return realReference.isSingleValue();
 	}
 
-	public boolean add(PrismReferenceValue newValue, boolean checkUniqueness) throws SchemaException {
+	public boolean add(@NotNull PrismReferenceValue newValue, boolean checkUniqueness) throws SchemaException {
 		return realReference.add(newValue, checkUniqueness);
 	}
 
-	public boolean add(PrismReferenceValue newValue) throws SchemaException {
+	public boolean add(@NotNull PrismReferenceValue newValue) throws SchemaException {
 		return realReference.add(newValue);
 	}
 
-	public boolean add(PrismReferenceValue newValue, EquivalenceStrategy equivalenceStrategy)
+	public boolean add(@NotNull PrismReferenceValue newValue, @NotNull EquivalenceStrategy equivalenceStrategy)
 			throws SchemaException {
 		return realReference.add(newValue, equivalenceStrategy);
 	}
@@ -226,7 +229,7 @@ public class DummyReferenceImpl implements PrismReference {
 		return realReference.remove(value);
 	}
 
-	public boolean remove(PrismReferenceValue value, EquivalenceStrategy strategy) {
+	public boolean remove(PrismReferenceValue value, @NotNull EquivalenceStrategy strategy) {
 		return realReference.remove(value, strategy);
 	}
 
@@ -251,11 +254,11 @@ public class DummyReferenceImpl implements PrismReference {
 		return realReference.equals(obj);
 	}
 
-	public boolean equals(Object obj, EquivalenceStrategy equivalenceStrategy) {
+	public boolean equals(Object obj, @NotNull EquivalenceStrategy equivalenceStrategy) {
 		return realReference.equals(obj, equivalenceStrategy);
 	}
 
-	public boolean equals(Object obj, ParameterizedEquivalenceStrategy equivalenceStrategy) {
+	public boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy equivalenceStrategy) {
 		return realReference.equals(obj, equivalenceStrategy);
 	}
 
@@ -263,11 +266,11 @@ public class DummyReferenceImpl implements PrismReference {
 		return realReference.hashCode();
 	}
 
-	public int hashCode(EquivalenceStrategy equivalenceStrategy) {
+	public int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy) {
 		return realReference.hashCode(equivalenceStrategy);
 	}
 
-	public int hashCode(ParameterizedEquivalenceStrategy equivalenceStrategy) {
+	public int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy) {
 		return realReference.hashCode(equivalenceStrategy);
 	}
 
@@ -275,7 +278,7 @@ public class DummyReferenceImpl implements PrismReference {
 		return realReference.contains(value);
 	}
 
-	public boolean contains(PrismReferenceValue value, EquivalenceStrategy strategy) {
+	public boolean contains(PrismReferenceValue value, @NotNull EquivalenceStrategy strategy) {
 		return realReference.contains(value, strategy);
 	}
 
@@ -293,7 +296,7 @@ public class DummyReferenceImpl implements PrismReference {
 		return realReference.containsEquivalentValue(value, comparator);
 	}
 
-	public PrismReferenceValue findValue(PrismReferenceValue value, EquivalenceStrategy strategy) {
+	public PrismReferenceValue findValue(PrismReferenceValue value, @NotNull EquivalenceStrategy strategy) {
 		return realReference.findValue(value, strategy);
 	}
 
@@ -309,7 +312,7 @@ public class DummyReferenceImpl implements PrismReference {
 
 	public ItemDelta<PrismReferenceValue, PrismReferenceDefinition> diff(
 			Item<PrismReferenceValue, PrismReferenceDefinition> other,
-			ParameterizedEquivalenceStrategy strategy) {
+			@NotNull ParameterizedEquivalenceStrategy strategy) {
 		return realReference.diff(other, strategy);
 	}
 
@@ -325,7 +328,7 @@ public class DummyReferenceImpl implements PrismReference {
 		realReference.merge(otherItem);
 	}
 
-	public void acceptParentVisitor(Visitor visitor) {
+	public void acceptParentVisitor(@NotNull Visitor visitor) {
 		realReference.acceptParentVisitor(visitor);
 	}
 
@@ -428,6 +431,7 @@ public class DummyReferenceImpl implements PrismReference {
 		realReference.modifyUnfrozen(mutator);
 	}
 
+	@NotNull
 	public Collection<PrismValue> getAllValues(ItemPath path) {
 		return realReference.getAllValues(path);
 	}
