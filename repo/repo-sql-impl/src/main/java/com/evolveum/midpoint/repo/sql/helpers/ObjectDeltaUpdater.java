@@ -224,7 +224,7 @@ public class ObjectDeltaUpdater {
         RFocus focus = (RFocus) bean;
         Set<RFocusPhoto> photos = focus.getJpegPhoto();
 
-        if (delta.isDelete()) {
+        if (isDelete(delta)) {
             photos.clear();
             return;
         }
@@ -256,6 +256,21 @@ public class ObjectDeltaUpdater {
         RFocusPhoto oldPhoto = photos.iterator().next();
         oldPhoto.setPhoto(photo.getPhoto());
     }
+
+    private boolean isDelete(ItemDelta delta) {
+        if (delta.isDelete()) {
+            return true;
+        }
+
+        if (delta.isReplace()) {
+            if (delta.getAnyValue() == null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
     private boolean isMetadata(ItemDelta delta) {
         ItemPath named = delta.getPath().namedSegmentsOnly();
