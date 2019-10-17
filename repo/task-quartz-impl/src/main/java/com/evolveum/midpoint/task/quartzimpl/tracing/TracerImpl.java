@@ -186,14 +186,15 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 				environment.setDeployment(deploymentClone);
 			}
 		}
-//		NodeType localNode = taskManager.getLocalNode();
-//		if (localNode != null) {
-//			NodeType nodeClone = localNode.clone();
-//			nodeClone.setSecret(null);
-//			nodeClone.setSecretUpdateTimestamp(null);
-//			nodeClone.setOid(null);
-//			environment.setNode(nodeClone);
-//		}
+		NodeType localNode = taskManager.getLocalNode();
+		if (localNode != null) {
+			NodeType selectedNodeInformation = new NodeType(prismContext);
+			selectedNodeInformation.setName(localNode.getName());
+			selectedNodeInformation.setNodeIdentifier(localNode.getNodeIdentifier());
+			selectedNodeInformation.setBuild(CloneUtil.clone(localNode.getBuild()));
+			selectedNodeInformation.setClustered(localNode.isClustered());
+			environment.setNodeRef(ObjectTypeUtil.createObjectRefWithFullObject(selectedNodeInformation, prismContext));
+		}
 		TaskType taskClone = task.getClonedTaskObject().asObjectable();
 		if (taskClone.getResult() != null) {
 			taskClone.getResult().getPartialResults().clear();

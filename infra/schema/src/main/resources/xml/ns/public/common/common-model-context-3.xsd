@@ -2366,6 +2366,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="nodeRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Selected information about the current node. Sensitive parts (e.g. IP addresses) are excluded.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:composite>true</a:composite>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
