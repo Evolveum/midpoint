@@ -283,20 +283,24 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                 ResultSet subResultList = subStmt.executeQuery();
                                 
                                 try {
-                                	try {
-                                    	while (subResultList.next()) {
-                                    		ObjectDeltaOperation odo = RObjectDeltaOperation.fromRepo(subResultList, getPrismContext(), getConfiguration().isUsingSQLServer());
-                                    		if(odo != null) {
-                                    			audit.addDelta(odo);
-                                    		}
-                                    	}
-                                    } finally {
-                                    	subResultList.close();
-                                    	subStmt.close();
-    								}
-                                } catch (DtoTranslationException ex) {
-    					            baseHelper.handleGeneralCheckedException(ex, localSession, null);
-    					        }
+                                    while (subResultList.next()) {
+                                        try {
+                                            ObjectDeltaOperation odo = RObjectDeltaOperation.fromRepo(subResultList, getPrismContext(), getConfiguration().isUsingSQLServer());
+                                            if (odo != null) {
+                                                audit.addDelta(odo);
+                                            }
+                                        } catch (DtoTranslationException ex) {
+                                            LOGGER.error("Cannot convert stored audit delta. Reason: {}", ex.getMessage(), ex);
+                                            //do not throw an error. rather audit record without delta then fatal error.
+                                            // TODO: consider using OperationResult
+                                            continue;
+                                        }
+
+                                    }
+                                } finally {
+                                    subResultList.close();
+                                    subStmt.close();
+                                }
                                 
                                 //query for properties
                                 subStmt = con.prepareStatement(propertyQuery);

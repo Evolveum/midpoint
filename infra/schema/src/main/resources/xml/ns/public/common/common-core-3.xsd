@@ -12399,10 +12399,11 @@
                     	<xsd:annotation>
                     		<xsd:documentation>
                     			<p>
-	                    			If set to true then this role may be directly requested by the users.
-	                    			The value of this property is only meant as a hint for role presentation.
-	                    			It does NOT define any access control mechanisms. For access control please
-	                    			use the authorization element.
+                                    If set to true then this role may be directly requested by the users.
+                                    This is an ordinary property without any special built-in function.
+                                    It does NOT directly control any access control or presentation mechanisms.
+                                    Appropriate authorization rules should be defined to make this property work.
+                                    E.g. see authorization statements in the default end user role.
                     			</p>
                     		</xsd:documentation>
                     		 <xsd:appinfo>
@@ -12414,10 +12415,10 @@
                     	<xsd:annotation>
                     		<xsd:documentation>
                     			<p>
-	                    			If set to true then this role may be delegated to a deputy.
-	                    			The value of this property is only meant as a hint for role presentation.
-	                    			It does NOT define any access control mechanisms. For access control please
-	                    			use the authorization element.
+                                    If set to true then this role may be delegated to a deputy.
+                                    This is an ordinary property without any special built-in function.
+                                    It does NOT directly control any access control or presentation mechanisms.
+                                    Appropriate authorization rules should be defined to make this property work.
                     			</p>
                     		</xsd:documentation>
                     		 <xsd:appinfo>
