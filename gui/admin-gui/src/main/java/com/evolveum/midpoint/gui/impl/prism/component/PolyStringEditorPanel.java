@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.component;
 
+import com.evolveum.midpoint.gui.api.Validatable;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -28,6 +28,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -38,7 +39,7 @@ import java.util.*;
 /**
  * Created by honchar
  */
-public class PolyStringEditorPanel extends BasePanel<PolyString>{
+public class PolyStringEditorPanel extends BasePanel<PolyString> implements Validatable {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_LOCALIZED_VALUE_CONTAINER = "localizedValueContainer";
@@ -404,17 +405,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
     }
 
     private TextPanel<PolyString> getOrigValuePanel(){
-        return (TextPanel<PolyString>) get(createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE));
-    }
-
-    private void onValueUpdated(){
-        PolyString panelModelObject = PolyStringEditorPanel.this.getModelObject();
-        if (panelModelObject == null){
-            panelModelObject = new PolyString(getOrigValuePanel().getBaseFormComponent().getValue());
-        }
-        PolyString updatedPolyStringValue = new PolyString(getOrigValuePanel().getBaseFormComponent().getValue(),
-                null, panelModelObject.getTranslation(), panelModelObject.getLang());
-        PolyStringEditorPanel.this.getModel().setObject(updatedPolyStringValue);
+        return (TextPanel<PolyString>) get(getPageBase().createComponentPath(ID_ORIGIN_VALUE_CONTAINER, ID_ORIG_VALUE_WITH_BUTTON, ID_ORIG_VALUE));
     }
 
     //todo refactor with PolyStringWrapper
@@ -467,4 +458,10 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
     private void clearSelectedLanguageValue(){
         currentlySelectedLang.delete(0, currentlySelectedLang.length());
     }
+
+    @Override
+    public FormComponent getValidatableComponent() {
+        return getOrigValuePanel().getBaseFormComponent();
+    }
+
 }
