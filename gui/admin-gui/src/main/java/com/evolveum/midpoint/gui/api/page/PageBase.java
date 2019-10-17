@@ -393,7 +393,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                             .isNull()
                             .build();
                     return getModelService().countContainers(CaseWorkItemType.class, query, null, task, task.getResult());
-                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+                } catch (Exception e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
                     return null;
                 }
@@ -409,8 +409,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     Task task = createSimpleTask(OPERATION_LOAD_CERT_WORK_ITEM_COUNT);
                     OperationResult result = task.getResult();
                     return acs.countOpenWorkItems(getPrismContext().queryFactory().createQuery(), true, null, task, result);
-                } catch (SchemaException | SecurityViolationException | ObjectNotFoundException
-                        | ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
+                } catch (Exception e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
                     return null;
                 }
