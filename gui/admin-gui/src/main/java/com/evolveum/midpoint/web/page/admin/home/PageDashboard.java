@@ -163,35 +163,35 @@ public abstract class PageDashboard extends PageAdminHome {
 			String icon, String keyPrefix, OperationResult result, Task task) {
 	}
 	
-	protected List<AuditEventRecordType> listAuditRecords(Map<String, Object> parameters, List<String> conditions) {
-		
-		Date date = new Date(System.currentTimeMillis() - (24*3600000));
-		conditions.add("aer.timestamp >= :from");
-		parameters.put("from", XmlTypeConverter.createXMLGregorianCalendar(date));
-		conditions.add("aer.eventStage = :auditStageType");
-		parameters.put("auditStageType", AuditEventStageType.EXECUTION);
-		
-		String query = "from RAuditEventRecord as aer";
-		if (!conditions.isEmpty()) {
-			query += " where ";
-		}
-		
-		query += conditions.stream().collect(Collectors.joining(" and "));
-		query += " order by aer.timestamp desc";
-
-
-        List<AuditEventRecord> auditRecords;
-		auditRecords = getAuditService().listRecords(query, parameters);
-		
-		if (auditRecords == null) {
-			auditRecords = new ArrayList<>();
-		}
-		List<AuditEventRecordType> auditRecordList = new ArrayList<>();
-		for (AuditEventRecord record : auditRecords){
-			auditRecordList.add(record.createAuditEventRecordType());
-		}
-		return auditRecordList;
-	}
+//	protected List<AuditEventRecordType> listAuditRecords(Map<String, Object> parameters, List<String> conditions) {
+//
+//		Date date = new Date(System.currentTimeMillis() - (24*3600000));
+//		conditions.add("aer.timestamp >= :from");
+//		parameters.put("from", XmlTypeConverter.createXMLGregorianCalendar(date));
+//		conditions.add("aer.eventStage = :auditStageType");
+//		parameters.put("auditStageType", AuditEventStageType.EXECUTION);
+//
+//		String query = "from RAuditEventRecord as aer";
+//		if (!conditions.isEmpty()) {
+//			query += " where ";
+//		}
+//
+//		query += conditions.stream().collect(Collectors.joining(" and "));
+//		query += " order by aer.timestamp desc";
+//
+//
+//        List<AuditEventRecord> auditRecords;
+//		auditRecords = getAuditService().listRecords(query, parameters);
+//
+//		if (auditRecords == null) {
+//			auditRecords = new ArrayList<>();
+//		}
+//		List<AuditEventRecordType> auditRecordList = new ArrayList<>();
+//		for (AuditEventRecord record : auditRecords){
+//			auditRecordList.add(record.createAuditEventRecordType());
+//		}
+//		return auditRecordList;
+//	}
     
     protected String formatPercentage(int totalItems, int actualItems) {
     	float percentage = (totalItems==0 ? 0 : actualItems*100.0f/totalItems);

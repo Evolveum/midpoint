@@ -72,7 +72,7 @@ public class AuditController implements ModelAuditService {
 	@Override
 	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		authorize(ModelAuthorizationAction.AUDIT_READ, task, result);
-		return auditService.listRecords(query, params);
+		return auditService.listRecords(query, params, result);
 	}
 
 	/* (non-Javadoc)
@@ -106,7 +106,7 @@ public class AuditController implements ModelAuditService {
 		O currentObjectType = objectResolver.getObjectSimple(type, oid, null, task, result);
 		PrismObject<O> currentObject = (PrismObject<O>) currentObjectType.asPrismObject();
 
-		List<AuditEventRecord> changeTrail = getChangeTrail(oid, eventIdentifier);
+		List<AuditEventRecord> changeTrail = getChangeTrail(oid, eventIdentifier, result);
 		LOGGER.trace("Found change trail for {} containing {} events", oid, changeTrail.size());
 
 		LOGGER.info("TRAIL:\n{}", DebugUtil.debugDump(changeTrail, 1));
@@ -121,15 +121,15 @@ public class AuditController implements ModelAuditService {
 		return reconstructedObject;
 	}
 
-	private List<AuditEventRecord> getChangeTrail(String targetOid, String finalEventIdentifier) throws ObjectNotFoundException {
-		AuditEventRecord finalEvent = findEvent(finalEventIdentifier);
+	private List<AuditEventRecord> getChangeTrail(String targetOid, String finalEventIdentifier, OperationResult result) throws ObjectNotFoundException {
+		AuditEventRecord finalEvent = findEvent(finalEventIdentifier, result);
 		if (finalEvent == null) {
 			throw new ObjectNotFoundException("Audit event ID "+finalEventIdentifier+" was not found");
 		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Final event:\n{}", finalEvent.debugDump(1));
 		}
-		List<AuditEventRecord> changeTrail = getChangeTrail(targetOid, XmlTypeConverter.createXMLGregorianCalendar(finalEvent.getTimestamp()));
+		List<AuditEventRecord> changeTrail = getChangeTrail(targetOid, XmlTypeConverter.createXMLGregorianCalendar(finalEvent.getTimestamp()), result);
 
 		// The search may have returned more events that we want to, e.g. if two
 		// events happened in the same millisecond.
@@ -147,20 +147,21 @@ public class AuditController implements ModelAuditService {
 		return changeTrail;
 	}
 
-	private List<AuditEventRecord> getChangeTrail(String targetOid, XMLGregorianCalendar from) {
+	private List<AuditEventRecord> getChangeTrail(String targetOid, XMLGregorianCalendar from, OperationResult result) {
 		Map<String,Object> params = new HashMap<>();
 		params.put("from", from);
 		params.put("targetOid", targetOid);
 		params.put("stage", AuditEventStage.EXECUTION);
 		return auditService.listRecords(
 				"select * from m_audit_event as aer where (aer.timestampValue >= :from) and (aer.targetOid = :targetOid) and (aer.eventStage = :stage) order by aer.timestampValue desc",
-        		params);
+        		params, result);
 	}
 
-	private AuditEventRecord findEvent(String eventIdentifier) {
+	private AuditEventRecord findEvent(String eventIdentifier, OperationResult result) {
 		Map<String,Object> params = new HashMap<>();
 		params.put("eventIdentifier", eventIdentifier);
-		List<AuditEventRecord> listRecords = auditService.listRecords("select * from m_audit_event as aer where (aer.eventIdentifier = :eventIdentifier)", params);
+		List<AuditEventRecord> listRecords = auditService
+				.listRecords("select * from m_audit_event as aer where (aer.eventIdentifier = :eventIdentifier)", params, result);
 		if (listRecords == null || listRecords.isEmpty()) {
 			return null;
 		}
