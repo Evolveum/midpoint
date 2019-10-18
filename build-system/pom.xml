@@ -94,6 +94,7 @@
 		<activation.version>1.2.0</activation.version>
 		<jetty.version>9.4.20.v20190813</jetty.version>
         <maven.api.version>3.6.2</maven.api.version>
+        <checkstyle.version>3.1.0</checkstyle.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -1568,10 +1569,6 @@
                     <failOnMissingWebXml>false</failOnMissingWebXml>
 				</configuration>
 			</plugin>
-			<!--plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-checkstyle-plugin</artifactId> 
-				<version>2.4</version> <configuration> <configLocation>http:///svn/coding-rules/CheckStyle-rules.xml</configLocation> 
-				<includeTestSourceDirectory>false</includeTestSourceDirectory> </configuration> 
-				</plugin -->
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
@@ -1710,6 +1707,34 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.1.1</version>
 			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${checkstyle.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.evolveum.midpoint</groupId>
+                        <artifactId>build-tools</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>midpoint-build/checkstyle.xml</configLocation>
+                    <encoding>UTF-8</encoding>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <linkXRef>false</linkXRef>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 		</plugins>
 
         <pluginManagement>
@@ -1842,10 +1867,25 @@
 					<onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
 				</configuration>
 			</plugin>
-			<!--plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-checkstyle-plugin</artifactId> 
-				<version>2.4</version> <configuration> <configLocation>http://svn/coding-rules/CheckStyle-rules.xml</configLocation> 
-				<includeTestSourceDirectory>false</includeTestSourceDirectory> </configuration> 
-				</plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${checkstyle.version}</version>
+                <configuration>
+                    <configLocation>midpoint-build/checkstyle.xml</configLocation>
+                    <encoding>UTF-8</encoding>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <linkXRef>false</linkXRef>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>checkstyle</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
 		</plugins>
 	</reporting>
     

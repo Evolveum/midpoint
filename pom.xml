@@ -161,6 +161,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<modules>
+		<module>build-tools</module>
 		<module>build-system</module>
 		<module>tools</module>
 		<module>infra</module>
