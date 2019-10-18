@@ -48,6 +48,7 @@ public class InformationPanel extends BasePanel<InformationType> {
 				return getLocalizableMessageOrDefault(info.getLocalizableTitle(), info.getTitle());
 			}
 		}, this));
+		titleLabel.add(new VisibleBehaviour(() -> getModelObject() != null));
 		add(titleLabel);
 
 		ListView<InformationPartType> list = new ListView<InformationPartType>(ID_PARTS,
