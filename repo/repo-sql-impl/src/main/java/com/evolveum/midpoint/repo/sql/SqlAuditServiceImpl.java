@@ -78,6 +78,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     public static final String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
     public static final String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
+    public static final String OP_LIST_RECORDS = "listRecords";
+    public static final String OP_LIST_RECORDS_ATTEMPT = "listRecordsAttempt";
+    public static final String OP_LOAD_AUDIT_DELTA = "loadAuditDelta";
+
     @Autowired
     private BaseHelper baseHelper;
 
@@ -117,13 +121,17 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     @Override
-    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
+    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult parentResult) {
         final String operation = "listRecords";
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
         int attempt = 1;
 
+        OperationResult result = parentResult.createSubresult(OP_LIST_RECORDS);
+        result.addParam("query", query);
+
         while (true) {
+            OperationResult attemptResult = result.createMinorSubresult(OP_LIST_RECORDS_ATTEMPT);
             try {
                 final List<AuditEventRecord> auditEventRecords = new ArrayList<>();
 
@@ -140,32 +148,43 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         return 0;
                     }
                 };
-                listRecordsIterativeAttempt(query, params, handler);
+                listRecordsIterativeAttempt(query, params, handler, attemptResult);
                 return auditEventRecords;
             } catch (RuntimeException ex) {
                 attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
                 pm.registerOperationNewAttempt(opHandle, attempt);
+                LOGGER.error("Error while trying to list audit records, {}", ex.getMessage(), ex);
+                attemptResult.recordFatalError("Error while trying to list audit records, " + ex.getMessage(), ex);
             } finally {
                 pm.registerOperationFinish(opHandle, attempt);
+                attemptResult.computeStatus();
+                result.computeStatus();
+                result.cleanupResult();
             }
         }
     }
 
     @Override
-    public void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler handler) {
+    public void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler handler, OperationResult parentResult) {
         // TODO operation recording ... but beware, this method is called from within listRecords
         //  (fortunately, currently it is not used from the outside, so it does not matter that it skips recording)
         final String operation = "listRecordsIterative";
         int attempt = 1;
 
         while (true) {
+            OperationResult result = parentResult.createMinorSubresult(OP_LIST_RECORDS_ATTEMPT);
             try {
-                listRecordsIterativeAttempt(query, params, handler);
+                listRecordsIterativeAttempt(query, params, handler, result);
+                result.recordSuccess();
                 return;
             } catch (RuntimeException ex) {
                 attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
+                LOGGER.error("Error while trying to list audit record, {}, attempt: {}", ex.getMessage(), attempt, ex);
+                result.recordFatalError("Error while trying to list audit record " + ex.getMessage() + ", attempt: " + attempt, ex);
             }
         }
+
+
     }
 
     @Override
@@ -220,7 +239,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     private void listRecordsIterativeAttempt(String query, Map<String, Object> params,
-                                             AuditResultHandler handler) {
+                                             AuditResultHandler handler, OperationResult result) {
         Session session = null;
 
         if (LOGGER.isTraceEnabled()) {
@@ -281,7 +300,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                 PreparedStatement subStmt = con.prepareStatement(deltaQuery);
                                 subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
                                 ResultSet subResultList = subStmt.executeQuery();
-                                
+
+                                OperationResult deltaResult = result.createMinorSubresult(OP_LOAD_AUDIT_DELTA);
                                 try {
                                     while (subResultList.next()) {
                                         try {
@@ -291,8 +311,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                             }
                                         } catch (DtoTranslationException ex) {
                                             LOGGER.error("Cannot convert stored audit delta. Reason: {}", ex.getMessage(), ex);
-                                            //do not throw an error. rather audit record without delta then fatal error.
-                                            // TODO: consider using OperationResult
+                                            deltaResult.recordPartialError("Cannot convert stored audit delta. Reason: " + ex.getMessage(), ex);
+                                            //do not throw an error. rather audit record without delta than fatal error.
                                             continue;
                                         }
 
@@ -300,6 +320,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                 } finally {
                                     subResultList.close();
                                     subStmt.close();
+                                    deltaResult.computeStatus();
                                 }
                                 
                                 //query for properties
@@ -370,6 +391,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                             }
                         }finally {
                         	stmt.close();
+                        	result.computeStatus();
 						}
                         
 //                	

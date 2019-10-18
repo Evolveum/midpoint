@@ -215,8 +215,11 @@ public class ReportFunctions {
         if (StringUtils.isBlank(query)) {
             return new ArrayList<>();
         }
+        OperationResult result = new OperationResult("searchAuditRecords");
 
-        return auditService.listRecords(query, ReportUtils.jasperParamsToAuditParams(jasperParams));
+        List<AuditEventRecord> records = auditService.listRecords(query, ReportUtils.jasperParamsToAuditParams(jasperParams), result);
+        result.computeStatus();
+        return records;
     }
 
     public List<AuditEventRecord> searchAuditRecordsAsWorkflows(String query, Map<String, Object> params) {

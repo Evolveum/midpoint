@@ -12,6 +12,7 @@ import java.util.Map;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import jdk.dynalink.Operation;
 
 /**
  * @author semancik
@@ -33,9 +34,9 @@ public interface AuditService {
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
      */
-    List<AuditEventRecord> listRecords(String query, Map<String, Object> params);
+    List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result);
 
-    void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler auditResultHandler);
+    void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler auditResultHandler, OperationResult result);
 
     /**
      * Reindex items, e.g. if new columns were created for audit table according to which the search should be possible

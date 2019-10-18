@@ -487,7 +487,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 	}
 
 	@Override
-	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
+	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result) {
 		throw new UnsupportedOperationException("Object retrieval not supported");
 	}
 
@@ -503,7 +503,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
 	@Override
 	public void listRecordsIterative(String query, Map<String, Object> params,
-			AuditResultHandler auditResultHandler) {
+			AuditResultHandler auditResultHandler, OperationResult result) {
 		// TODO Auto-generated method stub
 
 	}

@@ -236,17 +236,17 @@ public class ReportServiceImpl implements ReportService {
 	}
 	
 
-	private Collection<AuditEventRecord> runAuditQuery(String sqlWhereClause, TypedValue<VariablesMap> jasperAuditParams) {
+	private Collection<AuditEventRecord> runAuditQuery(String sqlWhereClause, TypedValue<VariablesMap> jasperAuditParams, OperationResult result) {
 		if (StringUtils.isBlank(sqlWhereClause)) {
             return new ArrayList<>();
         }
 		
 		String query = "select * from m_audit_event as aer " + sqlWhereClause;
-		LOGGER.info("AAAAAAA: query: {}", query);
+		LOGGER.trace("AAAAAAA: query: {}", query);
 		Map<String, Object> auditParams = ReportUtils.jasperParamsToAuditParams((VariablesMap)jasperAuditParams.getValue());
-		LOGGER.info("AAAAAAA: auditParams:\n{}", auditParams);
-		List<AuditEventRecord> auditRecords = auditService.listRecords(query, auditParams);
-		LOGGER.info("AAAAAAA: {} records", auditRecords==null?null:auditRecords.size());
+		LOGGER.trace("AAAAAAA: auditParams:\n{}", auditParams);
+		List<AuditEventRecord> auditRecords = auditService.listRecords(query, auditParams, result);
+		LOGGER.trace("AAAAAAA: {} records", auditRecords==null?null:auditRecords.size());
 		return auditRecords;
 	}
 
@@ -318,7 +318,7 @@ public class ReportServiceImpl implements ReportService {
 				throw new SchemaException("Jasper reportType not set, cannot determine how to use string query");
 			}
 			if (reportType.equals(JasperReportTypeType.AUDIT_SQL)) {
-				return runAuditQuery((String)o, auditParams);
+				return runAuditQuery((String)o, auditParams, result);
 			} else {
 				throw new SchemaException("Jasper reportType is not set to auditSql, cannot determine how to use string query");
 			}
