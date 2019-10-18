@@ -201,11 +201,11 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 	}
 
 	@Override
-	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
+	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult parentResult) {
 		List<AuditEventRecord> result = new ArrayList<>();
 		for (AuditService service : services) {
 			if (service.supportsRetrieval()) {
-				List<AuditEventRecord> records = service.listRecords(query, params);
+				List<AuditEventRecord> records = service.listRecords(query, params, parentResult);
 				if (records != null && !records.isEmpty()) {
 					result.addAll(records);
 				}
@@ -215,10 +215,10 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 	}
 
 	@Override
-	public void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler handler) {
+	public void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler handler, OperationResult result) {
 		for (AuditService service : services) {
 			if (service.supportsRetrieval()) {
-				service.listRecordsIterative(query, params, handler);
+				service.listRecordsIterative(query, params, handler, result);
 			}
 		}
 	}

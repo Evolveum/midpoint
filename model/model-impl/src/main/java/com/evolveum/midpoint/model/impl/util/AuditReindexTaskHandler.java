@@ -98,7 +98,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
 			while (true) {
 				params.put("setFirstResult", firstResult);
 				params.put("setMaxResults", maxResults);
-				List<AuditEventRecord> records = auditService.listRecords(null, params);
+				List<AuditEventRecord> records = auditService.listRecords(null, params, opResult);
 				if (CollectionUtils.isNotEmpty(records)){
 					for (AuditEventRecord record : records) {
 						resultHandler.handle(record);

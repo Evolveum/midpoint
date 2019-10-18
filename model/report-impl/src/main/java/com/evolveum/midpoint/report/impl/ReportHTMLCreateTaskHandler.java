@@ -460,7 +460,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 				long startMillis = clock.currentTimeMillis();
 				String query = DashboardUtils
 						.getQueryForListRecords(DashboardUtils.createQuery(collection, parameters, false, clock));
-				List<AuditEventRecord> records = auditService.listRecords(query, parameters);
+				List<AuditEventRecord> records = auditService.listRecords(query, parameters, result);
 				if (records == null || records.isEmpty()) {
 					return null;
 				}
