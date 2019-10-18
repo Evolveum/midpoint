@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -82,6 +83,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private static final String OPERATION_REQUEST_ASSIGNMENTS = DOT_CLASS + "requestAssignments";
     private static final String OPERATION_WF_TASK_CREATED = "com.evolveum.midpoint.wf.impl.hook.WfHook.invoke";
     private static final String OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS = "reviewAssignmentConflicts";
+    private static final String OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT = "loadAssignmentTargetUserObject";
 
     private IModel<List<AssignmentEditorDto>> assignmentsModel;
     private OperationResult backgroundTaskOperationResult = null;
@@ -158,7 +160,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 new IModel<List<UserType>>() {
                     @Override
                     public List<UserType> getObject() {
-                        return getSessionStorage().getRoleCatalog().getTargetUserList();
+                        return WebComponentUtil.loadTargetUsersListForShoppingCart(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT,
+                                PageAssignmentsList.this);
                     }
                 },
                 true, createStringResource("AssignmentCatalogPanel.selectTargetUser")) {
@@ -172,13 +175,17 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             @Override
             protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target) {
                 super.onDeleteSelectedUsersPerformed(target);
-                getSessionStorage().getRoleCatalog().setTargetUserList(new ArrayList<>());
+                getSessionStorage().getRoleCatalog().setTargetUserOidsList(new ArrayList<>());
                 targetUserChangePerformed(target);
             }
 
             @Override
             protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList) {
-                getSessionStorage().getRoleCatalog().setTargetUserList(usersList);
+                if (CollectionUtils.isNotEmpty(usersList)){
+                    List<String> usersOidsList = new ArrayList<>();
+                    usersList.forEach(user -> usersOidsList.add(user.getOid()));
+                    getSessionStorage().getRoleCatalog().setTargetUserOidsList(usersOidsList);
+                }
                 targetUserChangePerformed(target);
             }
 
@@ -210,8 +217,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         AjaxButton requestAssignments = new AjaxButton(ID_REQUEST_BUTTON, createStringResource("PageAssignmentsList.requestButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (getSessionStorage().getRoleCatalog().getTargetUserList() == null ||
-                        getSessionStorage().getRoleCatalog().getTargetUserList().size() <= 1) {
+                if (getSessionStorage().getRoleCatalog().getTargetUserOidsList() == null ||
+                        getSessionStorage().getRoleCatalog().getTargetUserOidsList().size() <= 1) {
                     onSingleUserRequestPerformed(target);
                 } else {
                     onMultiUserRequestPerformed(target);
@@ -371,8 +378,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         if (storage.getRoleCatalog().getAssignmentShoppingCart() != null) {
             storage.getRoleCatalog().getAssignmentShoppingCart().clear();
         }
-        if (storage.getRoleCatalog().getTargetUserList() != null){
-            storage.getRoleCatalog().getTargetUserList().clear();
+        if (storage.getRoleCatalog().getTargetUserOidsList() != null){
+            storage.getRoleCatalog().getTargetUserOidsList().clear();
         }
         storage.getRoleCatalog().setRequestDescription("");
     }
@@ -582,19 +589,11 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     private ObjectQuery getTaskQuery(){
-        List<UserType> userList;
-        if (getSessionStorage().getRoleCatalog().isSelfRequest()){
-            userList = new ArrayList<>();
-            userList.add(getPrincipalUser());
-        } else {
-            userList = getSessionStorage().getRoleCatalog().getTargetUserList();
-        }
-        Set<String> oids = new HashSet<>();
-        for (UserType user : userList){
-            oids.add(user.getOid());
-        }
+        List<String> targetUsersOids = getSessionStorage().getRoleCatalog().isSelfRequest() ?
+                Arrays.asList(getPrincipalUser().getOid()) :
+                getSessionStorage().getRoleCatalog().getTargetUserOidsList();
         QueryFactory queryFactory = getPrismContext().queryFactory();
-        return queryFactory.createQuery(queryFactory.createInOid(oids));
+        return queryFactory.createQuery(queryFactory.createInOid(targetUsersOids));
     }
 
     private PrismContainerValue[] getAddAssignmentContainerValues(List<AssignmentEditorDto> assignments) throws SchemaException {
@@ -647,10 +646,16 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     }
 
     private PrismObject<UserType> getTargetUser() throws SchemaException {
-        List<UserType> usersList = getSessionStorage().getRoleCatalog().getTargetUserList();
-        PrismObject<UserType> user = getSessionStorage().getRoleCatalog().isSelfRequest() ?
-                getPrincipalUser().asPrismObject()
-                : usersList.get(0).asPrismObject();
+        String targetUserOid = getSessionStorage().getRoleCatalog().isSelfRequest() ?
+                getPrincipalUser().getOid() :
+                getSessionStorage().getRoleCatalog().getTargetUserOidsList().get(0);
+        Task task = createSimpleTask(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);
+        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);
+        PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class,
+                targetUserOid, PageAssignmentsList.this, task, result);
+        if (user == null){
+            return null;
+        }
         getPrismContext().adopt(user);
         return user;
     }
