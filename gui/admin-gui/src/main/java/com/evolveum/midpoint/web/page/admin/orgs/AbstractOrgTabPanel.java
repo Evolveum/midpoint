@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
@@ -42,11 +42,11 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 public abstract class AbstractOrgTabPanel extends BasePanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractOrgTabPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractOrgTabPanel.class);
 
-	public static final String PARAM_ORG_RETURN = "org";
+    public static final String PARAM_ORG_RETURN = "org";
 
     private static final String DOT_CLASS = OrgTreeAssignablePanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
@@ -56,14 +56,14 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
     private List<PrismObject<OrgType>> roots;
 
     public AbstractOrgTabPanel(String id, PageBase pageBase) {
-		super(id);
-		setParent(pageBase);
-		initLayout();
-	}
+        super(id);
+        setParent(pageBase);
+        initLayout();
+    }
 
-	private void initLayout() {
+    private void initLayout() {
         final IModel<List<ITab>> tabModel = new LoadableModel<List<ITab>>(false) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected List<ITab> load() {
@@ -74,13 +74,13 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
                 for (PrismObject<OrgType> root : roots) {
                     final String oid = root.getOid();
                     tabs.add(new AbstractTab(createTabTitle(root)) {
-                    	private static final long serialVersionUID = 1L;
+                        private static final long serialVersionUID = 1L;
                         private int tabId = tabs.size();
 
                         @Override
                         public WebMarkupContainer getPanel(String panelId) {
                             add(new AjaxEventBehavior("load") {
-                            		private static final long serialVersionUID = 1L;
+                                    private static final long serialVersionUID = 1L;
 
                                     protected void onEvent(final AjaxRequestTarget target) {
                                         OrgStructurePanelStorage usersStorage = getOrgStructurePanelStorage();
@@ -116,13 +116,13 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
         }
         AjaxTabbedPanel<ITab> tabbedPanel = new AjaxTabbedPanel<ITab>(ID_TABS, tabModel.getObject(), new Model<>(selectedTab), null){
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public TabbedPanel<ITab> setSelectedTab(int index) {
-				changeTabPerformed(index);
-				return super.setSelectedTab(index);
-			}
+            @Override
+            public TabbedPanel<ITab> setSelectedTab(int index) {
+                changeTabPerformed(index);
+                return super.setSelectedTab(index);
+            }
         };
         tabbedPanel.setOutputMarkupId(true);
 
@@ -132,22 +132,22 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
         add(tabbedPanel);
     }
 
-	protected Panel getPanel(){
+    protected Panel getPanel(){
         if (get(ID_TABS).get("panel") instanceof Panel) {
             return (Panel) get(ID_TABS).get("panel");
         }
         return null;
-	}
+    }
 
-	public AjaxTabbedPanel<ITab> getTabbedPanel(){
-		return (AjaxTabbedPanel) get(ID_TABS);
-	}
+    public AjaxTabbedPanel<ITab> getTabbedPanel(){
+        return (AjaxTabbedPanel) get(ID_TABS);
+    }
 
-	protected abstract Panel createTreePanel(String id, Model<String> model, PageBase pageBase);
+    protected abstract Panel createTreePanel(String id, Model<String> model, PageBase pageBase);
 
     private IModel<String> createTabTitle(final PrismObject<OrgType> org) {
         return new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -187,7 +187,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
         }
 
         if (WebComponentUtil.showResultInPage(result)) {
-        	getPageBase().showResult(result);
+            getPageBase().showResult(result);
         }
         return list;
     }

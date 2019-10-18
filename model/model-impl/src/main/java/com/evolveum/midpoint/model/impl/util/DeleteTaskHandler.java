@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.util;
@@ -61,67 +61,67 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
 @Component
 public class DeleteTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = ModelPublicConstants.DELETE_TASK_HANDLER_URI;
+    public static final String HANDLER_URI = ModelPublicConstants.DELETE_TASK_HANDLER_URI;
 
-	@Autowired protected TaskManager taskManager;
-	@Autowired protected ModelService modelService;
-	@Autowired protected PrismContext prismContext;
+    @Autowired protected TaskManager taskManager;
+    @Autowired protected ModelService modelService;
+    @Autowired protected PrismContext prismContext;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(DeleteTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(DeleteTaskHandler.class);
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
 
-	@NotNull
-	@Override
-	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-		return new StatisticsCollectionStrategy()
-				.fromZero()
-				.maintainIterationStatistics()
-				.maintainActionsExecutedStatistics();
-	}
+    @NotNull
+    @Override
+    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        return new StatisticsCollectionStrategy()
+                .fromZero()
+                .maintainIterationStatistics()
+                .maintainActionsExecutedStatistics();
+    }
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-		return runInternal(task);
-	}
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        return runInternal(task);
+    }
 
-	private <O extends ObjectType> TaskRunResult runInternal(RunningTask task) {
-		LOGGER.trace("Delete task run starting ({})", task);
-		long startTimestamp = System.currentTimeMillis();
+    private <O extends ObjectType> TaskRunResult runInternal(RunningTask task) {
+        LOGGER.trace("Delete task run starting ({})", task);
+        long startTimestamp = System.currentTimeMillis();
 
-		OperationResult opResult = new OperationResult("DeleteTask.run");
-		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
-		TaskRunResult runResult = new TaskRunResult();
-		runResult.setOperationResult(opResult);
+        OperationResult opResult = new OperationResult("DeleteTask.run");
+        opResult.setStatus(OperationResultStatus.IN_PROGRESS);
+        TaskRunResult runResult = new TaskRunResult();
+        runResult.setOperationResult(opResult);
 
-		opResult.setSummarizeErrors(true);
-		opResult.setSummarizePartialErrors(true);
-		opResult.setSummarizeSuccesses(true);
+        opResult.setSummarizeErrors(true);
+        opResult.setSummarizePartialErrors(true);
+        opResult.setSummarizeSuccesses(true);
 
-		QueryType queryType;
-		PrismProperty<QueryType> objectQueryPrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        QueryType queryType;
+        PrismProperty<QueryType> objectQueryPrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
         if (objectQueryPrismProperty != null && objectQueryPrismProperty.getRealValue() != null) {
-        	queryType = objectQueryPrismProperty.getRealValue();
+            queryType = objectQueryPrismProperty.getRealValue();
         } else {
-        	// For "foolproofness" reasons we really require a query. Even if it is "ALL" query.
-        	LOGGER.error("No query parameter in {}", task);
+            // For "foolproofness" reasons we really require a query. Even if it is "ALL" query.
+            LOGGER.error("No query parameter in {}", task);
             opResult.recordFatalError("No query parameter in " + task);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
 
         Class<O> objectType;
-		QName objectTypeName;
+        QName objectTypeName;
         PrismProperty<QName> objectTypePrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
         if (objectTypePrismProperty != null && objectTypePrismProperty.getRealValue() != null) {
-			objectTypeName = objectTypePrismProperty.getRealValue();
-	        //noinspection unchecked
-	        objectType = (Class<O>) ObjectTypes.getObjectTypeFromTypeQName(objectTypeName).getClassDefinition();
+            objectTypeName = objectTypePrismProperty.getRealValue();
+            //noinspection unchecked
+            objectType = (Class<O>) ObjectTypes.getObjectTypeFromTypeQName(objectTypeName).getClassDefinition();
         } else {
-        	LOGGER.error("No object type parameter in {}", task);
+            LOGGER.error("No object type parameter in {}", task);
             opResult.recordFatalError("No object type parameter in " + task);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
@@ -129,12 +129,12 @@ public class DeleteTaskHandler implements TaskHandler {
 
         ObjectQuery query;
         try {
-        	 query = prismContext.getQueryConverter().createObjectQuery(objectType, queryType);
+             query = prismContext.getQueryConverter().createObjectQuery(objectType, queryType);
              if (LOGGER.isTraceEnabled()) {
                  LOGGER.trace("Using object query from the task: {}", query.debugDump());
              }
         } catch (SchemaException ex) {
-        	LOGGER.error("Schema error while creating a search filter: {}-{}", new Object[]{ex.getMessage(), ex});
+            LOGGER.error("Schema error while creating a search filter: {}-{}", new Object[]{ex.getMessage(), ex});
             opResult.recordFatalError("Schema error while creating a search filter: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
@@ -143,33 +143,33 @@ public class DeleteTaskHandler implements TaskHandler {
         boolean optionRaw = true;
         PrismProperty<Boolean> optionRawPrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OPTION_RAW);
         if (optionRawPrismProperty != null && optionRawPrismProperty.getRealValue() != null && !optionRawPrismProperty.getRealValue()) {
-        	optionRaw = false;
+            optionRaw = false;
         }
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Deleting {}, raw={} using query:\n{}", objectType.getSimpleName(), optionRaw, query.debugDump());
-		}
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Deleting {}, raw={} using query:\n{}", objectType.getSimpleName(), optionRaw, query.debugDump());
+        }
 
-		boolean countObjectsOnStart = true; // TODO
+        boolean countObjectsOnStart = true; // TODO
 
-		Integer maxSize = 100;
-		ObjectPaging paging = prismContext.queryFactory().createPaging(0, maxSize);
-		query.setPaging(paging);
-		query.setAllowPartialResults(true);
+        Integer maxSize = 100;
+        ObjectPaging paging = prismContext.queryFactory().createPaging(0, maxSize);
+        query.setPaging(paging);
+        query.setAllowPartialResults(true);
 
-		Collection<SelectorOptions<GetOperationOptions>> searchOptions = null;
-		ModelExecuteOptions execOptions = null;
-		if (optionRaw) {
-			searchOptions = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-			execOptions = ModelExecuteOptions.createRaw();
-		}
+        Collection<SelectorOptions<GetOperationOptions>> searchOptions = null;
+        ModelExecuteOptions execOptions = null;
+        if (optionRaw) {
+            searchOptions = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+            execOptions = ModelExecuteOptions.createRaw();
+        }
 
-		try {
+        try {
 
             // counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
             Long expectedTotal = null;
-			if (countObjectsOnStart) {
-				Integer expectedTotalInt = modelService.countObjects(objectType, query, searchOptions, task, opResult);
+            if (countObjectsOnStart) {
+                Integer expectedTotalInt = modelService.countObjects(objectType, query, searchOptions, task, opResult);
                 LOGGER.trace("Expecting {} objects to be deleted", expectedTotalInt);
                 if (expectedTotalInt != null) {
                     expectedTotal = (long) expectedTotalInt;        // conversion would fail on null
@@ -182,65 +182,65 @@ public class DeleteTaskHandler implements TaskHandler {
 
             SearchResultList<PrismObject<O>> objects;
             while (task.canRun()) {
-	            objects = modelService.searchObjects(objectType, query, searchOptions, task, opResult);
-	            if (objects.isEmpty()) {
-	            	break;
-	            }
+                objects = modelService.searchObjects(objectType, query, searchOptions, task, opResult);
+                if (objects.isEmpty()) {
+                    break;
+                }
 
-	            int skipped = 0;
-	            for (PrismObject<O> object: objects) {
-		            if (!task.canRun()) {
-			            break;
-		            }
-	            	if (!optionRaw && ShadowType.class.isAssignableFrom(objectType)
-	            			&& isTrue(((ShadowType)(object.asObjectable())).isProtectedObject())) {
-	            		LOGGER.debug("Skipping delete of protected object {}", object);
-	            		skipped++;
-	            		continue;
-	            	}
+                int skipped = 0;
+                for (PrismObject<O> object: objects) {
+                    if (!task.canRun()) {
+                        break;
+                    }
+                    if (!optionRaw && ShadowType.class.isAssignableFrom(objectType)
+                            && isTrue(((ShadowType)(object.asObjectable())).isProtectedObject())) {
+                        LOGGER.debug("Skipping delete of protected object {}", object);
+                        skipped++;
+                        continue;
+                    }
 
-	            	ObjectDelta<?> delta = prismContext.deltaFactory().object().createDeleteDelta(objectType, object.getOid());
+                    ObjectDelta<?> delta = prismContext.deltaFactory().object().createDeleteDelta(objectType, object.getOid());
 
-					String objectName = PolyString.getOrig(object.getName());
-					String objectDisplayName = StatisticsUtil.getDisplayName(object);
-					String objectOid = object.getOid();
+                    String objectName = PolyString.getOrig(object.getName());
+                    String objectDisplayName = StatisticsUtil.getDisplayName(object);
+                    String objectOid = object.getOid();
 
-					task.recordIterativeOperationStart(objectName, objectDisplayName, objectTypeName, objectOid);
-					long objectDeletionStarted = System.currentTimeMillis();
-					try {
-						modelService.executeChanges(MiscSchemaUtil.createCollection(delta), execOptions, task, opResult);
-						task.recordIterativeOperationEnd(objectName, objectDisplayName, objectTypeName, objectOid, objectDeletionStarted, null);
-					} catch (Throwable t) {
-						task.recordIterativeOperationEnd(objectName, objectDisplayName, objectTypeName, objectOid, objectDeletionStarted, t);
-						throw t;		// TODO we don't want to continue processing if an error occurs?
-					}
-					task.incrementProgressAndStoreStatsIfNeeded();
-	            }
+                    task.recordIterativeOperationStart(objectName, objectDisplayName, objectTypeName, objectOid);
+                    long objectDeletionStarted = System.currentTimeMillis();
+                    try {
+                        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), execOptions, task, opResult);
+                        task.recordIterativeOperationEnd(objectName, objectDisplayName, objectTypeName, objectOid, objectDeletionStarted, null);
+                    } catch (Throwable t) {
+                        task.recordIterativeOperationEnd(objectName, objectDisplayName, objectTypeName, objectOid, objectDeletionStarted, t);
+                        throw t;        // TODO we don't want to continue processing if an error occurs?
+                    }
+                    task.incrementProgressAndStoreStatsIfNeeded();
+                }
 
-				opResult.summarize();
-	            if (LOGGER.isTraceEnabled()) {
-	            	LOGGER.trace("Search returned {} objects, {} skipped, progress: {} (interrupted: {}), result:\n{}",
-				            objects.size(), skipped, task.getProgress(), !task.canRun(), opResult.debugDump());
-	            }
+                opResult.summarize();
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Search returned {} objects, {} skipped, progress: {} (interrupted: {}), result:\n{}",
+                            objects.size(), skipped, task.getProgress(), !task.canRun(), opResult.debugDump());
+                }
 
-	            if (objects.size() == skipped) {
-	            	break;
-	            }
+                if (objects.size() == skipped) {
+                    break;
+                }
             }
 
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-				| ExpressionEvaluationException | ConfigurationException
-				| PolicyViolationException | SecurityViolationException e) {
+                | ExpressionEvaluationException | ConfigurationException
+                | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("{}", e.getMessage(), e);
             opResult.recordFatalError("Object not found " + e.getMessage(), e);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
-		} catch (CommunicationException e) {
+        } catch (CommunicationException e) {
             LOGGER.error("{}-{}", new Object[]{e.getMessage(), e});
             opResult.recordFatalError("Object not found " + e.getMessage(), e);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
             return runResult;
-		}
+        }
 
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
         opResult.summarize();
@@ -254,7 +254,7 @@ public class DeleteTaskHandler implements TaskHandler {
             statistics += " Wall clock time average: " + ((float) wallTime / (float) task.getProgress()) + " milliseconds";
         }
         if (!task.canRun()) {
-        	statistics += " (task run was interrupted)";
+            statistics += " (task run was interrupted)";
         }
 
         opResult.createSubresult(DeleteTaskHandler.class.getName() + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
@@ -263,11 +263,11 @@ public class DeleteTaskHandler implements TaskHandler {
         LOGGER.trace("Run finished (task {}, run result {}); interrupted = {}", task, runResult, !task.canRun());
 
         return runResult;
-	}
+    }
 
     @Override
     public Long heartbeat(Task task) {
-    	return task.getProgress();
+        return task.getProgress();
     }
 
     @Override
@@ -275,8 +275,8 @@ public class DeleteTaskHandler implements TaskHandler {
         // Local task. No refresh needed. The Task instance has always fresh data.
     }
 
-	@Override
-	public String getCategoryName(Task task) {
-		return TaskCategory.UTIL;
-	}
+    @Override
+    public String getCategoryName(Task task) {
+        return TaskCategory.UTIL;
+    }
 }

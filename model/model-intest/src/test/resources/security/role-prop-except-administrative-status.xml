@@ -1,22 +1,22 @@
 <!--
   ~ Copyright (c) 2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="cc549256-02a5-11e8-994e-43c307e2a819"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Prop all except administrativeStatus</name>    
+    <name>Prop all except administrativeStatus</name>
     <authorization>
-    	<name>read-except-administrativeStatus</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<exceptItem>activation/administrativeStatus</exceptItem>
+        <name>read-except-administrativeStatus</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <exceptItem>activation/administrativeStatus</exceptItem>
     </authorization>
     <authorization>
-    	<name>modify-except-administrativeStatus</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<exceptItem>activation/administrativeStatus</exceptItem>
+        <name>modify-except-administrativeStatus</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <exceptItem>activation/administrativeStatus</exceptItem>
     </authorization>
 </role>

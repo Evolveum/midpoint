@@ -1,14 +1,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
   <!-- There is a global policy rule that prohibits adding this role.
        The rule triggers on description.
    -->
-  
+
 <role oid="667a242c-dd13-4dbb-bc9f-ab678ba80d37"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

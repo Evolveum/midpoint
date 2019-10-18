@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.api;
@@ -54,7 +54,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface Task extends DebugDumpable, StatisticsCollector {
 
-	String DOT_INTERFACE = Task.class.getName() + ".";
+    String DOT_INTERFACE = Task.class.getName() + ".";
 
     // =================================================================== Basic information (ID, owner)
 
@@ -141,14 +141,14 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     // =================================================================== Execution status
 
-	/**
-	 * Returns execution status.
-	 *
-	 * @see TaskExecutionStatus
-	 *
-	 * @return execution status.
-	 */
-	TaskExecutionStatus getExecutionStatus();
+    /**
+     * Returns execution status.
+     *
+     * @see TaskExecutionStatus
+     *
+     * @return execution status.
+     */
+    TaskExecutionStatus getExecutionStatus();
 
     /**
      * Status-changing method. It changes task's execution status to WAITING.
@@ -207,12 +207,12 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     // =================================================================== Persistence and asynchrony
 
     /**
-	 * Returns task persistence status.
-	 *
-	 * @see TaskPersistenceStatus
-	 *
-	 * @return task persistence status.
-	 */
+     * Returns task persistence status.
+     *
+     * @see TaskPersistenceStatus
+     *
+     * @return task persistence status.
+     */
     TaskPersistenceStatus getPersistenceStatus();
 
     /**
@@ -243,21 +243,21 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     // ============================================================================================ Scheduling
 
     /**
-	 * Returns task recurrence status.
-	 *
-	 * @return task recurrence status
-	 */
+     * Returns task recurrence status.
+     *
+     * @return task recurrence status
+     */
     TaskRecurrence getRecurrenceStatus();
 
-	/**
-	 * Checks whether the task is single-run.
-	 */
-	boolean isSingle();
+    /**
+     * Checks whether the task is single-run.
+     */
+    boolean isSingle();
 
-	/**
-	 * Checks whether the task is a cyclic (recurrent) one.
-	 */
-	boolean isRecurring();
+    /**
+     * Checks whether the task is a cyclic (recurrent) one.
+     */
+    boolean isRecurring();
 
     /**
      * Makes a task recurring, with a given schedule.
@@ -296,15 +296,15 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     String getGroup();
 
     @NotNull
-	Collection<String> getGroups();
+    Collection<String> getGroups();
 
     @NotNull
     Map<String, Integer> getGroupsWithLimits();
 
-	/**
-	 * Returns the schedule.
-	 */
-	ScheduleType getSchedule();
+    /**
+     * Returns the schedule.
+     */
+    ScheduleType getSchedule();
 
     /**
      * Returns the time when the task last run was started (or null if the task was never started).
@@ -358,52 +358,52 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     /**
      * Sets the binding for this task.
      */
-	void setBinding(TaskBinding value);
+    void setBinding(TaskBinding value);
 
     /**
      * Sets the binding (immediately through to the repo).
      */
-	void setBindingImmediate(TaskBinding value, OperationResult parentResult)
-		throws ObjectNotFoundException, SchemaException;
+    void setBindingImmediate(TaskBinding value, OperationResult parentResult)
+        throws ObjectNotFoundException, SchemaException;
 
 
     // ============================================================================================ Handler(s)
 
-	/**
-	 * Returns handler URI.
-	 *
-	 * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute
+    /**
+     * Returns handler URI.
+     *
+     * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute
      * reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
-	 *
-	 * @return handler URI
-	 */
-	String getHandlerUri();
+     *
+     * @return handler URI
+     */
+    String getHandlerUri();
 
-	/**
-	 * Sets handler URI.
-	 *
-	 * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute
+    /**
+     * Sets handler URI.
+     *
+     * Handler URI indirectly specifies which class is responsible to handle the task. The handler will execute
      * reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
-	 *
-	 * @param value new handler URI
-	 */
-	void setHandlerUri(String value);
+     *
+     * @param value new handler URI
+     */
+    void setHandlerUri(String value);
 
     /**
      * Sets handler URI, also immediately in the repository.
      */
     @SuppressWarnings("unused")
-    void setHandlerUriImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException,	SchemaException;
+    void setHandlerUriImmediate(String value, OperationResult parentResult) throws ObjectNotFoundException,    SchemaException;
 
-	/**
-	 * Returns the stack of other handlers URIs.
-	 *
-	 * The idea is that a task may have a chain of handlers, forming a stack. After a handler at the top
-	 * of the stack finishes its processing, TaskManager will remove it from the stack and invoke
-	 * the then-current handler. After that finishes, the next handler will be called, and so on,
-	 * until the stack is empty.
-	 */
-	UriStack getOtherHandlersUriStack();
+    /**
+     * Returns the stack of other handlers URIs.
+     *
+     * The idea is that a task may have a chain of handlers, forming a stack. After a handler at the top
+     * of the stack finishes its processing, TaskManager will remove it from the stack and invoke
+     * the then-current handler. After that finishes, the next handler will be called, and so on,
+     * until the stack is empty.
+     */
+    UriStack getOtherHandlersUriStack();
 
     /**
      * Pushes a new handler URI onto the stack of handlers. This means that the provided handler URI becomes the
@@ -477,10 +477,10 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * @return task extension
      */
     PrismContainer<? extends ExtensionType> getExtensionOrClone();
-	@NotNull PrismContainer<? extends ExtensionType> getOrCreateExtension() throws SchemaException;
+    @NotNull PrismContainer<? extends ExtensionType> getOrCreateExtension() throws SchemaException;
     PrismContainer<? extends ExtensionType> getExtensionClone();
 
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     boolean hasExtension();
 
     /**
@@ -665,9 +665,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     OperationResult getResult();
 
-	void setResultTransient(OperationResult result);
+    void setResultTransient(OperationResult result);
 
-	/**
+    /**
      * Returns the status of top-level OperationResult stored in the task.
      *
      * @return task operation result status
@@ -740,15 +740,15 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     Task getParentTask(OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-	/**
+    /**
      * Lists the (direct) subtasks of a given task.
      */
-	@NotNull
+    @NotNull
     default List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
-		return listSubtasks(false, parentResult);
-	}
+        return listSubtasks(false, parentResult);
+    }
 
-	@NotNull
+    @NotNull
     List<Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException;
 
     /**
@@ -756,7 +756,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * Current task is not contained in the returned list.
      */
     default List<Task> listSubtasksDeeply(OperationResult result) throws SchemaException {
-    	return listSubtasksDeeply(false, result);
+        return listSubtasksDeeply(false, result);
     }
 
     List<Task> listSubtasksDeeply(boolean persistentOnly, OperationResult result) throws SchemaException;
@@ -849,22 +849,22 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     void setRequesteeTransient(PrismObject<UserType> user);
 
     // not thread-safe!
-	LensContextType getModelOperationContext();
+    LensContextType getModelOperationContext();
 
-	void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
+    void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
 
-	// not thread-safe!
-	TaskExecutionEnvironmentType getExecutionEnvironment();
+    // not thread-safe!
+    TaskExecutionEnvironmentType getExecutionEnvironment();
 
-	void setExecutionEnvironment(TaskExecutionEnvironmentType value);
+    void setExecutionEnvironment(TaskExecutionEnvironmentType value);
 
-	@SuppressWarnings("unused")
-	void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    @SuppressWarnings("unused")
+    void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-	@SuppressWarnings("unused")
-	void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value);
+    @SuppressWarnings("unused")
+    void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value);
 
-	// ====================================================================================== Other methods
+    // ====================================================================================== Other methods
 
     /**
      * Returns backing task prism object.
@@ -876,13 +876,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     @NotNull
     PrismObject<TaskType> getUpdatedOrClonedTaskObject();
 
-	/**
-	 * Returns backing task prism object, provided that task is not running.
-	 * Beware that the task operation result is updated (might be costly).
-	 * @throws IllegalStateException if task is running
-	 */
-	@NotNull
-	PrismObject<TaskType> getUpdatedTaskObject();
+    /**
+     * Returns backing task prism object, provided that task is not running.
+     * Beware that the task operation result is updated (might be costly).
+     * @throws IllegalStateException if task is running
+     */
+    @NotNull
+    PrismObject<TaskType> getUpdatedTaskObject();
 
     /**
      * Returns cloned task object.
@@ -890,21 +890,21 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     @NotNull
     PrismObject<TaskType> getClonedTaskObject();
 
-	/**
-	 * Re-reads the task state from the persistent storage.
-	 *
-	 * The task state may be synchronized with the repository all the time. But the specified timing is implementation-specific.
-	 * Call to this method will make sure that the task contains fresh data.
-	 *
-	 * This has no effect on transient tasks.
-	 */
-	void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    /**
+     * Re-reads the task state from the persistent storage.
+     *
+     * The task state may be synchronized with the repository all the time. But the specified timing is implementation-specific.
+     * Call to this method will make sure that the task contains fresh data.
+     *
+     * This has no effect on transient tasks.
+     */
+    void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-	/**
-	 * Changes in-memory representation immediately and schedules a corresponding batched modification.
-	 */
-	void modify(ItemDelta<?, ?> delta) throws SchemaException;
-	void modify(Collection<ItemDelta<?, ?>> deltas) throws SchemaException;
+    /**
+     * Changes in-memory representation immediately and schedules a corresponding batched modification.
+     */
+    void modify(ItemDelta<?, ?> delta) throws SchemaException;
+    void modify(Collection<ItemDelta<?, ?>> deltas) throws SchemaException;
 
     /**
      * Changes in-memory and in-repo representations immediately.
@@ -914,8 +914,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     /**
      * Saves modifications done against the in-memory version of the task into the repository.
      */
-	void flushPendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException, ObjectAlreadyExistsException;
+    void flushPendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
+            SchemaException, ObjectAlreadyExistsException;
 
     /**
      * Returns a list of pending modifications for this task.
@@ -923,68 +923,68 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     @SuppressWarnings("unused")
     Collection<ItemDelta<?,?>> getPendingModifications();
 
-	// TODO move into RunningTask?
-	void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    // TODO move into RunningTask?
+    void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-	// not thread-safe!
-	TaskWorkManagementType getWorkManagement();
+    // not thread-safe!
+    TaskWorkManagementType getWorkManagement();
 
-	// not thread-safe!
-	TaskWorkStateType getWorkState();
+    // not thread-safe!
+    TaskWorkStateType getWorkState();
 
-	TaskKindType getKind();
+    TaskKindType getKind();
 
-	TaskUnpauseActionType getUnpauseAction();
+    TaskUnpauseActionType getUnpauseAction();
 
-	TaskExecutionStatusType getStateBeforeSuspend();
+    TaskExecutionStatusType getStateBeforeSuspend();
 
-	@SuppressWarnings("unused")
-	boolean isPartitionedMaster();
+    @SuppressWarnings("unused")
+    boolean isPartitionedMaster();
 
-	String getExecutionGroup();
+    String getExecutionGroup();
 
-	/**
-	 * Gets information from the current task and - for running task - its transient subtasks (aka worker threads).
-	 */
-	OperationStatsType getAggregatedLiveOperationStats();
+    /**
+     * Gets information from the current task and - for running task - its transient subtasks (aka worker threads).
+     */
+    OperationStatsType getAggregatedLiveOperationStats();
 
-	ObjectReferenceType getSelfReference();
+    ObjectReferenceType getSelfReference();
 
-	String getVersion();
+    String getVersion();
 
-	/**
-	 * NEVER modify objects returned in multithreaded environments!
-	 */
-	Collection<? extends TriggerType> getTriggers();
+    /**
+     * NEVER modify objects returned in multithreaded environments!
+     */
+    Collection<? extends TriggerType> getTriggers();
 
-	/**
-	 * NEVER modify objects returned in multithreaded environments!
-	 */
-	Collection<? extends AssignmentType> getAssignments();
+    /**
+     * NEVER modify objects returned in multithreaded environments!
+     */
+    Collection<? extends AssignmentType> getAssignments();
 
-	default boolean hasAssignments() {
-		return !getAssignments().isEmpty();
-	}
+    default boolean hasAssignments() {
+        return !getAssignments().isEmpty();
+    }
 
-	ObjectReferenceType getOwnerRef();
+    ObjectReferenceType getOwnerRef();
 
-	// Returns immutable collection of caching profiles
-	@NotNull
-	Collection<String> getCachingProfiles();
+    // Returns immutable collection of caching profiles
+    @NotNull
+    Collection<String> getCachingProfiles();
 
-	String getOperationResultHandlingStrategyName();
+    String getOperationResultHandlingStrategyName();
 
-	boolean isScavenger();
+    boolean isScavenger();
 
-	@NotNull
+    @NotNull
     Collection<TracingRootType> getTracingRequestedFor();
 
-	void addTracingRequest(TracingRootType point);
+    void addTracingRequest(TracingRootType point);
 
-	void removeTracingRequests();
+    void removeTracingRequests();
 
-	// Not thread safe.
-	TracingProfileType getTracingProfile();
+    // Not thread safe.
+    TracingProfileType getTracingProfile();
 
-	void setTracingProfile(TracingProfileType tracingProfile);
+    void setTracingProfile(TracingProfileType tracingProfile);
 }

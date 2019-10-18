@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.misc;
@@ -34,71 +34,71 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class ShadowIntegrityCheckerTest extends AbstractInternalModelIntegrationTest {
 
-	protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "misc");
+    protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "misc");
 
-	private static final File TASK_SHADOW_INTEGRITY_CHECK_FILE = new File(TEST_DIR, "task-shadow-integrity-check.xml");
-	private static final String TASK_SHADOW_INTEGRITY_CHECK_OID = "b5a8b51d-d834-4803-a7d0-c81bcc58113e";
+    private static final File TASK_SHADOW_INTEGRITY_CHECK_FILE = new File(TEST_DIR, "task-shadow-integrity-check.xml");
+    private static final String TASK_SHADOW_INTEGRITY_CHECK_OID = "b5a8b51d-d834-4803-a7d0-c81bcc58113e";
 
-	private static final File SHADOW_1_FILE = new File(TEST_DIR, "shadow-1.xml");
-	private static final File SHADOW_2_FILE = new File(TEST_DIR, "shadow-2.xml");
-	private static final File SHADOW_2_DUPLICATE_FILE = new File(TEST_DIR, "shadow-2-duplicate.xml");
+    private static final File SHADOW_1_FILE = new File(TEST_DIR, "shadow-1.xml");
+    private static final File SHADOW_2_FILE = new File(TEST_DIR, "shadow-2.xml");
+    private static final File SHADOW_2_DUPLICATE_FILE = new File(TEST_DIR, "shadow-2-duplicate.xml");
 
-	private static final File RESOURCE_DUMMY_FOR_CHECKER_FILE = new File(TEST_DIR, "resource-dummy-for-checker.xml");
-	private static final String RESOURCE_DUMMY_FOR_CHECKER_OID = "8fdb9db5-429a-4bcc-94f4-043dbd7f2eb2";
-	private static final String DUMMY_FOR_CHECKER = "for-checker";
+    private static final File RESOURCE_DUMMY_FOR_CHECKER_FILE = new File(TEST_DIR, "resource-dummy-for-checker.xml");
+    private static final String RESOURCE_DUMMY_FOR_CHECKER_OID = "8fdb9db5-429a-4bcc-94f4-043dbd7f2eb2";
+    private static final String DUMMY_FOR_CHECKER = "for-checker";
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		initDummyResourcePirate(DUMMY_FOR_CHECKER, RESOURCE_DUMMY_FOR_CHECKER_FILE, RESOURCE_DUMMY_FOR_CHECKER_OID, initTask, initResult);
+        initDummyResourcePirate(DUMMY_FOR_CHECKER, RESOURCE_DUMMY_FOR_CHECKER_FILE, RESOURCE_DUMMY_FOR_CHECKER_OID, initTask, initResult);
 
-		List<PrismObject<ShadowType>> shadows = repositoryService
-				.searchObjects(ShadowType.class, null, null, initResult);
-		for (PrismObject<ShadowType> shadow : shadows) {
-			repositoryService.deleteObject(ShadowType.class, shadow.getOid(), initResult);
-		}
-		repoAddObjectFromFile(SHADOW_1_FILE, initResult);
-		repoAddObjectFromFile(SHADOW_2_FILE, initResult);
-		repoAddObjectFromFile(SHADOW_2_DUPLICATE_FILE, initResult);
-	}
+        List<PrismObject<ShadowType>> shadows = repositoryService
+                .searchObjects(ShadowType.class, null, null, initResult);
+        for (PrismObject<ShadowType> shadow : shadows) {
+            repositoryService.deleteObject(ShadowType.class, shadow.getOid(), initResult);
+        }
+        repoAddObjectFromFile(SHADOW_1_FILE, initResult);
+        repoAddObjectFromFile(SHADOW_2_FILE, initResult);
+        repoAddObjectFromFile(SHADOW_2_DUPLICATE_FILE, initResult);
+    }
 
-	@Test
-	public void test100FixDuplicatesWithDifferentObjectClasses() throws Exception {
-		final String TEST_NAME = "test100FixDuplicatesWithDifferentObjectClasses";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+    @Test
+    public void test100FixDuplicatesWithDifferentObjectClasses() throws Exception {
+        final String TEST_NAME = "test100FixDuplicatesWithDifferentObjectClasses";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-		login(userAdministrator);
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        login(userAdministrator);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		// GIVEN
-		SearchResultList<PrismObject<ShadowType>> shadowsBefore = repositoryService
-				.searchObjects(ShadowType.class, null, null, result);
-		display("shadows before", shadowsBefore);
+        // GIVEN
+        SearchResultList<PrismObject<ShadowType>> shadowsBefore = repositoryService
+                .searchObjects(ShadowType.class, null, null, result);
+        display("shadows before", shadowsBefore);
 
-		assertEquals("Wrong # of shadows before", 3, shadowsBefore.size());
+        assertEquals("Wrong # of shadows before", 3, shadowsBefore.size());
 
-		repoAddObjectFromFile(TASK_SHADOW_INTEGRITY_CHECK_FILE, result);
+        repoAddObjectFromFile(TASK_SHADOW_INTEGRITY_CHECK_FILE, result);
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		waitForTaskCloseOrSuspend(TASK_SHADOW_INTEGRITY_CHECK_OID);
+        // WHEN
+        displayWhen(TEST_NAME);
+        waitForTaskCloseOrSuspend(TASK_SHADOW_INTEGRITY_CHECK_OID);
 
-		// THEN
-		displayThen(TEST_NAME);
-		PrismObject<TaskType> taskAfter = getTask(TASK_SHADOW_INTEGRITY_CHECK_OID);
-		display("task after", taskAfter);
+        // THEN
+        displayThen(TEST_NAME);
+        PrismObject<TaskType> taskAfter = getTask(TASK_SHADOW_INTEGRITY_CHECK_OID);
+        display("task after", taskAfter);
 
-		SearchResultList<PrismObject<ShadowType>> shadowsAfter = repositoryService
-				.searchObjects(ShadowType.class, null, null, result);
-		display("shadows after", shadowsAfter);
+        SearchResultList<PrismObject<ShadowType>> shadowsAfter = repositoryService
+                .searchObjects(ShadowType.class, null, null, result);
+        display("shadows after", shadowsAfter);
 
-		assertEquals("Wrong # of shadows after", 2, shadowsAfter.size());
-		PrismObject<ShadowType> intent1 = shadowsAfter.stream()
-				.filter(o -> "intent1".equals(o.asObjectable().getIntent())).findFirst().orElse(null);
-		assertNotNull("intent1 shadow was removed", intent1);
-	}
+        assertEquals("Wrong # of shadows after", 2, shadowsAfter.size());
+        PrismObject<ShadowType> intent1 = shadowsAfter.stream()
+                .filter(o -> "intent1".equals(o.asObjectable().getIntent())).findFirst().orElse(null);
+        assertNotNull("intent1 shadow was removed", intent1);
+    }
 
 
 }

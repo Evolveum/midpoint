@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,27 +29,27 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
  */
 public class LogbackPropertyDefiner extends PropertyDefinerBase {
 
-	private String propertyName;
-	private String defaultValue;
+    private String propertyName;
+    private String defaultValue;
 
-	public void setPropertyName(String propertyName) {
-		this.propertyName = propertyName;
-	}
+    public void setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
+    }
 
-	public void setDefaultValue(String defaultValue) {
-		this.defaultValue = defaultValue;
-	}
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
+    }
 
-	protected String getDefaultValue() {
-		return defaultValue != null ? defaultValue : "";
-	}
+    protected String getDefaultValue() {
+        return defaultValue != null ? defaultValue : "";
+    }
 
-	@Override
-	public String getPropertyValue() {
-		if (propertyName == null) {
-			throw new IllegalStateException("propertyName is null");
-		}
-		String value = System.getProperty(propertyName);
-		return value != null ? value : getDefaultValue();
-	}
+    @Override
+    public String getPropertyValue() {
+        if (propertyName == null) {
+            throw new IllegalStateException("propertyName is null");
+        }
+        String value = System.getProperty(propertyName);
+        return value != null ? value : getDefaultValue();
+    }
 }

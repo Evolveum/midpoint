@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -30,54 +30,54 @@ import java.util.List;
  */
 public class NullLexicalProcessor implements LexicalProcessor<XNodeImpl> {
 
-	@NotNull
-	@Override
-	public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
-		if (!(source instanceof ParserXNodeSource)) {
-			throw new IllegalStateException("Unsupported parser source: " + source.getClass().getName());
-		}
-		return (RootXNodeImpl) ((ParserXNodeSource) source).getXNode();
-	}
+    @NotNull
+    @Override
+    public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+        if (!(source instanceof ParserXNodeSource)) {
+            throw new IllegalStateException("Unsupported parser source: " + source.getClass().getName());
+        }
+        return (RootXNodeImpl) ((ParserXNodeSource) source).getXNode();
+    }
 
-	@NotNull
-	@Override
-	public List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
-		throw new UnsupportedOperationException();
-	}
+    @NotNull
+    @Override
+    public List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
-			RootXNodeHandler handler) throws SchemaException, IOException {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
+            RootXNodeHandler handler) throws SchemaException, IOException {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public boolean canRead(@NotNull File file) throws IOException {
-		return false;
-	}
+    @Override
+    public boolean canRead(@NotNull File file) throws IOException {
+        return false;
+    }
 
-	@Override
-	public boolean canRead(@NotNull String dataString) {
-		return false;
-	}
+    @Override
+    public boolean canRead(@NotNull String dataString) {
+        return false;
+    }
 
-	@NotNull
-	@Override
-	public XNodeImpl write(@NotNull RootXNode xnode, @Nullable SerializationContext serializationContext) throws SchemaException {
-		return (XNodeImpl) xnode;
-	}
+    @NotNull
+    @Override
+    public XNodeImpl write(@NotNull RootXNode xnode, @Nullable SerializationContext serializationContext) throws SchemaException {
+        return (XNodeImpl) xnode;
+    }
 
-	@NotNull
-	@Override
-	public XNodeImpl write(@NotNull XNode xnode, @NotNull QName rootElementName, @Nullable SerializationContext serializationContext)
-			throws SchemaException {
-		return (XNodeImpl) xnode;
-	}
+    @NotNull
+    @Override
+    public XNodeImpl write(@NotNull XNode xnode, @NotNull QName rootElementName, @Nullable SerializationContext serializationContext)
+            throws SchemaException {
+        return (XNodeImpl) xnode;
+    }
 
-	@NotNull
-	@Override
-	public XNodeImpl write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName,
-			@Nullable SerializationContext context) throws SchemaException {
-		throw new UnsupportedOperationException("NullLexicalProcessor.write is not supported for a collection of objects");
-	}
+    @NotNull
+    @Override
+    public XNodeImpl write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName,
+            @Nullable SerializationContext context) throws SchemaException {
+        throw new UnsupportedOperationException("NullLexicalProcessor.write is not supported for a collection of objects");
+    }
 }

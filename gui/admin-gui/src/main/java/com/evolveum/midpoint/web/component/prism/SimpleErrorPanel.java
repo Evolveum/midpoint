@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,9 +22,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *  @author shood
  * */
 public class SimpleErrorPanel<O extends ObjectType> extends BasePanel<FocusSubwrapperDto<O>>{
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	//    private static final String ID_CHECK = "check";
+    //    private static final String ID_CHECK = "check";
     private static final String ID_ICON = "icon";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_LINK = "link";
@@ -35,11 +35,11 @@ public class SimpleErrorPanel<O extends ObjectType> extends BasePanel<FocusSubwr
 
         add(AttributeModifier.append("class", "check-table-header"));
     }
-    
+
     @Override
     protected void onInitialize() {
-    	super.onInitialize();
-    	initLayout();
+        super.onInitialize();
+        initLayout();
     }
 
     protected void initLayout(){
@@ -65,7 +65,7 @@ public class SimpleErrorPanel<O extends ObjectType> extends BasePanel<FocusSubwr
         };
         add(link);
 
-       
+
         Label showMore = new Label(ID_SHOW_MORE, new IModel<String>() {
 
             @Override

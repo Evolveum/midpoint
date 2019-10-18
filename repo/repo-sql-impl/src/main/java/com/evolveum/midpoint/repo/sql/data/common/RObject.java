@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -129,9 +129,9 @@ import static org.hibernate.annotations.CascadeType.*;
 public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference<RFocus>>, EntityState, Serializable {
 
     public static final String F_OBJECT_TYPE_CLASS = "objectTypeClass";
-	public static final String F_TEXT_INFO_ITEMS = "textInfoItems";
+    public static final String F_TEXT_INFO_ITEMS = "textInfoItems";
 
-	private Boolean trans;
+    private Boolean trans;
 
     private String oid;
     private int version;

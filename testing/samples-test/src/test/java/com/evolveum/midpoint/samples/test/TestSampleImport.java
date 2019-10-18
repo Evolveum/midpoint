@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.samples.test;
@@ -50,79 +50,79 @@ import static org.testng.AssertJUnit.assertEquals;
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class TestSampleImport extends AbstractModelIntegrationTest {
 
-	private static final String SAMPLE_DIRECTORY_NAME = "../";
-	private static final String SCHEMA_DIRECTORY_NAME = SAMPLE_DIRECTORY_NAME + "schema/";
-	private static final String USER_ADMINISTRATOR_FILENAME = "src/test/resources/user-administrator.xml";
+    private static final String SAMPLE_DIRECTORY_NAME = "../";
+    private static final String SCHEMA_DIRECTORY_NAME = SAMPLE_DIRECTORY_NAME + "schema/";
+    private static final String USER_ADMINISTRATOR_FILENAME = "src/test/resources/user-administrator.xml";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestSampleImport.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestSampleImport.class);
 
-	@Autowired(required = true)
-	private ModelService modelService;
+    @Autowired(required = true)
+    private ModelService modelService;
 
-	@Autowired(required = true)
-	private PrismContext prismContext;
+    @Autowired(required = true)
+    private PrismContext prismContext;
 
-	public TestSampleImport() throws JAXBException {
-		super();
-	}
+    public TestSampleImport() throws JAXBException {
+        super();
+    }
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		// This should discover the connectors
-		LOGGER.trace("initSystem: trying modelService.postInit()");
-		modelService.postInit(initResult);
-		LOGGER.trace("initSystem: modelService.postInit() done");
+        // This should discover the connectors
+        LOGGER.trace("initSystem: trying modelService.postInit()");
+        modelService.postInit(initResult);
+        LOGGER.trace("initSystem: modelService.postInit() done");
 
-		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
-		loginSuperUser(userAdministrator);
-	}
+        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
+        loginSuperUser(userAdministrator);
+    }
 
-	@Test
-	public void importOpenDJBasic() throws FileNotFoundException, SchemaException {
-		importSample(new File(SAMPLE_DIRECTORY_NAME + "resources/opendj/opendj-localhost-basic.xml"), ResourceType.class, "Basic Localhost OpenDJ");
-	}
+    @Test
+    public void importOpenDJBasic() throws FileNotFoundException, SchemaException {
+        importSample(new File(SAMPLE_DIRECTORY_NAME + "resources/opendj/opendj-localhost-basic.xml"), ResourceType.class, "Basic Localhost OpenDJ");
+    }
 
-	@Test
-	public void importOpenDJAdvanced() throws FileNotFoundException, SchemaException {
-		importSample(new File(SAMPLE_DIRECTORY_NAME + "resources/opendj/opendj-localhost-resource-sync-advanced.xml"), ResourceType.class, "Localhost OpenDJ");
-	}
+    @Test
+    public void importOpenDJAdvanced() throws FileNotFoundException, SchemaException {
+        importSample(new File(SAMPLE_DIRECTORY_NAME + "resources/opendj/opendj-localhost-resource-sync-advanced.xml"), ResourceType.class, "Localhost OpenDJ");
+    }
 
-	// Connector not part of the build, therefore this fails
-//	@Test
-//	public void importDBTableSimple() throws FileNotFoundException, SchemaException {
-//		importSample(new File(SAMPLE_DIRECTORY_NAME + "databasetable/localhost-dbtable-simple.xml"), ResourceType.class, "Localhost DBTable");
-//	}
+    // Connector not part of the build, therefore this fails
+//    @Test
+//    public void importDBTableSimple() throws FileNotFoundException, SchemaException {
+//        importSample(new File(SAMPLE_DIRECTORY_NAME + "databasetable/localhost-dbtable-simple.xml"), ResourceType.class, "Localhost DBTable");
+//    }
 
-	public <T extends ObjectType> void importSample(File sampleFile, Class<T> type, String objectName) throws FileNotFoundException, SchemaException {
-		TestUtil.displayTestTitle(this, "Import sample "+sampleFile.getPath());
-		// GIVEN
-		Task task = taskManager.createTaskInstance();
-		OperationResult result = new OperationResult(TestSampleImport.class.getName() + ".importSample");
-		result.addParam("file", sampleFile.getPath());
-		FileInputStream stream = new FileInputStream(sampleFile);
+    public <T extends ObjectType> void importSample(File sampleFile, Class<T> type, String objectName) throws FileNotFoundException, SchemaException {
+        TestUtil.displayTestTitle(this, "Import sample "+sampleFile.getPath());
+        // GIVEN
+        Task task = taskManager.createTaskInstance();
+        OperationResult result = new OperationResult(TestSampleImport.class.getName() + ".importSample");
+        result.addParam("file", sampleFile.getPath());
+        FileInputStream stream = new FileInputStream(sampleFile);
 
-		// WHEN
-		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
+        // WHEN
+        modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
 
-		// THEN
-		result.computeStatus();
-		display("Result after good import", result);
-		TestUtil.assertSuccessOrWarning("Import has failed (result)", result,1);
+        // THEN
+        result.computeStatus();
+        display("Result after good import", result);
+        TestUtil.assertSuccessOrWarning("Import has failed (result)", result,1);
 
-//		ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(type, prismContext,
-//				ObjectType.F_NAME, PrismTestUtil.createPolyString(objectName)));
-//		QueryType query = QueryUtil.createNameQuery(objectName);
-		ObjectQuery query = ObjectQueryUtil.createNameQuery(objectName, prismContext);
+//        ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(type, prismContext,
+//                ObjectType.F_NAME, PrismTestUtil.createPolyString(objectName)));
+//        QueryType query = QueryUtil.createNameQuery(objectName);
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(objectName, prismContext);
 
-		List<PrismObject<T>> objects = repositoryService.searchObjects(type, query, null, result);
-		for (PrismObject<T> o : objects) {
+        List<PrismObject<T>> objects = repositoryService.searchObjects(type, query, null, result);
+        for (PrismObject<T> o : objects) {
             T object = o.asObjectable();
-			display("Found object",object);
-		}
-		assertEquals("Unexpected search result: "+objects,1,objects.size());
+            display("Found object",object);
+        }
+        assertEquals("Unexpected search result: "+objects,1,objects.size());
 
-	}
+    }
 
 }

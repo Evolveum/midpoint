@@ -2,12 +2,12 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <resource oid="65d73d14-bafb-11e6-9de3-ff46daf6e769"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -15,73 +15,73 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-								  
-	<name>Dummy Resource Circus</name>
-	<description>Resource with a circular dependency</description>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>circus</icfi:instanceId>
-		</icfc:configurationProperties>
 
-	</connectorConfiguration>
-	
-	<schemaHandling>
-		<objectType>
-			<intent>default</intent>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<outbound>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>fullName</path>
-					</source>
-				</outbound>
-			</attribute>
-			<dependency>
-				<kind>account</kind>
-				<intent>default</intent>
-				<strictness>relaxed</strictness>
-			</dependency>
-			<activation>
-            	<administrativeStatus>
+    <name>Dummy Resource Circus</name>
+    <description>Resource with a circular dependency</description>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>circus</icfi:instanceId>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <intent>default</intent>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <dependency>
+                <kind>account</kind>
+                <intent>default</intent>
+                <strictness>relaxed</strictness>
+            </dependency>
+            <activation>
+                <administrativeStatus>
                     <outbound/>
-            	</administrativeStatus>
+                </administrativeStatus>
             </activation>
-			<credentials>
+            <credentials>
                 <password>
                     <outbound/>
                 </password>
             </credentials>
-		</objectType>
-	</schemaHandling>
-	
+        </objectType>
+    </schemaHandling>
+
 </resource>

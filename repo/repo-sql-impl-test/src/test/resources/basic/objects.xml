@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -23,7 +23,7 @@
         <lifecycleState>testLifecycleStatus</lifecycleState>
         <policySituation>somepolicysituation1</policySituation>
         <policySituation>somepolicysituation2</policySituation>
-		<archetypeRef oid="a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad"/>
+        <archetypeRef oid="a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad"/>
 
         <trigger id="4">
             <handlerUri>http://triggerUri</handlerUri>
@@ -70,13 +70,13 @@
             <orgRef oid="o123456" type="c:OrgType" />
             <order>10</order>
         </assignment>
-        
+
         <assignment id="2">
-        	<targetRef oid="r123" type="RoleType" />
+            <targetRef oid="r123" type="RoleType" />
         </assignment>
-        
+
          <assignment id="3">
-        	<targetRef oid="00000000-8888-6666-0000-100000000085" type="OrgType" />
+            <targetRef oid="00000000-8888-6666-0000-100000000085" type="OrgType" />
         </assignment>
 
         <fullName>
@@ -138,24 +138,24 @@
     <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <name>atestuserX00003</name>
-		<description>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut dapibus, felis tincidunt pellentesque
-			ullamcorper, nisi orci accumsan turpis, quis lobortis quam libero at lectus. Quisque auctor, urna ut elementum
-			volutpat, sapien neque imperdiet elit, luctus viverra arcu nisl sed nibh. Vestibulum justo lorem, rhoncus a faucibus
-			ac, pulvinar a justo. Nam tincidunt suscipit congue. Proin auctor dapibus lacus sit amet ultricies. Duis feugiat
-			viverra nibh, nec ultricies libero ultrices eleifend. Nullam sed quam consectetur, rutrum arcu eu, imperdiet nibh.
-			Pellentesque a molestie tortor, vitae elementum nulla. Morbi lacus ex, commodo quis aliquam eget, condimentum sed
-			lorem. Suspendisse maximus est euismod, porta est a, vulputate magna. Morbi blandit accumsan mattis. Cras commodo
-			cursus ante. Phasellus in nulla eget odio tristique dapibus. Pellentesque at orci at nisl blandit efficitur id ut leo.
-			Sed laoreet iaculis turpis quis scelerisque.
-		</description>
+        <description>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut dapibus, felis tincidunt pellentesque
+            ullamcorper, nisi orci accumsan turpis, quis lobortis quam libero at lectus. Quisque auctor, urna ut elementum
+            volutpat, sapien neque imperdiet elit, luctus viverra arcu nisl sed nibh. Vestibulum justo lorem, rhoncus a faucibus
+            ac, pulvinar a justo. Nam tincidunt suscipit congue. Proin auctor dapibus lacus sit amet ultricies. Duis feugiat
+            viverra nibh, nec ultricies libero ultrices eleifend. Nullam sed quam consectetur, rutrum arcu eu, imperdiet nibh.
+            Pellentesque a molestie tortor, vitae elementum nulla. Morbi lacus ex, commodo quis aliquam eget, condimentum sed
+            lorem. Suspendisse maximus est euismod, porta est a, vulputate magna. Morbi blandit accumsan mattis. Cras commodo
+            cursus ante. Phasellus in nulla eget odio tristique dapibus. Pellentesque at orci at nisl blandit efficitur id ut leo.
+            Sed laoreet iaculis turpis quis scelerisque.
+        </description>
 
-		<linkRef oid="1234" />
+        <linkRef oid="1234" />
         <linkRef oid="11223344"/>
         <roleMembershipRef oid="r123" type="c:RoleType"/>
         <roleMembershipRef oid="r456" type="c:RoleType"/>
         <delegatedRef oid="r789" type="c:RoleType"/>
-		<personaRef oid="u000" type="c:UserType"><targetName>u-000</targetName></personaRef>
-		<archetypeRef oid="a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad"/>
+        <personaRef oid="u000" type="c:UserType"><targetName>u-000</targetName></personaRef>
+        <archetypeRef oid="a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad"/>
 
         <fullName>
             <t:orig>Test UserX00003</t:orig>
@@ -265,233 +265,233 @@
         <schema>
             <definition>
                 <xsd:schema elementFormDefault="qualified"
-					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+                    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                    xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+                    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
 
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
-					<xsd:complexType name="GroupObjectClass">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<ra:resourceObject/>
-			                     <ra:identifier>icfs:uid</ra:identifier>
-			                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-			                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-			                     <ra:nativeObjectClass>__GROUP__</ra:nativeObjectClass>
-							</xsd:appinfo>
-						</xsd:annotation>
-						<xsd:sequence>
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
-							<xsd:element ref="icfs:name" />
-							<xsd:element ref="icfs:uid" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
-						</xsd:sequence>
-					</xsd:complexType>
-					<xsd:complexType name="AccountObjectClass">
-						<xsd:annotation>
-							<xsd:appinfo>
-								 <ra:resourceObject/>
-			                     <ra:identifier>icfs:uid</ra:identifier>
-			                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-			                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-			                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-			                     <ra:account/>
-			                     <ra:default/>
-							</xsd:appinfo>
-						</xsd:annotation>
-						<xsd:sequence>
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="x500UniqueIdentifier" type="xsd:base64Binary" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalAddress" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="mail" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary" />
-							<xsd:element minOccurs="0" name="displayName" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword" type="xsd:base64Binary" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="physicalDeliveryOfficeName" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePhone" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="postOfficeBox" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePostalAddress" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="roomNumber" type="xsd:string" />
-							<xsd:element minOccurs="0" name="employeeNumber" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="facsimileTelephoneNumber" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="userSMIMECertificate" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="l" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="userCertificate" type="xsd:base64Binary" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto" type="xsd:base64Binary" />
-							<xsd:element ref="icfs:name" />
-							<xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" name="sn" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string" />
-							<xsd:element ref="icfs:uid" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator" type="xsd:string" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string" />
-							<xsd:element minOccurs="0" ref="icfs:password" />
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
-							<xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string" />
-						</xsd:sequence>
-					</xsd:complexType>
-				</xsd:schema>
+                    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+                    <xsd:complexType name="GroupObjectClass">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <ra:resourceObject/>
+                                 <ra:identifier>icfs:uid</ra:identifier>
+                                 <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                                 <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                                 <ra:nativeObjectClass>__GROUP__</ra:nativeObjectClass>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                        <xsd:sequence>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
+                            <xsd:element ref="icfs:name" />
+                            <xsd:element ref="icfs:uid" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
+                        </xsd:sequence>
+                    </xsd:complexType>
+                    <xsd:complexType name="AccountObjectClass">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                 <ra:resourceObject/>
+                                 <ra:identifier>icfs:uid</ra:identifier>
+                                 <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                                 <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                                 <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                                 <ra:account/>
+                                 <ra:default/>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                        <xsd:sequence>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="x500UniqueIdentifier" type="xsd:base64Binary" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="postalAddress" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="mail" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary" />
+                            <xsd:element minOccurs="0" name="displayName" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword" type="xsd:base64Binary" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="physicalDeliveryOfficeName" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="homePhone" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="postOfficeBox" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="homePostalAddress" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="roomNumber" type="xsd:string" />
+                            <xsd:element minOccurs="0" name="employeeNumber" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="facsimileTelephoneNumber" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="userSMIMECertificate" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="l" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="userCertificate" type="xsd:base64Binary" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto" type="xsd:base64Binary" />
+                            <xsd:element ref="icfs:name" />
+                            <xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" name="sn" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string" />
+                            <xsd:element ref="icfs:uid" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator" type="xsd:string" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string" />
+                            <xsd:element minOccurs="0" ref="icfs:password" />
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
+                            <xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string" />
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:schema>
             </definition>
         </schema>
-		<schemaHandling>
-			<objectType id="1">
-				<intent>default</intent>
-				<displayName>Default Account</displayName>
-				<default>true</default>
-				<objectClass>ri:AccountObjectClass</objectClass>
-				<attribute>
-					<ref>icfs:name</ref>
-					<displayName>Distinguished Name</displayName>
-					<outbound>
-						<strength>weak</strength>
-						<source>
-							<path>$user/name</path>
-						</source>
-						<expression>
-							<script>
-								<code>
-									'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
-								</code>
-							</script>
-						</expression>
-					</outbound>
-				</attribute>
-				<attribute>
-					<ref>icfs:uid</ref>
-					<displayName>Entry UUID</displayName>
-				</attribute>
-				<attribute>
-					<ref>ri:cn</ref>
-					<displayName>Common Name</displayName>
-					<outbound>
-						<source>
-							<path>$user/fullName</path>
-						</source>
-					</outbound>
-					<inbound>
-						<target>
-							<path>$user/fullName</path>
-						</target>
-					</inbound>
-				</attribute>
-				<attribute>
-					<ref>ri:sn</ref>
-					<displayName>Surname</displayName>
-					<outbound>
-						<source>
-							<path>familyName</path>
-						</source>
-					</outbound>
-					<inbound>
-						<target>
-							<path>familyName</path>
-						</target>
-					</inbound>
-				</attribute>
-				<attribute>
-					<ref>ri:givenName</ref>
-					<displayName>Given Name</displayName>
-					<outbound>
-						<source>
-							<path>$c:user/c:givenName</path>
-						</source>
-					</outbound>
-					<inbound>
-						<target>
-							<path>$c:user/c:givenName</path>
-						</target>
-					</inbound>
-				</attribute>
-				<attribute>
-					<ref>ri:uid</ref>
-					<displayName>Login Name</displayName>
-					<outbound>
-						<source>
-							<description>Source may have description</description>
-							<path>$user/name</path>
-						</source>
-					</outbound>
-					<inbound>
-						<target>
-							<description>Targets may have description</description>
-							<path>$c:user/c:name</path>
-		                   </target>
-					</inbound>
-				</attribute>
-				<attribute>
-					<ref>ri:description</ref>
-					<outbound>
-						<strength>weak</strength>
-						<expression>
-							<description>Expression that assigns a fixed value</description>
-							<value>Created by IDM</value>
-						</expression>
-					</outbound>
-					<inbound>
-						<target>
-							<path>
-								declare namespace my="http://whatever.com/my";
-								$c:user/c:extension/my:description
-							</path>
-		                   </target>
-					</inbound>
-				</attribute>
-				<attribute>
-					<ref>ri:l</ref>
-					<outbound>
-						<expression>
-							<variable xmlns:my="http://whatever.com/my">
-								<name>my:defaultLocation</name>
-								<value xsi:type="xsd:string">middle of nowhere</value>
-							</variable>
-							<script>
-								<description>XPath expression that is using a variable declared above</description>
-								<language>http://www.w3.org/TR/xpath/</language>
-								<returnType>scalar</returnType>
-								<code xmlns:my="http://whatever.com/my">
-										$my:defaultLocation
-								</code>
-							</script>
-						</expression>
-					</outbound>
-				</attribute>
+        <schemaHandling>
+            <objectType id="1">
+                <intent>default</intent>
+                <displayName>Default Account</displayName>
+                <default>true</default>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <attribute>
+                    <ref>icfs:name</ref>
+                    <displayName>Distinguished Name</displayName>
+                    <outbound>
+                        <strength>weak</strength>
+                        <source>
+                            <path>$user/name</path>
+                        </source>
+                        <expression>
+                            <script>
+                                <code>
+                                    'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>icfs:uid</ref>
+                    <displayName>Entry UUID</displayName>
+                </attribute>
+                <attribute>
+                    <ref>ri:cn</ref>
+                    <displayName>Common Name</displayName>
+                    <outbound>
+                        <source>
+                            <path>$user/fullName</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>$user/fullName</path>
+                        </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:sn</ref>
+                    <displayName>Surname</displayName>
+                    <outbound>
+                        <source>
+                            <path>familyName</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>familyName</path>
+                        </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:givenName</ref>
+                    <displayName>Given Name</displayName>
+                    <outbound>
+                        <source>
+                            <path>$c:user/c:givenName</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>$c:user/c:givenName</path>
+                        </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:uid</ref>
+                    <displayName>Login Name</displayName>
+                    <outbound>
+                        <source>
+                            <description>Source may have description</description>
+                            <path>$user/name</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <description>Targets may have description</description>
+                            <path>$c:user/c:name</path>
+                           </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:description</ref>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <description>Expression that assigns a fixed value</description>
+                            <value>Created by IDM</value>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>
+                                declare namespace my="http://whatever.com/my";
+                                $c:user/c:extension/my:description
+                            </path>
+                           </target>
+                    </inbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:l</ref>
+                    <outbound>
+                        <expression>
+                            <variable xmlns:my="http://whatever.com/my">
+                                <name>my:defaultLocation</name>
+                                <value xsi:type="xsd:string">middle of nowhere</value>
+                            </variable>
+                            <script>
+                                <description>XPath expression that is using a variable declared above</description>
+                                <language>http://www.w3.org/TR/xpath/</language>
+                                <returnType>scalar</returnType>
+                                <code xmlns:my="http://whatever.com/my">
+                                        $my:defaultLocation
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </attribute>
                 <credentials>
                    <password>
                        <outbound>
@@ -518,19 +518,19 @@
                        </inbound>
                    </administrativeStatus>
                 </activation>
-				<iteration>
-					<maxIterations>5</maxIterations>
-				</iteration>
-				<protected>
-					<filter>
-						<q:equal>
-							<q:path>attributes/name</q:path>
-							<q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
-						</q:equal>
-					</filter>
-	           </protected>
-			</objectType>
-		</schemaHandling>
+                <iteration>
+                    <maxIterations>5</maxIterations>
+                </iteration>
+                <protected>
+                    <filter>
+                        <q:equal>
+                            <q:path>attributes/name</q:path>
+                            <q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
+                        </q:equal>
+                    </filter>
+               </protected>
+            </objectType>
+        </schemaHandling>
         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
             <native>
                 <cap:delete/>
@@ -575,13 +575,13 @@
             <reaction>
                 <situation>linked</situation>
                 <action>
-                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
                 </action>
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
                 <action>
-                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
                 </action>
             </reaction>
 </objectSynchronization>
@@ -601,10 +601,10 @@
             <description>Property construction.</description>
             <strength>weak</strength>
             <source>
-            	<path>$user/givenName</path>
+                <path>$user/givenName</path>
             </source>
             <source>
-            	<path>$user/familyName</path>
+                <path>$user/familyName</path>
             </source>
             <expression>
                 <script>
@@ -612,7 +612,7 @@
                 </script>
             </expression>
             <target>
-            	<path>fullName</path>
+                <path>fullName</path>
             </target>
         </mapping>
     </objectTemplate>
@@ -621,14 +621,14 @@
         <name>Default User Template2</name>
         <description>Alternative User Template Object.</description>
         <includeRef oid="12346" type="c:ObjectTemplateType"/>
-		<mapping>
+        <mapping>
             <description>Property construction.</description>
             <strength>weak</strength>
             <source>
-            	<path>$user/givenName</path>
+                <path>$user/givenName</path>
             </source>
             <source>
-            	<path>$user/familyName</path>
+                <path>$user/familyName</path>
             </source>
             <expression>
                 <script>
@@ -636,7 +636,7 @@
                 </script>
             </expression>
             <target>
-            	<path>fullName</path>
+                <path>fullName</path>
             </target>
         </mapping>
     </objectTemplate>
@@ -677,8 +677,8 @@
         <description>Definition of a live sychnronization task. It will poll changelog and pull in changes</description>
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-		<archetypeRef oid="a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad"/>
-		<executionStatus>runnable</executionStatus>
+        <archetypeRef oid="a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad"/>
+        <executionStatus>runnable</executionStatus>
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
@@ -794,12 +794,12 @@
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
         </activation>
-		<pendingOperation id="1">
-			<asynchronousOperationReference>123456</asynchronousOperationReference>
-		</pendingOperation>
-		<pendingOperation id="2">
-			<asynchronousOperationReference>789012</asynchronousOperationReference>
-		</pendingOperation>
+        <pendingOperation id="1">
+            <asynchronousOperationReference>123456</asynchronousOperationReference>
+        </pendingOperation>
+        <pendingOperation id="2">
+            <asynchronousOperationReference>789012</asynchronousOperationReference>
+        </pendingOperation>
     </object>
 
     <object xsi:type="ConnectorType" oid="1234" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -1030,30 +1030,30 @@
             <action>http://example.com/uri1</action>
             <action>http://example.com/uri2</action>
             <object id="7">
-            	<description>object description</description>
-            	<type>c:UserType</type>
-            	<filter>
-            		<q:substring>
-						<q:matching>normIgnoreCase</q:matching>
-						<q:path>c:name</q:path>
-						<q:value>user</q:value>
-					</q:substring>
-				</filter>
-				<special>self</special>
+                <description>object description</description>
+                <type>c:UserType</type>
+                <filter>
+                    <q:substring>
+                        <q:matching>normIgnoreCase</q:matching>
+                        <q:path>c:name</q:path>
+                        <q:value>user</q:value>
+                    </q:substring>
+                </filter>
+                <special>self</special>
             </object>
             <item>c:name</item>
             <target id="6">
-            	<description>target description</description>
-            	<type>c:UserType</type>
-            	<filter>
-            		<q:substring>
-						<q:matching>normIgnoreCase</q:matching>
-						<q:path>c:name</q:path>
-						<q:value>user</q:value>
-					</q:substring>
-				</filter>
-				<special>self</special>
-            </target> 
+                <description>target description</description>
+                <type>c:UserType</type>
+                <filter>
+                    <q:substring>
+                        <q:matching>normIgnoreCase</q:matching>
+                        <q:path>c:name</q:path>
+                        <q:value>user</q:value>
+                    </q:substring>
+                </filter>
+                <special>self</special>
+            </target>
         </authorization>
         <authorization id="4">
             <description>some authorization description 2</description>
@@ -1088,40 +1088,40 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
         <name>Pirate</name>
         <roleType>business</roleType>
-		<autoassign>
-			<enabled>true</enabled>
-		</autoassign>
+        <autoassign>
+            <enabled>true</enabled>
+        </autoassign>
     </role>
 
-	<org oid="00000000-8888-6666-0000-100000000085">
-		<name>F0085</name>
-		<description>The office of the most respectful Governor.</description>
-		<displayName>Governor Office</displayName>
-		<identifier>0001</identifier>
-		<orgType>functional</orgType>
-		<costCenter>CC0</costCenter>
-		<locality>The Governor's Mansion</locality>
-		<tenant>true</tenant>
-	</org>
+    <org oid="00000000-8888-6666-0000-100000000085">
+        <name>F0085</name>
+        <description>The office of the most respectful Governor.</description>
+        <displayName>Governor Office</displayName>
+        <identifier>0001</identifier>
+        <orgType>functional</orgType>
+        <costCenter>CC0</costCenter>
+        <locality>The Governor's Mansion</locality>
+        <tenant>true</tenant>
+    </org>
 
-	<user oid="U1122334455" 
-			xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    <user oid="U1122334455"
+            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-		<name>elaine123</name>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000085" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000085" type="c:OrgType" relation="org:manager"/>
-		<tenantRef oid="00000000-8888-6666-0000-100000000085"/>
-		<fullName>Elaine Marley</fullName>
-		<givenName>Elaine</givenName>
-		<familyName>Marley</familyName>
-		<title>Governor</title>
-	</user>
-	
-	<object xsi:type="ReportOutputType" oid="1122334455"  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        <name>elaine123</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000085" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000085" type="c:OrgType" relation="org:manager"/>
+        <tenantRef oid="00000000-8888-6666-0000-100000000085"/>
+        <fullName>Elaine Marley</fullName>
+        <givenName>Elaine</givenName>
+        <familyName>Marley</familyName>
+        <title>Governor</title>
+    </user>
+
+    <object xsi:type="ReportOutputType" oid="1122334455"  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-		<name>report1.pdf</name>
+        <name>report1.pdf</name>
         <filePath>${midpointhome}/reports/report1.pdf</filePath>
         <reportRef oid="111223355"/>
      </object>
@@ -1147,42 +1147,42 @@
                 <parameter name="LOGO_PATH" class="java.lang.String"/>
                 <queryString language="hql">
                     <![CDATA[select aer.timestamp as timestamp,
-							aer.initiatorName as initiator,
-							aer.eventType as eventType,
-							aer.eventStage as eventStage,
-							aer.targetName as targetName,
-							aer.targetType as targetType,
-							aer.targetOwnerName as targetOwnerName,
-							aer.outcome as outcome,
-							aer.message as message,
-							odo.delta as delta
-							from RObjectDeltaOperation as odo
-							join odo.record as aer
-							where aer.timestamp >= '2000-01-01' and aer.timestamp <= '2020-12-31'
-							order by aer.timestamp\]\]></queryString>
+                            aer.initiatorName as initiator,
+                            aer.eventType as eventType,
+                            aer.eventStage as eventStage,
+                            aer.targetName as targetName,
+                            aer.targetType as targetType,
+                            aer.targetOwnerName as targetOwnerName,
+                            aer.outcome as outcome,
+                            aer.message as message,
+                            odo.delta as delta
+                            from RObjectDeltaOperation as odo
+                            join odo.record as aer
+                            where aer.timestamp >= '2000-01-01' and aer.timestamp <= '2020-12-31'
+                            order by aer.timestamp\]\]></queryString>
             </jasperReport>]]>
         </template>
         <templateStyle>
         <![CDATA[
-         	<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd"> 
- 				<style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base" 
-					   pdfEncoding="Cp1252" pdfFontName="Helvetica" vAlign="Middle"/> 
- 				<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false" 
-                 	   mode="Opaque" name="Title" style="Base"/>	 
- 			</jasperTemplate>]]> 
+             <jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
+                 <style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base"
+                       pdfEncoding="Cp1252" pdfFontName="Helvetica" vAlign="Middle"/>
+                 <style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
+                        mode="Opaque" name="Title" style="Base"/>
+             </jasperTemplate>]]>
         </templateStyle>
         <orientation>landscape</orientation>
         <export>pdf</export>
         <useHibernateSession>true</useHibernateSession>
         <field>
-			<nameReport>timestamp</nameReport>
-			<nameHeader>Timestamp</nameHeader>
-			<itemPath>c:timestamp</itemPath>
-			<sortOrderNumber>1</sortOrderNumber>
-			<sortOrder>ascending</sortOrder>
-			<width>12</width>
-			<classType>xsd:dateTime</classType>
-		</field>
+            <nameReport>timestamp</nameReport>
+            <nameHeader>Timestamp</nameHeader>
+            <itemPath>c:timestamp</itemPath>
+            <sortOrderNumber>1</sortOrderNumber>
+            <sortOrder>ascending</sortOrder>
+            <width>12</width>
+            <classType>xsd:dateTime</classType>
+        </field>
         <dataSource>
             <providerClass>com.evolveum.midpoint.report.SomeCustomSuperProvider</providerClass>
             <springBean>true</springBean>
@@ -1231,49 +1231,49 @@
             <r:type>c:UserType</r:type>
         </configuration>
     </report>
-    
-	<valuePolicy oid="SECURITY-0000-0000-0000-000000000003"
-        		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        		version="0">
-    	<name>Default Password Policy</name>
-    	<description>Default password policy</description>
-    	<lifetime>
-        	<expiration>999</expiration>
-	        <warnBeforeExpiration>9</warnBeforeExpiration>
-    	    <lockAfterExpiration>0</lockAfterExpiration>
-        	<minPasswordAge>0</minPasswordAge>
-        	<passwordHistoryLength>0</passwordHistoryLength>
-    	</lifetime>
-    	<stringPolicy>
-        	<description>Testing string policy</description>
-        	<limitations>
-            	<minLength>5</minLength>
-	            <maxLength>8</maxLength> 
-    	        <minUniqueChars>3</minUniqueChars>
-        	    <checkAgainstDictionary>true</checkAgainstDictionary>
-            	<checkPattern />
-            	<limit>
-            		<description>Alphas</description>
-	            	<minOccurs>1</minOccurs>
-    	        	<maxOccurs>5</maxOccurs>
-        	    	<mustBeFirst>false</mustBeFirst> 
-            		<characterClass> 
-          				<value>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</value>
-	            	</characterClass> 
-    	        </limit>
-        	    <limit>
-            		<description>Numbers</description>
-            		<minOccurs>1</minOccurs>
-	            	<maxOccurs>5</maxOccurs>
-    	        	<mustBeFirst>false</mustBeFirst>
-        	    	<characterClass>
-            			<value>1234567890</value>
-            		</characterClass>
-            	</limit>
-        	</limitations>
-    	</stringPolicy>
-	</valuePolicy>
+
+    <valuePolicy oid="SECURITY-0000-0000-0000-000000000003"
+                xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                version="0">
+        <name>Default Password Policy</name>
+        <description>Default password policy</description>
+        <lifetime>
+            <expiration>999</expiration>
+            <warnBeforeExpiration>9</warnBeforeExpiration>
+            <lockAfterExpiration>0</lockAfterExpiration>
+            <minPasswordAge>0</minPasswordAge>
+            <passwordHistoryLength>0</passwordHistoryLength>
+        </lifetime>
+        <stringPolicy>
+            <description>Testing string policy</description>
+            <limitations>
+                <minLength>5</minLength>
+                <maxLength>8</maxLength>
+                <minUniqueChars>3</minUniqueChars>
+                <checkAgainstDictionary>true</checkAgainstDictionary>
+                <checkPattern />
+                <limit>
+                    <description>Alphas</description>
+                    <minOccurs>1</minOccurs>
+                    <maxOccurs>5</maxOccurs>
+                    <mustBeFirst>false</mustBeFirst>
+                    <characterClass>
+                          <value>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</value>
+                    </characterClass>
+                </limit>
+                <limit>
+                    <description>Numbers</description>
+                    <minOccurs>1</minOccurs>
+                    <maxOccurs>5</maxOccurs>
+                    <mustBeFirst>false</mustBeFirst>
+                    <characterClass>
+                        <value>1234567890</value>
+                    </characterClass>
+                </limit>
+            </limitations>
+        </stringPolicy>
+    </valuePolicy>
 
     <securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <name>Security policy</name>
@@ -1281,15 +1281,15 @@
 <!--         <authentication> -->
 <!--         </authentication> -->
         <credentials>
-        	<password>
-        		<passwordPolicyRef oid="SECURITY-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
-        	</password>
-        	<securityQuestions>
-        		<question id="1">
-        			<identifier>http://example.com/uri3</identifier>
-        			<enabled>false</enabled>
-        		</question>
-        	</securityQuestions>
+            <password>
+                <passwordPolicyRef oid="SECURITY-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
+            </password>
+            <securityQuestions>
+                <question id="1">
+                    <identifier>http://example.com/uri3</identifier>
+                    <enabled>false</enabled>
+                </question>
+            </securityQuestions>
         </credentials>
    </securityPolicy>
 
@@ -1431,14 +1431,14 @@
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
             <stageNumber>1</stageNumber>
-			<workItem id="1">
-				<stageNumber>1</stageNumber>
-				<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output>
-					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#notDecided</outcome>
-				</output>
-				<outputChangeTimestamp>2015-12-04T01:10:20.032+01:00</outputChangeTimestamp>
-			</workItem>
+            <workItem id="1">
+                <stageNumber>1</stageNumber>
+                <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+                <output>
+                    <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#notDecided</outcome>
+                </output>
+                <outputChangeTimestamp>2015-12-04T01:10:20.032+01:00</outputChangeTimestamp>
+            </workItem>
             <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
             <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <currentStageOutcome>notDecided</currentStageOutcome>
@@ -1453,14 +1453,14 @@
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
             <stageNumber>1</stageNumber>
-			<workItem id="1">
-				<stageNumber>1</stageNumber>
-            	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output>
-					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
-				</output>
-				<outputChangeTimestamp>2015-12-04T01:04:06.385+01:00</outputChangeTimestamp>
-			</workItem>
+            <workItem id="1">
+                <stageNumber>1</stageNumber>
+                <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+                <output>
+                    <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#accept</outcome>
+                </output>
+                <outputChangeTimestamp>2015-12-04T01:04:06.385+01:00</outputChangeTimestamp>
+            </workItem>
             <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
             <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
             <currentStageOutcome>accept</currentStageOutcome>
@@ -1472,14 +1472,14 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="3"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-			<workItem id="1">
-				<stageNumber>1</stageNumber>
-            	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output>
-					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
-				</output>
-				<outputChangeTimestamp>2015-12-04T01:10:08.670+01:00</outputChangeTimestamp>
-			</workItem>
+            <workItem id="1">
+                <stageNumber>1</stageNumber>
+                <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+                <output>
+                    <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#noResponse</outcome>
+                </output>
+                <outputChangeTimestamp>2015-12-04T01:10:08.670+01:00</outputChangeTimestamp>
+            </workItem>
             <objectRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></objectRef>
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
             <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
@@ -1494,14 +1494,14 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="4"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-			<workItem id="1">
-				<stageNumber>1</stageNumber>
-				<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output>
-					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
-				</output>
-				<outputChangeTimestamp>2015-12-04T01:10:13.814+01:00</outputChangeTimestamp>
-			</workItem>
+            <workItem id="1">
+                <stageNumber>1</stageNumber>
+                <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+                <output>
+                    <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+                </output>
+                <outputChangeTimestamp>2015-12-04T01:10:13.814+01:00</outputChangeTimestamp>
+            </workItem>
             <objectRef oid="ee53eba7-5c16-4c16-ad15-dd6a2360ab1a" type="c:UserType"><!-- u001 --></objectRef>
             <targetRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"><!-- Localhost OpenDJ (no extension schema) --></targetRef>
             <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
@@ -1536,14 +1536,14 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="5"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-			<workItem id="1">
-				<stageNumber>1</stageNumber>
-            	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output>
-					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
-				</output>
-				<outputChangeTimestamp>2015-12-04T01:10:14.614+01:00</outputChangeTimestamp>
-			</workItem>
+            <workItem id="1">
+                <stageNumber>1</stageNumber>
+                <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+                <output>
+                    <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+                </output>
+                <outputChangeTimestamp>2015-12-04T01:10:14.614+01:00</outputChangeTimestamp>
+            </workItem>
             <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000008" type="c:RoleType"><!-- End user --></targetRef>
             <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
@@ -1558,14 +1558,14 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="6"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-			<workItem id="1">
-				<stageNumber>1</stageNumber>
-            	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output>
-					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#reduce</outcome>
-				</output>
-				<outputChangeTimestamp>2015-12-04T01:10:15.375+01:00</outputChangeTimestamp>
-			</workItem>
+            <workItem id="1">
+                <stageNumber>1</stageNumber>
+                <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+                <output>
+                    <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#reduce</outcome>
+                </output>
+                <outputChangeTimestamp>2015-12-04T01:10:15.375+01:00</outputChangeTimestamp>
+            </workItem>
             <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
             <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"><!-- Superuser --></targetRef>
             <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
@@ -1580,14 +1580,14 @@
         <case xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               id="7"
               xsi:type="c:AccessCertificationAssignmentCaseType">
-			<workItem id="1">
-				<stageNumber>1</stageNumber>
-            	<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
-				<output>
-					<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
-				</output>
-				<outputChangeTimestamp>2015-12-04T01:10:16.136+01:00</outputChangeTimestamp>
-			</workItem>
+            <workItem id="1">
+                <stageNumber>1</stageNumber>
+                <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></assigneeRef>
+                <output>
+                    <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+                </output>
+                <outputChangeTimestamp>2015-12-04T01:10:16.136+01:00</outputChangeTimestamp>
+            </workItem>
             <objectRef oid="86591a19-bbbc-41cd-ad46-4cc3b6acfe55" type="c:UserType"><!-- u1 --></objectRef>
             <targetRef oid="214a489c-459d-4ac4-9778-585a00af11df" type="c:RoleType"><!-- r1 --></targetRef>
             <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
@@ -1679,56 +1679,56 @@
         </automaticallyApproved>
     </service>
 
-	<case version="1" xsi:type="c:CaseType">
-		<name>case1</name>
-		<operationExecution id="1">
-			<taskRef oid="task-oid-1" type="TaskType" />
-			<initiatorRef oid="user-oid-1" type="UserType" />
-			<status>fatal_error</status>
-		</operationExecution>
-		<operationExecution id="2">
-			<status>warning</status>
-		</operationExecution>
-		<operationExecution id="3">
-			<taskRef oid="task-oid-2" type="TaskType" />
-			<status>success</status>
-		</operationExecution>
-	</case>
+    <case version="1" xsi:type="c:CaseType">
+        <name>case1</name>
+        <operationExecution id="1">
+            <taskRef oid="task-oid-1" type="TaskType" />
+            <initiatorRef oid="user-oid-1" type="UserType" />
+            <status>fatal_error</status>
+        </operationExecution>
+        <operationExecution id="2">
+            <status>warning</status>
+        </operationExecution>
+        <operationExecution id="3">
+            <taskRef oid="task-oid-2" type="TaskType" />
+            <status>success</status>
+        </operationExecution>
+    </case>
 
-	<objectCollection>
-		<name>collection1</name>
-		<type>UserType</type>
-		<filter>
-			<q:equal>
-				<q:path>subtype</q:path>
-				<q:value>EMP</q:value>
-			</q:equal>
-		</filter>
-	</objectCollection>
+    <objectCollection>
+        <name>collection1</name>
+        <type>UserType</type>
+        <filter>
+            <q:equal>
+                <q:path>subtype</q:path>
+                <q:value>EMP</q:value>
+            </q:equal>
+        </filter>
+    </objectCollection>
 
-	<functionLibrary>
-		<name>fl1</name>
-	</functionLibrary>
+    <functionLibrary>
+        <name>fl1</name>
+    </functionLibrary>
 
-	<archetype oid="a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad">
-		<name>archetype1</name>
-	</archetype>
+    <archetype oid="a71e48fe-f6e2-40f4-ab76-b4ad4a0918ad">
+        <name>archetype1</name>
+    </archetype>
 
-	<case oid="8e8c9a40-33b7-4ecf-940c-24c6fcfe80d3">
-		<name>case-2</name>
-		<state>open</state>
-		<workItem id="1">
-			<createTimestamp>2013-05-07T10:38:21.350+02:00</createTimestamp>
-			<assigneeRef oid="5905f321-630f-4de3-abc9-ba3a614aac36" type="UserType"/>
-			<candidateRef oid="5905f321-630f-4de3-abc9-ba3a614aac36" type="UserType"/>		<!-- intentionally the same as assignee -->
-			<candidateRef oid="d2bda14f-8571-4c99-bbe4-25c132650998" type="UserType"/>
-		</workItem>
-		<workItem id="2">
-			<assigneeRef oid="bd1bd88f-b200-4029-a860-85e694eef51b" type="UserType"/>
-			<assigneeRef oid="71a9f7fc-b93e-4f3e-8815-515b61260a49" type="UserType"/>
-			<candidateRef oid="d2bda14f-8571-4c99-bbe4-25c132650998" type="UserType"/>		<!-- intentionally the same as in work item 1 -->
-			<candidateRef oid="dc3cf68d-7717-4c73-abcc-202c83887ff1" type="UserType"/>
-			<candidateRef oid="6ff9dce3-6301-4147-9989-d49f3bcfbdbd" type="UserType"/>
-		</workItem>
-	</case>
+    <case oid="8e8c9a40-33b7-4ecf-940c-24c6fcfe80d3">
+        <name>case-2</name>
+        <state>open</state>
+        <workItem id="1">
+            <createTimestamp>2013-05-07T10:38:21.350+02:00</createTimestamp>
+            <assigneeRef oid="5905f321-630f-4de3-abc9-ba3a614aac36" type="UserType"/>
+            <candidateRef oid="5905f321-630f-4de3-abc9-ba3a614aac36" type="UserType"/>        <!-- intentionally the same as assignee -->
+            <candidateRef oid="d2bda14f-8571-4c99-bbe4-25c132650998" type="UserType"/>
+        </workItem>
+        <workItem id="2">
+            <assigneeRef oid="bd1bd88f-b200-4029-a860-85e694eef51b" type="UserType"/>
+            <assigneeRef oid="71a9f7fc-b93e-4f3e-8815-515b61260a49" type="UserType"/>
+            <candidateRef oid="d2bda14f-8571-4c99-bbe4-25c132650998" type="UserType"/>        <!-- intentionally the same as in work item 1 -->
+            <candidateRef oid="dc3cf68d-7717-4c73-abcc-202c83887ff1" type="UserType"/>
+            <candidateRef oid="6ff9dce3-6301-4147-9989-d49f3bcfbdbd" type="UserType"/>
+        </workItem>
+    </case>
 </objects>

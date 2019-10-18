@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectCollection oid="f61bcb4a-f8ae-11e8-9f5c-c3e7f27ee878"
@@ -13,12 +13,12 @@
     <name>Active employees</name>
     <type>UserType</type>
     <filter>
-    	<q:equal>
-    		<q:path>activation/effectiveStatus</q:path>
-    		<q:value>enabled</q:value>
-    	</q:equal>
+        <q:equal>
+            <q:path>activation/effectiveStatus</q:path>
+            <q:value>enabled</q:value>
+        </q:equal>
     </filter>
     <baseCollection>
-    	<collectionRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- Employee archetype -->
+        <collectionRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- Employee archetype -->
     </baseCollection>
 </objectCollection>

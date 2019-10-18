@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum et al. and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -44,9 +44,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkI
                         description = "PageWorkItems.auth.WorkItems.description")
         })
 public class PageCaseWorkItems extends PageAdminCaseWorkItems {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItems.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItems.class);
 
     private static final String DOT_CLASS = PageCaseWorkItems.class.getName() + ".";
     private static final String PARAMETER_CASE_ID = "caseId";

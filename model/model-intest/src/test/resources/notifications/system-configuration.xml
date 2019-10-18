@@ -2,22 +2,22 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <name>SystemConfiguration</name>
     <logging>
-    	<rootLoggerAppender>File Appender</rootLoggerAppender>
-    	<rootLoggerLevel>INFO</rootLoggerLevel>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
         <classLogger>
-	        <level>TRACE</level>
-	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-      	</classLogger>
+            <level>TRACE</level>
+            <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+          </classLogger>
         <c:classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>
@@ -383,12 +383,12 @@ Channel: $!event.channel</code>
                     <script>
                         <code>
                            import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
-                         
-    	                   NotificationMessageAttachmentType attachment = new NotificationMessageAttachmentType();
-    	                   attachment.setContentType("text/html");
-    	                   attachment.setContent("&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;");
-    	                   attachment.setFileName("hello_world.html");
-    	                   return attachment;
+
+                           NotificationMessageAttachmentType attachment = new NotificationMessageAttachmentType();
+                           attachment.setContentType("text/html");
+                           attachment.setContent("&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;");
+                           attachment.setFileName("hello_world.html");
+                           return attachment;
                       </code>
                     </script>
                 </attachmentExpression>
@@ -406,7 +406,7 @@ Channel: $!event.channel</code>
                         <code>"http://127.0.0.1:$$port$$/send?number=" + encodedTo + "&amp;text=" + encodedMessageText</code>
                     </script>
                 </urlExpression>
-				<logToFile>target/sms.log</logToFile>
+                <logToFile>target/sms.log</logToFile>
             </gateway>
         </sms>
         <sms name="with-get-via-proxy">
@@ -421,14 +421,14 @@ Channel: $!event.channel</code>
                 <proxyPort>$$port$$</proxyPort>
                 <proxyUsername>a9038321</proxyUsername>
                 <proxyPassword>5ecr3t</proxyPassword>
-				<logToFile>target/sms.log</logToFile>
+                <logToFile>target/sms.log</logToFile>
             </gateway>
         </sms>
         <sms name="with-post">
             <gateway>
-				<method>post</method>
+                <method>post</method>
                 <urlExpression>
-					<!-- $$port$$ is replaced by actual port on test class initialization -->
+                    <!-- $$port$$ is replaced by actual port on test class initialization -->
                     <value>http://127.0.0.1:$$port$$/send</value>
                 </urlExpression>
                 <headersExpression>
@@ -442,14 +442,14 @@ Channel: $!event.channel</code>
                 </bodyExpression>
                 <username>a9038321</username>
                 <password>5ecr3t</password>
-				<logToFile>target/sms.log</logToFile>
+                <logToFile>target/sms.log</logToFile>
             </gateway>
         </sms>
         <sms name="with-post-multi">
             <gateway>
-				<method>post</method>
+                <method>post</method>
                 <urlExpression>
-					<!-- $$port$$ is replaced by actual port on test class initialization -->
+                    <!-- $$port$$ is replaced by actual port on test class initialization -->
                     <value>http://127.0.0.1:$$port$$/send</value>
                 </urlExpression>
                 <headersExpression>
@@ -463,7 +463,7 @@ Channel: $!event.channel</code>
                 </bodyExpression>
                 <username>a9038321</username>
                 <password>5ecr3t</password>
-				<logToFile>target/sms.log</logToFile>
+                <logToFile>target/sms.log</logToFile>
             </gateway>
         </sms>
     </notificationConfiguration>

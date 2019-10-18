@@ -892,7 +892,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -900,7 +900,7 @@ public class DefaultApiExample {
 
         DefaultApi apiInstance = new DefaultApi();
         String type = type_example; // String | type of the object to be created. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-        Object body = ; // Object | 
+        Object body = ; // Object |
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
         try {
             apiInstance.addObject(type, body, options);
@@ -924,7 +924,7 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
         String type = type_example; // String | type of the object to be created. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-        Object body = ; // Object | 
+        Object body = ; // Object |
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
         try {
             apiInstance.addObject(type, body, options);
@@ -953,7 +953,7 @@ Configuration *apiConfig = [Configuration sharedConfig];
 
 
 String *type = type_example; // type of the object to be created. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-Object *body = ; // 
+Object *body = ; //
 array[String] *options = ; // Additional options for operation, see ModelExecuteOptionsType (optional)
 
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
@@ -984,9 +984,9 @@ var api = new .DefaultApi()
 
 var type = type_example; // {String} type of the object to be created. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
 
-var body = ; // {Object} 
+var body = ; // {Object}
 
-var opts = { 
+var opts = {
   'options':  // {array[String]} Additional options for operation, see ModelExecuteOptionsType
 };
 
@@ -1020,15 +1020,15 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
 
             var apiInstance = new DefaultApi();
             var type = type_example;  // String | type of the object to be created. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-            var body = new Object(); // Object | 
-            var options = new array[String](); // array[String] | Additional options for operation, see ModelExecuteOptionsType (optional) 
+            var body = new Object(); // Object |
+            var options = new array[String](); // array[String] | Additional options for operation, see ModelExecuteOptionsType (optional)
 
             try
             {
@@ -1058,7 +1058,7 @@ io.swagger.client\Configuration::getDefaultConfiguration()->setPassword('YOUR_PA
 
 $api_instance = new io.swagger.client\Api\DefaultApi();
 $type = type_example; // String | type of the object to be created. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-$body = ; // Object | 
+$body = ; // Object |
 $options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
 
 try {
@@ -1092,31 +1092,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "type",
   "in" : "path",
   "description" : "type of the object to be created. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_addObject_type');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_addObject_type');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_addObject_type"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_addObject_type"></div>
 </td>
 </tr>
 
@@ -1136,8 +1136,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "in" : "body",
   "name" : "body",
   "required" : true,
@@ -1146,32 +1146,32 @@ try {
     "description" : "Any subtype of ObjectType, e.g. UserType, RoleType, OrgType,..."
   }
 };
-													
-														var schema = schemaWrapper.schema;
-														schemaWrapper.definitions = defs;
-														JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
-														
 
-														
-													var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
-													 
-													var result = $('#d2e199_addObject_body');
-													result.empty();
-													result.append(view.render());
-													
-
-													
-    											
-													
-
-
-												});
+                                                        var schema = schemaWrapper.schema;
+                                                        schemaWrapper.definitions = defs;
+                                                        JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
 
 
 
-												});
-												</script>
-												<div id="d2e199_addObject_body"></div>
+                                                    var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
+
+                                                    var result = $('#d2e199_addObject_body');
+                                                    result.empty();
+                                                    result.append(view.render());
+
+
+
+
+
+
+
+                                                });
+
+
+
+                                                });
+                                                </script>
+                                                <div id="d2e199_addObject_body"></div>
 </td>
 </tr>
 
@@ -1190,8 +1190,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "options",
   "in" : "query",
   "description" : "Additional options for operation, see ModelExecuteOptionsType",
@@ -1202,23 +1202,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_addObject_options');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_addObject_options');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_addObject_options"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_addObject_options"></div>
 </td>
 </tr>
 
@@ -1968,7 +1968,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -1977,8 +1977,8 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         String type = type_example; // String | type of the object to be created or updated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
         String oid = oid_example; // String | Oid of the object, either existing or new one. If the object already exists it will be overwritten. If the object doesn't exist, it will be created with given oid
-        Object body = ; // Object | 
-        array[String] options = ; // array[String] | 
+        Object body = ; // Object |
+        array[String] options = ; // array[String] |
         try {
             apiInstance.addOrUpdateObject(type, oid, body, options);
         } catch (ApiException e) {
@@ -2002,8 +2002,8 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         String type = type_example; // String | type of the object to be created or updated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
         String oid = oid_example; // String | Oid of the object, either existing or new one. If the object already exists it will be overwritten. If the object doesn't exist, it will be created with given oid
-        Object body = ; // Object | 
-        array[String] options = ; // array[String] | 
+        Object body = ; // Object |
+        array[String] options = ; // array[String] |
         try {
             apiInstance.addOrUpdateObject(type, oid, body, options);
         } catch (ApiException e) {
@@ -2032,7 +2032,7 @@ Configuration *apiConfig = [Configuration sharedConfig];
 
 String *type = type_example; // type of the object to be created or updated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
 String *oid = oid_example; // Oid of the object, either existing or new one. If the object already exists it will be overwritten. If the object doesn't exist, it will be created with given oid
-Object *body = ; // 
+Object *body = ; //
 array[String] *options = ; //  (optional)
 
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
@@ -2066,10 +2066,10 @@ var type = type_example; // {String} type of the object to be created or updated
 
 var oid = oid_example; // {String} Oid of the object, either existing or new one. If the object already exists it will be overwritten. If the object doesn't exist, it will be created with given oid
 
-var body = ; // {Object} 
+var body = ; // {Object}
 
-var opts = { 
-  'options':  // {array[String]} 
+var opts = {
+  'options':  // {array[String]}
 };
 
 var callback = function(error, data, response) {
@@ -2102,7 +2102,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -2110,8 +2110,8 @@ namespace Example
             var apiInstance = new DefaultApi();
             var type = type_example;  // String | type of the object to be created or updated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
             var oid = oid_example;  // String | Oid of the object, either existing or new one. If the object already exists it will be overwritten. If the object doesn't exist, it will be created with given oid
-            var body = new Object(); // Object | 
-            var options = new array[String](); // array[String] |  (optional) 
+            var body = new Object(); // Object |
+            var options = new array[String](); // array[String] |  (optional)
 
             try
             {
@@ -2142,8 +2142,8 @@ io.swagger.client\Configuration::getDefaultConfiguration()->setPassword('YOUR_PA
 $api_instance = new io.swagger.client\Api\DefaultApi();
 $type = type_example; // String | type of the object to be created or updated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
 $oid = oid_example; // String | Oid of the object, either existing or new one. If the object already exists it will be overwritten. If the object doesn't exist, it will be created with given oid
-$body = ; // Object | 
-$options = ; // array[String] | 
+$body = ; // Object |
+$options = ; // array[String] |
 
 try {
     $api_instance->addOrUpdateObject($type, $oid, $body, $options);
@@ -2176,31 +2176,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "type",
   "in" : "path",
   "description" : "type of the object to be created or updated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_addOrUpdateObject_type');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_addOrUpdateObject_type');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_addOrUpdateObject_type"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_addOrUpdateObject_type"></div>
 </td>
 </tr>
 
@@ -2209,31 +2209,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "oid",
   "in" : "path",
   "description" : "Oid of the object, either existing or new one. If the object already exists it will be overwritten. If the object doesn't exist, it will be created with given oid",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_addOrUpdateObject_oid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_addOrUpdateObject_oid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_addOrUpdateObject_oid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_addOrUpdateObject_oid"></div>
 </td>
 </tr>
 
@@ -2253,8 +2253,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "in" : "body",
   "name" : "body",
   "required" : true,
@@ -2263,32 +2263,32 @@ try {
     "description" : "Any subtype of ObjectType, e.g. UserType, RoleType, OrgType,..."
   }
 };
-													
-														var schema = schemaWrapper.schema;
-														schemaWrapper.definitions = defs;
-														JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
-														
 
-														
-													var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
-													 
-													var result = $('#d2e199_addOrUpdateObject_body');
-													result.empty();
-													result.append(view.render());
-													
-
-													
-    											
-													
-
-
-												});
+                                                        var schema = schemaWrapper.schema;
+                                                        schemaWrapper.definitions = defs;
+                                                        JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
 
 
 
-												});
-												</script>
-												<div id="d2e199_addOrUpdateObject_body"></div>
+                                                    var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
+
+                                                    var result = $('#d2e199_addOrUpdateObject_body');
+                                                    result.empty();
+                                                    result.append(view.render());
+
+
+
+
+
+
+
+                                                });
+
+
+
+                                                });
+                                                </script>
+                                                <div id="d2e199_addOrUpdateObject_body"></div>
 </td>
 </tr>
 
@@ -2307,8 +2307,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "options",
   "in" : "query",
   "required" : false,
@@ -2318,23 +2318,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_addOrUpdateObject_options');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_addOrUpdateObject_options');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_addOrUpdateObject_options"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_addOrUpdateObject_options"></div>
 </td>
 </tr>
 
@@ -3084,7 +3084,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -3094,8 +3094,8 @@ public class DefaultApiExample {
         String type = type_example; // String | type of the object to delete. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
         String oid = oid_example; // String | Oid of the object to delete
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
-        array[String] include = ; // array[String] | 
-        array[String] exclude = ; // array[String] | 
+        array[String] include = ; // array[String] |
+        array[String] exclude = ; // array[String] |
         try {
             apiInstance.deleteObject(type, oid, options, include, exclude);
         } catch (ApiException e) {
@@ -3120,8 +3120,8 @@ public class DefaultApiExample {
         String type = type_example; // String | type of the object to delete. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
         String oid = oid_example; // String | Oid of the object to delete
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
-        array[String] include = ; // array[String] | 
-        array[String] exclude = ; // array[String] | 
+        array[String] include = ; // array[String] |
+        array[String] exclude = ; // array[String] |
         try {
             apiInstance.deleteObject(type, oid, options, include, exclude);
         } catch (ApiException e) {
@@ -3186,10 +3186,10 @@ var type = type_example; // {String} type of the object to delete. Possible valu
 
 var oid = oid_example; // {String} Oid of the object to delete
 
-var opts = { 
+var opts = {
   'options': , // {array[String]} Additional options for operation, see ModelExecuteOptionsType
-  'include': , // {array[String]} 
-  'exclude':  // {array[String]} 
+  'include': , // {array[String]}
+  'exclude':  // {array[String]}
 };
 
 var callback = function(error, data, response) {
@@ -3222,7 +3222,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -3230,9 +3230,9 @@ namespace Example
             var apiInstance = new DefaultApi();
             var type = type_example;  // String | type of the object to delete. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
             var oid = oid_example;  // String | Oid of the object to delete
-            var options = new array[String](); // array[String] | Additional options for operation, see ModelExecuteOptionsType (optional) 
-            var include = new array[String](); // array[String] |  (optional) 
-            var exclude = new array[String](); // array[String] |  (optional) 
+            var options = new array[String](); // array[String] | Additional options for operation, see ModelExecuteOptionsType (optional)
+            var include = new array[String](); // array[String] |  (optional)
+            var exclude = new array[String](); // array[String] |  (optional)
 
             try
             {
@@ -3264,8 +3264,8 @@ $api_instance = new io.swagger.client\Api\DefaultApi();
 $type = type_example; // String | type of the object to delete. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
 $oid = oid_example; // String | Oid of the object to delete
 $options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
-$include = ; // array[String] | 
-$exclude = ; // array[String] | 
+$include = ; // array[String] |
+$exclude = ; // array[String] |
 
 try {
     $api_instance->deleteObject($type, $oid, $options, $include, $exclude);
@@ -3298,31 +3298,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "type",
   "in" : "path",
   "description" : "type of the object to delete. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_deleteObject_type');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_deleteObject_type');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_deleteObject_type"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_deleteObject_type"></div>
 </td>
 </tr>
 
@@ -3331,31 +3331,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "oid",
   "in" : "path",
   "description" : "Oid of the object to delete",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_deleteObject_oid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_deleteObject_oid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_deleteObject_oid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_deleteObject_oid"></div>
 </td>
 </tr>
 
@@ -3376,8 +3376,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "options",
   "in" : "query",
   "description" : "Additional options for operation, see ModelExecuteOptionsType",
@@ -3388,23 +3388,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_deleteObject_options');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_deleteObject_options');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_deleteObject_options"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_deleteObject_options"></div>
 </td>
 </tr>
 
@@ -3413,8 +3413,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "include",
   "in" : "query",
   "required" : false,
@@ -3424,23 +3424,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_deleteObject_include');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_deleteObject_include');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_deleteObject_include"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_deleteObject_include"></div>
 </td>
 </tr>
 
@@ -3449,8 +3449,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "exclude",
   "in" : "query",
   "required" : false,
@@ -3460,23 +3460,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_deleteObject_exclude');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_deleteObject_exclude');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_deleteObject_exclude"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_deleteObject_exclude"></div>
 </td>
 </tr>
 
@@ -4220,7 +4220,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -4313,7 +4313,7 @@ var api = new .DefaultApi()
 
 var body = ; // {Object} search filter and action definition see
 
-var opts = { 
+var opts = {
   'asynchronous': true // {Boolean} specify if the operation will run asynchronous. When set to true, new task is created.
 };
 
@@ -4347,7 +4347,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -4422,8 +4422,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "in" : "body",
   "name" : "body",
   "description" : "search filter and action definition see",
@@ -4433,32 +4433,32 @@ try {
     "description" : "see ScriptingExpressionType"
   }
 };
-													
-														var schema = schemaWrapper.schema;
-														schemaWrapper.definitions = defs;
-														JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
-														
 
-														
-													var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
-													 
-													var result = $('#d2e199_executeScript_body');
-													result.empty();
-													result.append(view.render());
-													
-
-													
-    											
-													
-
-
-												});
+                                                        var schema = schemaWrapper.schema;
+                                                        schemaWrapper.definitions = defs;
+                                                        JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
 
 
 
-												});
-												</script>
-												<div id="d2e199_executeScript_body"></div>
+                                                    var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
+
+                                                    var result = $('#d2e199_executeScript_body');
+                                                    result.empty();
+                                                    result.append(view.render());
+
+
+
+
+
+
+
+                                                });
+
+
+
+                                                });
+                                                </script>
+                                                <div id="d2e199_executeScript_body"></div>
 </td>
 </tr>
 
@@ -4477,8 +4477,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "asynchronous",
   "in" : "query",
   "description" : "specify if the operation will run asynchronous. When set to true, new task is created.",
@@ -4486,23 +4486,23 @@ try {
   "type" : "boolean",
   "default" : false
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_executeScript_asynchronous');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_executeScript_asynchronous');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_executeScript_asynchronous"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_executeScript_asynchronous"></div>
 </td>
 </tr>
 
@@ -5332,7 +5332,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -5452,7 +5452,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -5522,31 +5522,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "oid",
   "in" : "path",
   "description" : "Oid of the task created for bulk action",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_executeScriptResults_oid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_executeScriptResults_oid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_executeScriptResults_oid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_executeScriptResults_oid"></div>
 </td>
 </tr>
 
@@ -6299,7 +6299,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -6431,7 +6431,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -6505,31 +6505,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "type",
   "in" : "path",
   "description" : "type of the object for which the value will be generated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_generateValue_type');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_generateValue_type');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_generateValue_type"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_generateValue_type"></div>
 </td>
 </tr>
 
@@ -6538,31 +6538,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "id",
   "in" : "path",
   "description" : "oid of the object for which the value will be generated",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_generateValue_id');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_generateValue_id');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_generateValue_id"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_generateValue_id"></div>
 </td>
 </tr>
 
@@ -6582,8 +6582,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "in" : "body",
   "name" : "body",
   "description" : "path to the property which will be generated",
@@ -6592,32 +6592,32 @@ try {
     "type" : "object"
   }
 };
-													
-														var schema = schemaWrapper.schema;
-														schemaWrapper.definitions = defs;
-														JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
-														
 
-														
-													var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
-													 
-													var result = $('#d2e199_generateValue_body');
-													result.empty();
-													result.append(view.render());
-													
-
-													
-    											
-													
-
-
-												});
+                                                        var schema = schemaWrapper.schema;
+                                                        schemaWrapper.definitions = defs;
+                                                        JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
 
 
 
-												});
-												</script>
-												<div id="d2e199_generateValue_body"></div>
+                                                    var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
+
+                                                    var result = $('#d2e199_generateValue_body');
+                                                    result.empty();
+                                                    result.append(view.render());
+
+
+
+
+
+
+
+                                                });
+
+
+
+                                                });
+                                                </script>
+                                                <div id="d2e199_generateValue_body"></div>
 </td>
 </tr>
 
@@ -7368,7 +7368,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -7378,8 +7378,8 @@ public class DefaultApiExample {
         String type = type_example; // String | type of the object to get. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
         String oid = oid_example; // String | Oid of the object to get
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
-        array[String] include = ; // array[String] | 
-        array[String] exclude = ; // array[String] | 
+        array[String] include = ; // array[String] |
+        array[String] exclude = ; // array[String] |
         try {
             Object result = apiInstance.getObject(type, oid, options, include, exclude);
             System.out.println(result);
@@ -7405,8 +7405,8 @@ public class DefaultApiExample {
         String type = type_example; // String | type of the object to get. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
         String oid = oid_example; // String | Oid of the object to get
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
-        array[String] include = ; // array[String] | 
-        array[String] exclude = ; // array[String] | 
+        array[String] include = ; // array[String] |
+        array[String] exclude = ; // array[String] |
         try {
             Object result = apiInstance.getObject(type, oid, options, include, exclude);
             System.out.println(result);
@@ -7477,9 +7477,9 @@ var oid = oid_example; // {String} Oid of the object to get
 
 var options = ; // {array[String]} Additional options for operation, see ModelExecuteOptionsType
 
-var opts = { 
-  'include': , // {array[String]} 
-  'exclude':  // {array[String]} 
+var opts = {
+  'include': , // {array[String]}
+  'exclude':  // {array[String]}
 };
 
 var callback = function(error, data, response) {
@@ -7512,7 +7512,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -7521,8 +7521,8 @@ namespace Example
             var type = type_example;  // String | type of the object to get. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
             var oid = oid_example;  // String | Oid of the object to get
             var options = new array[String](); // array[String] | Additional options for operation, see ModelExecuteOptionsType
-            var include = new array[String](); // array[String] |  (optional) 
-            var exclude = new array[String](); // array[String] |  (optional) 
+            var include = new array[String](); // array[String] |  (optional)
+            var exclude = new array[String](); // array[String] |  (optional)
 
             try
             {
@@ -7555,8 +7555,8 @@ $api_instance = new io.swagger.client\Api\DefaultApi();
 $type = type_example; // String | type of the object to get. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
 $oid = oid_example; // String | Oid of the object to get
 $options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
-$include = ; // array[String] | 
-$exclude = ; // array[String] | 
+$include = ; // array[String] |
+$exclude = ; // array[String] |
 
 try {
     $result = $api_instance->getObject($type, $oid, $options, $include, $exclude);
@@ -7590,31 +7590,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "type",
   "in" : "path",
   "description" : "type of the object to get. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_getObject_type');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_getObject_type');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_getObject_type"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_getObject_type"></div>
 </td>
 </tr>
 
@@ -7623,31 +7623,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "oid",
   "in" : "path",
   "description" : "Oid of the object to get",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_getObject_oid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_getObject_oid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_getObject_oid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_getObject_oid"></div>
 </td>
 </tr>
 
@@ -7668,8 +7668,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "options",
   "in" : "query",
   "description" : "Additional options for operation, see ModelExecuteOptionsType",
@@ -7680,23 +7680,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_getObject_options');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_getObject_options');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_getObject_options"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_getObject_options"></div>
 </td>
 </tr>
 
@@ -7705,8 +7705,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "include",
   "in" : "query",
   "required" : false,
@@ -7716,23 +7716,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_getObject_include');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_getObject_include');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_getObject_include"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_getObject_include"></div>
 </td>
 </tr>
 
@@ -7741,8 +7741,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "exclude",
   "in" : "query",
   "required" : false,
@@ -7752,23 +7752,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_getObject_exclude');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_getObject_exclude');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_getObject_exclude"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_getObject_exclude"></div>
 </td>
 </tr>
 
@@ -8517,7 +8517,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -8637,7 +8637,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -8707,31 +8707,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "id",
   "in" : "path",
   "description" : "oid of the user for which the value policy is returned",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_getValuePolicyForUser_id');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_getValuePolicyForUser_id');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_getValuePolicyForUser_id"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_getValuePolicyForUser_id"></div>
 </td>
 </tr>
 
@@ -9484,7 +9484,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -9605,7 +9605,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -9675,31 +9675,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "resourceOid",
   "in" : "path",
   "description" : "Resource from which the objects are imported",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_importFromResource_resourceOid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_importFromResource_resourceOid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_importFromResource_resourceOid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_importFromResource_resourceOid"></div>
 </td>
 </tr>
 
@@ -9708,31 +9708,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "objectClass",
   "in" : "path",
   "description" : "Object class of the object being imported",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_importFromResource_objectClass');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_importFromResource_objectClass');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_importFromResource_objectClass"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_importFromResource_objectClass"></div>
 </td>
 </tr>
 
@@ -10486,7 +10486,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -10495,7 +10495,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         String type = type_example; // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
         String oid = oid_example; // String | Oid of the object to modify
-        Object body = ; // Object | 
+        Object body = ; // Object |
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
         try {
             apiInstance.modifyObjectPatch(type, oid, body, options);
@@ -10520,7 +10520,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         String type = type_example; // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
         String oid = oid_example; // String | Oid of the object to modify
-        Object body = ; // Object | 
+        Object body = ; // Object |
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
         try {
             apiInstance.modifyObjectPatch(type, oid, body, options);
@@ -10550,7 +10550,7 @@ Configuration *apiConfig = [Configuration sharedConfig];
 
 String *type = type_example; // type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
 String *oid = oid_example; // Oid of the object to modify
-Object *body = ; // 
+Object *body = ; //
 array[String] *options = ; // Additional options for operation, see ModelExecuteOptionsType (optional)
 
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
@@ -10584,9 +10584,9 @@ var type = type_example; // {String} type of the object to modify. Possible valu
 
 var oid = oid_example; // {String} Oid of the object to modify
 
-var body = ; // {Object} 
+var body = ; // {Object}
 
-var opts = { 
+var opts = {
   'options':  // {array[String]} Additional options for operation, see ModelExecuteOptionsType
 };
 
@@ -10620,7 +10620,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -10628,8 +10628,8 @@ namespace Example
             var apiInstance = new DefaultApi();
             var type = type_example;  // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
             var oid = oid_example;  // String | Oid of the object to modify
-            var body = new Object(); // Object | 
-            var options = new array[String](); // array[String] | Additional options for operation, see ModelExecuteOptionsType (optional) 
+            var body = new Object(); // Object |
+            var options = new array[String](); // array[String] | Additional options for operation, see ModelExecuteOptionsType (optional)
 
             try
             {
@@ -10660,7 +10660,7 @@ io.swagger.client\Configuration::getDefaultConfiguration()->setPassword('YOUR_PA
 $api_instance = new io.swagger.client\Api\DefaultApi();
 $type = type_example; // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
 $oid = oid_example; // String | Oid of the object to modify
-$body = ; // Object | 
+$body = ; // Object |
 $options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
 
 try {
@@ -10694,31 +10694,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "type",
   "in" : "path",
   "description" : "type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_modifyObjectPatch_type');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_modifyObjectPatch_type');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_modifyObjectPatch_type"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_modifyObjectPatch_type"></div>
 </td>
 </tr>
 
@@ -10727,31 +10727,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "oid",
   "in" : "path",
   "description" : "Oid of the object to modify",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_modifyObjectPatch_oid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_modifyObjectPatch_oid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_modifyObjectPatch_oid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_modifyObjectPatch_oid"></div>
 </td>
 </tr>
 
@@ -10771,8 +10771,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "in" : "body",
   "name" : "body",
   "required" : true,
@@ -10781,32 +10781,32 @@ try {
     "description" : "Object modification description, see ObjectModificationType"
   }
 };
-													
-														var schema = schemaWrapper.schema;
-														schemaWrapper.definitions = defs;
-														JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
-														
 
-														
-													var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
-													 
-													var result = $('#d2e199_modifyObjectPatch_body');
-													result.empty();
-													result.append(view.render());
-													
-
-													
-    											
-													
-
-
-												});
+                                                        var schema = schemaWrapper.schema;
+                                                        schemaWrapper.definitions = defs;
+                                                        JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
 
 
 
-												});
-												</script>
-												<div id="d2e199_modifyObjectPatch_body"></div>
+                                                    var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
+
+                                                    var result = $('#d2e199_modifyObjectPatch_body');
+                                                    result.empty();
+                                                    result.append(view.render());
+
+
+
+
+
+
+
+                                                });
+
+
+
+                                                });
+                                                </script>
+                                                <div id="d2e199_modifyObjectPatch_body"></div>
 </td>
 </tr>
 
@@ -10825,8 +10825,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "options",
   "in" : "query",
   "description" : "Additional options for operation, see ModelExecuteOptionsType",
@@ -10837,23 +10837,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_modifyObjectPatch_options');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_modifyObjectPatch_options');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_modifyObjectPatch_options"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_modifyObjectPatch_options"></div>
 </td>
 </tr>
 
@@ -11597,7 +11597,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -11606,7 +11606,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         String type = type_example; // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
         String oid = oid_example; // String | Oid of the object to modify
-        Object body = ; // Object | 
+        Object body = ; // Object |
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
         try {
             apiInstance.modifyObjectPost(type, oid, body, options);
@@ -11631,7 +11631,7 @@ public class DefaultApiExample {
         DefaultApi apiInstance = new DefaultApi();
         String type = type_example; // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
         String oid = oid_example; // String | Oid of the object to modify
-        Object body = ; // Object | 
+        Object body = ; // Object |
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
         try {
             apiInstance.modifyObjectPost(type, oid, body, options);
@@ -11661,7 +11661,7 @@ Configuration *apiConfig = [Configuration sharedConfig];
 
 String *type = type_example; // type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
 String *oid = oid_example; // Oid of the object to modify
-Object *body = ; // 
+Object *body = ; //
 array[String] *options = ; // Additional options for operation, see ModelExecuteOptionsType (optional)
 
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
@@ -11695,9 +11695,9 @@ var type = type_example; // {String} type of the object to modify. Possible valu
 
 var oid = oid_example; // {String} Oid of the object to modify
 
-var body = ; // {Object} 
+var body = ; // {Object}
 
-var opts = { 
+var opts = {
   'options':  // {array[String]} Additional options for operation, see ModelExecuteOptionsType
 };
 
@@ -11731,7 +11731,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -11739,8 +11739,8 @@ namespace Example
             var apiInstance = new DefaultApi();
             var type = type_example;  // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
             var oid = oid_example;  // String | Oid of the object to modify
-            var body = new Object(); // Object | 
-            var options = new array[String](); // array[String] | Additional options for operation, see ModelExecuteOptionsType (optional) 
+            var body = new Object(); // Object |
+            var options = new array[String](); // array[String] | Additional options for operation, see ModelExecuteOptionsType (optional)
 
             try
             {
@@ -11771,7 +11771,7 @@ io.swagger.client\Configuration::getDefaultConfiguration()->setPassword('YOUR_PA
 $api_instance = new io.swagger.client\Api\DefaultApi();
 $type = type_example; // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
 $oid = oid_example; // String | Oid of the object to modify
-$body = ; // Object | 
+$body = ; // Object |
 $options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
 
 try {
@@ -11805,31 +11805,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "type",
   "in" : "path",
   "description" : "type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_modifyObjectPost_type');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_modifyObjectPost_type');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_modifyObjectPost_type"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_modifyObjectPost_type"></div>
 </td>
 </tr>
 
@@ -11838,31 +11838,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "oid",
   "in" : "path",
   "description" : "Oid of the object to modify",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_modifyObjectPost_oid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_modifyObjectPost_oid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_modifyObjectPost_oid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_modifyObjectPost_oid"></div>
 </td>
 </tr>
 
@@ -11882,8 +11882,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "in" : "body",
   "name" : "body",
   "required" : true,
@@ -11892,32 +11892,32 @@ try {
     "description" : "Object modification description, see ObjectModificationType"
   }
 };
-													
-														var schema = schemaWrapper.schema;
-														schemaWrapper.definitions = defs;
-														JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
-														
 
-														
-													var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
-													 
-													var result = $('#d2e199_modifyObjectPost_body');
-													result.empty();
-													result.append(view.render());
-													
-
-													
-    											
-													
-
-
-												});
+                                                        var schema = schemaWrapper.schema;
+                                                        schemaWrapper.definitions = defs;
+                                                        JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
 
 
 
-												});
-												</script>
-												<div id="d2e199_modifyObjectPost_body"></div>
+                                                    var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
+
+                                                    var result = $('#d2e199_modifyObjectPost_body');
+                                                    result.empty();
+                                                    result.append(view.render());
+
+
+
+
+
+
+
+                                                });
+
+
+
+                                                });
+                                                </script>
+                                                <div id="d2e199_modifyObjectPost_body"></div>
 </td>
 </tr>
 
@@ -11936,8 +11936,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "options",
   "in" : "query",
   "description" : "Additional options for operation, see ModelExecuteOptionsType",
@@ -11948,23 +11948,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_modifyObjectPost_options');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_modifyObjectPost_options');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_modifyObjectPost_options"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_modifyObjectPost_options"></div>
 </td>
 </tr>
 
@@ -12708,14 +12708,14 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
         m_basic.setPassword("YOUR PASSWORD");
 
         DefaultApi apiInstance = new DefaultApi();
-        Object body = ; // Object | 
+        Object body = ; // Object |
         try {
             apiInstance.notifyChange(body);
         } catch (ApiException e) {
@@ -12737,7 +12737,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
-        Object body = ; // Object | 
+        Object body = ; // Object |
         try {
             apiInstance.notifyChange(body);
         } catch (ApiException e) {
@@ -12764,7 +12764,7 @@ Configuration *apiConfig = [Configuration sharedConfig];
 [apiConfig setPassword:@"YOUR_PASSWORD"];
 
 
-Object *body = ; // 
+Object *body = ; //
 
 DefaultApi *apiInstance = [[DefaultApi alloc] init];
 
@@ -12790,7 +12790,7 @@ m_basic.password = 'YOUR PASSWORD'
 
 var api = new .DefaultApi()
 
-var body = ; // {Object} 
+var body = ; // {Object}
 
 
 var callback = function(error, data, response) {
@@ -12823,13 +12823,13 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
 
             var apiInstance = new DefaultApi();
-            var body = new Object(); // Object | 
+            var body = new Object(); // Object |
 
             try
             {
@@ -12858,7 +12858,7 @@ io.swagger.client\Configuration::getDefaultConfiguration()->setUsername('YOUR_US
 io.swagger.client\Configuration::getDefaultConfiguration()->setPassword('YOUR_PASSWORD');
 
 $api_instance = new io.swagger.client\Api\DefaultApi();
-$body = ; // Object | 
+$body = ; // Object |
 
 try {
     $api_instance->notifyChange($body);
@@ -12894,8 +12894,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "in" : "body",
   "name" : "body",
   "required" : true,
@@ -12904,32 +12904,32 @@ try {
     "description" : "see ResourceObjectShadowChangeDescriptionType"
   }
 };
-													
-														var schema = schemaWrapper.schema;
-														schemaWrapper.definitions = defs;
-														JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
-														
 
-														
-													var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
-													 
-													var result = $('#d2e199_notifyChange_body');
-													result.empty();
-													result.append(view.render());
-													
-
-													
-    											
-													
-
-
-												});
+                                                        var schema = schemaWrapper.schema;
+                                                        schemaWrapper.definitions = defs;
+                                                        JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
 
 
 
-												});
-												</script>
-												<div id="d2e199_notifyChange_body"></div>
+                                                    var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
+
+                                                    var result = $('#d2e199_notifyChange_body');
+                                                    result.empty();
+                                                    result.append(view.render());
+
+
+
+
+
+
+
+                                                });
+
+
+
+                                                });
+                                                </script>
+                                                <div id="d2e199_notifyChange_body"></div>
 </td>
 </tr>
 
@@ -13675,7 +13675,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -13795,7 +13795,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -13865,31 +13865,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "oid",
   "in" : "path",
   "description" : "Oid of the task to be resumed",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_resumeTasks_oid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_resumeTasks_oid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_resumeTasks_oid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_resumeTasks_oid"></div>
 </td>
 </tr>
 
@@ -14397,7 +14397,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -14517,7 +14517,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -14587,31 +14587,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "oid",
   "in" : "path",
   "description" : "Oid of the task to run",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_scheduleTasksNow_oid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_scheduleTasksNow_oid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_scheduleTasksNow_oid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_scheduleTasksNow_oid"></div>
 </td>
 </tr>
 
@@ -15119,7 +15119,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -15127,10 +15127,10 @@ public class DefaultApiExample {
 
         DefaultApi apiInstance = new DefaultApi();
         String type = type_example; // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-        Object body = ; // Object | 
+        Object body = ; // Object |
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
-        array[String] include = ; // array[String] | 
-        array[String] exclude = ; // array[String] | 
+        array[String] include = ; // array[String] |
+        array[String] exclude = ; // array[String] |
         try {
             Object result = apiInstance.searchObjects(type, body, options, include, exclude);
             System.out.println(result);
@@ -15154,10 +15154,10 @@ public class DefaultApiExample {
     public static void main(String[] args) {
         DefaultApi apiInstance = new DefaultApi();
         String type = type_example; // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-        Object body = ; // Object | 
+        Object body = ; // Object |
         array[String] options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
-        array[String] include = ; // array[String] | 
-        array[String] exclude = ; // array[String] | 
+        array[String] include = ; // array[String] |
+        array[String] exclude = ; // array[String] |
         try {
             Object result = apiInstance.searchObjects(type, body, options, include, exclude);
             System.out.println(result);
@@ -15186,7 +15186,7 @@ Configuration *apiConfig = [Configuration sharedConfig];
 
 
 String *type = type_example; // type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-Object *body = ; // 
+Object *body = ; //
 array[String] *options = ; // Additional options for operation, see ModelExecuteOptionsType (optional)
 array[String] *include = ; //  (optional)
 array[String] *exclude = ; //  (optional)
@@ -15224,12 +15224,12 @@ var api = new .DefaultApi()
 
 var type = type_example; // {String} type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
 
-var body = ; // {Object} 
+var body = ; // {Object}
 
-var opts = { 
+var opts = {
   'options': , // {array[String]} Additional options for operation, see ModelExecuteOptionsType
-  'include': , // {array[String]} 
-  'exclude':  // {array[String]} 
+  'include': , // {array[String]}
+  'exclude':  // {array[String]}
 };
 
 var callback = function(error, data, response) {
@@ -15262,17 +15262,17 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
 
             var apiInstance = new DefaultApi();
             var type = type_example;  // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-            var body = new Object(); // Object | 
-            var options = new array[String](); // array[String] | Additional options for operation, see ModelExecuteOptionsType (optional) 
-            var include = new array[String](); // array[String] |  (optional) 
-            var exclude = new array[String](); // array[String] |  (optional) 
+            var body = new Object(); // Object |
+            var options = new array[String](); // array[String] | Additional options for operation, see ModelExecuteOptionsType (optional)
+            var include = new array[String](); // array[String] |  (optional)
+            var exclude = new array[String](); // array[String] |  (optional)
 
             try
             {
@@ -15303,10 +15303,10 @@ io.swagger.client\Configuration::getDefaultConfiguration()->setPassword('YOUR_PA
 
 $api_instance = new io.swagger.client\Api\DefaultApi();
 $type = type_example; // String | type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services
-$body = ; // Object | 
+$body = ; // Object |
 $options = ; // array[String] | Additional options for operation, see ModelExecuteOptionsType
-$include = ; // array[String] | 
-$exclude = ; // array[String] | 
+$include = ; // array[String] |
+$exclude = ; // array[String] |
 
 try {
     $result = $api_instance->searchObjects($type, $body, $options, $include, $exclude);
@@ -15340,31 +15340,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "type",
   "in" : "path",
   "description" : "type of the object to modify. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_searchObjects_type');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_searchObjects_type');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_searchObjects_type"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_searchObjects_type"></div>
 </td>
 </tr>
 
@@ -15384,8 +15384,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "in" : "body",
   "name" : "body",
   "required" : true,
@@ -15394,32 +15394,32 @@ try {
     "description" : "Search filter, see QueryType"
   }
 };
-													
-														var schema = schemaWrapper.schema;
-														schemaWrapper.definitions = defs;
-														JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
-														
 
-														
-													var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
-													 
-													var result = $('#d2e199_searchObjects_body');
-													result.empty();
-													result.append(view.render());
-													
-
-													
-    											
-													
-
-
-												});
+                                                        var schema = schemaWrapper.schema;
+                                                        schemaWrapper.definitions = defs;
+                                                        JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
 
 
 
-												});
-												</script>
-												<div id="d2e199_searchObjects_body"></div>
+                                                    var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
+
+                                                    var result = $('#d2e199_searchObjects_body');
+                                                    result.empty();
+                                                    result.append(view.render());
+
+
+
+
+
+
+
+                                                });
+
+
+
+                                                });
+                                                </script>
+                                                <div id="d2e199_searchObjects_body"></div>
 </td>
 </tr>
 
@@ -15438,8 +15438,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "options",
   "in" : "query",
   "description" : "Additional options for operation, see ModelExecuteOptionsType",
@@ -15450,23 +15450,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_searchObjects_options');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_searchObjects_options');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_searchObjects_options"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_searchObjects_options"></div>
 </td>
 </tr>
 
@@ -15475,8 +15475,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "include",
   "in" : "query",
   "required" : false,
@@ -15486,23 +15486,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_searchObjects_include');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_searchObjects_include');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_searchObjects_include"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_searchObjects_include"></div>
 </td>
 </tr>
 
@@ -15511,8 +15511,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "exclude",
   "in" : "query",
   "required" : false,
@@ -15522,23 +15522,23 @@ try {
   },
   "collectionFormat" : "multi"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_searchObjects_exclude');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_searchObjects_exclude');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_searchObjects_exclude"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_searchObjects_exclude"></div>
 </td>
 </tr>
 
@@ -16287,7 +16287,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -16407,7 +16407,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -16477,31 +16477,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "oid",
   "in" : "path",
   "description" : "Oid of the shadow for which the owner will be searched",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_searchShadowOwner_oid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_searchShadowOwner_oid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_searchShadowOwner_oid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_searchShadowOwner_oid"></div>
 </td>
 </tr>
 
@@ -17254,7 +17254,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -17369,7 +17369,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -17437,31 +17437,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "oid",
   "in" : "path",
   "description" : "Oid of the task to suspend",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_suspendTasks_oid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_suspendTasks_oid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_suspendTasks_oid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_suspendTasks_oid"></div>
 </td>
 </tr>
 
@@ -17966,7 +17966,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -18086,7 +18086,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -18156,31 +18156,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "resourceOid",
   "in" : "path",
   "description" : "Oid of the resource to test",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_testResource_resourceOid');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_testResource_resourceOid');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_testResource_resourceOid"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_testResource_resourceOid"></div>
 </td>
 </tr>
 
@@ -18771,7 +18771,7 @@ public class DefaultApiExample {
 
     public static void main(String[] args) {
         ApiClient defaultClient = Configuration.getDefaultApiClient();
-        
+
         // Configure HTTP basic authorization: m_basic
         HttpBasicAuth m_basic = (HttpBasicAuth) defaultClient.getAuthentication("m_basic");
         m_basic.setUsername("YOUR USERNAME");
@@ -18903,7 +18903,7 @@ namespace Example
     {
         public void main()
         {
-            
+
             // Configure HTTP basic authorization: m_basic
             Configuration.Default.Username = "YOUR_USERNAME";
             Configuration.Default.Password = "YOUR_PASSWORD";
@@ -18977,31 +18977,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "type",
   "in" : "path",
   "description" : "type of the object for which the value will be validated. Possible values are connectors, connectorHosts, genericObjects, resources, users, objectTemplates, systemConfigurations, tasks, shadows, roles, valuePolicies, orgs, services",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_validateValue_type');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_validateValue_type');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_validateValue_type"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_validateValue_type"></div>
 </td>
 </tr>
 
@@ -19010,31 +19010,31 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "name" : "id",
   "in" : "path",
   "description" : "oid of the object for which the value will be validated",
   "required" : true,
   "type" : "string"
 };
-													var schema = schemaWrapper;
+                                                    var schema = schemaWrapper;
 
 
 
 
-													var view = new JSONSchemaView(schema,0);
-													var result = $('#d2e199_validateValue_id');
-													result.empty();
-													result.append(view.render());
+                                                    var view = new JSONSchemaView(schema,0);
+                                                    var result = $('#d2e199_validateValue_id');
+                                                    result.empty();
+                                                    result.append(view.render());
 
 
 
 
 
-												});
-												</script>
-												<div id="d2e199_validateValue_id"></div>
+                                                });
+                                                </script>
+                                                <div id="d2e199_validateValue_id"></div>
 </td>
 </tr>
 
@@ -19054,8 +19054,8 @@ try {
 
 
 <script>
-												$(document).ready(function() {
-													var schemaWrapper = {
+                                                $(document).ready(function() {
+                                                    var schemaWrapper = {
   "in" : "body",
   "name" : "body",
   "description" : "It can contain either path to the existing property which should be validated (e.g. policy for generating/validating employeeNumber changed and we need to check if the existing employeeNumber still satisfy constraints or it should be generated again) or value which will be set to the target object if it satisfy policy constraints. Definition of path to the existing property is used only if no value is provided to validate.",
@@ -19065,32 +19065,32 @@ try {
     "description" : "see PolicyItemsDefinitionType"
   }
 };
-													
-														var schema = schemaWrapper.schema;
-														schemaWrapper.definitions = defs;
-														JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
-														
 
-														
-													var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
-													 
-													var result = $('#d2e199_validateValue_body');
-													result.empty();
-													result.append(view.render());
-													
-
-													
-    											
-													
-
-
-												});
+                                                        var schema = schemaWrapper.schema;
+                                                        schemaWrapper.definitions = defs;
+                                                        JsonRefs.resolveRefs(schemaWrapper, {"depth":3, "resolveRemoteRefs":false,"resolveFileRefs":false },function (err, resolved, metadata) {
 
 
 
-												});
-												</script>
-												<div id="d2e199_validateValue_body"></div>
+                                                    var view = new JSONSchemaView(resolved.schema,2,{isBodyParam: true});
+
+                                                    var result = $('#d2e199_validateValue_body');
+                                                    result.empty();
+                                                    result.append(view.render());
+
+
+
+
+
+
+
+                                                });
+
+
+
+                                                });
+                                                </script>
+                                                <div id="d2e199_validateValue_body"></div>
 </td>
 </tr>
 

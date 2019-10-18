@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.sync;
@@ -37,24 +37,24 @@ import javax.annotation.PostConstruct;
 @Component
 public class PartitionedReconciliationTaskHandlerCreator {
 
-	public static final String HANDLER_URI = ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI;
+    public static final String HANDLER_URI = ModelPublicConstants.PARTITIONED_RECONCILIATION_TASK_HANDLER_URI;
 
-	@Autowired private TaskManager taskManager;
-	@Autowired private PrismContext prismContext;
+    @Autowired private TaskManager taskManager;
+    @Autowired private PrismContext prismContext;
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.createAndRegisterPartitioningTaskHandler(HANDLER_URI, this::createPartitionsDefinition);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.createAndRegisterPartitioningTaskHandler(HANDLER_URI, this::createPartitionsDefinition);
+    }
 
-	private TaskPartitionsDefinition createPartitionsDefinition(Task masterTask) {
-		TaskPartitionsDefinitionType definitionInTask = masterTask.getWorkManagement() != null ?
-				masterTask.getWorkManagement().getPartitions() : null;
-		TaskPartitionsDefinitionType partitionsDefinition = definitionInTask != null ?
-				definitionInTask.clone() : new TaskPartitionsDefinitionType();
-		partitionsDefinition.setCount(3);
-		partitionsDefinition.setCopyMasterExtension(true);
-		return new StaticTaskPartitionsDefinition(partitionsDefinition,
-				prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class));
-	}
+    private TaskPartitionsDefinition createPartitionsDefinition(Task masterTask) {
+        TaskPartitionsDefinitionType definitionInTask = masterTask.getWorkManagement() != null ?
+                masterTask.getWorkManagement().getPartitions() : null;
+        TaskPartitionsDefinitionType partitionsDefinition = definitionInTask != null ?
+                definitionInTask.clone() : new TaskPartitionsDefinitionType();
+        partitionsDefinition.setCount(3);
+        partitionsDefinition.setCopyMasterExtension(true);
+        return new StaticTaskPartitionsDefinition(partitionsDefinition,
+                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class));
+    }
 }

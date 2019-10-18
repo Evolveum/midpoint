@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens.projector.credentials;
@@ -26,37 +26,37 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 public class SecurityQuestionsPolicyEvaluator extends CredentialPolicyEvaluator<SecurityQuestionsCredentialsType, SecurityQuestionsCredentialsPolicyType> {
 
-	@Override
-	protected ItemPath getCredentialsContainerPath() {
-		return SchemaConstants.PATH_SECURITY_QUESTIONS;
-	}
+    @Override
+    protected ItemPath getCredentialsContainerPath() {
+        return SchemaConstants.PATH_SECURITY_QUESTIONS;
+    }
 
-	@Override
-	protected String getCredentialHumanReadableName() {
-		return "security questions";
-	}
+    @Override
+    protected String getCredentialHumanReadableName() {
+        return "security questions";
+    }
 
-	@Override
-	protected String getCredentialHumanReadableKey() {
-		return "securityQuestions";
-	}
+    @Override
+    protected String getCredentialHumanReadableKey() {
+        return "securityQuestions";
+    }
 
-	@Override
-	protected SecurityQuestionsCredentialsPolicyType determineEffectiveCredentialPolicy() {
-		return SecurityUtil.getEffectiveSecurityQuestionsCredentialsPolicy(getSecurityPolicy());
-	}
+    @Override
+    protected SecurityQuestionsCredentialsPolicyType determineEffectiveCredentialPolicy() {
+        return SecurityUtil.getEffectiveSecurityQuestionsCredentialsPolicy(getSecurityPolicy());
+    }
 
-	@Override
-	protected void validateCredentialContainerValues(
-			PrismContainerValue<SecurityQuestionsCredentialsType> cVal) throws PolicyViolationException,
-					SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		SecurityQuestionsCredentialsType securityQuestions = cVal.asContainerable();
-		if (securityQuestions != null) {
-			List<SecurityQuestionAnswerType> questionAnswers = securityQuestions.getQuestionAnswer();
-			for (SecurityQuestionAnswerType questionAnswer : questionAnswers) {
-				ProtectedStringType answer = questionAnswer.getQuestionAnswer();
-				validateProtectedStringValue(answer);
-			}
-		}
-	}
+    @Override
+    protected void validateCredentialContainerValues(
+            PrismContainerValue<SecurityQuestionsCredentialsType> cVal) throws PolicyViolationException,
+                    SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        SecurityQuestionsCredentialsType securityQuestions = cVal.asContainerable();
+        if (securityQuestions != null) {
+            List<SecurityQuestionAnswerType> questionAnswers = securityQuestions.getQuestionAnswer();
+            for (SecurityQuestionAnswerType questionAnswer : questionAnswers) {
+                ProtectedStringType answer = questionAnswer.getQuestionAnswer();
+                validateProtectedStringValue(answer);
+            }
+        }
+    }
 }

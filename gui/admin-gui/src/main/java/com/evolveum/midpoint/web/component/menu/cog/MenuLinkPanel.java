@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.menu.cog;
@@ -63,7 +63,7 @@ public class MenuLinkPanel extends Panel {
                 }
             };
         } else {
-        	a = new AjaxLink<Void>(ID_MENU_ITEM_LINK) {
+            a = new AjaxLink<Void>(ID_MENU_ITEM_LINK) {
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
@@ -133,7 +133,7 @@ public class MenuLinkPanel extends Panel {
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-            	menuItem.getAction().onClick(target);
+                menuItem.getAction().onClick(target);
             }
         };
         ((PageBase)getPage()).showMainPopup(dialog, target);

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -55,221 +55,221 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/certification/definitions", action = {
-		@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
-				label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
-				description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
-		@AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS,
-				label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_LABEL,
-				description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_DESCRIPTION)
+        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
+                label = PageAdminCertification.AUTH_CERTIFICATION_ALL_LABEL,
+                description = PageAdminCertification.AUTH_CERTIFICATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS,
+                label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_LABEL,
+                description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITIONS_DESCRIPTION)
 })
 public class PageCertDefinitions extends PageAdminWorkItems {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_MAIN_FORM = "mainForm";
-	private static final String ID_TABLE = "table";
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_TABLE = "table";
 
-	private static final String DOT_CLASS = PageCertDefinitions.class.getName() + ".";
-	private static final String OPERATION_CREATE_CAMPAIGN = DOT_CLASS + "createCampaign";
-	private static final String OPERATION_DELETE_DEFINITION = DOT_CLASS + "deleteDefinition";
+    private static final String DOT_CLASS = PageCertDefinitions.class.getName() + ".";
+    private static final String OPERATION_CREATE_CAMPAIGN = DOT_CLASS + "createCampaign";
+    private static final String OPERATION_DELETE_DEFINITION = DOT_CLASS + "deleteDefinition";
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageCertDefinitions.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageCertDefinitions.class);
 
-	private AccessCertificationDefinitionType singleDelete;
+    private AccessCertificationDefinitionType singleDelete;
 
-	public PageCertDefinitions() {
-		initLayout();
-	}
+    public PageCertDefinitions() {
+        initLayout();
+    }
 
-	private void initLayout() {
-		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
-		add(mainForm);
+    private void initLayout() {
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        add(mainForm);
 
-		MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView> mainPanel =
-				new MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView>(
-				ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null, this) {
-			private static final long serialVersionUID = 1L;
+        MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView> mainPanel =
+                new MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView>(
+                ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null, this) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected IColumn<SelectableBean<AccessCertificationDefinitionType>, String> createCheckboxColumn() {
-				return null;
-			}
+            @Override
+            protected IColumn<SelectableBean<AccessCertificationDefinitionType>, String> createCheckboxColumn() {
+                return null;
+            }
 
-			@Override
-			public void objectDetailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {
-				PageCertDefinitions.this.detailsPerformed(target, service);
-			}
+            @Override
+            public void objectDetailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {
+                PageCertDefinitions.this.detailsPerformed(target, service);
+            }
 
-			@Override
-			protected List<IColumn<SelectableBean<AccessCertificationDefinitionType>, String>> createColumns() {
-				return PageCertDefinitions.this.initColumns();
-			}
+            @Override
+            protected List<IColumn<SelectableBean<AccessCertificationDefinitionType>, String>> createColumns() {
+                return PageCertDefinitions.this.initColumns();
+            }
 
-			@Override
-			protected List<InlineMenuItem> createInlineMenu() {
-				return null;
-			}
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                return null;
+            }
 
-			@Override
-			protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-				navigateToNext(PageCertDefinition.class);
-			}
-		};
-		mainPanel.setOutputMarkupId(true);
-		mainPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES);
-		mainForm.add(mainPanel);
-	}
+            @Override
+            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
+                navigateToNext(PageCertDefinition.class);
+            }
+        };
+        mainPanel.setOutputMarkupId(true);
+        mainPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES);
+        mainForm.add(mainPanel);
+    }
 
-	private MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView> getDefinitionsTable() {
-		return (MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView>)
-				get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
-	}
+    private MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView> getDefinitionsTable() {
+        return (MainObjectListPanel<AccessCertificationDefinitionType, CompiledObjectCollectionView>)
+                get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    }
 
-	private IModel<String> createDeleteConfirmString() {
-		return new IModel<String>() {
-			@Override
-			public String getObject() {
-				if (singleDelete == null) {
-					return "";
-				} else {
-					return createStringResource("PageCertDefinitions.deleteDefinitionConfirmSingle", singleDelete.getName()).getString();
-				}
-			}
-		};
-	}
+    private IModel<String> createDeleteConfirmString() {
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                if (singleDelete == null) {
+                    return "";
+                } else {
+                    return createStringResource("PageCertDefinitions.deleteDefinitionConfirmSingle", singleDelete.getName()).getString();
+                }
+            }
+        };
+    }
 
-	private List<IColumn<SelectableBean<AccessCertificationDefinitionType>, String>> initColumns() {
-		List<IColumn<SelectableBean<AccessCertificationDefinitionType>, String>> columns = new ArrayList<>();
+    private List<IColumn<SelectableBean<AccessCertificationDefinitionType>, String>> initColumns() {
+        List<IColumn<SelectableBean<AccessCertificationDefinitionType>, String>> columns = new ArrayList<>();
 
-		IColumn column;
+        IColumn column;
 
-		column = new PropertyColumn(createStringResource("PageCertDefinitions.table.description"), "value.description");
-		columns.add(column);
+        column = new PropertyColumn(createStringResource("PageCertDefinitions.table.description"), "value.description");
+        columns.add(column);
 
-		column = new AbstractColumn<SelectableBean<AccessCertificationDefinitionType>, String>(new Model<>()) {
+        column = new AbstractColumn<SelectableBean<AccessCertificationDefinitionType>, String>(new Model<>()) {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationDefinitionType>>> cellItem, String componentId,
-									 IModel<SelectableBean<AccessCertificationDefinitionType>> rowModel) {
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationDefinitionType>>> cellItem, String componentId,
+                                     IModel<SelectableBean<AccessCertificationDefinitionType>> rowModel) {
 
-				cellItem.add(new MultiButtonPanel<SelectableBean<AccessCertificationDefinitionType>>(componentId, rowModel, 3) {
+                cellItem.add(new MultiButtonPanel<SelectableBean<AccessCertificationDefinitionType>>(componentId, rowModel, 3) {
 
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					protected AjaxIconButton createButton(int index, String componentId, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
-						AjaxIconButton btn = null;
-						switch (index) {
-							case 0:
-								btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.createCampaign"),
-										new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.PRIMARY),
-										target -> createCampaignPerformed(target, model.getObject().getValue()));
-								btn.add(new EnableBehaviour(() -> !Boolean.TRUE.equals(model.getObject().getValue().isAdHoc())));
-								break;
-							case 1:
-								btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.showCampaigns"),
-										new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT),
-										target -> showCampaignsPerformed(target, model.getObject().getValue()));
-								break;
-							case 2:
-								btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.deleteDefinition"),
-										new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER),
-										target -> deleteConfirmation(target, model.getObject().getValue()));
-								break;
-						}
+                    @Override
+                    protected AjaxIconButton createButton(int index, String componentId, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
+                        AjaxIconButton btn = null;
+                        switch (index) {
+                            case 0:
+                                btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.createCampaign"),
+                                        new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.PRIMARY),
+                                        target -> createCampaignPerformed(target, model.getObject().getValue()));
+                                btn.add(new EnableBehaviour(() -> !Boolean.TRUE.equals(model.getObject().getValue().isAdHoc())));
+                                break;
+                            case 1:
+                                btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.showCampaigns"),
+                                        new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT),
+                                        target -> showCampaignsPerformed(target, model.getObject().getValue()));
+                                break;
+                            case 2:
+                                btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.deleteDefinition"),
+                                        new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER),
+                                        target -> deleteConfirmation(target, model.getObject().getValue()));
+                                break;
+                        }
 
-						return btn;
-					}
-				});
-			}
-		};
-		columns.add(column);
+                        return btn;
+                    }
+                });
+            }
+        };
+        columns.add(column);
 
-		return columns;
-	}
+        return columns;
+    }
 
-	protected void detailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {
-		PageParameters parameters = new PageParameters();
-		parameters.add(OnePageParameterEncoder.PARAMETER, service.getOid());
-		navigateToNext(PageCertDefinition.class, parameters);
-	}
+    protected void detailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, service.getOid());
+        navigateToNext(PageCertDefinition.class, parameters);
+    }
 
-	private void showCampaignsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
-		PageParameters parameters = new PageParameters();
-		parameters.add(OnePageParameterEncoder.PARAMETER, definition.getOid());
-		navigateToNext(PageCertCampaigns.class, parameters);
-	}
+    private void showCampaignsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, definition.getOid());
+        navigateToNext(PageCertCampaigns.class, parameters);
+    }
 
-	private void createCampaignPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
-		LOGGER.debug("Create certification campaign performed for {}", definition.asPrismObject());
+    private void createCampaignPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
+        LOGGER.debug("Create certification campaign performed for {}", definition.asPrismObject());
 
-		OperationResult result = new OperationResult(OPERATION_CREATE_CAMPAIGN);
-		try {
-			Task task = createSimpleTask(OPERATION_CREATE_CAMPAIGN);
-			if (!Boolean.TRUE.equals(definition.isAdHoc())) {
-				AccessCertificationCampaignType campaign = getCertificationService()
-						.createCampaign(definition.getOid(), task, result);
-				result.setUserFriendlyMessage(
-						new LocalizableMessageBuilder()
-								.key("PageCertDefinitions.campaignWasCreated")
-								.arg(getOrig(campaign.getName()))
-								.build());
-			} else {
-				result.recordWarning(createStringResource("PageCertDefinitions.message.createCampaignPerformed.warning", definition.getName()).getString());
-			}
-		} catch (Exception ex) {
-			result.recordFatalError(ex);
-		} finally {
-			result.computeStatusIfUnknown();
-		}
+        OperationResult result = new OperationResult(OPERATION_CREATE_CAMPAIGN);
+        try {
+            Task task = createSimpleTask(OPERATION_CREATE_CAMPAIGN);
+            if (!Boolean.TRUE.equals(definition.isAdHoc())) {
+                AccessCertificationCampaignType campaign = getCertificationService()
+                        .createCampaign(definition.getOid(), task, result);
+                result.setUserFriendlyMessage(
+                        new LocalizableMessageBuilder()
+                                .key("PageCertDefinitions.campaignWasCreated")
+                                .arg(getOrig(campaign.getName()))
+                                .build());
+            } else {
+                result.recordWarning(createStringResource("PageCertDefinitions.message.createCampaignPerformed.warning", definition.getName()).getString());
+            }
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
 
-		showResult(result);
-		target.add(getFeedbackPanel());
-	}
+        showResult(result);
+        target.add(getFeedbackPanel());
+    }
 
-	private void deleteConfirmation(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
+    private void deleteConfirmation(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
 
-		this.singleDelete = definition;
-		showMainPopup(getDeleteDefinitionConfirmationPanel(),
-				target);
-	}
+        this.singleDelete = definition;
+        showMainPopup(getDeleteDefinitionConfirmationPanel(),
+                target);
+    }
 
-	private void deleteDefinitionPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
-		OperationResult result = new OperationResult(OPERATION_DELETE_DEFINITION);
-		try {
-			Task task = createSimpleTask(OPERATION_DELETE_DEFINITION);
-			ObjectDelta<AccessCertificationDefinitionType> delta =
-					getPrismContext().deltaFactory().object()
-							.createDeleteDelta(AccessCertificationDefinitionType.class, definition.getOid()
-							);
-			getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
-		} catch (Exception ex) {
-			result.recordPartialError(createStringResource("PageCertDefinitions.message.deleteDefinitionPerformed.partialError").getString(), ex);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete campaign definition", ex);
-		}
+    private void deleteDefinitionPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType definition) {
+        OperationResult result = new OperationResult(OPERATION_DELETE_DEFINITION);
+        try {
+            Task task = createSimpleTask(OPERATION_DELETE_DEFINITION);
+            ObjectDelta<AccessCertificationDefinitionType> delta =
+                    getPrismContext().deltaFactory().object()
+                            .createDeleteDelta(AccessCertificationDefinitionType.class, definition.getOid()
+                            );
+            getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
+        } catch (Exception ex) {
+            result.recordPartialError(createStringResource("PageCertDefinitions.message.deleteDefinitionPerformed.partialError").getString(), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete campaign definition", ex);
+        }
 
-		result.computeStatusIfUnknown();
-		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageCertDefinitions.message.deleteDefinitionPerformed.success").getString());
-		}
+        result.computeStatusIfUnknown();
+        if (result.isSuccess()) {
+            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageCertDefinitions.message.deleteDefinitionPerformed.success").getString());
+        }
 
-		getDefinitionsTable().clearCache();
+        getDefinitionsTable().clearCache();
 
-		showResult(result);
-		target.add(getFeedbackPanel(), getDefinitionsTable());
-	}
+        showResult(result);
+        target.add(getFeedbackPanel(), getDefinitionsTable());
+    }
 
-	private Popupable getDeleteDefinitionConfirmationPanel() {
-		return new ConfirmationPanel(getMainPopupBodyId(),
-				createDeleteConfirmString()) {
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				deleteDefinitionPerformed(target, singleDelete);
-			}
-		};
-	}
+    private Popupable getDeleteDefinitionConfirmationPanel() {
+        return new ConfirmationPanel(getMainPopupBodyId(),
+                createDeleteConfirmString()) {
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                deleteDefinitionPerformed(target, singleDelete);
+            }
+        };
+    }
 
 
 }

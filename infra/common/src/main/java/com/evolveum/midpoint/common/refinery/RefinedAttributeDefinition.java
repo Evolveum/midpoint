@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,69 +26,69 @@ import java.util.function.Consumer;
  * @author mederly
  */
 public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefinition<T> {
-	boolean isTolerant();
+    boolean isTolerant();
 
-	Boolean isSecondaryIdentifierOverride();
+    Boolean isSecondaryIdentifierOverride();
 
-	boolean canAdd(LayerType layer);
+    boolean canAdd(LayerType layer);
 
-	boolean canRead(LayerType layer);
+    boolean canRead(LayerType layer);
 
-	boolean canModify(LayerType layer);
+    boolean canModify(LayerType layer);
 
-	@Deprecated
-	boolean isIgnored(LayerType layer);
-	
-	ItemProcessing getProcessing(LayerType layer);
+    @Deprecated
+    boolean isIgnored(LayerType layer);
 
-	String getDescription();
+    ItemProcessing getProcessing(LayerType layer);
 
-	ResourceAttributeDefinition<T> getAttributeDefinition();
+    String getDescription();
 
-	MappingType getOutboundMappingType();
+    ResourceAttributeDefinition<T> getAttributeDefinition();
 
-	boolean hasOutboundMapping();
+    MappingType getOutboundMappingType();
 
-	List<MappingType> getInboundMappingTypes();
+    boolean hasOutboundMapping();
 
-	int getMaxOccurs(LayerType layer);
+    List<MappingType> getInboundMappingTypes();
 
-	int getMinOccurs(LayerType layer);
+    int getMaxOccurs(LayerType layer);
 
-	boolean isOptional(LayerType layer);
+    int getMinOccurs(LayerType layer);
 
-	boolean isMandatory(LayerType layer);
+    boolean isOptional(LayerType layer);
 
-	boolean isMultiValue(LayerType layer);
+    boolean isMandatory(LayerType layer);
 
-	boolean isSingleValue(LayerType layer);
+    boolean isMultiValue(LayerType layer);
 
-	boolean isExlusiveStrong();
+    boolean isSingleValue(LayerType layer);
 
-	PropertyLimitations getLimitations(LayerType layer);
+    boolean isExlusiveStrong();
 
-	AttributeFetchStrategyType getFetchStrategy();
+    PropertyLimitations getLimitations(LayerType layer);
+
+    AttributeFetchStrategyType getFetchStrategy();
 
     AttributeStorageStrategyType getStorageStrategy();
 
     List<String> getTolerantValuePattern();
 
-	List<String> getIntolerantValuePattern();
+    List<String> getIntolerantValuePattern();
 
-	boolean isVolatilityTrigger();
+    boolean isVolatilityTrigger();
 
-	@NotNull
-	@Override
-	RefinedAttributeDefinition<T> clone();
+    @NotNull
+    @Override
+    RefinedAttributeDefinition<T> clone();
 
-	@Override
-	RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
+    @Override
+    RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
 
-	String debugDump(int indent, LayerType layer);
+    String debugDump(int indent, LayerType layer);
 
-	Integer getModificationPriority();
+    Integer getModificationPriority();
 
-	Boolean getReadReplaceMode();
+    Boolean getReadReplaceMode();
 
-	boolean isDisplayNameAttribute();
+    boolean isDisplayNameAttribute();
 }

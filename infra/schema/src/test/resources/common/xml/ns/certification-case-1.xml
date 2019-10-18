@@ -2,51 +2,51 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	   xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	   xsi:type="c:AccessCertificationAssignmentCaseType"
-	   id="4">
-	<objectRef oid="ee53eba7-5c16-4c16-ad15-dd6a2360ab1a" type="c:UserType"/>
-	<targetRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-	<stageNumber>1</stageNumber>
-	<workItem id="1">
-		<stageNumber>1</stageNumber>
-		<assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
-		<output>
-			<outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
-		</output>
-		<outputChangeTimestamp>2015-12-04T01:10:13.814+01:00</outputChangeTimestamp>
-	</workItem>
-	<currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
-	<currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
-	<currentStageOutcome>revoke</currentStageOutcome>
-	<assignment id="1">
-		<construction>
-			<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-			<attribute>
-				<c:ref>ri:cn</c:ref>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>CN</value>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:sn</c:ref>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>SN</value>
-					</expression>
-				</outbound>
-			</attribute>
-		</construction>
-	</assignment>
-	<isInducement>false</isInducement>
+       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+       xsi:type="c:AccessCertificationAssignmentCaseType"
+       id="4">
+    <objectRef oid="ee53eba7-5c16-4c16-ad15-dd6a2360ab1a" type="c:UserType"/>
+    <targetRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+    <stageNumber>1</stageNumber>
+    <workItem id="1">
+        <stageNumber>1</stageNumber>
+        <assigneeRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+        <output>
+            <outcome>http://midpoint.evolveum.com/xml/ns/public/model/certification/outcome#revoke</outcome>
+        </output>
+        <outputChangeTimestamp>2015-12-04T01:10:13.814+01:00</outputChangeTimestamp>
+    </workItem>
+    <currentStageCreateTimestamp>2015-12-04T00:38:00.708+01:00</currentStageCreateTimestamp>
+    <currentStageDeadline>2015-12-18T23:59:59.999+01:00</currentStageDeadline>
+    <currentStageOutcome>revoke</currentStageOutcome>
+    <assignment id="1">
+        <construction>
+            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+            <attribute>
+                <c:ref>ri:cn</c:ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>CN</value>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:sn</c:ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>SN</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </construction>
+    </assignment>
+    <isInducement>false</isInducement>
 </value>

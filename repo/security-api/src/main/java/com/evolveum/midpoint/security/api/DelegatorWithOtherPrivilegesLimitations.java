@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,30 +23,30 @@ import java.util.List;
  */
 public class DelegatorWithOtherPrivilegesLimitations implements DebugDumpable {
 
-	@NotNull private final UserType delegator;
-	@NotNull final private List<OtherPrivilegesLimitationType> limitations;
+    @NotNull private final UserType delegator;
+    @NotNull final private List<OtherPrivilegesLimitationType> limitations;
 
-	public DelegatorWithOtherPrivilegesLimitations(@NotNull UserType delegator,
-			@NotNull List<OtherPrivilegesLimitationType> limitations) {
-		this.delegator = delegator;
-		this.limitations = limitations;
-	}
+    public DelegatorWithOtherPrivilegesLimitations(@NotNull UserType delegator,
+            @NotNull List<OtherPrivilegesLimitationType> limitations) {
+        this.delegator = delegator;
+        this.limitations = limitations;
+    }
 
-	@NotNull
-	public UserType getDelegator() {
-		return delegator;
-	}
+    @NotNull
+    public UserType getDelegator() {
+        return delegator;
+    }
 
-	@NotNull
-	public List<OtherPrivilegesLimitationType> getLimitations() {
-		return limitations;
-	}
+    @NotNull
+    public List<OtherPrivilegesLimitationType> getLimitations() {
+        return limitations;
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabelLn(sb, "DelegatorWithOtherPrivilegesLimitations", indent);
-		DebugUtil.debugDumpWithLabelLn(sb, "Delegator", ObjectTypeUtil.toShortString(delegator), indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "Limitations", limitations, indent + 1);
-		return sb.toString();	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.debugDumpLabelLn(sb, "DelegatorWithOtherPrivilegesLimitations", indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "Delegator", ObjectTypeUtil.toShortString(delegator), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "Limitations", limitations, indent + 1);
+        return sb.toString();    }
 }

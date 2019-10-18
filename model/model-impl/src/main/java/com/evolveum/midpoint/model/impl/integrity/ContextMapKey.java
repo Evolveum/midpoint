@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,7 +20,7 @@ class ContextMapKey implements Serializable {
     final String resourceOid;
     final QName objectClassName;
 
-	ContextMapKey(String resourceOid, QName objectClassName) {
+    ContextMapKey(String resourceOid, QName objectClassName) {
         this.resourceOid = resourceOid;
         this.objectClassName = objectClassName;
     }
@@ -41,11 +41,11 @@ class ContextMapKey implements Serializable {
         return Objects.hash(resourceOid, objectClassName);
     }
 
-	@Override
-	public String toString() {
-		return "ContextMapKey{" +
-				"resourceOid='" + resourceOid + '\'' +
-				", objectClassName=" + objectClassName +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "ContextMapKey{" +
+                "resourceOid='" + resourceOid + '\'' +
+                ", objectClassName=" + objectClassName +
+                '}';
+    }
 }

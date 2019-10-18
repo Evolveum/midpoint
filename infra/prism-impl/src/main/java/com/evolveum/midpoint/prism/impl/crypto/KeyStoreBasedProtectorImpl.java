@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.crypto;
@@ -73,9 +73,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     private static final String ALGORITH_PBKDF2_WITH_HMAC_SHA512_URI = QNameUtil.qNameToUri(ALGORITH_PBKDF2_WITH_HMAC_SHA512_QNAME);
 
     private static final String KEY_DIGEST_TYPE = "SHA1";
-    
+
     private static final String DEFAULT_ENCRYPTION_ALGORITHM = XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC;
-    
+
     private static final char[] KEY_PASSWORD = "midpoint".toCharArray();
 
     private static final String DEFAULT_DIGEST_ALGORITHM = ALGORITH_PBKDF2_WITH_HMAC_SHA512_URI;
@@ -107,15 +107,15 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         } catch (KeyStoreException ex) {
             throw new SystemException(ex.getMessage(), ex);
         }
-        
+
         xmlsecToJceAlgorithmMap.put(XMLSEC_ENCRYPTION_ALGORITHM_AES128_CBC, "AES/CBC/ISO10126Padding");
         xmlsecToJceAlgorithmMap.put(XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC, "AES/CBC/ISO10126Padding");
     }
 
-	public KeyStoreBasedProtectorImpl() {
-	}
+    public KeyStoreBasedProtectorImpl() {
+    }
 
-	public KeyStoreBasedProtectorImpl(KeyStoreBasedProtectorBuilder builder) {
+    public KeyStoreBasedProtectorImpl(KeyStoreBasedProtectorBuilder builder) {
         setKeyStorePath(builder.getKeyStorePath());
         setKeyStorePassword(builder.getKeyStorePassword());
         if (builder.getEncryptionKeyAlias() != null) {
@@ -389,7 +389,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     }
 
     private Cipher getCipher(int cipherMode, String algorithmUri) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, InvalidAlgorithmParameterException {
-    	String jceAlgorithm = xmlsecToJceAlgorithmMap.get(algorithmUri);
+        String jceAlgorithm = xmlsecToJceAlgorithmMap.get(algorithmUri);
         Cipher cipher;
         if (requestedJceProviderName == null) {
             cipher = Cipher.getInstance(jceAlgorithm);
@@ -467,7 +467,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         if (alias == null || alias.isEmpty()) {
             throw new EncryptionException("Key alias must be specified and cannot be blank.");
         }
-        
+
         if (aliasToSecretKeyHashMap.containsKey(alias)) {
             return aliasToSecretKeyHashMap.get(alias);
         }
@@ -595,9 +595,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             return compareEncryptedCleartext(a, b);
         }
     }
-    
+
     private boolean compareEncryptedCleartext(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
-    	String aClear = decryptString(a);
+        String aClear = decryptString(a);
         String bClear = decryptString(b);
         if (aClear == null && bClear == null) {
             return true;
@@ -653,69 +653,69 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
         return Arrays.equals(digestValue, hashBytes);
     }
-    
+
     @Override
-	public boolean areEquivalent(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException {
-    	if (a == b) {
+    public boolean areEquivalent(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException {
+        if (a == b) {
             return true;
         }
         if (a == null || b == null) {
             return false;
         }
         if (a.isHashed()) {
-        	if (b.isHashed()) {
-        		return areEquivalentHashed(a, b);
-        	} else {
-        		return false;
-        	}
+            if (b.isHashed()) {
+                return areEquivalentHashed(a, b);
+            } else {
+                return false;
+            }
         }
         if (a.isEncrypted()) {
-        	if (b.isEncrypted()) {
-        		return areEquivalentEncrypted(a, b);
-        	} else {
-        		return false;
-        	}
+            if (b.isEncrypted()) {
+                return areEquivalentEncrypted(a, b);
+            } else {
+                return false;
+            }
         }
         return Objects.equals(a.getClearValue(), a.getClearValue());
-	}
+    }
 
-	private boolean areEquivalentHashed(ProtectedStringType a, ProtectedStringType b) {
-		// We cannot compare two hashes in any other way.
-		return Objects.equals(a.getHashedDataType(), b.getHashedDataType());
-	}
-	
-	private boolean areEquivalentEncrypted(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
-		EncryptedDataType ae = a.getEncryptedDataType();
-		EncryptedDataType be = b.getEncryptedDataType();
-		if (!Objects.equals(ae.getEncryptionMethod(), be.getEncryptionMethod())) {
-			return false;
-		}
-		if (!Objects.equals(ae.getKeyInfo(), be.getKeyInfo())) {
-			return false;
-		}
-		
-		if (Objects.equals(ae.getCipherData(), be.getCipherData())) {
-			return true;
-		}
-		
-		try {
-			
-			return compareEncryptedCleartext(a, b);
-			
-		} catch (EncryptionException e) {
-			// We cannot decrypt one of the values. Therefore we do not really know whether they are
-			// the same or different. Re-throwing the exception here would stop all action. And,
-			// strictly speaking, that would be the right thing to do. But as this method is used
-			// in a low-level prism code, re-throwing this exception may stop all operations that
-			// could lead to fixing the error. Therefore just log the error, but otherwise pretend
-			// that the values are not equivalent. That is still OK with the interface contract.
-			LOGGER.warn("Cannot decrypt a value for comparison: "+e.getMessage(), e);
-			return false;
-		}
-	}
+    private boolean areEquivalentHashed(ProtectedStringType a, ProtectedStringType b) {
+        // We cannot compare two hashes in any other way.
+        return Objects.equals(a.getHashedDataType(), b.getHashedDataType());
+    }
+
+    private boolean areEquivalentEncrypted(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
+        EncryptedDataType ae = a.getEncryptedDataType();
+        EncryptedDataType be = b.getEncryptedDataType();
+        if (!Objects.equals(ae.getEncryptionMethod(), be.getEncryptionMethod())) {
+            return false;
+        }
+        if (!Objects.equals(ae.getKeyInfo(), be.getKeyInfo())) {
+            return false;
+        }
+
+        if (Objects.equals(ae.getCipherData(), be.getCipherData())) {
+            return true;
+        }
+
+        try {
+
+            return compareEncryptedCleartext(a, b);
+
+        } catch (EncryptionException e) {
+            // We cannot decrypt one of the values. Therefore we do not really know whether they are
+            // the same or different. Re-throwing the exception here would stop all action. And,
+            // strictly speaking, that would be the right thing to do. But as this method is used
+            // in a low-level prism code, re-throwing this exception may stop all operations that
+            // could lead to fixing the error. Therefore just log the error, but otherwise pretend
+            // that the values are not equivalent. That is still OK with the interface contract.
+            LOGGER.warn("Cannot decrypt a value for comparison: "+e.getMessage(), e);
+            return false;
+        }
+    }
 
 
-	@Override
+    @Override
     public boolean isEncryptedByCurrentKey(@NotNull EncryptedDataType data) throws EncryptionException {
         String encryptedUsingKeyName = data.getKeyInfo().getKeyName();
         if (encryptedUsingKeyName == null) {

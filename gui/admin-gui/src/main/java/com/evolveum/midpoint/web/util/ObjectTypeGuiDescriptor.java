@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -72,8 +72,8 @@ public enum ObjectTypeGuiDescriptor {
     OBJECT_COLLECTION(ObjectTypes.OBJECT_COLLECTION, "ObjectTypeGuiDescriptor.objectCollection", "", ""),      // TODO icons
 
     ARCHETYPE(ObjectTypes.ARCHETYPE, "ObjectTypeGuiDescriptor.archetype", "", ""),      // TODO icons
-	
-	DASHBOARD(ObjectTypes.DASHBOARD, "ObjectTypeGuiDescriptor.dashboard", "fa fa-dashboard", "fa fa-dashboard"),
+
+    DASHBOARD(ObjectTypes.DASHBOARD, "ObjectTypeGuiDescriptor.dashboard", "fa fa-dashboard", "fa fa-dashboard"),
 
     ASSIGNMENT_HOLDER_TYPE(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, "ObjectTypeGuiDescriptor.assignmentHolderType", "", ""); //TODO icons
 
@@ -87,21 +87,21 @@ public enum ObjectTypeGuiDescriptor {
 
     ObjectTypeGuiDescriptor(ObjectTypes type, String localizationKey, String coloredIcon, String blackIcon) {
         this.coloredIcon = coloredIcon;
-		this.blackIcon = blackIcon;
+        this.blackIcon = blackIcon;
         this.localizationKey = localizationKey;
         this.type = type;
     }
 
-	@SuppressWarnings("unused")
+    @SuppressWarnings("unused")
     public String getColoredIcon() {
         return coloredIcon;
     }
 
-	public String getBlackIcon() {
-		return blackIcon;
-	}
+    public String getBlackIcon() {
+        return blackIcon;
+    }
 
-	public String getLocalizationKey() {
+    public String getLocalizationKey() {
         return localizationKey;
     }
 
@@ -120,9 +120,9 @@ public enum ObjectTypeGuiDescriptor {
     }
 
     public static ObjectTypeGuiDescriptor getDescriptor(ObjectTypes type) {
-		if (type == null) {
-			return null;
-		}
+        if (type == null) {
+            return null;
+        }
         for (ObjectTypeGuiDescriptor descr : ObjectTypeGuiDescriptor.values()) {
             if (descr.getType() != null && descr.getType().equals(type)) {
                 return descr;

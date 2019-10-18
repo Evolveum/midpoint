@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -48,7 +48,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
-	public static final File TEST_DIR = new File("src/test/resources/volatility");
+    public static final File TEST_DIR = new File("src/test/resources/volatility");
 
     protected static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
     protected static final String RESOURCE_DUMMY_HR_OID = "10000000-0000-0000-0000-00000000f004";
@@ -73,15 +73,15 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
     protected static final File USER_LARGO_WITH_ASSIGNMENT_FILE = new File(TEST_DIR, "user-largo-with-assignment.xml");
 
     @Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         repoAddObjectFromFile(USER_TEMPLATE_FILE, initResult);
 
         initDummyResource(RESOURCE_DUMMY_HR_NAME, RESOURCE_DUMMY_HR_FILE, RESOURCE_DUMMY_HR_OID, ctl -> {
-        	ctl.getDummyResource().setSyncStyle(DummySyncStyle.SMART);
-        	ctl.getDummyResource().populateWithDefaultSchema();
+            ctl.getDummyResource().setSyncStyle(DummySyncStyle.SMART);
+            ctl.getDummyResource().populateWithDefaultSchema();
         }, initTask, initResult);
 
         initDummyResource(RESOURCE_DUMMY_VOLATILE_NAME, RESOURCE_DUMMY_VOLATILE_FILE, RESOURCE_DUMMY_VOLATILE_OID, initTask, initResult);
@@ -135,7 +135,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
 
         PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME,
-        		getDummyResourceObject(RESOURCE_DUMMY_HR_NAME));
+                getDummyResourceObject(RESOURCE_DUMMY_HR_NAME));
         display("Account mancomb on HR", accountMancombHr);
         assertNotNull("No mancomb HR account shadow", accountMancombHr);
         assertEquals("Wrong resourceRef in mancomb HR account", RESOURCE_DUMMY_HR_OID,
@@ -143,7 +143,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         assertShadowOperationalData(accountMancombHr, SynchronizationSituationType.LINKED, null);
 
         PrismObject<ShadowType> accountMancombVolatileTarget = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME,
-        		getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
+                getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
         display("Account mancomb on target", accountMancombVolatileTarget);
         assertNotNull("No mancomb target account shadow", accountMancombVolatileTarget);
         assertEquals("Wrong resourceRef in mancomb target account", RESOURCE_DUMMY_VOLATILE_OID,
@@ -195,7 +195,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
 
         PrismObject<ShadowType> accountMancombHr = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME,
-        		getDummyResourceObject(RESOURCE_DUMMY_HR_NAME));
+                getDummyResourceObject(RESOURCE_DUMMY_HR_NAME));
         display("Account mancomb on HR", accountMancombHr);
         assertNotNull("No mancomb HR account shadow", accountMancombHr);
         assertEquals("Wrong resourceRef in mancomb HR account", RESOURCE_DUMMY_HR_OID,
@@ -206,7 +206,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         assertShadowOperationalData(accountMancombHr, SynchronizationSituationType.LINKED, null);
 
         PrismObject<ShadowType> accountMancombVolatileTarget = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME,
-        		getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
+                getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
         display("Account mancomb on target", accountMancombVolatileTarget);
         assertNotNull("No mancomb target account shadow", accountMancombVolatileTarget);
         assertEquals("Wrong resourceRef in mancomb target account", RESOURCE_DUMMY_VOLATILE_OID,
@@ -268,7 +268,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         assertLinks(userGuybrush, 1);
 
         PrismObject<ShadowType> accountGuybrushVolatileTarget = findAccountByUsername(ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
-        		getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
+                getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
         display("Account guybrush on target", accountGuybrushVolatileTarget);
         assertNotNull("No guybrush target account shadow", accountGuybrushVolatileTarget);
         assertEquals("Wrong resourceRef in guybrush target account", RESOURCE_DUMMY_VOLATILE_OID,
@@ -320,7 +320,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         assertLinks(userLargo, 1);
 
         PrismObject<ShadowType> accountLargoVolatileTarget = findAccountByUsername(ACCOUNT_LARGO_DUMMY_USERNAME,
-        		getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
+                getDummyResourceObject(RESOURCE_DUMMY_VOLATILE_NAME));
         display("Account largo on target", accountLargoVolatileTarget);
         assertNotNull("No largo target account shadow", accountLargoVolatileTarget);
         assertEquals("Wrong resourceRef in largo target account", RESOURCE_DUMMY_VOLATILE_OID,
@@ -357,15 +357,15 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_HERMAN_FILE);
         AssignmentType assignmentType = createAccountAssignment(RESOURCE_DUMMY_MONSTERIZED_OID, null);
-		userBefore.asObjectable().getAssignment().add(assignmentType);
-		userBefore.asObjectable().getOrganization().add(createPolyStringType("foo"));
-		userBefore.asObjectable().getOrganization().add(createPolyStringType(DummyResource.VALUE_COOKIE));
-		userBefore.asObjectable().getOrganization().add(createPolyStringType("bar"));
-		display("User before", userBefore);
+        userBefore.asObjectable().getAssignment().add(assignmentType);
+        userBefore.asObjectable().getOrganization().add(createPolyStringType("foo"));
+        userBefore.asObjectable().getOrganization().add(createPolyStringType(DummyResource.VALUE_COOKIE));
+        userBefore.asObjectable().getOrganization().add(createPolyStringType("bar"));
+        display("User before", userBefore);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-		addObject(userBefore, task, result);
+        addObject(userBefore, task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -380,7 +380,7 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME);
         display("Dummy account", dummyAccount);
         assertDummyAccountAttribute(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME,
-        		DummyAccount.ATTR_INTERESTS_NAME, "foo", "bar", DummyResource.VALUE_COOKIE);
+                DummyAccount.ATTR_INTERESTS_NAME, "foo", "bar", DummyResource.VALUE_COOKIE);
     }
 
     /**
@@ -399,8 +399,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-		modifyUserAdd(USER_HERMAN_OID, UserType.F_ORGANIZATION, task, result,
-				createPolyString(DummyResource.VALUE_MONSTER));
+        modifyUserAdd(USER_HERMAN_OID, UserType.F_ORGANIZATION, task, result,
+                createPolyString(DummyResource.VALUE_MONSTER));
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -415,8 +415,8 @@ public class TestVolatility extends AbstractInitializedModelIntegrationTest {
         DummyAccount dummyAccount = assertDummyAccount(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME);
         display("Dummy account", dummyAccount);
         assertDummyAccountAttribute(RESOURCE_DUMMY_MONSTERIZED_NAME, USER_HERMAN_USERNAME,
-        		DummyAccount.ATTR_INTERESTS_NAME,
-        		"foo", "bar", DummyResource.VALUE_COOKIE, DummyResource.VALUE_MONSTER);
+                DummyAccount.ATTR_INTERESTS_NAME,
+                "foo", "bar", DummyResource.VALUE_COOKIE, DummyResource.VALUE_MONSTER);
     }
 
     protected void importSyncTask() throws FileNotFoundException {

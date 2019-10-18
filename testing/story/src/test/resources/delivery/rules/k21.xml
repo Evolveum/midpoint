@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -16,63 +16,63 @@ Matches if the role 'roleRef' is assigned to the user.
 -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-		oid="db0a319e-e092-485c-b99e-edf22d4b26e7">
-	<name>k21</name>
-	<inducement>
-		<policyRule>
-			<policyConstraints>
-				<objectState>
-					<expression>
-						<script>
-							<code>
-								rulesLib.execute('evaluateRolePresence', [
-									object : object,
-									ruleEvaluationContext : ruleEvaluationContext,
-									assumeExistence : false
-								])
-							</code>
-						</script>
-					</expression>
-				</objectState>
-			</policyConstraints>
-			<policyActions>
-				<enforcement>
-					<condition>
-						<script>
-							<code>
-								!rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext]).realValue			// remove '.realValue' hack
-							</code>
-						</script>
-					</condition>
-				</enforcement>
-				<approval>
-					<condition>
-						<script>
-							<code>
-								rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext])
-							</code>
-						</script>
-					</condition>
-					<approvalSchema>
-						<stage>
-							<approverExpression>
-								<script>
-									<code>
-										rulesLib.execute('computeApprovers', [
-											approvalContext : approvalContext,
-											stageDefinition : stageDefinition
-										])
-									</code>
-								</script>
-							</approverExpression>
-						</stage>
-					</approvalSchema>
-				</approval>
-			</policyActions>
-			<evaluationTarget>assignment</evaluationTarget>
-		</policyRule>
-		<order>2</order>
-	</inducement>
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="db0a319e-e092-485c-b99e-edf22d4b26e7">
+    <name>k21</name>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <objectState>
+                    <expression>
+                        <script>
+                            <code>
+                                rulesLib.execute('evaluateRolePresence', [
+                                    object : object,
+                                    ruleEvaluationContext : ruleEvaluationContext,
+                                    assumeExistence : false
+                                ])
+                            </code>
+                        </script>
+                    </expression>
+                </objectState>
+            </policyConstraints>
+            <policyActions>
+                <enforcement>
+                    <condition>
+                        <script>
+                            <code>
+                                !rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext]).realValue            // remove '.realValue' hack
+                            </code>
+                        </script>
+                    </condition>
+                </enforcement>
+                <approval>
+                    <condition>
+                        <script>
+                            <code>
+                                rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext])
+                            </code>
+                        </script>
+                    </condition>
+                    <approvalSchema>
+                        <stage>
+                            <approverExpression>
+                                <script>
+                                    <code>
+                                        rulesLib.execute('computeApprovers', [
+                                            approvalContext : approvalContext,
+                                            stageDefinition : stageDefinition
+                                        ])
+                                    </code>
+                                </script>
+                            </approverExpression>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+            <evaluationTarget>assignment</evaluationTarget>
+        </policyRule>
+        <order>2</order>
+    </inducement>
 </role>

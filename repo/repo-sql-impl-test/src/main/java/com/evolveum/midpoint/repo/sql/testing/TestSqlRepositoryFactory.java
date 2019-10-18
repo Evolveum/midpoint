@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -123,8 +123,8 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         // present but data source is, let us assume we use H2.
         //
         // The reason is that when using datasource (and without the dialect set) we do not have the usual information
-	    // we could use to derive the database. We do not want to default to H2, as it could cause problems in
-	    // production. So we switch to H2 in such cases only in the test mode - i.e. here.
+        // we could use to derive the database. We do not want to default to H2, as it could cause problems in
+        // production. So we switch to H2 in such cases only in the test mode - i.e. here.
 
         if (!configuration.containsKey(PROPERTY_DATABASE)
                 && !configuration.containsKey(PROPERTY_DRIVER_CLASS_NAME)

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -57,7 +57,7 @@ public class SchemaDocMojo extends AbstractMojo {
     private static final String TEMPLATE_COMPLEX_TYPE_DEFINITION_NAME = "complex-type-definition.vm";
 
     @Parameter
-	private File[] schemaFiles;
+    private File[] schemaFiles;
 
     @Parameter
     private File[] catalogFiles;
@@ -65,7 +65,7 @@ public class SchemaDocMojo extends AbstractMojo {
     @Parameter(defaultValue="${project.build.directory}", required=true)
     private File buildDir;
 
-	@Parameter(defaultValue="${project.build.directory}/schemadoc", required=true)
+    @Parameter(defaultValue="${project.build.directory}/schemadoc", required=true)
     private File destDir;
 
     @Parameter(defaultValue="src/main/schemadoc/templates", required=true)
@@ -251,35 +251,35 @@ public class SchemaDocMojo extends AbstractMojo {
             return context;
 
         } catch (SchemaException e) {
-        	handleFailure(e);
-        	// never reached
-        	return null;
+            handleFailure(e);
+            // never reached
+            return null;
         } catch (FileNotFoundException e) {
-        	handleFailure(e);
-        	// never reached
-        	return null;
+            handleFailure(e);
+            // never reached
+            return null;
         } catch (SAXException e) {
-        	handleFailure(e);
-        	// never reached
-        	return null;
+            handleFailure(e);
+            // never reached
+            return null;
         } catch (IOException e) {
-        	handleFailure(e);
-        	// never reached
-        	return null;
+            handleFailure(e);
+            // never reached
+            return null;
         }
     }
 
     private void handleFailure(Exception e) throws MojoFailureException {
-    	e.printStackTrace();
-    	throw new MojoFailureException(e.getMessage());
-	}
+        e.printStackTrace();
+        throw new MojoFailureException(e.getMessage());
+    }
 
-	@NotNull
-	private SchemaRegistryImpl createSchemaRegistry() throws SchemaException {
-		SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
-		schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
-		return schemaRegistry;
-	}
+    @NotNull
+    private SchemaRegistryImpl createSchemaRegistry() throws SchemaException {
+        SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
+        schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
+        return schemaRegistry;
+    }
 
     private VelocityEngine createVelocityEngine() {
         VelocityEngine ve = new VelocityEngine();

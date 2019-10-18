@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -56,11 +56,11 @@ public class LookupTableTest extends BaseSQLRepoTest {
 
     private String tableOid;
 
-	protected RepoModifyOptions getModifyOptions() {
-		return null;
-	}
+    protected RepoModifyOptions getModifyOptions() {
+        return null;
+    }
 
-	@Test
+    @Test
     public void test100AddTableNonOverwrite() throws Exception {
         PrismObject<LookupTableType> table = prismContext.parseObject(new File(TEST_DIR, "table-0.xml"));
         OperationResult result = new OperationResult("test100AddTableNonOverwrite");
@@ -121,9 +121,9 @@ public class LookupTableTest extends BaseSQLRepoTest {
     }
 
     private Date createDate(int year, int month, int day) {
-	    Calendar c = Calendar.getInstance();
-	    c.set(year, month, day);
-	    return c.getTime();
+        Calendar c = Calendar.getInstance();
+        c.set(year, month, day);
+        return c.getTime();
     }
 
     @Test
@@ -355,11 +355,11 @@ public class LookupTableTest extends BaseSQLRepoTest {
     protected void executeAndCheckModification(List<ItemDelta<?,?>> modifications, OperationResult result, int versionDelta,
                                                List<String> keysWithGeneratedTimestamps, List<String> replacedKeys)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, IOException {
-		RepoModifyOptions modifyOptions = getModifyOptions();
-		if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions) && versionDelta == 0) {
-			versionDelta = 1;
-		}
-		PrismObject<LookupTableType> before = getFullTable(tableOid, result);
+        RepoModifyOptions modifyOptions = getModifyOptions();
+        if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions) && versionDelta == 0) {
+            versionDelta = 1;
+        }
+        PrismObject<LookupTableType> before = getFullTable(tableOid, result);
 
         repositoryService.modifyObject(LookupTableType.class, tableOid, modifications, modifyOptions, result);
 

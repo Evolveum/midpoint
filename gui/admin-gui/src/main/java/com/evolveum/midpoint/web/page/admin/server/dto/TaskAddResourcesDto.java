@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,30 +21,30 @@ import java.io.Serializable;
  * @author mserbak
  */
 public class TaskAddResourcesDto implements Serializable, Choiceable, Cloneable {
-	private String name;
-	private String oid;
+    private String name;
+    private String oid;
 
-	public TaskAddResourcesDto(String oid, String name) {
-		this.oid = oid;
-		this.name = name;
-	}
+    public TaskAddResourcesDto(String oid, String name) {
+        this.oid = oid;
+        this.name = name;
+    }
 
-	@Override
-	public String getName() {
-		return name;
-	}
+    @Override
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getOid() {
-		return oid;
-	}
+    public String getOid() {
+        return oid;
+    }
 
-	public void setOid(String oid) {
-		this.oid = oid;
-	}
+    public void setOid(String oid) {
+        this.oid = oid;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -66,11 +66,11 @@ public class TaskAddResourcesDto implements Serializable, Choiceable, Cloneable 
         return result;
     }
 
-	public ObjectReferenceType asObjectReferenceType() {
-		return ObjectTypeUtil.createObjectRef(oid, PolyStringType.fromOrig(name), ObjectTypes.RESOURCE);
-	}
+    public ObjectReferenceType asObjectReferenceType() {
+        return ObjectTypeUtil.createObjectRef(oid, PolyStringType.fromOrig(name), ObjectTypes.RESOURCE);
+    }
 
-	public TaskAddResourcesDto clone() {
-		return new TaskAddResourcesDto(oid, name);
-	}
+    public TaskAddResourcesDto clone() {
+        return new TaskAddResourcesDto(oid, name);
+    }
 }

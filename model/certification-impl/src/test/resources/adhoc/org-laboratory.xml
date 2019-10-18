@@ -1,25 +1,25 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	oid="027faec7-7763-4b26-ab92-c5c0acbb1173">
-	<name>laboratory</name>
-	<assignment>
-		<policyRule>
-			<policyConstraints>
-				<assignment>
-					<operation>add</operation>
-				</assignment>
-			</policyConstraints>
-			<policyActions>
-				<certification>
-					<definitionRef oid="540940e9-4ac5-4340-ba85-fd7e8b5e6686" /> <!-- adhoc-certification-assignment -->
-				</certification>
-			</policyActions>
-		</policyRule>
-	</assignment>
+    oid="027faec7-7763-4b26-ab92-c5c0acbb1173">
+    <name>laboratory</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <certification>
+                    <definitionRef oid="540940e9-4ac5-4340-ba85-fd7e8b5e6686" /> <!-- adhoc-certification-assignment -->
+                </certification>
+            </policyActions>
+        </policyRule>
+    </assignment>
 </org>

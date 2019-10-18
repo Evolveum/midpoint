@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,31 +23,31 @@ import java.util.Set;
  */
 public interface EvaluationOrder extends DebugDumpable, ShortDumpable, Cloneable {
 
-	int getSummaryOrder();
+    int getSummaryOrder();
 
-	EvaluationOrder advance(QName relation);
+    EvaluationOrder advance(QName relation);
 
-	EvaluationOrder decrease(MultiSet<QName> relations);
+    EvaluationOrder decrease(MultiSet<QName> relations);
 
-	int getMatchingRelationOrder(QName relation);
+    int getMatchingRelationOrder(QName relation);
 
-	Collection<QName> getExtraRelations();
+    Collection<QName> getExtraRelations();
 
-	EvaluationOrder clone();
+    EvaluationOrder clone();
 
-	EvaluationOrder resetOrder(QName relation, int newOrder);
+    EvaluationOrder resetOrder(QName relation, int newOrder);
 
-	// returns the delta that would transform current object state to the newState
-	// both current and new states must be defined
-	Map<QName, Integer> diff(EvaluationOrder newState);
+    // returns the delta that would transform current object state to the newState
+    // both current and new states must be defined
+    Map<QName, Integer> diff(EvaluationOrder newState);
 
-	EvaluationOrder applyDifference(Map<QName, Integer> difference);
+    EvaluationOrder applyDifference(Map<QName, Integer> difference);
 
-	boolean isDefined();
+    boolean isDefined();
 
-	Set<QName> getRelations();
+    Set<QName> getRelations();
 
-	boolean isValid();
+    boolean isValid();
 
-	boolean isOrderOne();
+    boolean isOrderOne();
 }

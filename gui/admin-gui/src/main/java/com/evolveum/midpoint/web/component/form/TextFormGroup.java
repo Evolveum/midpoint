@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -31,24 +31,24 @@ public class TextFormGroup extends BasePanel<String> {
     private static final String ID_LABEL_CONTAINER = "labelContainer";
     private static final String ID_LABEL = "label";
     private static final String ID_TOOLTIP = "tooltip";
-	private static final String ID_REQUIRED = "required";
+    private static final String ID_REQUIRED = "required";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_PROPERTY_LABEL = "propertyLabel";
     private static final String ID_ROW = "row";
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelCssClass, String textCssClass,
             boolean required, boolean isSimilarAsPropertyPanel) {
-    	this(id, value, label, null, false, labelCssClass, textCssClass, required, required, isSimilarAsPropertyPanel);
+        this(id, value, label, null, false, labelCssClass, textCssClass, required, required, isSimilarAsPropertyPanel);
     }
-    
+
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelCssClass, String textCssClass,
                          boolean required) {
         this(id, value, label, null, false, labelCssClass, textCssClass, required, required, false);
     }
-    
+
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, boolean isTooltipInModel, String labelCssClass,
             String textCssClass, boolean required, boolean markAsRequired) {
-    	this(id, value, label, null, false, labelCssClass, textCssClass, required, markAsRequired, false);
+        this(id, value, label, null, false, labelCssClass, textCssClass, required, markAsRequired, false);
     }
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, boolean isTooltipInModel, String labelCssClass,
@@ -59,7 +59,7 @@ public class TextFormGroup extends BasePanel<String> {
     }
 
     private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required,
-			final boolean markAsRequired, boolean isSimilarAsPropertyPanel) {
+            final boolean markAsRequired, boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
 
@@ -68,9 +68,9 @@ public class TextFormGroup extends BasePanel<String> {
             labelContainer.add(AttributeAppender.prepend("class", labelCssClass));
         }
         if(isSimilarAsPropertyPanel) {
-        	labelContainer.add(AttributeAppender.prepend("class", " col-xs-2 prism-property-label "));
+            labelContainer.add(AttributeAppender.prepend("class", " col-xs-2 prism-property-label "));
         } else {
-        	labelContainer.add(AttributeAppender.prepend("class", " control-label "));
+            labelContainer.add(AttributeAppender.prepend("class", " control-label "));
         }
         labelContainer.add(l);
 
@@ -94,26 +94,26 @@ public class TextFormGroup extends BasePanel<String> {
         tooltipLabel.setOutputMarkupPlaceholderTag(true);
         labelContainer.add(tooltipLabel);
 
-		WebMarkupContainer requiredContainer = new WebMarkupContainer(ID_REQUIRED);
-		requiredContainer.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return markAsRequired;
-			}
-		});
-		labelContainer.add(requiredContainer);
-		WebMarkupContainer propertyLabel = new WebMarkupContainer(ID_PROPERTY_LABEL);
-		WebMarkupContainer rowLabel = new WebMarkupContainer(ID_ROW);
-		WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
+        WebMarkupContainer requiredContainer = new WebMarkupContainer(ID_REQUIRED);
+        requiredContainer.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return markAsRequired;
+            }
+        });
+        labelContainer.add(requiredContainer);
+        WebMarkupContainer propertyLabel = new WebMarkupContainer(ID_PROPERTY_LABEL);
+        WebMarkupContainer rowLabel = new WebMarkupContainer(ID_ROW);
+        WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
         if (StringUtils.isNotEmpty(textCssClass)) {
             textWrapper.add(AttributeAppender.prepend("class", textCssClass));
         }
         if(isSimilarAsPropertyPanel) {
-        	propertyLabel.add(AttributeAppender.prepend("class", " col-md-10 prism-property-value "));
-        	rowLabel.add(AttributeAppender.prepend("class", " row "));
+            propertyLabel.add(AttributeAppender.prepend("class", " col-md-10 prism-property-value "));
+            rowLabel.add(AttributeAppender.prepend("class", " row "));
         }
         propertyLabel.add(rowLabel);
-		rowLabel.add(textWrapper);
+        rowLabel.add(textWrapper);
         add(propertyLabel);
 
         TextField text = createText(getModel(), label, required);

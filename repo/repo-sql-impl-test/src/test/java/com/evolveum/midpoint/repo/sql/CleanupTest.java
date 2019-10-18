@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -132,7 +132,7 @@ public class CleanupTest extends BaseSQLRepoTest {
     @Test
     public void testAuditCleanupMaxRecords() throws Exception {
         //GIVEN
-    	prepareAuditEventRecords();
+        prepareAuditEventRecords();
 
         //WHEN
         Calendar calendar = create_2013_07_12_12_00_Calendar();
@@ -152,7 +152,7 @@ public class CleanupTest extends BaseSQLRepoTest {
     }
 
     private RAuditEventRecord assertAndReturnAuditEventRecord(OperationResult result) {
-    	 AssertJUnit.assertTrue(result.isSuccess());
+         AssertJUnit.assertTrue(result.isSuccess());
 
          Session session = getFactory().openSession();
          try {
@@ -168,10 +168,10 @@ public class CleanupTest extends BaseSQLRepoTest {
              session.close();
          }
 
-	}
+    }
 
-	private void prepareAuditEventRecords() throws Exception {
-    	 Calendar calendar = create_2013_07_12_12_00_Calendar();
+    private void prepareAuditEventRecords() throws Exception {
+         Calendar calendar = create_2013_07_12_12_00_Calendar();
          for (int i = 0; i < 3; i++) {
              long timestamp = calendar.getTimeInMillis();
              AuditEventRecord record = new AuditEventRecord();
@@ -197,9 +197,9 @@ public class CleanupTest extends BaseSQLRepoTest {
          } finally {
              session.close();
          }
-	}
+    }
 
-	private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception {
+    private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception {
         ObjectDeltaOperation delta = new ObjectDeltaOperation();
         delta.setExecutionResult(new OperationResult("asdf"));
         UserType user = new UserType();

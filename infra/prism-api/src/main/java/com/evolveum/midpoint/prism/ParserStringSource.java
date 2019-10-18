@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,30 +18,30 @@ import java.io.InputStream;
  */
 public class ParserStringSource implements ParserSource {
 
-	@NotNull private final String data;
+    @NotNull private final String data;
 
-	public ParserStringSource(@NotNull String data) {
-		this.data = data;
-	}
+    public ParserStringSource(@NotNull String data) {
+        this.data = data;
+    }
 
-	@NotNull
-	public String getData() {
-		return data;
-	}
+    @NotNull
+    public String getData() {
+        return data;
+    }
 
-	@NotNull
-	@Override
-	public InputStream getInputStream() throws IOException {
-		return IOUtils.toInputStream(data, "utf-8");
-	}
+    @NotNull
+    @Override
+    public InputStream getInputStream() throws IOException {
+        return IOUtils.toInputStream(data, "utf-8");
+    }
 
-	@Override
-	public boolean closeStreamAfterParsing() {
-		return true;
-	}
+    @Override
+    public boolean closeStreamAfterParsing() {
+        return true;
+    }
 
-	@Override
-	public boolean throwsIOException() {
-		return false;
-	}
+    @Override
+    public boolean throwsIOException() {
+        return false;
+    }
 }

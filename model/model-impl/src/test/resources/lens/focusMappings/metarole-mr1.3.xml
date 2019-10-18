@@ -7,25 +7,25 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="a92858ac-52cc-4ea7-aa42-0fb3033ac9f2">
-	<name>mr1.3</name>
-	<assignment id="1">
-		<targetRef oid="7f9239aa-e2ea-4532-a597-6cb572dadd6b" type="RoleType"/>		<!-- mmr1.3.1 -->
-		<condition>
-			<source>
-				<path>$focus/title</path>
-			</source>
-			<expression>
-				<script>
-					<code>basic.stringify(title) == 'enabled'</code>
-				</script>
-			</expression>
-		</condition>
-	</assignment>
-	<assignment id="2">
-		<targetRef oid="c5f74a67-da40-4498-a2f9-1d41ff4163b6" type="RoleType"/>		<!-- mmr1.3.2 -->
-		<activation>
-			<administrativeStatus>disabled</administrativeStatus>
-		</activation>
-	</assignment>
+      oid="a92858ac-52cc-4ea7-aa42-0fb3033ac9f2">
+    <name>mr1.3</name>
+    <assignment id="1">
+        <targetRef oid="7f9239aa-e2ea-4532-a597-6cb572dadd6b" type="RoleType"/>        <!-- mmr1.3.1 -->
+        <condition>
+            <source>
+                <path>$focus/title</path>
+            </source>
+            <expression>
+                <script>
+                    <code>basic.stringify(title) == 'enabled'</code>
+                </script>
+            </expression>
+        </condition>
+    </assignment>
+    <assignment id="2">
+        <targetRef oid="c5f74a67-da40-4498-a2f9-1d41ff4163b6" type="RoleType"/>        <!-- mmr1.3.2 -->
+        <activation>
+            <administrativeStatus>disabled</administrativeStatus>
+        </activation>
+    </assignment>
 </role>

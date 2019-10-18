@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,17 +18,17 @@ import java.io.Serializable;
  *
  */
 public interface XNode extends DebugDumpable, Visitable, Cloneable, Serializable {
-	
-	boolean isEmpty();
 
-	QName getTypeQName();
+    boolean isEmpty();
 
-	RootXNode toRootXNode();
+    QName getTypeQName();
 
-	boolean isExplicitTypeDeclaration();
+    RootXNode toRootXNode();
 
-	@NotNull
-	XNode clone();
+    boolean isExplicitTypeDeclaration();
 
-	Integer getMaxOccurs();
+    @NotNull
+    XNode clone();
+
+    Integer getMaxOccurs();
 }

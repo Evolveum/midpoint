@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
@@ -437,7 +437,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         memberQuery.addFilter(getAssignableRolesFilter());
         if (getQueryType() != null && !AbstractRoleType.COMPLEX_TYPE.equals(getQueryType())){
             ObjectFilter typeFilter = ObjectQueryUtil.filterAnd(getPrismContext().queryFactory().createType(getQueryType(), null), memberQuery.getFilter(),
-		            getPrismContext());
+                    getPrismContext());
             memberQuery.addFilter(typeFilter);
         }
 

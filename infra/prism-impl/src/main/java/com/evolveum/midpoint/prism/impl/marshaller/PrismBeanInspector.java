@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -52,7 +52,7 @@ public class PrismBeanInspector {
         this.prismContext = prismContext;
     }
 
-	//region Caching mechanism (multiple dimensions)
+    //region Caching mechanism (multiple dimensions)
 
     @FunctionalInterface
     interface Getter1<V, P1> {
@@ -75,8 +75,8 @@ public class PrismBeanInspector {
     }
 
     private <V, P1, P2> V find2(final Map<P1,Map<P2,V>> cache, final P1 param1, final P2 param2, final Getter2<V, P1, P2> getter) {
-	    Map<P2, V> cache2 = cache.computeIfAbsent(param1, k -> Collections.synchronizedMap(new HashMap<>()));
-	    return find1(cache2, param2, p -> getter.get(param1, p));
+        Map<P2, V> cache2 = cache.computeIfAbsent(param1, k -> Collections.synchronizedMap(new HashMap<>()));
+        return find1(cache2, param2, p -> getter.get(param1, p));
     }
 
     @FunctionalInterface
@@ -85,8 +85,8 @@ public class PrismBeanInspector {
     }
 
     private <V, P1, P2, P3> V find3(final Map<P1,Map<P2,Map<P3,V>>> cache, final P1 param1, final P2 param2, final P3 param3, final Getter3<V, P1, P2, P3> getter) {
-	    Map<P2, Map<P3, V>> cache2 = cache.computeIfAbsent(param1, k -> Collections.synchronizedMap(new HashMap<>()));
-	    return find2(cache2, param2, param3, (p, q) -> getter.get(param1, p, q));
+        Map<P2, Map<P3, V>> cache2 = cache.computeIfAbsent(param1, k -> Collections.synchronizedMap(new HashMap<>()));
+        return find2(cache2, param2, param3, (p, q) -> getter.get(param1, p, q));
     }
     //endregion
 
@@ -113,8 +113,8 @@ public class PrismBeanInspector {
     private Map<Class,Map<String,Method>> _findSetter = Collections.synchronizedMap(new HashMap<>());
 
     <T> Method findSetter(Class<T> beanClass, String fieldName) {
-	    //noinspection unchecked
-	    return find2(_findSetter, beanClass, fieldName, (c, f) -> findSetterUncached(c, f));
+        //noinspection unchecked
+        return find2(_findSetter, beanClass, fieldName, (c, f) -> findSetterUncached(c, f));
     }
 
     private Map<Package,Class> _getObjectFactoryClassPackage = Collections.synchronizedMap(new HashMap<>());
@@ -160,8 +160,8 @@ public class PrismBeanInspector {
 
     private Map<Field,Map<Class<?>,Map<String,QName>>> _findTypeName = Collections.synchronizedMap(new HashMap<>());
 
-	// Determines type for field/content combination. Field information is used only for simple XSD types.
-	QName findTypeName(Field field, Class<?> contentClass, String defaultNamespacePlaceholder) {
+    // Determines type for field/content combination. Field information is used only for simple XSD types.
+    QName findTypeName(Field field, Class<?> contentClass, String defaultNamespacePlaceholder) {
         return find3(_findTypeName, field, contentClass, defaultNamespacePlaceholder,
                 this::findTypeNameUncached);
     }
@@ -170,8 +170,8 @@ public class PrismBeanInspector {
 
     QName findFieldElementQName(String fieldName, Class<?> beanClass, String defaultNamespace) {
         return find3(_findFieldElementQName, fieldName, beanClass, defaultNamespace,
-		        (fieldName1, beanClass1, defaultNamespace1) -> findFieldElementQNameUncached(fieldName1, beanClass1,
-				        defaultNamespace1));
+                (fieldName1, beanClass1, defaultNamespace1) -> findFieldElementQNameUncached(fieldName1, beanClass1,
+                        defaultNamespace1));
     }
 
     private Map<Class,Map<String,Method>> _findPropertyGetter = Collections.synchronizedMap(new HashMap<>());
@@ -255,12 +255,12 @@ public class PrismBeanInspector {
     }
 
     private boolean isAttributeUncached(Field field, Method getter) {
-	    if (field == null && getter == null) {
-		    return false;
-	    } else {
-		    return field != null && field.isAnnotationPresent(XmlAttribute.class)
-				    || getter != null && getter.isAnnotationPresent(XmlAttribute.class);
-	    }
+        if (field == null && getter == null) {
+            return false;
+        } else {
+            return field != null && field.isAnnotationPresent(XmlAttribute.class)
+                    || getter != null && getter.isAnnotationPresent(XmlAttribute.class);
+        }
     }
 
     private String determineNamespaceUncached(Class<?> beanClass) {
@@ -346,14 +346,14 @@ public class PrismBeanInspector {
     }
 
     private Class getObjectFactoryClassUncached(String namespaceUri) {
-    	SchemaDescription schemaDescription = prismContext.getSchemaRegistry().findSchemaDescriptionByNamespace(namespaceUri);
-    	if (schemaDescription == null) {
-    		throw new IllegalArgumentException("Cannot find object factory class for namespace "+namespaceUri+": unknown schema namespace");
-    	}
-    	Package compileTimeClassesPackage = schemaDescription.getCompileTimeClassesPackage();
-    	if (compileTimeClassesPackage == null) {
-    		throw new IllegalArgumentException("Cannot find object factory class for namespace "+namespaceUri+": not a compile-time schema");
-    	}
+        SchemaDescription schemaDescription = prismContext.getSchemaRegistry().findSchemaDescriptionByNamespace(namespaceUri);
+        if (schemaDescription == null) {
+            throw new IllegalArgumentException("Cannot find object factory class for namespace "+namespaceUri+": unknown schema namespace");
+        }
+        Package compileTimeClassesPackage = schemaDescription.getCompileTimeClassesPackage();
+        if (compileTimeClassesPackage == null) {
+            throw new IllegalArgumentException("Cannot find object factory class for namespace "+namespaceUri+": not a compile-time schema");
+        }
         return getObjectFactoryClassUncached(compileTimeClassesPackage);
     }
 
@@ -426,14 +426,14 @@ public class PrismBeanInspector {
 
         String[] myPropOrder = xmlType.propOrder();
         for (String myProp: myPropOrder) {
-			if (StringUtils.isNotBlank(myProp)) {
-				// some properties starts with underscore..we don't want to serialize them with underscore, so remove it..
-				if (myProp.startsWith("_")){
-					myProp = myProp.replace("_", "");
-				}
-				propOrder.add(myProp);
-			}
-		}
+            if (StringUtils.isNotBlank(myProp)) {
+                // some properties starts with underscore..we don't want to serialize them with underscore, so remove it..
+                if (myProp.startsWith("_")){
+                    myProp = myProp.replace("_", "");
+                }
+                propOrder.add(myProp);
+            }
+        }
 
         Field[] fields = beanClass.getDeclaredFields();
         for (Field field : fields) {
@@ -482,38 +482,38 @@ public class PrismBeanInspector {
     }
 
     private QName findTypeNameUncached(Field field, Class contentClass, String schemaNamespace) {
-    	if (RawType.class.equals(contentClass)) {
-    		// RawType is a meta-type. We do not really want to use field types of RawType class.
-    		return null;
-    	}
+        if (RawType.class.equals(contentClass)) {
+            // RawType is a meta-type. We do not really want to use field types of RawType class.
+            return null;
+        }
         if (field != null) {
-			XmlSchemaType xmlSchemaType = field.getAnnotation(XmlSchemaType.class);
+            XmlSchemaType xmlSchemaType = field.getAnnotation(XmlSchemaType.class);
             if (xmlSchemaType != null) {
                 return new QName(xmlSchemaType.namespace(), xmlSchemaType.name());
             }
         }
         QName typeName = XsdTypeMapper.getJavaToXsdMapping(contentClass);
         if (typeName != null) {
-        	return typeName;
-		}
-		// TODO the following code is similar to determineTypeForClass
-		XmlType xmlType = (XmlType) contentClass.getAnnotation(XmlType.class);
-		if (xmlType != null) {
-			String propTypeLocalPart = xmlType.name();
-			String propTypeNamespace = xmlType.namespace();
-			if (propTypeNamespace.equals(BeanMarshaller.DEFAULT_PLACEHOLDER)) {
-				PrismSchema schema = prismContext.getSchemaRegistry().findSchemaByCompileTimeClass(contentClass);
-				if (schema != null && schema.getNamespace() != null) {
-					propTypeNamespace = schema.getNamespace();		// should be non-null for properly initialized schemas
-				} else {
-					// schemaNamespace is only a poor indicator of required namespace (consider e.g. having c:UserType in apit:ObjectListType)
-					// so we use it only if we couldn't find anything else
-					propTypeNamespace = schemaNamespace;
-				}
-			}
-			return new QName(propTypeNamespace, propTypeLocalPart);
-		}
-		return null;
+            return typeName;
+        }
+        // TODO the following code is similar to determineTypeForClass
+        XmlType xmlType = (XmlType) contentClass.getAnnotation(XmlType.class);
+        if (xmlType != null) {
+            String propTypeLocalPart = xmlType.name();
+            String propTypeNamespace = xmlType.namespace();
+            if (propTypeNamespace.equals(BeanMarshaller.DEFAULT_PLACEHOLDER)) {
+                PrismSchema schema = prismContext.getSchemaRegistry().findSchemaByCompileTimeClass(contentClass);
+                if (schema != null && schema.getNamespace() != null) {
+                    propTypeNamespace = schema.getNamespace();        // should be non-null for properly initialized schemas
+                } else {
+                    // schemaNamespace is only a poor indicator of required namespace (consider e.g. having c:UserType in apit:ObjectListType)
+                    // so we use it only if we couldn't find anything else
+                    propTypeNamespace = schemaNamespace;
+                }
+            }
+            return new QName(propTypeNamespace, propTypeLocalPart);
+        }
+        return null;
     }
 
     private QName findFieldElementQNameUncached(String fieldName, Class beanClass, String defaultNamespace) {
@@ -542,15 +542,15 @@ public class PrismBeanInspector {
 
     //region Other
     public <T> Field findAnyField(Class<T> beanClass) {
-    	return findField(beanClass, field -> field.getAnnotation(XmlAnyElement.class) != null);
+        return findField(beanClass, field -> field.getAnnotation(XmlAnyElement.class) != null);
     }
 
     public <T> Method findAnyMethod(Class<T> beanClass) {
-    	return findMethod(beanClass, method -> method.getAnnotation(XmlAnyElement.class) != null);
+        return findMethod(beanClass, method -> method.getAnnotation(XmlAnyElement.class) != null);
     }
 
     // e.g. Collection<UserType> -> UserType
-	@NotNull
+    @NotNull
     Type getTypeArgument(Type origType, String desc) {
         if (!(origType instanceof ParameterizedType)) {
             throw new IllegalArgumentException("Not a parametrized type "+desc);
@@ -567,70 +567,70 @@ public class PrismBeanInspector {
     }
 
     @NotNull
-	public Class getUpperBound(Type type, String desc) {
-		if (type instanceof Class) {
-			return (Class) type;
-		} else if (type instanceof WildcardType) {
-			WildcardType wildcard = ((WildcardType) type);
-			if (wildcard.getUpperBounds().length != 1) {
-				throw new IllegalArgumentException("Wrong number of upper bounds for " + type + " ("
-						+ wildcard.getUpperBounds().length + "): " + desc);
-			}
-			Type upper = wildcard.getUpperBounds()[0];
-			if (upper instanceof Class) {
-				return (Class) upper;
-			} else {
-				throw new IllegalArgumentException("Upper bound for " + type + " is not a class, it is " + type + ": " + desc);
-			}
-		} else {
-			throw new IllegalArgumentException(type + "is not a class nor wildcard type: " + type + ": " + desc);
-		}
-	}
-
-	@NotNull
-    public <T> Class<? extends T> findMatchingSubclass(Class<T> beanClass, Collection<QName> fields) throws SchemaException {
-		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-		TypeDefinition typeDef = schemaRegistry.findTypeDefinitionByCompileTimeClass(beanClass, TypeDefinition.class);
-	    if (typeDef == null) {
-	    	throw new SchemaException("No type definition for " + beanClass);
-	    }
-		List<TypeDefinition> subTypes = new ArrayList<>(typeDef.getStaticSubTypes());
-	    subTypes.sort(Comparator.comparing(TypeDefinition::getInstantiationOrder, nullsLast(naturalOrder())));
-	    TypeDefinition matchingDefinition = null;
-		for (TypeDefinition subType : subTypes) {
-			if (matchingDefinition != null && !Objects.equals(matchingDefinition.getInstantiationOrder(), subType.getInstantiationOrder())) {
-				break;      // found something and went to lower orders -> we can stop searching
-			}
-			if (matches(subType, fields)) {
-				if (matchingDefinition != null) {
-					throw new SchemaException("Couldn't unambiguously determine a subclass for " + beanClass
-							+ " instantiation (fields: " + fields + "). Candidates: " + matchingDefinition + ", " + subType);
-				}
-				matchingDefinition = subType;
-			}
-		}
-		if (matchingDefinition == null) {
-			final int MAX = 5;
-			throw new SchemaException("Couldn't find a subclass of " + beanClass + " that would contain fields " + fields + ". Considered "
-					+ subTypes.subList(0, Math.min(subTypes.size(), MAX))
-					+ (subTypes.size() >= MAX ? " (...)" : ""));
-		}
-		//noinspection unchecked
-		Class<? extends T> compileTimeClass = (Class<? extends T>) matchingDefinition.getCompileTimeClass();
-		if (compileTimeClass != null) {
-			return compileTimeClass;
-		} else {
-			throw new SchemaException("No compile time class defined for " + matchingDefinition);
-		}
+    public Class getUpperBound(Type type, String desc) {
+        if (type instanceof Class) {
+            return (Class) type;
+        } else if (type instanceof WildcardType) {
+            WildcardType wildcard = ((WildcardType) type);
+            if (wildcard.getUpperBounds().length != 1) {
+                throw new IllegalArgumentException("Wrong number of upper bounds for " + type + " ("
+                        + wildcard.getUpperBounds().length + "): " + desc);
+            }
+            Type upper = wildcard.getUpperBounds()[0];
+            if (upper instanceof Class) {
+                return (Class) upper;
+            } else {
+                throw new IllegalArgumentException("Upper bound for " + type + " is not a class, it is " + type + ": " + desc);
+            }
+        } else {
+            throw new IllegalArgumentException(type + "is not a class nor wildcard type: " + type + ": " + desc);
+        }
     }
 
-	private boolean matches(TypeDefinition type, Collection<QName> fields) {
-		if (!(type instanceof ComplexTypeDefinition)) {
-			return false;
-		}
-		ComplexTypeDefinition ctd = (ComplexTypeDefinition) type;
-		return fields.stream().allMatch(field -> ctd.containsItemDefinition(field));
-	}
-	//endregion
+    @NotNull
+    public <T> Class<? extends T> findMatchingSubclass(Class<T> beanClass, Collection<QName> fields) throws SchemaException {
+        SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+        TypeDefinition typeDef = schemaRegistry.findTypeDefinitionByCompileTimeClass(beanClass, TypeDefinition.class);
+        if (typeDef == null) {
+            throw new SchemaException("No type definition for " + beanClass);
+        }
+        List<TypeDefinition> subTypes = new ArrayList<>(typeDef.getStaticSubTypes());
+        subTypes.sort(Comparator.comparing(TypeDefinition::getInstantiationOrder, nullsLast(naturalOrder())));
+        TypeDefinition matchingDefinition = null;
+        for (TypeDefinition subType : subTypes) {
+            if (matchingDefinition != null && !Objects.equals(matchingDefinition.getInstantiationOrder(), subType.getInstantiationOrder())) {
+                break;      // found something and went to lower orders -> we can stop searching
+            }
+            if (matches(subType, fields)) {
+                if (matchingDefinition != null) {
+                    throw new SchemaException("Couldn't unambiguously determine a subclass for " + beanClass
+                            + " instantiation (fields: " + fields + "). Candidates: " + matchingDefinition + ", " + subType);
+                }
+                matchingDefinition = subType;
+            }
+        }
+        if (matchingDefinition == null) {
+            final int MAX = 5;
+            throw new SchemaException("Couldn't find a subclass of " + beanClass + " that would contain fields " + fields + ". Considered "
+                    + subTypes.subList(0, Math.min(subTypes.size(), MAX))
+                    + (subTypes.size() >= MAX ? " (...)" : ""));
+        }
+        //noinspection unchecked
+        Class<? extends T> compileTimeClass = (Class<? extends T>) matchingDefinition.getCompileTimeClass();
+        if (compileTimeClass != null) {
+            return compileTimeClass;
+        } else {
+            throw new SchemaException("No compile time class defined for " + matchingDefinition);
+        }
+    }
+
+    private boolean matches(TypeDefinition type, Collection<QName> fields) {
+        if (!(type instanceof ComplexTypeDefinition)) {
+            return false;
+        }
+        ComplexTypeDefinition ctd = (ComplexTypeDefinition) type;
+        return fields.stream().allMatch(field -> ctd.containsItemDefinition(field));
+    }
+    //endregion
 
 }

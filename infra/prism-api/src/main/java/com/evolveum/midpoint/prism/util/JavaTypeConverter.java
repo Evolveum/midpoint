@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.util;
@@ -38,242 +38,242 @@ import org.jetbrains.annotations.Nullable;
 public class JavaTypeConverter {
 
     final static String[] DATE_FORMATS = {
-    	"yyyy-MM-dd'T'HH:mm:ss.SSSX",
-    	"yyyy-MM-dd'T'HH:mm:ssz",
-    	"EEE, dd MMM yyyy HH:mm:ss z",
-    	"EEE, dd MMM yyyy HH:mm zzzz",
-    	"EEE MMM dd HH:mm:ss z yyyy",
-    	"yyyy-MM-dd'T'HH:mm:ssZ",
-    	"yyyy-MM-dd'T'HH:mm:ss.SSSzzzz",
-    	"yyyy-MM-dd'T'HH:mm:sszzzz",
-    	"yyyy-MM-dd'T'HH:mm:ss z",
-    	"yyyy-MM-dd'T'HH:mm:ss",
-    	"yyyy-MM-dd'T'HHmmss.SSSz",
-    	"yyyy-MM-dd"
+        "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+        "yyyy-MM-dd'T'HH:mm:ssz",
+        "EEE, dd MMM yyyy HH:mm:ss z",
+        "EEE, dd MMM yyyy HH:mm zzzz",
+        "EEE MMM dd HH:mm:ss z yyyy",
+        "yyyy-MM-dd'T'HH:mm:ssZ",
+        "yyyy-MM-dd'T'HH:mm:ss.SSSzzzz",
+        "yyyy-MM-dd'T'HH:mm:sszzzz",
+        "yyyy-MM-dd'T'HH:mm:ss z",
+        "yyyy-MM-dd'T'HH:mm:ss",
+        "yyyy-MM-dd'T'HHmmss.SSSz",
+        "yyyy-MM-dd"
     };
 
     @SuppressWarnings("unchecked")
-	public static <T> T convert(Class<T> expectedType, Object rawValue) {
-		return (T) convert(expectedType, rawValue, true);
-	}
+    public static <T> T convert(Class<T> expectedType, Object rawValue) {
+        return (T) convert(expectedType, rawValue, true);
+    }
 
-	public static Object convert(Class<?> expectedType, Object rawValue, boolean failIfImpossible) {
-		if (rawValue == null || expectedType.isInstance(rawValue)) {
-			return rawValue;
-		}
-		if (rawValue instanceof PrismPropertyValue<?>) {
-			rawValue = ((PrismPropertyValue<?>)rawValue).getValue();
-		}
-		// This really needs to be checked twice
-		if (rawValue == null || expectedType.isInstance(rawValue)) {
-			return rawValue;
-		}
+    public static Object convert(Class<?> expectedType, Object rawValue, boolean failIfImpossible) {
+        if (rawValue == null || expectedType.isInstance(rawValue)) {
+            return rawValue;
+        }
+        if (rawValue instanceof PrismPropertyValue<?>) {
+            rawValue = ((PrismPropertyValue<?>)rawValue).getValue();
+        }
+        // This really needs to be checked twice
+        if (rawValue == null || expectedType.isInstance(rawValue)) {
+            return rawValue;
+        }
 
-		// Primitive types
+        // Primitive types
 
-		// boolean
-		if (expectedType == boolean.class && rawValue instanceof Boolean) {
-			return rawValue;
-		}
-		if (expectedType == Boolean.class && rawValue instanceof String) {
-			return Boolean.parseBoolean((((String)rawValue)).trim());
-		}
-		if (expectedType == Boolean.class && rawValue instanceof PolyString) {
-			return Boolean.parseBoolean((rawValue.toString().trim()));
-		}
-		if (expectedType == boolean.class && rawValue instanceof String) {
-			return Boolean.parseBoolean(((String)rawValue).trim());
-		}
-		if (expectedType == boolean.class && rawValue instanceof PolyString) {
-			return Boolean.parseBoolean((rawValue).toString().trim());
-		}
-		if (expectedType == String.class && rawValue instanceof Boolean) {
-			return rawValue.toString();
-		}
+        // boolean
+        if (expectedType == boolean.class && rawValue instanceof Boolean) {
+            return rawValue;
+        }
+        if (expectedType == Boolean.class && rawValue instanceof String) {
+            return Boolean.parseBoolean((((String)rawValue)).trim());
+        }
+        if (expectedType == Boolean.class && rawValue instanceof PolyString) {
+            return Boolean.parseBoolean((rawValue.toString().trim()));
+        }
+        if (expectedType == boolean.class && rawValue instanceof String) {
+            return Boolean.parseBoolean(((String)rawValue).trim());
+        }
+        if (expectedType == boolean.class && rawValue instanceof PolyString) {
+            return Boolean.parseBoolean((rawValue).toString().trim());
+        }
+        if (expectedType == String.class && rawValue instanceof Boolean) {
+            return rawValue.toString();
+        }
 
-		// int
-		if (expectedType == int.class && rawValue instanceof Integer) {
-			return rawValue;
-		}
-		if (expectedType == Integer.class && rawValue instanceof String) {
-			return Integer.parseInt(((String)rawValue).trim());
-		}
-		if (expectedType == int.class && rawValue instanceof String) {
-			return Integer.parseInt(((String)rawValue).trim());
-		}
-		if (expectedType == String.class && rawValue instanceof Integer) {
-			return rawValue.toString();
-		}
-		if (expectedType == int.class && rawValue instanceof Long) {
-			return ((Long)rawValue).intValue();
-		}
+        // int
+        if (expectedType == int.class && rawValue instanceof Integer) {
+            return rawValue;
+        }
+        if (expectedType == Integer.class && rawValue instanceof String) {
+            return Integer.parseInt(((String)rawValue).trim());
+        }
+        if (expectedType == int.class && rawValue instanceof String) {
+            return Integer.parseInt(((String)rawValue).trim());
+        }
+        if (expectedType == String.class && rawValue instanceof Integer) {
+            return rawValue.toString();
+        }
+        if (expectedType == int.class && rawValue instanceof Long) {
+            return ((Long)rawValue).intValue();
+        }
 
-		if (expectedType == long.class && rawValue instanceof Long) {
-			return (rawValue);
-		}
-		if (expectedType == Long.class && rawValue instanceof String) {
-			return Long.parseLong(((String)rawValue).trim());
-		}
-		if (expectedType == long.class && rawValue instanceof String) {
-			return Long.parseLong(((String)rawValue).trim());
-		}
-		if (expectedType == String.class && rawValue instanceof Long) {
-			return rawValue.toString();
-		}
+        if (expectedType == long.class && rawValue instanceof Long) {
+            return (rawValue);
+        }
+        if (expectedType == Long.class && rawValue instanceof String) {
+            return Long.parseLong(((String)rawValue).trim());
+        }
+        if (expectedType == long.class && rawValue instanceof String) {
+            return Long.parseLong(((String)rawValue).trim());
+        }
+        if (expectedType == String.class && rawValue instanceof Long) {
+            return rawValue.toString();
+        }
 
-		if (expectedType == float.class && rawValue instanceof Float) {
-			return rawValue;
-		}
-		if (expectedType == Float.class && rawValue instanceof String) {
-			return Float.parseFloat(((String)rawValue).trim());
-		}
-		if (expectedType == float.class && rawValue instanceof String) {
-			return Float.parseFloat(((String)rawValue).trim());
-		}
-		if (expectedType == String.class && rawValue instanceof Float) {
-			return rawValue.toString();
-		}
+        if (expectedType == float.class && rawValue instanceof Float) {
+            return rawValue;
+        }
+        if (expectedType == Float.class && rawValue instanceof String) {
+            return Float.parseFloat(((String)rawValue).trim());
+        }
+        if (expectedType == float.class && rawValue instanceof String) {
+            return Float.parseFloat(((String)rawValue).trim());
+        }
+        if (expectedType == String.class && rawValue instanceof Float) {
+            return rawValue.toString();
+        }
 
-		if (expectedType == double.class && rawValue instanceof Double) {
-			return rawValue;
-		}
-		if (expectedType == Double.class && rawValue instanceof String) {
-			return Double.parseDouble(((String)rawValue).trim());
-		}
-		if (expectedType == double.class && rawValue instanceof String) {
-			return Double.parseDouble(((String)rawValue).trim());
-		}
-		if (expectedType == String.class && rawValue instanceof Double) {
-			return rawValue.toString();
-		}
+        if (expectedType == double.class && rawValue instanceof Double) {
+            return rawValue;
+        }
+        if (expectedType == Double.class && rawValue instanceof String) {
+            return Double.parseDouble(((String)rawValue).trim());
+        }
+        if (expectedType == double.class && rawValue instanceof String) {
+            return Double.parseDouble(((String)rawValue).trim());
+        }
+        if (expectedType == String.class && rawValue instanceof Double) {
+            return rawValue.toString();
+        }
 
-		if (expectedType == byte.class && rawValue instanceof Byte) {
-			return rawValue;
-		}
-		if (expectedType == Byte.class && rawValue instanceof String) {
-			return Byte.parseByte(((String)rawValue));
-		}
-		if (expectedType == byte.class && rawValue instanceof String) {
-			return Byte.parseByte(((String)rawValue));
-		}
-		if (expectedType == String.class && rawValue instanceof Byte) {
-			return rawValue.toString();
-		}
+        if (expectedType == byte.class && rawValue instanceof Byte) {
+            return rawValue;
+        }
+        if (expectedType == Byte.class && rawValue instanceof String) {
+            return Byte.parseByte(((String)rawValue));
+        }
+        if (expectedType == byte.class && rawValue instanceof String) {
+            return Byte.parseByte(((String)rawValue));
+        }
+        if (expectedType == String.class && rawValue instanceof Byte) {
+            return rawValue.toString();
+        }
 
-		if (expectedType == BigInteger.class && rawValue instanceof String) {
-			return new BigInteger(((String)rawValue).trim());
-		}
-		if (expectedType == String.class && rawValue instanceof BigInteger) {
-			return rawValue.toString().trim();
-		}
+        if (expectedType == BigInteger.class && rawValue instanceof String) {
+            return new BigInteger(((String)rawValue).trim());
+        }
+        if (expectedType == String.class && rawValue instanceof BigInteger) {
+            return rawValue.toString().trim();
+        }
 
-		if (expectedType == BigDecimal.class && rawValue instanceof String) {
-			return new BigDecimal(((String)rawValue).trim());
-		}
-		if (expectedType == String.class && rawValue instanceof BigDecimal) {
-			return rawValue.toString().trim();
-		}
+        if (expectedType == BigDecimal.class && rawValue instanceof String) {
+            return new BigDecimal(((String)rawValue).trim());
+        }
+        if (expectedType == String.class && rawValue instanceof BigDecimal) {
+            return rawValue.toString().trim();
+        }
 
-		if (expectedType == PolyString.class && rawValue instanceof String) {
-			return new PolyString((String)rawValue);
-		}
-		if (expectedType == PolyStringType.class && rawValue instanceof String) {
-			PolyStringType polyStringType = new PolyStringType();
-			polyStringType.setOrig((String)rawValue);
-			return polyStringType;
-		}
-		if (expectedType == String.class && rawValue instanceof PolyString) {
-			return ((PolyString)rawValue).getOrig();
-		}
-		if (expectedType == String.class && rawValue instanceof PolyStringType) {
-			return ((PolyStringType)rawValue).getOrig();
-		}
-		if (expectedType == PolyString.class && rawValue instanceof PolyStringType) {
-			return ((PolyStringType)rawValue).toPolyString();
-		}
-		if (expectedType == PolyString.class && rawValue instanceof Integer) {
-			return new PolyString(((Integer)rawValue).toString());
-		}
-		if (expectedType == PolyStringType.class && rawValue instanceof PolyString) {
-			PolyStringType polyStringType = new PolyStringType((PolyString)rawValue);
-			return polyStringType;
-		}
-		if (expectedType == PolyStringType.class && rawValue instanceof Integer) {
-			PolyStringType polyStringType = new PolyStringType(((Integer)rawValue).toString());
-			return polyStringType;
-		}
+        if (expectedType == PolyString.class && rawValue instanceof String) {
+            return new PolyString((String)rawValue);
+        }
+        if (expectedType == PolyStringType.class && rawValue instanceof String) {
+            PolyStringType polyStringType = new PolyStringType();
+            polyStringType.setOrig((String)rawValue);
+            return polyStringType;
+        }
+        if (expectedType == String.class && rawValue instanceof PolyString) {
+            return ((PolyString)rawValue).getOrig();
+        }
+        if (expectedType == String.class && rawValue instanceof PolyStringType) {
+            return ((PolyStringType)rawValue).getOrig();
+        }
+        if (expectedType == PolyString.class && rawValue instanceof PolyStringType) {
+            return ((PolyStringType)rawValue).toPolyString();
+        }
+        if (expectedType == PolyString.class && rawValue instanceof Integer) {
+            return new PolyString(((Integer)rawValue).toString());
+        }
+        if (expectedType == PolyStringType.class && rawValue instanceof PolyString) {
+            PolyStringType polyStringType = new PolyStringType((PolyString)rawValue);
+            return polyStringType;
+        }
+        if (expectedType == PolyStringType.class && rawValue instanceof Integer) {
+            PolyStringType polyStringType = new PolyStringType(((Integer)rawValue).toString());
+            return polyStringType;
+        }
 
-		// Date and time
-		if (expectedType == XMLGregorianCalendar.class && rawValue instanceof Long) {
-			XMLGregorianCalendar xmlCalType = XmlTypeConverter.createXMLGregorianCalendar((Long)rawValue);
-			return xmlCalType;
-		}
-		if (expectedType == XMLGregorianCalendar.class && rawValue instanceof String) {
-			XMLGregorianCalendar xmlCalType = magicDateTimeParse((String)rawValue);
-			return xmlCalType;
-		}
-		if (expectedType == String.class && rawValue instanceof XMLGregorianCalendar) {
-			return ((XMLGregorianCalendar)rawValue).toXMLFormat();
-		}
-		if (expectedType == Long.class && rawValue instanceof XMLGregorianCalendar) {
-			return XmlTypeConverter.toMillis((XMLGregorianCalendar)rawValue);
-		}
+        // Date and time
+        if (expectedType == XMLGregorianCalendar.class && rawValue instanceof Long) {
+            XMLGregorianCalendar xmlCalType = XmlTypeConverter.createXMLGregorianCalendar((Long)rawValue);
+            return xmlCalType;
+        }
+        if (expectedType == XMLGregorianCalendar.class && rawValue instanceof String) {
+            XMLGregorianCalendar xmlCalType = magicDateTimeParse((String)rawValue);
+            return xmlCalType;
+        }
+        if (expectedType == String.class && rawValue instanceof XMLGregorianCalendar) {
+            return ((XMLGregorianCalendar)rawValue).toXMLFormat();
+        }
+        if (expectedType == Long.class && rawValue instanceof XMLGregorianCalendar) {
+            return XmlTypeConverter.toMillis((XMLGregorianCalendar)rawValue);
+        }
 
-		// XML Enums (JAXB)
-		if (expectedType.isEnum() && expectedType.getAnnotation(XmlEnum.class) != null && rawValue instanceof String) {
-			return XmlTypeConverter.toXmlEnum(expectedType, ((String)rawValue).trim());
-		}
-		if (expectedType == String.class && rawValue.getClass().isEnum() && rawValue.getClass().getAnnotation(XmlEnum.class) != null) {
-			return XmlTypeConverter.fromXmlEnum(rawValue);
-		}
+        // XML Enums (JAXB)
+        if (expectedType.isEnum() && expectedType.getAnnotation(XmlEnum.class) != null && rawValue instanceof String) {
+            return XmlTypeConverter.toXmlEnum(expectedType, ((String)rawValue).trim());
+        }
+        if (expectedType == String.class && rawValue.getClass().isEnum() && rawValue.getClass().getAnnotation(XmlEnum.class) != null) {
+            return XmlTypeConverter.fromXmlEnum(rawValue);
+        }
 
-		// Java Enums
-		if (expectedType.isEnum() && rawValue instanceof String) {
-			return Enum.valueOf((Class<Enum>)expectedType, ((String)rawValue).trim());
-		}
-		if (expectedType == String.class && rawValue.getClass().isEnum()) {
-			return rawValue.toString();
-		}
+        // Java Enums
+        if (expectedType.isEnum() && rawValue instanceof String) {
+            return Enum.valueOf((Class<Enum>)expectedType, ((String)rawValue).trim());
+        }
+        if (expectedType == String.class && rawValue.getClass().isEnum()) {
+            return rawValue.toString();
+        }
 
-		//QName
-		if (expectedType == QName.class && rawValue instanceof QName){
-			return rawValue;
-		}
-		if (expectedType == QName.class && rawValue instanceof String){
-			return QNameUtil.uriToQName(((String)rawValue).trim());
-		}
+        //QName
+        if (expectedType == QName.class && rawValue instanceof QName){
+            return rawValue;
+        }
+        if (expectedType == QName.class && rawValue instanceof String){
+            return QNameUtil.uriToQName(((String)rawValue).trim());
+        }
 
-		if (failIfImpossible) {
-			throw new IllegalArgumentException("Expected " + expectedType + " type, but got " + rawValue.getClass());
-		} else {
-			return rawValue;
-		}
-	}
+        if (failIfImpossible) {
+            throw new IllegalArgumentException("Expected " + expectedType + " type, but got " + rawValue.getClass());
+        } else {
+            return rawValue;
+        }
+    }
 
-	private static XMLGregorianCalendar magicDateTimeParse(String stringDate) {
-		try {
-			return XmlTypeConverter.createXMLGregorianCalendar(stringDate);
-		} catch (IllegalArgumentException e) {
-			// No XML format. This is still quite OK. It we will try other formats ...
-		}
-		Date date;
-		try {
-			date = DateUtils.parseDate(stringDate, DATE_FORMATS);
-		} catch (ParseException e) {
-			throw new IllegalArgumentException(e.getMessage(), e);
-		}
-		return XmlTypeConverter.createXMLGregorianCalendar(date);
-	}
+    private static XMLGregorianCalendar magicDateTimeParse(String stringDate) {
+        try {
+            return XmlTypeConverter.createXMLGregorianCalendar(stringDate);
+        } catch (IllegalArgumentException e) {
+            // No XML format. This is still quite OK. It we will try other formats ...
+        }
+        Date date;
+        try {
+            date = DateUtils.parseDate(stringDate, DATE_FORMATS);
+        } catch (ParseException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
+        return XmlTypeConverter.createXMLGregorianCalendar(date);
+    }
 
-	public static <T> boolean isTypeCompliant(@Nullable T value, @Nullable Class<?> expectedClass) {
-		if (value == null || expectedClass == null) {
-			return true;
-		}
-		Class<?> wrapped = ClassUtils.primitiveToWrapper(expectedClass);
-		return wrapped.isAssignableFrom(((Object) value).getClass());		// auto-boxing of primitive types
+    public static <T> boolean isTypeCompliant(@Nullable T value, @Nullable Class<?> expectedClass) {
+        if (value == null || expectedClass == null) {
+            return true;
+        }
+        Class<?> wrapped = ClassUtils.primitiveToWrapper(expectedClass);
+        return wrapped.isAssignableFrom(((Object) value).getClass());        // auto-boxing of primitive types
 
-		// TODO PolyString vs String - should be treated here?
-		// TODO int vs long vs ...
-	}
+        // TODO PolyString vs String - should be treated here?
+        // TODO int vs long vs ...
+    }
 
 }

@@ -2,23 +2,23 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111122" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+<user oid="c0c010c0-d34d-b33f-f00d-111111111122"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>herman</name>
-    
+
     <activation>
-		<validFrom>1700-05-30T11:00:00Z</validFrom>
-		<validTo>2233-03-23T18:30:00Z</validTo>
-	</activation>
-    
+        <validFrom>1700-05-30T11:00:00Z</validFrom>
+        <validTo>2233-03-23T18:30:00Z</validTo>
+    </activation>
+
     <fullName>Herman Toothrot</fullName>
     <givenName>Herman</givenName>
     <familyName>Toothrot</familyName>
@@ -26,8 +26,8 @@
 
     <credentials>
         <password>
-        	<value>
-	            <t:clearValue>m0nk3y</t:clearValue>
+            <value>
+                <t:clearValue>m0nk3y</t:clearValue>
             </value>
         </password>
     </credentials>

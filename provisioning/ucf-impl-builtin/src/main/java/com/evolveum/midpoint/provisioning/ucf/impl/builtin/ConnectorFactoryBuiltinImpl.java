@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
@@ -62,240 +62,240 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @Component
 public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 
-	public static final String SCAN_PACKAGE = "com.evolveum.midpoint";
+    public static final String SCAN_PACKAGE = "com.evolveum.midpoint";
 
-	private static final String CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN + "/bundle/";
+    private static final String CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN + "/bundle/";
 
-	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryBuiltinImpl.class);
-	
-	@Autowired private PrismContext prismContext;
-	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-	@Autowired private CaseEventDispatcher caseManager;
-	@Autowired private TaskManager taskManager;
-	@Autowired private SecurityContextManager securityContextManager;
-	@Autowired private UcfExpressionEvaluator ucfExpressionEvaluator;
-	@Autowired private Tracer tracer;
+    private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryBuiltinImpl.class);
 
-	private final Object CONNECTOR_DISCOVERY = new Object();
+    @Autowired private PrismContext prismContext;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private CaseEventDispatcher caseManager;
+    @Autowired private TaskManager taskManager;
+    @Autowired private SecurityContextManager securityContextManager;
+    @Autowired private UcfExpressionEvaluator ucfExpressionEvaluator;
+    @Autowired private Tracer tracer;
 
-	private Map<String,ConnectorStruct> connectorMap;
+    private final Object CONNECTOR_DISCOVERY = new Object();
 
-	@Override
-	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentResult) {
-		if (host != null) {
-			return null;
-		}
-		discoverConnectorsIfNeeded();
-		return connectorMap.values().stream().map(connectorStruct -> connectorStruct.connectorObject).collect(Collectors.toSet());
-	}
+    private Map<String,ConnectorStruct> connectorMap;
 
-	private void discoverConnectorsIfNeeded() {
-		synchronized (CONNECTOR_DISCOVERY) {
-			if (connectorMap == null) {
-				connectorMap = new HashMap<>();
-				ClassPathScanningCandidateComponentProvider scanner =
-						new ClassPathScanningCandidateComponentProvider(false);
-				scanner.addIncludeFilter(new AnnotationTypeFilter(ManagedConnector.class));
-				LOGGER.trace("Scanning package {}", SCAN_PACKAGE);
-				for (BeanDefinition bd : scanner.findCandidateComponents(SCAN_PACKAGE)) {
-					LOGGER.debug("Found connector class {}", bd);
-					String beanClassName = bd.getBeanClassName();
-					try {
-						Class connectorClass = Class.forName(beanClassName);
-						ManagedConnector annotation = (ManagedConnector) connectorClass.getAnnotation(ManagedConnector.class);
-						String type = annotation.type();
-						LOGGER.debug("Found connector {} class {}", type, connectorClass);
-						ConnectorStruct struct = createConnectorStruct(connectorClass, annotation);
-						connectorMap.put(type, struct);
-					} catch (ClassNotFoundException e) {
-						LOGGER.error("Error loading connector class {}: {}", beanClassName, e.getMessage(), e);
-					} catch (ObjectNotFoundException | SchemaException e) {
-						LOGGER.error("Error discovering the connector {}: {}", beanClassName, e.getMessage(), e);
-					}
-				}
-				LOGGER.trace("Scan done");
-			}
-		}
-	}
+    @Override
+    public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentResult) {
+        if (host != null) {
+            return null;
+        }
+        discoverConnectorsIfNeeded();
+        return connectorMap.values().stream().map(connectorStruct -> connectorStruct.connectorObject).collect(Collectors.toSet());
+    }
 
-	private ConnectorStruct createConnectorStruct(Class connectorClass, ManagedConnector annotation) throws ObjectNotFoundException, SchemaException {
-		ConnectorStruct struct = new ConnectorStruct();
-		//noinspection unchecked
-		struct.connectorClass = connectorClass;
+    private void discoverConnectorsIfNeeded() {
+        synchronized (CONNECTOR_DISCOVERY) {
+            if (connectorMap == null) {
+                connectorMap = new HashMap<>();
+                ClassPathScanningCandidateComponentProvider scanner =
+                        new ClassPathScanningCandidateComponentProvider(false);
+                scanner.addIncludeFilter(new AnnotationTypeFilter(ManagedConnector.class));
+                LOGGER.trace("Scanning package {}", SCAN_PACKAGE);
+                for (BeanDefinition bd : scanner.findCandidateComponents(SCAN_PACKAGE)) {
+                    LOGGER.debug("Found connector class {}", bd);
+                    String beanClassName = bd.getBeanClassName();
+                    try {
+                        Class connectorClass = Class.forName(beanClassName);
+                        ManagedConnector annotation = (ManagedConnector) connectorClass.getAnnotation(ManagedConnector.class);
+                        String type = annotation.type();
+                        LOGGER.debug("Found connector {} class {}", type, connectorClass);
+                        ConnectorStruct struct = createConnectorStruct(connectorClass, annotation);
+                        connectorMap.put(type, struct);
+                    } catch (ClassNotFoundException e) {
+                        LOGGER.error("Error loading connector class {}: {}", beanClassName, e.getMessage(), e);
+                    } catch (ObjectNotFoundException | SchemaException e) {
+                        LOGGER.error("Error discovering the connector {}: {}", beanClassName, e.getMessage(), e);
+                    }
+                }
+                LOGGER.trace("Scan done");
+            }
+        }
+    }
 
-		ConnectorType connectorType = new ConnectorType();
-		String bundleName = connectorClass.getPackage().getName();
-		String type = annotation.type();
-		if (type == null || type.isEmpty()) {
-			type = connectorClass.getSimpleName();
-		}
-		String version = annotation.version();
-		UcfUtil.addConnectorNames(connectorType, "Built-in", bundleName, type, version, null);
-		connectorType.setConnectorBundle(bundleName);
-		connectorType.setConnectorType(type);
-		connectorType.setVersion(version);
-		connectorType.setFramework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
-		String namespace = CONFIGURATION_NAMESPACE_PREFIX + bundleName + "/" + type;
-		connectorType.setNamespace(namespace);
+    private ConnectorStruct createConnectorStruct(Class connectorClass, ManagedConnector annotation) throws ObjectNotFoundException, SchemaException {
+        ConnectorStruct struct = new ConnectorStruct();
+        //noinspection unchecked
+        struct.connectorClass = connectorClass;
 
-		struct.connectorObject = connectorType;
+        ConnectorType connectorType = new ConnectorType();
+        String bundleName = connectorClass.getPackage().getName();
+        String type = annotation.type();
+        if (type == null || type.isEmpty()) {
+            type = connectorClass.getSimpleName();
+        }
+        String version = annotation.version();
+        UcfUtil.addConnectorNames(connectorType, "Built-in", bundleName, type, version, null);
+        connectorType.setConnectorBundle(bundleName);
+        connectorType.setConnectorType(type);
+        connectorType.setVersion(version);
+        connectorType.setFramework(SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN);
+        String namespace = CONFIGURATION_NAMESPACE_PREFIX + bundleName + "/" + type;
+        connectorType.setNamespace(namespace);
 
-		PrismSchema connectorSchema = generateConnectorConfigurationSchema(struct);
-		if (connectorSchema != null) {
-			LOGGER.trace("Generated connector schema for {}: {} definitions",
-					connectorType, connectorSchema.getDefinitions().size());
-			UcfUtil.setConnectorSchema(connectorType, connectorSchema);
-			struct.connectorConfigurationSchema = connectorSchema;
-		} else {
-			LOGGER.warn("No connector schema generated for {}", connectorType);
-		}
+        struct.connectorObject = connectorType;
 
-		return struct;
-	}
+        PrismSchema connectorSchema = generateConnectorConfigurationSchema(struct);
+        if (connectorSchema != null) {
+            LOGGER.trace("Generated connector schema for {}: {} definitions",
+                    connectorType, connectorSchema.getDefinitions().size());
+            UcfUtil.setConnectorSchema(connectorType, connectorSchema);
+            struct.connectorConfigurationSchema = connectorSchema;
+        } else {
+            LOGGER.warn("No connector schema generated for {}", connectorType);
+        }
 
-	private ConnectorStruct getConnectorStruct(ConnectorType connectorType) throws ObjectNotFoundException {
-		discoverConnectorsIfNeeded();
-		String type = connectorType.getConnectorType();
-		ConnectorStruct struct = connectorMap.get(type);
-		if (struct == null) {
-			LOGGER.error("No built-in connector type {}; known types: {}", type, connectorMap);
-			throw new ObjectNotFoundException("No built-in connector type "+type);
-		}
-		return struct;
-	}
+        return struct;
+    }
 
-	@Override
-	public PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType)
-			throws ObjectNotFoundException {
-		ConnectorStruct struct = getConnectorStruct(connectorType);
-		return generateConnectorConfigurationSchema(struct);
-	}
+    private ConnectorStruct getConnectorStruct(ConnectorType connectorType) throws ObjectNotFoundException {
+        discoverConnectorsIfNeeded();
+        String type = connectorType.getConnectorType();
+        ConnectorStruct struct = connectorMap.get(type);
+        if (struct == null) {
+            LOGGER.error("No built-in connector type {}; known types: {}", type, connectorMap);
+            throw new ObjectNotFoundException("No built-in connector type "+type);
+        }
+        return struct;
+    }
 
-	private PrismSchema generateConnectorConfigurationSchema(ConnectorStruct struct) {
+    @Override
+    public PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType)
+            throws ObjectNotFoundException {
+        ConnectorStruct struct = getConnectorStruct(connectorType);
+        return generateConnectorConfigurationSchema(struct);
+    }
 
-		Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
+    private PrismSchema generateConnectorConfigurationSchema(ConnectorStruct struct) {
 
-		PropertyDescriptor connectorConfigurationProp = UcfUtil.findAnnotatedProperty(connectorClass, ManagedConnectorConfiguration.class);
+        Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
 
-		MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(struct.connectorObject.getNamespace());
-		// Create configuration type - the type used by the "configuration" element
-		MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createPropertyContainerDefinition(
-				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
-				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
+        PropertyDescriptor connectorConfigurationProp = UcfUtil.findAnnotatedProperty(connectorClass, ManagedConnectorConfiguration.class);
 
-		Class<?> configurationClass = connectorConfigurationProp.getPropertyType();
-		BeanWrapper configurationClassBean = new BeanWrapperImpl(configurationClass);
-		for (PropertyDescriptor prop: configurationClassBean.getPropertyDescriptors()) {
-			if (!UcfUtil.hasAnnotation(prop, ConfigurationProperty.class)) {
-				continue;
-			}
+        MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(struct.connectorObject.getNamespace());
+        // Create configuration type - the type used by the "configuration" element
+        MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createPropertyContainerDefinition(
+                ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
+                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 
-			ItemDefinition<?> itemDef = createPropertyDefinition(configurationContainerDef, prop);
+        Class<?> configurationClass = connectorConfigurationProp.getPropertyType();
+        BeanWrapper configurationClassBean = new BeanWrapperImpl(configurationClass);
+        for (PropertyDescriptor prop: configurationClassBean.getPropertyDescriptors()) {
+            if (!UcfUtil.hasAnnotation(prop, ConfigurationProperty.class)) {
+                continue;
+            }
 
-			LOGGER.trace("Configuration item definition for {}: {}", prop.getName(), itemDef);
-		}
+            ItemDefinition<?> itemDef = createPropertyDefinition(configurationContainerDef, prop);
 
-		return connectorSchema;
-	}
+            LOGGER.trace("Configuration item definition for {}: {}", prop.getName(), itemDef);
+        }
 
-	private ItemDefinition<?> createPropertyDefinition(MutablePrismContainerDefinition<?> configurationContainerDef,
-			PropertyDescriptor prop) {
-		String propName = prop.getName();
-		Class<?> propertyType = prop.getPropertyType();
-		Class<?> baseType = propertyType;
-		int minOccurs = 1;
-		int maxOccurs = 1;
-		if (propertyType.isArray()) {
-			maxOccurs = -1;
-			baseType = propertyType.getComponentType();
-		}
-		// TODO: minOccurs: define which properties are optional/mandatory
-		// TODO: display names, ordering, help texts
-		QName propType = XsdTypeMapper.getJavaToXsdMapping(baseType);
-		if (propType == null) {
-			PrismPropertyDefinition propDef = prismContext.getSchemaRegistry()
-					.findItemDefinitionByCompileTimeClass(baseType, PrismPropertyDefinition.class);
-			if (propDef != null) {
-				propType = propDef.getTypeName();
-			} else {
-				throw new IllegalStateException("Property " + propName + " of " + baseType + " cannot be resolved to a XSD type or a prism property");
-			}
-		}
-		return configurationContainerDef.createPropertyDefinition(
-				new QName(configurationContainerDef.getItemName().getNamespaceURI(), propName), propType, minOccurs, maxOccurs);
-	}
+        return connectorSchema;
+    }
 
-	@Override
-	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace,
-			String instanceName, String desc) throws ObjectNotFoundException, SchemaException {
-		ConnectorStruct struct = getConnectorStruct(connectorType);
-		Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
-		ConnectorInstance connectorInstance;
-		try {
-			connectorInstance = connectorClass.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new ObjectNotFoundException("Cannot create instance of connector "+connectorClass+": "+e.getMessage(), e);
-		}
-		if (connectorInstance instanceof AbstractManagedConnectorInstance) {
-			setupAbstractConnectorInstance((AbstractManagedConnectorInstance)connectorInstance, connectorType, namespace,
-					desc, struct);
-		}
-		if (connectorInstance instanceof RepositoryAware) {
-			((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);
-		}
-		if (connectorInstance instanceof CaseEventDispatcherAware) {
-			((CaseEventDispatcherAware)connectorInstance).setDispatcher(caseManager);
-		}
-		if (connectorInstance instanceof TaskManagerAware) {
-			((TaskManagerAware)connectorInstance).setTaskManager(taskManager);
-		}
-		if (connectorInstance instanceof SecurityContextManagerAware) {
-			((SecurityContextManagerAware) connectorInstance).setSecurityContextManager(securityContextManager);
-		}
-		if (connectorInstance instanceof UcfExpressionEvaluatorAware) {
-			((UcfExpressionEvaluatorAware) connectorInstance).setUcfExpressionEvaluator(ucfExpressionEvaluator);
-		}
-		if (connectorInstance instanceof TracerAware) {
-			((TracerAware) connectorInstance).setTracer(tracer);
-		}
-		if (connectorInstance instanceof TaskManagerAware) {
-			((TaskManagerAware) connectorInstance).setTaskManager(taskManager);
-		}
-		return connectorInstance;
-	}
+    private ItemDefinition<?> createPropertyDefinition(MutablePrismContainerDefinition<?> configurationContainerDef,
+            PropertyDescriptor prop) {
+        String propName = prop.getName();
+        Class<?> propertyType = prop.getPropertyType();
+        Class<?> baseType = propertyType;
+        int minOccurs = 1;
+        int maxOccurs = 1;
+        if (propertyType.isArray()) {
+            maxOccurs = -1;
+            baseType = propertyType.getComponentType();
+        }
+        // TODO: minOccurs: define which properties are optional/mandatory
+        // TODO: display names, ordering, help texts
+        QName propType = XsdTypeMapper.getJavaToXsdMapping(baseType);
+        if (propType == null) {
+            PrismPropertyDefinition propDef = prismContext.getSchemaRegistry()
+                    .findItemDefinitionByCompileTimeClass(baseType, PrismPropertyDefinition.class);
+            if (propDef != null) {
+                propType = propDef.getTypeName();
+            } else {
+                throw new IllegalStateException("Property " + propName + " of " + baseType + " cannot be resolved to a XSD type or a prism property");
+            }
+        }
+        return configurationContainerDef.createPropertyDefinition(
+                new QName(configurationContainerDef.getItemName().getNamespaceURI(), propName), propType, minOccurs, maxOccurs);
+    }
 
-	private void setupAbstractConnectorInstance(AbstractManagedConnectorInstance connectorInstance, ConnectorType connectorObject, String namespace,
-			String desc, ConnectorStruct struct) {
-		connectorInstance.setConnectorObject(connectorObject);
-		connectorInstance.setResourceSchemaNamespace(namespace);
-		connectorInstance.setPrismContext(prismContext);
-		connectorInstance.setConnectorConfigurationSchema(struct.connectorConfigurationSchema);
-	}
+    @Override
+    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace,
+            String instanceName, String desc) throws ObjectNotFoundException, SchemaException {
+        ConnectorStruct struct = getConnectorStruct(connectorType);
+        Class<? extends ConnectorInstance> connectorClass = struct.connectorClass;
+        ConnectorInstance connectorInstance;
+        try {
+            connectorInstance = connectorClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ObjectNotFoundException("Cannot create instance of connector "+connectorClass+": "+e.getMessage(), e);
+        }
+        if (connectorInstance instanceof AbstractManagedConnectorInstance) {
+            setupAbstractConnectorInstance((AbstractManagedConnectorInstance)connectorInstance, connectorType, namespace,
+                    desc, struct);
+        }
+        if (connectorInstance instanceof RepositoryAware) {
+            ((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);
+        }
+        if (connectorInstance instanceof CaseEventDispatcherAware) {
+            ((CaseEventDispatcherAware)connectorInstance).setDispatcher(caseManager);
+        }
+        if (connectorInstance instanceof TaskManagerAware) {
+            ((TaskManagerAware)connectorInstance).setTaskManager(taskManager);
+        }
+        if (connectorInstance instanceof SecurityContextManagerAware) {
+            ((SecurityContextManagerAware) connectorInstance).setSecurityContextManager(securityContextManager);
+        }
+        if (connectorInstance instanceof UcfExpressionEvaluatorAware) {
+            ((UcfExpressionEvaluatorAware) connectorInstance).setUcfExpressionEvaluator(ucfExpressionEvaluator);
+        }
+        if (connectorInstance instanceof TracerAware) {
+            ((TracerAware) connectorInstance).setTracer(tracer);
+        }
+        if (connectorInstance instanceof TaskManagerAware) {
+            ((TaskManagerAware) connectorInstance).setTaskManager(taskManager);
+        }
+        return connectorInstance;
+    }
 
-	@Override
-	public void selfTest(OperationResult parentTestResult) {
-		// Nothing to do
-	}
+    private void setupAbstractConnectorInstance(AbstractManagedConnectorInstance connectorInstance, ConnectorType connectorObject, String namespace,
+            String desc, ConnectorStruct struct) {
+        connectorInstance.setConnectorObject(connectorObject);
+        connectorInstance.setResourceSchemaNamespace(namespace);
+        connectorInstance.setPrismContext(prismContext);
+        connectorInstance.setConnectorConfigurationSchema(struct.connectorConfigurationSchema);
+    }
 
-	@Override
-	public boolean supportsFramework(String frameworkIdentifier) {
-		return SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN.equals(frameworkIdentifier);
-	}
+    @Override
+    public void selfTest(OperationResult parentTestResult) {
+        // Nothing to do
+    }
 
-	@Override
-	public String getFrameworkVersion() {
-		return "1.0.0";
-	}
+    @Override
+    public boolean supportsFramework(String frameworkIdentifier) {
+        return SchemaConstants.UCF_FRAMEWORK_URI_BUILTIN.equals(frameworkIdentifier);
+    }
 
-	@Override
-	public void shutdown() {
-		// Nothing to do
-	}
+    @Override
+    public String getFrameworkVersion() {
+        return "1.0.0";
+    }
 
-	private static class ConnectorStruct {
-		Class<? extends ConnectorInstance> connectorClass;
-		ConnectorType connectorObject;
-		PrismSchema connectorConfigurationSchema;
-	}
+    @Override
+    public void shutdown() {
+        // Nothing to do
+    }
+
+    private static class ConnectorStruct {
+        Class<? extends ConnectorInstance> connectorClass;
+        ConnectorType connectorObject;
+        PrismSchema connectorConfigurationSchema;
+    }
 
 }

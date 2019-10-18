@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.cases;
@@ -60,9 +60,9 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
     private static final String ID_WORKITEMS_TABLE = "workitemsTable";
 
     public enum View {
-        FULL_LIST,				// selectable, full information
-        DASHBOARD, 				// not selectable, reduced info (on dashboard)
-        ITEMS_FOR_PROCESS		// work items for a process
+        FULL_LIST,                // selectable, full information
+        DASHBOARD,                 // not selectable, reduced info (on dashboard)
+        ITEMS_FOR_PROCESS        // work items for a process
     }
 
     private View view;

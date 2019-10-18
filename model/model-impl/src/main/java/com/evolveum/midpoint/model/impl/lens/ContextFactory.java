@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
@@ -44,38 +44,38 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component
 public class ContextFactory {
 
-	@Autowired(required = true)
-	PrismContext prismContext;
+    @Autowired(required = true)
+    PrismContext prismContext;
 
-	@Autowired(required = true)
-	private ProvisioningService provisioningService;
+    @Autowired(required = true)
+    private ProvisioningService provisioningService;
 
-	@Autowired(required = true)
-	Protector protector;
+    @Autowired(required = true)
+    Protector protector;
 
-	public <F extends ObjectType> LensContext<F> createContext(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ObjectDelta<F> focusDelta = null;
-		Collection<ObjectDelta<ShadowType>> projectionDeltas = new ArrayList<>(deltas.size());
-		ObjectDelta<? extends ObjectType> confDelta = null;
-		Class<F> focusClass = null;
-		// Sort deltas to focus and projection deltas, check if the classes are correct;
-		for (ObjectDelta<? extends ObjectType> delta: deltas) {
-			Class<? extends ObjectType> typeClass = delta.getObjectTypeClass();
-			Validate.notNull(typeClass, "Object type class is null in "+delta);
-			if (isFocalClass(typeClass)) {
-				if (confDelta != null) {
-					throw new IllegalArgumentException("Mixed configuration and focus deltas in one executeChanges invocation");
-				}
+    public <F extends ObjectType> LensContext<F> createContext(
+            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        ObjectDelta<F> focusDelta = null;
+        Collection<ObjectDelta<ShadowType>> projectionDeltas = new ArrayList<>(deltas.size());
+        ObjectDelta<? extends ObjectType> confDelta = null;
+        Class<F> focusClass = null;
+        // Sort deltas to focus and projection deltas, check if the classes are correct;
+        for (ObjectDelta<? extends ObjectType> delta: deltas) {
+            Class<? extends ObjectType> typeClass = delta.getObjectTypeClass();
+            Validate.notNull(typeClass, "Object type class is null in "+delta);
+            if (isFocalClass(typeClass)) {
+                if (confDelta != null) {
+                    throw new IllegalArgumentException("Mixed configuration and focus deltas in one executeChanges invocation");
+                }
 
-				focusClass = (Class<F>) typeClass;
-				if (!delta.isAdd() && delta.getOid() == null) {
-					throw new IllegalArgumentException("Delta "+delta+" does not have an OID");
-				}
-				if (InternalsConfig.consistencyChecks) {
-					// Focus delta has to be complete now with all the definition already in place
-					delta.checkConsistence(false, true, true, ConsistencyCheckScope.THOROUGH);
-				} else {
+                focusClass = (Class<F>) typeClass;
+                if (!delta.isAdd() && delta.getOid() == null) {
+                    throw new IllegalArgumentException("Delta "+delta+" does not have an OID");
+                }
+                if (InternalsConfig.consistencyChecks) {
+                    // Focus delta has to be complete now with all the definition already in place
+                    delta.checkConsistence(false, true, true, ConsistencyCheckScope.THOROUGH);
+                } else {
                     delta.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY);        // TODO is this necessary? Perhaps it would be sufficient to check on model/repo entry
                 }
                 if (focusDelta != null) {
@@ -83,155 +83,155 @@ public class ContextFactory {
                 }
                 // Make sure we clone request delta here. Clockwork will modify the delta (e.g. normalize it).
                 // And we do not want to touch request delta. It may even be immutable.
-				focusDelta = (ObjectDelta<F>) delta.clone();
-			} else if (isProjectionClass(typeClass)) {
-				if (confDelta != null) {
-					throw new IllegalArgumentException("Mixed configuration and projection deltas in one executeChanges invocation");
-				}
-				// Make sure we clone request delta here. Clockwork will modify the delta (e.g. normalize it).
+                focusDelta = (ObjectDelta<F>) delta.clone();
+            } else if (isProjectionClass(typeClass)) {
+                if (confDelta != null) {
+                    throw new IllegalArgumentException("Mixed configuration and projection deltas in one executeChanges invocation");
+                }
+                // Make sure we clone request delta here. Clockwork will modify the delta (e.g. normalize it).
                 // And we do not want to touch request delta. It may even be immutable.
-				ObjectDelta<ShadowType> projectionDelta = (ObjectDelta<ShadowType>) delta.clone();
-				projectionDeltas.add(projectionDelta);
-			} else {
-				if (confDelta != null) {
-					throw new IllegalArgumentException("More than one configuration delta in a single executeChanges invovation");
-				}
-				// Make sure we clone request delta here. Clockwork will modify the delta (e.g. normalize it).
+                ObjectDelta<ShadowType> projectionDelta = (ObjectDelta<ShadowType>) delta.clone();
+                projectionDeltas.add(projectionDelta);
+            } else {
+                if (confDelta != null) {
+                    throw new IllegalArgumentException("More than one configuration delta in a single executeChanges invovation");
+                }
+                // Make sure we clone request delta here. Clockwork will modify the delta (e.g. normalize it).
                 // And we do not want to touch request delta. It may even be immutable.
-				confDelta = delta.clone();
-			}
-		}
+                confDelta = delta.clone();
+            }
+        }
 
-		if (confDelta != null) {
-			focusClass = (Class<F>) confDelta.getObjectTypeClass();
-		}
+        if (confDelta != null) {
+            focusClass = (Class<F>) confDelta.getObjectTypeClass();
+        }
 
-		if (focusClass == null) {
-			focusClass = determineFocusClass();
-		}
-		LensContext<F> context = new LensContext<>(focusClass, prismContext, provisioningService);
-		context.setChannel(task.getChannel());
-		context.setOptions(options);
-		context.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
+        if (focusClass == null) {
+            focusClass = determineFocusClass();
+        }
+        LensContext<F> context = new LensContext<>(focusClass, prismContext, provisioningService);
+        context.setChannel(task.getChannel());
+        context.setOptions(options);
+        context.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
 
-		if (confDelta != null) {
-			LensFocusContext<F> focusContext = context.createFocusContext();
-			focusContext.setPrimaryDelta((ObjectDelta<F>) confDelta);
+        if (confDelta != null) {
+            LensFocusContext<F> focusContext = context.createFocusContext();
+            focusContext.setPrimaryDelta((ObjectDelta<F>) confDelta);
 
-		} else {
+        } else {
 
-			if (focusDelta != null) {
-				LensFocusContext<F> focusContext = context.createFocusContext();
-				focusContext.setPrimaryDelta(focusDelta);
-			}
+            if (focusDelta != null) {
+                LensFocusContext<F> focusContext = context.createFocusContext();
+                focusContext.setPrimaryDelta(focusDelta);
+            }
 
-			for (ObjectDelta<ShadowType> projectionDelta: projectionDeltas) {
-				LensProjectionContext projectionContext = context.createProjectionContext();
-				if (context.isDoReconciliationForAllProjections()) {
-					projectionContext.setDoReconciliation(true);
-				}
-				projectionContext.setPrimaryDelta(projectionDelta);
+            for (ObjectDelta<ShadowType> projectionDelta: projectionDeltas) {
+                LensProjectionContext projectionContext = context.createProjectionContext();
+                if (context.isDoReconciliationForAllProjections()) {
+                    projectionContext.setDoReconciliation(true);
+                }
+                projectionContext.setPrimaryDelta(projectionDelta);
 
-				// We are little bit more liberal regarding projection deltas.
-				// If the deltas represent shadows we tolerate missing attribute definitions.
-				// We try to add the definitions by calling provisioning
-				provisioningService.applyDefinition(projectionDelta, task, result);
+                // We are little bit more liberal regarding projection deltas.
+                // If the deltas represent shadows we tolerate missing attribute definitions.
+                // We try to add the definitions by calling provisioning
+                provisioningService.applyDefinition(projectionDelta, task, result);
 
-				if (projectionDelta instanceof ShadowDiscriminatorObjectDelta) {
-					ShadowDiscriminatorObjectDelta<ShadowType> shadowDelta = (ShadowDiscriminatorObjectDelta<ShadowType>)projectionDelta;
-					projectionContext.setResourceShadowDiscriminator(shadowDelta.getDiscriminator());
-				} else {
-					if (!projectionDelta.isAdd() && projectionDelta.getOid() == null) {
-						throw new IllegalArgumentException("Delta "+projectionDelta+" does not have an OID");
-					}
-				}
-			}
+                if (projectionDelta instanceof ShadowDiscriminatorObjectDelta) {
+                    ShadowDiscriminatorObjectDelta<ShadowType> shadowDelta = (ShadowDiscriminatorObjectDelta<ShadowType>)projectionDelta;
+                    projectionContext.setResourceShadowDiscriminator(shadowDelta.getDiscriminator());
+                } else {
+                    if (!projectionDelta.isAdd() && projectionDelta.getOid() == null) {
+                        throw new IllegalArgumentException("Delta "+projectionDelta+" does not have an OID");
+                    }
+                }
+            }
 
-		}
+        }
 
-		// This forces context reload before the next projection
-		context.rot("context initialization");
+        // This forces context reload before the next projection
+        context.rot("context initialization");
 
-		if (InternalsConfig.consistencyChecks) context.checkConsistence();
+        if (InternalsConfig.consistencyChecks) context.checkConsistence();
 
-		context.finishBuild();
-		return context;
-	}
-
-
-	public <F extends ObjectType, O extends ObjectType> LensContext<F> createRecomputeContext(
-    		PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		Class<O> typeClass = object.getCompileTimeClass();
-		LensContext<F> context;
-		if (isFocalClass(typeClass)) {
-			context = createRecomputeFocusContext((Class<F>)typeClass, (PrismObject<F>) object, options, task, result);
-		} else if (ShadowType.class.isAssignableFrom(typeClass)) {
-			context =  createRecomputeProjectionContext((PrismObject<ShadowType>) object, options, task, result);
-		} else {
-			throw new IllegalArgumentException("Cannot create recompute context for "+object);
-		}
-		context.setOptions(options);
-		context.setLazyAuditRequest(true);
-		return context;
-	}
-
-	public <F extends ObjectType> LensContext<F> createRecomputeFocusContext(
-    		Class<F> focusType, PrismObject<F> focus, ModelExecuteOptions options, Task task, OperationResult result) {
-    	LensContext<F> syncContext = new LensContext<>(focusType,
-            prismContext, provisioningService);
-		LensFocusContext<F> focusContext = syncContext.createFocusContext();
-		focusContext.setLoadedObject(focus);
-		focusContext.setOid(focus.getOid());
-		syncContext.setChannel(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
-		syncContext.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
-		return syncContext;
+        context.finishBuild();
+        return context;
     }
 
-	public <F extends ObjectType> LensContext<F> createRecomputeProjectionContext(
-    		PrismObject<ShadowType> shadow, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		provisioningService.applyDefinition(shadow, task, result);
-    	LensContext<F> syncContext = new LensContext<>(null,
-            prismContext, provisioningService);
-    	LensProjectionContext projectionContext = syncContext.createProjectionContext();
-    	projectionContext.setLoadedObject(shadow);
-    	projectionContext.setOid(shadow.getOid());
-    	projectionContext.setDoReconciliation(ModelExecuteOptions.isReconcile(options));
-		syncContext.setChannel(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
-		return syncContext;
+
+    public <F extends ObjectType, O extends ObjectType> LensContext<F> createRecomputeContext(
+            PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        Class<O> typeClass = object.getCompileTimeClass();
+        LensContext<F> context;
+        if (isFocalClass(typeClass)) {
+            context = createRecomputeFocusContext((Class<F>)typeClass, (PrismObject<F>) object, options, task, result);
+        } else if (ShadowType.class.isAssignableFrom(typeClass)) {
+            context =  createRecomputeProjectionContext((PrismObject<ShadowType>) object, options, task, result);
+        } else {
+            throw new IllegalArgumentException("Cannot create recompute context for "+object);
+        }
+        context.setOptions(options);
+        context.setLazyAuditRequest(true);
+        return context;
     }
 
-	 /**
+    public <F extends ObjectType> LensContext<F> createRecomputeFocusContext(
+            Class<F> focusType, PrismObject<F> focus, ModelExecuteOptions options, Task task, OperationResult result) {
+        LensContext<F> syncContext = new LensContext<>(focusType,
+            prismContext, provisioningService);
+        LensFocusContext<F> focusContext = syncContext.createFocusContext();
+        focusContext.setLoadedObject(focus);
+        focusContext.setOid(focus.getOid());
+        syncContext.setChannel(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
+        syncContext.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
+        return syncContext;
+    }
+
+    public <F extends ObjectType> LensContext<F> createRecomputeProjectionContext(
+            PrismObject<ShadowType> shadow, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        provisioningService.applyDefinition(shadow, task, result);
+        LensContext<F> syncContext = new LensContext<>(null,
+            prismContext, provisioningService);
+        LensProjectionContext projectionContext = syncContext.createProjectionContext();
+        projectionContext.setLoadedObject(shadow);
+        projectionContext.setOid(shadow.getOid());
+        projectionContext.setDoReconciliation(ModelExecuteOptions.isReconcile(options));
+        syncContext.setChannel(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
+        return syncContext;
+    }
+
+     /**
      * Creates empty lens context for synchronization purposes, filling in only the very basic metadata (such as channel).
      */
-	public <F extends ObjectType> LensContext<F> createSyncContext(Class<F> focusClass, ResourceObjectShadowChangeDescription change) {
+    public <F extends ObjectType> LensContext<F> createSyncContext(Class<F> focusClass, ResourceObjectShadowChangeDescription change) {
 
-		LensContext<F> context = new LensContext<>(focusClass, prismContext, provisioningService);
-    	context.setChannel(change.getSourceChannel());
-    	return context;
-	}
+        LensContext<F> context = new LensContext<>(focusClass, prismContext, provisioningService);
+        context.setChannel(change.getSourceChannel());
+        return context;
+    }
 
-	public static <F extends ObjectType> Class<F> determineFocusClass() {
-		// TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		return (Class<F>) UserType.class;
-	}
+    public static <F extends ObjectType> Class<F> determineFocusClass() {
+        // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        return (Class<F>) UserType.class;
+    }
 
-	private static <T extends ObjectType> Class<T> checkProjectionClass(Class<T> oldProjectionClass, Class<T> newProjectionClass) {
-		if (oldProjectionClass == null) {
-			return newProjectionClass;
-		} else {
-			if (oldProjectionClass != oldProjectionClass) {
-				throw new IllegalArgumentException("Mixed projection classes in the deltas, got both "+oldProjectionClass+" and "+oldProjectionClass);
-			}
-			return oldProjectionClass;
-		}
-	}
+    private static <T extends ObjectType> Class<T> checkProjectionClass(Class<T> oldProjectionClass, Class<T> newProjectionClass) {
+        if (oldProjectionClass == null) {
+            return newProjectionClass;
+        } else {
+            if (oldProjectionClass != oldProjectionClass) {
+                throw new IllegalArgumentException("Mixed projection classes in the deltas, got both "+oldProjectionClass+" and "+oldProjectionClass);
+            }
+            return oldProjectionClass;
+        }
+    }
 
-	public static <T extends ObjectType> boolean isFocalClass(Class<T> aClass) {
-		return FocusType.class.isAssignableFrom(aClass);
-	}
+    public static <T extends ObjectType> boolean isFocalClass(Class<T> aClass) {
+        return FocusType.class.isAssignableFrom(aClass);
+    }
 
-	public boolean isProjectionClass(Class<? extends ObjectType> aClass) {
-		return ShadowType.class.isAssignableFrom(aClass);
-	}
+    public boolean isProjectionClass(Class<? extends ObjectType> aClass) {
+        return ShadowType.class.isAssignableFrom(aClass);
+    }
 
 }

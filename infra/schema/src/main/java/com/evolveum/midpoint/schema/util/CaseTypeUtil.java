@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,7 +27,7 @@ public class CaseTypeUtil {
 
     @NotNull
     public static CaseType getCaseChecked(CaseWorkItemType workItem) {
-	    CaseType aCase = getCase(workItem);
+        CaseType aCase = getCase(workItem);
         if (aCase == null) {
             throw new IllegalStateException("No case for work item " + workItem);
         }
@@ -85,7 +85,7 @@ public class CaseTypeUtil {
         return aCase != null && ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
     }
 
-	public static List<ObjectReferenceType> getAllCurrentAssignees(CaseType aCase) {
+    public static List<ObjectReferenceType> getAllCurrentAssignees(CaseType aCase) {
         List<ObjectReferenceType> rv = new ArrayList<>();
         for (CaseWorkItemType workItem : aCase.getWorkItem()) {
             if (workItem.getCloseTimestamp() == null) {
@@ -93,5 +93,5 @@ public class CaseTypeUtil {
             }
         }
         return rv;
-	}
+    }
 }

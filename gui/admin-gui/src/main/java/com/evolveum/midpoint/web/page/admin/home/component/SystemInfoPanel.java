@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -162,11 +162,11 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
             @Override
             public String getObject() {
                 SystemInfoDto dto = getModelObject();
-                
+
                 if (dto == null) {
-                	return null;
+                    return null;
                 }
-                
+
                 int minutes = (int)(dto.uptime / 1000L / 60L);
                 return WebComponentUtil.formatDurationWordsForLocal(minutes < 1 ? dto.uptime : (long)minutes * 1000L * 60L, true, true,
                         SystemInfoPanel.this.getPageBase());
@@ -191,13 +191,13 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
             @Override
             public String getObject() {
                 SystemInfoDto dto = getModelObject();
-                
+
                 //this is quite strange situation and probably it should not occur,
                 // but sometimes, in the development mode the model obejct is null
                 if (dto == null) {
-                	return null;
+                    return null;
                 }
-                
+
                 Long[] memory = heap ? dto.heapMemory : dto.nonHeapMemory;
 
                 StringBuilder sb = new StringBuilder();
@@ -218,9 +218,9 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
                 SystemInfoDto dto = getModelObject();
 
                 if (dto == null) {
-                	return null;
+                    return null;
                 }
-                
+
                 StringBuilder sb = new StringBuilder();
                 sb.append(dto.threads[0]).append(" / ");
                 sb.append(dto.threads[1]).append(" / ");

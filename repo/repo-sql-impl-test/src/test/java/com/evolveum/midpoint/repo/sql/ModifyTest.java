@@ -94,31 +94,31 @@ public class ModifyTest extends BaseSQLRepoTest {
     private static final File ACCOUNT_FILE = new File(TEST_DIR, "account.xml");
     private static final File MODIFY_USER_ADD_LINK = new File(TEST_DIR, "change-add.xml");
 
-	private static final Trace LOGGER = TraceManager.getTrace(ModifyTest.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ModifyTest.class);
 
     private static final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
     private static final QName QNAME_WEAPON = new QName("http://example.com/p", "weapon");
     private static final QName QNAME_FUNERAL_DATE = new QName("http://example.com/p", "funeralDate");
 
-	@BeforeSuite
+    @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
 
-	@BeforeClass
-	public void setupClass() {
-		InternalsConfig.encryptionChecks = false;
-	}
+    @BeforeClass
+    public void setupClass() {
+        InternalsConfig.encryptionChecks = false;
+    }
 
-	protected RepoModifyOptions getModifyOptions() {
-		return null;
-	}
+    protected RepoModifyOptions getModifyOptions() {
+        return null;
+    }
 
     @Test(expectedExceptions = ObjectAlreadyExistsException.class)
     public void test010ModifyWithExistingName() throws Exception {
-    	final String TEST_NAME = "test010ModifyWithExistingName";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test010ModifyWithExistingName";
+        TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult("MODIFY");
 
@@ -147,8 +147,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test(expectedExceptions = ObjectNotFoundException.class)
     public void test020ModifyNotExistingUser() throws Exception {
-    	final String TEST_NAME = "test020ModifyNotExistingUser";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test020ModifyNotExistingUser";
+        TestUtil.displayTestTitle(TEST_NAME);
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 MODIFY_USER_ADD_LINK, ObjectModificationType.COMPLEX_TYPE);
@@ -160,8 +160,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test030ModifyUserOnNonExistingAccountTest() throws Exception {
-    	final String TEST_NAME = "test030ModifyUserOnNonExistingAccountTest";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test030ModifyUserOnNonExistingAccountTest";
+        TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult("MODIFY");
 
@@ -196,10 +196,10 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test031ModifyUserOnExistingAccountTest() throws Exception {
-    	final String TEST_NAME = "test031ModifyUserOnExistingAccountTest";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test031ModifyUserOnExistingAccountTest";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-    	// GIVEN
+        // GIVEN
         OperationResult result = new OperationResult(TEST_NAME);
 
         //add account
@@ -236,8 +236,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test032ModifyTaskObjectRef() throws Exception {
-    	final String TEST_NAME = "test032ModifyTaskObjectRef";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test032ModifyTaskObjectRef";
+        TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TEST_NAME);
         File taskFile = new File(TEST_DIR, "task.xml");
@@ -468,8 +468,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test100ModifyUserAddRole() throws Exception {
-    	final String TEST_NAME = "test100ModifyUserAddRole";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test100ModifyUserAddRole";
+        TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult parentResult = new OperationResult("Modify user -> add roles");
         String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
@@ -519,10 +519,10 @@ public class ModifyTest extends BaseSQLRepoTest {
      */
     @Test
     public void test120ModifyAccountMetadata() throws Exception {
-    	final String TEST_NAME = "test120ModifyAccountMetadata";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test120ModifyAccountMetadata";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-    	// GIVEN
+        // GIVEN
         OperationResult parentResult = new OperationResult(TEST_NAME);
 
         repositoryService.deleteObject(ShadowType.class, "1234567890", parentResult);       // from earlier test
@@ -577,12 +577,12 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         Collection<ItemDelta> modifications = new ArrayList<>();
         PropertyDelta pdelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
-        		(ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
+                (ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
         modifications.add(pdelta);
 
         XMLGregorianCalendar modifyTimestampBefore = XmlTypeConverter
                 .createXMLGregorianCalendar(System.currentTimeMillis());
-		pdelta = prismContext.deltaFactory().property().createModificationReplaceProperty((ItemPath.create(ObjectType.F_METADATA,
+        pdelta = prismContext.deltaFactory().property().createModificationReplaceProperty((ItemPath.create(ObjectType.F_METADATA,
                 MetadataType.F_MODIFY_TIMESTAMP)), accountDefinition, modifyTimestampBefore);
         modifications.add(pdelta);
 
@@ -609,10 +609,10 @@ public class ModifyTest extends BaseSQLRepoTest {
         // GIVEN
         XMLGregorianCalendar now = XmlTypeConverter
                 .createXMLGregorianCalendar(System.currentTimeMillis());
-		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
-				.createSynchronizationSituationAndDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, null, false, now,
-						prismContext);
-        
+        List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
+                .createSynchronizationSituationAndDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, null, false, now,
+                        prismContext);
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         repositoryService.modifyObject(ShadowType.class, oid, syncSituationDeltas, getModifyOptions(), parentResult);
@@ -626,10 +626,10 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println(afterModify.debugDump());
     }
 
-	@Test
+    @Test
     public void test130ExtensionModify() throws Exception {
-    	final String TEST_NAME = "test130ExtensionModify";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test130ExtensionModify";
+        TestUtil.displayTestTitle(TEST_NAME);
 
         File userFile = new File(TEST_DIR, "user-with-extension.xml");
         //add first user
@@ -665,8 +665,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test140ModifyAccountSynchronizationSituation() throws Exception {
-    	final String TEST_NAME = "test140ModifyAccountSynchronizationSituation";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test140ModifyAccountSynchronizationSituation";
+        TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult("testModifyAccountSynchronizationSituation");
 
@@ -678,7 +678,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils.
                 createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null, false, timestamp,
-		                prismContext);
+                        prismContext);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, getModifyOptions(), result);
 
@@ -692,7 +692,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false, timestamp,
-		        prismContext);
+                prismContext);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, getModifyOptions(), result);
 
@@ -797,8 +797,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test
     public void test150ModifyRoleAddInducements() throws Exception {
-    	final String TEST_NAME = "test150ModifyRoleAddInducements";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test150ModifyRoleAddInducements";
+        TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TEST_NAME);
 
@@ -831,20 +831,20 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(container.getValue(2L));
         AssertJUnit.assertNotNull(container.getValue(3L));
 
-		// modify role once more to check version progress
-		String version = role.getVersion();
-		repositoryService.modifyObject(RoleType.class, oid, new ArrayList<>(), getModifyOptions(), result);
-		result.recomputeStatus();
-		AssertJUnit.assertTrue(result.isSuccess());
-		role = repositoryService.getObject(RoleType.class, oid, null, result);
-		result.recomputeStatus();
-		AssertJUnit.assertTrue(result.isSuccess());
-		if (RepoModifyOptions.isExecuteIfNoChanges(getModifyOptions())) {
-			SqlRepoTestUtil.assertVersionProgress(version, role.getVersion());
-		} else {
-			assertEquals("Version has changed", version, role.getVersion());
-		}
-	}
+        // modify role once more to check version progress
+        String version = role.getVersion();
+        repositoryService.modifyObject(RoleType.class, oid, new ArrayList<>(), getModifyOptions(), result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        role = repositoryService.getObject(RoleType.class, oid, null, result);
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+        if (RepoModifyOptions.isExecuteIfNoChanges(getModifyOptions())) {
+            SqlRepoTestUtil.assertVersionProgress(version, role.getVersion());
+        } else {
+            assertEquals("Version has changed", version, role.getVersion());
+        }
+    }
 
     @Test
     public void test160ModifyWithPrecondition() throws Exception {
@@ -1033,18 +1033,18 @@ public class ModifyTest extends BaseSQLRepoTest {
     }
 
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
-    	assertAttribute(shadow, new QName(MidPointConstants.NS_RI, attrName), expectedValues);
+        assertAttribute(shadow, new QName(MidPointConstants.NS_RI, attrName), expectedValues);
     }
 
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQName, T... expectedValues) {
-    	PrismProperty<T> attr = shadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName));
-    	if (expectedValues.length == 0) {
-    		assertTrue("Expected no value for attribute "+attrQName+" in "+shadow+", but it has "+attr, attr == null);
-    	} else {
-    		assertNotNull("No attribute "+attrQName+" in "+shadow, attr);
-    		PrismAsserts.assertPropertyValue(attr, expectedValues);
-    	}
-	}
+        PrismProperty<T> attr = shadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName));
+        if (expectedValues.length == 0) {
+            assertTrue("Expected no value for attribute "+attrQName+" in "+shadow+", but it has "+attr, attr == null);
+        } else {
+            assertNotNull("No attribute "+attrQName+" in "+shadow, attr);
+            PrismAsserts.assertPropertyValue(attr, expectedValues);
+        }
+    }
 
     @Test
     public void test210ModifyObjectCollection() throws Exception {

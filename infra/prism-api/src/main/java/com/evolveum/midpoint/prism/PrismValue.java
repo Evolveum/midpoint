@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism;
@@ -26,79 +26,79 @@ import java.util.Map;
  */
 public interface PrismValue extends Visitable, PathVisitable, Serializable, DebugDumpable, Revivable {      // todo ShortDumpable?
 
-	void setPrismContext(PrismContext prismContext);
+    void setPrismContext(PrismContext prismContext);
 
-	void setOriginObject(Objectable source);
+    void setOriginObject(Objectable source);
 
-	void setOriginType(OriginType type);
+    void setOriginType(OriginType type);
 
-	OriginType getOriginType();
+    OriginType getOriginType();
 
-	Objectable getOriginObject();
+    Objectable getOriginObject();
 
-	Map<String, Object> getUserData();
+    Map<String, Object> getUserData();
 
-	Object getUserData(@NotNull String key);
+    Object getUserData(@NotNull String key);
 
-	void setUserData(@NotNull String key, Object value);
+    void setUserData(@NotNull String key, Object value);
 
-	Itemable getParent();
+    Itemable getParent();
 
-	void setParent(Itemable parent);
+    void setParent(Itemable parent);
 
-	@NotNull
-	ItemPath getPath();
+    @NotNull
+    ItemPath getPath();
 
-	/**
-	 * Used when we are removing the value from the previous parent.
-	 * Or when we know that the previous parent will be discarded and we
-	 * want to avoid unnecessary cloning.
-	 */
-	void clearParent();
+    /**
+     * Used when we are removing the value from the previous parent.
+     * Or when we know that the previous parent will be discarded and we
+     * want to avoid unnecessary cloning.
+     */
+    void clearParent();
 
-	PrismContext getPrismContext();
+    PrismContext getPrismContext();
 
-	void applyDefinition(ItemDefinition definition) throws SchemaException;
+    void applyDefinition(ItemDefinition definition) throws SchemaException;
 
-	void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException;
+    void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException;
 
-	void revive(PrismContext prismContext) throws SchemaException;
+    void revive(PrismContext prismContext) throws SchemaException;
 
-	/**
-	 * Recompute the value or otherwise "initialize" it before adding it to a prism tree.
-	 * This may as well do nothing if no recomputing or initialization is needed.
-	 */
-	void recompute();
+    /**
+     * Recompute the value or otherwise "initialize" it before adding it to a prism tree.
+     * This may as well do nothing if no recomputing or initialization is needed.
+     */
+    void recompute();
 
-	void recompute(PrismContext prismContext);
+    void recompute(PrismContext prismContext);
 
-	@Override
-	void accept(Visitor visitor);
+    @Override
+    void accept(Visitor visitor);
 
-	@Override
-	void accept(Visitor visitor, ItemPath path, boolean recursive);
+    @Override
+    void accept(Visitor visitor, ItemPath path, boolean recursive);
 
-	void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
+    void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
 
-	/**
-	 * Returns true if this and other value represent the same value.
-	 * E.g. if they have the same IDs, OIDs or it is otherwise know
-	 * that they "belong together" without a deep examination of the
-	 * values.
-	 *
-	 * @param lax If we can reasonably assume that the two values belong together even if they don't have the same ID,
-	 *            e.g. if they both belong to single-valued parent items. This is useful e.g. when comparing
-	 *            multi-valued containers. But can cause problems when we want to be sure we are removing the correct
-	 *            value.
-	 */
-	boolean representsSameValue(PrismValue other, boolean lax);
+    /**
+     * Returns true if this and other value represent the same value.
+     * E.g. if they have the same IDs, OIDs or it is otherwise know
+     * that they "belong together" without a deep examination of the
+     * values.
+     *
+     * @param lax If we can reasonably assume that the two values belong together even if they don't have the same ID,
+     *            e.g. if they both belong to single-valued parent items. This is useful e.g. when comparing
+     *            multi-valued containers. But can cause problems when we want to be sure we are removing the correct
+     *            value.
+     */
+    boolean representsSameValue(PrismValue other, boolean lax);
 
-	void normalize();
+    void normalize();
 
-	/**
+    /**
      * Literal clone.
      */
-	PrismValue clone();
+    PrismValue clone();
 
     /**
      * Complex clone with different cloning strategies.
@@ -106,63 +106,63 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
      */
     PrismValue cloneComplex(CloneStrategy strategy);
 
-	int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy);
+    int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy);
 
-	int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
+    int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
 
-	boolean equals(PrismValue otherValue, @NotNull EquivalenceStrategy strategy);
+    boolean equals(PrismValue otherValue, @NotNull EquivalenceStrategy strategy);
 
-	boolean equals(PrismValue otherValue, @NotNull ParameterizedEquivalenceStrategy strategy);
+    boolean equals(PrismValue otherValue, @NotNull ParameterizedEquivalenceStrategy strategy);
 
-	boolean equals(PrismValue thisValue, PrismValue otherValue);
+    boolean equals(PrismValue thisValue, PrismValue otherValue);
 
-	/**
-	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
-	 * E.g. the container with the same ID.
-	 */
-	Collection<? extends ItemDelta> diff(PrismValue otherValue);
+    /**
+     * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
+     * E.g. the container with the same ID.
+     */
+    Collection<? extends ItemDelta> diff(PrismValue otherValue);
 
-	/**
-	 * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
-	 * E.g. the container with the same ID.
-	 */
-	Collection<? extends ItemDelta> diff(PrismValue otherValue, ParameterizedEquivalenceStrategy strategy);
+    /**
+     * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
+     * E.g. the container with the same ID.
+     */
+    Collection<? extends ItemDelta> diff(PrismValue otherValue, ParameterizedEquivalenceStrategy strategy);
 
-	boolean isImmutable();
+    boolean isImmutable();
 
-	void setImmutable(boolean immutable);
+    void setImmutable(boolean immutable);
 
-	@Nullable
-	Class<?> getRealClass();
+    @Nullable
+    Class<?> getRealClass();
 
-	@Nullable
-	<T> T getRealValue();
+    @Nullable
+    <T> T getRealValue();
 
-	// Returns a root of PrismValue tree. For example, if we have a AccessCertificationWorkItemType that has a parent (owner)
-	// of AccessCertificationCaseType, which has a parent of AccessCertificationCampaignType, this method returns the PCV
-	// of AccessCertificationCampaignType.
-	//
-	// Generally, this method returns either "this" (PrismValue) or a PrismContainerValue.
-	PrismValue getRootValue();
+    // Returns a root of PrismValue tree. For example, if we have a AccessCertificationWorkItemType that has a parent (owner)
+    // of AccessCertificationCaseType, which has a parent of AccessCertificationCampaignType, this method returns the PCV
+    // of AccessCertificationCampaignType.
+    //
+    // Generally, this method returns either "this" (PrismValue) or a PrismContainerValue.
+    PrismValue getRootValue();
 
-	PrismContainerValue<?> getParentContainerValue();
+    PrismContainerValue<?> getParentContainerValue();
 
-	QName getTypeName();
+    QName getTypeName();
 
-	// Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
-	// Note that the path can contain name segments only (at least for now)
-	@NotNull
-	Collection<PrismValue> getAllValues(ItemPath path);
+    // Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
+    // Note that the path can contain name segments only (at least for now)
+    @NotNull
+    Collection<PrismValue> getAllValues(ItemPath path);
 
-	boolean isRaw();
+    boolean isRaw();
 
-	boolean isEmpty();
+    boolean isEmpty();
 
-	String toHumanReadableString();
+    String toHumanReadableString();
 
-//	// todo hide from public
-//	void diffMatchingRepresentation(PrismValue otherValue,
-//			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral);
+//    // todo hide from public
+//    void diffMatchingRepresentation(PrismValue otherValue,
+//            Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral);
 
-	Object find(ItemPath path);
+    Object find(ItemPath path);
 }

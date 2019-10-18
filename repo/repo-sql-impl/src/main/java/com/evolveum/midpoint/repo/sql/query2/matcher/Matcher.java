@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -79,7 +79,7 @@ public abstract class Matcher<T> {
     }
 
     static QName getApproximateSupportedMatchingRule(QName originalMatchingRule, List<QName> supportedMatchingRules,
-			Map<QName, QName> matchingRulesConvergenceMap) {
+            Map<QName, QName> matchingRulesConvergenceMap) {
         if (originalMatchingRule == null || supportedMatchingRules.contains(originalMatchingRule)) {
             return originalMatchingRule;
         }

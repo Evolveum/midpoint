@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
@@ -148,9 +148,9 @@
             <color>purple</color>
             <authorization>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#resources</authorization>
         </userDashboardLink>
-		<enableExperimentalFeatures>true</enableExperimentalFeatures>
+        <enableExperimentalFeatures>true</enableExperimentalFeatures>
     </adminGuiConfiguration>
-	<internals>
+    <internals>
       <enableExperimentalCode>true</enableExperimentalCode>
    </internals>
    <fullTextSearch>
@@ -198,5 +198,5 @@
         <item>serviceType</item>
         <item>locality</item>
      </indexed>
-  </fullTextSearch> 
+  </fullTextSearch>
 </systemConfiguration>

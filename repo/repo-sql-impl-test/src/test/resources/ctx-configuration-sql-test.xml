@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -49,7 +49,7 @@
 
     <context:component-scan base-package="com.evolveum.midpoint.schema" />
     <context:component-scan base-package="com.evolveum.midpoint.init" />
-    <context:component-scan base-package="com.evolveum.midpoint.test.util" />		<!-- HACK -->
+    <context:component-scan base-package="com.evolveum.midpoint.test.util" />        <!-- HACK -->
     <context:annotation-config />
 
 </beans>

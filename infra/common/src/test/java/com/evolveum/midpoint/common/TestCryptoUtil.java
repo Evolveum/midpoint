@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.common;
@@ -53,228 +53,228 @@ public class TestCryptoUtil {
     private static final File FILE_TASK_ADD_JACK = new File(TEST_DIR, "task-add-jack.xml");
     private static final File FILE_SYSTEM_CONFIGURATION = new File(TEST_DIR, "system-configuration.xml");
 
-	private static final String KEYSTORE_PATH = TEST_RESOURCES_PATH + "/keystore.jceks";
-	private static final String KEYSTORE_PASSWORD = "changeit";
+    private static final String KEYSTORE_PATH = TEST_RESOURCES_PATH + "/keystore.jceks";
+    private static final String KEYSTORE_PASSWORD = "changeit";
 
-	private static final String PASSWORD_PLAINTEXT = "pass1234word";
+    private static final String PASSWORD_PLAINTEXT = "pass1234word";
 
-	private Protector protector;
+    private Protector protector;
 
-	@BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-		protector = createProtector();
-	}
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+        protector = createProtector();
+    }
 
     @Test
     public void test100CheckEncryptedUser() throws Exception {
-    	final String TEST_NAME = "test100CheckEncryptedUser";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test100CheckEncryptedUser";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-    	// GIVEN
-    	PrismContext prismContext = getPrismContext();
-	    PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
+        // GIVEN
+        PrismContext prismContext = getPrismContext();
+        PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
 
-	    // WHEN+THEN
-	    checkEncryptedObject(jack);
+        // WHEN+THEN
+        checkEncryptedObject(jack);
     }
 
-	@Test
-	public void test110EncryptUser() throws Exception {
-		final String TEST_NAME = "test110EncryptUser";
-		TestUtil.displayTestTitle(TEST_NAME);
+    @Test
+    public void test110EncryptUser() throws Exception {
+        final String TEST_NAME = "test110EncryptUser";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		PrismContext prismContext = getPrismContext();
-		PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
+        // GIVEN
+        PrismContext prismContext = getPrismContext();
+        PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
 
-		// WHEN
-		CryptoUtil.encryptValues(protector, jack);
+        // WHEN
+        CryptoUtil.encryptValues(protector, jack);
 
-		// THEN
-		System.out.println("After encryption:\n" + jack.debugDump());
-		CryptoUtil.checkEncrypted(jack);
-	}
+        // THEN
+        System.out.println("After encryption:\n" + jack.debugDump());
+        CryptoUtil.checkEncrypted(jack);
+    }
 
-	@Test
-	public void test120EncryptBulkActionTask() throws Exception {
-		final String TEST_NAME = "test120EncryptBulkActionTask";
-		TestUtil.displayTestTitle(TEST_NAME);
+    @Test
+    public void test120EncryptBulkActionTask() throws Exception {
+        final String TEST_NAME = "test120EncryptBulkActionTask";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		PrismContext prismContext = getPrismContext();
-		PrismObject<UserType> task = prismContext.parserFor(FILE_TASK_MODIFY_JACK_PASSWORD).xml().parse();
+        // GIVEN
+        PrismContext prismContext = getPrismContext();
+        PrismObject<UserType> task = prismContext.parserFor(FILE_TASK_MODIFY_JACK_PASSWORD).xml().parse();
 
-		// WHEN
-		CryptoUtil.encryptValues(protector, task);
+        // WHEN
+        CryptoUtil.encryptValues(protector, task);
 
-		// THEN
-		String serialized = prismContext.xmlSerializer().serialize(task);
-		System.out.println("After encryption:\n" + serialized);
-		assertFalse("Serialized object contains the password!", serialized.contains(PASSWORD_PLAINTEXT));
-		
-		CryptoUtil.checkEncrypted(task);
-	}
+        // THEN
+        String serialized = prismContext.xmlSerializer().serialize(task);
+        System.out.println("After encryption:\n" + serialized);
+        assertFalse("Serialized object contains the password!", serialized.contains(PASSWORD_PLAINTEXT));
 
-	@Test
-	public void test130EncryptUserInDelta() throws Exception {
-		final String TEST_NAME = "test130EncryptUserInDelta";
-		TestUtil.displayTestTitle(TEST_NAME);
+        CryptoUtil.checkEncrypted(task);
+    }
 
-		// GIVEN
-		PrismContext prismContext = getPrismContext();
-		PrismObject<UserType> task = prismContext.parserFor(FILE_TASK_ADD_JACK).xml().parse();
+    @Test
+    public void test130EncryptUserInDelta() throws Exception {
+        final String TEST_NAME = "test130EncryptUserInDelta";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-		// WHEN
-		CryptoUtil.encryptValues(protector, task);
+        // GIVEN
+        PrismContext prismContext = getPrismContext();
+        PrismObject<UserType> task = prismContext.parserFor(FILE_TASK_ADD_JACK).xml().parse();
 
-		// THEN
-		String serialized = prismContext.xmlSerializer().serialize(task);
-		System.out.println("After encryption:\n" + serialized);
-		assertFalse("Serialized object contains the password!", serialized.contains(PASSWORD_PLAINTEXT));
+        // WHEN
+        CryptoUtil.encryptValues(protector, task);
 
-		CryptoUtil.checkEncrypted(task);
-	}
+        // THEN
+        String serialized = prismContext.xmlSerializer().serialize(task);
+        System.out.println("After encryption:\n" + serialized);
+        assertFalse("Serialized object contains the password!", serialized.contains(PASSWORD_PLAINTEXT));
 
-	// MID-4941
-	@Test
-	public void test200CheckEncryptedSystemConfiguration() throws Exception {
-		final String TEST_NAME = "test200CheckEncryptedSystemConfiguration";
-		TestUtil.displayTestTitle(TEST_NAME);
+        CryptoUtil.checkEncrypted(task);
+    }
 
-		// GIVEN
-		PrismContext prismContext = getPrismContext();
-		PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
+    // MID-4941
+    @Test
+    public void test200CheckEncryptedSystemConfiguration() throws Exception {
+        final String TEST_NAME = "test200CheckEncryptedSystemConfiguration";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-		// WHEN+THEN
-		checkEncryptedObject(config);
-	}
+        // GIVEN
+        PrismContext prismContext = getPrismContext();
+        PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
 
-	// MID-4941
-	@Test
-	public void test210EncryptSystemConfiguration() throws Exception {
-		final String TEST_NAME = "test210EncryptSystemConfiguration";
-		TestUtil.displayTestTitle(TEST_NAME);
+        // WHEN+THEN
+        checkEncryptedObject(config);
+    }
 
-		// GIVEN
-		PrismContext prismContext = getPrismContext();
-		PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
+    // MID-4941
+    @Test
+    public void test210EncryptSystemConfiguration() throws Exception {
+        final String TEST_NAME = "test210EncryptSystemConfiguration";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-		// WHEN
-		CryptoUtil.encryptValues(protector, config);
+        // GIVEN
+        PrismContext prismContext = getPrismContext();
+        PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
 
-		// THEN
-		System.out.println("After encryption:\n" + config.debugDump());
-		CryptoUtil.checkEncrypted(config);
-	}
+        // WHEN
+        CryptoUtil.encryptValues(protector, config);
 
-	// MID-4942
-	@SuppressWarnings("SimplifiedTestNGAssertion")
-	@Test
-	public void test300Reencryption() throws Exception {
-		final String TEST_NAME = "test300Reencryption";
-		TestUtil.displayTestTitle(TEST_NAME);
+        // THEN
+        System.out.println("After encryption:\n" + config.debugDump());
+        CryptoUtil.checkEncrypted(config);
+    }
 
-		// GIVEN
-		PrismContext prismContext = getPrismContext();
-		PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
-		PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
-		Protector compromisedProtector = createCompromisedProtector();
+    // MID-4942
+    @SuppressWarnings("SimplifiedTestNGAssertion")
+    @Test
+    public void test300Reencryption() throws Exception {
+        final String TEST_NAME = "test300Reencryption";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-		// WHEN
-		CryptoUtil.encryptValues(compromisedProtector, jack);
-		CryptoUtil.encryptValues(compromisedProtector, config);
-		System.out.println("jack compromised:\n" + prismContext.xmlSerializer().serialize(jack));
-		System.out.println("sysconfig compromised:\n" + prismContext.xmlSerializer().serialize(config));
-		CryptoUtil.checkEncrypted(jack);
-		CryptoUtil.checkEncrypted(config);
-		MailConfigurationType mail = config.asObjectable().getNotificationConfiguration().getMail();
-		SmsConfigurationType sms1 = config.asObjectable().getNotificationConfiguration().getSms().get(0);
-		SmsConfigurationType sms2 = config.asObjectable().getNotificationConfiguration().getSms().get(1);
-		String compromisedKeyName = getKeyName(
-				jack.asObjectable().getCredentials().getPassword().getValue(),
-				mail.getServer().get(0).getPassword(),
-				sms1.getGateway().get(0).getPassword(),
-				sms2.getGateway().get(0).getPassword());
-		System.out.println("Compromised key name: " + compromisedKeyName);
-		PrismAsserts.assertSets("Wrong key names in jack", singleton(compromisedKeyName), CryptoUtil.getEncryptionKeyNames(jack));
-		PrismAsserts.assertSets("Wrong key names in sysconfig", singleton(compromisedKeyName), CryptoUtil.getEncryptionKeyNames(config));
+        // GIVEN
+        PrismContext prismContext = getPrismContext();
+        PrismObject<UserType> jack = prismContext.parserFor(FILE_USER_JACK).xml().parse();
+        PrismObject<SystemConfigurationType> config = prismContext.parserFor(FILE_SYSTEM_CONFIGURATION).xml().parse();
+        Protector compromisedProtector = createCompromisedProtector();
 
-		// THEN
-		PrismObject<UserType> jackOld = jack.clone();
-		PrismObject<SystemConfigurationType> configOld = config.clone();
-		Collection<? extends ItemDelta<?, ?>> reencryptJackOldMods = CryptoUtil.computeReencryptModifications(compromisedProtector, jack);
-		Collection<? extends ItemDelta<?, ?>> reencryptJackNewMods = CryptoUtil.computeReencryptModifications(protector, jack);
-		Collection<? extends ItemDelta<?, ?>> reencryptConfigNewMods = CryptoUtil.computeReencryptModifications(protector, config);
-		int reencryptJackOldCount = CryptoUtil.reencryptValues(compromisedProtector, jack);
-		int reencryptJackNewCount = CryptoUtil.reencryptValues(protector, jack);
-		int reencryptConfigNewCount = CryptoUtil.reencryptValues(protector, config);
+        // WHEN
+        CryptoUtil.encryptValues(compromisedProtector, jack);
+        CryptoUtil.encryptValues(compromisedProtector, config);
+        System.out.println("jack compromised:\n" + prismContext.xmlSerializer().serialize(jack));
+        System.out.println("sysconfig compromised:\n" + prismContext.xmlSerializer().serialize(config));
+        CryptoUtil.checkEncrypted(jack);
+        CryptoUtil.checkEncrypted(config);
+        MailConfigurationType mail = config.asObjectable().getNotificationConfiguration().getMail();
+        SmsConfigurationType sms1 = config.asObjectable().getNotificationConfiguration().getSms().get(0);
+        SmsConfigurationType sms2 = config.asObjectable().getNotificationConfiguration().getSms().get(1);
+        String compromisedKeyName = getKeyName(
+                jack.asObjectable().getCredentials().getPassword().getValue(),
+                mail.getServer().get(0).getPassword(),
+                sms1.getGateway().get(0).getPassword(),
+                sms2.getGateway().get(0).getPassword());
+        System.out.println("Compromised key name: " + compromisedKeyName);
+        PrismAsserts.assertSets("Wrong key names in jack", singleton(compromisedKeyName), CryptoUtil.getEncryptionKeyNames(jack));
+        PrismAsserts.assertSets("Wrong key names in sysconfig", singleton(compromisedKeyName), CryptoUtil.getEncryptionKeyNames(config));
 
-		assertTrue("Unexpected reencrypt delta (jack old): " + reencryptJackNewMods, reencryptJackOldMods.isEmpty());
-		assertReencryptDelta("jack new", reencryptJackNewMods, 1, jackOld, protector);
-		assertReencryptDelta("config new", reencryptConfigNewMods, 2, configOld, protector);   // mail + sms
+        // THEN
+        PrismObject<UserType> jackOld = jack.clone();
+        PrismObject<SystemConfigurationType> configOld = config.clone();
+        Collection<? extends ItemDelta<?, ?>> reencryptJackOldMods = CryptoUtil.computeReencryptModifications(compromisedProtector, jack);
+        Collection<? extends ItemDelta<?, ?>> reencryptJackNewMods = CryptoUtil.computeReencryptModifications(protector, jack);
+        Collection<? extends ItemDelta<?, ?>> reencryptConfigNewMods = CryptoUtil.computeReencryptModifications(protector, config);
+        int reencryptJackOldCount = CryptoUtil.reencryptValues(compromisedProtector, jack);
+        int reencryptJackNewCount = CryptoUtil.reencryptValues(protector, jack);
+        int reencryptConfigNewCount = CryptoUtil.reencryptValues(protector, config);
 
-		assertEquals("Wrong # of reencrypted passwords (jack old)", 0, reencryptJackOldCount);
-		assertEquals("Wrong # of reencrypted passwords (jack new)", 1, reencryptJackNewCount);
-		assertEquals("Wrong # of reencrypted passwords (sysconfig new)", 3, reencryptConfigNewCount);
-		System.out.println("jack reencrypted:\n" + prismContext.xmlSerializer().serialize(jack));
-		System.out.println("sysconfig reencrypted:\n" + prismContext.xmlSerializer().serialize(config));
-		String newKeyName = getKeyName(
-				jack.asObjectable().getCredentials().getPassword().getValue(),
-				mail.getServer().get(0).getPassword(),
-				sms1.getGateway().get(0).getPassword(),
-				sms2.getGateway().get(0).getPassword());
-		System.out.println("New key name: " + newKeyName);
-		PrismAsserts.assertSets("Wrong key names in jack (new)", singleton(newKeyName), CryptoUtil.getEncryptionKeyNames(jack));
-		PrismAsserts.assertSets("Wrong key names in sysconfig (new)", singleton(newKeyName), CryptoUtil.getEncryptionKeyNames(config));
-		assertFalse("New and compromised key names are NOT different", compromisedKeyName.equals(newKeyName));
-	}
+        assertTrue("Unexpected reencrypt delta (jack old): " + reencryptJackNewMods, reencryptJackOldMods.isEmpty());
+        assertReencryptDelta("jack new", reencryptJackNewMods, 1, jackOld, protector);
+        assertReencryptDelta("config new", reencryptConfigNewMods, 2, configOld, protector);   // mail + sms
 
-	private <T extends ObjectType> void assertReencryptDelta(String label, Collection<? extends ItemDelta<?, ?>> modifications,
-			int expectedModificationsCount, PrismObject<T> oldObject, Protector protector) throws SchemaException, EncryptionException {
-		System.out.println("Modifications for " + label + ":\n" + modifications);
-		assertEquals("Delta has wrong # of modifications: " + label, expectedModificationsCount, modifications.size());
-		PrismObject<T> patchedObject = oldObject.clone();
-		ItemDeltaCollectionsUtil.applyTo(modifications, patchedObject);
-		int fixes = CryptoUtil.reencryptValues(protector, patchedObject);
-		assertEquals("Wrong # of re-encryption fixes on reencrypted object: " + label, 0, fixes);
-	}
+        assertEquals("Wrong # of reencrypted passwords (jack old)", 0, reencryptJackOldCount);
+        assertEquals("Wrong # of reencrypted passwords (jack new)", 1, reencryptJackNewCount);
+        assertEquals("Wrong # of reencrypted passwords (sysconfig new)", 3, reencryptConfigNewCount);
+        System.out.println("jack reencrypted:\n" + prismContext.xmlSerializer().serialize(jack));
+        System.out.println("sysconfig reencrypted:\n" + prismContext.xmlSerializer().serialize(config));
+        String newKeyName = getKeyName(
+                jack.asObjectable().getCredentials().getPassword().getValue(),
+                mail.getServer().get(0).getPassword(),
+                sms1.getGateway().get(0).getPassword(),
+                sms2.getGateway().get(0).getPassword());
+        System.out.println("New key name: " + newKeyName);
+        PrismAsserts.assertSets("Wrong key names in jack (new)", singleton(newKeyName), CryptoUtil.getEncryptionKeyNames(jack));
+        PrismAsserts.assertSets("Wrong key names in sysconfig (new)", singleton(newKeyName), CryptoUtil.getEncryptionKeyNames(config));
+        assertFalse("New and compromised key names are NOT different", compromisedKeyName.equals(newKeyName));
+    }
 
-	private String getKeyName(ProtectedStringType... values) {
-		Set<String> names = new HashSet<>();
-		for (ProtectedStringType value : values) {
-			names.add(value.getEncryptedDataType().getKeyInfo().getKeyName());
-		}
-		assertEquals("Wrong # of different key names: " + names, 1, names.size());
-		return names.iterator().next();
-	}
+    private <T extends ObjectType> void assertReencryptDelta(String label, Collection<? extends ItemDelta<?, ?>> modifications,
+            int expectedModificationsCount, PrismObject<T> oldObject, Protector protector) throws SchemaException, EncryptionException {
+        System.out.println("Modifications for " + label + ":\n" + modifications);
+        assertEquals("Delta has wrong # of modifications: " + label, expectedModificationsCount, modifications.size());
+        PrismObject<T> patchedObject = oldObject.clone();
+        ItemDeltaCollectionsUtil.applyTo(modifications, patchedObject);
+        int fixes = CryptoUtil.reencryptValues(protector, patchedObject);
+        assertEquals("Wrong # of re-encryption fixes on reencrypted object: " + label, 0, fixes);
+    }
 
-	private void checkEncryptedObject(PrismObject<? extends ObjectType> object) {
-		try {
-			CryptoUtil.checkEncrypted(object);
-			fail("Unexpected success");
-		} catch (IllegalStateException e) {
-			System.out.println("Got expected exception: " + e.getMessage());
-			e.printStackTrace(System.out);
-		}
-	}
+    private String getKeyName(ProtectedStringType... values) {
+        Set<String> names = new HashSet<>();
+        for (ProtectedStringType value : values) {
+            names.add(value.getEncryptedDataType().getKeyInfo().getKeyName());
+        }
+        assertEquals("Wrong # of different key names: " + names, 1, names.size());
+        return names.iterator().next();
+    }
 
-	private Protector createProtector() {
-		return KeyStoreBasedProtectorBuilder.create(getPrismContext())
-				.keyStorePassword(KEYSTORE_PASSWORD)
-				.keyStorePath(KEYSTORE_PATH)
-				.encryptionAlgorithm(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC)
-				.initialize();
-	}
+    private void checkEncryptedObject(PrismObject<? extends ObjectType> object) {
+        try {
+            CryptoUtil.checkEncrypted(object);
+            fail("Unexpected success");
+        } catch (IllegalStateException e) {
+            System.out.println("Got expected exception: " + e.getMessage());
+            e.printStackTrace(System.out);
+        }
+    }
 
-	private Protector createCompromisedProtector() {
-		return KeyStoreBasedProtectorBuilder.create(getPrismContext())
-				.keyStorePassword(KEYSTORE_PASSWORD)
-				.keyStorePath(KEYSTORE_PATH)
-				.encryptionKeyAlias("compromised")
-				.encryptionAlgorithm(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC)
-				.initialize();
-	}
+    private Protector createProtector() {
+        return KeyStoreBasedProtectorBuilder.create(getPrismContext())
+                .keyStorePassword(KEYSTORE_PASSWORD)
+                .keyStorePath(KEYSTORE_PATH)
+                .encryptionAlgorithm(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC)
+                .initialize();
+    }
+
+    private Protector createCompromisedProtector() {
+        return KeyStoreBasedProtectorBuilder.create(getPrismContext())
+                .keyStorePassword(KEYSTORE_PASSWORD)
+                .keyStorePath(KEYSTORE_PATH)
+                .encryptionKeyAlias("compromised")
+                .encryptionAlgorithm(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC)
+                .initialize();
+    }
 
 }

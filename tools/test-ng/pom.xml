@@ -2,30 +2,30 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<name>midPoint Infrastructure - testing support tools</name>
-	<groupId>com.evolveum.midpoint.tools</groupId>
-	<artifactId>test-ng</artifactId>
-	<packaging>jar</packaging>
-	<parent>
-		<artifactId>tools</artifactId>
-		<groupId>com.evolveum.midpoint</groupId>
-		<version>4.0.1-SNAPSHOT</version>
-	</parent>
+    <modelVersion>4.0.0</modelVersion>
+    <name>midPoint Infrastructure - testing support tools</name>
+    <groupId>com.evolveum.midpoint.tools</groupId>
+    <artifactId>test-ng</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <artifactId>tools</artifactId>
+        <groupId>com.evolveum.midpoint</groupId>
+        <version>4.0.1-SNAPSHOT</version>
+    </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
         <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
-	<dependencies>
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-		</dependency>
-	</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+        </dependency>
+    </dependencies>
 </project>

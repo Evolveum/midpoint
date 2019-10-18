@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
@@ -51,138 +51,138 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
  */
 public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements EvaluatedAssignment<AH>, ShortDumpable {
 
-	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
-	@NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
-	private final boolean evaluatedOld;
-	@NotNull private final DeltaSetTriple<Construction<AH>> constructionTriple;
-	@NotNull private final DeltaSetTriple<PersonaConstruction<AH>> personaConstructionTriple;
-	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles;
-	@NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
-	@NotNull private final Collection<PrismReferenceValue> archetypeRefVals = new ArrayList<>();
-	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
-	@NotNull private final Collection<PrismReferenceValue> delegationRefVals = new ArrayList<>();
-	@NotNull private final Collection<Authorization> authorizations = new ArrayList<>();
+    @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+    private final boolean evaluatedOld;
+    @NotNull private final DeltaSetTriple<Construction<AH>> constructionTriple;
+    @NotNull private final DeltaSetTriple<PersonaConstruction<AH>> personaConstructionTriple;
+    @NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles;
+    @NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
+    @NotNull private final Collection<PrismReferenceValue> archetypeRefVals = new ArrayList<>();
+    @NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
+    @NotNull private final Collection<PrismReferenceValue> delegationRefVals = new ArrayList<>();
+    @NotNull private final Collection<Authorization> authorizations = new ArrayList<>();
 
-	/**
-	 * Requests to evaluate focus mappings. These are collected during assignment evaluation, but executed afterwards.
-	 * This is to implement proper mapping chaining.
-	 *
-	 * @since 4.0.1
-	 */
-	@NotNull private final Collection<AssignedFocusMappingEvaluationRequest> focusMappingEvaluationRequests = new ArrayList<>();
+    /**
+     * Requests to evaluate focus mappings. These are collected during assignment evaluation, but executed afterwards.
+     * This is to implement proper mapping chaining.
+     *
+     * @since 4.0.1
+     */
+    @NotNull private final Collection<AssignedFocusMappingEvaluationRequest> focusMappingEvaluationRequests = new ArrayList<>();
 
-	/**
-	 * These are evaluated focus mappings. Since 4.0.1 the evaluation is carried out not during assignment evaluation
-	 * but afterwards.
-	 */
-	@NotNull private final Collection<MappingImpl<?,?>> focusMappings = new ArrayList<>();
+    /**
+     * These are evaluated focus mappings. Since 4.0.1 the evaluation is carried out not during assignment evaluation
+     * but afterwards.
+     */
+    @NotNull private final Collection<MappingImpl<?,?>> focusMappings = new ArrayList<>();
 
-	@NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-	// rules related to the focal object (typically e.g. "forbid modifications")
-	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules = new ArrayList<>();
-	// rules related to the target of this assignment (typically e.g. "approve the assignment")
-	@NotNull private final Collection<EvaluatedPolicyRule> thisTargetPolicyRules = new ArrayList<>();
-	// rules related to other targets provided by this assignment (e.g. induced or obtained by delegation)
-	// usually, these rules do not cause direct action (e.g. in the case of approvals);
-	// however, there are situations in which they are used (e.g. for exclusion rules)
-	@NotNull private final Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = new ArrayList<>();
-	private String tenantOid;
+    @NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
+    // rules related to the focal object (typically e.g. "forbid modifications")
+    @NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules = new ArrayList<>();
+    // rules related to the target of this assignment (typically e.g. "approve the assignment")
+    @NotNull private final Collection<EvaluatedPolicyRule> thisTargetPolicyRules = new ArrayList<>();
+    // rules related to other targets provided by this assignment (e.g. induced or obtained by delegation)
+    // usually, these rules do not cause direct action (e.g. in the case of approvals);
+    // however, there are situations in which they are used (e.g. for exclusion rules)
+    @NotNull private final Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = new ArrayList<>();
+    private String tenantOid;
 
-	private PrismObject<?> target;
-	private boolean virtual;
-	private boolean isValid;
-	private boolean wasValid;
-	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
-	private boolean presentInCurrentObject;
-	private boolean presentInOldObject;
-	private Collection<String> policySituations = new HashSet<>();
-	
-	private PrismContext prismContext;
+    private PrismObject<?> target;
+    private boolean virtual;
+    private boolean isValid;
+    private boolean wasValid;
+    private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
+    private boolean presentInCurrentObject;
+    private boolean presentInOldObject;
+    private Collection<String> policySituations = new HashSet<>();
 
-	public EvaluatedAssignmentImpl(
-			@NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
-			boolean evaluatedOld, PrismContext prismContext) {
-		this.assignmentIdi = assignmentIdi;
-		this.evaluatedOld = evaluatedOld;
-		this.constructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
-		this.personaConstructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
-		this.roles = prismContext.deltaFactory().createDeltaSetTriple();
-		this.prismContext = prismContext;
-	}
+    private PrismContext prismContext;
 
-	@NotNull
-	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
-		return assignmentIdi;
-	}
+    public EvaluatedAssignmentImpl(
+            @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
+            boolean evaluatedOld, PrismContext prismContext) {
+        this.assignmentIdi = assignmentIdi;
+        this.evaluatedOld = evaluatedOld;
+        this.constructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
+        this.personaConstructionTriple = prismContext.deltaFactory().createDeltaSetTriple();
+        this.roles = prismContext.deltaFactory().createDeltaSetTriple();
+        this.prismContext = prismContext;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getAssignmentType()
-	 */
-	@Override
-	public AssignmentType getAssignmentType() {
-		return asContainerable(assignmentIdi.getSingleValue(evaluatedOld));
-	}
+    @NotNull
+    public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
+        return assignmentIdi;
+    }
 
-	@Override
-	public Long getAssignmentId() {
-		Item<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> any = assignmentIdi.getAnyItem();
-		return any != null && !any.getValues().isEmpty() ? any.getAnyValue().getId() : null;
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getAssignmentType()
+     */
+    @Override
+    public AssignmentType getAssignmentType() {
+        return asContainerable(assignmentIdi.getSingleValue(evaluatedOld));
+    }
 
-	@Override
-	public AssignmentType getAssignmentType(boolean old) {
-		return asContainerable(assignmentIdi.getSingleValue(old));
-	}
+    @Override
+    public Long getAssignmentId() {
+        Item<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> any = assignmentIdi.getAnyItem();
+        return any != null && !any.getValues().isEmpty() ? any.getAnyValue().getId() : null;
+    }
 
-	private ObjectReferenceType getTargetRef() {
-		AssignmentType assignmentType = getAssignmentType();
-		if (assignmentType == null) {
-			return null;
-		}
-		return assignmentType.getTargetRef();
-	}
+    @Override
+    public AssignmentType getAssignmentType(boolean old) {
+        return asContainerable(assignmentIdi.getSingleValue(old));
+    }
 
-	@Override
-	public QName getRelation() {
-		ObjectReferenceType targetRef = getTargetRef();
-		return targetRef != null ? targetRef.getRelation() : null;
-	}
+    private ObjectReferenceType getTargetRef() {
+        AssignmentType assignmentType = getAssignmentType();
+        if (assignmentType == null) {
+            return null;
+        }
+        return assignmentType.getTargetRef();
+    }
 
-	@Override
-	public QName getNormalizedRelation(RelationRegistry relationRegistry) {
-		ObjectReferenceType targetRef = getTargetRef();
-		return targetRef != null ? relationRegistry.normalizeRelation(targetRef.getRelation()) : null;
-	}
+    @Override
+    public QName getRelation() {
+        ObjectReferenceType targetRef = getTargetRef();
+        return targetRef != null ? targetRef.getRelation() : null;
+    }
 
-	@NotNull
-	public DeltaSetTriple<Construction<AH>> getConstructionTriple() {
-		return constructionTriple;
-	}
+    @Override
+    public QName getNormalizedRelation(RelationRegistry relationRegistry) {
+        ObjectReferenceType targetRef = getTargetRef();
+        return targetRef != null ? relationRegistry.normalizeRelation(targetRef.getRelation()) : null;
+    }
 
-	/**
-	 * Construction is not a part of model-api. To avoid heavy refactoring at present time, there is not a classical
-	 * Construction-ConstructionImpl separation, but we use artificial (simplified) EvaluatedConstruction
-	 * API class instead.
-	 *
-	 * @return
-	 */
-	@Override
-	public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		DeltaSetTriple<EvaluatedConstruction> rv = prismContext.deltaFactory().createDeltaSetTriple();
-		for (PlusMinusZero whichSet : PlusMinusZero.values()) {
-			Collection<Construction<AH>> constructionSet = constructionTriple.getSet(whichSet);
-			if (constructionSet != null) {
-				for (Construction<AH> construction : constructionSet) {
-					rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction, task, result));
-				}
-			}
-		}
-		return rv;
-	}
+    @NotNull
+    public DeltaSetTriple<Construction<AH>> getConstructionTriple() {
+        return constructionTriple;
+    }
+
+    /**
+     * Construction is not a part of model-api. To avoid heavy refactoring at present time, there is not a classical
+     * Construction-ConstructionImpl separation, but we use artificial (simplified) EvaluatedConstruction
+     * API class instead.
+     *
+     * @return
+     */
+    @Override
+    public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        DeltaSetTriple<EvaluatedConstruction> rv = prismContext.deltaFactory().createDeltaSetTriple();
+        for (PlusMinusZero whichSet : PlusMinusZero.values()) {
+            Collection<Construction<AH>> constructionSet = constructionTriple.getSet(whichSet);
+            if (constructionSet != null) {
+                for (Construction<AH> construction : constructionSet) {
+                    rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction, task, result));
+                }
+            }
+        }
+        return rv;
+    }
 
 
-	public Collection<Construction<AH>> getConstructionSet(PlusMinusZero whichSet) {
+    public Collection<Construction<AH>> getConstructionSet(PlusMinusZero whichSet) {
         switch (whichSet) {
             case ZERO: return getConstructionTriple().getZeroSet();
             case PLUS: return getConstructionTriple().getPlusSet();
@@ -191,453 +191,453 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
     }
 
-	public void addConstruction(Construction<AH> contruction, PlusMinusZero whichSet) {
-		switch (whichSet) {
+    public void addConstruction(Construction<AH> contruction, PlusMinusZero whichSet) {
+        switch (whichSet) {
             case ZERO:
-            	constructionTriple.addToZeroSet(contruction);
-            	break;
+                constructionTriple.addToZeroSet(contruction);
+                break;
             case PLUS:
-            	constructionTriple.addToPlusSet(contruction);
-            	break;
+                constructionTriple.addToPlusSet(contruction);
+                break;
             case MINUS:
-            	constructionTriple.addToMinusSet(contruction);
-            	break;
+                constructionTriple.addToMinusSet(contruction);
+                break;
             default:
-            	throw new IllegalArgumentException("whichSet: " + whichSet);
+                throw new IllegalArgumentException("whichSet: " + whichSet);
         }
-	}
+    }
 
-	@NotNull
-	public DeltaSetTriple<PersonaConstruction<AH>> getPersonaConstructionTriple() {
-		return personaConstructionTriple;
-	}
+    @NotNull
+    public DeltaSetTriple<PersonaConstruction<AH>> getPersonaConstructionTriple() {
+        return personaConstructionTriple;
+    }
 
-	public void addPersonaConstruction(PersonaConstruction<AH> personaContruction, PlusMinusZero whichSet) {
-		switch (whichSet) {
+    public void addPersonaConstruction(PersonaConstruction<AH> personaContruction, PlusMinusZero whichSet) {
+        switch (whichSet) {
             case ZERO:
-            	personaConstructionTriple.addToZeroSet(personaContruction);
-            	break;
+                personaConstructionTriple.addToZeroSet(personaContruction);
+                break;
             case PLUS:
-            	personaConstructionTriple.addToPlusSet(personaContruction);
-            	break;
+                personaConstructionTriple.addToPlusSet(personaContruction);
+                break;
             case MINUS:
-            	personaConstructionTriple.addToMinusSet(personaContruction);
-            	break;
+                personaConstructionTriple.addToMinusSet(personaContruction);
+                break;
             default:
-            	throw new IllegalArgumentException("whichSet: " + whichSet);
+                throw new IllegalArgumentException("whichSet: " + whichSet);
         }
-	}
+    }
 
-	@NotNull
-	@Override
-	public DeltaSetTriple<EvaluatedAssignmentTargetImpl> getRoles() {
-		return roles;
-	}
+    @NotNull
+    @Override
+    public DeltaSetTriple<EvaluatedAssignmentTargetImpl> getRoles() {
+        return roles;
+    }
 
-	public void addRole(EvaluatedAssignmentTargetImpl role, PlusMinusZero mode) {
-		roles.addToSet(mode, role);
-	}
+    public void addRole(EvaluatedAssignmentTargetImpl role, PlusMinusZero mode) {
+        roles.addToSet(mode, role);
+    }
 
-	@NotNull
-	public Collection<PrismReferenceValue> getOrgRefVals() {
-		return orgRefVals;
-	}
+    @NotNull
+    public Collection<PrismReferenceValue> getOrgRefVals() {
+        return orgRefVals;
+    }
 
-	public void addOrgRefVal(PrismReferenceValue org) {
-		orgRefVals.add(org);
-	}
-	
-	@NotNull
-	public Collection<PrismReferenceValue> getArchetypeRefVals() {
-		return archetypeRefVals;
-	}
+    public void addOrgRefVal(PrismReferenceValue org) {
+        orgRefVals.add(org);
+    }
 
-	public void addArchetypeRefVal(PrismReferenceValue archetypeRefVal) {
-		archetypeRefVals.add(archetypeRefVal);
-	}
+    @NotNull
+    public Collection<PrismReferenceValue> getArchetypeRefVals() {
+        return archetypeRefVals;
+    }
 
-	@NotNull
-	public Collection<PrismReferenceValue> getMembershipRefVals() {
-		return membershipRefVals;
-	}
+    public void addArchetypeRefVal(PrismReferenceValue archetypeRefVal) {
+        archetypeRefVals.add(archetypeRefVal);
+    }
 
-	public void addMembershipRefVal(PrismReferenceValue org) {
-		membershipRefVals.add(org);
-	}
+    @NotNull
+    public Collection<PrismReferenceValue> getMembershipRefVals() {
+        return membershipRefVals;
+    }
 
-	@NotNull
-	public Collection<PrismReferenceValue> getDelegationRefVals() {
-		return delegationRefVals;
-	}
+    public void addMembershipRefVal(PrismReferenceValue org) {
+        membershipRefVals.add(org);
+    }
 
-	public void addDelegationRefVal(PrismReferenceValue org) {
-		delegationRefVals.add(org);
-	}
+    @NotNull
+    public Collection<PrismReferenceValue> getDelegationRefVals() {
+        return delegationRefVals;
+    }
 
-	public String getTenantOid() {
-		return tenantOid;
-	}
+    public void addDelegationRefVal(PrismReferenceValue org) {
+        delegationRefVals.add(org);
+    }
 
-	public void setTenantOid(String tenantOid) {
-		this.tenantOid = tenantOid;
-	}
+    public String getTenantOid() {
+        return tenantOid;
+    }
 
-	@NotNull
-	@Override
-	public Collection<Authorization> getAuthorizations() {
-		return authorizations;
-	}
+    public void setTenantOid(String tenantOid) {
+        this.tenantOid = tenantOid;
+    }
 
-	public void addAuthorization(Authorization authorization) {
-		authorizations.add(authorization);
-	}
+    @NotNull
+    @Override
+    public Collection<Authorization> getAuthorizations() {
+        return authorizations;
+    }
 
-	@NotNull
-	public Collection<AdminGuiConfigurationType> getAdminGuiConfigurations() {
-		return adminGuiConfigurations;
-	}
+    public void addAuthorization(Authorization authorization) {
+        authorizations.add(authorization);
+    }
 
-	public void addAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
-		adminGuiConfigurations.add(adminGuiConfiguration);
-	}
+    @NotNull
+    public Collection<AdminGuiConfigurationType> getAdminGuiConfigurations() {
+        return adminGuiConfigurations;
+    }
 
-	@NotNull
-	public Collection<MappingImpl<?,?>> getFocusMappings() {
-		return focusMappings;
-	}
+    public void addAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
+        adminGuiConfigurations.add(adminGuiConfiguration);
+    }
 
-	@NotNull
-	public Collection<AssignedFocusMappingEvaluationRequest> getFocusMappingEvaluationRequests() {
-		return focusMappingEvaluationRequests;
-	}
+    @NotNull
+    public Collection<MappingImpl<?,?>> getFocusMappings() {
+        return focusMappings;
+    }
 
-	public void addFocusMapping(MappingImpl<?,?> focusMapping) {
-		this.focusMappings.add(focusMapping);
-	}
+    @NotNull
+    public Collection<AssignedFocusMappingEvaluationRequest> getFocusMappingEvaluationRequests() {
+        return focusMappingEvaluationRequests;
+    }
 
-	void addFocusMappingEvaluationRequest(AssignedFocusMappingEvaluationRequest request) {
-		this.focusMappingEvaluationRequests.add(request);
-	}
+    public void addFocusMapping(MappingImpl<?,?> focusMapping) {
+        this.focusMappings.add(focusMapping);
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getTarget()
-	 */
-	@Override
-	public PrismObject<?> getTarget() {
-		return target;
-	}
+    void addFocusMappingEvaluationRequest(AssignedFocusMappingEvaluationRequest request) {
+        this.focusMappingEvaluationRequests.add(request);
+    }
 
-	public void setTarget(PrismObject<?> target) {
-		this.target = target;
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#getTarget()
+     */
+    @Override
+    public PrismObject<?> getTarget() {
+        return target;
+    }
 
-	public boolean isVirtual() {
-		return virtual;
-	}
-	
-	public void setVirtual(boolean virtual) {
-		this.virtual = virtual;
-	}
-	
-	/* (non-Javadoc)
+    public void setTarget(PrismObject<?> target) {
+        this.target = target;
+    }
+
+    public boolean isVirtual() {
+        return virtual;
+    }
+
+    public void setVirtual(boolean virtual) {
+        this.virtual = virtual;
+    }
+
+    /* (non-Javadoc)
          * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#isValid()
          */
-	@Override
-	public boolean isValid() {
-		return isValid;
-	}
+    @Override
+    public boolean isValid() {
+        return isValid;
+    }
 
-	public void setValid(boolean isValid) {
-		this.isValid = isValid;
-	}
+    public void setValid(boolean isValid) {
+        this.isValid = isValid;
+    }
 
-	public boolean getWasValid() {
-		return wasValid;
-	}
+    public boolean getWasValid() {
+        return wasValid;
+    }
 
-	public void setWasValid(boolean wasValid) {
-		this.wasValid = wasValid;
-	}
+    public void setWasValid(boolean wasValid) {
+        this.wasValid = wasValid;
+    }
 
-	public boolean isForceRecon() {
-		return forceRecon;
-	}
+    public boolean isForceRecon() {
+        return forceRecon;
+    }
 
-	public void setForceRecon(boolean forceRecon) {
-		this.forceRecon = forceRecon;
-	}
+    public void setForceRecon(boolean forceRecon) {
+        this.forceRecon = forceRecon;
+    }
 
-	public Collection<ResourceType> getResources(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		Collection<ResourceType> resources = new ArrayList<>();
-		for (Construction<AH> acctConstr: constructionTriple.getAllValues()) {
-			resources.add(acctConstr.getResource(task, result));
-		}
-		return resources;
-	}
+    public Collection<ResourceType> getResources(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        Collection<ResourceType> resources = new ArrayList<>();
+        for (Construction<AH> acctConstr: constructionTriple.getAllValues()) {
+            resources.add(acctConstr.getResource(task, result));
+        }
+        return resources;
+    }
 
-	// System configuration is used only to provide $configuration script variable (MID-2372)
-	public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
-		for (Construction<AH> construction :constructionTriple.getAllValues()) {
-			construction.setFocusOdo(focusOdo);
-			construction.setSystemConfiguration(systemConfiguration);
-			construction.setWasValid(wasValid);
-			LOGGER.trace("Evaluating construction '{}' in {}", construction, construction.getSource());
-			construction.evaluate(task, result);
-		}
-	}
+    // System configuration is used only to provide $configuration script variable (MID-2372)
+    public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+        for (Construction<AH> construction :constructionTriple.getAllValues()) {
+            construction.setFocusOdo(focusOdo);
+            construction.setSystemConfiguration(systemConfiguration);
+            construction.setWasValid(wasValid);
+            LOGGER.trace("Evaluating construction '{}' in {}", construction, construction.getSource());
+            construction.evaluate(task, result);
+        }
+    }
 
-	public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
-		evaluateConstructions(focusOdo, null, task, result);
-	}
+    public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+        evaluateConstructions(focusOdo, null, task, result);
+    }
 
-	public void setPresentInCurrentObject(boolean presentInCurrentObject) {
-		this.presentInCurrentObject = presentInCurrentObject;
-	}
+    public void setPresentInCurrentObject(boolean presentInCurrentObject) {
+        this.presentInCurrentObject = presentInCurrentObject;
+    }
 
-	public void setPresentInOldObject(boolean presentInOldObject) {
-		this.presentInOldObject = presentInOldObject;
-	}
+    public void setPresentInOldObject(boolean presentInOldObject) {
+        this.presentInOldObject = presentInOldObject;
+    }
 
-	@Override
-	public boolean isPresentInCurrentObject() {
-		return presentInCurrentObject;
-	}
+    @Override
+    public boolean isPresentInCurrentObject() {
+        return presentInCurrentObject;
+    }
 
-	@Override
-	public boolean isPresentInOldObject() {
-		return presentInOldObject;
-	}
+    @Override
+    public boolean isPresentInOldObject() {
+        return presentInOldObject;
+    }
 
-	@NotNull
-	public Collection<EvaluatedPolicyRule> getFocusPolicyRules() {
-		return focusPolicyRules;
-	}
+    @NotNull
+    public Collection<EvaluatedPolicyRule> getFocusPolicyRules() {
+        return focusPolicyRules;
+    }
 
-	public void addFocusPolicyRule(EvaluatedPolicyRule policyRule) {
-		focusPolicyRules.add(policyRule);
-	}
-	
-	@NotNull
-	public Collection<EvaluatedPolicyRule> getThisTargetPolicyRules() {
-		return thisTargetPolicyRules;
-	}
+    public void addFocusPolicyRule(EvaluatedPolicyRule policyRule) {
+        focusPolicyRules.add(policyRule);
+    }
 
-	public void addThisTargetPolicyRule(EvaluatedPolicyRule policyRule) {
-		thisTargetPolicyRules.add(policyRule);
-	}
+    @NotNull
+    public Collection<EvaluatedPolicyRule> getThisTargetPolicyRules() {
+        return thisTargetPolicyRules;
+    }
 
-	@NotNull
-	public Collection<EvaluatedPolicyRule> getOtherTargetsPolicyRules() {
-		return otherTargetsPolicyRules;
-	}
+    public void addThisTargetPolicyRule(EvaluatedPolicyRule policyRule) {
+        thisTargetPolicyRules.add(policyRule);
+    }
 
-	public void addOtherTargetPolicyRule(EvaluatedPolicyRule policyRule) {
-		otherTargetsPolicyRules.add(policyRule);
-	}
+    @NotNull
+    public Collection<EvaluatedPolicyRule> getOtherTargetsPolicyRules() {
+        return otherTargetsPolicyRules;
+    }
 
-	@NotNull
-	public Collection<EvaluatedPolicyRule> getAllTargetsPolicyRules() {
-		return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
-	}
+    public void addOtherTargetPolicyRule(EvaluatedPolicyRule policyRule) {
+        otherTargetsPolicyRules.add(policyRule);
+    }
 
-	@NotNull
-	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
-			AssignmentHolderType directOwner, PrismContext prismContext) {
-		PolicyRuleType policyRuleType = new PolicyRuleType();
-		policyRuleType.setPolicyConstraints(constraints);
-		PolicyActionsType policyActionsType = new PolicyActionsType();
-		policyActionsType.setEnforcement(new EnforcementPolicyActionType());
-		policyRuleType.setPolicyActions(policyActionsType);
-		return new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath, prismContext);
-	}
+    @NotNull
+    public Collection<EvaluatedPolicyRule> getAllTargetsPolicyRules() {
+        return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
+    }
 
-	@Override
-	public Collection<String> getPolicySituations() {
-		return policySituations;
-	}
+    @NotNull
+    private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
+            AssignmentHolderType directOwner, PrismContext prismContext) {
+        PolicyRuleType policyRuleType = new PolicyRuleType();
+        policyRuleType.setPolicyConstraints(constraints);
+        PolicyActionsType policyActionsType = new PolicyActionsType();
+        policyActionsType.setEnforcement(new EnforcementPolicyActionType());
+        policyRuleType.setPolicyActions(policyActionsType);
+        return new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath, prismContext);
+    }
 
-	@Override
-	public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-		boolean hasException = processRuleExceptions(this, rule, triggers);
+    @Override
+    public Collection<String> getPolicySituations() {
+        return policySituations;
+    }
 
-		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-			if (trigger instanceof EvaluatedExclusionTrigger) {
-				EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
-				if (exclTrigger.getConflictingAssignment() != null) {
-					hasException =
-							hasException || processRuleExceptions((EvaluatedAssignmentImpl<AH>) exclTrigger.getConflictingAssignment(),
-									rule, triggers);
-				}
-			}
-		}
+    @Override
+    public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        boolean hasException = processRuleExceptions(this, rule, triggers);
 
-		if (!hasException) {
-			LensUtil.triggerRule(rule, triggers, policySituations);
-		}
-	}
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+            if (trigger instanceof EvaluatedExclusionTrigger) {
+                EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
+                if (exclTrigger.getConflictingAssignment() != null) {
+                    hasException =
+                            hasException || processRuleExceptions((EvaluatedAssignmentImpl<AH>) exclTrigger.getConflictingAssignment(),
+                                    rule, triggers);
+                }
+            }
+        }
 
-	private boolean processRuleExceptions(EvaluatedAssignmentImpl<AH> evaluatedAssignment, @NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-		boolean hasException = false;
-		for (PolicyExceptionType policyException: evaluatedAssignment.getAssignmentType().getPolicyException()) {
-			if (policyException.getRuleName().equals(rule.getName())) {
-				LensUtil.processRuleWithException(rule, triggers, policyException);
-				hasException = true;
-			}
-		}
-		return hasException;
-	}
+        if (!hasException) {
+            LensUtil.triggerRule(rule, triggers, policySituations);
+        }
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabelLn(sb, "EvaluatedAssignment", indent);
-		DebugUtil.debugDumpWithLabelLn(sb, "assignment old", String.valueOf(assignmentIdi.getItemOld()), indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "assignment delta", String.valueOf(assignmentIdi.getDelta()), indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "assignment new", String.valueOf(assignmentIdi.getItemNew()), indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "evaluatedOld", evaluatedOld, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "target", String.valueOf(target), indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "isValid", isValid, indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "isVirtual", virtual, indent + 1);
+    private boolean processRuleExceptions(EvaluatedAssignmentImpl<AH> evaluatedAssignment, @NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        boolean hasException = false;
+        for (PolicyExceptionType policyException: evaluatedAssignment.getAssignmentType().getPolicyException()) {
+            if (policyException.getRuleName().equals(rule.getName())) {
+                LensUtil.processRuleWithException(rule, triggers, policyException);
+                hasException = true;
+            }
+        }
+        return hasException;
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.debugDumpLabelLn(sb, "EvaluatedAssignment", indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "assignment old", String.valueOf(assignmentIdi.getItemOld()), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "assignment delta", String.valueOf(assignmentIdi.getDelta()), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "assignment new", String.valueOf(assignmentIdi.getItemNew()), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "evaluatedOld", evaluatedOld, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "target", String.valueOf(target), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "isValid", isValid, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "isVirtual", virtual, indent + 1);
         if (forceRecon) {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);
         }
         sb.append("\n");
-		if (constructionTriple.isEmpty()) {
-			DebugUtil.debugDumpWithLabel(sb, "Constructions", "(empty)", indent+1);
-		} else {
-			DebugUtil.debugDumpWithLabel(sb, "Constructions", constructionTriple, indent+1);
-		}
-		if (!personaConstructionTriple.isEmpty()) {
-			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "Persona constructions", personaConstructionTriple, indent+1);
-		}
-		if (!roles.isEmpty()) {
-			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "Roles", roles, indent+1);
-		}
-		dumpRefList(indent, sb, "Orgs", orgRefVals);
-		dumpRefList(indent, sb, "Membership", membershipRefVals);
-		dumpRefList(indent, sb, "Delegation", delegationRefVals);
-		if (!authorizations.isEmpty()) {
-			sb.append("\n");
-			DebugUtil.debugDumpLabel(sb, "Authorizations", indent+1);
-			for (Authorization autz: authorizations) {
-				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent+2);
-				sb.append(autz.toString());
-			}
-		}
-		if (!focusMappingEvaluationRequests.isEmpty()) {
-			sb.append("\n");
-			DebugUtil.debugDumpLabel(sb, "Focus mappings evaluation requests", indent+1);
-			for (AssignedFocusMappingEvaluationRequest request : focusMappingEvaluationRequests) {
-				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent+2);
-				sb.append(request.shortDump());
-			}
-		}
-		if (!focusMappings.isEmpty()) {
-			sb.append("\n");
-			DebugUtil.debugDumpLabel(sb, "Focus mappings", indent+1);
-			for (PrismValueDeltaSetTripleProducer<?,?> mapping: focusMappings) {
-				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent+2);
-				sb.append(mapping.toString());
-			}
-		}
-		if (target != null) {
-			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent+1);
-		}
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules " + ruleCountInfo(focusPolicyRules), focusPolicyRules, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetPolicyRules), thisTargetPolicyRules, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "otherTargetsPolicyRules " + ruleCountInfo(otherTargetsPolicyRules), otherTargetsPolicyRules, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
-		return sb.toString();
-	}
+        if (constructionTriple.isEmpty()) {
+            DebugUtil.debugDumpWithLabel(sb, "Constructions", "(empty)", indent+1);
+        } else {
+            DebugUtil.debugDumpWithLabel(sb, "Constructions", constructionTriple, indent+1);
+        }
+        if (!personaConstructionTriple.isEmpty()) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "Persona constructions", personaConstructionTriple, indent+1);
+        }
+        if (!roles.isEmpty()) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "Roles", roles, indent+1);
+        }
+        dumpRefList(indent, sb, "Orgs", orgRefVals);
+        dumpRefList(indent, sb, "Membership", membershipRefVals);
+        dumpRefList(indent, sb, "Delegation", delegationRefVals);
+        if (!authorizations.isEmpty()) {
+            sb.append("\n");
+            DebugUtil.debugDumpLabel(sb, "Authorizations", indent+1);
+            for (Authorization autz: authorizations) {
+                sb.append("\n");
+                DebugUtil.indentDebugDump(sb, indent+2);
+                sb.append(autz.toString());
+            }
+        }
+        if (!focusMappingEvaluationRequests.isEmpty()) {
+            sb.append("\n");
+            DebugUtil.debugDumpLabel(sb, "Focus mappings evaluation requests", indent+1);
+            for (AssignedFocusMappingEvaluationRequest request : focusMappingEvaluationRequests) {
+                sb.append("\n");
+                DebugUtil.indentDebugDump(sb, indent+2);
+                sb.append(request.shortDump());
+            }
+        }
+        if (!focusMappings.isEmpty()) {
+            sb.append("\n");
+            DebugUtil.debugDumpLabel(sb, "Focus mappings", indent+1);
+            for (PrismValueDeltaSetTripleProducer<?,?> mapping: focusMappings) {
+                sb.append("\n");
+                DebugUtil.indentDebugDump(sb, indent+2);
+                sb.append(mapping.toString());
+            }
+        }
+        if (target != null) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent+1);
+        }
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "focusPolicyRules " + ruleCountInfo(focusPolicyRules), focusPolicyRules, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "thisTargetPolicyRules " + ruleCountInfo(thisTargetPolicyRules), thisTargetPolicyRules, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "otherTargetsPolicyRules " + ruleCountInfo(otherTargetsPolicyRules), otherTargetsPolicyRules, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "Present in old object", isPresentInOldObject(), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "Present in current object", isPresentInCurrentObject(), indent+1);
+        return sb.toString();
+    }
 
-	private String ruleCountInfo(Collection<EvaluatedPolicyRule> rules) {
-		return "(" + rules.size() + ", triggered " + LensContext.getTriggeredRulesCount(rules) + ")";
-	}
+    private String ruleCountInfo(Collection<EvaluatedPolicyRule> rules) {
+        return "(" + rules.size() + ", triggered " + LensContext.getTriggeredRulesCount(rules) + ")";
+    }
 
-	private void dumpRefList(int indent, StringBuilder sb, String label, Collection<PrismReferenceValue> referenceValues) {
-		if (!referenceValues.isEmpty()) {
-			sb.append("\n");
-			DebugUtil.debugDumpLabel(sb, label, indent+1);
-			for (PrismReferenceValue refVal: referenceValues) {
-				sb.append("\n");
-				DebugUtil.indentDebugDump(sb, indent+2);
-				sb.append(refVal.toString());
-			}
-		}
-	}
+    private void dumpRefList(int indent, StringBuilder sb, String label, Collection<PrismReferenceValue> referenceValues) {
+        if (!referenceValues.isEmpty()) {
+            sb.append("\n");
+            DebugUtil.debugDumpLabel(sb, label, indent+1);
+            for (PrismReferenceValue refVal: referenceValues) {
+                sb.append("\n");
+                DebugUtil.indentDebugDump(sb, indent+2);
+                sb.append(refVal.toString());
+            }
+        }
+    }
 
-	@Override
-	public String toString() {
-		return "EvaluatedAssignment(target=" + target
-				+ "; constr=" + constructionTriple
-				+ "; org=" + orgRefVals
-				+ "; autz=" + authorizations
-				+ "; " + focusMappingEvaluationRequests.size() + " focus mappings eval requests"
-				+ "; " + focusMappings.size() + " focus mappings"
-				+ "; " + focusPolicyRules.size()+" rules)";
-	}
+    @Override
+    public String toString() {
+        return "EvaluatedAssignment(target=" + target
+                + "; constr=" + constructionTriple
+                + "; org=" + orgRefVals
+                + "; autz=" + authorizations
+                + "; " + focusMappingEvaluationRequests.size() + " focus mappings eval requests"
+                + "; " + focusMappings.size() + " focus mappings"
+                + "; " + focusPolicyRules.size()+" rules)";
+    }
 
-	public String toHumanReadableString() {
-		if (target != null) {
-			return "EvaluatedAssignment(" + target + ")";
-		} else if (!constructionTriple.isEmpty()) {
-			return "EvaluatedAssignment(" + constructionTriple + ")";
-		} else if (!personaConstructionTriple.isEmpty()) {
-			return "EvaluatedAssignment(" + personaConstructionTriple + ")";
-		} else {
-			return toString();
-		}
-	}
-	
-	@Override
-	public void shortDump(StringBuilder sb) {
-		if (target != null) {
-			sb.append(target);
-		} else if (!constructionTriple.isEmpty()) {
-			sb.append("construction(");
-			constructionTriple.shortDump(sb);
-			sb.append(")");
-		} else if (!personaConstructionTriple.isEmpty()) {
-			sb.append("personaConstruction(");
-			personaConstructionTriple.shortDump(sb);
-			sb.append(")");
-		} else {
-			sb.append(toString());
-			return;
-		}
-		if (!isValid()) {
-			sb.append(" invalid ");
-		}
-	}
+    public String toHumanReadableString() {
+        if (target != null) {
+            return "EvaluatedAssignment(" + target + ")";
+        } else if (!constructionTriple.isEmpty()) {
+            return "EvaluatedAssignment(" + constructionTriple + ")";
+        } else if (!personaConstructionTriple.isEmpty()) {
+            return "EvaluatedAssignment(" + personaConstructionTriple + ")";
+        } else {
+            return toString();
+        }
+    }
 
-	public List<EvaluatedAssignmentTargetImpl> getNonNegativeTargets() {
-		List<EvaluatedAssignmentTargetImpl> rv = new ArrayList<>();
-		rv.addAll(roles.getZeroSet());
-		rv.addAll(roles.getPlusSet());
-		return rv;
-	}
+    @Override
+    public void shortDump(StringBuilder sb) {
+        if (target != null) {
+            sb.append(target);
+        } else if (!constructionTriple.isEmpty()) {
+            sb.append("construction(");
+            constructionTriple.shortDump(sb);
+            sb.append(")");
+        } else if (!personaConstructionTriple.isEmpty()) {
+            sb.append("personaConstruction(");
+            personaConstructionTriple.shortDump(sb);
+            sb.append(")");
+        } else {
+            sb.append(toString());
+            return;
+        }
+        if (!isValid()) {
+            sb.append(" invalid ");
+        }
+    }
 
-	/**
-	 * @return mode (adding, deleting, keeping) with respect to the *current* object (not the old one)
-	 */
-	@NotNull
-	public PlusMinusZero getMode() {
-		if (assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
-			return MINUS;
-		} else if (presentInCurrentObject) {
-			return ZERO;
-		} else {
-			return PLUS;
-		}
-	}
-	
+    public List<EvaluatedAssignmentTargetImpl> getNonNegativeTargets() {
+        List<EvaluatedAssignmentTargetImpl> rv = new ArrayList<>();
+        rv.addAll(roles.getZeroSet());
+        rv.addAll(roles.getPlusSet());
+        return rv;
+    }
+
+    /**
+     * @return mode (adding, deleting, keeping) with respect to the *current* object (not the old one)
+     */
+    @NotNull
+    public PlusMinusZero getMode() {
+        if (assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
+            return MINUS;
+        } else if (presentInCurrentObject) {
+            return ZERO;
+        } else {
+            return PLUS;
+        }
+    }
+
 }

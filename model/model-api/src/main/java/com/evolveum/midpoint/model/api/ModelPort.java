@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api;
@@ -18,14 +18,14 @@ import javax.xml.namespace.QName;
  */
 public interface ModelPort {
 
-	String CLASS_NAME_WITH_DOT = ModelPortType.class.getName() + ".";
-	String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
-	String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
-	String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
-	String LIST_ACCOUNT_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
-	String TEST_RESOURCE = CLASS_NAME_WITH_DOT + "testResource";
-	String IMPORT_FROM_RESOURCE = CLASS_NAME_WITH_DOT + "importFromResource";
-	String NOTIFY_CHANGE = CLASS_NAME_WITH_DOT + "notifyChange";
+    String CLASS_NAME_WITH_DOT = ModelPortType.class.getName() + ".";
+    String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
+    String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
+    String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
+    String LIST_ACCOUNT_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
+    String TEST_RESOURCE = CLASS_NAME_WITH_DOT + "testResource";
+    String IMPORT_FROM_RESOURCE = CLASS_NAME_WITH_DOT + "importFromResource";
+    String NOTIFY_CHANGE = CLASS_NAME_WITH_DOT + "notifyChange";
     String EXECUTE_SCRIPTS = CLASS_NAME_WITH_DOT + "executeScripts";
 
     public static final QName GET_OBJECT_RESPONSE = new QName(SchemaConstants.NS_MODEL_WS, "getObjectResponse");

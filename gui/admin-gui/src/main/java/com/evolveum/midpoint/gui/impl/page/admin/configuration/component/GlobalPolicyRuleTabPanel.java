@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -59,178 +59,178 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  */
 public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<PrismContainerWrapper<GlobalPolicyRuleType>> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final Trace LOGGER = TraceManager.getTrace(GlobalPolicyRuleTabPanel.class);
-	
+    private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(GlobalPolicyRuleTabPanel.class);
+
     private static final String ID_GLOBAL_POLICY_RULE = "globalPolicyRule";
-    
+
     public GlobalPolicyRuleTabPanel(String id, IModel<PrismContainerWrapper<GlobalPolicyRuleType>> model) {
         super(id, model);
-		
+
     }
 
     @Override
     protected void onInitialize() {
-    		super.onInitialize();
-    		initLayout();
+            super.onInitialize();
+            initLayout();
     }
-    
+
     protected void initLayout() {
-    	
-    	TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
-    	PageStorage pageStorage = ((PageBase)GlobalPolicyRuleTabPanel.this.getPage()).getSessionStorage().getObjectPoliciesConfigurationTabStorage();
-    	
-    	MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> multivalueContainerListPanel =
-				new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>(ID_GLOBAL_POLICY_RULE, getModel(),
-    			tableId, pageStorage) {
-			
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			protected List<PrismContainerValueWrapper<GlobalPolicyRuleType>> postSearch(
-					List<PrismContainerValueWrapper<GlobalPolicyRuleType>> items) {
-				return getObjects();
-			}
-			
-			@Override
-			protected void newItemPerformed(AjaxRequestTarget target) {
-				newGlobalPolicuRuleClickPerformed(target);
-			}
-			
-			@Override
-			protected void initPaging() {
-				GlobalPolicyRuleTabPanel.this.initPaging(); 
-			}
-			
-			@Override
-			protected boolean enableActionNewObject() {
-				return true;
-			}
-			
-			@Override
-			protected ObjectQuery createQuery() {
-			        return GlobalPolicyRuleTabPanel.this.createQuery();
-			}
-			
-			@Override
-			protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createColumns() {
-				return (List) initBasicColumns();
-			}
+        TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
+        PageStorage pageStorage = ((PageBase)GlobalPolicyRuleTabPanel.this.getPage()).getSessionStorage().getObjectPoliciesConfigurationTabStorage();
 
-			@Override
-			protected MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
-					ListItem<PrismContainerValueWrapper<GlobalPolicyRuleType>> item) {
-				return GlobalPolicyRuleTabPanel.this.getMultivalueContainerDetailsPanel(item);
-			}
+        MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> multivalueContainerListPanel =
+                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>(ID_GLOBAL_POLICY_RULE, getModel(),
+                tableId, pageStorage) {
 
-			@Override
-			protected List<SearchItemDefinition> initSearchableItems(
-					PrismContainerDefinition<GlobalPolicyRuleType> containerDef) {
-				List<SearchItemDefinition> defs = new ArrayList<>();
-				
-				SearchFactory.addSearchPropertyDef(containerDef, ItemPath
-						.create(GlobalPolicyRuleType.F_FOCUS_SELECTOR, ObjectSelectorType.F_SUBTYPE), defs);
-				SearchFactory.addSearchRefDef(containerDef, 
-						ItemPath.create(GlobalPolicyRuleType.F_POLICY_CONSTRAINTS,
-								PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
-				
-				defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
-				
-				return defs;
-			}
-		};
-		
-		add(multivalueContainerListPanel);
-		
-		setOutputMarkupId(true);
-	}
-    
-    private List<PrismContainerValueWrapper<GlobalPolicyRuleType>> getObjects() {
-    	return getModelObject().getValues();
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<PrismContainerValueWrapper<GlobalPolicyRuleType>> postSearch(
+                    List<PrismContainerValueWrapper<GlobalPolicyRuleType>> items) {
+                return getObjects();
+            }
+
+            @Override
+            protected void newItemPerformed(AjaxRequestTarget target) {
+                newGlobalPolicuRuleClickPerformed(target);
+            }
+
+            @Override
+            protected void initPaging() {
+                GlobalPolicyRuleTabPanel.this.initPaging();
+            }
+
+            @Override
+            protected boolean enableActionNewObject() {
+                return true;
+            }
+
+            @Override
+            protected ObjectQuery createQuery() {
+                    return GlobalPolicyRuleTabPanel.this.createQuery();
+            }
+
+            @Override
+            protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createColumns() {
+                return (List) initBasicColumns();
+            }
+
+            @Override
+            protected MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
+                    ListItem<PrismContainerValueWrapper<GlobalPolicyRuleType>> item) {
+                return GlobalPolicyRuleTabPanel.this.getMultivalueContainerDetailsPanel(item);
+            }
+
+            @Override
+            protected List<SearchItemDefinition> initSearchableItems(
+                    PrismContainerDefinition<GlobalPolicyRuleType> containerDef) {
+                List<SearchItemDefinition> defs = new ArrayList<>();
+
+                SearchFactory.addSearchPropertyDef(containerDef, ItemPath
+                        .create(GlobalPolicyRuleType.F_FOCUS_SELECTOR, ObjectSelectorType.F_SUBTYPE), defs);
+                SearchFactory.addSearchRefDef(containerDef,
+                        ItemPath.create(GlobalPolicyRuleType.F_POLICY_CONSTRAINTS,
+                                PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
+
+                defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+
+                return defs;
+            }
+        };
+
+        add(multivalueContainerListPanel);
+
+        setOutputMarkupId(true);
     }
-    
+
+    private List<PrismContainerValueWrapper<GlobalPolicyRuleType>> getObjects() {
+        return getModelObject().getValues();
+    }
+
     protected void newGlobalPolicuRuleClickPerformed(AjaxRequestTarget target) {
-    	//TODO maybe change to itemFactory.createContainerValue()???
+        //TODO maybe change to itemFactory.createContainerValue()???
         PrismContainerValue<GlobalPolicyRuleType> newObjectPolicy = getModelObject().getItem().createNewValue();
         PrismContainerValueWrapper<GlobalPolicyRuleType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModelObject(), target);
         getMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newObjectPolicyWrapper));
-	}
-    
+    }
+
     private MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
-			ListItem<PrismContainerValueWrapper<GlobalPolicyRuleType>> item) {
-    	MultivalueContainerDetailsPanel<GlobalPolicyRuleType> detailsPanel =
-				new  MultivalueContainerDetailsPanel<GlobalPolicyRuleType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
+            ListItem<PrismContainerValueWrapper<GlobalPolicyRuleType>> item) {
+        MultivalueContainerDetailsPanel<GlobalPolicyRuleType> detailsPanel =
+                new  MultivalueContainerDetailsPanel<GlobalPolicyRuleType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected DisplayNamePanel<GlobalPolicyRuleType> createDisplayNamePanel(String displayNamePanelId) {
-				ItemRealValueModel<GlobalPolicyRuleType> displayNameModel = 
-						new ItemRealValueModel<GlobalPolicyRuleType>(item.getModel());
-				return new DisplayNamePanel<GlobalPolicyRuleType>(displayNamePanelId, displayNameModel);
-			}
-			
-		};
-		return detailsPanel;
-	}
-    
-	private MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> getMultivalueContainerListPanel(){
-		return ((MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>)get(ID_GLOBAL_POLICY_RULE));
-	}
-    
+            @Override
+            protected DisplayNamePanel<GlobalPolicyRuleType> createDisplayNamePanel(String displayNamePanelId) {
+                ItemRealValueModel<GlobalPolicyRuleType> displayNameModel =
+                        new ItemRealValueModel<GlobalPolicyRuleType>(item.getModel());
+                return new DisplayNamePanel<GlobalPolicyRuleType>(displayNamePanelId, displayNameModel);
+            }
+
+        };
+        return detailsPanel;
+    }
+
+    private MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> getMultivalueContainerListPanel(){
+        return ((MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>)get(ID_GLOBAL_POLICY_RULE));
+    }
+
     private ObjectQuery createQuery() {
-	    QueryFactory factory = getPrismContext().queryFactory();
-	    TypeFilter filter = factory.createType(GlobalPolicyRuleType.COMPLEX_TYPE, factory.createAll());
-    	return factory.createQuery(filter);
+        QueryFactory factory = getPrismContext().queryFactory();
+        TypeFilter filter = factory.createType(GlobalPolicyRuleType.COMPLEX_TYPE, factory.createAll());
+        return factory.createQuery(filter);
     }
-    
+
     private void initPaging() {
-    	getPageBase().getSessionStorage().getGlobalPolicyRulesTabStorage()
-			    .setPaging(getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.GLOBAL_POLICY_RULES_TAB_TABLE)));
+        getPageBase().getSessionStorage().getGlobalPolicyRulesTabStorage()
+                .setPaging(getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.GLOBAL_POLICY_RULES_TAB_TABLE)));
     }
-    
+
     private List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> initBasicColumns() {
-		List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> columns = new ArrayList<>();
+        List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> columns = new ArrayList<>();
 
-		columns.add(new CheckBoxHeaderColumn<>());
+        columns.add(new CheckBoxHeaderColumn<>());
 
-		PrismPropertyWrapperColumn<GlobalPolicyRuleType, String> linkColumn = new PrismPropertyWrapperColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_NAME, ColumnType.LINK, getPageBase()) {
-			
-			@Override
-			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
-			}
+        PrismPropertyWrapperColumn<GlobalPolicyRuleType, String> linkColumn = new PrismPropertyWrapperColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_NAME, ColumnType.LINK, getPageBase()) {
 
-			protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
+            @Override
+            protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+                getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
+            }
 
-			}
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+                return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 
-			
-		};
-		
-		columns.add(linkColumn);
-		   
+            }
+
+
+        };
+
+        columns.add(linkColumn);
+
         columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()));
-		
+
         columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(),GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()));
-		
+
         columns.add(new PrismPropertyWrapperColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_POLICY_SITUATION, ColumnType.STRING, getPageBase()));
-		
-		List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
-		columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
-			
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public String getCssClass() {
-				return " col-md-1 ";
-			}
-			
-		});
-		
+
+        List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
+        columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getCssClass() {
+                return " col-md-1 ";
+            }
+
+        });
+
         return columns;
-	}
+    }
 }
 

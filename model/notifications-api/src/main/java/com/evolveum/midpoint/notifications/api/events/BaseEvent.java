@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -38,14 +38,14 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
     private LightweightIdentifier id;               // randomly generated event ID
     private SimpleObjectRef requester;              // who requested this operation (null if unknown)
 
-	/**
-	 * If needed, we can prescribe the handler that should process this event. It is recommended only for ad-hoc situations.
-	 * A better is to define handlers in system configuration.
-	 */
-	protected final EventHandlerType adHocHandler;
+    /**
+     * If needed, we can prescribe the handler that should process this event. It is recommended only for ad-hoc situations.
+     * A better is to define handlers in system configuration.
+     */
+    protected final EventHandlerType adHocHandler;
 
-	private transient NotificationFunctions notificationFunctions;	// needs not be set when creating an event ... it is set in NotificationManager
-	private transient PrismContext prismContext;
+    private transient NotificationFunctions notificationFunctions;    // needs not be set when creating an event ... it is set in NotificationManager
+    private transient PrismContext prismContext;
 
     // about who is this operation (null if unknown);
     // - for model notifications, this is the focus, (usually a user but may be e.g. role or other kind of object)
@@ -61,12 +61,12 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         this(lightweightIdentifierGenerator, null);
     }
 
-	public BaseEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, EventHandlerType adHocHandler) {
-		id = lightweightIdentifierGenerator.generate();
-		this.adHocHandler = adHocHandler;
-	}
+    public BaseEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, EventHandlerType adHocHandler) {
+        id = lightweightIdentifierGenerator.generate();
+        this.adHocHandler = adHocHandler;
+    }
 
-	public LightweightIdentifier getId() {
+    public LightweightIdentifier getId() {
         return id;
     }
 
@@ -103,12 +103,12 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         return isCategoryType(EventCategoryType.WORKFLOW_EVENT);
     }
 
-	@Override
-	public boolean isPolicyRuleRelated() {
-		return isCategoryType(EventCategoryType.POLICY_RULE_EVENT);
-	}
+    @Override
+    public boolean isPolicyRuleRelated() {
+        return isCategoryType(EventCategoryType.POLICY_RULE_EVENT);
+    }
 
-	public boolean isCertCampaignStageRelated() {
+    public boolean isCertCampaignStageRelated() {
         return isCategoryType(EventCategoryType.CERT_CAMPAIGN_STAGE_EVENT);
     }
 
@@ -168,56 +168,56 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         return requestee.getOid();
     }
 
-	@Nullable
-	private ObjectType resolveObject(SimpleObjectRef ref) {
-		if (ref == null) {
-			return null;
-		}
-		return ref.resolveObjectType(new OperationResult(BaseEvent.class + ".resolveObject"), true);
-	}
+    @Nullable
+    private ObjectType resolveObject(SimpleObjectRef ref) {
+        if (ref == null) {
+            return null;
+        }
+        return ref.resolveObjectType(new OperationResult(BaseEvent.class + ".resolveObject"), true);
+    }
 
-	public ObjectType getRequesteeObject() {
-		return resolveObject(requestee);
-	}
+    public ObjectType getRequesteeObject() {
+        return resolveObject(requestee);
+    }
 
-	public ObjectType getRequesterObject() {
-		return resolveObject(requester);
-	}
+    public ObjectType getRequesterObject() {
+        return resolveObject(requester);
+    }
 
-	public PolyStringType getRequesteeDisplayName() {
-		return getDisplayName(getRequesteeObject());
-	}
+    public PolyStringType getRequesteeDisplayName() {
+        return getDisplayName(getRequesteeObject());
+    }
 
-	public PolyStringType getRequesterDisplayName() {
-		return getDisplayName(getRequesterObject());
-	}
+    public PolyStringType getRequesterDisplayName() {
+        return getDisplayName(getRequesterObject());
+    }
 
-	@Nullable
-	private PolyStringType getDisplayName(ObjectType object) {
-		if (object == null) {
-			return null;
-		}
-		if (object instanceof UserType) {
-			return ((UserType) object).getFullName();
-		} else if (object instanceof AbstractRoleType) {
-			return ((AbstractRoleType) object).getDisplayName();
-		} else {
-			return object.getName();
-		}
-	}
+    @Nullable
+    private PolyStringType getDisplayName(ObjectType object) {
+        if (object == null) {
+            return null;
+        }
+        if (object instanceof UserType) {
+            return ((UserType) object).getFullName();
+        } else if (object instanceof AbstractRoleType) {
+            return ((AbstractRoleType) object).getDisplayName();
+        } else {
+            return object.getName();
+        }
+    }
 
-	@Nullable
-	private PolyStringType getName(ObjectType object) {
-		return object != null ? object.getName() : null;
-	}
+    @Nullable
+    private PolyStringType getName(ObjectType object) {
+        return object != null ? object.getName() : null;
+    }
 
-	public PolyStringType getRequesteeName() {
-		return getName(getRequesteeObject());
-	}
+    public PolyStringType getRequesteeName() {
+        return getName(getRequesteeObject());
+    }
 
-	public PolyStringType getRequesterName() {
-		return getName(getRequesterObject());
-	}
+    public PolyStringType getRequesterName() {
+        return getName(getRequesterObject());
+    }
 
     public void setRequestee(SimpleObjectRef requestee) {
         this.requestee = requestee;
@@ -239,16 +239,16 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
     }
 
     TypedValue<ObjectType> resolveTypedObject(SimpleObjectRef ref, boolean allowNotFound, OperationResult result) {
-	    ObjectType resolved = ref != null ? ref.resolveObjectType(result, allowNotFound) : null;
-	    if (resolved != null) {
-		    return new TypedValue<>(resolved, resolved.asPrismObject().getDefinition());
-	    } else {
-		    PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
-		    return new TypedValue<>(null, def);
-	    }
+        ObjectType resolved = ref != null ? ref.resolveObjectType(result, allowNotFound) : null;
+        if (resolved != null) {
+            return new TypedValue<>(resolved, resolved.asPrismObject().getDefinition());
+        } else {
+            PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+            return new TypedValue<>(null, def);
+        }
     }
 
-	// Finding items in deltas/objects
+    // Finding items in deltas/objects
     // this is similar to delta.hasItemDelta but much, much more relaxed (we completely ignore ID path segments and we take subpaths into account)
     //
     // Very experimental implementation. Needs a bit of time to clean up and test adequately.
@@ -368,49 +368,49 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         this.channel = channel;
     }
 
-	public NotificationFunctions getNotificationFunctions() {
-		return notificationFunctions;
-	}
+    public NotificationFunctions getNotificationFunctions() {
+        return notificationFunctions;
+    }
 
-	public void setNotificationFunctions(NotificationFunctions notificationFunctions) {
-		this.notificationFunctions = notificationFunctions;
-	}
+    public void setNotificationFunctions(NotificationFunctions notificationFunctions) {
+        this.notificationFunctions = notificationFunctions;
+    }
 
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
 
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+    public void setPrismContext(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
 
-	public String getStatusAsText() {
-		if (isSuccess()) {
-			return "SUCCESS";
-		} else if (isOnlyFailure()) {
-			return "FAILURE";
-		} else if (isFailure()) {
-			return "PARTIAL FAILURE";
-		} else if (isInProgress()) {
-			return "IN PROGRESS";
-		} else {
-			return "UNKNOWN";
-		}
-	}
+    public String getStatusAsText() {
+        if (isSuccess()) {
+            return "SUCCESS";
+        } else if (isOnlyFailure()) {
+            return "FAILURE";
+        } else if (isFailure()) {
+            return "PARTIAL FAILURE";
+        } else if (isInProgress()) {
+            return "IN PROGRESS";
+        } else {
+            return "UNKNOWN";
+        }
+    }
 
-	@Override
-	public EventHandlerType getAdHocHandler() {
-		return adHocHandler;
-	}
+    @Override
+    public EventHandlerType getAdHocHandler() {
+        return adHocHandler;
+    }
 
-	protected void debugDumpCommon(StringBuilder sb, int indent) {
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "id", getId(), indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "requester", getRequester(), indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "requestee", getRequestee(), indent + 1);
-	}
+    protected void debugDumpCommon(StringBuilder sb, int indent) {
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "id", getId(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "requester", getRequester(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "requestee", getRequestee(), indent + 1);
+    }
 
-	@Override
-	public void shortDump(StringBuilder sb) {
-		sb.append(this.getClass().getSimpleName()).append("(").append(getId()).append(")");
-	}
+    @Override
+    public void shortDump(StringBuilder sb) {
+        sb.append(this.getClass().getSimpleName()).append("(").append(getId()).append(")");
+    }
 }

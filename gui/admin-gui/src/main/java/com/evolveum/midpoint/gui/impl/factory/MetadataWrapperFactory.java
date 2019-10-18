@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -29,39 +29,39 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 @Component
 public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<MetadataType>{
 
-	
-	@Autowired private GuiComponentRegistry registry;
 
-	@Override
-	public boolean match(ItemDefinition<?> def) {
-		return QNameUtil.match(MetadataType.COMPLEX_TYPE, def.getTypeName());
-	}
+    @Autowired private GuiComponentRegistry registry;
 
-	@PostConstruct
-	@Override
-	public void register() {
-		registry.addToRegistry(this);
-	}
+    @Override
+    public boolean match(ItemDefinition<?> def) {
+        return QNameUtil.match(MetadataType.COMPLEX_TYPE, def.getTypeName());
+    }
 
-	@Override
-	public int getOrder() {
-		return 10;
-	}
-	
-	protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
-			WrapperContext context, List<ItemWrapper<?,?,?,?>> wrappers) throws SchemaException {
-		
-		ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
-		
-		context.setCreateOperational(true);
-		ItemWrapper<?,?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
-		wrapper.setReadOnly(true);
-		wrappers.add(wrapper);
-		context.setCreateOperational(false);
-	}
-	
-	@Override
-	protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
-		return true;
-	}
+    @PostConstruct
+    @Override
+    public void register() {
+        registry.addToRegistry(this);
+    }
+
+    @Override
+    public int getOrder() {
+        return 10;
+    }
+
+    protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
+            WrapperContext context, List<ItemWrapper<?,?,?,?>> wrappers) throws SchemaException {
+
+        ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
+
+        context.setCreateOperational(true);
+        ItemWrapper<?,?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
+        wrapper.setReadOnly(true);
+        wrappers.add(wrapper);
+        context.setCreateOperational(false);
+    }
+
+    @Override
+    protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+        return true;
+    }
 }

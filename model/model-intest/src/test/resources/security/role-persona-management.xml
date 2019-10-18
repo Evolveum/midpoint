@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="2f0246f8-30df-11e7-b35b-bbb92a001091"
@@ -11,74 +11,74 @@
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Role Persona Management</name>
     <authorization>
-    	<name>auth-self-modify-givenName-req</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<phase>request</phase>
-    	<object>
-    		<type>UserType</type>
-   			<special>self</special>
-    	</object>
-    	<item>givenName</item>
+        <name>auth-self-modify-givenName-req</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>request</phase>
+        <object>
+            <type>UserType</type>
+               <special>self</special>
+        </object>
+        <item>givenName</item>
     </authorization>
     <authorization>
-    	<name>auth-self-modify-exec</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<phase>execution</phase>
-    	<object>
-    		<type>UserType</type>
-   			<special>self</special>
-    	</object>
+        <name>auth-self-modify-exec</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <object>
+            <type>UserType</type>
+               <special>self</special>
+        </object>
     </authorization>
     <authorization>
-    	<name>auth-persona-self-read</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>UserType</type>
-   			<special>self</special>
-    	</object>
+        <name>auth-persona-self-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+               <special>self</special>
+        </object>
     </authorization>
     <authorization>
-    	<name>auth-persona-owner-read</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>UserType</type>
-    		<owner>
-    			<special>self</special>
-    		</owner>
-    	</object>
+        <name>auth-persona-owner-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
     </authorization>
     <authorization>
-    	<name>auth-persona-assign</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
-    	<phase>request</phase>
-    	<target>
-    		<type>RoleType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>subtype</q:path>
-    				<q:value>personaRole</q:value>
-    			</q:equal>
-    		</filter>
-    	</target>
+        <name>auth-persona-assign</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+        <phase>request</phase>
+        <target>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>subtype</q:path>
+                    <q:value>personaRole</q:value>
+                </q:equal>
+            </filter>
+        </target>
     </authorization>
     <authorization>
-    	<name>auth-persona-execute</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
-    	<phase>execution</phase>
-    	<object>
-    		<type>UserType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>subtype</q:path>
-    				<q:value>admin</q:value>
-    			</q:equal>
-    		</filter>
-    		<owner>
-    			<special>self</special>
-    		</owner>
-    	</object>
+        <name>auth-persona-execute</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+        <phase>execution</phase>
+        <object>
+            <type>UserType</type>
+            <filter>
+                <q:equal>
+                    <q:path>subtype</q:path>
+                    <q:value>admin</q:value>
+                </q:equal>
+            </filter>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
     </authorization>
 </role>

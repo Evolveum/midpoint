@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2014-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.conntest;
@@ -46,128 +46,128 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLo
  */
 public class TestOpenLdap extends AbstractLdapConnTest {
 
-	@Override
-	protected String getResourceOid() {
-		return "2a7c7130-7a34-11e4-bdf6-001e8c717e5b";
-	}
+    @Override
+    protected String getResourceOid() {
+        return "2a7c7130-7a34-11e4-bdf6-001e8c717e5b";
+    }
 
-	@Override
-	protected File getBaseDir() {
-		return new File(MidPointTestConstants.TEST_RESOURCES_DIR, "openldap");
-	}
+    @Override
+    protected File getBaseDir() {
+        return new File(MidPointTestConstants.TEST_RESOURCES_DIR, "openldap");
+    }
 
-	@Override
-	public String getStartSystemCommand() {
-		return "sudo "+getScriptDirectoryName()+"/openldap-start";
-	}
+    @Override
+    public String getStartSystemCommand() {
+        return "sudo "+getScriptDirectoryName()+"/openldap-start";
+    }
 
-	@Override
-	public String getStopSystemCommand() {
-		return "sudo "+getScriptDirectoryName()+"/openldap-stop";
-	}
+    @Override
+    public String getStopSystemCommand() {
+        return "sudo "+getScriptDirectoryName()+"/openldap-stop";
+    }
 
-	@Override
-	protected String getLdapServerHost() {
-		return "localhost";
-	}
+    @Override
+    protected String getLdapServerHost() {
+        return "localhost";
+    }
 
-	@Override
-	protected int getLdapServerPort() {
-		return 11389;
-	}
+    @Override
+    protected int getLdapServerPort() {
+        return 11389;
+    }
 
-	@Override
-	protected String getLdapBindDn() {
-		return "cn=admin,dc=example,dc=com";
-	}
+    @Override
+    protected String getLdapBindDn() {
+        return "cn=admin,dc=example,dc=com";
+    }
 
-	@Override
-	protected String getLdapBindPassword() {
-		return "secret";
-	}
+    @Override
+    protected String getLdapBindPassword() {
+        return "secret";
+    }
 
-	@Override
-	protected String getAccount0Cn() {
-		return "Riwibmix Juvotut (00000000)";
-	}
+    @Override
+    protected String getAccount0Cn() {
+        return "Riwibmix Juvotut (00000000)";
+    }
 
-	@Override
-	protected int getSearchSizeLimit() {
-		return 500;
-	}
+    @Override
+    protected int getSearchSizeLimit() {
+        return 500;
+    }
 
-	@Override
-	protected String getPeopleLdapSuffix() {
-		return "ou=people,"+getLdapSuffix();
-	}
+    @Override
+    protected String getPeopleLdapSuffix() {
+        return "ou=people,"+getLdapSuffix();
+    }
 
-	@Override
-	protected String getGroupsLdapSuffix() {
-		return "ou=groups,"+getLdapSuffix();
-	}
+    @Override
+    protected String getGroupsLdapSuffix() {
+        return "ou=groups,"+getLdapSuffix();
+    }
 
 
-	@Override
-	protected String getLdapGroupObjectClass() {
-		return "groupOfNames";
-	}
+    @Override
+    protected String getLdapGroupObjectClass() {
+        return "groupOfNames";
+    }
 
-	@Override
-	protected String getLdapGroupMemberAttribute() {
-		return "member";
-	}
+    @Override
+    protected String getLdapGroupMemberAttribute() {
+        return "member";
+    }
 
-	@Override
-	protected String getSyncTaskOid() {
-		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
-	}
+    @Override
+    protected String getSyncTaskOid() {
+        return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
+    }
 
-	@Override
-	protected boolean syncCanDetectDelete() {
-		return false;
-	}
+    @Override
+    protected boolean syncCanDetectDelete() {
+        return false;
+    }
 
-	@Override
-	protected boolean needsGroupFakeMemeberEntry() {
-		return true;
-	}
+    @Override
+    protected boolean needsGroupFakeMemeberEntry() {
+        return true;
+    }
 
-	@Override
-	protected void assertActivationCapability(ActivationCapabilityType activationCapabilityType) {
-		assertNotNull("No activation capability", activationCapabilityType);
+    @Override
+    protected void assertActivationCapability(ActivationCapabilityType activationCapabilityType) {
+        assertNotNull("No activation capability", activationCapabilityType);
 
-		ActivationLockoutStatusCapabilityType lockoutCapability = CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapabilityType);
-		assertNotNull("No lockout capability", lockoutCapability);
-		display("Lockout capability", lockoutCapability);
-	}
+        ActivationLockoutStatusCapabilityType lockoutCapability = CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapabilityType);
+        assertNotNull("No lockout capability", lockoutCapability);
+        display("Lockout capability", lockoutCapability);
+    }
 
-	@Override
-	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
-			throws ObjectNotFoundException, SchemaException {
-		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
-		Task task = taskManager.getTask(syncTaskOid, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+    @Override
+    protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
+            throws ObjectNotFoundException, SchemaException {
+        OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
+        Task task = taskManager.getTask(syncTaskOid, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
-		PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
-		assertNotNull("No sync token in "+task, syncTokenProperty);
-		String syncToken = syncTokenProperty.getRealValue();
-		assertNotNull("No sync token in "+task, syncToken);
-		IntegrationTestTools.display("Sync token", syncToken);
+        PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
+        assertNotNull("No sync token in "+task, syncTokenProperty);
+        String syncToken = syncTokenProperty.getRealValue();
+        assertNotNull("No sync token in "+task, syncToken);
+        IntegrationTestTools.display("Sync token", syncToken);
 
-		GeneralizedTime syncTokenGt;
-		try {
-			syncTokenGt = new GeneralizedTime(syncToken);
-		} catch (ParseException e) {
-			throw new RuntimeException(e.getMessage(),e);
-		}
-		TestUtil.assertBetween("Wrong time in sync token: "+syncToken, roundTsDown(tsStart), roundTsUp(tsEnd), syncTokenGt.getCalendar().getTimeInMillis());
+        GeneralizedTime syncTokenGt;
+        try {
+            syncTokenGt = new GeneralizedTime(syncToken);
+        } catch (ParseException e) {
+            throw new RuntimeException(e.getMessage(),e);
+        }
+        TestUtil.assertBetween("Wrong time in sync token: "+syncToken, roundTsDown(tsStart), roundTsUp(tsEnd), syncTokenGt.getCalendar().getTimeInMillis());
 
-	}
+    }
 
-	@Test
+    @Test
     public void test700CheckBarbossaLockoutStatus() throws Exception {
-		final String TEST_NAME = "test700CheckBarbossaLockoutStatus";
+        final String TEST_NAME = "test700CheckBarbossaLockoutStatus";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // WHEN
@@ -179,18 +179,18 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         display("Shadow (model)", shadow);
         ActivationType activation = shadow.asObjectable().getActivation();
         if (activation != null) {
-	        LockoutStatusType lockoutStatus = shadow.asObjectable().getActivation().getLockoutStatus();
-	        if (lockoutStatus != null && lockoutStatus != LockoutStatusType.NORMAL) {
-	        	AssertJUnit.fail("Barbossa is locked!");
-	        }
+            LockoutStatusType lockoutStatus = shadow.asObjectable().getActivation().getLockoutStatus();
+            if (lockoutStatus != null && lockoutStatus != LockoutStatusType.NORMAL) {
+                AssertJUnit.fail("Barbossa is locked!");
+            }
         }
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD_2);
-	}
+    }
 
-	@Test
+    @Test
     public void test702LockOutBarbossa() throws Exception {
-		final String TEST_NAME = "test702LockOutBarbossa";
+        final String TEST_NAME = "test702LockOutBarbossa";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         Entry entry = getLdapAccountByUid(USER_BARBOSSA_USERNAME);
@@ -199,14 +199,14 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         for (int i = 0; i < 10; i++) {
-        	LdapNetworkConnection conn;
-        	try {
-        		conn = ldapConnect(null, entry.getDn().toString(), "this password is wrong");
-        	} catch (SecurityException e) {
-        		// Good bad attempt
-        		continue;
-        	}
-        	assertNotReached();
+            LdapNetworkConnection conn;
+            try {
+                conn = ldapConnect(null, entry.getDn().toString(), "this password is wrong");
+            } catch (SecurityException e) {
+                // Good bad attempt
+                continue;
+            }
+            assertNotReached();
         }
 
         // THEN
@@ -221,12 +221,12 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         assertNotNull("No activation", activation);
         LockoutStatusType lockoutStatus = shadow.asObjectable().getActivation().getLockoutStatus();
         assertEquals("Wrong lockout status", LockoutStatusType.LOCKED, lockoutStatus);
-	}
+    }
 
 
-	@Test
+    @Test
     public void test705UnlockBarbossaAccount() throws Exception {
-		final String TEST_NAME = "test705UnlockBarbossaAccount";
+        final String TEST_NAME = "test705UnlockBarbossaAccount";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -234,7 +234,7 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountBarbossaOid, null,
-        		SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, LockoutStatusType.NORMAL);
+                SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, LockoutStatusType.NORMAL);
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -250,10 +250,10 @@ public class TestOpenLdap extends AbstractLdapConnTest {
 
         ActivationType activation = shadow.asObjectable().getActivation();
         if (activation != null) {
-	        LockoutStatusType lockoutStatus = shadow.asObjectable().getActivation().getLockoutStatus();
-	        if (lockoutStatus != null && lockoutStatus != LockoutStatusType.NORMAL) {
-	        	AssertJUnit.fail("Barbossa is locked!");
-	        }
+            LockoutStatusType lockoutStatus = shadow.asObjectable().getActivation().getLockoutStatus();
+            if (lockoutStatus != null && lockoutStatus != LockoutStatusType.NORMAL) {
+                AssertJUnit.fail("Barbossa is locked!");
+            }
         }
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
@@ -261,6 +261,6 @@ public class TestOpenLdap extends AbstractLdapConnTest {
         assertNoAttribute(entry, "pwdAccountLockedTime");
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD_2);
-	}
+    }
 
 }

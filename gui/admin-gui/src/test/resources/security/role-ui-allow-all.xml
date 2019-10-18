@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -11,16 +11,16 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>UI Allow All</name>
     <authorization>
-	<name>objectautz</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+    <name>objectautz</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
     </authorization>
     <authorization>
-		<name>uiallow</name>
-    	<decision>allow</decision>
-		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#all</action>
+        <name>uiallow</name>
+        <decision>allow</decision>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#all</action>
     </authorization>
 
 </role>

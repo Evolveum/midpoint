@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- Object modification description that is changing user "barbossa" by adding a new account assignment -->
 
 <objectModification
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" 
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
-	<oid>c0c010c0-d34d-b33f-f00d-111111111112</oid>
-	<itemDelta modificationType="delete">
-		<t:value xsiType="c:AssignmentType">
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
+    <oid>c0c010c0-d34d-b33f-f00d-111111111112</oid>
+    <itemDelta modificationType="delete">
+        <t:value xsiType="c:AssignmentType">
             <c:construction>
                 <c:resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
                 <c:attribute>
@@ -27,6 +27,6 @@
                     </c:outbound>
                 </c:attribute>
             </c:construction>
-		</t:value>
-	</itemDelta>
+        </t:value>
+    </itemDelta>
 </objectModification>

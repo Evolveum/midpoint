@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -142,7 +142,7 @@ public class TestAddAssociation extends AbstractWfTest {
     /**
      * Add entitlement to user jack
      */
-	@Test
+    @Test
     public void test010AddJackToTesters() throws Exception {
         TestUtil.displayTestTitle(this, "test010AddJackToTesters");
         executeTest("test010AddJackToTesters", USER_JACK_OID, new TestDetails() {
@@ -214,11 +214,11 @@ public class TestAddAssociation extends AbstractWfTest {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-		            ApprovalContextType wfContext) {
+                    ApprovalContextType wfContext) {
                 return true;
             }
         });
-	}
+    }
 
     /**
      * Add entitlement to user elisabeth (rejected)
@@ -295,7 +295,7 @@ public class TestAddAssociation extends AbstractWfTest {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-		            ApprovalContextType wfContext) {
+                    ApprovalContextType wfContext) {
                 return false;
             }
         });

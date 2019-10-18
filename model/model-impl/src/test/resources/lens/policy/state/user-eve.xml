@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="e84350b3-3320-4cdf-942a-9c5507e1777d">
-	<name>eve</name>
-	<assignment>
-		<targetRef oid="fa636d6a-f016-491c-8cd5-cdcbfd516be5" type="RoleType"/>  <!-- a-test-2a -->
-	</assignment>
+      oid="e84350b3-3320-4cdf-942a-9c5507e1777d">
+    <name>eve</name>
+    <assignment>
+        <targetRef oid="fa636d6a-f016-491c-8cd5-cdcbfd516be5" type="RoleType"/>  <!-- a-test-2a -->
+    </assignment>
 </user>

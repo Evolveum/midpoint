@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.manual;
@@ -37,149 +37,149 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @ManagedConnector(type="DummyItsmIntegrationConnector", version="1.0.0")
 public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnectorInstance {
-	
-	private static final Trace LOGGER = TraceManager.getTrace(DummyItsmIntegrationConnectorInstance.class);
-	
-	private DummyItsmIntegrationConnectorConfiguration configuration;
-	
-	private boolean connected = false;
-	
-	@ManagedConnectorConfiguration
-	public DummyItsmIntegrationConnectorConfiguration getConfiguration() {
-		return configuration;
-	}
 
-	public void setConfiguration(DummyItsmIntegrationConnectorConfiguration configuration) {
-		this.configuration = configuration;
-	}
+    private static final Trace LOGGER = TraceManager.getTrace(DummyItsmIntegrationConnectorInstance.class);
 
-	public boolean isConnected() {
-		return connected;
-	}
-	
-	@Override
-	public OperationResultStatus queryOperationStatus(String asynchronousOperationReference,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		DummyItsm itsm = DummyItsm.getInstance();
-		DummyItsmTicket ticket;
-		try {
-			ticket = itsm.findTicket(asynchronousOperationReference);
-		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException e) {
-			LOGGER.info("GET "+asynchronousOperationReference+" => "+e);
-			throw e;
-		} catch (Exception e) {
-			LOGGER.info("GET "+asynchronousOperationReference+" => "+e);
-			throw new RuntimeException(e);
-		}
-		LOGGER.info("GET "+asynchronousOperationReference+" => "+ticket);
-		switch (ticket.getStatus()) {
-			case OPEN:
-				return OperationResultStatus.IN_PROGRESS;
-			case CLOSED:
-				return OperationResultStatus.SUCCESS;
-			default:
-				return null;
-		}
-	}
-	
+    private DummyItsmIntegrationConnectorConfiguration configuration;
 
-	@Override
-	protected String createTicketAdd(PrismObject<? extends ShadowType> object,
-			Collection<Operation> additionalOperations, OperationResult result) throws CommunicationException,
-			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
-		DummyItsm itsm = DummyItsm.getInstance();
-		String identifier;
-		try {
-			identifier = itsm.createTicket("ADD "+object);
-		} catch (CommunicationException | SchemaException | ObjectAlreadyExistsException | ConfigurationException e) {
-			LOGGER.info("ADD "+object+" => "+e);
-			throw e;
-		} catch (Exception e) {
-			LOGGER.info("ADD "+object+" => "+e);
-			throw new GenericFrameworkException(e);
-		}
-		LOGGER.info("ADD "+object+" => "+identifier);
-		return identifier;
-	}
+    private boolean connected = false;
 
-	@Override
-	protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
-			PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
-			String resourceOid, Collection<Operation> changes, OperationResult result)
-			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
-			SchemaException, ObjectAlreadyExistsException, ConfigurationException {
-		DummyItsm itsm = DummyItsm.getInstance();
-		String identifier;
-		try {
-			identifier = itsm.createTicket("MODIFY "+identifiers+": "+changes);
-		} catch (CommunicationException | SchemaException | ObjectAlreadyExistsException | ConfigurationException e) {
-			LOGGER.info("MODIFY "+identifiers+": "+changes+" => "+e);
-			throw e;
-		} catch (Exception e) {
-			LOGGER.info("MODIFY "+identifiers+": "+changes+" => "+e);
-			throw new GenericFrameworkException(e);
-		}
-		LOGGER.info("MODIFY "+identifiers+": "+changes+" => "+identifier);
-		return identifier;
-	}
+    @ManagedConnectorConfiguration
+    public DummyItsmIntegrationConnectorConfiguration getConfiguration() {
+        return configuration;
+    }
 
-	@Override
-	protected String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
-			PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
-			String resourceOid, OperationResult result) throws ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
-		DummyItsm itsm = DummyItsm.getInstance();
-		String identifier;
-		try {
-			identifier = itsm.createTicket("DELETE "+identifiers);
-		} catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException e) {
-			LOGGER.info("DELETE "+identifiers+" => "+e);
-			throw e;
-		} catch (Exception e) {
-			LOGGER.info("DELETE "+identifiers+" => "+e);
-			throw new GenericFrameworkException(e);
-		}
-		LOGGER.info("DELETE "+identifiers+" => "+identifier);
-		return identifier;
-	}
+    public void setConfiguration(DummyItsmIntegrationConnectorConfiguration configuration) {
+        this.configuration = configuration;
+    }
 
-	@Override
-	protected void connect(OperationResult result) {
-		if (connected && InternalsConfig.isSanityChecks()) {
-			throw new IllegalStateException("Double connect in "+this);
-		}
-		connected = true;
-		LOGGER.info("CONNECT");
-	}
-	
-	@Override
-	public void disconnect(OperationResult result) {
-		connected = false;
-		LOGGER.info("DISCONNECT");
-	}
-	
-	@Override
-	public void test(OperationResult parentResult) {
-		OperationResult connectionResult = parentResult
-				.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
-		connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ManualConnectorInstance.class);
-		connectionResult.addContext("connector", getConnectorObject().toString());
-		try {
-			DummyItsm itsm = DummyItsm.getInstance();
-			itsm.test();
-		} catch (Exception e) {
-			LOGGER.info("TEST: "+e);
-			connectionResult.recordFatalError(e);
-		}
-	
-		if (!connected) {
-			throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
-		}
-		
-		LOGGER.info("TEST: OK");
-		
-		connectionResult.recordSuccess();
-	}
+    public boolean isConnected() {
+        return connected;
+    }
+
+    @Override
+    public OperationResultStatus queryOperationStatus(String asynchronousOperationReference,
+            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+        DummyItsm itsm = DummyItsm.getInstance();
+        DummyItsmTicket ticket;
+        try {
+            ticket = itsm.findTicket(asynchronousOperationReference);
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException e) {
+            LOGGER.info("GET "+asynchronousOperationReference+" => "+e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.info("GET "+asynchronousOperationReference+" => "+e);
+            throw new RuntimeException(e);
+        }
+        LOGGER.info("GET "+asynchronousOperationReference+" => "+ticket);
+        switch (ticket.getStatus()) {
+            case OPEN:
+                return OperationResultStatus.IN_PROGRESS;
+            case CLOSED:
+                return OperationResultStatus.SUCCESS;
+            default:
+                return null;
+        }
+    }
+
+
+    @Override
+    protected String createTicketAdd(PrismObject<? extends ShadowType> object,
+            Collection<Operation> additionalOperations, OperationResult result) throws CommunicationException,
+            GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
+        DummyItsm itsm = DummyItsm.getInstance();
+        String identifier;
+        try {
+            identifier = itsm.createTicket("ADD "+object);
+        } catch (CommunicationException | SchemaException | ObjectAlreadyExistsException | ConfigurationException e) {
+            LOGGER.info("ADD "+object+" => "+e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.info("ADD "+object+" => "+e);
+            throw new GenericFrameworkException(e);
+        }
+        LOGGER.info("ADD "+object+" => "+identifier);
+        return identifier;
+    }
+
+    @Override
+    protected String createTicketModify(ObjectClassComplexTypeDefinition objectClass,
+            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
+            String resourceOid, Collection<Operation> changes, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
+            SchemaException, ObjectAlreadyExistsException, ConfigurationException {
+        DummyItsm itsm = DummyItsm.getInstance();
+        String identifier;
+        try {
+            identifier = itsm.createTicket("MODIFY "+identifiers+": "+changes);
+        } catch (CommunicationException | SchemaException | ObjectAlreadyExistsException | ConfigurationException e) {
+            LOGGER.info("MODIFY "+identifiers+": "+changes+" => "+e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.info("MODIFY "+identifiers+": "+changes+" => "+e);
+            throw new GenericFrameworkException(e);
+        }
+        LOGGER.info("MODIFY "+identifiers+": "+changes+" => "+identifier);
+        return identifier;
+    }
+
+    @Override
+    protected String createTicketDelete(ObjectClassComplexTypeDefinition objectClass,
+            PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers,
+            String resourceOid, OperationResult result) throws ObjectNotFoundException,
+            CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
+        DummyItsm itsm = DummyItsm.getInstance();
+        String identifier;
+        try {
+            identifier = itsm.createTicket("DELETE "+identifiers);
+        } catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException e) {
+            LOGGER.info("DELETE "+identifiers+" => "+e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.info("DELETE "+identifiers+" => "+e);
+            throw new GenericFrameworkException(e);
+        }
+        LOGGER.info("DELETE "+identifiers+" => "+identifier);
+        return identifier;
+    }
+
+    @Override
+    protected void connect(OperationResult result) {
+        if (connected && InternalsConfig.isSanityChecks()) {
+            throw new IllegalStateException("Double connect in "+this);
+        }
+        connected = true;
+        LOGGER.info("CONNECT");
+    }
+
+    @Override
+    public void disconnect(OperationResult result) {
+        connected = false;
+        LOGGER.info("DISCONNECT");
+    }
+
+    @Override
+    public void test(OperationResult parentResult) {
+        OperationResult connectionResult = parentResult
+                .createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
+        connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ManualConnectorInstance.class);
+        connectionResult.addContext("connector", getConnectorObject().toString());
+        try {
+            DummyItsm itsm = DummyItsm.getInstance();
+            itsm.test();
+        } catch (Exception e) {
+            LOGGER.info("TEST: "+e);
+            connectionResult.recordFatalError(e);
+        }
+
+        if (!connected) {
+            throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
+        }
+
+        LOGGER.info("TEST: OK");
+
+        connectionResult.recordSuccess();
+    }
 
 
 }

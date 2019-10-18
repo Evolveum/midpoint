@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
@@ -99,41 +99,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @Component
 public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
-	public static final String ICFS_NAME_DISPLAY_NAME = "ConnId Name";
-	public static final int ICFS_NAME_DISPLAY_ORDER = 110;
-	public static final String ICFS_UID_DISPLAY_NAME = "ConnId UID";
-	public static final int ICFS_UID_DISPLAY_ORDER = 100;
-	public static final QName ICFS_ACCOUNT = new QName(SchemaConstants.NS_ICF_SCHEMA, "account");
+    public static final String ICFS_NAME_DISPLAY_NAME = "ConnId Name";
+    public static final int ICFS_NAME_DISPLAY_ORDER = 110;
+    public static final String ICFS_UID_DISPLAY_NAME = "ConnId UID";
+    public static final int ICFS_UID_DISPLAY_ORDER = 100;
+    public static final QName ICFS_ACCOUNT = new QName(SchemaConstants.NS_ICF_SCHEMA, "account");
 
-	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
-	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_QNAME = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
-			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
+    public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
+    public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_QNAME = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
+            CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
 
-	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME = "connectorPoolConfiguration";
-	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
-			"connectorPoolConfiguration");
-	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
-			"ConnectorPoolConfigurationType");
-	protected static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS = "minEvictableIdleTimeMillis";
-	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE = "minIdle";
-	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE = "maxIdle";
-	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS = "maxObjects";
-	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT = "maxWait";
+    public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME = "connectorPoolConfiguration";
+    public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
+            "connectorPoolConfiguration");
+    public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
+            "ConnectorPoolConfigurationType");
+    protected static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS = "minEvictableIdleTimeMillis";
+    public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE = "minIdle";
+    public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE = "maxIdle";
+    public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS = "maxObjects";
+    public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT = "maxWait";
 
-	public static final String CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME = "producerBufferSize";
-	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
-			CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME);
-	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE = DOMUtil.XSD_INT;
+    public static final String CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME = "producerBufferSize";
+    public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
+            CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME);
+    public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE = DOMUtil.XSD_INT;
 
-	public static final String CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME = "legacySchema";
-	public static final QName CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
-			CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME);
-	public static final QName CONNECTOR_SCHEMA_LEGACY_SCHEMA_TYPE = DOMUtil.XSD_BOOLEAN;
+    public static final String CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME = "legacySchema";
+    public static final QName CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
+            CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME);
+    public static final QName CONNECTOR_SCHEMA_LEGACY_SCHEMA_TYPE = DOMUtil.XSD_BOOLEAN;
 
-	public static final String CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME = "timeouts";
-	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
-			CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
-	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(SchemaConstants.NS_ICF_CONFIGURATION, "TimeoutsType");
+    public static final String CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME = "timeouts";
+    public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
+            CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
+    public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(SchemaConstants.NS_ICF_CONFIGURATION, "TimeoutsType");
 
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT_LOCAL_NAME = "resultsHandlerConfiguration";
     public static final QName CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
@@ -148,424 +148,424 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
     static final Map<String, Collection<Class<? extends APIOperation>>> apiOpMap = new HashMap<>();
 
-	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.ICF_FRAMEWORK_URI + "/bundle/";
-	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
+    private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.ICF_FRAMEWORK_URI + "/bundle/";
+    private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
 
-	public static final int ATTR_DISPLAY_ORDER_START = 120;
-	public static final int ATTR_DISPLAY_ORDER_INCREMENT = 10;
+    public static final int ATTR_DISPLAY_ORDER_START = 120;
+    public static final int ATTR_DISPLAY_ORDER_INCREMENT = 10;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryConnIdImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryConnIdImpl.class);
 
-	// This is not really used in the code. It is here just to make sure that the JUL logger is loaded
-	// by the parent classloader so we can correctly adjust the log levels from the main code
-	static final java.util.logging.Logger JUL_LOGGER = java.util.logging.Logger.getLogger(ConnectorFactoryConnIdImpl.class.getName());
+    // This is not really used in the code. It is here just to make sure that the JUL logger is loaded
+    // by the parent classloader so we can correctly adjust the log levels from the main code
+    static final java.util.logging.Logger JUL_LOGGER = java.util.logging.Logger.getLogger(ConnectorFactoryConnIdImpl.class.getName());
 
-	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
-	private ConnectorInfoManager localConnectorInfoManager;
-	private Set<URI> bundleURIs;
-	private Set<ConnectorType> localConnectorTypes = null;
+    private ConnectorInfoManagerFactory connectorInfoManagerFactory;
+    private ConnectorInfoManager localConnectorInfoManager;
+    private Set<URI> bundleURIs;
+    private Set<ConnectorType> localConnectorTypes = null;
 
-	@Autowired private MidpointConfiguration midpointConfiguration;
-	@Autowired private Protector protector;
-	@Autowired private PrismContext prismContext;
+    @Autowired private MidpointConfiguration midpointConfiguration;
+    @Autowired private Protector protector;
+    @Autowired private PrismContext prismContext;
 
-	public ConnectorFactoryConnIdImpl() {
-	}
+    public ConnectorFactoryConnIdImpl() {
+    }
 
-	/**
-	 * Initialize the ICF implementation. Look for all connector bundles, get
-	 * basic information about them and keep that in memory.
-	 */
-	@PostConstruct
-	public void initialize() {
+    /**
+     * Initialize the ICF implementation. Look for all connector bundles, get
+     * basic information about them and keep that in memory.
+     */
+    @PostConstruct
+    public void initialize() {
 
-		// OLD
-		// bundleURIs = listBundleJars();
-		bundleURIs = new HashSet<>();
+        // OLD
+        // bundleURIs = listBundleJars();
+        bundleURIs = new HashSet<>();
 
-		Configuration config = midpointConfiguration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
+        Configuration config = midpointConfiguration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
 
-		// Is classpath scan enabled
-		if (config.getBoolean("scanClasspath")) {
-			// Scan class path
-			bundleURIs.addAll(scanClassPathForBundles());
-		}
+        // Is classpath scan enabled
+        if (config.getBoolean("scanClasspath")) {
+            // Scan class path
+            bundleURIs.addAll(scanClassPathForBundles());
+        }
 
-		// Scan all provided directories
-		@SuppressWarnings("unchecked")
-		List<String> dirs = config.getList("scanDirectory");
-		for (String dir : dirs) {
-			bundleURIs.addAll(scanDirectory(dir));
-		}
+        // Scan all provided directories
+        @SuppressWarnings("unchecked")
+        List<String> dirs = config.getList("scanDirectory");
+        for (String dir : dirs) {
+            bundleURIs.addAll(scanDirectory(dir));
+        }
 
-		for (URI u : bundleURIs) {
-			LOGGER.debug("ICF bundle URI : {}", u);
-		}
+        for (URI u : bundleURIs) {
+            LOGGER.debug("ICF bundle URI : {}", u);
+        }
 
-		connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
+        connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
 
-	}
+    }
 
-	/**
-	 * Creates new connector instance.
-	 *
-	 * It will initialize the connector by taking the XML Resource definition,
-	 * transforming it to the ICF configuration and applying that to the new
-	 * connector instance.
-	 *
-	 * @throws ObjectNotFoundException
-	 * @throws SchemaException
-	 *
-	 */
-	@Override
-	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String instanceName, String instanceDescription)
-			throws ObjectNotFoundException, SchemaException {
+    /**
+     * Creates new connector instance.
+     *
+     * It will initialize the connector by taking the XML Resource definition,
+     * transforming it to the ICF configuration and applying that to the new
+     * connector instance.
+     *
+     * @throws ObjectNotFoundException
+     * @throws SchemaException
+     *
+     */
+    @Override
+    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String instanceName, String instanceDescription)
+            throws ObjectNotFoundException, SchemaException {
 
-		ConnectorInfo cinfo = getConnectorInfo(connectorType);
+        ConnectorInfo cinfo = getConnectorInfo(connectorType);
 
-		if (cinfo == null) {
-			LOGGER.error("Failed to instantiate {}", ObjectTypeUtil.toShortString(connectorType));
-			LOGGER.debug("Connector key: {}, host: {}", getConnectorKey(connectorType),
-					ObjectTypeUtil.toShortString(connectorType));
-			LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorType));
-			if (connectorType.getConnectorHostRef() != null) {
-				if (connectorType.getConnectorHostRef().asReferenceValue().getObject() == null) {
-					LOGGER.trace("Connector host ref: {}", connectorType.getConnectorHostRef());
-				} else {
-					LOGGER.trace("Connector host object:\n{}", connectorType.getConnectorHostRef().asReferenceValue().getObject().debugDump(1));
-				}
-			}
-			throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
-					+ " were not found by the ICF framework; bundle="+connectorType.getConnectorBundle()+" connector type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
-		}
+        if (cinfo == null) {
+            LOGGER.error("Failed to instantiate {}", ObjectTypeUtil.toShortString(connectorType));
+            LOGGER.debug("Connector key: {}, host: {}", getConnectorKey(connectorType),
+                    ObjectTypeUtil.toShortString(connectorType));
+            LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorType));
+            if (connectorType.getConnectorHostRef() != null) {
+                if (connectorType.getConnectorHostRef().asReferenceValue().getObject() == null) {
+                    LOGGER.trace("Connector host ref: {}", connectorType.getConnectorHostRef());
+                } else {
+                    LOGGER.trace("Connector host object:\n{}", connectorType.getConnectorHostRef().asReferenceValue().getObject().debugDump(1));
+                }
+            }
+            throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
+                    + " were not found by the ICF framework; bundle="+connectorType.getConnectorBundle()+" connector type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
+        }
 
-		PrismSchema connectorSchema = UcfUtil.getConnectorSchema(connectorType, prismContext);
-		if (connectorSchema == null) {
-			connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
-		}
+        PrismSchema connectorSchema = UcfUtil.getConnectorSchema(connectorType, prismContext);
+        if (connectorSchema == null) {
+            connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
+        }
 
-		ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorType, namespace,
-				connectorSchema, protector, prismContext);
-		connectorImpl.setDescription(instanceDescription);
-		connectorImpl.setInstanceName(instanceName);
+        ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorType, namespace,
+                connectorSchema, protector, prismContext);
+        connectorImpl.setDescription(instanceDescription);
+        connectorImpl.setInstanceName(instanceName);
 
-		return connectorImpl;
-	}
-
-
-
-	/**
-	 * Returns a list XML representation of the ICF connectors.
-	 *
-	 * @throws CommunicationException
-	 */
-	@Override
-	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul)
-			throws CommunicationException {
-		OperationResult result = parentRestul.createSubresult(ConnectorFactory.OPERATION_LIST_CONNECTOR);
-		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorFactoryConnIdImpl.class);
-		result.addParam("host", host);
-
-		try {
-			if (host == null) {
-				Set<ConnectorType> connectors = listLocalConnectors();
-				result.recordSuccess();
-				return connectors;
-			} else {
-				// This is necessary as list of the remote connectors is cached locally.
-				// So if any remote connector is added then it will not be discovered unless we
-				// clear the cache. This may look like inefficiency but in fact the listConnectors() method is
-				// used only when discovering new connectors. Normal connector operation is using connector objects
-				// stored in repository.
-				connectorInfoManagerFactory.clearRemoteCache();
-				Set<ConnectorType> connectors = listRemoteConnectors(host);
-				result.recordSuccess();
-				return connectors;
-			}
-		} catch (Throwable icfException) {
-			Throwable ex = processConnIdException(icfException, "list connectors", result);
-			result.recordFatalError(ex.getMessage(), ex);
-			if (ex instanceof CommunicationException) {
-				throw (CommunicationException) ex;
-			} else if (ex instanceof RuntimeException) {
-				throw (RuntimeException) ex;
-			} else if (ex instanceof Error) {
-				throw (Error) ex;
-			} else {
-				throw new SystemException("Unexpected ICF exception: " + ex.getMessage(), ex);
-			}
-		}
-	}
-
-	private Set<ConnectorType> listLocalConnectors() {
-		if (localConnectorTypes == null) {
-			// Lazy initialize connector list
-			localConnectorTypes = new HashSet<>();
+        return connectorImpl;
+    }
 
 
-			// Fetch list of local connectors from ICF
-			List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 
-			for (ConnectorInfo connectorInfo : connectorInfos) {
-				ConnectorType connectorType;
-				try {
-					connectorType = convertToConnectorType(connectorInfo, null);
-					localConnectorTypes.add(connectorType);
-				} catch (SchemaException e) {
-					LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnctorDesc(connectorInfo), e.getMessage(), e);
-				}
-			}
-		}
+    /**
+     * Returns a list XML representation of the ICF connectors.
+     *
+     * @throws CommunicationException
+     */
+    @Override
+    public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul)
+            throws CommunicationException {
+        OperationResult result = parentRestul.createSubresult(ConnectorFactory.OPERATION_LIST_CONNECTOR);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorFactoryConnIdImpl.class);
+        result.addParam("host", host);
 
-		return localConnectorTypes;
-	}
+        try {
+            if (host == null) {
+                Set<ConnectorType> connectors = listLocalConnectors();
+                result.recordSuccess();
+                return connectors;
+            } else {
+                // This is necessary as list of the remote connectors is cached locally.
+                // So if any remote connector is added then it will not be discovered unless we
+                // clear the cache. This may look like inefficiency but in fact the listConnectors() method is
+                // used only when discovering new connectors. Normal connector operation is using connector objects
+                // stored in repository.
+                connectorInfoManagerFactory.clearRemoteCache();
+                Set<ConnectorType> connectors = listRemoteConnectors(host);
+                result.recordSuccess();
+                return connectors;
+            }
+        } catch (Throwable icfException) {
+            Throwable ex = processConnIdException(icfException, "list connectors", result);
+            result.recordFatalError(ex.getMessage(), ex);
+            if (ex instanceof CommunicationException) {
+                throw (CommunicationException) ex;
+            } else if (ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+            } else if (ex instanceof Error) {
+                throw (Error) ex;
+            } else {
+                throw new SystemException("Unexpected ICF exception: " + ex.getMessage(), ex);
+            }
+        }
+    }
 
-	private Set<ConnectorType> listRemoteConnectors(ConnectorHostType host) {
-		ConnectorInfoManager remoteConnectorInfoManager = getRemoteConnectorInfoManager(host);
-		Set<ConnectorType> connectorTypes = new HashSet<>();
-		List<ConnectorInfo> connectorInfos = remoteConnectorInfoManager.getConnectorInfos();
-		for (ConnectorInfo connectorInfo : connectorInfos) {
-			try {
-				ConnectorType connectorType = convertToConnectorType(connectorInfo, host);
-				connectorTypes.add(connectorType);
-			} catch (SchemaException e) {
-				LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnctorDesc(connectorInfo), e.getMessage(), e);
-			}
-		}
-		return connectorTypes;
-	}
+    private Set<ConnectorType> listLocalConnectors() {
+        if (localConnectorTypes == null) {
+            // Lazy initialize connector list
+            localConnectorTypes = new HashSet<>();
 
-	private String getConnctorDesc(ConnectorInfo connectorInfo) {
-		return connectorInfo.getConnectorKey().getConnectorName();
-	}
 
-	/**
-	 * Converts ICF ConnectorInfo into a midPoint XML connector representation.
-	 *
-	 * TODO: schema transformation
-	 *
-	 * @param hostType
-	 *            host that this connector runs on or null for local connectors
-	 */
-	private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
-		ConnectorType connectorType = new ConnectorType();
-		ConnectorKey key = cinfo.getConnectorKey();
-		UcfUtil.addConnectorNames(connectorType, "ConnId", key.getBundleName(), key.getConnectorName(), key.getBundleVersion(), hostType);
-		String stringID = keyToNamespaceSuffix(key);
-		connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
-		connectorType.setConnectorType(key.getConnectorName());
-		connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX + stringID);
-		connectorType.setConnectorVersion(key.getBundleVersion());
-		connectorType.setConnectorBundle(key.getBundleName());
-		if (hostType != null) {
-			// bind using connectorHostRef and OID
-			ObjectReferenceType ref = new ObjectReferenceType();
-			ref.setOid(hostType.getOid());
-			ref.setType(ObjectTypes.CONNECTOR_HOST.getTypeQName());
-			ref.asReferenceValue().setObject(hostType.asPrismObject());
-			connectorType.setConnectorHostRef(ref);
-		}
+            // Fetch list of local connectors from ICF
+            List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 
-		PrismSchema connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
-		LOGGER.trace("Generated connector schema for {}: {} definitions",
-				connectorType, connectorSchema.getDefinitions().size());
-		UcfUtil.setConnectorSchema(connectorType, connectorSchema);
+            for (ConnectorInfo connectorInfo : connectorInfos) {
+                ConnectorType connectorType;
+                try {
+                    connectorType = convertToConnectorType(connectorInfo, null);
+                    localConnectorTypes.add(connectorType);
+                } catch (SchemaException e) {
+                    LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnctorDesc(connectorInfo), e.getMessage(), e);
+                }
+            }
+        }
 
-		return connectorType;
-	}
+        return localConnectorTypes;
+    }
 
-	/**
-	 * Converts ICF connector key to a simple string.
-	 *
-	 * The string may be used as an OID.
-	 */
-	private String keyToNamespaceSuffix(ConnectorKey key) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(key.getBundleName());
-		sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
-		// Don't include version. It is lesser evil.
-		// sb.append(key.getBundleVersion());
-		// sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
-		sb.append(key.getConnectorName());
-		return sb.toString();
-	}
+    private Set<ConnectorType> listRemoteConnectors(ConnectorHostType host) {
+        ConnectorInfoManager remoteConnectorInfoManager = getRemoteConnectorInfoManager(host);
+        Set<ConnectorType> connectorTypes = new HashSet<>();
+        List<ConnectorInfo> connectorInfos = remoteConnectorInfoManager.getConnectorInfos();
+        for (ConnectorInfo connectorInfo : connectorInfos) {
+            try {
+                ConnectorType connectorType = convertToConnectorType(connectorInfo, host);
+                connectorTypes.add(connectorType);
+            } catch (SchemaException e) {
+                LOGGER.error("Schema error while initializing ConnId connector {}: {}", getConnctorDesc(connectorInfo), e.getMessage(), e);
+            }
+        }
+        return connectorTypes;
+    }
 
-	@Override
-	public PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException {
-		ConnectorInfo cinfo = getConnectorInfo(connectorType);
-		if (cinfo == null) {
-			throw new ObjectNotFoundException("Connector "+connectorType+" cannot be found by ConnId framework");
-		}
-		return generateConnectorConfigurationSchema(cinfo, connectorType);
-	}
+    private String getConnctorDesc(ConnectorInfo connectorInfo) {
+        return connectorInfo.getConnectorKey().getConnectorName();
+    }
 
-	private PrismSchema generateConnectorConfigurationSchema(ConnectorInfo cinfo, ConnectorType connectorType) {
+    /**
+     * Converts ICF ConnectorInfo into a midPoint XML connector representation.
+     *
+     * TODO: schema transformation
+     *
+     * @param hostType
+     *            host that this connector runs on or null for local connectors
+     */
+    private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
+        ConnectorType connectorType = new ConnectorType();
+        ConnectorKey key = cinfo.getConnectorKey();
+        UcfUtil.addConnectorNames(connectorType, "ConnId", key.getBundleName(), key.getConnectorName(), key.getBundleVersion(), hostType);
+        String stringID = keyToNamespaceSuffix(key);
+        connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
+        connectorType.setConnectorType(key.getConnectorName());
+        connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX + stringID);
+        connectorType.setConnectorVersion(key.getBundleVersion());
+        connectorType.setConnectorBundle(key.getBundleName());
+        if (hostType != null) {
+            // bind using connectorHostRef and OID
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.setOid(hostType.getOid());
+            ref.setType(ObjectTypes.CONNECTOR_HOST.getTypeQName());
+            ref.asReferenceValue().setObject(hostType.asPrismObject());
+            connectorType.setConnectorHostRef(ref);
+        }
 
-		LOGGER.trace("Generating configuration schema for {}", this);
-		APIConfiguration defaultAPIConfiguration = cinfo.createDefaultAPIConfiguration();
-		ConfigurationProperties icfConfigurationProperties = defaultAPIConfiguration
-				.getConfigurationProperties();
+        PrismSchema connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
+        LOGGER.trace("Generated connector schema for {}: {} definitions",
+                connectorType, connectorSchema.getDefinitions().size());
+        UcfUtil.setConnectorSchema(connectorType, connectorSchema);
 
-		if (icfConfigurationProperties == null || icfConfigurationProperties.getPropertyNames() == null
-				|| icfConfigurationProperties.getPropertyNames().isEmpty()) {
-			LOGGER.debug("No configuration schema for {}", this);
-			return null;
-		}
+        return connectorType;
+    }
 
-		MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(connectorType.getNamespace());
+    /**
+     * Converts ICF connector key to a simple string.
+     *
+     * The string may be used as an OID.
+     */
+    private String keyToNamespaceSuffix(ConnectorKey key) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(key.getBundleName());
+        sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
+        // Don't include version. It is lesser evil.
+        // sb.append(key.getBundleVersion());
+        // sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
+        sb.append(key.getConnectorName());
+        return sb.toString();
+    }
 
-		// Create configuration type - the type used by the "configuration"
-		// element
-		MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createPropertyContainerDefinition(
-				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
-				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
+    @Override
+    public PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException {
+        ConnectorInfo cinfo = getConnectorInfo(connectorType);
+        if (cinfo == null) {
+            throw new ObjectNotFoundException("Connector "+connectorType+" cannot be found by ConnId framework");
+        }
+        return generateConnectorConfigurationSchema(cinfo, connectorType);
+    }
 
-		// element with "ConfigurationPropertiesType" - the dynamic part of
-		// configuration schema
-		ComplexTypeDefinition configPropertiesTypeDef = connectorSchema.createComplexTypeDefinition(new QName(
-				connectorType.getNamespace(),
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
+    private PrismSchema generateConnectorConfigurationSchema(ConnectorInfo cinfo, ConnectorType connectorType) {
 
-		// Create definition of "configurationProperties" type
-		// (CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME)
-		int displayOrder = 1;
-		for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
-			ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
+        LOGGER.trace("Generating configuration schema for {}", this);
+        APIConfiguration defaultAPIConfiguration = cinfo.createDefaultAPIConfiguration();
+        ConfigurationProperties icfConfigurationProperties = defaultAPIConfiguration
+                .getConfigurationProperties();
 
-			QName propXsdType = ConnIdCapabilitiesAndSchemaParser.connIdTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
-			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", this,
-					icfPropertyName, icfProperty.getType(), propXsdType);
-			MutablePrismPropertyDefinition<?> propertyDefinition = configPropertiesTypeDef.toMutable().createPropertyDefinition(
-					icfPropertyName, propXsdType);
-			propertyDefinition.setDisplayName(icfProperty.getDisplayName(null));
-			propertyDefinition.setHelp(icfProperty.getHelpMessage(null));
-			if (ConnIdCapabilitiesAndSchemaParser.isMultivaluedType(icfProperty.getType())) {
-				propertyDefinition.setMaxOccurs(-1);
-			} else {
-				propertyDefinition.setMaxOccurs(1);
-			}
-			if (icfProperty.isRequired() && icfProperty.getValue() == null) {
-				// If ICF says that the property is required it may not be in fact really required if it also has a default value
-				propertyDefinition.setMinOccurs(1);
-			} else {
-				propertyDefinition.setMinOccurs(0);
-			}
-			propertyDefinition.setDisplayOrder(displayOrder);
-			displayOrder++;
-		}
+        if (icfConfigurationProperties == null || icfConfigurationProperties.getPropertyNames() == null
+                || icfConfigurationProperties.getPropertyNames().isEmpty()) {
+            LOGGER.debug("No configuration schema for {}", this);
+            return null;
+        }
 
-		// Create common ICF configuration property containers as a references
-		// to a static schema
-		configurationContainerDef.createContainerDefinition(
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT,
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE, 0, 1);
-		configurationContainerDef.createPropertyDefinition(
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT,
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE, 0, 1);
-		configurationContainerDef.createContainerDefinition(
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT,
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE, 0, 1);
+        MutablePrismSchema connectorSchema = prismContext.schemaFactory().createPrismSchema(connectorType.getNamespace());
+
+        // Create configuration type - the type used by the "configuration"
+        // element
+        MutablePrismContainerDefinition<?> configurationContainerDef = connectorSchema.createPropertyContainerDefinition(
+                ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart(),
+                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
+
+        // element with "ConfigurationPropertiesType" - the dynamic part of
+        // configuration schema
+        ComplexTypeDefinition configPropertiesTypeDef = connectorSchema.createComplexTypeDefinition(new QName(
+                connectorType.getNamespace(),
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME));
+
+        // Create definition of "configurationProperties" type
+        // (CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME)
+        int displayOrder = 1;
+        for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
+            ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
+
+            QName propXsdType = ConnIdCapabilitiesAndSchemaParser.connIdTypeToXsdType(icfProperty.getType(), icfProperty.isConfidential());
+            LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", this,
+                    icfPropertyName, icfProperty.getType(), propXsdType);
+            MutablePrismPropertyDefinition<?> propertyDefinition = configPropertiesTypeDef.toMutable().createPropertyDefinition(
+                    icfPropertyName, propXsdType);
+            propertyDefinition.setDisplayName(icfProperty.getDisplayName(null));
+            propertyDefinition.setHelp(icfProperty.getHelpMessage(null));
+            if (ConnIdCapabilitiesAndSchemaParser.isMultivaluedType(icfProperty.getType())) {
+                propertyDefinition.setMaxOccurs(-1);
+            } else {
+                propertyDefinition.setMaxOccurs(1);
+            }
+            if (icfProperty.isRequired() && icfProperty.getValue() == null) {
+                // If ICF says that the property is required it may not be in fact really required if it also has a default value
+                propertyDefinition.setMinOccurs(1);
+            } else {
+                propertyDefinition.setMinOccurs(0);
+            }
+            propertyDefinition.setDisplayOrder(displayOrder);
+            displayOrder++;
+        }
+
+        // Create common ICF configuration property containers as a references
+        // to a static schema
+        configurationContainerDef.createContainerDefinition(
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT,
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE, 0, 1);
+        configurationContainerDef.createPropertyDefinition(
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT,
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE, 0, 1);
+        configurationContainerDef.createContainerDefinition(
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT,
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE, 0, 1);
         configurationContainerDef.createContainerDefinition(
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ELEMENT,
                 ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_TYPE, 0, 1);
-		configurationContainerDef.createPropertyDefinition(
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT,
-				ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_TYPE, 0, 1);
+        configurationContainerDef.createPropertyDefinition(
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT,
+                ConnectorFactoryConnIdImpl.CONNECTOR_SCHEMA_LEGACY_SCHEMA_TYPE, 0, 1);
 
-		// No need to create definition of "configuration" element.
-		// midPoint will look for this element, but it will be generated as part
-		// of the PropertyContainer serialization to schema
+        // No need to create definition of "configuration" element.
+        // midPoint will look for this element, but it will be generated as part
+        // of the PropertyContainer serialization to schema
 
-		configurationContainerDef.createContainerDefinition(
-				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
-				configPropertiesTypeDef, 1, 1);
+        configurationContainerDef.createContainerDefinition(
+                SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
+                configPropertiesTypeDef, 1, 1);
 
-		LOGGER.debug("Generated configuration schema for {}: {} definitions", this, connectorSchema.getDefinitions()
-				.size());
-		return connectorSchema;
-	}
+        LOGGER.debug("Generated configuration schema for {}: {} definitions", this, connectorSchema.getDefinitions()
+                .size());
+        return connectorSchema;
+    }
 
 
-	/**
-	 * Returns ICF connector info manager that manages local connectors. The
-	 * manager will be created if it does not exist yet.
-	 *
-	 * @return ICF connector info manager that manages local connectors
-	 */
+    /**
+     * Returns ICF connector info manager that manages local connectors. The
+     * manager will be created if it does not exist yet.
+     *
+     * @return ICF connector info manager that manages local connectors
+     */
 
-	private ConnectorInfoManager getLocalConnectorInfoManager() {
-		if (null == localConnectorInfoManager) {
-			URL[] urls = bundleURIs.stream().map(MiscUtil::toUrlUnchecked).toArray(URL[]::new);
-			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(urls);
-		}
-		return localConnectorInfoManager;
-	}
+    private ConnectorInfoManager getLocalConnectorInfoManager() {
+        if (null == localConnectorInfoManager) {
+            URL[] urls = bundleURIs.stream().map(MiscUtil::toUrlUnchecked).toArray(URL[]::new);
+            localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(urls);
+        }
+        return localConnectorInfoManager;
+    }
 
-	/**
-	 * Returns ICF connector info manager that manages local connectors. The
-	 * manager will be created if it does not exist yet.
-	 *
-	 * @return ICF connector info manager that manages local connectors
-	 */
-	private ConnectorInfoManager getRemoteConnectorInfoManager(ConnectorHostType hostType) {
-		String hostname = hostType.getHostname();
-		int port = Integer.parseInt(hostType.getPort());
-		GuardedString key;
-		try {
-			key = new GuardedString(protector.decryptString(hostType.getSharedSecret()).toCharArray());
-		} catch (EncryptionException e) {
-			throw new SystemException("Shared secret decryption error: "+e.getMessage(),e);
-		}
-		Integer timeout = hostType.getTimeout();
-		if (timeout == null) {
-			timeout = 0;
-		}
-		boolean useSSL = false;
-		if (hostType.isProtectConnection() != null) {
-			useSSL = hostType.isProtectConnection();
-		}
-		List<TrustManager> trustManagers = protector.getTrustManagers();
-		LOGGER.trace("Creating RemoteFrameworkConnectionInfo: hostname={}, port={}, key={}, useSSL={}, trustManagers={}, timeout={}",
-				new Object[] {hostname, port, key, useSSL, trustManagers, timeout});
-		RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname, port, key, useSSL, trustManagers, timeout);
-		return connectorInfoManagerFactory.getRemoteManager(remoteFramewrorkInfo);
-	}
+    /**
+     * Returns ICF connector info manager that manages local connectors. The
+     * manager will be created if it does not exist yet.
+     *
+     * @return ICF connector info manager that manages local connectors
+     */
+    private ConnectorInfoManager getRemoteConnectorInfoManager(ConnectorHostType hostType) {
+        String hostname = hostType.getHostname();
+        int port = Integer.parseInt(hostType.getPort());
+        GuardedString key;
+        try {
+            key = new GuardedString(protector.decryptString(hostType.getSharedSecret()).toCharArray());
+        } catch (EncryptionException e) {
+            throw new SystemException("Shared secret decryption error: "+e.getMessage(),e);
+        }
+        Integer timeout = hostType.getTimeout();
+        if (timeout == null) {
+            timeout = 0;
+        }
+        boolean useSSL = false;
+        if (hostType.isProtectConnection() != null) {
+            useSSL = hostType.isProtectConnection();
+        }
+        List<TrustManager> trustManagers = protector.getTrustManagers();
+        LOGGER.trace("Creating RemoteFrameworkConnectionInfo: hostname={}, port={}, key={}, useSSL={}, trustManagers={}, timeout={}",
+                new Object[] {hostname, port, key, useSSL, trustManagers, timeout});
+        RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname, port, key, useSSL, trustManagers, timeout);
+        return connectorInfoManagerFactory.getRemoteManager(remoteFramewrorkInfo);
+    }
 
-	/**
-	 * Scan class path for connector bundles
-	 *
-	 * @return Set of all bundle URL
-	 */
-	private Set<URI> scanClassPathForBundles() {
-		Set<URI> bundle = new HashSet<>();
+    /**
+     * Scan class path for connector bundles
+     *
+     * @return Set of all bundle URL
+     */
+    private Set<URI> scanClassPathForBundles() {
+        Set<URI> bundle = new HashSet<>();
 
-		// scan class path for bundles
-		Enumeration<URL> en = null;
-		try {
-			// Search all jars in classpath
-			en = ConnectorFactoryConnIdImpl.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
-		} catch (IOException ex) {
-			LOGGER.debug("Error during reding content from class path");
-		}
+        // scan class path for bundles
+        Enumeration<URL> en = null;
+        try {
+            // Search all jars in classpath
+            en = ConnectorFactoryConnIdImpl.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+        } catch (IOException ex) {
+            LOGGER.debug("Error during reding content from class path");
+        }
 
-		// Find which one is ICF connector
-		while (en.hasMoreElements()) {
-			URL u = en.nextElement();
+        // Find which one is ICF connector
+        while (en.hasMoreElements()) {
+            URL u = en.nextElement();
 
-			Properties prop = new Properties();
-			LOGGER.trace("Scan classloader resource: " + u.toString());
-			try {
-				// read content of META-INF/MANIFEST.MF
-				InputStream is = u.openStream();
-				// skip if unreadable
-				if (is == null) {
-					continue;
-				}
-				// Convert to properties
-				prop.load(is);
-			} catch (IOException ex) {
-				LOGGER.trace("Unable load: " + u + " [" + ex.getMessage() + "]");
-			}
+            Properties prop = new Properties();
+            LOGGER.trace("Scan classloader resource: " + u.toString());
+            try {
+                // read content of META-INF/MANIFEST.MF
+                InputStream is = u.openStream();
+                // skip if unreadable
+                if (is == null) {
+                    continue;
+                }
+                // Convert to properties
+                prop.load(is);
+            } catch (IOException ex) {
+                LOGGER.trace("Unable load: " + u + " [" + ex.getMessage() + "]");
+            }
 // tomcat
 // toString >>> jar:file:/<ABSOLUTE_PATH_TO_TOMCAT_WEBAPPS>/midpoint/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
 // getPath  >>>     file:/<ABSOLUTE_PATH_TO_TOMCAT_WEBAPPS>/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
@@ -574,236 +574,236 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 // toString >>> jar:file:/<ABSOLUTE_PATH_TO_WAR_FOLDER>/midpoint.war!/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
 // getPath  >>>     file:/<ABSOLUTE_PATH_TO_WAR_FOLDER>/midpoint.war!/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
 
-			if (null != prop.get("ConnectorBundle-Name")) {
-				LOGGER.info("Discovered ICF bundle on CLASSPATH: " + prop.get("ConnectorBundle-Name") + " version: "
-						+ prop.get("ConnectorBundle-Version"));
+            if (null != prop.get("ConnectorBundle-Name")) {
+                LOGGER.info("Discovered ICF bundle on CLASSPATH: " + prop.get("ConnectorBundle-Name") + " version: "
+                        + prop.get("ConnectorBundle-Version"));
 
-				// hack to split MANIFEST from name
-				try {
+                // hack to split MANIFEST from name
+                try {
                     String upath = u.toString();
                     if (upath.split("!/").length != 3) {
-                    	// we're running standard war in application server
-                    	upath = u.getPath();
-					}
+                        // we're running standard war in application server
+                        upath = u.getPath();
+                    }
 
-					URL tmp = new URL(toUrl(upath.substring(0, upath.lastIndexOf("!"))));
-					if (isThisBundleCompatible(tmp)) {
-						try {
-							bundle.add(tmp.toURI());
-						} catch (Exception e) {
-							LOGGER.error(e.getMessage(), e);
-						}
-					} else {
-						LOGGER.warn("Skip loading ICF bundle {} due error occured", tmp);
-					}
-				} catch (MalformedURLException e) {
-					LOGGER.error("This never happend we hope. URL:" + u.getPath(), e);
-					throw new SystemException(e);
-				}
-			}
-		}
-		return bundle;
-	}
+                    URL tmp = new URL(toUrl(upath.substring(0, upath.lastIndexOf("!"))));
+                    if (isThisBundleCompatible(tmp)) {
+                        try {
+                            bundle.add(tmp.toURI());
+                        } catch (Exception e) {
+                            LOGGER.error(e.getMessage(), e);
+                        }
+                    } else {
+                        LOGGER.warn("Skip loading ICF bundle {} due error occured", tmp);
+                    }
+                } catch (MalformedURLException e) {
+                    LOGGER.error("This never happend we hope. URL:" + u.getPath(), e);
+                    throw new SystemException(e);
+                }
+            }
+        }
+        return bundle;
+    }
 
-	private String toUrl(String string) {
-		if (string.contains(":")) {
-			// We are OK, there is a protocol section
-			return string;
-		}
-		// We assume file protocol as default
-		return "file:" + string;
-	}
+    private String toUrl(String string) {
+        if (string.contains(":")) {
+            // We are OK, there is a protocol section
+            return string;
+        }
+        // We assume file protocol as default
+        return "file:" + string;
+    }
 
-	/**
-	 * Scan directory for bundles only on first lval we do the scan
-	 *
-	 * @param path
-	 * @return
-	 */
-	private Set<URI> scanDirectory(String path) {
+    /**
+     * Scan directory for bundles only on first lval we do the scan
+     *
+     * @param path
+     * @return
+     */
+    private Set<URI> scanDirectory(String path) {
 
-		// Prepare return object
-		Set<URI> bundle = new HashSet<>();
-		// Convert path to object File
-		File dir = new File(path);
+        // Prepare return object
+        Set<URI> bundle = new HashSet<>();
+        // Convert path to object File
+        File dir = new File(path);
 
-		// Test if this path is single jar or need to do deep examination
-		if (isThisJarFileBundle(dir)) {
-			try {
-				final URI uri = dir.toURI();
-				if (isThisBundleCompatible(uri.toURL())) {
-					bundle.add(uri);
-				} else {
-					LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
-				}
-			} catch (MalformedURLException e) {
-				LOGGER.error("This never happened we hope.", e);
-				throw new SystemException(e);
-			}
-			return bundle;
-		}
+        // Test if this path is single jar or need to do deep examination
+        if (isThisJarFileBundle(dir)) {
+            try {
+                final URI uri = dir.toURI();
+                if (isThisBundleCompatible(uri.toURL())) {
+                    bundle.add(uri);
+                } else {
+                    LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
+                }
+            } catch (MalformedURLException e) {
+                LOGGER.error("This never happened we hope.", e);
+                throw new SystemException(e);
+            }
+            return bundle;
+        }
 
-		// Test if it is a directory
-		if (!dir.isDirectory()) {
-			LOGGER.error("Provided Icf connector path {} is not a directory.", dir.getAbsolutePath());
-		}
+        // Test if it is a directory
+        if (!dir.isDirectory()) {
+            LOGGER.error("Provided Icf connector path {} is not a directory.", dir.getAbsolutePath());
+        }
 
-		// List directory items
-		File[] dirEntries = dir.listFiles();
-		if (null == dirEntries) {
-			LOGGER.warn("No bundles found in directory {}", dir.getAbsolutePath());
-			return bundle;
-		}
+        // List directory items
+        File[] dirEntries = dir.listFiles();
+        if (null == dirEntries) {
+            LOGGER.warn("No bundles found in directory {}", dir.getAbsolutePath());
+            return bundle;
+        }
 
-		// test all entries for bundle
-		for (int i = 0; i < dirEntries.length; i++) {
-			if (isThisJarFileBundle(dirEntries[i])) {
-				try {
-					final URI uri = dirEntries[i].toURI();
-					if (isThisBundleCompatible(uri.toURL())) {
-						bundle.add(uri);
-					} else {
-						LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
-					}
-				} catch (MalformedURLException e) {
-					LOGGER.error("This never happened we hope.", e);
-					throw new SystemException(e);
-				}
-			}
-		}
-		return bundle;
-	}
+        // test all entries for bundle
+        for (int i = 0; i < dirEntries.length; i++) {
+            if (isThisJarFileBundle(dirEntries[i])) {
+                try {
+                    final URI uri = dirEntries[i].toURI();
+                    if (isThisBundleCompatible(uri.toURL())) {
+                        bundle.add(uri);
+                    } else {
+                        LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
+                    }
+                } catch (MalformedURLException e) {
+                    LOGGER.error("This never happened we hope.", e);
+                    throw new SystemException(e);
+                }
+            }
+        }
+        return bundle;
+    }
 
-	/**
-	 * Test if bundle internal configuration and dependencies are OK
-	 * @param bundleUrl
-	 * 			tested bundle URL
-	 * @return true if OK
-	 */
-	private Boolean isThisBundleCompatible(URL bundleUrl) {
-		if (null == bundleUrl)
-			return false;
-		try {
-			ConnectorInfoManager localManager = ConnectorInfoManagerFactory.getInstance().getLocalManager(bundleUrl);
-			List<ConnectorInfo> connectorInfos = localManager.getConnectorInfos();
-			if (connectorInfos == null || connectorInfos.isEmpty()) {
-				LOGGER.error("Strange error happened. ConnId is not accepting bundle {}. But no error is indicated.", bundleUrl);
-				return false;
-			} else {
-				LOGGER.trace("Found {} compatible connectors in bundle {}", connectorInfos.size(), bundleUrl);
-				return true;
-			}
-		} catch (Exception ex) {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}-{}", new Object[] { bundleUrl, ex.getMessage(), ex});
-			} else {
-				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()});
-			}
-			return false;
-		}
-	}
+    /**
+     * Test if bundle internal configuration and dependencies are OK
+     * @param bundleUrl
+     *             tested bundle URL
+     * @return true if OK
+     */
+    private Boolean isThisBundleCompatible(URL bundleUrl) {
+        if (null == bundleUrl)
+            return false;
+        try {
+            ConnectorInfoManager localManager = ConnectorInfoManagerFactory.getInstance().getLocalManager(bundleUrl);
+            List<ConnectorInfo> connectorInfos = localManager.getConnectorInfos();
+            if (connectorInfos == null || connectorInfos.isEmpty()) {
+                LOGGER.error("Strange error happened. ConnId is not accepting bundle {}. But no error is indicated.", bundleUrl);
+                return false;
+            } else {
+                LOGGER.trace("Found {} compatible connectors in bundle {}", connectorInfos.size(), bundleUrl);
+                return true;
+            }
+        } catch (Exception ex) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.error("Error instantiating ICF bundle using URL '{}': {}-{}", new Object[] { bundleUrl, ex.getMessage(), ex});
+            } else {
+                LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()});
+            }
+            return false;
+        }
+    }
 
-	/**
-	 * Test if provided file is connector bundle
-	 *
-	 * @param file
-	 *            tested file
-	 * @return boolean
-	 */
-	private Boolean isThisJarFileBundle(File file) {
-		// Startup tests
-		if (null == file) {
-			throw new IllegalArgumentException("No file is providied for bundle test.");
-		}
+    /**
+     * Test if provided file is connector bundle
+     *
+     * @param file
+     *            tested file
+     * @return boolean
+     */
+    private Boolean isThisJarFileBundle(File file) {
+        // Startup tests
+        if (null == file) {
+            throw new IllegalArgumentException("No file is providied for bundle test.");
+        }
 
-		// Skip all processing if it is not a file
-		if (!file.isFile()) {
-			LOGGER.debug("This {} is not a file", file.getAbsolutePath());
-			return false;
-		}
+        // Skip all processing if it is not a file
+        if (!file.isFile()) {
+            LOGGER.debug("This {} is not a file", file.getAbsolutePath());
+            return false;
+        }
 
-		Properties prop = new Properties();
-		JarFile jar = null;
-		// Open jar file
-		try {
-			jar = new JarFile(file);
-		} catch (IOException ex) {
-			LOGGER.debug("Unable to read jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
-			return false;
-		}
+        Properties prop = new Properties();
+        JarFile jar = null;
+        // Open jar file
+        try {
+            jar = new JarFile(file);
+        } catch (IOException ex) {
+            LOGGER.debug("Unable to read jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
+            return false;
+        }
 
-		// read jar file
-		InputStream is;
-		try {
-			JarEntry entry = new JarEntry("META-INF/MANIFEST.MF");
-			is = jar.getInputStream(entry);
-		} catch (IOException ex) {
-			LOGGER.debug("Unable to fine MANIFEST.MF in jar file: " + file.getAbsolutePath() + " [" + ex.getMessage()
-					+ "]");
-			return false;
-		}
+        // read jar file
+        InputStream is;
+        try {
+            JarEntry entry = new JarEntry("META-INF/MANIFEST.MF");
+            is = jar.getInputStream(entry);
+        } catch (IOException ex) {
+            LOGGER.debug("Unable to fine MANIFEST.MF in jar file: " + file.getAbsolutePath() + " [" + ex.getMessage()
+                    + "]");
+            return false;
+        }
 
-		// Parse jar file
-		try {
-			prop.load(is);
-		} catch (IOException ex) {
-			LOGGER.debug("Unable to parse jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
-			return false;
-		} catch (NullPointerException ex) {
-			LOGGER.debug("Unable to parse jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
-			return false;
-		}
+        // Parse jar file
+        try {
+            prop.load(is);
+        } catch (IOException ex) {
+            LOGGER.debug("Unable to parse jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
+            return false;
+        } catch (NullPointerException ex) {
+            LOGGER.debug("Unable to parse jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
+            return false;
+        }
 
-		// Test if it is a connector
-		if (null != prop.get("ConnectorBundle-Name")) {
-			LOGGER.info("Discovered ICF bundle in JAR: " + prop.get("ConnectorBundle-Name") + " version: "
-					+ prop.get("ConnectorBundle-Version"));
-			return true;
-		}
+        // Test if it is a connector
+        if (null != prop.get("ConnectorBundle-Name")) {
+            LOGGER.info("Discovered ICF bundle in JAR: " + prop.get("ConnectorBundle-Name") + " version: "
+                    + prop.get("ConnectorBundle-Version"));
+            return true;
+        }
 
-		LOGGER.debug("Provided file {} is not iCF bundle jar", file.getAbsolutePath());
-		return false;
-	}
+        LOGGER.debug("Provided file {} is not iCF bundle jar", file.getAbsolutePath());
+        return false;
+    }
 
-	/**
-	 * Get contect informations
-	 *
-	 * @param connectorType
-	 * @return
-	 * @throws ObjectNotFoundException
-	 */
-	private ConnectorInfo getConnectorInfo(ConnectorType connectorType) throws ObjectNotFoundException {
-		if (!SchemaConstants.ICF_FRAMEWORK_URI.equals(connectorType.getFramework())) {
-			throw new ObjectNotFoundException("Requested connector for framework " + connectorType.getFramework()
-					+ " cannot be found in framework " + SchemaConstants.ICF_FRAMEWORK_URI);
-		}
-		ConnectorKey key = getConnectorKey(connectorType);
-		if (connectorType.getConnectorHostRef() == null) {
-			// Local connector
-			return getLocalConnectorInfoManager().findConnectorInfo(key);
-		}
-		PrismObject<ConnectorHostType> host = connectorType.getConnectorHostRef().asReferenceValue().getObject();
-		if (host == null) {
-			throw new ObjectNotFoundException(
-					"Attempt to use remote connector without ConnectorHostType resolved (there is only ConnectorHostRef");
-		}
-		return getRemoteConnectorInfoManager(host.asObjectable()).findConnectorInfo(key);
-	}
+    /**
+     * Get contect informations
+     *
+     * @param connectorType
+     * @return
+     * @throws ObjectNotFoundException
+     */
+    private ConnectorInfo getConnectorInfo(ConnectorType connectorType) throws ObjectNotFoundException {
+        if (!SchemaConstants.ICF_FRAMEWORK_URI.equals(connectorType.getFramework())) {
+            throw new ObjectNotFoundException("Requested connector for framework " + connectorType.getFramework()
+                    + " cannot be found in framework " + SchemaConstants.ICF_FRAMEWORK_URI);
+        }
+        ConnectorKey key = getConnectorKey(connectorType);
+        if (connectorType.getConnectorHostRef() == null) {
+            // Local connector
+            return getLocalConnectorInfoManager().findConnectorInfo(key);
+        }
+        PrismObject<ConnectorHostType> host = connectorType.getConnectorHostRef().asReferenceValue().getObject();
+        if (host == null) {
+            throw new ObjectNotFoundException(
+                    "Attempt to use remote connector without ConnectorHostType resolved (there is only ConnectorHostRef");
+        }
+        return getRemoteConnectorInfoManager(host.asObjectable()).findConnectorInfo(key);
+    }
 
-	private ConnectorKey getConnectorKey(ConnectorType connectorType) {
-		return new ConnectorKey(connectorType.getConnectorBundle(), connectorType.getConnectorVersion(),
-				connectorType.getConnectorType());
-	}
+    private ConnectorKey getConnectorKey(ConnectorType connectorType) {
+        return new ConnectorKey(connectorType.getConnectorBundle(), connectorType.getConnectorVersion(),
+                connectorType.getConnectorType());
+    }
 
-	@Override
-	public void selfTest(OperationResult parentTestResult) {
-		selfTestGuardedString(parentTestResult);
-	}
+    @Override
+    public void selfTest(OperationResult parentTestResult) {
+        selfTestGuardedString(parentTestResult);
+    }
 
-	@Override
-	public boolean supportsFramework(String frameworkIdentifier) {
-		return SchemaConstants.ICF_FRAMEWORK_URI.equals(frameworkIdentifier);
-	}
+    @Override
+    public boolean supportsFramework(String frameworkIdentifier) {
+        return SchemaConstants.ICF_FRAMEWORK_URI.equals(frameworkIdentifier);
+    }
 
     @Override
     public String getFrameworkVersion() {
@@ -815,100 +815,100 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     private void selfTestGuardedString(OperationResult parentTestResult) {
-		OperationResult result = parentTestResult.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString");
+        OperationResult result = parentTestResult.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString");
 
-		OperationResult subresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.encryptorReflection");
-		EncryptorFactory encryptorFactory = EncryptorFactory.getInstance();
-		subresult.addReturn("encryptorFactoryImpl", encryptorFactory.getClass());
-		LOGGER.debug("Encryptor factory implementation class: {}", encryptorFactory.getClass());
-		Encryptor encryptor = EncryptorFactory.getInstance().newRandomEncryptor();
-		subresult.addReturn("encryptorImpl", encryptor.getClass());
-		LOGGER.debug("Encryptor implementation class: {}", encryptor.getClass());
-		if (encryptor.getClass().getName().equals("org.identityconnectors.common.security.impl.EncryptorImpl")) {
-			// let's do some reflection magic to have a look inside
-			try {
-				LOGGER.trace("Encryptor fields: {}", Arrays.asList(encryptor.getClass().getDeclaredFields()));
-				Field keyField = encryptor.getClass().getDeclaredField("key");
-				keyField.setAccessible(true);
-				Key key = (Key) keyField.get(encryptor);
-				subresult.addReturn("keyAlgorithm", key.getAlgorithm());
-				subresult.addReturn("keyLength", key.getEncoded().length*8);
-				subresult.addReturn("keyFormat", key.getFormat());
-				subresult.recordSuccess();
-			} catch (IllegalArgumentException e) {
-				subresult.recordPartialError("Reflection introspection failed", e);
-			} catch (IllegalAccessException e) {
-				subresult.recordPartialError("Reflection introspection failed", e);
-			} catch (NoSuchFieldException e) {
-				subresult.recordPartialError("Reflection introspection failed", e);
-			} catch (SecurityException e) {
-				subresult.recordPartialError("Reflection introspection failed", e);
-			}
-		}
+        OperationResult subresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.encryptorReflection");
+        EncryptorFactory encryptorFactory = EncryptorFactory.getInstance();
+        subresult.addReturn("encryptorFactoryImpl", encryptorFactory.getClass());
+        LOGGER.debug("Encryptor factory implementation class: {}", encryptorFactory.getClass());
+        Encryptor encryptor = EncryptorFactory.getInstance().newRandomEncryptor();
+        subresult.addReturn("encryptorImpl", encryptor.getClass());
+        LOGGER.debug("Encryptor implementation class: {}", encryptor.getClass());
+        if (encryptor.getClass().getName().equals("org.identityconnectors.common.security.impl.EncryptorImpl")) {
+            // let's do some reflection magic to have a look inside
+            try {
+                LOGGER.trace("Encryptor fields: {}", Arrays.asList(encryptor.getClass().getDeclaredFields()));
+                Field keyField = encryptor.getClass().getDeclaredField("key");
+                keyField.setAccessible(true);
+                Key key = (Key) keyField.get(encryptor);
+                subresult.addReturn("keyAlgorithm", key.getAlgorithm());
+                subresult.addReturn("keyLength", key.getEncoded().length*8);
+                subresult.addReturn("keyFormat", key.getFormat());
+                subresult.recordSuccess();
+            } catch (IllegalArgumentException e) {
+                subresult.recordPartialError("Reflection introspection failed", e);
+            } catch (IllegalAccessException e) {
+                subresult.recordPartialError("Reflection introspection failed", e);
+            } catch (NoSuchFieldException e) {
+                subresult.recordPartialError("Reflection introspection failed", e);
+            } catch (SecurityException e) {
+                subresult.recordPartialError("Reflection introspection failed", e);
+            }
+        }
 
-		OperationResult encryptorSubresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.encryptor");
-		try {
-			String plainString = "Scurvy seadog";
-			byte[] encryptedBytes = encryptor.encrypt(plainString.getBytes());
-			byte[] decryptedBytes = encryptor.decrypt(encryptedBytes);
-			String decryptedString = new String(decryptedBytes);
-			if (!plainString.equals(decryptedString)) {
-				encryptorSubresult.recordFatalError("Encryptor roundtrip failed; encrypted="+plainString+", decrypted="+decryptedString);
-			} else {
-				encryptorSubresult.recordSuccess();
-			}
-		} catch (Throwable e) {
-			LOGGER.error("Encryptor operation error: {}", e.getMessage(), e);
-			encryptorSubresult.recordFatalError("Encryptor opeation error: " + e.getMessage(), e);
-		}
+        OperationResult encryptorSubresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.encryptor");
+        try {
+            String plainString = "Scurvy seadog";
+            byte[] encryptedBytes = encryptor.encrypt(plainString.getBytes());
+            byte[] decryptedBytes = encryptor.decrypt(encryptedBytes);
+            String decryptedString = new String(decryptedBytes);
+            if (!plainString.equals(decryptedString)) {
+                encryptorSubresult.recordFatalError("Encryptor roundtrip failed; encrypted="+plainString+", decrypted="+decryptedString);
+            } else {
+                encryptorSubresult.recordSuccess();
+            }
+        } catch (Throwable e) {
+            LOGGER.error("Encryptor operation error: {}", e.getMessage(), e);
+            encryptorSubresult.recordFatalError("Encryptor opeation error: " + e.getMessage(), e);
+        }
 
 
-		final OperationResult guardedStringSubresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.guardedString");
-		// try to encrypt and decrypt GuardedString
-		try {
-			final String origString = "Shiver me timbers";
-			// This should encrypt it
-			GuardedString guardedString = new GuardedString(origString.toCharArray());
-			// and this should decrypt it
-			guardedString.access(new GuardedString.Accessor() {
-				@Override
-				public void access(char[] decryptedChars) {
-					if (!(new String(decryptedChars)).equals(origString)) {
-						guardedStringSubresult.recordFatalError("GuardeString roundtrip failed; encrypted="+origString+", decrypted="+(new String(decryptedChars)));
-					}
-				}
-			});
-			guardedStringSubresult.recordSuccessIfUnknown();
-		} catch (Throwable e) {
-			LOGGER.error("GuardedString operation error: {}", e.getMessage(), e);
-			guardedStringSubresult.recordFatalError("GuardedString opeation error: " + e.getMessage(), e);
-		}
+        final OperationResult guardedStringSubresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.guardedString");
+        // try to encrypt and decrypt GuardedString
+        try {
+            final String origString = "Shiver me timbers";
+            // This should encrypt it
+            GuardedString guardedString = new GuardedString(origString.toCharArray());
+            // and this should decrypt it
+            guardedString.access(new GuardedString.Accessor() {
+                @Override
+                public void access(char[] decryptedChars) {
+                    if (!(new String(decryptedChars)).equals(origString)) {
+                        guardedStringSubresult.recordFatalError("GuardeString roundtrip failed; encrypted="+origString+", decrypted="+(new String(decryptedChars)));
+                    }
+                }
+            });
+            guardedStringSubresult.recordSuccessIfUnknown();
+        } catch (Throwable e) {
+            LOGGER.error("GuardedString operation error: {}", e.getMessage(), e);
+            guardedStringSubresult.recordFatalError("GuardedString opeation error: " + e.getMessage(), e);
+        }
 
-		result.computeStatus();
-	}
+        result.computeStatus();
+    }
 
-	static Collection<Class<? extends APIOperation>> resolveApiOpClass(String opName) {
-		return apiOpMap.get(opName);
-	}
+    static Collection<Class<? extends APIOperation>> resolveApiOpClass(String opName) {
+        return apiOpMap.get(opName);
+    }
 
-	static {
-		apiOpMap.put("create", Arrays.asList(CreateApiOp.class));
-		apiOpMap.put("get", Arrays.asList(GetApiOp.class));
-		apiOpMap.put("update", Arrays.asList(UpdateApiOp.class, UpdateDeltaApiOp.class));
-		apiOpMap.put("delete", Arrays.asList(DeleteApiOp.class));
-		apiOpMap.put("test", Arrays.asList(TestApiOp.class));
-		apiOpMap.put("scriptOnConnector", Arrays.asList(ScriptOnConnectorApiOp.class));
-		apiOpMap.put("scriptOnResource", Arrays.asList(ScriptOnResourceApiOp.class));
-		apiOpMap.put("authentication", Arrays.asList(AuthenticationApiOp.class));
-		apiOpMap.put("search", Arrays.asList(SearchApiOp.class));
-		apiOpMap.put("validate", Arrays.asList(ValidateApiOp.class));
-		apiOpMap.put("sync", Arrays.asList(SyncApiOp.class));
-		apiOpMap.put("schema", Arrays.asList(SchemaApiOp.class));
-	}
+    static {
+        apiOpMap.put("create", Arrays.asList(CreateApiOp.class));
+        apiOpMap.put("get", Arrays.asList(GetApiOp.class));
+        apiOpMap.put("update", Arrays.asList(UpdateApiOp.class, UpdateDeltaApiOp.class));
+        apiOpMap.put("delete", Arrays.asList(DeleteApiOp.class));
+        apiOpMap.put("test", Arrays.asList(TestApiOp.class));
+        apiOpMap.put("scriptOnConnector", Arrays.asList(ScriptOnConnectorApiOp.class));
+        apiOpMap.put("scriptOnResource", Arrays.asList(ScriptOnResourceApiOp.class));
+        apiOpMap.put("authentication", Arrays.asList(AuthenticationApiOp.class));
+        apiOpMap.put("search", Arrays.asList(SearchApiOp.class));
+        apiOpMap.put("validate", Arrays.asList(ValidateApiOp.class));
+        apiOpMap.put("sync", Arrays.asList(SyncApiOp.class));
+        apiOpMap.put("schema", Arrays.asList(SchemaApiOp.class));
+    }
 
-	@Override
-	public void shutdown() {
-		LOGGER.info("Shutting down ConnId framework");
-		ConnectorFacadeFactory.getInstance().dispose();
-	}
+    @Override
+    public void shutdown() {
+        LOGGER.info("Shutting down ConnId framework");
+        ConnectorFacadeFactory.getInstance().dispose();
+    }
 }

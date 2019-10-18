@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.common.refinery;
@@ -23,133 +23,133 @@ import java.util.List;
 import java.util.Map;
 
 public class RefinedAssociationDefinition implements Serializable, Visitable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private Map<LayerType, PropertyLimitations> limitationsMap;
-	
-	private ResourceObjectAssociationType resourceObjectAssociationType;
-	private RefinedObjectClassDefinition associationTarget;
+    private Map<LayerType, PropertyLimitations> limitationsMap;
 
-	public RefinedAssociationDefinition(ResourceObjectAssociationType resourceObjectAssociationType) {
-		super();
-		this.resourceObjectAssociationType = resourceObjectAssociationType;
-	}
+    private ResourceObjectAssociationType resourceObjectAssociationType;
+    private RefinedObjectClassDefinition associationTarget;
 
-	public ResourceObjectAssociationType getResourceObjectAssociationType() {
-		return resourceObjectAssociationType;
-	}
+    public RefinedAssociationDefinition(ResourceObjectAssociationType resourceObjectAssociationType) {
+        super();
+        this.resourceObjectAssociationType = resourceObjectAssociationType;
+    }
 
-	public RefinedObjectClassDefinition getAssociationTarget() {
-		return associationTarget;
-	}
+    public ResourceObjectAssociationType getResourceObjectAssociationType() {
+        return resourceObjectAssociationType;
+    }
 
-	public void setAssociationTarget(RefinedObjectClassDefinition associationTarget) {
-		this.associationTarget = associationTarget;
-	}
+    public RefinedObjectClassDefinition getAssociationTarget() {
+        return associationTarget;
+    }
 
-	public ItemName getName() {
-		return ItemPathTypeUtil.asSingleNameOrFail(resourceObjectAssociationType.getRef());
-	}
+    public void setAssociationTarget(RefinedObjectClassDefinition associationTarget) {
+        this.associationTarget = associationTarget;
+    }
 
-	public ShadowKindType getKind() {
-		return resourceObjectAssociationType.getKind();
-	}
+    public ItemName getName() {
+        return ItemPathTypeUtil.asSingleNameOrFail(resourceObjectAssociationType.getRef());
+    }
+
+    public ShadowKindType getKind() {
+        return resourceObjectAssociationType.getKind();
+    }
 
     public Collection<String> getIntents() {
         return resourceObjectAssociationType.getIntent();
     }
 
     public QName getAuxiliaryObjectClass() {
-		return resourceObjectAssociationType.getAuxiliaryObjectClass();
-	}
+        return resourceObjectAssociationType.getAuxiliaryObjectClass();
+    }
 
-	public MappingType getOutboundMappingType() {
-		return resourceObjectAssociationType.getOutbound();
-	}
-	
-	public List<MappingType> getInboundMappingTypes() {
-		return resourceObjectAssociationType.getInbound();
-	}
+    public MappingType getOutboundMappingType() {
+        return resourceObjectAssociationType.getOutbound();
+    }
 
-	public boolean isExclusiveStrong() {
-		return BooleanUtils.isTrue(resourceObjectAssociationType.isExclusiveStrong());
-	}
+    public List<MappingType> getInboundMappingTypes() {
+        return resourceObjectAssociationType.getInbound();
+    }
+
+    public boolean isExclusiveStrong() {
+        return BooleanUtils.isTrue(resourceObjectAssociationType.isExclusiveStrong());
+    }
 
     public boolean isIgnored() {
-    	return false;           // todo implement!
+        return false;           // todo implement!
     }
-    
+
     public boolean isIgnored(LayerType layer) {
-		QName name = getAssociationAttribute();
-		RefinedAttributeDefinition<?> associationAttributeDef = associationTarget.findAttributeDefinition(name);
-		if (associationAttributeDef == null) {
-			throw new IllegalStateException("No such attribute :" + name
-					+ " in kind: " + associationTarget.getKind() + ", intent: " + associationTarget.getIntent()
-					+ " as defined for association: " + resourceObjectAssociationType.getDisplayName());
-    	}
-    	
-    	return associationAttributeDef.isIgnored(layer);
+        QName name = getAssociationAttribute();
+        RefinedAttributeDefinition<?> associationAttributeDef = associationTarget.findAttributeDefinition(name);
+        if (associationAttributeDef == null) {
+            throw new IllegalStateException("No such attribute :" + name
+                    + " in kind: " + associationTarget.getKind() + ", intent: " + associationTarget.getIntent()
+                    + " as defined for association: " + resourceObjectAssociationType.getDisplayName());
+        }
+
+        return associationAttributeDef.isIgnored(layer);
     }
 
     private QName getAssociationAttribute() {
-		ResourceObjectAssociationDirectionType direction = resourceObjectAssociationType.getDirection();
-		if (ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT.equals(direction)) {
-			return resourceObjectAssociationType.getAssociationAttribute();
-		}
+        ResourceObjectAssociationDirectionType direction = resourceObjectAssociationType.getDirection();
+        if (ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT.equals(direction)) {
+            return resourceObjectAssociationType.getAssociationAttribute();
+        }
 
-		return resourceObjectAssociationType.getValueAttribute();
-	}
-    
-    public PropertyLimitations getLimitations(LayerType layer) {
-		QName name = getAssociationAttribute();
-		RefinedAttributeDefinition<?> associationAttributeDef = associationTarget.findAttributeDefinition(name);
-		if (associationAttributeDef == null) {
-			throw new IllegalStateException("No such attribute :" + name
-					+ " in kind: " + associationTarget.getKind() + ", intent: " + associationTarget.getIntent()
-					+ " as defined for association: " + resourceObjectAssociationType.getDisplayName());
-    	}
-    	
-    	return associationAttributeDef.getLimitations(layer);
+        return resourceObjectAssociationType.getValueAttribute();
     }
-        
+
+    public PropertyLimitations getLimitations(LayerType layer) {
+        QName name = getAssociationAttribute();
+        RefinedAttributeDefinition<?> associationAttributeDef = associationTarget.findAttributeDefinition(name);
+        if (associationAttributeDef == null) {
+            throw new IllegalStateException("No such attribute :" + name
+                    + " in kind: " + associationTarget.getKind() + ", intent: " + associationTarget.getIntent()
+                    + " as defined for association: " + resourceObjectAssociationType.getDisplayName());
+        }
+
+        return associationAttributeDef.getLimitations(layer);
+    }
+
     public boolean isTolerant() {
         return BooleanUtils.isNotFalse(resourceObjectAssociationType.isTolerant());
     }
 
     @NotNull
-	public List<String> getTolerantValuePattern() {
-		return resourceObjectAssociationType.getTolerantValuePattern();
-	}
+    public List<String> getTolerantValuePattern() {
+        return resourceObjectAssociationType.getTolerantValuePattern();
+    }
 
-	@NotNull
-	public List<String> getIntolerantValuePattern() {
-		return resourceObjectAssociationType.getIntolerantValuePattern();
-	}
+    @NotNull
+    public List<String> getIntolerantValuePattern() {
+        return resourceObjectAssociationType.getIntolerantValuePattern();
+    }
 
-	public boolean requiresExplicitReferentialIntegrity() {
-		return !BooleanUtils.isFalse(getResourceObjectAssociationType().isExplicitReferentialIntegrity());	// because default is TRUE
-	}
+    public boolean requiresExplicitReferentialIntegrity() {
+        return !BooleanUtils.isFalse(getResourceObjectAssociationType().isExplicitReferentialIntegrity());    // because default is TRUE
+    }
 
-	public QName getMatchingRule() {
-		return getResourceObjectAssociationType().getMatchingRule();
-	}
+    public QName getMatchingRule() {
+        return getResourceObjectAssociationType().getMatchingRule();
+    }
 
-	public String getDisplayName() {
-		return resourceObjectAssociationType.getDisplayName();
-	}
-	
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    public String getDisplayName() {
+        return resourceObjectAssociationType.getDisplayName();
+    }
 
-	public RefinedAssociationDefinition clone() {
-		RefinedAssociationDefinition clone = new RefinedAssociationDefinition(resourceObjectAssociationType);
-		copyValues(clone);
-		return clone;
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-	private void copyValues(RefinedAssociationDefinition clone) {
-		clone.associationTarget = this.associationTarget;
-	}
+    public RefinedAssociationDefinition clone() {
+        RefinedAssociationDefinition clone = new RefinedAssociationDefinition(resourceObjectAssociationType);
+        copyValues(clone);
+        return clone;
+    }
+
+    private void copyValues(RefinedAssociationDefinition clone) {
+        clone.associationTarget = this.associationTarget;
+    }
 }

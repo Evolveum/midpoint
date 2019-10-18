@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -143,10 +143,10 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return application.getAuditService();
     }
 
-	protected WorkflowManager getWorkflowManager() {
-		MidPointApplication application = MidPointApplication.get();
-		return application.getWorkflowManager();
-	}
+    protected WorkflowManager getWorkflowManager() {
+        MidPointApplication application = MidPointApplication.get();
+        return application.getWorkflowManager();
+    }
 
     public List<T> getAvailableData() {
         if (availableData == null) {
@@ -205,7 +205,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     }
 
     public boolean isDistinct() {
-    	// TODO: Default list view setting should never be needed. Always check setting for specific object type (and archetype).
+        // TODO: Default list view setting should never be needed. Always check setting for specific object type (and archetype).
         CompiledObjectCollectionView def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
         return def == null || def.getDistinct() != DistinctSearchOptionType.NEVER;      // change after other options are added
     }
@@ -214,7 +214,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return getDistinctRelatedOptionsBuilder();  // probably others in the future
     }
 
-	@NotNull
+    @NotNull
     protected Collection<SelectorOptions<GetOperationOptions>> getDistinctRelatedOptions() {
         return getDistinctRelatedOptionsBuilder().build();
     }
@@ -248,22 +248,22 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return getPrismContext().queryFactory().createPaging(o, size, orderings);
     }
 
-	/**
-	 * Could be overridden in subclasses.
-	 */
-	@NotNull
-	protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-		if (sortParam != null && sortParam.getProperty() != null) {
-			OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
-			return Collections.singletonList(
-					getPrismContext().queryFactory().createOrdering(
+    /**
+     * Could be overridden in subclasses.
+     */
+    @NotNull
+    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+        if (sortParam != null && sortParam.getProperty() != null) {
+            OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+            return Collections.singletonList(
+                    getPrismContext().queryFactory().createOrdering(
                             ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty())), order));
-		} else {
-			return Collections.emptyList();
-		}
-	}
+        } else {
+            return Collections.emptyList();
+        }
+    }
 
-	public void clearCache() {
+    public void clearCache() {
         cache.clear();
         getAvailableData().clear();
     }

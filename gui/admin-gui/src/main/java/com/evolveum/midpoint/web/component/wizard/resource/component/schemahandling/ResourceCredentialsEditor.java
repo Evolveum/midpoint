@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -71,7 +71,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
 
     public ResourceCredentialsEditor(String id, IModel<ResourceCredentialsDefinitionType> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout(parentPage);
+        initLayout(parentPage);
     }
 
     @Override
@@ -94,19 +94,19 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
             new PropertyModel<>(getModel(), "password.fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
             new EnumChoiceRenderer<>(this));
-		parentPage.addEditingEnabledBehavior(fetchStrategy);
+        parentPage.addEditingEnabledBehavior(fetchStrategy);
         add(fetchStrategy);
 
-		VisibleEnableBehaviour showIfEditingOrOutboundExists = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				ResourceCredentialsDefinitionType credentials = getModel().getObject();
-				if (credentials == null || credentials.getPassword() == null) {
-					return !parentPage.isReadOnly();
-				}
-				return !parentPage.isReadOnly() || credentials.getPassword().getOutbound() != null;
-			}
-		};
+        VisibleEnableBehaviour showIfEditingOrOutboundExists = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                ResourceCredentialsDefinitionType credentials = getModel().getObject();
+                if (credentials == null || credentials.getPassword() == null) {
+                    return !parentPage.isReadOnly();
+                }
+                return !parentPage.isReadOnly() || credentials.getPassword().getOutbound() != null;
+            }
+        };
         TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL, new IModel<String>() {
 
             @Override
@@ -120,7 +120,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
                 MappingType outbound = null;
                 List<MappingType> outbounds = credentials.getPassword().getOutbound();
                 if (!outbounds.isEmpty()) {
-                	outbound = outbounds.get(0);
+                    outbound = outbounds.get(0);
                 }
                 return MappingTypeDto.createMappingLabel(outbound, LOGGER, getPageBase().getPrismContext(),
                         getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
@@ -128,7 +128,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         });
         outboundLabel.setEnabled(false);
         outboundLabel.setOutputMarkupId(true);
-		outboundLabel.add(showIfEditingOrOutboundExists);
+        outboundLabel.add(showIfEditingOrOutboundExists);
         add(outboundLabel);
 
         AjaxSubmitLink outbound = new AjaxSubmitLink(ID_OUTBOUND_BUTTON) {
@@ -139,7 +139,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
             }
         };
         outbound.setOutputMarkupId(true);
-		outbound.add(showIfEditingOrOutboundExists);
+        outbound.add(showIfEditingOrOutboundExists);
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
@@ -176,11 +176,11 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
 
                     @Override
                     public List<ObjectReferenceType> getObject() {
-                    	return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), passPolicyMap);
+                        return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), passPolicyMap);
 
                     }
                 }, new ObjectReferenceChoiceRenderer(passPolicyMap));
-		parentPage.addEditingEnabledBehavior(passwordPolicy);
+        parentPage.addEditingEnabledBehavior(passwordPolicy);
         add(passwordPolicy);
 
         Label fetchTooltip = new Label(ID_T_FETCH);

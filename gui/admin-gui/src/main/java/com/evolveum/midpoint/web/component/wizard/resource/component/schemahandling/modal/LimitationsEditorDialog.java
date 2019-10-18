@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -84,12 +84,12 @@ public class LimitationsEditorDialog extends ModalWindow{
     private boolean initialized;
     private IModel<List<PropertyLimitationsTypeDto>> model;
     private IModel<List<PropertyLimitationsType>> inputModel;
-	@NotNull final private NonEmptyModel<Boolean> readOnlyModel;
+    @NotNull final private NonEmptyModel<Boolean> readOnlyModel;
 
     public LimitationsEditorDialog(String id, final IModel<List<PropertyLimitationsType>> limitation, NonEmptyModel<Boolean> readOnlyModel) {
         super(id);
 
-		this.readOnlyModel = readOnlyModel;
+        this.readOnlyModel = readOnlyModel;
         inputModel = limitation;
         model = new LoadableModel<List<PropertyLimitationsTypeDto>>(false) {
 
@@ -154,16 +154,16 @@ public class LimitationsEditorDialog extends ModalWindow{
                 linkContainer.add(linkLabel);
 
                 AjaxLink<Void> delete = new AjaxLink<Void>(ID_LIMITATION_DELETE) {
-				
-                	private static final long serialVersionUID = 1L;
-                	
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteLimitationPerformed(target, item);
                     }
                 };
-				delete.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
-				linkContainer.add(delete);
+                delete.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+                linkContainer.add(delete);
 
                 WebMarkupContainer limitationBody = new WebMarkupContainer(ID_BODY);
                 limitationBody.setOutputMarkupId(true);
@@ -183,7 +183,7 @@ public class LimitationsEditorDialog extends ModalWindow{
                         }
                     }));
                 }
-				limitationBody.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+                limitationBody.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
                 item.add(limitationBody);
                 initLimitationBody(limitationBody, item);
 
@@ -196,20 +196,20 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     private void initButtons(Form form) {
-    	AjaxLink<Void> add = new AjaxLink<Void>(ID_BUTTON_ADD) {
-		
-    		private static final long serialVersionUID = 1L;
+        AjaxLink<Void> add = new AjaxLink<Void>(ID_BUTTON_ADD) {
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addLimitationsPerformed(target);
             }
         };
-		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         form.add(add);
 
         AjaxLink<Void> cancel = new AjaxLink<Void>(ID_BUTTON_CANCEL) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -219,14 +219,14 @@ public class LimitationsEditorDialog extends ModalWindow{
         form.add(cancel);
 
         AjaxLink<Void> save = new AjaxLink<Void>(ID_BUTTON_SAVE) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 savePerformed(target);
             }
         };
-		save.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        save.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         form.add(save);
     }
 
@@ -321,7 +321,7 @@ public class LimitationsEditorDialog extends ModalWindow{
                 PropertyLimitationsTypeDto dto = item.getModelObject();
                 sb.append("#").append(item.getIndex()+1).append(" - ");
 
-				List<LayerType> layers = new ArrayList<>();
+                List<LayerType> layers = new ArrayList<>();
                 if (dto.isModel()) {
                     layers.add(LayerType.MODEL);
                 }
@@ -331,11 +331,11 @@ public class LimitationsEditorDialog extends ModalWindow{
                 if (dto.isSchema()) {
                     layers.add(LayerType.SCHEMA);
                 }
-				sb.append(StringUtils.join(layers, ", "));
+                sb.append(StringUtils.join(layers, ", "));
                 sb.append(":");
 
                 if (dto.getLimitationObject().getAccess() != null) {
-					List<String> accesses = new ArrayList<>();
+                    List<String> accesses = new ArrayList<>();
                     PropertyAccessType access = dto.getLimitationObject().getAccess();
                     if (BooleanUtils.isTrue(access.isRead())) {
                         accesses.add(getString("LimitationsEditorDialog.label.read"));
@@ -346,7 +346,7 @@ public class LimitationsEditorDialog extends ModalWindow{
                     if (BooleanUtils.isTrue(access.isModify())) {
                         accesses.add(getString("LimitationsEditorDialog.label.modify"));
                     }
-					sb.append(StringUtils.join(accesses, ", "));
+                    sb.append(StringUtils.join(accesses, ", "));
                 }
 
                 return sb.toString();
@@ -373,7 +373,7 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(this, resourceKey, objects);
     }
 
     private void addLimitationsPerformed(AjaxRequestTarget target){

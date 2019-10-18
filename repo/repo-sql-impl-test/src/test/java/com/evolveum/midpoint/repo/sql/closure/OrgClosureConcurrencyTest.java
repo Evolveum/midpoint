@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -287,7 +287,7 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         parentOrgRef.setType(OrgType.COMPLEX_TYPE);
         parentOrgRef.setOid(edge.getAncestor());
         ItemDelta itemDelta = prismContext.deltaFactory().reference().createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF,
-		        parentOrgRef.asReferenceValue());
+                parentOrgRef.asReferenceValue());
         modifications.add(itemDelta);
         repositoryService.modifyObject(OrgType.class, edge.getDescendant(), modifications, new OperationResult("dummy"));
         synchronized(this) {

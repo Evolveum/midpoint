@@ -2,29 +2,29 @@
 <!--
   ~ Copyright (c) 2017-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <shadow oid="2db718b6-243a-11e7-a9e5-bbb2545f80ed"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999cccccccc" />
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<kind>account</kind>
-	<attributes>
-		<ri:username>jack</ri:username>
-		<ri:firstname>Jack</ri:firstname>
-		<ri:lastname>Sparrow</ri:lastname>
-	</attributes>
-	<activation>
-		<administrativeStatus>enabled</administrativeStatus>
-	</activation>
-	<credentials>
-		<password>
-			<value>
-				<clearValue>d3dMENt3llNOtal3s</clearValue>
-			</value>
-		</password>
-	</credentials>
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999cccccccc" />
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <attributes>
+        <ri:username>jack</ri:username>
+        <ri:firstname>Jack</ri:firstname>
+        <ri:lastname>Sparrow</ri:lastname>
+    </attributes>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    <credentials>
+        <password>
+            <value>
+                <clearValue>d3dMENt3llNOtal3s</clearValue>
+            </value>
+        </password>
+    </credentials>
 </shadow>

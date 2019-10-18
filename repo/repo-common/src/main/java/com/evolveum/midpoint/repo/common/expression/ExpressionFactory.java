@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.common.expression;
@@ -37,186 +37,186 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Factory for expressions and registry for expression evaluator factories.
- * 
+ *
  * @author semancik
  *
  */
 public class ExpressionFactory implements Cacheable {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(ExpressionFactory.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(ExpressionFactory.class);
 
-	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<>();
-	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
-	@NotNull private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<>();
-	final private PrismContext prismContext;
-	private ObjectResolver objectResolver;					// using setter to allow Spring to handle circular references
-	final private SecurityContextManager securityContextManager;
-	private LocalizationService localizationService;
-	private CacheRegistry cacheRegistry;
+    private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<>();
+    private ExpressionEvaluatorFactory defaultEvaluatorFactory;
+    @NotNull private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<>();
+    final private PrismContext prismContext;
+    private ObjectResolver objectResolver;                    // using setter to allow Spring to handle circular references
+    final private SecurityContextManager securityContextManager;
+    private LocalizationService localizationService;
+    private CacheRegistry cacheRegistry;
 
-	public ExpressionFactory(SecurityContextManager securityContextManager, PrismContext prismContext,
-			LocalizationService localizationService) {
-		this.prismContext = prismContext;
-		this.securityContextManager = securityContextManager;
-		this.localizationService = localizationService;
-	}
+    public ExpressionFactory(SecurityContextManager securityContextManager, PrismContext prismContext,
+            LocalizationService localizationService) {
+        this.prismContext = prismContext;
+        this.securityContextManager = securityContextManager;
+        this.localizationService = localizationService;
+    }
 
-	public void setObjectResolver(ObjectResolver objectResolver) {
-		this.objectResolver = objectResolver;
-	}
+    public void setObjectResolver(ObjectResolver objectResolver) {
+        this.objectResolver = objectResolver;
+    }
 
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
 
-	public LocalizationService getLocalizationService() {
-		return localizationService;
-	}
+    public LocalizationService getLocalizationService() {
+        return localizationService;
+    }
 
-	public void setCacheRegistry(CacheRegistry cacheRegistry) {
-		this.cacheRegistry = cacheRegistry;
-	}
-	
-	@PostConstruct
-	public void register() {
-		cacheRegistry.registerCacheableService(this);
-	}
+    public void setCacheRegistry(CacheRegistry cacheRegistry) {
+        this.cacheRegistry = cacheRegistry;
+    }
 
-	@PreDestroy
-	public void unregister() {
-		cacheRegistry.unregisterCacheableService(this);
-	}
+    @PostConstruct
+    public void register() {
+        cacheRegistry.registerCacheableService(this);
+    }
 
-	public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,
-			D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-		ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
-		//noinspection unchecked
-		Expression<V,D> expression = (Expression<V,D>) cache.get(eid);
-		if (expression == null) {
-			expression = createExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
-			cache.put(eid, expression);
-		}
-		return expression;
-	}
+    @PreDestroy
+    public void unregister() {
+        cacheRegistry.unregisterCacheableService(this);
+    }
 
-	public <T> Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> makePropertyExpression(
-			ExpressionType expressionType, QName outputPropertyName, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-		//noinspection unchecked
-		PrismPropertyDefinition<T> outputDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(outputPropertyName);
-		return makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
-	}
+    public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,
+            D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
+                    throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+        ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
+        //noinspection unchecked
+        Expression<V,D> expression = (Expression<V,D>) cache.get(eid);
+        if (expression == null) {
+            expression = createExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
+            cache.put(eid, expression);
+        }
+        return expression;
+    }
 
-	private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType,
-			D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-		Expression<V,D> expression = new Expression<>(expressionType, outputDefinition, expressionProfile, objectResolver, securityContextManager, prismContext);
-		expression.parse(this, shortDesc, task, result);
-		return expression;
-	}
+    public <T> Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> makePropertyExpression(
+            ExpressionType expressionType, QName outputPropertyName, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
+                    throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+        //noinspection unchecked
+        PrismPropertyDefinition<T> outputDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(outputPropertyName);
+        return makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
+    }
 
-	public ExpressionEvaluatorFactory getEvaluatorFactory(QName elementName) {
-		return evaluatorFactoriesMap.get(elementName);
-	}
+    private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType,
+            D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
+                    throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+        Expression<V,D> expression = new Expression<>(expressionType, outputDefinition, expressionProfile, objectResolver, securityContextManager, prismContext);
+        expression.parse(this, shortDesc, task, result);
+        return expression;
+    }
 
-	public void registerEvaluatorFactory(ExpressionEvaluatorFactory factory) {
-		evaluatorFactoriesMap.put(factory.getElementName(), factory);
-	}
+    public ExpressionEvaluatorFactory getEvaluatorFactory(QName elementName) {
+        return evaluatorFactoriesMap.get(elementName);
+    }
 
-	public ExpressionEvaluatorFactory getDefaultEvaluatorFactory() {
-		return defaultEvaluatorFactory;
-	}
+    public void registerEvaluatorFactory(ExpressionEvaluatorFactory factory) {
+        evaluatorFactoriesMap.put(factory.getElementName(), factory);
+    }
 
-	public void setDefaultEvaluatorFactory(ExpressionEvaluatorFactory defaultEvaluatorFactory) {
-		this.defaultEvaluatorFactory = defaultEvaluatorFactory;
-	}
+    public ExpressionEvaluatorFactory getDefaultEvaluatorFactory() {
+        return defaultEvaluatorFactory;
+    }
 
-	class ExpressionIdentifier {
-		private ExpressionType expressionType;
-		private ItemDefinition outputDefinition;
+    public void setDefaultEvaluatorFactory(ExpressionEvaluatorFactory defaultEvaluatorFactory) {
+        this.defaultEvaluatorFactory = defaultEvaluatorFactory;
+    }
 
-		ExpressionIdentifier(ExpressionType expressionType, ItemDefinition outputDefinition) {
-			super();
-			this.expressionType = expressionType;
-			this.outputDefinition = outputDefinition;
-		}
+    class ExpressionIdentifier {
+        private ExpressionType expressionType;
+        private ItemDefinition outputDefinition;
 
-		public ExpressionType getExpressionType() {
-			return expressionType;
-		}
+        ExpressionIdentifier(ExpressionType expressionType, ItemDefinition outputDefinition) {
+            super();
+            this.expressionType = expressionType;
+            this.outputDefinition = outputDefinition;
+        }
 
-		public void setExpressionType(ExpressionType expressionType) {
-			this.expressionType = expressionType;
-		}
+        public ExpressionType getExpressionType() {
+            return expressionType;
+        }
 
-		public ItemDefinition getOutputDefinition() {
-			return outputDefinition;
-		}
+        public void setExpressionType(ExpressionType expressionType) {
+            this.expressionType = expressionType;
+        }
 
-		public void setOutputDefinition(ItemDefinition outputDefinition) {
-			this.outputDefinition = outputDefinition;
-		}
+        public ItemDefinition getOutputDefinition() {
+            return outputDefinition;
+        }
 
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + getOuterType().hashCode();
-			result = prime * result + ((expressionType == null) ? 0 : expressionType.hashCode());
-			result = prime * result + ((outputDefinition == null) ? 0 : outputDefinition.hashCode());
-			return result;
-		}
+        public void setOutputDefinition(ItemDefinition outputDefinition) {
+            this.outputDefinition = outputDefinition;
+        }
 
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			ExpressionIdentifier other = (ExpressionIdentifier) obj;
-			if (!getOuterType().equals(other.getOuterType()))
-				return false;
-			if (expressionType == null) {
-				if (other.expressionType != null)
-					return false;
-			} else if (!expressionType.equals(other.expressionType))
-				return false;
-			if (outputDefinition == null) {
-				if (other.outputDefinition != null)
-					return false;
-			} else if (!outputDefinition.equals(other.outputDefinition))
-				return false;
-			return true;
-		}
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + getOuterType().hashCode();
+            result = prime * result + ((expressionType == null) ? 0 : expressionType.hashCode());
+            result = prime * result + ((outputDefinition == null) ? 0 : outputDefinition.hashCode());
+            return result;
+        }
 
-		private ExpressionFactory getOuterType() {
-			return ExpressionFactory.this;
-		}
-	}
-	
-	@Override
-	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-		if (context != null && context.isTerminateSession()) {
-			LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for expression cache invalidation.");
-			return;
-		}
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            ExpressionIdentifier other = (ExpressionIdentifier) obj;
+            if (!getOuterType().equals(other.getOuterType()))
+                return false;
+            if (expressionType == null) {
+                if (other.expressionType != null)
+                    return false;
+            } else if (!expressionType.equals(other.expressionType))
+                return false;
+            if (outputDefinition == null) {
+                if (other.outputDefinition != null)
+                    return false;
+            } else if (!outputDefinition.equals(other.outputDefinition))
+                return false;
+            return true;
+        }
 
-		if (type == null || FunctionLibraryType.class.isAssignableFrom(type)) {
-			// Currently we don't attempt to select entries to be cleared based on function library OID
-			cache = new HashMap<>();
-		}
-	}
+        private ExpressionFactory getOuterType() {
+            return ExpressionFactory.this;
+        }
+    }
 
-	@NotNull
-	@Override
-	public Collection<SingleCacheStateInformationType> getStateInformation() {
-		return Collections.singleton(
-				new SingleCacheStateInformationType(prismContext)
-						.name(ExpressionFactory.class.getName())
-						.size(cache.size())
-		);
-	}
+    @Override
+    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+        if (context != null && context.isTerminateSession()) {
+            LOGGER.trace("Skipping invalidation request. Request is for terminate session, not for expression cache invalidation.");
+            return;
+        }
+
+        if (type == null || FunctionLibraryType.class.isAssignableFrom(type)) {
+            // Currently we don't attempt to select entries to be cleared based on function library OID
+            cache = new HashMap<>();
+        }
+    }
+
+    @NotNull
+    @Override
+    public Collection<SingleCacheStateInformationType> getStateInformation() {
+        return Collections.singleton(
+                new SingleCacheStateInformationType(prismContext)
+                        .name(ExpressionFactory.class.getName())
+                        .size(cache.size())
+        );
+    }
 }

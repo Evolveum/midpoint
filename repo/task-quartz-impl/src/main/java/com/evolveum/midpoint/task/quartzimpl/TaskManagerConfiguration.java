@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl;
@@ -115,7 +115,7 @@ public class TaskManagerConfiguration {
 
     private static final int WORK_ALLOCATION_MAX_RETRIES_DEFAULT = 40;
     private static final long WORK_ALLOCATION_RETRY_INTERVAL_DEFAULT = 1000L;
-	private static final int WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_DEFAULT = 7;
+    private static final int WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_DEFAULT = 7;
     private static final long WORK_ALLOCATION_INITIAL_DELAY_DEFAULT = 5000L;
     private static final long WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT = 20000L;
 
@@ -219,9 +219,9 @@ public class TaskManagerConfiguration {
             STALLED_TASKS_THRESHOLD_CONFIG_ENTRY,
             STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY,
             RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY,
-			SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY,
-		    LOCAL_NODE_CLUSTERING_ENABLED_CONFIG_ENTRY,
-		    WORK_ALLOCATION_MAX_RETRIES_ENTRY,
+            SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY,
+            LOCAL_NODE_CLUSTERING_ENABLED_CONFIG_ENTRY,
+            WORK_ALLOCATION_MAX_RETRIES_ENTRY,
             WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY,
             WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY,
             WORK_ALLOCATION_INITIAL_DELAY_ENTRY,
@@ -685,10 +685,10 @@ public class TaskManagerConfiguration {
         return dataSource;
     }
 
-	@SuppressWarnings("WeakerAccess")
+    @SuppressWarnings("WeakerAccess")
     public boolean isSchedulerInitiallyStopped() {
-		return schedulerInitiallyStopped;
-	}
+        return schedulerInitiallyStopped;
+    }
 
     @SuppressWarnings("WeakerAccess")
     public boolean isLocalNodeClusteringEnabled() {
@@ -708,10 +708,10 @@ public class TaskManagerConfiguration {
     }
 
     public int getWorkAllocationRetryExponentialThreshold() {
-		return workAllocationRetryExponentialThreshold;
-	}
+        return workAllocationRetryExponentialThreshold;
+    }
 
-	public long getWorkAllocationInitialDelay() {
+    public long getWorkAllocationInitialDelay() {
         return workAllocationInitialDelay;
     }
 

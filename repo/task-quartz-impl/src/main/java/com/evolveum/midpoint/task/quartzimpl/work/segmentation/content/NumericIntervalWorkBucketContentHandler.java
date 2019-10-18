@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,28 +20,28 @@ import java.math.BigInteger;
 @Component
 public class NumericIntervalWorkBucketContentHandler extends IntervalWorkBucketContentHandler {
 
-	@PostConstruct
-	public void register() {
-		registry.registerHandler(NumericIntervalWorkBucketContentType.class, this);
-	}
+    @PostConstruct
+    public void register() {
+        registry.registerHandler(NumericIntervalWorkBucketContentType.class, this);
+    }
 
-	@Override
-	protected boolean hasNoBoundaries(AbstractWorkBucketContentType bucketContent) {
-		NumericIntervalWorkBucketContentType cnt = (NumericIntervalWorkBucketContentType) bucketContent;
-		return cnt == null || isNullOrZero(cnt.getFrom()) && cnt.getTo() == null;
-	}
+    @Override
+    protected boolean hasNoBoundaries(AbstractWorkBucketContentType bucketContent) {
+        NumericIntervalWorkBucketContentType cnt = (NumericIntervalWorkBucketContentType) bucketContent;
+        return cnt == null || isNullOrZero(cnt.getFrom()) && cnt.getTo() == null;
+    }
 
-	private boolean isNullOrZero(BigInteger i) {
-		return i == null || BigInteger.ZERO.equals(i);
-	}
+    private boolean isNullOrZero(BigInteger i) {
+        return i == null || BigInteger.ZERO.equals(i);
+    }
 
-	@Override
-	protected Object getFrom(AbstractWorkBucketContentType content) {
-		return ((NumericIntervalWorkBucketContentType) content).getFrom();
-	}
+    @Override
+    protected Object getFrom(AbstractWorkBucketContentType content) {
+        return ((NumericIntervalWorkBucketContentType) content).getFrom();
+    }
 
-	@Override
-	protected Object getTo(AbstractWorkBucketContentType content) {
-		return ((NumericIntervalWorkBucketContentType) content).getTo();
-	}
+    @Override
+    protected Object getTo(AbstractWorkBucketContentType content) {
+        return ((NumericIntervalWorkBucketContentType) content).getTo();
+    }
 }

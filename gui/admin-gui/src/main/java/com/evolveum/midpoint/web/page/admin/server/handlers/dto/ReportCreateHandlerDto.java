@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,32 +27,32 @@ import org.apache.wicket.Application;
  */
 public class ReportCreateHandlerDto extends HandlerDto {
 
-	public static final String F_REPORT_PARAMS = "reportParams";
-	public static final String F_REPORT_OUTPUT_OID = "reportOutputOid";
+    public static final String F_REPORT_PARAMS = "reportParams";
+    public static final String F_REPORT_OUTPUT_OID = "reportOutputOid";
 
-	public ReportCreateHandlerDto(TaskDto taskDto) {
-		super(taskDto);
-	}
+    public ReportCreateHandlerDto(TaskDto taskDto) {
+        super(taskDto);
+    }
 
-	public String getReportOutputOid() {
-		return taskDto.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME, String.class);
-	}
+    public String getReportOutputOid() {
+        return taskDto.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME, String.class);
+    }
 
-	public String getReportParams() {
-		PrismObject<TaskType> taskObject = taskDto.getTaskType().asPrismObject();
-		PrismContainer<ReportParameterType> container = taskObject.findContainer(
-				ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_PARAMS_PROPERTY_NAME));
-		if (container == null || container.isEmpty()) {
-			return null;
-		}
-		PrismContainerValue<ReportParameterType> pcv = container.getValue();
-		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
-		try {
-			return WebXmlUtil.stripNamespaceDeclarations(
-					prismContext.xmlSerializer().serialize(pcv, ReportConstants.REPORT_PARAMS_PROPERTY_NAME));
-		} catch (SchemaException e) {
-			throw new SystemException("Couldn't serialize report parameters: " + e.getMessage(), e);
-		}
-	}
+    public String getReportParams() {
+        PrismObject<TaskType> taskObject = taskDto.getTaskType().asPrismObject();
+        PrismContainer<ReportParameterType> container = taskObject.findContainer(
+                ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_PARAMS_PROPERTY_NAME));
+        if (container == null || container.isEmpty()) {
+            return null;
+        }
+        PrismContainerValue<ReportParameterType> pcv = container.getValue();
+        PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+        try {
+            return WebXmlUtil.stripNamespaceDeclarations(
+                    prismContext.xmlSerializer().serialize(pcv, ReportConstants.REPORT_PARAMS_PROPERTY_NAME));
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't serialize report parameters: " + e.getMessage(), e);
+        }
+    }
 
 }

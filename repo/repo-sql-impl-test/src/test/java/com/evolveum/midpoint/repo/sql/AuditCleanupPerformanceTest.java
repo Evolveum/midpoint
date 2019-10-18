@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -75,9 +75,9 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
             AssertJUnit.assertEquals(1, records.size());
             session.getTransaction().commit();
         }
-	}
+    }
 
-	private void prepareAuditEventRecords() throws Exception {
+    private void prepareAuditEventRecords() throws Exception {
         long start = System.currentTimeMillis();
         for (int i = 0; i < RECORDS;) {
             AuditEventRecord record = new AuditEventRecord();
@@ -101,7 +101,7 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
         }
     }
 
-	private ObjectDeltaOperation<UserType> createObjectDeltaOperation(int i) throws Exception {
+    private ObjectDeltaOperation<UserType> createObjectDeltaOperation(int i) throws Exception {
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace("d" + i)
                 .asObjectDeltaCast("oid-" + i);

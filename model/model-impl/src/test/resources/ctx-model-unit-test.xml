@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:aop="http://www.springframework.org/schema/aop"
-	xmlns:context="http://www.springframework.org/schema/context" xmlns:ws="http://jax-ws.dev.java.net/spring/core"
-	xmlns:p="http://www.springframework.org/schema/p" xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="
+    xmlns:jee="http://www.springframework.org/schema/jee" xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:context="http://www.springframework.org/schema/context" xmlns:ws="http://jax-ws.dev.java.net/spring/core"
+    xmlns:p="http://www.springframework.org/schema/p" xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="
      http://www.springframework.org/schema/jee
      http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
      http://www.springframework.org/schema/beans
@@ -21,12 +21,12 @@
      http://jax-ws.dev.java.net/spring/core
      https://jax-ws.dev.java.net/spring/core.xsd
      http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd"
-	default-lazy-init="false" default-autowire="byName">
+    default-lazy-init="false" default-autowire="byName">
 
-	<bean name="provisioningService" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createProvisioningService" />
-	<bean name="repositoryService" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createRepositoryService" />
-	<bean name="cacheRepositoryService" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createRepositoryService" />
-	<bean name="changeNotificationDispatcher" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createChangeNotificationDispatcher" />
+    <bean name="provisioningService" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createProvisioningService" />
+    <bean name="repositoryService" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createRepositoryService" />
+    <bean name="cacheRepositoryService" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createRepositoryService" />
+    <bean name="changeNotificationDispatcher" class="com.evolveum.midpoint.model.impl.util.mock.MockFactory" factory-method="createChangeNotificationDispatcher" />
 
     <!-- todo prism context -->
 

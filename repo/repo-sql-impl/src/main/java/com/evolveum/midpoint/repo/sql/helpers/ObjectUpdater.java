@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -76,9 +76,9 @@ public class ObjectUpdater {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectUpdater.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(SqlRepositoryServiceImpl.PERFORMANCE_LOG_NAME);
 
-	@Autowired
-	@Qualifier("repositoryService")
-	private RepositoryService repositoryService;
+    @Autowired
+    @Qualifier("repositoryService")
+    private RepositoryService repositoryService;
 
     @Autowired private BaseHelper baseHelper;
     @Autowired private ObjectRetriever objectRetriever;
@@ -116,7 +116,7 @@ public class ObjectUpdater {
                     PrismIdentifierGenerator.Operation.ADD_WITH_OVERWRITE :
                     PrismIdentifierGenerator.Operation.ADD;
             PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(operation);
-            
+
             session = baseHelper.beginTransaction();
 
             RObject rObject = createDataObjectFromJAXB(object, idGenerator);
@@ -170,11 +170,11 @@ public class ObjectUpdater {
     }
 
     private ConstraintViolationException findConstraintViolationException(PersistenceException ex) {
-    	return ExceptionUtil.findException(ex, ConstraintViolationException.class);
+        return ExceptionUtil.findException(ex, ConstraintViolationException.class);
     }
 
     private <T extends ObjectType> String overwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
-			String originalOid, Session session, OrgClosureManager.Context closureContext,
+            String originalOid, Session session, OrgClosureManager.Context closureContext,
             boolean noFetchExtensionValueInsertionForbidden, OperationResult result)
             throws SchemaException, DtoTranslationException {
 
@@ -365,8 +365,8 @@ public class ObjectUpdater {
             Collection<? extends ItemDelta> originalModifications, ModificationPrecondition<T> precondition,
             RepoModifyOptions originalModifyOptions, int attempt, OperationResult result,
             SqlRepositoryServiceImpl sqlRepositoryService, boolean noFetchExtensionValueInsertionForbidden)
-		    throws ObjectNotFoundException,
-		    SchemaException, ObjectAlreadyExistsException, SerializationRelatedException, PreconditionViolationException {
+            throws ObjectNotFoundException,
+            SchemaException, ObjectAlreadyExistsException, SerializationRelatedException, PreconditionViolationException {
 
         RepoModifyOptions modifyOptions = adjustExtensionValuesHandling(originalModifyOptions, noFetchExtensionValueInsertionForbidden);
         AttemptContext attemptContext = new AttemptContext();
@@ -380,8 +380,8 @@ public class ObjectUpdater {
 
         LOGGER.debug("Modifying object '{}' with oid '{}' (attempt {}) (adjusted options: {})", type.getSimpleName(), oid, attempt, modifyOptions);
         LOGGER_PERFORMANCE.debug("> modify object {}, oid={} (attempt {}), modifications={}", type.getSimpleName(), oid, attempt, modifications);
-	    LOGGER.trace("Modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
-	    LOGGER.trace("noFetchExtensionValueInsertionForbidden: {}", noFetchExtensionValueInsertionForbidden);
+        LOGGER.trace("Modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
+        LOGGER.trace("noFetchExtensionValueInsertionForbidden: {}", noFetchExtensionValueInsertionForbidden);
 
         Session session = null;
         OrgClosureManager.Context closureContext = null;
@@ -424,11 +424,11 @@ public class ObjectUpdater {
                 // get object
                 PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, optionsBuilder.build(), true, result);
                 if (precondition != null && !precondition.holds(prismObject)) {
-                	throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
+                    throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
                 }
-	            sqlRepositoryService.invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
+                sqlRepositoryService.invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
                 // apply diff
-				LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());
+                LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());
                 PrismObject<T> originalObject = prismObject.clone();
 
                 boolean shouldPhotoBeRemoved;
@@ -502,19 +502,19 @@ public class ObjectUpdater {
             throw ex;
         } catch (PersistenceException ex) {
             ConstraintViolationException constEx = findConstraintViolationException(ex);
-	        if (constEx != null) {
-		        handleConstraintViolationExceptionSpecialCases(constEx, session, attemptContext, result);
-		        baseHelper.rollbackTransaction(session, constEx, result, true);
-		        LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
-		        // we don't know if it's only name uniqueness violation, or something else,
-		        // therefore we're throwing it always as ObjectAlreadyExistsException
+            if (constEx != null) {
+                handleConstraintViolationExceptionSpecialCases(constEx, session, attemptContext, result);
+                baseHelper.rollbackTransaction(session, constEx, result, true);
+                LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
+                // we don't know if it's only name uniqueness violation, or something else,
+                // therefore we're throwing it always as ObjectAlreadyExistsException
 
-		        //todo improve (we support only 5 DB, so we should probably do some hacking in here)
-		        throw new ObjectAlreadyExistsException(constEx);
-	        } else {
-	            baseHelper.handleGeneralException(ex, session, result);
-	            throw new AssertionError("Shouldn't get here");
-	        }
+                //todo improve (we support only 5 DB, so we should probably do some hacking in here)
+                throw new ObjectAlreadyExistsException(constEx);
+            } else {
+                baseHelper.handleGeneralException(ex, session, result);
+                throw new AssertionError("Shouldn't get here");
+            }
         } catch (DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
             throw new AssertionError("Shouldn't get here");
@@ -568,9 +568,9 @@ public class ObjectUpdater {
             throw new RestartOperationRequestedException("Suspecting no-fetch extension value insertion attempt causing "
                     + "ConstraintViolationException; restarting with no-fetch insertion disabled", true);
         } else if (baseHelper.isSerializationRelatedConstraintViolationException(ex)) {
-		    baseHelper.rollbackTransaction(session, ex, result, false);
-		    throw new SerializationRelatedException(ex);
-	    }
+            baseHelper.rollbackTransaction(session, ex, result, false);
+            throw new SerializationRelatedException(ex);
+        }
     }
 
     private boolean isNoFetchExtensionValueInsertionException(ConstraintViolationException ex) {

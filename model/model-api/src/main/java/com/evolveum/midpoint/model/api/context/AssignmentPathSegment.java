@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,55 +29,55 @@ import java.util.List;
  */
 public interface AssignmentPathSegment extends DebugDumpable, ShortDumpable {
 
-	// Returns version of the assignment (old/new) that was evaluated
-	AssignmentType getAssignment();
+    // Returns version of the assignment (old/new) that was evaluated
+    AssignmentType getAssignment();
 
-	AssignmentType getAssignment(boolean evaluateOld);
+    AssignmentType getAssignment(boolean evaluateOld);
 
-	// Returns 'assignment new' - i.e. the analogous to getAssignment(false)
-	// Until 2017-06-13 the name of this method was 'getAssignment()'
-	// TODO its use is a bit questionable; it might return null, when evaluating negative-mode assignments
-	AssignmentType getAssignmentNew();
+    // Returns 'assignment new' - i.e. the analogous to getAssignment(false)
+    // Until 2017-06-13 the name of this method was 'getAssignment()'
+    // TODO its use is a bit questionable; it might return null, when evaluating negative-mode assignments
+    AssignmentType getAssignmentNew();
 
-	AssignmentType getAssignmentAny();
+    AssignmentType getAssignmentAny();
 
-	/**
-	 * True if the segment corresponds to assignment. False if it's an inducement.
-	 */
-	boolean isAssignment();
+    /**
+     * True if the segment corresponds to assignment. False if it's an inducement.
+     */
+    boolean isAssignment();
 
-	ObjectType getSource();
+    ObjectType getSource();
 
-	ObjectType getTarget();
+    ObjectType getTarget();
 
-	QName getRelation();
+    QName getRelation();
 
-	/**
-	 *  Whether this assignment/inducement matches the focus level, i.e. if we should collect constructions,
-	 *  focus mappings, focus policy rules and similar items from it.
-	 */
-	boolean isMatchingOrder();
+    /**
+     *  Whether this assignment/inducement matches the focus level, i.e. if we should collect constructions,
+     *  focus mappings, focus policy rules and similar items from it.
+     */
+    boolean isMatchingOrder();
 
-	/**
-	 *  Whether this assignment/inducement matches the target level, i.e. if we should collect target
-	 *  policy rules from it.
-	 */
-	boolean isMatchingOrderForTarget();
+    /**
+     *  Whether this assignment/inducement matches the target level, i.e. if we should collect target
+     *  policy rules from it.
+     */
+    boolean isMatchingOrderForTarget();
 
-	/**
-	 * True if the relation is a delegation one.
-	 */
-	boolean isDelegation();
+    /**
+     * True if the relation is a delegation one.
+     */
+    boolean isDelegation();
 
-	@NotNull
-	AssignmentPathSegmentType toAssignmentPathSegmentType(boolean includeAssignmentsContent);
+    @NotNull
+    AssignmentPathSegmentType toAssignmentPathSegmentType(boolean includeAssignmentsContent);
 
-	/**
-	 * Returns true if the path segment matches specified order constraints. All of them must match.
-	 * Although there are some defaults, it is recommended to specify constraints explicitly.
-	 */
-	boolean matches(@NotNull List<OrderConstraintsType> orderConstraints);
+    /**
+     * Returns true if the path segment matches specified order constraints. All of them must match.
+     * Although there are some defaults, it is recommended to specify constraints explicitly.
+     */
+    boolean matches(@NotNull List<OrderConstraintsType> orderConstraints);
 
-	// Preliminary limited implementation. Use with care.
-	boolean equivalent(AssignmentPathSegment otherSegment);
+    // Preliminary limited implementation. Use with care.
+    boolean equivalent(AssignmentPathSegment otherSegment);
 }

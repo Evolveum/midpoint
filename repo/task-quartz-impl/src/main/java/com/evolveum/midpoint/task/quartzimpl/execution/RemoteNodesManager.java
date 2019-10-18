@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -144,17 +144,17 @@ public class RemoteNodesManager {
         result.addParam("node", node.toString());
 
         LOGGER.debug("Interrupting task {} running at {}", oid, getClusterManager().dumpNodeInfo(node));
-	    try {
-		    if (taskManager.getConfiguration().isUseJmx()) {
-			    jmxConnector.stopRemoteTaskRun(oid, node, result);
-		    } else {
-			    restConnector.stopRemoteTask(oid, node, result);
-		    }
-		    result.computeStatus();
-	    } catch (Throwable t) {
-		    result.recordFatalError("Couldn't stop task running on remote node", t);
-		    // todo log the exception?
-	    }
+        try {
+            if (taskManager.getConfiguration().isUseJmx()) {
+                jmxConnector.stopRemoteTaskRun(oid, node, result);
+            } else {
+                restConnector.stopRemoteTask(oid, node, result);
+            }
+            result.computeStatus();
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't stop task running on remote node", t);
+            // todo log the exception?
+        }
     }
 
     private ClusterManager getClusterManager() {

@@ -18,7 +18,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-	<h3><wicket:message key="PageAccounts.summary"/></h3>
+    <h3><wicket:message key="PageAccounts.summary"/></h3>
         <table class="table table-striped table-condensed" wicket:id="totals">
             <thead>
             <th><wicket:message key="PageAccounts.state"/></th>
@@ -51,31 +51,31 @@
                 <td><span wicket:id="nothing"/></td>
                 <td><b><span wicket:id="total"/></b></td>
             </tr>
-            
+
             </tbody>
         </table>
 
-	<div class="table-responsive" wicket:id="table" />
-	<div wicket:id="label" />
-	
-	<div class="box object-task-box">
-		<div class="box-header with-border">
-			<h3 class="box-title"><wicket:message key="pageResource.synchronizationTasks"/></h3>
-		</div>
-		<div class="box-body">
-			<div class="form-group">
-				<div class=btn-group>
-					<div wicket:id="import" />
-				</div>
-				<div class=btn-group>
-					<div wicket:id="reconciliation" />
-				</div>
-				<div class=btn-group>
-					<div wicket:id="liveSync" />
-				</div>
-			</div>
-		</div>
-	</div>
+    <div class="table-responsive" wicket:id="table" />
+    <div wicket:id="label" />
+
+    <div class="box object-task-box">
+        <div class="box-header with-border">
+            <h3 class="box-title"><wicket:message key="pageResource.synchronizationTasks"/></h3>
+        </div>
+        <div class="box-body">
+            <div class="form-group">
+                <div class=btn-group>
+                    <div wicket:id="import" />
+                </div>
+                <div class=btn-group>
+                    <div wicket:id="reconciliation" />
+                </div>
+                <div class=btn-group>
+                    <div wicket:id="liveSync" />
+                </div>
+            </div>
+        </div>
+    </div>
 
 </wicket:panel>
 </html>

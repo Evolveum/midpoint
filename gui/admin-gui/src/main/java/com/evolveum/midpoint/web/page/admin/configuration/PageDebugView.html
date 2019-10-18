@@ -19,21 +19,21 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm" class="form-horizontal">
-    
+
     <div class="box">
-    	<div class="box-header with-border">
-        	<h3 class="box-title"><wicket:message key="pageDebugView.options"/></h3>
+        <div class="box-header with-border">
+            <h3 class="box-title"><wicket:message key="pageDebugView.options"/></h3>
         </div>
-	    <div class="box-body">
-	        <div class="option-checkbox" wicket:id="encrypt"/>
-	        <div class="option-checkbox" wicket:id="validateSchema"/>
-	        <div class="option-checkbox" wicket:id="saveAsRaw"/>
-	        <div class="option-checkbox" wicket:id="reevaluateSearchFilters"/>
-	        <div class="option-checkbox" wicket:id="switchToPlainText"/>
-	    </div>
-	</div>
+        <div class="box-body">
+            <div class="option-checkbox" wicket:id="encrypt"/>
+            <div class="option-checkbox" wicket:id="validateSchema"/>
+            <div class="option-checkbox" wicket:id="saveAsRaw"/>
+            <div class="option-checkbox" wicket:id="reevaluateSearchFilters"/>
+            <div class="option-checkbox" wicket:id="switchToPlainText"/>
+        </div>
+    </div>
 <!--         <div class="row form-group"> -->
-            
+
 <!--             <label class="col-lg-2 control-label"><wicket:message key="pageDebugView.options"/></label> -->
 
 <!--             <div class="col-lg-8"> -->
@@ -63,15 +63,15 @@
 <!--                 </div> -->
 <!--             </div> -->
 <!--         </div> -->
-        
+
      <div class="box">
-    	<div class="box-header with-border">
-        	<div class="form-group">
-        		<div class="col-lg-2" wicket:id="viewButtonPanel" ></div>
-        	</div>
+        <div class="box-header with-border">
+            <div class="form-group">
+                <div class="col-lg-2" wicket:id="viewButtonPanel" ></div>
+            </div>
         </div>
-	    <div class="box-body">
-	         <div class="form-group">
+        <div class="box-body">
+             <div class="form-group">
             <div class="col-lg-12">
                 <textarea wicket:id="aceEditor"></textarea>
             </div>
@@ -81,11 +81,11 @@
                 <textarea class="text-area"  wicket:id="plain-textarea"/>
             </div>
         </div>
-	    </div>
-	</div>
-        
-       
-       
+        </div>
+    </div>
+
+
+
 
         <div class="main-button-bar">
             <span class="button-group">

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -62,7 +62,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     private transient RepositoryService repositoryService;
 
     @Autowired(required = true)
-	private ActivationComputer activationComputer;
+    private ActivationComputer activationComputer;
 
     @Autowired(required = true)
     private Clock clock;
@@ -72,14 +72,14 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
 
     @Override
     public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException {
-    	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-    	PrismObject<UserType> user = null;
+        OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
+        PrismObject<UserType> user = null;
         try {
             user = findByUsername(username, result);
         } catch (ObjectNotFoundException ex) {
-        	LOGGER.trace("Couldn't find user with name '{}', reason: {}.",
+            LOGGER.trace("Couldn't find user with name '{}', reason: {}.",
                     new Object[]{username, ex.getMessage(), ex});
-        	throw ex;
+            throw ex;
         } catch (Exception ex) {
             LOGGER.warn("Error getting user with name '{}', reason: {}.",
                     new Object[]{username, ex.getMessage(), ex});
@@ -91,22 +91,22 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
 
     @Override
     public MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException {
-    	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-    	UserType user = getUserByOid(oid, result);
-    	return getPrincipal(user.asPrismObject());
+        OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
+        UserType user = getUserByOid(oid, result);
+        return getPrincipal(user.asPrismObject());
     }
-    
+
     @Override
     public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
-    	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-    	return getPrincipal(user, null, result);
+        OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
+        return getPrincipal(user, null, result);
     }
-    
-    
-    
+
+
+
     @Override
-	public MidPointPrincipal getPrincipal(PrismObject<UserType> user,
-			AuthorizationTransformer authorizationLimiter, OperationResult result) throws SchemaException {
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user,
+            AuthorizationTransformer authorizationLimiter, OperationResult result) throws SchemaException {
         if (user == null) {
             return null;
         }
@@ -119,20 +119,20 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     }
 
     private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) {
-    	PrismObject<SystemConfigurationType> systemConfiguration = null;
+        PrismObject<SystemConfigurationType> systemConfiguration = null;
         try {
-        	// TODO: use SystemObjectCache instead?
-        	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					null, result);
-		} catch (ObjectNotFoundException | SchemaException e) {
-			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
-		} 
+            // TODO: use SystemObjectCache instead?
+            systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                    null, result);
+        } catch (ObjectNotFoundException | SchemaException e) {
+            LOGGER.warn("No system configuration: {}", e.getMessage(), e);
+        }
         return systemConfiguration;
     }
-    
+
     @Override
     public void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
-    	OperationResult result = new OperationResult(OPERATION_UPDATE_USER);
+        OperationResult result = new OperationResult(OPERATION_UPDATE_USER);
         try {
             save(principal, result);
         } catch (Exception ex) {
@@ -156,44 +156,44 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
         return list.get(0);
     }
 
-	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) {
+    private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) {
 
         OperationResult result = new OperationResult(MidPointPrincipalManagerMock.class.getName() + ".addAuthorizations");
 
         principal.setApplicableSecurityPolicy(locateSecurityPolicy(principal, systemConfiguration, result));
 
 //        if (systemConfiguration != null) {
-//    		principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
-//    	}
+//            principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
+//        }
 
         AuthorizationType authorizationType = new AuthorizationType();
         authorizationType.getAction().add("FAKE");
-		principal.getAuthorities().add(new Authorization(authorizationType));
+        principal.getAuthorities().add(new Authorization(authorizationType));
 
         ActivationType activation = principal.getUser().getActivation();
         if (activation != null) {
-        	activationComputer.computeEffective(principal.getUser().getLifecycleState(), activation, null);
+            activationComputer.computeEffective(principal.getUser().getLifecycleState(), activation, null);
         }
-	}
+    }
 
-	private SecurityPolicyType locateSecurityPolicy(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, OperationResult result) {
-		if (systemConfiguration == null) {
-			return null;
-		}
-		ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
-		if (globalSecurityPolicyRef == null) {
-			return null;
-		}
-		try {
-			PrismObject<SecurityPolicyType> policy = repositoryService.getObject(SecurityPolicyType.class, globalSecurityPolicyRef.getOid(), null, result);
-			return policy.asObjectable();
-		} catch (ObjectNotFoundException | SchemaException e) {
-			LOGGER.error(e.getMessage(), e);
-			return null;
-		}
-	}
+    private SecurityPolicyType locateSecurityPolicy(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, OperationResult result) {
+        if (systemConfiguration == null) {
+            return null;
+        }
+        ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.asObjectable().getGlobalSecurityPolicyRef();
+        if (globalSecurityPolicyRef == null) {
+            return null;
+        }
+        try {
+            PrismObject<SecurityPolicyType> policy = repositoryService.getObject(SecurityPolicyType.class, globalSecurityPolicyRef.getOid(), null, result);
+            return policy.asObjectable();
+        } catch (ObjectNotFoundException | SchemaException e) {
+            LOGGER.error(e.getMessage(), e);
+            return null;
+        }
+    }
 
-	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         UserType oldUserType = getUserByOid(person.getOid(), result);
         PrismObject<UserType> oldUser = oldUserType.asPrismObject();
 
@@ -208,7 +208,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
 
     private UserType getUserByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
         ObjectType object = repositoryService.getObject(UserType.class, oid,
-        		null, result).asObjectable();
+                null, result).asObjectable();
         if (object != null && (object instanceof UserType)) {
             return (UserType) object;
         }
@@ -216,32 +216,32 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
         return null;
     }
 
-	@Override
-	public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
-		if (object == null || object.getOid() == null) {
-			return null;
-		}
-		PrismObject<F> owner = null;
-		if (object.canRepresent(ShadowType.class)) {
-			owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(MidPointPrincipalManagerMock.class+".resolveOwner"));
-		}
-		if (owner == null) {
-			return null;
-		}
-		return owner;
-	}
+    @Override
+    public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
+        if (object == null || object.getOid() == null) {
+            return null;
+        }
+        PrismObject<F> owner = null;
+        if (object.canRepresent(ShadowType.class)) {
+            owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(MidPointPrincipalManagerMock.class+".resolveOwner"));
+        }
+        if (owner == null) {
+            return null;
+        }
+        return owner;
+    }
 
-	@Override
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//		 TODO Auto-generated method stub
-		try {
-			return getPrincipal(username);
-		} catch (ObjectNotFoundException e) {
-			throw new UsernameNotFoundException(e.getMessage(), e);
-		} catch (SchemaException e) {
-			throw new IllegalArgumentException(e.getMessage(), e);
-		}
-	}
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+//         TODO Auto-generated method stub
+        try {
+            return getPrincipal(username);
+        } catch (ObjectNotFoundException e) {
+            throw new UsernameNotFoundException(e.getMessage(), e);
+        } catch (SchemaException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
+    }
 
 
 }

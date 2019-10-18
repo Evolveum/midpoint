@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -82,13 +82,13 @@ public class EnableDisableExecutor extends BaseActionExecutor {
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);
-					exception = processActionException(ex, expression.getType(), value, context);
+                    exception = processActionException(ex, expression.getType(), value, context);
                 }
-				context.println((exception != null ? "Attempted to " + expression.getType() : (isEnable ? "Enabled " : "Disabled "))
-						+ prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
-			} else {
-				//noinspection ThrowableNotThrown
-				processActionException(new ScriptExecutionException("Item is not a PrismObject"), expression.getType(), value, context);
+                context.println((exception != null ? "Attempted to " + expression.getType() : (isEnable ? "Enabled " : "Disabled "))
+                        + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
+            } else {
+                //noinspection ThrowableNotThrown
+                processActionException(new ScriptExecutionException("Item is not a PrismObject"), expression.getType(), value, context);
             }
             operationsHelper.trimAndCloneResult(result, globalResult, context);
         }
@@ -98,13 +98,13 @@ public class EnableDisableExecutor extends BaseActionExecutor {
     private ObjectDelta<? extends ObjectType> createEnableDisableDelta(FocusType focus, boolean isEnable) {
         return prismContext.deltaFactory().object().createModificationReplaceProperty(focus.getClass(),
                 focus.getOid(), PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-		        isEnable ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
+                isEnable ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
     }
 
     private ObjectDelta<? extends ObjectType> createEnableDisableDelta(ShadowType shadow, boolean isEnable) {
         return prismContext.deltaFactory().object().createModificationReplaceProperty(shadow.getClass(),
                 shadow.getOid(), PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-		        isEnable ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
+                isEnable ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
     }
 
 }

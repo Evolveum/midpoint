@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,28 +23,28 @@ import org.jetbrains.annotations.Nullable;
 public class WorkItemLifecycleEvent extends WorkItemEvent {
 
     public WorkItemLifecycleEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
-			@NotNull CaseWorkItemType workItem,
-			@Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
-			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			@Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase) {
+            @NotNull CaseWorkItemType workItem,
+            @Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
+            @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
+            @Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator,
-				operationInfo, sourceInfo, approvalContext, aCase, null, null);
+                operationInfo, sourceInfo, approvalContext, aCase, null, null);
     }
 
-	@Override
+    @Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {
         return eventCategoryType == EventCategoryType.WORK_ITEM_LIFECYCLE_EVENT
-        		|| eventCategoryType == EventCategoryType.WORK_ITEM_EVENT
-				|| eventCategoryType == EventCategoryType.WORKFLOW_EVENT;
+                || eventCategoryType == EventCategoryType.WORK_ITEM_EVENT
+                || eventCategoryType == EventCategoryType.WORKFLOW_EVENT;
     }
 
-	@Override
+    @Override
     public void createExpressionVariables(VariablesMap variables, OperationResult result) {
         super.createExpressionVariables(variables, result);
     }
 
-	@Override
-	public String toString() {
-		return "WorkItemLifecycleEvent:" + super.toString();
-	}
+    @Override
+    public String toString() {
+        return "WorkItemLifecycleEvent:" + super.toString();
+    }
 }

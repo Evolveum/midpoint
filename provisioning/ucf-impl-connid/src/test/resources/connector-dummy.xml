@@ -2,24 +2,24 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<connector oid="ef2bc95b-76e0-59e2-86d6-dddddddddddd" 
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<connector oid="ef2bc95b-76e0-59e2-86d6-dddddddddddd"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
-								  
-	<name>com.evolveum.icf.dummy.connector.DummyConnector</name>
-	<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
-	<connectorType>com.evolveum.icf.dummy.connector.DummyConnector</connectorType>
-	<connectorVersion>2.0</connectorVersion>
-	<connectorBundle>com.evolveum.icf.dummy</connectorBundle>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector</namespace>
-	<schema>
-		<!-- This is fake -->
-	</schema>
+          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
+                              http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+
+    <name>com.evolveum.icf.dummy.connector.DummyConnector</name>
+    <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
+    <connectorType>com.evolveum.icf.dummy.connector.DummyConnector</connectorType>
+    <connectorVersion>2.0</connectorVersion>
+    <connectorBundle>com.evolveum.icf.dummy</connectorBundle>
+    <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector</namespace>
+    <schema>
+        <!-- This is fake -->
+    </schema>
 </connector>

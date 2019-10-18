@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -41,7 +41,7 @@ public class RandomString {
     private boolean readable = false;
 
     public RandomString(int length) {
-    	this(length, false);
+        this(length, false);
     }
 
     public RandomString(int length, boolean readable) {
@@ -53,10 +53,10 @@ public class RandomString {
     }
 
     public String nextString() {
-    	int length = symbols.length;
-    	if (readable) {
-    		length = READABLE_SYMBOLS_LENGTH;
-    	}
+        int length = symbols.length;
+        if (readable) {
+            length = READABLE_SYMBOLS_LENGTH;
+        }
         for (int idx = 0; idx < buf.length; ++idx) {
             buf[idx] = symbols[random.nextInt(length)];
         }

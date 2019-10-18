@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -31,18 +31,18 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class TestXmlSerialization {
 
-	@BeforeSuite
-	public void setupDebug() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-	}
+    @BeforeSuite
+    public void setupDebug() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
+        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
+    }
 
-	@Test
+    @Test
     public void testHandlingInvalidChars() throws Exception {
-		final String TEST_NAME = "testHandlingInvalidChars";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "testHandlingInvalidChars";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
+        // GIVEN
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
@@ -53,8 +53,8 @@ public class TestXmlSerialization {
 
         // THEN
 
-		final DomLexicalProcessor domLexicalProcessor = ((PrismContextImpl) prismContext).getParserDom();
-		String ok = domLexicalProcessor.write(valOkNode, new QName("ok"), null);
+        final DomLexicalProcessor domLexicalProcessor = ((PrismContextImpl) prismContext).getParserDom();
+        String ok = domLexicalProcessor.write(valOkNode, new QName("ok"), null);
         System.out.println("correct value serialized to: " + ok);
         assertEquals("Wrong serialization", "<ok>abcdef</ok>", ok.trim());         // todo make this less brittle with regards to serialization style
 

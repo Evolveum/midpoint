@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web;
@@ -53,46 +53,46 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTest {
 
-	public static final File TEST_DIR = new File("src/test/resources/security");
+    public static final File TEST_DIR = new File("src/test/resources/security");
 
-	protected static final File ROLE_UI_ALLOW_ALL_FILE = new File(TEST_DIR, "role-ui-allow-all.xml");
-	protected static final String ROLE_UI_ALLOW_ALL_OID = "d8f78cfe-d05d-11e7-8ee6-038ce21862f3";
-	
-	protected static final File ROLE_UI_DENY_ALL_FILE = new File(TEST_DIR, "role-ui-deny-all.xml");
-	protected static final String ROLE_UI_DENY_ALL_OID = "c4a5923c-d02b-11e7-9ac5-13b0d906fa81";
+    protected static final File ROLE_UI_ALLOW_ALL_FILE = new File(TEST_DIR, "role-ui-allow-all.xml");
+    protected static final String ROLE_UI_ALLOW_ALL_OID = "d8f78cfe-d05d-11e7-8ee6-038ce21862f3";
 
-	protected static final File ROLE_UI_DENY_ALLOW_FILE = new File(TEST_DIR, "role-ui-deny-allow.xml");
-	protected static final String ROLE_UI_DENY_ALLOW_OID = "da47fcf6-d02b-11e7-9e78-f31ae9aa0674";
-	
-	private static final Trace LOGGER = TraceManager.getTrace(TestIntegrationSecurity.class);
-	
-	@Autowired private UserProfileService userProfileService;
-	
-	private MidPointGuiAuthorizationEvaluator midPointGuiAuthorizationEvaluator;
+    protected static final File ROLE_UI_DENY_ALL_FILE = new File(TEST_DIR, "role-ui-deny-all.xml");
+    protected static final String ROLE_UI_DENY_ALL_OID = "c4a5923c-d02b-11e7-9ac5-13b0d906fa81";
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		
-		midPointGuiAuthorizationEvaluator = new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager);
+    protected static final File ROLE_UI_DENY_ALLOW_FILE = new File(TEST_DIR, "role-ui-deny-allow.xml");
+    protected static final String ROLE_UI_DENY_ALLOW_OID = "da47fcf6-d02b-11e7-9e78-f31ae9aa0674";
 
-		repoAddObjectFromFile(ROLE_UI_ALLOW_ALL_FILE, initResult);
-		repoAddObjectFromFile(ROLE_UI_DENY_ALL_FILE, initResult);
-		repoAddObjectFromFile(ROLE_UI_DENY_ALLOW_FILE, initResult);
-		
-		// Temporary ... until initial object load is fixed
-//		ch.qos.logback.classic.Logger l = (ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger("com.evolveum.midpoint.web");
-//		l.setLevel(ch.qos.logback.classic.Level.TRACE);
-//		l = (ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger("com.evolveum.midpoint.test");
-//		l.setLevel(ch.qos.logback.classic.Level.TRACE);
-	}
+    private static final Trace LOGGER = TraceManager.getTrace(TestIntegrationSecurity.class);
 
-	
-	// TODO: decide tests with anon user
-	
-	@Test
+    @Autowired private UserProfileService userProfileService;
+
+    private MidPointGuiAuthorizationEvaluator midPointGuiAuthorizationEvaluator;
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+
+        midPointGuiAuthorizationEvaluator = new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager);
+
+        repoAddObjectFromFile(ROLE_UI_ALLOW_ALL_FILE, initResult);
+        repoAddObjectFromFile(ROLE_UI_DENY_ALL_FILE, initResult);
+        repoAddObjectFromFile(ROLE_UI_DENY_ALLOW_FILE, initResult);
+
+        // Temporary ... until initial object load is fixed
+//        ch.qos.logback.classic.Logger l = (ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger("com.evolveum.midpoint.web");
+//        l.setLevel(ch.qos.logback.classic.Level.TRACE);
+//        l = (ch.qos.logback.classic.Logger)org.slf4j.LoggerFactory.getLogger("com.evolveum.midpoint.test");
+//        l.setLevel(ch.qos.logback.classic.Level.TRACE);
+    }
+
+
+    // TODO: decide tests with anon user
+
+    @Test
     public void test100DecideNoRole() throws Exception {
-		final String TEST_NAME = "test100DecideNoRole";
+        final String TEST_NAME = "test100DecideNoRole";
         displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -113,13 +113,13 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/system");
         assertDeny(authentication, "/admin/config/debugs");
 
-		// THEN
-		displayThen(TEST_NAME);
-	}
-	
-	@Test
+        // THEN
+        displayThen(TEST_NAME);
+    }
+
+    @Test
     public void test110DecideRoleUiAllowAll() throws Exception {
-		final String TEST_NAME = "test110DecideRoleUiAllowAll";
+        final String TEST_NAME = "test110DecideRoleUiAllowAll";
         displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -140,14 +140,14 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertAllow(authentication, "/self/dashboard");
         assertAllow(authentication, "/admin/config/system");
         assertAllow(authentication, "/admin/config/debugs");
-	     
-		// THEN
-		displayThen(TEST_NAME);
-	}
-	
-	@Test
+
+        // THEN
+        displayThen(TEST_NAME);
+    }
+
+    @Test
     public void test120DecideRoleUiDenyAll() throws Exception {
-		final String TEST_NAME = "test120DecideRoleUiDenyAll";
+        final String TEST_NAME = "test120DecideRoleUiDenyAll";
         displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -169,17 +169,17 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/system");
         assertDeny(authentication, "/admin/config/debugs");
 
-		// THEN
-		displayThen(TEST_NAME);
+        // THEN
+        displayThen(TEST_NAME);
 
-	}
+    }
 
-	/**
-	 * MID-4129
-	 */
-	@Test
+    /**
+     * MID-4129
+     */
+    @Test
     public void test200DecideRoleUiDenyAllow() throws Exception {
-		final String TEST_NAME = "test200DecideRoleUiDenyAllow";
+        final String TEST_NAME = "test200DecideRoleUiDenyAllow";
         displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -201,75 +201,75 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
         assertDeny(authentication, "/admin/config/system");
         assertDeny(authentication, "/admin/config/debugs");
 
-		// THEN
-		displayThen(TEST_NAME);
+        // THEN
+        displayThen(TEST_NAME);
 
-	}
-		
-	private void assertAllow(Authentication authentication, String path) {
-		try {
-			LOGGER.debug("*** Attempt to DECIDE {} (expected allow)", path);
-			
-			midPointGuiAuthorizationEvaluator.decide(authentication, createFilterInvocation(path), createAuthConfigAttributes());
-			
-			display("DECIDE OK allowed access to " + path);
+    }
+
+    private void assertAllow(Authentication authentication, String path) {
+        try {
+            LOGGER.debug("*** Attempt to DECIDE {} (expected allow)", path);
+
+            midPointGuiAuthorizationEvaluator.decide(authentication, createFilterInvocation(path), createAuthConfigAttributes());
+
+            display("DECIDE OK allowed access to " + path);
         } catch (AccessDeniedException e) {
-        	display("DECIDE WRONG failed to allowed access to " + path);
-        	throw new AssertionError("Expected that access to "+path+" is allowed, but it was denied", e);
+            display("DECIDE WRONG failed to allowed access to " + path);
+            throw new AssertionError("Expected that access to "+path+" is allowed, but it was denied", e);
         }
-	}
+    }
 
-	private void assertDeny(Authentication authentication, String path) {
-		try {
-			LOGGER.debug("*** Attempt to DECIDE {} (expected deny)", path);
-			
-	        midPointGuiAuthorizationEvaluator.decide(authentication, createFilterInvocation(path), createAuthConfigAttributes());
-	     
-	        display("DECIDE WRONG failed to deny access to " + path);
-	        fail("Expected that access to "+path+" is denied, but it was allowed");
+    private void assertDeny(Authentication authentication, String path) {
+        try {
+            LOGGER.debug("*** Attempt to DECIDE {} (expected deny)", path);
+
+            midPointGuiAuthorizationEvaluator.decide(authentication, createFilterInvocation(path), createAuthConfigAttributes());
+
+            display("DECIDE WRONG failed to deny access to " + path);
+            fail("Expected that access to "+path+" is denied, but it was allowed");
         } catch (AccessDeniedException e) {
-        	// expected
-        	display("DECIDE OK denied access to " + path);
+            // expected
+            display("DECIDE OK denied access to " + path);
         }
-		
-	}
-	
-	private Authentication createPasswordAuthentication(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		MidPointPrincipal principal = userProfileService.getPrincipal(username);
-		UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
-		return auth;
-	}
-	
-	private FilterInvocation createFilterInvocation(String requestPath) {
-		return new FilterInvocation(requestPath, "http");
-	}
-	
-	private Collection<ConfigAttribute> createAuthConfigAttributes() {
-		return createConfigAttributes("fullyAuthenticated");	
-	}
-	
-	private Collection<ConfigAttribute> createConfigAttributes(String... actions) {
-		Collection<ConfigAttribute> configAttributes = new ArrayList<>();
-		for (String action: actions) {
-			configAttributes.add(new ConfigAttribute() {
-				private static final long serialVersionUID = 1L;
 
-				@Override
-				public String getAttribute() {
-					return action;
-				}
+    }
 
-				@Override
-				public String toString() {
-					return action;
-				}
-			});
-		}
-		return null;
-	}
+    private Authentication createPasswordAuthentication(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        MidPointPrincipal principal = userProfileService.getPrincipal(username);
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+        return auth;
+    }
 
-	private void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
-		login(userAdministrator);
+    private FilterInvocation createFilterInvocation(String requestPath) {
+        return new FilterInvocation(requestPath, "http");
+    }
+
+    private Collection<ConfigAttribute> createAuthConfigAttributes() {
+        return createConfigAttributes("fullyAuthenticated");
+    }
+
+    private Collection<ConfigAttribute> createConfigAttributes(String... actions) {
+        Collection<ConfigAttribute> configAttributes = new ArrayList<>();
+        for (String action: actions) {
+            configAttributes.add(new ConfigAttribute() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public String getAttribute() {
+                    return action;
+                }
+
+                @Override
+                public String toString() {
+                    return action;
+                }
+            });
+        }
+        return null;
+    }
+
+    private void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
+        login(userAdministrator);
         unassignAllRoles(userOid);
-	}
+    }
 }

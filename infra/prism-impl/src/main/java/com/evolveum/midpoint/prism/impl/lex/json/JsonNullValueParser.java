@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,32 +20,32 @@ import java.util.Map;
 
 public class JsonNullValueParser<T> implements ValueParser<T> {
 
-	public JsonNullValueParser() {
-	}
+    public JsonNullValueParser() {
+    }
 
-	@Override
-	public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
-		Class clazz = XsdTypeMapper.toJavaType(typeName);
-		if (clazz == null) {
-			throw new SchemaException("Unsupported type " + typeName);
-		}
-		return (T) JavaTypeConverter.convert(clazz, "");
-	}
+    @Override
+    public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
+        Class clazz = XsdTypeMapper.toJavaType(typeName);
+        if (clazz == null) {
+            throw new SchemaException("Unsupported type " + typeName);
+        }
+        return (T) JavaTypeConverter.convert(clazz, "");
+    }
 
-	@Override
-	public boolean isEmpty() {
-		return true;
-	}
+    @Override
+    public boolean isEmpty() {
+        return true;
+    }
 
-	@Override
-	public String getStringValue() {
-		return "";
-	}
+    @Override
+    public String getStringValue() {
+        return "";
+    }
 
-	@Override
-	public String toString() {
-		return "JsonNullValueParser";
-	}
+    @Override
+    public String toString() {
+        return "JsonNullValueParser";
+    }
 
     @Override
     public Map<String, String> getPotentiallyRelevantNamespaces() {
@@ -53,6 +53,6 @@ public class JsonNullValueParser<T> implements ValueParser<T> {
     }
 
     Element asDomElement() throws IOException {
-		return null;
-	}
+        return null;
+    }
 }

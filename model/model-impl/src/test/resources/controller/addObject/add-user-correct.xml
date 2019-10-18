@@ -2,11 +2,11 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <c:object xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
    xsi:type="c:UserType">
@@ -16,6 +16,6 @@
     <honorificSuffix>007</honorificSuffix>
     <locality>home</locality>
     <activation>
-    	<effectiveStatus>disabled</effectiveStatus>
+        <effectiveStatus>disabled</effectiveStatus>
     </activation>
 </c:object>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,8 +28,8 @@ import com.evolveum.midpoint.prism.path.ItemName;
 
 /**
  *
- *     			ActivationTyps is a container, therefore the following elements are properties.
- *     			This tests the ability to deal with boolean and dateTime properties.
+ *                 ActivationTyps is a container, therefore the following elements are properties.
+ *                 This tests the ability to deal with boolean and dateTime properties.
  *
  *
  * <p>Java class for ActivationType complex type.
@@ -70,9 +70,9 @@ public class ActivationType
     protected XMLGregorianCalendar validTo;
 
     // This is NOT GENERATED. It is supplied here manually for the testing.
- 	public final static ItemName F_ENABLED = new ItemName(ObjectType.NS_FOO, "enabled");
- 	public final static ItemName F_VALID_FROM = new ItemName(ObjectType.NS_FOO, "validFrom");
- 	public final static ItemName F_VALID_TO = new ItemName(ObjectType.NS_FOO, "validTo");
+     public final static ItemName F_ENABLED = new ItemName(ObjectType.NS_FOO, "enabled");
+     public final static ItemName F_VALID_FROM = new ItemName(ObjectType.NS_FOO, "validFrom");
+     public final static ItemName F_VALID_TO = new ItemName(ObjectType.NS_FOO, "validTo");
 
     /**
      * Gets the value of the enabled property.
@@ -138,20 +138,20 @@ public class ActivationType
         this.validTo = value;
     }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Containerable#asPrismContainerValue()
-	 */
-	@Override
-	public PrismContainerValue asPrismContainerValue() {
-		throw new UnsupportedOperationException();
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.prism.Containerable#asPrismContainerValue()
+     */
+    @Override
+    public PrismContainerValue asPrismContainerValue() {
+        throw new UnsupportedOperationException();
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Containerable#setupContainerValue(com.evolveum.midpoint.prism.PrismContainerValue)
-	 */
-	@Override
-	public void setupContainerValue(PrismContainerValue container) {
-		throw new UnsupportedOperationException();
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.prism.Containerable#setupContainerValue(com.evolveum.midpoint.prism.PrismContainerValue)
+     */
+    @Override
+    public void setupContainerValue(PrismContainerValue container) {
+        throw new UnsupportedOperationException();
+    }
 
 }

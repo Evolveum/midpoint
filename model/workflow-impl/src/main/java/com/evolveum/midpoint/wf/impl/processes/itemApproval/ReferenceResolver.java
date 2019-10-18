@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,7 +22,7 @@ import java.util.List;
  */
 @FunctionalInterface
 public interface ReferenceResolver {
-	// must returns parent-less references
-	List<ObjectReferenceType> resolveReference(ObjectReferenceType reference, String sourceDescription)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    // must returns parent-less references
+    List<ObjectReferenceType> resolveReference(ObjectReferenceType reference, String sourceDescription)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 }

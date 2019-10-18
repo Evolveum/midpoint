@@ -2,11 +2,11 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <org oid="b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54"
-	 xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>Teams</name>
+     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Teams</name>
 </org>

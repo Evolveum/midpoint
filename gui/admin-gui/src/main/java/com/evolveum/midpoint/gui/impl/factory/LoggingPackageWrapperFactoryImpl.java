@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -37,57 +37,57 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Component
 public class LoggingPackageWrapperFactoryImpl<T> extends PrismPropertyWrapperFactoryImpl<T>{
 
-	@Override
-	public boolean match(ItemDefinition<?> def) {
-		return def instanceof PrismPropertyDefinition
-				&& QNameUtil.match(def.getItemName(), ClassLoggerConfigurationType.F_PACKAGE);
-	}
+    @Override
+    public boolean match(ItemDefinition<?> def) {
+        return def instanceof PrismPropertyDefinition
+                && QNameUtil.match(def.getItemName(), ClassLoggerConfigurationType.F_PACKAGE);
+    }
 
-	@Override
-	public int getOrder() {
-		return Integer.MAX_VALUE-1;
-	}
-	
-	@Override
-	protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
-			ItemStatus status) {
-		getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
-		PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
-		propertyWrapper.setPredefinedValues(getPredefinedValues());
-		return propertyWrapper;
-	}
-	
-	private LookupTableType getPredefinedValues() {
-		LookupTableType lookupTable = new LookupTableType();
+    @Override
+    public int getOrder() {
+        return Integer.MAX_VALUE-1;
+    }
+
+    @Override
+    protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
+            ItemStatus status) {
+        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
+        PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
+        propertyWrapper.setPredefinedValues(getPredefinedValues());
+        return propertyWrapper;
+    }
+
+    private LookupTableType getPredefinedValues() {
+        LookupTableType lookupTable = new LookupTableType();
         List<LookupTableRowType> list = lookupTable.createRowList();
         List<StandardLoggerType> standardLoggers = EnumUtils.getEnumList(StandardLoggerType.class);
-    	List<LoggingComponentType> componentLoggers = EnumUtils.getEnumList(LoggingComponentType.class);
-    	
-    	for(StandardLoggerType standardLogger : standardLoggers) {
-    		LookupTableRowType row = new LookupTableRowType();
-    		row.setKey(standardLogger.getValue());
-    		row.setValue(standardLogger.getValue());
-    		PolyStringType label = new PolyStringType("StandardLoggerType." + standardLogger.name());
-    		PolyStringTranslationType translation = new PolyStringTranslationType();
-    		translation.setKey("StandardLoggerType." + standardLogger.name());
-    		label.setTranslation(translation);
-    		row.setLabel(label);
-    		list.add(row);
-    	}
-    	for(LoggingComponentType componentLogger : componentLoggers) {
-    		LookupTableRowType row = new LookupTableRowType();
-    			String value = ComponentLoggerType.getPackageByValue(componentLogger);
-    		row.setKey(value);
-    		row.setValue(value);
-    		PolyStringType label = new PolyStringType("LoggingComponentType." + componentLogger.name());
-    		PolyStringTranslationType translation = new PolyStringTranslationType();
-    		translation.setKey("LoggingComponentType." + componentLogger.name());
-    		label.setTranslation(translation);
-    		row.setLabel(label);
-    		list.add(row);
-    	}
+        List<LoggingComponentType> componentLoggers = EnumUtils.getEnumList(LoggingComponentType.class);
+
+        for(StandardLoggerType standardLogger : standardLoggers) {
+            LookupTableRowType row = new LookupTableRowType();
+            row.setKey(standardLogger.getValue());
+            row.setValue(standardLogger.getValue());
+            PolyStringType label = new PolyStringType("StandardLoggerType." + standardLogger.name());
+            PolyStringTranslationType translation = new PolyStringTranslationType();
+            translation.setKey("StandardLoggerType." + standardLogger.name());
+            label.setTranslation(translation);
+            row.setLabel(label);
+            list.add(row);
+        }
+        for(LoggingComponentType componentLogger : componentLoggers) {
+            LookupTableRowType row = new LookupTableRowType();
+                String value = ComponentLoggerType.getPackageByValue(componentLogger);
+            row.setKey(value);
+            row.setValue(value);
+            PolyStringType label = new PolyStringType("LoggingComponentType." + componentLogger.name());
+            PolyStringTranslationType translation = new PolyStringTranslationType();
+            translation.setKey("LoggingComponentType." + componentLogger.name());
+            label.setTranslation(translation);
+            row.setLabel(label);
+            list.add(row);
+        }
         return lookupTable;
-		
-	}
+
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.security;
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class PasswordCallback implements CallbackHandler {
 
-	private static final Trace LOGGER = TraceManager.getTrace(PasswordCallback.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PasswordCallback.class);
 
     private PasswordAuthenticationEvaluatorImpl passwordAuthenticationEvaluatorImpl;
 
@@ -34,7 +34,7 @@ public class PasswordCallback implements CallbackHandler {
     }
 
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
-    	LOGGER.trace("Invoked PasswordCallback with {} callbacks: {}", callbacks.length, callbacks);
+        LOGGER.trace("Invoked PasswordCallback with {} callbacks: {}", callbacks.length, callbacks);
         WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];
 
         String username = pc.getIdentifier();
@@ -42,11 +42,11 @@ public class PasswordCallback implements CallbackHandler {
         LOGGER.trace("Username: '{}', Password type: {}", username, wssPasswordType);
 
         try {
-        	ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-        	pc.setPassword(passwordAuthenticationEvaluatorImpl.getAndCheckUserPassword(connEnv, username));
+            ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+            pc.setPassword(passwordAuthenticationEvaluatorImpl.getAndCheckUserPassword(connEnv, username));
         } catch (Exception e) {
-        	LOGGER.trace("Exception in password callback: {}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
-        	throw new PasswordCallbackException("Authentication failed");
+            LOGGER.trace("Exception in password callback: {}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
+            throw new PasswordCallbackException("Authentication failed");
         }
    }
 }

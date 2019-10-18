@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -37,21 +37,21 @@ public abstract class BaseAction implements Action {
     private AuditService auditService;
     private ContextFactory contextFactory;
 
-	public AuditService getAuditService() {
-    	return auditService;
+    public AuditService getAuditService() {
+        return auditService;
     }
 
     public void setAuditService(AuditService auditService) {
-		this.auditService = auditService;
-	}
+        this.auditService = auditService;
+    }
 
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
 
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+    public void setPrismContext(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
 
     public ProvisioningService getProvisioningService() {
         return provisioningService;
@@ -62,12 +62,12 @@ public abstract class BaseAction implements Action {
     }
 
     public ContextFactory getContextFactory() {
-		return contextFactory;
-	}
+        return contextFactory;
+    }
 
-	public void setContextFactory(ContextFactory contextFactory) {
-		this.contextFactory = contextFactory;
-	}
+    public void setContextFactory(ContextFactory contextFactory) {
+        this.contextFactory = contextFactory;
+    }
 
     protected UserType getUser(String oid, OperationResult result) {
         if (StringUtils.isEmpty(oid)) {
@@ -78,19 +78,19 @@ public abstract class BaseAction implements Action {
             return modelObjectResolver.getObjectSimple(UserType.class, oid, null, null, result);
         } catch (ObjectNotFoundException ex) {
             // user was not found, we return null
-        	return null;
+            return null;
         }
     }
 
-	public ModelObjectResolver getModelObjectResolver() {
-		return modelObjectResolver;
-	}
+    public ModelObjectResolver getModelObjectResolver() {
+        return modelObjectResolver;
+    }
 
-	public void setModelObjectResolver(ModelObjectResolver modelObjectResolver) {
-		this.modelObjectResolver = modelObjectResolver;
-	}
+    public void setModelObjectResolver(ModelObjectResolver modelObjectResolver) {
+        this.modelObjectResolver = modelObjectResolver;
+    }
 
-	public void setClockwork(Clockwork clockwork) {
+    public void setClockwork(Clockwork clockwork) {
         this.clockwork = clockwork;
     }
 

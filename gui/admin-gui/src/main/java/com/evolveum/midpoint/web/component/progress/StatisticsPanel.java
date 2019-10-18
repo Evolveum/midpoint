@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -73,13 +73,13 @@ public class StatisticsPanel extends BasePanel<StatisticsDto> {
 
     public StatisticsPanel(String id) {
         super(id);
-		initLayout();
+        initLayout();
     }
 
     public StatisticsPanel(String id, IModel<StatisticsDto> model) {
         super(id, model);
-		initLayout();
-	}
+        initLayout();
+    }
 
     protected void initLayout() {
         contentsPanel = new WebMarkupContainer(ID_CONTENTS_PANEL);

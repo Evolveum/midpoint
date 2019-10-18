@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui;
@@ -317,7 +317,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
                 .assertAssignments(1);
 
     }
-    
+
     @Test
     public void test300SaveSystemConfigWithoutChanges() throws Exception {
         final String TEST_NAME = "test300SaveSystemConfigWithoutChanges";
@@ -335,7 +335,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         ObjectDelta<UserType> systemConfigDelta = objectWrapper.getObjectDelta();
         assertModificationsSize(systemConfigDelta, 0);
     }
-    
+
     @Test
     public void test301ModifyProfilingClassLoggerOfSystemConfig() throws Exception {
         final String TEST_NAME = "test301ModifyProfilingClassLoggerOfSystemConfig";
@@ -355,15 +355,15 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         PrismPropertyWrapper<String> appenderLevel = profilingClassLogger.getValue().findProperty(ClassLoggerConfigurationType.F_APPENDER);
         loggerLevel.getValue().setRealValue(LoggingLevelType.DEBUG);
         appenderLevel.getValues().get(0).setRealValue("MIDPOINT_PROFILE_LOG");
-        
+
         //GIVEN
         ObjectDelta<UserType> systemConfigDelta = objectWrapper.getObjectDelta();
         assertModificationsSize(systemConfigDelta, 1);
-        
+
         assertModification(systemConfigDelta, ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_LEVEL),
-        		ModificationTypeType.ADD, LoggingLevelType.DEBUG);
+                ModificationTypeType.ADD, LoggingLevelType.DEBUG);
         assertModification(systemConfigDelta, ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType. F_APPENDER),
-        		ModificationTypeType.ADD, "MIDPOINT_PROFILE_LOG");
+                ModificationTypeType.ADD, "MIDPOINT_PROFILE_LOG");
         //WHEN
         executeChanges(systemConfigDelta, null, task, result);
 
@@ -373,14 +373,14 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         profilingClassLogger = loggingConfig.findContainer(ItemName.fromQName(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH));
         loggerLevel = profilingClassLogger.getValue().findProperty(ClassLoggerConfigurationType.F_LEVEL);
         appenderLevel = profilingClassLogger.getValue().findProperty(ClassLoggerConfigurationType.F_APPENDER);
-        
+
         if(!loggerLevel.getValue().getRealValue().equals(LoggingLevelType.DEBUG)) {
-        	AssertJUnit.fail("Expected value: " + LoggingLevelType.DEBUG + " after executing of changes. Values present: " + loggerLevel.getValue().getRealValue());
+            AssertJUnit.fail("Expected value: " + LoggingLevelType.DEBUG + " after executing of changes. Values present: " + loggerLevel.getValue().getRealValue());
         }
         if(!appenderLevel.getValues().get(0).getRealValue().equals("MIDPOINT_PROFILE_LOG")) {
-        	AssertJUnit.fail("Expected value: " + "MIDPOINT_PROFILE_LOG" + " after executing of changes. Values present: " + appenderLevel.getValues().get(0).getRealValue());
+            AssertJUnit.fail("Expected value: " + "MIDPOINT_PROFILE_LOG" + " after executing of changes. Values present: " + appenderLevel.getValues().get(0).getRealValue());
         }
-        
+
     }
 
     private PrismContainerValue<AssignmentType> createDummyResourceAssignment(PrismObjectWrapper<UserType> objectWrapper, int existingAssignments, Task task, OperationResult result) throws Exception {
@@ -427,7 +427,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         assertEquals("Unexpected modifications size", expectedModifications, modifications.size());
 
     }
-    
+
     private <O extends ObjectType, D extends ItemDelta> void assertModification(ObjectDelta<O> delta, ItemPath itemPath, ModificationTypeType modificationType, Object... expectedValues) {
         D modification = (D) delta.findItemDelta(itemPath);
         assertNotNull("Unexpected null delta for " + itemPath, modification);

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.sync;
@@ -47,78 +47,78 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 @Component
 public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskHandler<FocusType, AbstractSearchIterativeResultHandler<FocusType>> {
 
-	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/execute/handler-3";
+    public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/execute/handler-3";
 
     @Autowired
-	private TaskManager taskManager;
+    private TaskManager taskManager;
 
-	@Autowired
-	private PrismContext prismContext;
+    @Autowired
+    private PrismContext prismContext;
 
     @Autowired
     private ModelService model;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(ExecuteChangesTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(ExecuteChangesTaskHandler.class);
 
-	public ExecuteChangesTaskHandler() {
+    public ExecuteChangesTaskHandler() {
         super("Execute", OperationConstants.EXECUTE);
-		setLogFinishInfo(true);
+        setLogFinishInfo(true);
     }
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
 
-	protected Class<? extends ObjectType> getType(Task task) {
-		return getTypeFromTask(task, UserType.class);
-	}
+    protected Class<? extends ObjectType> getType(Task task) {
+        return getTypeFromTask(task, UserType.class);
+    }
 
-	@NotNull
-	@Override
-	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
-			OperationResult opResult) {
+    @NotNull
+    @Override
+    protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
+            OperationResult opResult) {
 
-		AbstractSearchIterativeResultHandler<FocusType> handler = new AbstractSearchIterativeResultHandler<FocusType>(
-				coordinatorTask, ExecuteChangesTaskHandler.class.getName(), "execute", "execute task", taskManager) {
-			@Override
-			protected boolean handleObject(PrismObject<FocusType> object, RunningTask workerTask, OperationResult result) throws CommonException {
-				executeChange(object, coordinatorTask, workerTask, result);
-				return true;
-			}
-		};
+        AbstractSearchIterativeResultHandler<FocusType> handler = new AbstractSearchIterativeResultHandler<FocusType>(
+                coordinatorTask, ExecuteChangesTaskHandler.class.getName(), "execute", "execute task", taskManager) {
+            @Override
+            protected boolean handleObject(PrismObject<FocusType> object, RunningTask workerTask, OperationResult result) throws CommonException {
+                executeChange(object, coordinatorTask, workerTask, result);
+                return true;
+            }
+        };
         handler.setStopOnError(false);
         return handler;
-	}
+    }
 
-	private <T extends ObjectType> void executeChange(PrismObject<T> focalObject, Task coordinatorTask, Task task, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
-			ConfigurationException, PolicyViolationException, SecurityViolationException {
-		LOGGER.trace("Executing change on object {}", focalObject);
+    private <T extends ObjectType> void executeChange(PrismObject<T> focalObject, Task coordinatorTask, Task task, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
+            ConfigurationException, PolicyViolationException, SecurityViolationException {
+        LOGGER.trace("Executing change on object {}", focalObject);
 
-		ObjectDelta<T> delta = createDeltaFromTask(coordinatorTask);
-		if (delta == null) {
-			throw new IllegalStateException("No delta in the task");
-		}
+        ObjectDelta<T> delta = createDeltaFromTask(coordinatorTask);
+        if (delta == null) {
+            throw new IllegalStateException("No delta in the task");
+        }
 
-		delta.setOid(focalObject.getOid());
-		if (focalObject.getCompileTimeClass() != null) {
-			delta.setObjectTypeClass(focalObject.getCompileTimeClass());
-		}
-		prismContext.adopt(delta);
+        delta.setOid(focalObject.getOid());
+        if (focalObject.getCompileTimeClass() != null) {
+            delta.setObjectTypeClass(focalObject.getCompileTimeClass());
+        }
+        prismContext.adopt(delta);
 
-		model.executeChanges(Collections.singletonList(delta), getExecuteOptionsFromTask(task), task, result);
-		LOGGER.trace("Execute changes {} for object {}: {}", delta, focalObject, result.getStatus());
-	}
+        model.executeChanges(Collections.singletonList(delta), getExecuteOptionsFromTask(task), task, result);
+        LOGGER.trace("Execute changes {} for object {}: {}", delta, focalObject, result.getStatus());
+    }
 
-	private <T extends ObjectType> ObjectDelta<T> createDeltaFromTask(Task task) throws SchemaException {
-		PrismProperty<ObjectDeltaType> objectDeltaType = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+    private <T extends ObjectType> ObjectDelta<T> createDeltaFromTask(Task task) throws SchemaException {
+        PrismProperty<ObjectDeltaType> objectDeltaType = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
         if (objectDeltaType != null && objectDeltaType.getRealValue() != null) {
-        	return DeltaConvertor.createObjectDelta(objectDeltaType.getRealValue(), prismContext);
+            return DeltaConvertor.createObjectDelta(objectDeltaType.getRealValue(), prismContext);
         } else {
             return null;
         }
-	}
+    }
 
     @Override
     public String getCategoryName(Task task) {

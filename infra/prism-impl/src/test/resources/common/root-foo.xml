@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <root xmlns="http://example.com/xml/ns/test/root.xsd"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<name>foo</name>
-	<foo>
-		<foo>FOOBAR</foo>
-		<bar>42</bar>
-		<barbar>Connan</barbar>
-		<barbar>Hogun</barbar>
-	</foo>
-	<!-- 
-	<password><c:clearValue>supersecret</c:clearValue></password>
-	 -->
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>foo</name>
+    <foo>
+        <foo>FOOBAR</foo>
+        <bar>42</bar>
+        <barbar>Connan</barbar>
+        <barbar>Hogun</barbar>
+    </foo>
+    <!--
+    <password><c:clearValue>supersecret</c:clearValue></password>
+     -->
 </root>

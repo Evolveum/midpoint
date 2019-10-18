@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -42,44 +42,44 @@ public class PageAdminConfiguration extends PageAdmin {
     public PageAdminConfiguration(PageParameters parameters) {
         super(parameters);
     }
-    
+
     protected String deleteObjectsAsync(QName type, ObjectQuery objectQuery, boolean raw, String taskName,
-			OperationResult result)
-					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+            OperationResult result)
+                    throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-    	Task task = createSimpleTask(result.getOperation());
-    	task.setHandlerUri(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
+        Task task = createSimpleTask(result.getOperation());
+        task.setHandlerUri(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
 
-		if (objectQuery == null) {
-			objectQuery = getPrismContext().queryFactory().createQuery();
-		}
+        if (objectQuery == null) {
+            objectQuery = getPrismContext().queryFactory().createQuery();
+        }
 
-		QueryType query = getQueryConverter().createQueryType(objectQuery);
+        QueryType query = getQueryConverter().createQueryType(objectQuery);
 
-		PrismPropertyDefinition queryDef = getPrismContext().definitionFactory().createPropertyDefinition(
-				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE);
-		PrismProperty<QueryType> queryProp = queryDef.instantiate();
-		queryProp.setRealValue(query);
-		task.setExtensionProperty(queryProp);
+        PrismPropertyDefinition queryDef = getPrismContext().definitionFactory().createPropertyDefinition(
+                SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE);
+        PrismProperty<QueryType> queryProp = queryDef.instantiate();
+        queryProp.setRealValue(query);
+        task.setExtensionProperty(queryProp);
 
-		PrismPropertyDefinition typeDef = getPrismContext().definitionFactory().createPropertyDefinition(
-				SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, DOMUtil.XSD_QNAME);
-		PrismProperty<QName> typeProp = typeDef.instantiate();
-		typeProp.setRealValue(type);
-		task.setExtensionProperty(typeProp);
+        PrismPropertyDefinition typeDef = getPrismContext().definitionFactory().createPropertyDefinition(
+                SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, DOMUtil.XSD_QNAME);
+        PrismProperty<QName> typeProp = typeDef.instantiate();
+        typeProp.setRealValue(type);
+        task.setExtensionProperty(typeProp);
 
-		PrismPropertyDefinition rawDef = getPrismContext().definitionFactory().createPropertyDefinition(
-				SchemaConstants.MODEL_EXTENSION_OPTION_RAW, DOMUtil.XSD_BOOLEAN);
-		PrismProperty<Boolean> rawProp = rawDef.instantiate();
-		rawProp.setRealValue(raw);
-		task.setExtensionProperty(rawProp);
+        PrismPropertyDefinition rawDef = getPrismContext().definitionFactory().createPropertyDefinition(
+                SchemaConstants.MODEL_EXTENSION_OPTION_RAW, DOMUtil.XSD_BOOLEAN);
+        PrismProperty<Boolean> rawProp = rawDef.instantiate();
+        rawProp.setRealValue(raw);
+        task.setExtensionProperty(rawProp);
 
-		task.setName(taskName);
-		task.flushPendingModifications(result);
+        task.setName(taskName);
+        task.flushPendingModifications(result);
 
-		TaskManager taskManager = getTaskManager();
-		taskManager.switchToBackground(task, result);
-		result.setBackgroundTaskOid(task.getOid());
-		return task.getOid();
-	}
+        TaskManager taskManager = getTaskManager();
+        taskManager.switchToBackground(task, result);
+        result.setBackgroundTaskOid(task.getOid());
+        return task.getOid();
+    }
 }

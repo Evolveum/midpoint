@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,48 +21,48 @@ import java.io.Serializable;
  */
 public interface ObjectQuery extends DebugDumpable, Serializable {
 
-	ObjectFilter getFilter();
+    ObjectFilter getFilter();
 
-	void setFilter(ObjectFilter filter);
+    void setFilter(ObjectFilter filter);
 
-	void setPaging(ObjectPaging paging);
+    void setPaging(ObjectPaging paging);
 
-	ObjectPaging getPaging();
+    ObjectPaging getPaging();
 
-	boolean isAllowPartialResults();
+    boolean isAllowPartialResults();
 
-	void setAllowPartialResults(boolean allowPartialResults);
+    void setAllowPartialResults(boolean allowPartialResults);
 
-	ObjectQuery clone();
+    ObjectQuery clone();
 
-	ObjectQuery cloneEmpty();
+    ObjectQuery cloneEmpty();
 
-	void addFilter(ObjectFilter objectFilter);
+    void addFilter(ObjectFilter objectFilter);
 
-	// use when offset/maxSize is expected
-	Integer getOffset();
+    // use when offset/maxSize is expected
+    Integer getOffset();
 
-	// use when offset/maxSize is expected
-	Integer getMaxSize();
+    // use when offset/maxSize is expected
+    Integer getMaxSize();
 
-	boolean equivalent(Object o);
+    boolean equivalent(Object o);
 
-	boolean equals(Object o, boolean exact);
+    boolean equals(Object o, boolean exact);
 
-	// TODO decide what to do with these static methods
+    // TODO decide what to do with these static methods
 
-	// although we do our best to match even incomplete relations (null, unqualified), ultimately
-	// it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
-	static <T extends Objectable> boolean match(
-			PrismObject<T> object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		return filter.match(object.getValue(), matchingRuleRegistry);
-	}
+    // although we do our best to match even incomplete relations (null, unqualified), ultimately
+    // it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
+    static <T extends Objectable> boolean match(
+            PrismObject<T> object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+        return filter.match(object.getValue(), matchingRuleRegistry);
+    }
 
-	// although we do our best to match even incomplete relations (null, unqualified), ultimately
-	// it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
-	static boolean match(Containerable object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
-		return filter.match(object.asPrismContainerValue(), matchingRuleRegistry);
-	}
+    // although we do our best to match even incomplete relations (null, unqualified), ultimately
+    // it is the client's responsibility to ensure relations in object and filter are normalized (namely: null -> org:default)
+    static boolean match(Containerable object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException{
+        return filter.match(object.asPrismContainerValue(), matchingRuleRegistry);
+    }
 
 
 

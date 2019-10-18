@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.script;
@@ -27,160 +27,160 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
  */
 public class ScriptExpressionEvaluationContext {
 
-	private static final ThreadLocal<ScriptExpressionEvaluationContext> threadLocalContext = new ThreadLocal<>();
-	
-	private ScriptExpressionEvaluatorType expressionType;
-	private ExpressionVariables variables;
-	private ItemDefinition outputDefinition;
-	private Function<Object, Object> additionalConvertor;
-	private ScriptExpressionReturnTypeType suggestedReturnType;
-	private ObjectResolver objectResolver;
-	private Collection<FunctionLibrary> functions;
-	private ExpressionProfile expressionProfile;
-	private ScriptExpressionProfile scriptExpressionProfile;
-	
-	private ScriptExpression scriptExpression;
-	private boolean evaluateNew = false;
-	
-	private String contextDescription;
-	private Task task;
-	private OperationResult result;
+    private static final ThreadLocal<ScriptExpressionEvaluationContext> threadLocalContext = new ThreadLocal<>();
 
-	private ScriptEvaluationTraceType trace;
+    private ScriptExpressionEvaluatorType expressionType;
+    private ExpressionVariables variables;
+    private ItemDefinition outputDefinition;
+    private Function<Object, Object> additionalConvertor;
+    private ScriptExpressionReturnTypeType suggestedReturnType;
+    private ObjectResolver objectResolver;
+    private Collection<FunctionLibrary> functions;
+    private ExpressionProfile expressionProfile;
+    private ScriptExpressionProfile scriptExpressionProfile;
 
-	public ScriptExpressionEvaluatorType getExpressionType() {
-		return expressionType;
-	}
+    private ScriptExpression scriptExpression;
+    private boolean evaluateNew = false;
 
-	public void setExpressionType(ScriptExpressionEvaluatorType expressionType) {
-		this.expressionType = expressionType;
-	}
+    private String contextDescription;
+    private Task task;
+    private OperationResult result;
 
-	public ExpressionVariables getVariables() {
-		return variables;
-	}
+    private ScriptEvaluationTraceType trace;
 
-	public void setVariables(ExpressionVariables variables) {
-		this.variables = variables;
-	}
+    public ScriptExpressionEvaluatorType getExpressionType() {
+        return expressionType;
+    }
 
-	public ItemDefinition getOutputDefinition() {
-		return outputDefinition;
-	}
+    public void setExpressionType(ScriptExpressionEvaluatorType expressionType) {
+        this.expressionType = expressionType;
+    }
 
-	public void setOutputDefinition(ItemDefinition outputDefinition) {
-		this.outputDefinition = outputDefinition;
-	}
+    public ExpressionVariables getVariables() {
+        return variables;
+    }
 
-	public Function<Object, Object> getAdditionalConvertor() {
-		return additionalConvertor;
-	}
+    public void setVariables(ExpressionVariables variables) {
+        this.variables = variables;
+    }
 
-	public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
-		this.additionalConvertor = additionalConvertor;
-	}
+    public ItemDefinition getOutputDefinition() {
+        return outputDefinition;
+    }
 
-	public ScriptExpressionReturnTypeType getSuggestedReturnType() {
-		return suggestedReturnType;
-	}
+    public void setOutputDefinition(ItemDefinition outputDefinition) {
+        this.outputDefinition = outputDefinition;
+    }
 
-	public void setSuggestedReturnType(ScriptExpressionReturnTypeType suggestedReturnType) {
-		this.suggestedReturnType = suggestedReturnType;
-	}
+    public Function<Object, Object> getAdditionalConvertor() {
+        return additionalConvertor;
+    }
 
-	public ObjectResolver getObjectResolver() {
-		return objectResolver;
-	}
+    public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
+        this.additionalConvertor = additionalConvertor;
+    }
 
-	public void setObjectResolver(ObjectResolver objectResolver) {
-		this.objectResolver = objectResolver;
-	}
+    public ScriptExpressionReturnTypeType getSuggestedReturnType() {
+        return suggestedReturnType;
+    }
 
-	public Collection<FunctionLibrary> getFunctions() {
-		return functions;
-	}
+    public void setSuggestedReturnType(ScriptExpressionReturnTypeType suggestedReturnType) {
+        this.suggestedReturnType = suggestedReturnType;
+    }
 
-	public void setFunctions(Collection<FunctionLibrary> functions) {
-		this.functions = functions;
-	}
-	
-	public ExpressionProfile getExpressionProfile() {
-		return expressionProfile;
-	}
+    public ObjectResolver getObjectResolver() {
+        return objectResolver;
+    }
 
-	public void setExpressionProfile(ExpressionProfile expressionProfile) {
-		this.expressionProfile = expressionProfile;
-	}
+    public void setObjectResolver(ObjectResolver objectResolver) {
+        this.objectResolver = objectResolver;
+    }
 
-	public ScriptExpressionProfile getScriptExpressionProfile() {
-		return scriptExpressionProfile;
-	}
+    public Collection<FunctionLibrary> getFunctions() {
+        return functions;
+    }
 
-	public void setScriptExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
-		this.scriptExpressionProfile = scriptExpressionProfile;
-	}
+    public void setFunctions(Collection<FunctionLibrary> functions) {
+        this.functions = functions;
+    }
 
-	public ScriptExpression getScriptExpression() {
-		return scriptExpression;
-	}
+    public ExpressionProfile getExpressionProfile() {
+        return expressionProfile;
+    }
 
-	public void setScriptExpression(ScriptExpression scriptExpression) {
-		this.scriptExpression = scriptExpression;
-	}
+    public void setExpressionProfile(ExpressionProfile expressionProfile) {
+        this.expressionProfile = expressionProfile;
+    }
 
-	public boolean isEvaluateNew() {
-		return evaluateNew;
-	}
+    public ScriptExpressionProfile getScriptExpressionProfile() {
+        return scriptExpressionProfile;
+    }
 
-	public void setEvaluateNew(boolean evaluateNew) {
-		this.evaluateNew = evaluateNew;
-	}
+    public void setScriptExpressionProfile(ScriptExpressionProfile scriptExpressionProfile) {
+        this.scriptExpressionProfile = scriptExpressionProfile;
+    }
 
-	public String getContextDescription() {
-		return contextDescription;
-	}
+    public ScriptExpression getScriptExpression() {
+        return scriptExpression;
+    }
 
-	public void setContextDescription(String contextDescription) {
-		this.contextDescription = contextDescription;
-	}
+    public void setScriptExpression(ScriptExpression scriptExpression) {
+        this.scriptExpression = scriptExpression;
+    }
 
-	public Task getTask() {
-		return task;
-	}
+    public boolean isEvaluateNew() {
+        return evaluateNew;
+    }
 
-	public void setTask(Task task) {
-		this.task = task;
-	}
+    public void setEvaluateNew(boolean evaluateNew) {
+        this.evaluateNew = evaluateNew;
+    }
 
-	public OperationResult getResult() {
-		return result;
-	}
+    public String getContextDescription() {
+        return contextDescription;
+    }
 
-	public void setResult(OperationResult result) {
-		this.result = result;
-	}
+    public void setContextDescription(String contextDescription) {
+        this.contextDescription = contextDescription;
+    }
 
-	public static ThreadLocal<ScriptExpressionEvaluationContext> getThreadlocalcontext() {
-		return threadLocalContext;
-	}
+    public Task getTask() {
+        return task;
+    }
 
-	public void setupThreadLocal() {
-		threadLocalContext.set(this);
-	}
+    public void setTask(Task task) {
+        this.task = task;
+    }
 
-	public void cleanupThreadLocal() {
-		threadLocalContext.set(null);
-	}
+    public OperationResult getResult() {
+        return result;
+    }
 
-	public static ScriptExpressionEvaluationContext getThreadLocal() {
-		return threadLocalContext.get();
-	}
+    public void setResult(OperationResult result) {
+        this.result = result;
+    }
 
-	public ScriptEvaluationTraceType getTrace() {
-		return trace;
-	}
+    public static ThreadLocal<ScriptExpressionEvaluationContext> getThreadlocalcontext() {
+        return threadLocalContext;
+    }
 
-	public void setTrace(ScriptEvaluationTraceType trace) {
-		this.trace = trace;
-	}
+    public void setupThreadLocal() {
+        threadLocalContext.set(this);
+    }
+
+    public void cleanupThreadLocal() {
+        threadLocalContext.set(null);
+    }
+
+    public static ScriptExpressionEvaluationContext getThreadLocal() {
+        return threadLocalContext.get();
+    }
+
+    public ScriptEvaluationTraceType getTrace() {
+        return trace;
+    }
+
+    public void setTrace(ScriptEvaluationTraceType trace) {
+        this.trace = trace;
+    }
 }

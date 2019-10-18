@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.xml;
@@ -53,7 +53,7 @@ public class XsdTypeMapper {
     private static final Map<QName, Class> xsdToJavaTypeMapExt = new HashMap<>();
 
     private static final Trace LOGGER = TraceManager.getTrace(XsdTypeMapper.class);
-	private static final String MULTIPLICITY_UNBOUNDED = "unbounded";
+    private static final String MULTIPLICITY_UNBOUNDED = "unbounded";
 
     private static void initTypeMap() throws IOException, ClassNotFoundException {
         addMapping(String.class, DOMUtil.XSD_STRING, true);
@@ -90,7 +90,7 @@ public class XsdTypeMapper {
 
         addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);
         addMapping(RawType.class,  DOMUtil.XSD_STRING, false);
-        addMappingExt(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);				// TODO remove
+        addMappingExt(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);                // TODO remove
 
         xsdToJavaTypeMap.put(DOMUtil.XSD_ANYURI, String.class);
     }
@@ -133,31 +133,31 @@ public class XsdTypeMapper {
     }
 
     public static QName determineQNameWithNs(QName xsdType){
-    	if (StringUtils.isNotBlank(xsdType.getNamespaceURI())){
-    		return xsdType;
-    	}
-    	Set<QName> keys = xsdToJavaTypeMap.keySet();
-    	for (Iterator<QName> iterator = keys.iterator(); iterator.hasNext();){
-    		QName key = iterator.next();
-    		if (QNameUtil.match(key, xsdType)){
-    			return key;
-    		}
-    	}
-    	return null;
+        if (StringUtils.isNotBlank(xsdType.getNamespaceURI())){
+            return xsdType;
+        }
+        Set<QName> keys = xsdToJavaTypeMap.keySet();
+        for (Iterator<QName> iterator = keys.iterator(); iterator.hasNext();){
+            QName key = iterator.next();
+            if (QNameUtil.match(key, xsdType)){
+                return key;
+            }
+        }
+        return null;
     }
 
     public static <T> Class<T> getXsdToJavaMapping(QName xsdType) {
-    	Class clazz = xsdToJavaTypeMap.get(xsdType);
-    	if (clazz == null){
-    		Set<Map.Entry<QName, Class>> entries = xsdToJavaTypeMap.entrySet();
-    		for (Map.Entry<QName, Class> entry : entries) {
+        Class clazz = xsdToJavaTypeMap.get(xsdType);
+        if (clazz == null){
+            Set<Map.Entry<QName, Class>> entries = xsdToJavaTypeMap.entrySet();
+            for (Map.Entry<QName, Class> entry : entries) {
                 QName key = entry.getKey();
                 if (QNameUtil.match(key, xsdType)){
                     return entry.getValue();
                 }
             }
-    	}
-    	return xsdToJavaTypeMap.get(xsdType);
+        }
+        return xsdToJavaTypeMap.get(xsdType);
     }
 
     /**
@@ -178,8 +178,8 @@ public class XsdTypeMapper {
 
     @Nullable
     public static <T> Class<T> toJavaType(@NotNull QName xsdType) {
-		//noinspection ConstantConditions
-		return toJavaType(xsdToJavaTypeMap, xsdType, true);
+        //noinspection ConstantConditions
+        return toJavaType(xsdToJavaTypeMap, xsdType, true);
     }
 
     @Nullable
@@ -200,15 +200,15 @@ public class XsdTypeMapper {
     @Nullable
     private static <T> Class<T> toJavaType(Map<QName, Class> map, @NotNull QName xsdType, boolean errorIfNoMapping) {
         Class<?> javaType = map.get(xsdType);
-		if (javaType == null && StringUtils.isEmpty(xsdType.getNamespaceURI())) {
-			// TODO check uniqueness w.r.t. other types...
-			for (Map.Entry<QName,Class> entry : xsdToJavaTypeMap.entrySet()) {
-				if (QNameUtil.match(entry.getKey(), xsdType)) {
-					javaType = entry.getValue();
-					break;
-				}
-			}
-		}
+        if (javaType == null && StringUtils.isEmpty(xsdType.getNamespaceURI())) {
+            // TODO check uniqueness w.r.t. other types...
+            for (Map.Entry<QName,Class> entry : xsdToJavaTypeMap.entrySet()) {
+                if (QNameUtil.match(entry.getKey(), xsdType)) {
+                    javaType = entry.getValue();
+                    break;
+                }
+            }
+        }
         if (javaType == null) {
             if (errorIfNoMapping && xsdType.getNamespaceURI().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
                 throw new IllegalArgumentException("No type mapping for XSD type " + xsdType);
@@ -222,34 +222,34 @@ public class XsdTypeMapper {
     }
 
     public static String multiplicityToString(Integer integer) {
-		if (integer == null) {
-			return null;
-		}
-		if (integer < 0) {
-			return MULTIPLICITY_UNBOUNDED;
-		}
-		return integer.toString();
-	}
+        if (integer == null) {
+            return null;
+        }
+        if (integer < 0) {
+            return MULTIPLICITY_UNBOUNDED;
+        }
+        return integer.toString();
+    }
 
-	public static Integer multiplicityToInteger(String string) {
-		if (string == null || StringUtils.isEmpty(string)) {
-			return null;
-		}
-		if (MULTIPLICITY_UNBOUNDED.equals(string)) {
-			return -1;
-		}
-		return Integer.valueOf(string);
-	}
+    public static Integer multiplicityToInteger(String string) {
+        if (string == null || StringUtils.isEmpty(string)) {
+            return null;
+        }
+        if (MULTIPLICITY_UNBOUNDED.equals(string)) {
+            return -1;
+        }
+        return Integer.valueOf(string);
+    }
 
-	public static boolean isMatchingMultiplicity(int number, int min, int max) {
-		if (min >= 0 && number < min) {
-			return false;
-		}
-		if (max >= 0 && number > max) {
-			return false;
-		}
-		return true;
-	}
+    public static boolean isMatchingMultiplicity(int number, int min, int max) {
+        if (min >= 0 && number < min) {
+            return false;
+        }
+        if (max >= 0 && number > max) {
+            return false;
+        }
+        return true;
+    }
 
     static {
         try {

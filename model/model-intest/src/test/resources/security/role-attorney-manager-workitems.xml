@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="5cf5b6c8-b968-11e7-b77d-6b029450f900"
@@ -11,26 +11,26 @@
       xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Attorney Manager Workitems</name>
     <description>Power of attorney for subordinate employees. Authorizations limited to workitems.</description>
-    
+
     <authorization>
-    	<name>attorney-manager-read-all</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <name>attorney-manager-read-all</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
-    
+
     <authorization>
-    	<name>attorney-manager-workitems</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#attorney</action>
-    	<object>
-    		<type>UserType</type>
-    		<orgRelation>
-    			<subjectRelation>org:manager</subjectRelation>
-    			<scope>allDescendants</scope>
-    			<includeReferenceOrg>true</includeReferenceOrg>
-    		</orgRelation>
-    	</object>
-    	<limitations>
-    		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems</action>
-    	</limitations>
+        <name>attorney-manager-workitems</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#attorney</action>
+        <object>
+            <type>UserType</type>
+            <orgRelation>
+                <subjectRelation>org:manager</subjectRelation>
+                <scope>allDescendants</scope>
+                <includeReferenceOrg>true</includeReferenceOrg>
+            </orgRelation>
+        </object>
+        <limitations>
+            <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems</action>
+        </limitations>
     </authorization>
-    
+
 </role>

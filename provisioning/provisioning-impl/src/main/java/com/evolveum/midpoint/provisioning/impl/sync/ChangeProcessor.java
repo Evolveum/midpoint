@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -146,7 +146,7 @@ public class ChangeProcessor {
                 // going to be deleted or whether it stays. Model needs to adjust links accordingly.
                 // And we need to modify ResourceObjectChangeListener for that. Keeping all dead
                 // shadows is much easier.
-                //				deleteShadowFromRepoIfNeeded(change, result);
+                //                deleteShadowFromRepoIfNeeded(change, result);
                 request.setSuccess(true);
             } else {
                 request.setSuccess(false);

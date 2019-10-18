@@ -2,35 +2,35 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-			 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-			 xmlns:x="http://example.com/xxx"
-			 xmlns:y="http://example.com/yyy"
-			 xsi:type="c:MappingType">
-	<source>
-    	<path>$user/name</path>
+             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:x="http://example.com/xxx"
+             xmlns:y="http://example.com/yyy"
+             xsi:type="c:MappingType">
+    <source>
+        <path>$user/name</path>
     </source>
-	<expression>
-		<variable>
-			<name>x:foo</name>
-	    	<value xsi:type="xsd:string">Captain</value>
-	    </variable>
-	    <variable>
-	    	<name>y:sailor</name>
-	    	<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111112" type="UserType"/>
-	    </variable>
-		<script>
-			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-			<code>
-				foo + ' ' + sailor.getName()
-			</code>
-		</script>
-	</expression>
+    <expression>
+        <variable>
+            <name>x:foo</name>
+            <value xsi:type="xsd:string">Captain</value>
+        </variable>
+        <variable>
+            <name>y:sailor</name>
+            <objectRef oid="c0c010c0-d34d-b33f-f00d-111111111112" type="UserType"/>
+        </variable>
+        <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            <code>
+                foo + ' ' + sailor.getName()
+            </code>
+        </script>
+    </expression>
 </mapping>

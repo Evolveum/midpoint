@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -58,7 +58,7 @@ public class ValueDisplayUtil {
                 return "";
             }
         } else if (value instanceof ScheduleType) {
-        	return SchemaDebugUtil.prettyPrint((ScheduleType) value);
+            return SchemaDebugUtil.prettyPrint((ScheduleType) value);
         } else if (value instanceof ApprovalSchemaType) {
             ApprovalSchemaType approvalSchemaType = (ApprovalSchemaType) value;
             return approvalSchemaType.getName() + (approvalSchemaType.getDescription() != null ? (": " + approvalSchemaType.getDescription()) : "") + " (...)";
@@ -119,7 +119,7 @@ public class ValueDisplayUtil {
 //                return qname.getLocalPart();
 //            }
         } else if (value instanceof Number) {
-			return String.valueOf(value);
+            return String.valueOf(value);
         } else if (value instanceof byte[]) {
             return "(binary data)";
         } else if (value instanceof RawType) {
@@ -171,9 +171,9 @@ public class ValueDisplayUtil {
     public static String toStringValue(PrismReferenceValue ref) {
         String rv = getReferredObjectInformation(ref);
         if (ref.getRelation() != null) {
-        	rv += " [" + ref.getRelation().getLocalPart() + "]";
-		}
-		return rv;
+            rv += " [" + ref.getRelation().getLocalPart() + "]";
+        }
+        return rv;
     }
 
     private static String getReferredObjectInformation(PrismReferenceValue ref) {
@@ -181,7 +181,7 @@ public class ValueDisplayUtil {
             return ref.getObject().toString();
         } else {
             return (ref.getTargetType() != null ? ref.getTargetType().getLocalPart()+":" : "")
-					+ (ref.getTargetName() != null ? ref.getTargetName() : ref.getOid());
+                    + (ref.getTargetName() != null ? ref.getTargetName() : ref.getOid());
         }
     }
 }

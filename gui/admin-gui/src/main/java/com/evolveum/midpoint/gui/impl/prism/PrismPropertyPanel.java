@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -43,183 +43,183 @@ import java.util.List;
  * @author katkav
  */
 public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T>, PrismPropertyWrapper<T>> {
-	
-	private static final long serialVersionUID = 1L;
-	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
-	
-	private static final String ID_HEADER = "header";
-	
-	private static final String ID_FEEDBACK = "feedback";
-	private static final String ID_VALUE_CONTAINER = "valueContainer";
-	
-	private static final String ID_FORM = "form";
-	private static final String ID_INPUT = "input";
 
-	
-	/**
-	 * @param id
-	 * @param model
-	 */
-	public PrismPropertyPanel(String id, IModel<PrismPropertyWrapper<T>> model, ItemPanelSettings settings) {
-		super(id, model, settings);
-	}
+    private static final long serialVersionUID = 1L;
+    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
+
+    private static final String ID_HEADER = "header";
+
+    private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_VALUE_CONTAINER = "valueContainer";
+
+    private static final String ID_FORM = "form";
+    private static final String ID_INPUT = "input";
 
 
-	@Override
-	protected Panel createHeaderPanel() {
-		return new PrismPropertyHeaderPanel<>(ID_HEADER, getModel());
-	}
+    /**
+     * @param id
+     * @param model
+     */
+    public PrismPropertyPanel(String id, IModel<PrismPropertyWrapper<T>> model, ItemPanelSettings settings) {
+        super(id, model, settings);
+    }
 
-	
-	@Override
-	protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
-		
-		return createInputPanel(item, factory);
-    
-		
-        
-	}
-	
-	 private WebMarkupContainer createInputPanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory) {
- 		
-		WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
-		valueContainer.setOutputMarkupId(true);
-		item.add(valueContainer);
-		// feedback
-		FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
-		feedback.setOutputMarkupId(true);
-		item.add(feedback);
 
-		PrismPropertyWrapper<T> modelObject = getModelObject();
+    @Override
+    protected Panel createHeaderPanel() {
+        return new PrismPropertyHeaderPanel<>(ID_HEADER, getModel());
+    }
 
-		LOGGER.trace("create input component for: {}", modelObject.debugDump());
 
-		Panel component = null;
+    @Override
+    protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
 
-		Form<?> form = new Form<>(ID_FORM);
-		valueContainer.add(form);
+        return createInputPanel(item, factory);
 
-		if (factory == null) {
-			if (getPageBase().getApplication().usesDevelopmentConfig()) {
-				form.add(new ErrorPanel(ID_INPUT, createStringResource("Cannot create component for: " + modelObject.getItem())));
-			} else {
-				Label noComponent = new Label(ID_INPUT);
-				noComponent.setVisible(false);
-				form.add(noComponent);
-			}
-			return valueContainer;
-		}
 
-		if (factory != null) {
 
-			PrismPropertyPanelContext<T> panelCtx = new PrismPropertyPanelContext<T>(getModel());
-			panelCtx.setForm(form);
-			panelCtx.setRealValueModel(item.getModel());
-			panelCtx.setFeedbackPanel(feedback);
-			panelCtx.setComponentId(ID_INPUT);
-			panelCtx.setParentComponent(this);
+    }
 
-			try {
-				component = factory.createPanel(panelCtx);
-				form.add(component);
-			} catch (Throwable e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
-				getSession().error("Cannot create panel");
-				throw new RuntimeException(e);
-			}
-		}
+     private WebMarkupContainer createInputPanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory) {
 
-		if (component instanceof Validatable) {
-			Validatable inputPanel = (Validatable) component;
-			// adding valid from/to date range validator, if necessary
-			ExpressionValidator<T> expressionValidator = new ExpressionValidator<T>(
-					LambdaModel.of(modelObject::getFormComponentValidator), getPageBase()) {
+        WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
+        valueContainer.setOutputMarkupId(true);
+        item.add(valueContainer);
+        // feedback
+        FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        item.add(feedback);
 
-				private static final long serialVersionUID = 1L;
+        PrismPropertyWrapper<T> modelObject = getModelObject();
 
-				@Override
-				protected <O extends ObjectType> O getObjectType() {
-					return getObject();
-				}
-			};
-			inputPanel.getValidatableComponent().add(expressionValidator);
+        LOGGER.trace("create input component for: {}", modelObject.debugDump());
 
-			inputPanel.getValidatableComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+        Panel component = null;
 
-				private static final long serialVersionUID = 1L;
+        Form<?> form = new Form<>(ID_FORM);
+        valueContainer.add(form);
 
-				@Override
-				protected void onUpdate(AjaxRequestTarget target) {
-					target.add(getPageBase().getFeedbackPanel());
-					target.add(feedback);
-				}
+        if (factory == null) {
+            if (getPageBase().getApplication().usesDevelopmentConfig()) {
+                form.add(new ErrorPanel(ID_INPUT, createStringResource("Cannot create component for: " + modelObject.getItem())));
+            } else {
+                Label noComponent = new Label(ID_INPUT);
+                noComponent.setVisible(false);
+                form.add(noComponent);
+            }
+            return valueContainer;
+        }
 
-				@Override
-				protected void onError(AjaxRequestTarget target, RuntimeException e) {
-					target.add(getPageBase().getFeedbackPanel());
-					target.add(feedback);
-				}
+        if (factory != null) {
 
-			});
-		}
+            PrismPropertyPanelContext<T> panelCtx = new PrismPropertyPanelContext<T>(getModel());
+            panelCtx.setForm(form);
+            panelCtx.setRealValueModel(item.getModel());
+            panelCtx.setFeedbackPanel(feedback);
+            panelCtx.setComponentId(ID_INPUT);
+            panelCtx.setParentComponent(this);
 
-		if (component instanceof InputPanel) {
-			InputPanel inputPanel = (InputPanel) component;
+            try {
+                component = factory.createPanel(panelCtx);
+                form.add(component);
+            } catch (Throwable e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
+                getSession().error("Cannot create panel");
+                throw new RuntimeException(e);
+            }
+        }
 
-			final List<FormComponent> formComponents = inputPanel.getFormComponents();
-			for (FormComponent<T> formComponent : formComponents) {
-				IModel<String> label = LambdaModel.of(modelObject::getDisplayName);
-				formComponent.setLabel(label);
-				formComponent.setRequired(modelObject.isMandatory());
+        if (component instanceof Validatable) {
+            Validatable inputPanel = (Validatable) component;
+            // adding valid from/to date range validator, if necessary
+            ExpressionValidator<T> expressionValidator = new ExpressionValidator<T>(
+                    LambdaModel.of(modelObject::getFormComponentValidator), getPageBase()) {
 
-				if (formComponent instanceof TextField) {
-					formComponent.add(new AttributeModifier("size", "42"));
-				}
-				formComponent.add(new AjaxFormComponentUpdatingBehavior("change") {
+                private static final long serialVersionUID = 1L;
 
-					private static final long serialVersionUID = 1L;
+                @Override
+                protected <O extends ObjectType> O getObjectType() {
+                    return getObject();
+                }
+            };
+            inputPanel.getValidatableComponent().add(expressionValidator);
 
-					@Override
-					protected void onUpdate(AjaxRequestTarget target) {
-						target.add(getPageBase().getFeedbackPanel());
-						target.add(feedback);
-					}
+            inputPanel.getValidatableComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
-					@Override
-					protected void onError(AjaxRequestTarget target, RuntimeException e) {
-						target.add(getPageBase().getFeedbackPanel());
-						target.add(feedback);
-					}
+                private static final long serialVersionUID = 1L;
 
-				});
-			}
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    target.add(getPageBase().getFeedbackPanel());
+                    target.add(feedback);
+                }
 
-			
-		}
-		if (component == null) {
-			WebMarkupContainer cont = new WebMarkupContainer(ID_INPUT);
-			cont.setOutputMarkupId(true);
-			return cont;
-		}
-		return valueContainer;
+                @Override
+                protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                    target.add(getPageBase().getFeedbackPanel());
+                    target.add(feedback);
+                }
 
-	}
-    
+            });
+        }
+
+        if (component instanceof InputPanel) {
+            InputPanel inputPanel = (InputPanel) component;
+
+            final List<FormComponent> formComponents = inputPanel.getFormComponents();
+            for (FormComponent<T> formComponent : formComponents) {
+                IModel<String> label = LambdaModel.of(modelObject::getDisplayName);
+                formComponent.setLabel(label);
+                formComponent.setRequired(modelObject.isMandatory());
+
+                if (formComponent instanceof TextField) {
+                    formComponent.add(new AttributeModifier("size", "42"));
+                }
+                formComponent.add(new AjaxFormComponentUpdatingBehavior("change") {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        target.add(getPageBase().getFeedbackPanel());
+                        target.add(feedback);
+                    }
+
+                    @Override
+                    protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                        target.add(getPageBase().getFeedbackPanel());
+                        target.add(feedback);
+                    }
+
+                });
+            }
+
+
+        }
+        if (component == null) {
+            WebMarkupContainer cont = new WebMarkupContainer(ID_INPUT);
+            cont.setOutputMarkupId(true);
+            return cont;
+        }
+        return valueContainer;
+
+    }
+
     private <OW extends PrismObjectWrapper<O>, O extends ObjectType, C extends Containerable> O getObject() {
-    	
-    	OW objectWrapper = getModelObject().findObjectWrapper();
-    	if (objectWrapper == null) {
-    		return null;
-    	}
-    	
-    	try {
-    		PrismObject<O> objectNew = objectWrapper.getObjectApplyDelta();
-    		return objectNew.asObjectable();
-		} catch (SchemaException e) {
-			LOGGER.error("Cannot apply deltas to object for validation: {}", e.getMessage(), e);
-			return null;
-		}
-    	
-    	
-	}
+
+        OW objectWrapper = getModelObject().findObjectWrapper();
+        if (objectWrapper == null) {
+            return null;
+        }
+
+        try {
+            PrismObject<O> objectNew = objectWrapper.getObjectApplyDelta();
+            return objectNew.asObjectable();
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot apply deltas to object for validation: {}", e.getMessage(), e);
+            return null;
+        }
+
+
+    }
 }

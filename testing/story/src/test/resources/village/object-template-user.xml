@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000222"
@@ -13,185 +13,185 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
     <name>User Template</name>
-    
+
     <mapping>
-    	<name>name + org</name>
-    	<source>
-    		<path>organizationalUnit</path>
-    	</source>
-    	<source>
-    		<path>givenName</path>
-    	</source>
-    	<source>
-    		<path>familyName</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					organizationalUnit + '.' + givenName + '.' + familyName
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>name</path>
-    	</target>
-    	<condition>
-     		<script>
-    			<code>givenName != null &amp;&amp; familyName != null &amp;&amp; organizationalUnit != null</code>
-    		</script>  
-    	</condition>
-    	<evaluationPhase>afterAssignments</evaluationPhase>
+        <name>name + org</name>
+        <source>
+            <path>organizationalUnit</path>
+        </source>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    organizationalUnit + '.' + givenName + '.' + familyName
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
+        <condition>
+             <script>
+                <code>givenName != null &amp;&amp; familyName != null &amp;&amp; organizationalUnit != null</code>
+            </script>
+        </condition>
+        <evaluationPhase>afterAssignments</evaluationPhase>
     </mapping>
 
     <mapping>
-    	<name>name - org</name>
-    	<source>
-    		<path>organizationalUnit</path>
-    	</source>
-    	<source>
-    		<path>givenName</path>
-    	</source>
-    	<source>
-    		<path>familyName</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					givenName + '.' + familyName
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>name</path>
-    	</target>
-    	<condition>
-     		<script>
-    			<code>givenName != null &amp;&amp; familyName != null &amp;&amp; organizationalUnit == null</code>
-    		</script>  
-    	</condition>
-    	<evaluationPhase>afterAssignments</evaluationPhase>
+        <name>name - org</name>
+        <source>
+            <path>organizationalUnit</path>
+        </source>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + '.' + familyName
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>name</path>
+        </target>
+        <condition>
+             <script>
+                <code>givenName != null &amp;&amp; familyName != null &amp;&amp; organizationalUnit == null</code>
+            </script>
+        </condition>
+        <evaluationPhase>afterAssignments</evaluationPhase>
     </mapping>
 
-    
+
     <mapping>
-    	<name>full name</name>
-    	<source>
-    		<path>$user/givenName</path>
-    	</source>
-    	<source>
-    		<path>$user/familyName</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					givenName + ' ' + familyName
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>$user/fullName</path>
-    	</target>
-    	<condition>
-     		<script>
-    			<code>givenName != null &amp;&amp; familyName != null</code>
-    		</script>  
-    	</condition>
+        <name>full name</name>
+        <source>
+            <path>$user/givenName</path>
+        </source>
+        <source>
+            <path>$user/familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + ' ' + familyName
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>$user/fullName</path>
+        </target>
+        <condition>
+             <script>
+                <code>givenName != null &amp;&amp; familyName != null</code>
+            </script>
+        </condition>
     </mapping>
-    
+
     <mapping>
-    	<name>role assignment</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>employeeType</path>
-    	</source>
-    	<expression>
+        <name>role assignment</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>employeeType</path>
+        </source>
+        <expression>
             <assignmentTargetSearch>
-            	<targetType>c:RoleType</targetType>
-        		<filter>
-					<q:equal>
-						<q:path>name</q:path>
-						<expression>
-							<path>$employeeType</path>
-						</expression>
-					</q:equal>
-				</filter>
-            </assignmentTargetSearch>    	
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
+                <targetType>c:RoleType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <path>$employeeType</path>
+                        </expression>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
     </mapping>
-    
+
     <mapping>
-    	<name>org assignment</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
+        <name>org assignment</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
             <assignmentTargetSearch>
-            	<targetType>c:OrgType</targetType>
-        		<filter>
-					<q:equal>
-						<q:path>name</q:path>
-						<expression>
-							<path>$organization</path>
-						</expression>
-					</q:equal>
-				</filter>
-            </assignmentTargetSearch>    	
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
+                <targetType>c:OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <path>$organization</path>
+                        </expression>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
     </mapping>
-        
+
     <mapping>
-    	<name>cost center</name>
-    	<source>
-    		<path>locality</path>
-    	</source>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					organization + ':' + locality
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>costCenter</path>
-    	</target>
-    	<condition>
-     		<script>
-    			<code>organization != null &amp;&amp; locality != null</code>
-    		</script>  
-    	</condition>
+        <name>cost center</name>
+        <source>
+            <path>locality</path>
+        </source>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    organization + ':' + locality
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>costCenter</path>
+        </target>
+        <condition>
+             <script>
+                <code>organization != null &amp;&amp; locality != null</code>
+            </script>
+        </condition>
     </mapping>
-    
+
     <mapping>
-    	<name>cost center</name>
-    	<source>
-    		<path>organizationalUnit</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					'Member of '+organizationalUnit
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>title</path>
-    	</target>
-    	<condition>
-     		<script>
-    			<code>organizationalUnit != null</code>
-    		</script>  
-    	</condition>
-    	<evaluationPhase>afterAssignments</evaluationPhase>
+        <name>cost center</name>
+        <source>
+            <path>organizationalUnit</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    'Member of '+organizationalUnit
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>title</path>
+        </target>
+        <condition>
+             <script>
+                <code>organizationalUnit != null</code>
+            </script>
+        </condition>
+        <evaluationPhase>afterAssignments</evaluationPhase>
     </mapping>
-    
+
 </objectTemplate>

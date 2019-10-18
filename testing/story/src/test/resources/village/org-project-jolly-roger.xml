@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2014-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <org oid="a9ac1aa2-0c0f-11e4-9214-001e8c717e5b"
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
-	<name>Jolly Roger</name>
-	<parentOrgRef oid="00000000-8888-6666-0000-200000000000"/>
-	<assignment>
-		<targetRef oid="00000000-8888-6666-0000-200000000000" type="OrgType"/>
-	</assignment>
-	<assignment>
-		<targetRef oid="ab33ec1e-0c0b-11e4-ba88-001e8c717e5b"/>
-	</assignment>
-	<displayName>Project Jolly Roger</displayName>
-	<orgType>project</orgType>
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>Jolly Roger</name>
+    <parentOrgRef oid="00000000-8888-6666-0000-200000000000"/>
+    <assignment>
+        <targetRef oid="00000000-8888-6666-0000-200000000000" type="OrgType"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="ab33ec1e-0c0b-11e4-ba88-001e8c717e5b"/>
+    </assignment>
+    <displayName>Project Jolly Roger</displayName>
+    <orgType>project</orgType>
 </org>

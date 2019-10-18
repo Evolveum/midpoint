@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -15,19 +15,19 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Functional Orgstruct Metarole</name>
-    
+
     <inducement>
-    	<focusMappings>
-    		<mapping>
-    			<source>
-    				<path>$immediateRole/identifier</path>
-    			</source>
-    			<target>
-    				<path>$focus/organizationalUnit</path>
-    			</target>
-    		</mapping>
-    	</focusMappings>
-    	<order>2</order>
+        <focusMappings>
+            <mapping>
+                <source>
+                    <path>$immediateRole/identifier</path>
+                </source>
+                <target>
+                    <path>$focus/organizationalUnit</path>
+                </target>
+            </mapping>
+        </focusMappings>
+        <order>2</order>
     </inducement>
-    
+
 </role>

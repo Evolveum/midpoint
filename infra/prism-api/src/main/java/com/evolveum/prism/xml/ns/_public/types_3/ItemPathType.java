@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -55,31 +55,31 @@ import java.util.stream.Collectors;
 @XmlType(name = "ItemPathType")
 public class ItemPathType implements Serializable, Equals, Cloneable, JaxbVisitable {
 
-	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ItemPathType");
+    public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ItemPathType");
 
-	@XmlTransient
-	private ItemPath itemPath;
+    @XmlTransient
+    private ItemPath itemPath;
 
     // if possible, use one of the content-filling constructors instead
     public ItemPathType() {
     }
 
     public ItemPathType(ItemPath itemPath) {
-		this.itemPath = itemPath;
-	}
+        this.itemPath = itemPath;
+    }
 
     @NotNull
     @Contract(pure = true)
-	public ItemPath getItemPath() {
-		return itemPath != null ? itemPath : ItemPath.EMPTY_PATH;
-	}
+    public ItemPath getItemPath() {
+        return itemPath != null ? itemPath : ItemPath.EMPTY_PATH;
+    }
 
-	public void setItemPath(ItemPath itemPath){
-		this.itemPath = itemPath;
-	}
+    public void setItemPath(ItemPath itemPath){
+        this.itemPath = itemPath;
+    }
 
     public ItemPathType clone() {
-    	return new ItemPathType(itemPath);
+        return new ItemPathType(itemPath);
     }
 
     /**
@@ -94,8 +94,8 @@ public class ItemPathType implements Serializable, Equals, Cloneable, JaxbVisita
 
     @Override
     public boolean equals(Object obj) {
-    	final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
-    	return equals(null, null, obj, strategy);
+        final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
+        return equals(null, null, obj, strategy);
     }
 
     public boolean equivalent(Object other) {
@@ -108,41 +108,41 @@ public class ItemPathType implements Serializable, Equals, Cloneable, JaxbVisita
         return thisPath.equivalent(otherPath);
     }
 
-	@Override
-	public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object that,
-			EqualsStrategy equalsStrategy) {
+    @Override
+    public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object that,
+            EqualsStrategy equalsStrategy) {
 
-		if (!(that instanceof ItemPathType)){
-    		return false;
-    	}
+        if (!(that instanceof ItemPathType)){
+            return false;
+        }
 
-    	ItemPathType other = (ItemPathType) that;
+        ItemPathType other = (ItemPathType) that;
 
-    	ItemPath thisPath = getItemPath();
-    	ItemPath otherPath = other.getItemPath();
+        ItemPath thisPath = getItemPath();
+        ItemPath otherPath = other.getItemPath();
 
         return thisPath.equals(otherPath);
-	}
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((itemPath == null) ? 0 : itemPath.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((itemPath == null) ? 0 : itemPath.hashCode());
+        return result;
+    }
 
     @Override
     public String toString() {
         return getItemPath().toString();
     }
 
-	public static List<? extends ItemPath> toItemPathList(List<ItemPathType> list) {
-    	return list.stream().map(pt -> pt.getItemPath()).collect(Collectors.toList());
-	}
+    public static List<? extends ItemPath> toItemPathList(List<ItemPathType> list) {
+        return list.stream().map(pt -> pt.getItemPath()).collect(Collectors.toList());
+    }
 
-	@Override
-	public void accept(JaxbVisitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+    }
 }

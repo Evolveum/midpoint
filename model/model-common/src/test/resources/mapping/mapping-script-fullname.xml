@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -10,24 +10,24 @@
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <source>
-    	<path>$user/givenName</path>
+        <path>$user/givenName</path>
     </source>
     <source>
-    	<!-- This one is using implicit source context -->
-    	<path>familyName</path>
+        <!-- This one is using implicit source context -->
+        <path>familyName</path>
     </source>
-	<expression>
-		<script>
-			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-			<code>
-				if (givenName == null &amp;&amp; familyName == null) {
-					return "John Doe";
-				} else if (givenName == null) {
-					return familyName;
-				} else {
-					return givenName + ' ' + familyName;
-				}
-			</code>
-		</script>
-	</expression>
+    <expression>
+        <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            <code>
+                if (givenName == null &amp;&amp; familyName == null) {
+                    return "John Doe";
+                } else if (givenName == null) {
+                    return familyName;
+                } else {
+                    return givenName + ' ' + familyName;
+                }
+            </code>
+        </script>
+    </expression>
 </mapping>

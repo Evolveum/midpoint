@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.icf.dummy.connector;
@@ -81,10 +81,10 @@ import com.evolveum.icf.dummy.resource.SchemaViolationException;
 public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateAttributeValuesOp {
 
-	// We want to see if the ICF framework logging works properly
+    // We want to see if the ICF framework logging works properly
     private static final Log log = Log.getLog(DummyConnectorLegacyUpdate.class);
 
-	/**
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -95,234 +95,234 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 
         try {
 
-	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+            if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 
-		        final DummyAccount account;
-		        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-		        	account = resource.getAccountByUsername(uid.getUidValue(), false);
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	account = resource.getAccountById(uid.getUidValue(), false);
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (account == null) {
-		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(account, options);
+                final DummyAccount account;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    account = resource.getAccountByUsername(uid.getUidValue(), false);
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    account = resource.getAccountById(uid.getUidValue(), false);
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (account == null) {
+                    throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(account, options);
 
-				// we do this before setting attribute values, in case when description itself would be changed
-				resource.changeDescriptionIfNeeded(account);
+                // we do this before setting attribute values, in case when description itself would be changed
+                resource.changeDescriptionIfNeeded(account);
 
-		        for (Attribute attr : replaceAttributes) {
-		        	if (attr.is(Name.NAME)) {
-		        		String newName = (String)attr.getValue().get(0);
-		        		try {
-							resource.renameAccount(account.getId(), account.getName(), newName);
-						} catch (ObjectDoesNotExistException e) {
-							throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
-						} catch (ObjectAlreadyExistsException e) {
-							throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
-						} catch (SchemaViolationException e) {
-							throw new org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException("Schema exception: " + e.getMessage(), e);
-						}
-						// We need to change the returned uid here (only if the mode is not set to UUID)
-						if (!(configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID))){
-							uid = new Uid(newName);
-						}
-		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-		        		changePassword(account,attr);
+                for (Attribute attr : replaceAttributes) {
+                    if (attr.is(Name.NAME)) {
+                        String newName = (String)attr.getValue().get(0);
+                        try {
+                            resource.renameAccount(account.getId(), account.getName(), newName);
+                        } catch (ObjectDoesNotExistException e) {
+                            throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
+                        } catch (ObjectAlreadyExistsException e) {
+                            throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+                        } catch (SchemaViolationException e) {
+                            throw new org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException("Schema exception: " + e.getMessage(), e);
+                        }
+                        // We need to change the returned uid here (only if the mode is not set to UUID)
+                        if (!(configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID))){
+                            uid = new Uid(newName);
+                        }
+                    } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
+                        changePassword(account,attr);
 
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		account.setEnabled(getBoolean(attr));
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        account.setEnabled(getBoolean(attr));
 
-		        	} else if (attr.is(OperationalAttributes.ENABLE_DATE_NAME)) {
-		        		account.setValidFrom(getDate(attr));
+                    } else if (attr.is(OperationalAttributes.ENABLE_DATE_NAME)) {
+                        account.setValidFrom(getDate(attr));
 
-		        	} else if (attr.is(OperationalAttributes.DISABLE_DATE_NAME)) {
-		        		account.setValidTo(getDate(attr));
+                    } else if (attr.is(OperationalAttributes.DISABLE_DATE_NAME)) {
+                        account.setValidTo(getDate(attr));
 
-		        	} else if (attr.is(OperationalAttributes.LOCK_OUT_NAME)) {
-		        		account.setLockout(getBooleanMandatory(attr));
+                    } else if (attr.is(OperationalAttributes.LOCK_OUT_NAME)) {
+                        account.setLockout(getBooleanMandatory(attr));
 
-		        	} else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
-						account.replaceAuxiliaryObjectClassNames(attr.getValue());
+                    } else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
+                        account.replaceAuxiliaryObjectClassNames(attr.getValue());
 
-					} else {
-			        	String name = attr.getName();
-			        	try {
-							account.replaceAttributeValues(name, attr.getValue());
-						} catch (SchemaViolationException e) {
-							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-							// The framework should deal with it ... somehow
-							throw new InvalidAttributeValueException(e.getMessage(),e);
-						}
-		        	}
-		        }
+                    } else {
+                        String name = attr.getName();
+                        try {
+                            account.replaceAttributeValues(name, attr.getValue());
+                        } catch (SchemaViolationException e) {
+                            // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+                            // The framework should deal with it ... somehow
+                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                        }
+                    }
+                }
 
-	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-	
-	        	final DummyGroup group;
-	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		group = resource.getGroupByName(uid.getUidValue(), false);
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	group = resource.getGroupById(uid.getUidValue(), false);
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (group == null) {
-		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(group, options);
+            } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 
-		        for (Attribute attr : replaceAttributes) {
-		        	if (attr.is(Name.NAME)) {
-		        		String newName = (String)attr.getValue().get(0);
-		        		try {
-							resource.renameGroup(group.getId(), group.getName(), newName);
-						} catch (ObjectDoesNotExistException e) {
-							throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
-						} catch (ObjectAlreadyExistsException e) {
-							throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
-						}
-		        		// We need to change the returned uid here
-		        		uid = new Uid(newName);
-		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to change password on group");
-		
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		group.setEnabled(getBooleanMandatory(attr));
-		
-		        	} else {
-			        	String name = attr.getName();
-			        	List<Object> values = attr.getValue();
-			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<>(values.size());
-			        		for (Object val: values) {
-			        			newValues.add(StringUtils.upperCase((String)val));
-			        		}
-			        		values = newValues;
-			        	}
-			        	try {
-							group.replaceAttributeValues(name, values);
-						} catch (SchemaViolationException e) {
-							throw new InvalidAttributeValueException(e.getMessage(),e);
-						}
-		        	}
-		        }
+                final DummyGroup group;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    group = resource.getGroupByName(uid.getUidValue(), false);
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    group = resource.getGroupById(uid.getUidValue(), false);
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (group == null) {
+                    throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(group, options);
 
-	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-	
-	        	final DummyPrivilege priv;
-	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		priv = resource.getPrivilegeByName(uid.getUidValue(), false);
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	priv = resource.getPrivilegeById(uid.getUidValue(), false);
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (priv == null) {
-		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(priv, options);
+                for (Attribute attr : replaceAttributes) {
+                    if (attr.is(Name.NAME)) {
+                        String newName = (String)attr.getValue().get(0);
+                        try {
+                            resource.renameGroup(group.getId(), group.getName(), newName);
+                        } catch (ObjectDoesNotExistException e) {
+                            throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
+                        } catch (ObjectAlreadyExistsException e) {
+                            throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+                        }
+                        // We need to change the returned uid here
+                        uid = new Uid(newName);
+                    } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to change password on group");
 
-		        for (Attribute attr : replaceAttributes) {
-		        	if (attr.is(Name.NAME)) {
-		        		String newName = (String)attr.getValue().get(0);
-		        		try {
-							resource.renamePrivilege(priv.getId(), priv.getName(), newName);
-						} catch (ObjectDoesNotExistException e) {
-							throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
-						} catch (ObjectAlreadyExistsException e) {
-							throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
-						}
-		        		// We need to change the returned uid here
-		        		uid = new Uid(newName);
-		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to change password on privilege");
-		
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to change enable on privilege");
-		
-		        	} else {
-			        	String name = attr.getName();
-			        	try {
-							priv.replaceAttributeValues(name, attr.getValue());
-						} catch (SchemaViolationException e) {
-							throw new InvalidAttributeValueException(e.getMessage(),e);
-						}
-		        	}
-		        }
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        group.setEnabled(getBooleanMandatory(attr));
 
-	        } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-	
-	        	final DummyOrg org;
-	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		org = resource.getOrgByName(uid.getUidValue(), false);
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	org = resource.getOrgById(uid.getUidValue(), false);
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (org == null) {
-		        	throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(org, options);
+                    } else {
+                        String name = attr.getName();
+                        List<Object> values = attr.getValue();
+                        if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
+                            List<Object> newValues = new ArrayList<>(values.size());
+                            for (Object val: values) {
+                                newValues.add(StringUtils.upperCase((String)val));
+                            }
+                            values = newValues;
+                        }
+                        try {
+                            group.replaceAttributeValues(name, values);
+                        } catch (SchemaViolationException e) {
+                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                        }
+                    }
+                }
 
-		        for (Attribute attr : replaceAttributes) {
-		        	if (attr.is(Name.NAME)) {
-		        		String newName = (String)attr.getValue().get(0);
-		        		try {
-							resource.renameOrg(org.getId(), org.getName(), newName);
-						} catch (ObjectDoesNotExistException e) {
-							throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
-						} catch (ObjectAlreadyExistsException e) {
-							throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
-						}
-		        		// We need to change the returned uid here
-		        		uid = new Uid(newName);
-		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to change password on org");
-		
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to change enable on org");
-		
-		        	} else {
-			        	String name = attr.getName();
-			        	try {
-							org.replaceAttributeValues(name, attr.getValue());
-						} catch (SchemaViolationException e) {
-							throw new InvalidAttributeValueException(e.getMessage(),e);
-						}
-		        	}
-		        }
+            } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+
+                final DummyPrivilege priv;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    priv = resource.getPrivilegeByName(uid.getUidValue(), false);
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    priv = resource.getPrivilegeById(uid.getUidValue(), false);
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (priv == null) {
+                    throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(priv, options);
+
+                for (Attribute attr : replaceAttributes) {
+                    if (attr.is(Name.NAME)) {
+                        String newName = (String)attr.getValue().get(0);
+                        try {
+                            resource.renamePrivilege(priv.getId(), priv.getName(), newName);
+                        } catch (ObjectDoesNotExistException e) {
+                            throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
+                        } catch (ObjectAlreadyExistsException e) {
+                            throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+                        }
+                        // We need to change the returned uid here
+                        uid = new Uid(newName);
+                    } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to change password on privilege");
+
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to change enable on privilege");
+
+                    } else {
+                        String name = attr.getName();
+                        try {
+                            priv.replaceAttributeValues(name, attr.getValue());
+                        } catch (SchemaViolationException e) {
+                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                        }
+                    }
+                }
+
+            } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
+
+                final DummyOrg org;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    org = resource.getOrgByName(uid.getUidValue(), false);
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    org = resource.getOrgById(uid.getUidValue(), false);
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (org == null) {
+                    throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(org, options);
+
+                for (Attribute attr : replaceAttributes) {
+                    if (attr.is(Name.NAME)) {
+                        String newName = (String)attr.getValue().get(0);
+                        try {
+                            resource.renameOrg(org.getId(), org.getName(), newName);
+                        } catch (ObjectDoesNotExistException e) {
+                            throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
+                        } catch (ObjectAlreadyExistsException e) {
+                            throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
+                        }
+                        // We need to change the returned uid here
+                        uid = new Uid(newName);
+                    } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to change password on org");
+
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to change enable on org");
+
+                    } else {
+                        String name = attr.getName();
+                        try {
+                            org.replaceAttributeValues(name, attr.getValue());
+                        } catch (SchemaViolationException e) {
+                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                        }
+                    }
+                }
 
 
-	        } else {
-	        	throw new ConnectorException("Unknown object class "+objectClass);
-	        }
+            } else {
+                throw new ConnectorException("Unknown object class "+objectClass);
+            }
 
-		} catch (ConnectException e) {
-	        log.info("update::exception "+e);
-			throw new ConnectionFailedException(e.getMessage(), e);
-		} catch (FileNotFoundException e) {
-			log.info("update::exception "+e);
-			throw new ConnectorIOException(e.getMessage(), e);
-		} catch (SchemaViolationException e) {
-			log.info("update::exception "+e);
-			throw new InvalidAttributeValueException(e.getMessage(), e);
-		} catch (ConflictException e) {
-			log.info("update::exception "+e);
-			throw new AlreadyExistsException(e);
-		} catch (InterruptedException e) {
-			log.info("update::exception "+e);
-			throw new OperationTimeoutException(e);
-		}
+        } catch (ConnectException e) {
+            log.info("update::exception "+e);
+            throw new ConnectionFailedException(e.getMessage(), e);
+        } catch (FileNotFoundException e) {
+            log.info("update::exception "+e);
+            throw new ConnectorIOException(e.getMessage(), e);
+        } catch (SchemaViolationException e) {
+            log.info("update::exception "+e);
+            throw new InvalidAttributeValueException(e.getMessage(), e);
+        } catch (ConflictException e) {
+            log.info("update::exception "+e);
+            throw new AlreadyExistsException(e);
+        } catch (InterruptedException e) {
+            log.info("update::exception "+e);
+            throw new OperationTimeoutException(e);
+        }
 
         log.info("update::end");
         return uid;
     }
 
-	/**
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -332,191 +332,191 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 
         try {
 
-	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
+            if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 
-	        	DummyAccount account;
-		        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-		        	account = resource.getAccountByUsername(uid.getUidValue());
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	account = resource.getAccountById(uid.getUidValue());
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (account == null) {
-		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(account, options);
+                DummyAccount account;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    account = resource.getAccountByUsername(uid.getUidValue());
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    account = resource.getAccountById(uid.getUidValue());
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (account == null) {
+                    throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(account, options);
 
-				// we could change the description here, but don't do that not to collide with ADD operation
-				// TODO add the functionality if needed
+                // we could change the description here, but don't do that not to collide with ADD operation
+                // TODO add the functionality if needed
 
-		        for (Attribute attr : valuesToAdd) {
-		
-		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		if (account.getPassword() != null) {
-		        			throw new InvalidAttributeValueException("Attempt to add value for password while password is already set");
-		        		}
-		        		changePassword(account,attr);
-		
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
-		
-		        	} else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
-						account.addAuxiliaryObjectClassNames(attr.getValue());
+                for (Attribute attr : valuesToAdd) {
 
-					} else {
-			        	String name = attr.getName();
-			        	try {
-							account.addAttributeValues(name, attr.getValue());
-							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
-									name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
-						} catch (SchemaViolationException e) {
-							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-							// The framework should deal with it ... somehow
-							throw new InvalidAttributeValueException(e.getMessage(), e);
-						}
-		        	}
-		        }
+                    if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+                        if (account.getPassword() != null) {
+                            throw new InvalidAttributeValueException("Attempt to add value for password while password is already set");
+                        }
+                        changePassword(account,attr);
 
-	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-	
-	        	DummyGroup group;
-	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		group = resource.getGroupByName(uid.getUidValue());
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	group = resource.getGroupById(uid.getUidValue());
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (group == null) {
-		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(group, options);
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
 
-		        for (Attribute attr : valuesToAdd) {
-		
-		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new InvalidAttributeValueException("Attempt to change password on group");
-		
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
-		
-		        	} else {
-			        	String name = attr.getName();
-			        	List<Object> values = attr.getValue();
-			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<>(values.size());
-			        		for (Object val: values) {
-			        			newValues.add(StringUtils.upperCase((String)val));
-			        		}
-			        		values = newValues;
-			        	}
-			        	try {
-							group.addAttributeValues(name, values);
-							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
-									name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
-						} catch (SchemaViolationException e) {
-							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-							// The framework should deal with it ... somehow
-							throw new InvalidAttributeValueException(e.getMessage(), e);
-						}
-		        	}
-		        }
+                    } else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
+                        account.addAuxiliaryObjectClassNames(attr.getValue());
 
-	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-	
-	        	DummyPrivilege priv;
-	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		priv = resource.getPrivilegeByName(uid.getUidValue());
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	priv = resource.getPrivilegeById(uid.getUidValue());
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (priv == null) {
-		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(priv, options);
+                    } else {
+                        String name = attr.getName();
+                        try {
+                            account.addAttributeValues(name, attr.getValue());
+                            log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
+                                    name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
+                        } catch (SchemaViolationException e) {
+                            // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+                            // The framework should deal with it ... somehow
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
+                        }
+                    }
+                }
 
-		        for (Attribute attr : valuesToAdd) {
-		
-		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new InvalidAttributeValueException("Attempt to change password on privilege");
-		
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
-		
-		        	} else {
-			        	String name = attr.getName();
-			        	try {
-							priv.addAttributeValues(name, attr.getValue());
-							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
-									name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
-						} catch (SchemaViolationException e) {
-							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-							// The framework should deal with it ... somehow
-							throw new InvalidAttributeValueException(e.getMessage(),e);
-						}
-		        	}
-		        }
+            } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 
-	        } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-	
-	        	DummyOrg org;
-	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		org = resource.getOrgByName(uid.getUidValue());
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	org = resource.getOrgById(uid.getUidValue());
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (org == null) {
-		        	throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(org, options);
+                DummyGroup group;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    group = resource.getGroupByName(uid.getUidValue());
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    group = resource.getGroupById(uid.getUidValue());
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (group == null) {
+                    throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(group, options);
 
-		        for (Attribute attr : valuesToAdd) {
-		
-		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new InvalidAttributeValueException("Attempt to change password on org");
-		
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to add value for enable org");
-		
-		        	} else {
-			        	String name = attr.getName();
-			        	try {
-							org.addAttributeValues(name, attr.getValue());
-							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
-									name, attr.getValue(), org, org.getAttributeValues(name, Object.class));
-						} catch (SchemaViolationException e) {
-							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-							// The framework should deal with it ... somehow
-							throw new InvalidAttributeValueException(e.getMessage(), e);
-						}
-		        	}
-		        }
-	
-	        } else {
-	        	throw new ConnectorException("Unknown object class "+objectClass);
-	        }
+                for (Attribute attr : valuesToAdd) {
 
-		} catch (ConnectException e) {
-	        log.info("addAttributeValues::exception "+e);
-			throw new ConnectionFailedException(e.getMessage(), e);
-		} catch (FileNotFoundException e) {
-			log.info("addAttributeValues::exception "+e);
-			throw new ConnectorIOException(e.getMessage(), e);
-		} catch (SchemaViolationException e) {
-			log.info("addAttributeValues::exception "+e);
-			throw new InvalidAttributeValueException(e.getMessage(), e);
-		} catch (ConflictException e) {
-			log.info("addAttributeValues::exception "+e);
-			throw new AlreadyExistsException(e);
-		} catch (InterruptedException e) {
-			log.info("addAttributeValues::exception "+e);
-			throw new OperationTimeoutException(e);
-		}
+                    if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+                        throw new InvalidAttributeValueException("Attempt to change password on group");
+
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
+
+                    } else {
+                        String name = attr.getName();
+                        List<Object> values = attr.getValue();
+                        if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
+                            List<Object> newValues = new ArrayList<>(values.size());
+                            for (Object val: values) {
+                                newValues.add(StringUtils.upperCase((String)val));
+                            }
+                            values = newValues;
+                        }
+                        try {
+                            group.addAttributeValues(name, values);
+                            log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
+                                    name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
+                        } catch (SchemaViolationException e) {
+                            // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+                            // The framework should deal with it ... somehow
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
+                        }
+                    }
+                }
+
+            } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
+
+                DummyPrivilege priv;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    priv = resource.getPrivilegeByName(uid.getUidValue());
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    priv = resource.getPrivilegeById(uid.getUidValue());
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (priv == null) {
+                    throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(priv, options);
+
+                for (Attribute attr : valuesToAdd) {
+
+                    if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+                        throw new InvalidAttributeValueException("Attempt to change password on privilege");
+
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
+
+                    } else {
+                        String name = attr.getName();
+                        try {
+                            priv.addAttributeValues(name, attr.getValue());
+                            log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
+                                    name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
+                        } catch (SchemaViolationException e) {
+                            // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+                            // The framework should deal with it ... somehow
+                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                        }
+                    }
+                }
+
+            } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
+
+                DummyOrg org;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    org = resource.getOrgByName(uid.getUidValue());
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    org = resource.getOrgById(uid.getUidValue());
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (org == null) {
+                    throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(org, options);
+
+                for (Attribute attr : valuesToAdd) {
+
+                    if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+                        throw new InvalidAttributeValueException("Attempt to change password on org");
+
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to add value for enable org");
+
+                    } else {
+                        String name = attr.getName();
+                        try {
+                            org.addAttributeValues(name, attr.getValue());
+                            log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
+                                    name, attr.getValue(), org, org.getAttributeValues(name, Object.class));
+                        } catch (SchemaViolationException e) {
+                            // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+                            // The framework should deal with it ... somehow
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
+                        }
+                    }
+                }
+
+            } else {
+                throw new ConnectorException("Unknown object class "+objectClass);
+            }
+
+        } catch (ConnectException e) {
+            log.info("addAttributeValues::exception "+e);
+            throw new ConnectionFailedException(e.getMessage(), e);
+        } catch (FileNotFoundException e) {
+            log.info("addAttributeValues::exception "+e);
+            throw new ConnectorIOException(e.getMessage(), e);
+        } catch (SchemaViolationException e) {
+            log.info("addAttributeValues::exception "+e);
+            throw new InvalidAttributeValueException(e.getMessage(), e);
+        } catch (ConflictException e) {
+            log.info("addAttributeValues::exception "+e);
+            throw new AlreadyExistsException(e);
+        } catch (InterruptedException e) {
+            log.info("addAttributeValues::exception "+e);
+            throw new OperationTimeoutException(e);
+        }
 
         return uid;
     }
@@ -531,188 +531,188 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 
         try {
 
-	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
-	
-	        	DummyAccount account;
-		        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-		        	account = resource.getAccountByUsername(uid.getUidValue());
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	account = resource.getAccountById(uid.getUidValue());
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (account == null) {
-		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(account, options);
+            if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 
-				// we could change the description here, but don't do that not to collide with REMOVE operation
-				// TODO add the functionality if needed
+                DummyAccount account;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    account = resource.getAccountByUsername(uid.getUidValue());
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    account = resource.getAccountById(uid.getUidValue());
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (account == null) {
+                    throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(account, options);
 
-				for (Attribute attr : valuesToRemove) {
-		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new UnsupportedOperationException("Removing password value is not supported");
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
-		        	} else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
-		        		account.deleteAuxiliaryObjectClassNames(attr.getValue());
-					} else {
-			        	String name = attr.getName();
-			        	try {
-							account.removeAttributeValues(name, attr.getValue());
-							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
-									name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
-						} catch (SchemaViolationException e) {
-							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-							// The framework should deal with it ... somehow
-							throw new InvalidAttributeValueException(e.getMessage(), e);
-						}
-		        	}
-		        }
+                // we could change the description here, but don't do that not to collide with REMOVE operation
+                // TODO add the functionality if needed
 
-	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-	
-	        	DummyGroup group;
-	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		group = resource.getGroupByName(uid.getUidValue());
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	group = resource.getGroupById(uid.getUidValue());
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (group == null) {
-		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(group, options);
+                for (Attribute attr : valuesToRemove) {
+                    if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+                        throw new UnsupportedOperationException("Removing password value is not supported");
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
+                    } else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
+                        account.deleteAuxiliaryObjectClassNames(attr.getValue());
+                    } else {
+                        String name = attr.getName();
+                        try {
+                            account.removeAttributeValues(name, attr.getValue());
+                            log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
+                                    name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
+                        } catch (SchemaViolationException e) {
+                            // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+                            // The framework should deal with it ... somehow
+                            throw new InvalidAttributeValueException(e.getMessage(), e);
+                        }
+                    }
+                }
 
-		        for (Attribute attr : valuesToRemove) {
-		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new InvalidAttributeValueException("Attempt to change password on group");
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
-		        	} else {
-			        	String name = attr.getName();
-			        	List<Object> values = attr.getValue();
-			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<>(values.size());
-			        		for (Object val: values) {
-			        			newValues.add(StringUtils.upperCase((String)val));
-			        		}
-			        		values = newValues;
-			        	}
-			        	try {
-							group.removeAttributeValues(name, values);
-							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
-									name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
-						} catch (SchemaViolationException e) {
-							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-							// The framework should deal with it ... somehow
-							throw new InvalidAttributeValueException(e.getMessage(),e);
-						}
-		        	}
-		        }
+            } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 
-	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-	
-	        	DummyPrivilege priv;
-	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		priv = resource.getPrivilegeByName(uid.getUidValue());
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	priv = resource.getPrivilegeById(uid.getUidValue());
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (priv == null) {
-		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(priv, options);
+                DummyGroup group;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    group = resource.getGroupByName(uid.getUidValue());
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    group = resource.getGroupById(uid.getUidValue());
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (group == null) {
+                    throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(group, options);
 
-		        for (Attribute attr : valuesToRemove) {
-		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new InvalidAttributeValueException("Attempt to change password on privilege");
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
-		        	} else {
-			        	String name = attr.getName();
-			        	try {
-							priv.removeAttributeValues(name, attr.getValue());
-							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
-									name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
-						} catch (SchemaViolationException e) {
-							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-							// The framework should deal with it ... somehow
-							throw new InvalidAttributeValueException(e.getMessage(),e);
-						}
-		        	}
-		        }
+                for (Attribute attr : valuesToRemove) {
+                    if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+                        throw new InvalidAttributeValueException("Attempt to change password on group");
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
+                    } else {
+                        String name = attr.getName();
+                        List<Object> values = attr.getValue();
+                        if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
+                            List<Object> newValues = new ArrayList<>(values.size());
+                            for (Object val: values) {
+                                newValues.add(StringUtils.upperCase((String)val));
+                            }
+                            values = newValues;
+                        }
+                        try {
+                            group.removeAttributeValues(name, values);
+                            log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
+                                    name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
+                        } catch (SchemaViolationException e) {
+                            // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+                            // The framework should deal with it ... somehow
+                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                        }
+                    }
+                }
 
-	        } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-	
-	        	DummyOrg org;
-	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
-	        		org = resource.getOrgByName(uid.getUidValue());
-		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
-		        	org = resource.getOrgById(uid.getUidValue());
-		        } else {
-		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
-		        }
-		        if (org == null) {
-		        	throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
-		        }
-		        applyModifyMetadata(org, options);
+            } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 
-		        for (Attribute attr : valuesToRemove) {
-		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new InvalidAttributeValueException("Attempt to change password on org");
-		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new InvalidAttributeValueException("Attempt to remove value from enable org");
-		        	} else {
-			        	String name = attr.getName();
-			        	try {
-							org.removeAttributeValues(name, attr.getValue());
-							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
-									name, attr.getValue(), org, org.getAttributeValues(name, Object.class));
-						} catch (SchemaViolationException e) {
-							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-							// The framework should deal with it ... somehow
-							throw new InvalidAttributeValueException(e.getMessage(),e);
-						}
-		        	}
-		        }
-	
-	        } else {
-	        	throw new ConnectorException("Unknown object class "+objectClass);
-	        }
+                DummyPrivilege priv;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    priv = resource.getPrivilegeByName(uid.getUidValue());
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    priv = resource.getPrivilegeById(uid.getUidValue());
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (priv == null) {
+                    throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(priv, options);
 
-		} catch (ConnectException e) {
-	        log.info("removeAttributeValues::exception "+e);
-			throw new ConnectionFailedException(e.getMessage(), e);
-		} catch (FileNotFoundException e) {
-			log.info("removeAttributeValues::exception "+e);
-			throw new ConnectorIOException(e.getMessage(), e);
-		} catch (SchemaViolationException e) {
-			log.info("removeAttributeValues::exception "+e);
-			throw new InvalidAttributeValueException(e.getMessage(), e);
-		} catch (ConflictException e) {
-			log.info("removeAttributeValues::exception "+e);
-			throw new AlreadyExistsException(e);
-		} catch (InterruptedException e) {
-			log.info("removeAttributeValues::exception "+e);
-			throw new OperationTimeoutException(e);
-		}
+                for (Attribute attr : valuesToRemove) {
+                    if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+                        throw new InvalidAttributeValueException("Attempt to change password on privilege");
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
+                    } else {
+                        String name = attr.getName();
+                        try {
+                            priv.removeAttributeValues(name, attr.getValue());
+                            log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
+                                    name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
+                        } catch (SchemaViolationException e) {
+                            // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+                            // The framework should deal with it ... somehow
+                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                        }
+                    }
+                }
+
+            } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
+
+                DummyOrg org;
+                if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+                    org = resource.getOrgByName(uid.getUidValue());
+                } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+                    org = resource.getOrgById(uid.getUidValue());
+                } else {
+                    throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+                }
+                if (org == null) {
+                    throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
+                }
+                applyModifyMetadata(org, options);
+
+                for (Attribute attr : valuesToRemove) {
+                    if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+                        throw new InvalidAttributeValueException("Attempt to change password on org");
+                    } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+                        throw new InvalidAttributeValueException("Attempt to remove value from enable org");
+                    } else {
+                        String name = attr.getName();
+                        try {
+                            org.removeAttributeValues(name, attr.getValue());
+                            log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
+                                    name, attr.getValue(), org, org.getAttributeValues(name, Object.class));
+                        } catch (SchemaViolationException e) {
+                            // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+                            // The framework should deal with it ... somehow
+                            throw new InvalidAttributeValueException(e.getMessage(),e);
+                        }
+                    }
+                }
+
+            } else {
+                throw new ConnectorException("Unknown object class "+objectClass);
+            }
+
+        } catch (ConnectException e) {
+            log.info("removeAttributeValues::exception "+e);
+            throw new ConnectionFailedException(e.getMessage(), e);
+        } catch (FileNotFoundException e) {
+            log.info("removeAttributeValues::exception "+e);
+            throw new ConnectorIOException(e.getMessage(), e);
+        } catch (SchemaViolationException e) {
+            log.info("removeAttributeValues::exception "+e);
+            throw new InvalidAttributeValueException(e.getMessage(), e);
+        } catch (ConflictException e) {
+            log.info("removeAttributeValues::exception "+e);
+            throw new AlreadyExistsException(e);
+        } catch (InterruptedException e) {
+            log.info("removeAttributeValues::exception "+e);
+            throw new OperationTimeoutException(e);
+        }
 
         return uid;
     }
-    
+
     @Override
-	protected void extendSchema(SchemaBuilder builder) {
-		super.extendSchema(builder);
-		
-		if (configuration.getSupportRunAs()) {
-			log.ok("Adding runAs options to schema");
-			builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithUser(), UpdateAttributeValuesOp.class);
-			builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithPassword(), UpdateAttributeValuesOp.class);
-		}
-	}
-    
+    protected void extendSchema(SchemaBuilder builder) {
+        super.extendSchema(builder);
+
+        if (configuration.getSupportRunAs()) {
+            log.ok("Adding runAs options to schema");
+            builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithUser(), UpdateAttributeValuesOp.class);
+            builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithPassword(), UpdateAttributeValuesOp.class);
+        }
+    }
+
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.story.notorious;
@@ -82,54 +82,54 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestNotoriousOrg extends AbstractNotoriousTest {
 
-	public static final File ORG_NOTORIOUS_FILE = new File(TEST_DIR, "org-notorious.xml");
-	public static final String ORG_NOTORIOUS_OID = "f79fc21a-4d0a-11e7-ad8d-f7fe1a23c68a";
+    public static final File ORG_NOTORIOUS_FILE = new File(TEST_DIR, "org-notorious.xml");
+    public static final String ORG_NOTORIOUS_OID = "f79fc21a-4d0a-11e7-ad8d-f7fe1a23c68a";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestNotoriousOrg.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestNotoriousOrg.class);
 
-	@Override
-	protected String getNotoriousOid() {
-		return ORG_NOTORIOUS_OID;
-	}
+    @Override
+    protected String getNotoriousOid() {
+        return ORG_NOTORIOUS_OID;
+    }
 
-	@Override
-	protected File getNotoriousFile() {
-		return ORG_NOTORIOUS_FILE;
-	}
+    @Override
+    protected File getNotoriousFile() {
+        return ORG_NOTORIOUS_FILE;
+    }
 
-	@Override
-	protected QName getNotoriousType() {
-		return OrgType.COMPLEX_TYPE;
-	}
+    @Override
+    protected QName getNotoriousType() {
+        return OrgType.COMPLEX_TYPE;
+    }
 
-	@Override
-	protected QName getAltRelation() {
-		return SchemaConstants.ORG_MANAGER;
-	}
+    @Override
+    protected QName getAltRelation() {
+        return SchemaConstants.ORG_MANAGER;
+    }
 
-	@Override
-	protected int getNumberOfExtraRoles() {
-		return 0;
-	}
+    @Override
+    protected int getNumberOfExtraRoles() {
+        return 0;
+    }
 
-	@Override
-	protected int getNumberOfExtraOrgs() {
-		return 1;
-	}
+    @Override
+    protected int getNumberOfExtraOrgs() {
+        return 1;
+    }
 
-	@Override
-	protected void addNotoriousRole(OperationResult result) throws Exception {
-		PrismObject<OrgType> org = parseObject(getNotoriousFile());
-		OrgType orgType = org.asObjectable();
-		fillNotorious(orgType);
-		LOGGER.info("Adding {}:\n{}", org, org.debugDump(1));
-		repositoryService.addObject(org, null, result);
-	}
+    @Override
+    protected void addNotoriousRole(OperationResult result) throws Exception {
+        PrismObject<OrgType> org = parseObject(getNotoriousFile());
+        OrgType orgType = org.asObjectable();
+        fillNotorious(orgType);
+        LOGGER.info("Adding {}:\n{}", org, org.debugDump(1));
+        repositoryService.addObject(org, null, result);
+    }
 
-	@Override
-	protected void assertNotoriousParentOrgRefRelations(PrismObject<UserType> userAfter, QName... relations) {
-		for (QName relation: relations) {
-			assertHasOrg(userAfter, getNotoriousOid(), relation);
-		}
-	}
+    @Override
+    protected void assertNotoriousParentOrgRefRelations(PrismObject<UserType> userAfter, QName... relations) {
+        for (QName relation: relations) {
+            assertHasOrg(userAfter, getNotoriousOid(), relation);
+        }
+    }
 }

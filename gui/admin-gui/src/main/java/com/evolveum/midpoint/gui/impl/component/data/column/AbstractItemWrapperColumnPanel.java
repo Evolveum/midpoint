@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,60 +26,60 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  */
 public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW extends PrismValueWrapper> extends BasePanel<IW> {
 
-	private static final long serialVersionUID = 1L;
-	protected PageBase pageBase;
-	protected ItemPath itemName;
-	
-	private ColumnType columnType;
-	
-	private static final String ID_VALUES = "values";
-	private static final String ID_VALUE = "value";
-	
-	AbstractItemWrapperColumnPanel(String id, IModel<IW> model, ColumnType columnType) {
-		super(id, model);
-		this.columnType = columnType;
-	}
-	
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		initLayout();
-	}
-	
-	private void initLayout() {
-		ListView<VW> listView = new ListView<VW>(ID_VALUES, new PropertyModel<>(getModel(), "values")) {
+    private static final long serialVersionUID = 1L;
+    protected PageBase pageBase;
+    protected ItemPath itemName;
 
-			private static final long serialVersionUID = 1L;
+    private ColumnType columnType;
 
-			@Override
-			protected void populateItem(ListItem<VW> item) {
-				populate(item);
-			}
-		};
-		listView.setReuseItems(true);
-		listView.setOutputMarkupId(true);
-		
-		add(listView);
-	}
-	
-	protected void populate(ListItem<VW> item) {
-		switch (columnType) {
-			case STRING:
-				Label label = new Label(ID_VALUE, createLabel(item.getModelObject()));
-				item.add(label);
-				break;
-			case LINK:
-				item.add(createLink(ID_VALUE, item.getModel()));
-				break;
-			case VALUE:
-				item.add(createValuePanel(ID_VALUE, getModel(), item.getModelObject()));
-				break;
-				
-		}
-		
-	}
-	
-	protected abstract String createLabel(VW object);
-	protected abstract Panel createLink(String id, IModel<VW> object);
-	protected abstract Panel createValuePanel(String id, IModel<IW> model, VW object);
+    private static final String ID_VALUES = "values";
+    private static final String ID_VALUE = "value";
+
+    AbstractItemWrapperColumnPanel(String id, IModel<IW> model, ColumnType columnType) {
+        super(id, model);
+        this.columnType = columnType;
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
+        ListView<VW> listView = new ListView<VW>(ID_VALUES, new PropertyModel<>(getModel(), "values")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<VW> item) {
+                populate(item);
+            }
+        };
+        listView.setReuseItems(true);
+        listView.setOutputMarkupId(true);
+
+        add(listView);
+    }
+
+    protected void populate(ListItem<VW> item) {
+        switch (columnType) {
+            case STRING:
+                Label label = new Label(ID_VALUE, createLabel(item.getModelObject()));
+                item.add(label);
+                break;
+            case LINK:
+                item.add(createLink(ID_VALUE, item.getModel()));
+                break;
+            case VALUE:
+                item.add(createValuePanel(ID_VALUE, getModel(), item.getModelObject()));
+                break;
+
+        }
+
+    }
+
+    protected abstract String createLabel(VW object);
+    protected abstract Panel createLink(String id, IModel<VW> object);
+    protected abstract Panel createValuePanel(String id, IModel<IW> model, VW object);
 }

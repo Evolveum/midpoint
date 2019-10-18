@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,11 +17,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInfor
  */
 public class TaskCurrentStateDto {
 
-	public static final String F_ACTIONS_EXECUTED_INFORMATION_DTO = "actionsExecutedInformationDto";
-	public static final String F_SYNCHRONIZATION_INFORMATION_DTO = "synchronizationInformationDto";
-	public static final String F_SYNCHRONIZATION_INFORMATION_AFTER_DTO = "synchronizationInformationAfterDto";
+    public static final String F_ACTIONS_EXECUTED_INFORMATION_DTO = "actionsExecutedInformationDto";
+    public static final String F_SYNCHRONIZATION_INFORMATION_DTO = "synchronizationInformationDto";
+    public static final String F_SYNCHRONIZATION_INFORMATION_AFTER_DTO = "synchronizationInformationAfterDto";
 
-	private TaskDto taskDto;
+    private TaskDto taskDto;
 
     public TaskCurrentStateDto(TaskDto taskDto) {
         this.taskDto = taskDto;
@@ -46,15 +46,15 @@ public class TaskCurrentStateDto {
         return stats.getSynchronizationInformation();
     }
 
-	public SynchronizationInformationDto getSynchronizationInformationDto() {
-		return getSynchronizationInformationType() != null ? new SynchronizationInformationDto(getSynchronizationInformationType(), false) : null;
-	}
+    public SynchronizationInformationDto getSynchronizationInformationDto() {
+        return getSynchronizationInformationType() != null ? new SynchronizationInformationDto(getSynchronizationInformationType(), false) : null;
+    }
 
-	public SynchronizationInformationDto getSynchronizationInformationAfterDto() {
-		return getSynchronizationInformationType() != null ? new SynchronizationInformationDto(getSynchronizationInformationType(), true) : null;
-	}
+    public SynchronizationInformationDto getSynchronizationInformationAfterDto() {
+        return getSynchronizationInformationType() != null ? new SynchronizationInformationDto(getSynchronizationInformationType(), true) : null;
+    }
 
-	public IterativeTaskInformationType getIterativeTaskInformationType() {
+    public IterativeTaskInformationType getIterativeTaskInformationType() {
         OperationStatsType stats = getOperationStatsType();
         if (stats == null) {
             return null;
@@ -70,13 +70,13 @@ public class TaskCurrentStateDto {
         return stats.getActionsExecutedInformation();
     }
 
-	public ActionsExecutedInformationDto getActionsExecutedInformationDto() {
-		if (getActionsExecutedInformationType() == null) {
-			return null;
-		} else {
-			return new ActionsExecutedInformationDto(getActionsExecutedInformationType());
-		}
-	}
+    public ActionsExecutedInformationDto getActionsExecutedInformationDto() {
+        if (getActionsExecutedInformationType() == null) {
+            return null;
+        } else {
+            return new ActionsExecutedInformationDto(getActionsExecutedInformationType());
+        }
+    }
 
     public Long getCurrentProgress() {
         if (taskDto == null) {

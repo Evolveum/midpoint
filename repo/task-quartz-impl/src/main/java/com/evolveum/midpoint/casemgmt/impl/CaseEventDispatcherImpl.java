@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,28 +25,28 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class CaseEventDispatcherImpl implements CaseEventDispatcher {
 
-	private static final Trace LOGGER = TraceManager.getTrace(CaseEventDispatcherImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CaseEventDispatcherImpl.class);
 
-	private final Set<CaseEventListener> listeners = ConcurrentHashMap.newKeySet();
+    private final Set<CaseEventListener> listeners = ConcurrentHashMap.newKeySet();
 
-	@Override
-	public void registerCaseCreationEventListener(CaseEventListener listener) {
-		listeners.add(listener);
-	}
+    @Override
+    public void registerCaseCreationEventListener(CaseEventListener listener) {
+        listeners.add(listener);
+    }
 
-	@Override
-	public void unregisterCaseCreationEventListener(CaseEventListener listener) {
-		listeners.remove(listener);
-	}
+    @Override
+    public void unregisterCaseCreationEventListener(CaseEventListener listener) {
+        listeners.remove(listener);
+    }
 
-	@Override
-	public void dispatchCaseEvent(CaseType aCase, OperationResult result) {
-		for (CaseEventListener listener : listeners) {
-			try {
-				listener.onCaseCreation(aCase, result);
-			} catch (Throwable t) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Exception when invoking case listener; case = {}", t, aCase);
-			}
-		}
-	}
+    @Override
+    public void dispatchCaseEvent(CaseType aCase, OperationResult result) {
+        for (CaseEventListener listener : listeners) {
+            try {
+                listener.onCaseCreation(aCase, result);
+            } catch (Throwable t) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Exception when invoking case listener; case = {}", t, aCase);
+            }
+        }
+    }
 }

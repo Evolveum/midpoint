@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -53,118 +53,118 @@ import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNe
 @Component
 public class SearchEvaluator extends BaseExpressionEvaluator {
 
-	private static final Trace LOGGER = TraceManager.getTrace(SearchEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SearchEvaluator.class);
 
-	@Autowired private ExpressionHelper expressionHelper;
-	@Autowired private OperationsHelper operationsHelper;
-	@Autowired private ExpressionFactory expressionFactory;
+    @Autowired private ExpressionHelper expressionHelper;
+    @Autowired private OperationsHelper operationsHelper;
+    @Autowired private ExpressionFactory expressionFactory;
 
     private static final String PARAM_NO_FETCH = "noFetch";
 
     public <T extends ObjectType> PipelineData evaluate(SearchExpressionType searchExpression, PipelineData input,
-			ExecutionContext context, OperationResult globalResult)
-		    throws ScriptExecutionException {
+            ExecutionContext context, OperationResult globalResult)
+            throws ScriptExecutionException {
         Validate.notNull(searchExpression.getType());
-        
+
         ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
 
-	    List<PipelineItem> data = input.getData();
-	    if (data.isEmpty()) {
-	    	// TODO fix this brutal hack (with dummyValue)
-		    PrismContainerValue<?> dummyValue = prismContext.itemFactory().createContainerValue();
-		    PipelineItem dummyItem = new PipelineItem(dummyValue, PipelineData.newOperationResult(), context.getInitialVariables());
-		    data = Collections.singletonList(dummyItem);
-	    }
+        List<PipelineItem> data = input.getData();
+        if (data.isEmpty()) {
+            // TODO fix this brutal hack (with dummyValue)
+            PrismContainerValue<?> dummyValue = prismContext.itemFactory().createContainerValue();
+            PipelineItem dummyItem = new PipelineItem(dummyValue, PipelineData.newOperationResult(), context.getInitialVariables());
+            data = Collections.singletonList(dummyItem);
+        }
 
-	    final PipelineData outputData = PipelineData.createEmpty();
-	    final MutableBoolean atLeastOne = new MutableBoolean(false);
+        final PipelineData outputData = PipelineData.createEmpty();
+        final MutableBoolean atLeastOne = new MutableBoolean(false);
 
-	    for (PipelineItem item : data) {
+        for (PipelineItem item : data) {
 
-	    	// TODO variables from current item
-		    // TODO operation result handling (global vs local)
-		    boolean noFetch = expressionHelper.getArgumentAsBoolean(searchExpression.getParameter(), PARAM_NO_FETCH, input, context, false, "search", globalResult);
+            // TODO variables from current item
+            // TODO operation result handling (global vs local)
+            boolean noFetch = expressionHelper.getArgumentAsBoolean(searchExpression.getParameter(), PARAM_NO_FETCH, input, context, false, "search", globalResult);
 
-		    @SuppressWarnings({ "unchecked", "raw" })
-		    Class<T> objectClass = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(searchExpression.getType()).getClassDefinition();
+            @SuppressWarnings({ "unchecked", "raw" })
+            Class<T> objectClass = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(searchExpression.getType()).getClassDefinition();
 
-		    ObjectQuery unresolvedObjectQuery = null;
-		    if (searchExpression.getQuery() != null) {
-			    try {
-				    unresolvedObjectQuery = context.getQueryConverter().createObjectQuery(objectClass, searchExpression.getQuery());
-			    } catch (SchemaException e) {
-				    throw new ScriptExecutionException("Couldn't parse object query due to schema exception", e);
-			    }
-		    } else if (searchExpression.getSearchFilter() != null) {
-			    unresolvedObjectQuery = prismContext.queryFactory().createQuery();
-			    try {
-				    ObjectFilter filter = prismContext.getQueryConverter().parseFilter(searchExpression.getSearchFilter(), objectClass);
-				    unresolvedObjectQuery.setFilter(filter);
-			    } catch (SchemaException e) {
-				    throw new ScriptExecutionException("Couldn't parse object filter due to schema exception", e);
-			    }
-		    }
-		    ObjectQuery objectQuery;
-		    if (unresolvedObjectQuery != null) {
-			    ExpressionVariables variables = new ExpressionVariables();
-			    item.getVariables().forEach((name, value) -> variables.put(name, cloneIfNecessary(name, value)));
-			    try {
-					objectQuery = ExpressionUtil
-						    .evaluateQueryExpressions(unresolvedObjectQuery, variables, expressionProfile, expressionFactory, prismContext,
-								    "bulk action query", context.getTask(), globalResult);
-			    } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-				    // TODO continue on any error?
-				    throw new ScriptExecutionException("Couldn't evaluate expressions in object query: " + e.getMessage(), e);
-			    }
-		    } else {
-		    	objectQuery = null;
-		    }
+            ObjectQuery unresolvedObjectQuery = null;
+            if (searchExpression.getQuery() != null) {
+                try {
+                    unresolvedObjectQuery = context.getQueryConverter().createObjectQuery(objectClass, searchExpression.getQuery());
+                } catch (SchemaException e) {
+                    throw new ScriptExecutionException("Couldn't parse object query due to schema exception", e);
+                }
+            } else if (searchExpression.getSearchFilter() != null) {
+                unresolvedObjectQuery = prismContext.queryFactory().createQuery();
+                try {
+                    ObjectFilter filter = prismContext.getQueryConverter().parseFilter(searchExpression.getSearchFilter(), objectClass);
+                    unresolvedObjectQuery.setFilter(filter);
+                } catch (SchemaException e) {
+                    throw new ScriptExecutionException("Couldn't parse object filter due to schema exception", e);
+                }
+            }
+            ObjectQuery objectQuery;
+            if (unresolvedObjectQuery != null) {
+                ExpressionVariables variables = new ExpressionVariables();
+                item.getVariables().forEach((name, value) -> variables.put(name, cloneIfNecessary(name, value)));
+                try {
+                    objectQuery = ExpressionUtil
+                            .evaluateQueryExpressions(unresolvedObjectQuery, variables, expressionProfile, expressionFactory, prismContext,
+                                    "bulk action query", context.getTask(), globalResult);
+                } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+                    // TODO continue on any error?
+                    throw new ScriptExecutionException("Couldn't evaluate expressions in object query: " + e.getMessage(), e);
+                }
+            } else {
+                objectQuery = null;
+            }
 
-		    final String variableName = searchExpression.getVariable();
+            final String variableName = searchExpression.getVariable();
 
-		    ResultHandler<T> handler = (object, parentResult) -> {
-			    context.checkTaskStop();
-			    atLeastOne.setValue(true);
-			    if (searchExpression.getScriptingExpression() != null) {
-				    if (variableName != null) {
-					    // TODO
-				    }
-				    JAXBElement<?> childExpression = searchExpression.getScriptingExpression();
-				    try {
-					    PipelineData expressionResult = scriptingExpressionEvaluator.evaluateExpression(
-							    (ScriptingExpressionType) childExpression.getValue(),
-							    PipelineData.create(object.getValue(), item.getVariables()), context, globalResult);
-					    if (!BooleanUtils.isFalse(searchExpression.isAggregateOutput())) {
-						    outputData.addAllFrom(expressionResult);
-					    }
-					    globalResult.setSummarizeSuccesses(true);
-					    globalResult.summarize();
-				    } catch (ScriptExecutionException e) {
-					    // todo think about this
-					    if (context.isContinueOnAnyError()) {
-						    LoggingUtils.logUnexpectedException(LOGGER, "Exception when evaluating item from search result list.", e);
-					    } else {
-						    throw new SystemException(e);
-					    }
-				    }
-			    } else {
-				    outputData.addValue(object.getValue(), item.getVariables());
-			    }
-			    return true;
-		    };
+            ResultHandler<T> handler = (object, parentResult) -> {
+                context.checkTaskStop();
+                atLeastOne.setValue(true);
+                if (searchExpression.getScriptingExpression() != null) {
+                    if (variableName != null) {
+                        // TODO
+                    }
+                    JAXBElement<?> childExpression = searchExpression.getScriptingExpression();
+                    try {
+                        PipelineData expressionResult = scriptingExpressionEvaluator.evaluateExpression(
+                                (ScriptingExpressionType) childExpression.getValue(),
+                                PipelineData.create(object.getValue(), item.getVariables()), context, globalResult);
+                        if (!BooleanUtils.isFalse(searchExpression.isAggregateOutput())) {
+                            outputData.addAllFrom(expressionResult);
+                        }
+                        globalResult.setSummarizeSuccesses(true);
+                        globalResult.summarize();
+                    } catch (ScriptExecutionException e) {
+                        // todo think about this
+                        if (context.isContinueOnAnyError()) {
+                            LoggingUtils.logUnexpectedException(LOGGER, "Exception when evaluating item from search result list.", e);
+                        } else {
+                            throw new SystemException(e);
+                        }
+                    }
+                } else {
+                    outputData.addValue(object.getValue(), item.getVariables());
+                }
+                return true;
+            };
 
-		    try {
-			    Collection<SelectorOptions<GetOperationOptions>> options = operationsHelper.createGetOptions(searchExpression.getOptions(), noFetch);
-			    modelService.searchObjectsIterative(objectClass, objectQuery, handler, options, context.getTask(), globalResult);
-		    } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-			    // TODO continue on any error?
-			    throw new ScriptExecutionException("Couldn't execute searchObjects operation: " + e.getMessage(), e);
-		    }
-	    }
+            try {
+                Collection<SelectorOptions<GetOperationOptions>> options = operationsHelper.createGetOptions(searchExpression.getOptions(), noFetch);
+                modelService.searchObjectsIterative(objectClass, objectQuery, handler, options, context.getTask(), globalResult);
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                // TODO continue on any error?
+                throw new ScriptExecutionException("Couldn't execute searchObjects operation: " + e.getMessage(), e);
+            }
+        }
 
-	    if (atLeastOne.isFalse()) {
-		    context.println("Warning: no matching object found");          // temporary hack, this will be configurable
-	    }
+        if (atLeastOne.isFalse()) {
+            context.println("Warning: no matching object found");          // temporary hack, this will be configurable
+        }
         return outputData;
     }
 

@@ -2,22 +2,22 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<connector oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd" 
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<connector oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-								  
-	<name>ICF org.identityconnectors.ldap.LdapConnector</name>
-	<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
-	<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-	<connectorVersion>1.1.1.em262</connectorVersion>
-	<connectorBundle>org.forgerock.openicf.connectors.ldap-connector</connectorBundle>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector</namespace>
-	<schema>
-		<!-- This is fake -->
-	</schema>
+
+    <name>ICF org.identityconnectors.ldap.LdapConnector</name>
+    <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
+    <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
+    <connectorVersion>1.1.1.em262</connectorVersion>
+    <connectorBundle>org.forgerock.openicf.connectors.ldap-connector</connectorBundle>
+    <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector</namespace>
+    <schema>
+        <!-- This is fake -->
+    </schema>
 </connector>

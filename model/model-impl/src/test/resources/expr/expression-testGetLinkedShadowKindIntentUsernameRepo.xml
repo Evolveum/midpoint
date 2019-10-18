@@ -2,19 +2,19 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-	<code>
-		import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType
-		import com.evolveum.midpoint.schema.constants.SchemaConstants
-		
+    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+    <code>
+        import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType
+        import com.evolveum.midpoint.schema.constants.SchemaConstants
+
         // resource dummy
-		shadow = midpoint.getLinkedShadow(user, '10000000-0000-0000-0000-000000000004', ShadowKindType.ACCOUNT, 'default', true)
-		log.trace("Shadow {}", shadow)
-		return basic.getAttributeValue(shadow, SchemaConstants.ICFS_NAME)
-	</code>
+        shadow = midpoint.getLinkedShadow(user, '10000000-0000-0000-0000-000000000004', ShadowKindType.ACCOUNT, 'default', true)
+        log.trace("Shadow {}", shadow)
+        return basic.getAttributeValue(shadow, SchemaConstants.ICFS_NAME)
+    </code>
 </script>

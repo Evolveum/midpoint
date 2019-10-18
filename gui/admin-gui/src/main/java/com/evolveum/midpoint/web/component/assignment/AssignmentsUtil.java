@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.assignment;
@@ -85,32 +85,32 @@ public class AssignmentsUtil {
                 return strEnabled;
             }
         };
-        
+
         return label.getObject();
     }
 
     public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentType> model, BasePanel basePanel) {
-    	return createActivationTitleModelExperimental(model.getObject(), s -> s.value(), basePanel);
+        return createActivationTitleModelExperimental(model.getObject(), s -> s.value(), basePanel);
     }
 
     public static IModel<String> createActivationTitleModelExperimental(AssignmentType assignmentType, Function<ActivationStatusType, String> transformStatusLambda, BasePanel basePanel) {
 
-//    	AssignmentDto assignmentDto = model.getObject();
-    	ActivationType activation = assignmentType.getActivation();
-    	if (activation == null) {
-    		return basePanel.createStringResource("lower.ActivationStatusType.null");
-    	}
+//        AssignmentDto assignmentDto = model.getObject();
+        ActivationType activation = assignmentType.getActivation();
+        if (activation == null) {
+            return basePanel.createStringResource("lower.ActivationStatusType.null");
+        }
 
-		TimeIntervalStatusType timeIntervalStatus = activation.getValidityStatus();
-		if (timeIntervalStatus != null) {
-			return createTimeIntervalStatusMessage(timeIntervalStatus, activation, basePanel);
-		}
+        TimeIntervalStatusType timeIntervalStatus = activation.getValidityStatus();
+        if (timeIntervalStatus != null) {
+            return createTimeIntervalStatusMessage(timeIntervalStatus, activation, basePanel);
+        }
 
-		ActivationStatusType status = activation.getEffectiveStatus();
-		String statusString = transformStatusLambda.apply(status);
+        ActivationStatusType status = activation.getEffectiveStatus();
+        String statusString = transformStatusLambda.apply(status);
 
                 if (activation.getValidFrom() != null && activation.getValidTo() != null) {
-                	basePanel.createStringResource("AssignmentEditorPanel.enabledFromTo", statusString, MiscUtil.asDate(activation.getValidFrom()),
+                    basePanel.createStringResource("AssignmentEditorPanel.enabledFromTo", statusString, MiscUtil.asDate(activation.getValidFrom()),
                             MiscUtil.asDate(activation.getValidTo()));
                 } else if (activation.getValidFrom() != null) {
                     return basePanel.createStringResource("AssignmentEditorPanel.enabledFrom", statusString,
@@ -123,35 +123,35 @@ public class AssignmentsUtil {
                 return basePanel.createStringResource(statusString);
 
     }
-    
+
     public static IModel<String> createConsentActivationTitleModel(IModel<AssignmentType> model, BasePanel basePanel) {
-    	return createActivationTitleModelExperimental(model.getObject(), 
-    			s -> { 
-    				// TODO: localization
-    				switch (s) {
-    					case ENABLED:
-    						return "Consent given";
-    					case ARCHIVED:
-    					case DISABLED:
-    						return "Consent not given";
-    				}
-    				return "";
-    			}, basePanel);
+        return createActivationTitleModelExperimental(model.getObject(),
+                s -> {
+                    // TODO: localization
+                    switch (s) {
+                        case ENABLED:
+                            return "Consent given";
+                        case ARCHIVED:
+                        case DISABLED:
+                            return "Consent not given";
+                    }
+                    return "";
+                }, basePanel);
     }
 
 
     private static IModel<String> createTimeIntervalStatusMessage(TimeIntervalStatusType timeIntervalStatus, ActivationType activation, BasePanel basePanel) {
-    	switch (timeIntervalStatus) {
-			case AFTER:
-				return basePanel.createStringResource("ActivationType.validity.after", activation.getValidTo());
-			case BEFORE:
-				return basePanel.createStringResource("ActivationType.validity.before", activation.getValidFrom());
-			case IN:
-				return basePanel.createStringResource(activation.getEffectiveStatus());
+        switch (timeIntervalStatus) {
+            case AFTER:
+                return basePanel.createStringResource("ActivationType.validity.after", activation.getValidTo());
+            case BEFORE:
+                return basePanel.createStringResource("ActivationType.validity.before", activation.getValidFrom());
+            case IN:
+                return basePanel.createStringResource(activation.getEffectiveStatus());
 
-			default:
-				return basePanel.createStringResource(activation.getEffectiveStatus());
-		}
+            default:
+                return basePanel.createStringResource(activation.getEffectiveStatus());
+        }
     }
 
     public static IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
@@ -230,38 +230,38 @@ public class AssignmentsUtil {
     }
 
     public static String getName(PrismContainerValueWrapper<AssignmentType> assignmentValueWrapper, PageBase pageBase) {
-    	AssignmentType assignment = assignmentValueWrapper.getRealValue();
-    	
-		if (assignment == null) {
-			return null;
-		}
+        AssignmentType assignment = assignmentValueWrapper.getRealValue();
 
-		if (assignment.getPolicyRule() != null){
-			StringBuilder sbName = new StringBuilder("");
-			PrismPropertyWrapper<String> property;
-			try {
-				property = assignmentValueWrapper.findProperty(ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME));
-			} catch (SchemaException e) {
-				LOGGER.error("Cannot find name property for policy rules.");
-				pageBase.getSession().error("Cannot find name for the policy rule");
-				return null;
-			}
-			if (property != null && !property.getValues().isEmpty()) {
-				for (PrismPropertyValueWrapper<String> value : property.getValues()) {
-					ItemRealValueModel<String> name = new ItemRealValueModel<String>(Model.of(value));
-					if (StringUtils.isNotEmpty(name.getObject())) {
+        if (assignment == null) {
+            return null;
+        }
+
+        if (assignment.getPolicyRule() != null){
+            StringBuilder sbName = new StringBuilder("");
+            PrismPropertyWrapper<String> property;
+            try {
+                property = assignmentValueWrapper.findProperty(ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME));
+            } catch (SchemaException e) {
+                LOGGER.error("Cannot find name property for policy rules.");
+                pageBase.getSession().error("Cannot find name for the policy rule");
+                return null;
+            }
+            if (property != null && !property.getValues().isEmpty()) {
+                for (PrismPropertyValueWrapper<String> value : property.getValues()) {
+                    ItemRealValueModel<String> name = new ItemRealValueModel<String>(Model.of(value));
+                    if (StringUtils.isNotEmpty(name.getObject())) {
                         sbName.append(name.getObject()).append("\n");
                     }
-				}
-			}
-			if (StringUtils.isNotEmpty(sbName.toString())){
+                }
+            }
+            if (StringUtils.isNotEmpty(sbName.toString())){
                 return sbName.toString();
             } else {
-            	PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
-			    StringBuilder sb = new StringBuilder("");
-			    PolicyConstraintsType constraints = policyRuleContainer.getPolicyConstraints();
-			    if (constraints != null && constraints.getExclusion() != null && constraints.getExclusion().size() > 0){
-			        sb.append(pageBase.createStringResource("PolicyConstraintsType.exclusion").getString() + ": ");
+                PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
+                StringBuilder sb = new StringBuilder("");
+                PolicyConstraintsType constraints = policyRuleContainer.getPolicyConstraints();
+                if (constraints != null && constraints.getExclusion() != null && constraints.getExclusion().size() > 0){
+                    sb.append(pageBase.createStringResource("PolicyConstraintsType.exclusion").getString() + ": ");
                     constraints.getExclusion().forEach(exclusion -> {
                         sb.append(WebComponentUtil.getName(exclusion.getTargetRef()));
                         sb.append("; ");
@@ -270,60 +270,60 @@ public class AssignmentsUtil {
                 return sb.toString();
             }
 
-		}
-		StringBuilder sb = new StringBuilder();
+        }
+        StringBuilder sb = new StringBuilder();
 
-		if (assignment.getConstruction() != null) {
-			// account assignment through account construction
-			ConstructionType construction = assignment.getConstruction();
-			if (construction.getResourceRef() != null) {
-				sb.append(WebComponentUtil.getName(construction.getResourceRef()));
-			}
-			return sb.toString();
-		}
-		
-		//TODO fix this.. what do we want to show in the name columns in the case of assignemtnRelation assignemt??
-		if (assignment.getAssignmentRelation() != null && !assignment.getAssignmentRelation().isEmpty()) {
-			for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
-				sb.append("Assignment relation");
-				List<QName> holders = assignmentRelation.getHolderType();
-				if (!holders.isEmpty()) {
-					sb.append(": ").append(holders.iterator().next());
-				}
-				
-			}
-			String name = sb.toString();
-			if (name.length() > 1) {
-				return name;
-			}
-		}
+        if (assignment.getConstruction() != null) {
+            // account assignment through account construction
+            ConstructionType construction = assignment.getConstruction();
+            if (construction.getResourceRef() != null) {
+                sb.append(WebComponentUtil.getName(construction.getResourceRef()));
+            }
+            return sb.toString();
+        }
 
-		if (isNotEmptyRef(assignment.getTargetRef())) {
-			sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName"));
-		}
+        //TODO fix this.. what do we want to show in the name columns in the case of assignemtnRelation assignemt??
+        if (assignment.getAssignmentRelation() != null && !assignment.getAssignmentRelation().isEmpty()) {
+            for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
+                sb.append("Assignment relation");
+                List<QName> holders = assignmentRelation.getHolderType();
+                if (!holders.isEmpty()) {
+                    sb.append(": ").append(holders.iterator().next());
+                }
 
-//		appendTenantAndOrgName(assignment, pageBase);
+            }
+            String name = sb.toString();
+            if (name.length() > 1) {
+                return name;
+            }
+        }
 
-		if(sb.toString().isEmpty() && assignment.getFocusMappings() != null) {
-			for(MappingType mapping : assignment.getFocusMappings().getMapping()) {
-				String name = mapping.getName() == null ? "" : mapping.getName();
-				String description = mapping.getDescription() == null ? "" : mapping.getDescription();
-				if(name.isEmpty()) {
-					sb.append(!description.isEmpty() ? "Mapping - " + description + "\n": "");
-				} else {
-					sb.append(name);
-					sb.append(!description.isEmpty() ? " - " + description + "\n" : "\n");
-				}
-			}
-		}
-		return sb.toString();
-	}
+        if (isNotEmptyRef(assignment.getTargetRef())) {
+            sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName"));
+        }
 
-    
-    private static boolean isNotEmptyRef(ObjectReferenceType ref) {
-    	return ref != null && ref.getOid() != null && ref.getType() != null;
+//        appendTenantAndOrgName(assignment, pageBase);
+
+        if(sb.toString().isEmpty() && assignment.getFocusMappings() != null) {
+            for(MappingType mapping : assignment.getFocusMappings().getMapping()) {
+                String name = mapping.getName() == null ? "" : mapping.getName();
+                String description = mapping.getDescription() == null ? "" : mapping.getDescription();
+                if(name.isEmpty()) {
+                    sb.append(!description.isEmpty() ? "Mapping - " + description + "\n": "");
+                } else {
+                    sb.append(name);
+                    sb.append(!description.isEmpty() ? " - " + description + "\n" : "\n");
+                }
+            }
+        }
+        return sb.toString();
     }
-    
+
+
+    private static boolean isNotEmptyRef(ObjectReferenceType ref) {
+        return ref != null && ref.getOid() != null && ref.getType() != null;
+    }
+
     public static String getAssignmentSpecificInfoLabel(AssignmentType assignmentType, PageBase pageBase) {
         if (assignmentType == null){
             return "";
@@ -357,10 +357,10 @@ public class AssignmentsUtil {
                     pageBase.createStringResource(relationDisplayName).getString() :
                     pageBase.createStringResource(targetRefObj.getRelation().getLocalPart()).getString());
         }
-    	ObjectReferenceType tenantRef = assignmentType.getTenantRef();
-		if (tenantRef != null && tenantRef.getOid() != null) {
-			String tenantDisplayName = WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTenantName");
-			if (StringUtils.isNotEmpty(tenantDisplayName)){
+        ObjectReferenceType tenantRef = assignmentType.getTenantRef();
+        if (tenantRef != null && tenantRef.getOid() != null) {
+            String tenantDisplayName = WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTenantName");
+            if (StringUtils.isNotEmpty(tenantDisplayName)){
                 if (StringUtils.isNotEmpty(sb.toString())){
                     sb.append(", ");
                 }
@@ -368,11 +368,11 @@ public class AssignmentsUtil {
                 sb.append(" ");
                 sb.append(tenantDisplayName);
             }
-		}
+        }
 
-		ObjectReferenceType orgRef = assignmentType.getOrgRef();
-		if (orgRef != null && orgRef.getOid() != null) {
-			String orgDisplayName = WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadOrgName");
+        ObjectReferenceType orgRef = assignmentType.getOrgRef();
+        if (orgRef != null && orgRef.getOid() != null) {
+            String orgDisplayName = WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadOrgName");
             if (StringUtils.isNotEmpty(orgDisplayName)){
                 if (StringUtils.isNotEmpty(sb.toString())){
                     sb.append(", ");
@@ -381,17 +381,17 @@ public class AssignmentsUtil {
                 sb.append(" ");
                 sb.append(orgDisplayName);
             }
-		}
+        }
 
-		return sb.toString();
-	}
+        return sb.toString();
+    }
 
     private static void appendRelation(AssignmentType assignment, StringBuilder sb, PageBase pageBase) {
-    	if (assignment.getTargetRef() == null) {
-    		return;
-    	}
+        if (assignment.getTargetRef() == null) {
+            return;
+        }
 
-	    String labelKey = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(assignment.getTargetRef().getRelation());
+        String labelKey = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(assignment.getTargetRef().getRelation());
         if (StringUtils.isNotEmpty(labelKey)) {
             sb.append(" - ").append(pageBase.createStringResource(labelKey).getString());
         }
@@ -399,24 +399,24 @@ public class AssignmentsUtil {
     }
 
     public static AssignmentEditorDtoType getType(AssignmentType assignment) {
-    	ObjectReferenceType targetRef = assignment.getTargetRef();
-		if (targetRef.asReferenceValue().getObject() != null) {
-			// object assignment
-			return AssignmentEditorDtoType.getType(targetRef.asReferenceValue().getObject().getCompileTimeClass());
-		} else if (assignment.getTargetRef() != null) {
-			return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
-		}
-		if (assignment.getPolicyRule() != null){
-			return AssignmentEditorDtoType.POLICY_RULE;
-		}
+        ObjectReferenceType targetRef = assignment.getTargetRef();
+        if (targetRef.asReferenceValue().getObject() != null) {
+            // object assignment
+            return AssignmentEditorDtoType.getType(targetRef.asReferenceValue().getObject().getCompileTimeClass());
+        } else if (assignment.getTargetRef() != null) {
+            return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
+        }
+        if (assignment.getPolicyRule() != null){
+            return AssignmentEditorDtoType.POLICY_RULE;
+        }
 
-		if (assignment.getPersonaConstruction() != null) {
-			return AssignmentEditorDtoType.PERSONA_CONSTRUCTION;
-		}
-		// account assignment through account construction
-		return AssignmentEditorDtoType.CONSTRUCTION;
+        if (assignment.getPersonaConstruction() != null) {
+            return AssignmentEditorDtoType.PERSONA_CONSTRUCTION;
+        }
+        // account assignment through account construction
+        return AssignmentEditorDtoType.CONSTRUCTION;
 
-	}
+    }
 
     public static boolean isAssignmentRelevant(AssignmentType assignment) {
         return assignment.getTargetRef() == null ||
@@ -456,9 +456,9 @@ public class AssignmentsUtil {
         }
 
         //TODO: uncomment when GDPR is in
-//		if (assignment.getTargetRef() != null && assignment.getTargetRef().getRelation().equals(SchemaConstants.ORG_CONSENT)) {
-//			return false;
-//		}
+//        if (assignment.getTargetRef() != null && assignment.getTargetRef().getRelation().equals(SchemaConstants.ORG_CONSENT)) {
+//            return false;
+//        }
 
         return true;
     }
@@ -468,7 +468,7 @@ public class AssignmentsUtil {
             return ConstructionType.COMPLEX_TYPE;
         }
         ObjectReferenceType targetRef = assignment.getTargetRef();
-		if (targetRef.asReferenceValue().getObject() != null) {
+        if (targetRef.asReferenceValue().getObject() != null) {
             // object assignment
             return targetRef.asReferenceValue().getObject().getComplexTypeDefinition().getTypeName();
         } else if (assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null) {

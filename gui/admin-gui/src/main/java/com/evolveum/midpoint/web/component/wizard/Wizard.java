@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.wizard;
@@ -42,12 +42,12 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
     private static final String ID_READ_ONLY_NOTE = "readOnlyNote";
     private static final String ID_READ_ONLY_SWITCH = "readOnlySwitch";
 
-	@NotNull private final NonEmptyModel<WizardIssuesDto> issuesModel;
+    @NotNull private final NonEmptyModel<WizardIssuesDto> issuesModel;
 
     public Wizard(String id, IModel<IWizardModel> model, @NotNull NonEmptyModel<WizardIssuesDto> issuesModel) {
         super(id, model);
-		this.issuesModel = issuesModel;
-		initLayout();
+        this.issuesModel = issuesModel;
+        initLayout();
     }
 
     protected void initLayout() {
@@ -77,8 +77,8 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
                 changeStep(target, dto);
             }
         };
-		steps.setOutputMarkupId(true);
-		steps.setVisible(hasMoreThanOneStep());
+        steps.setOutputMarkupId(true);
+        steps.setVisible(hasMoreThanOneStep());
         form.add(steps);
 
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
@@ -87,72 +87,72 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
         WebMarkupContainer view = new WebMarkupContainer(ID_VIEW);
         form.add(view);
 
-		WizardIssuesPanel issuesPanel = new WizardIssuesPanel(ID_ISSUES, issuesModel);
-		issuesPanel.setOutputMarkupId(true);
-		form.add(issuesPanel);
+        WizardIssuesPanel issuesPanel = new WizardIssuesPanel(ID_ISSUES, issuesModel);
+        issuesPanel.setOutputMarkupId(true);
+        form.add(issuesPanel);
 
         WizardButtonBar buttons = new WizardButtonBar(ID_BUTTONS, this);
-		buttons.setOutputMarkupId(true);
+        buttons.setOutputMarkupId(true);
         form.add(buttons);
 
-		WebMarkupContainer autoSaveNote = new WebMarkupContainer(ID_AUTO_SAVE_NOTE);
-		autoSaveNote.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				PageResourceWizard wizardPage = (PageResourceWizard) getPageBase();
-				return !wizardPage.isConfigurationOnly() && !wizardPage.isReadOnly();
-			}
-		});
-		form.add(autoSaveNote);
+        WebMarkupContainer autoSaveNote = new WebMarkupContainer(ID_AUTO_SAVE_NOTE);
+        autoSaveNote.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                PageResourceWizard wizardPage = (PageResourceWizard) getPageBase();
+                return !wizardPage.isConfigurationOnly() && !wizardPage.isReadOnly();
+            }
+        });
+        form.add(autoSaveNote);
 
-		WebMarkupContainer readOnlyNote = new WebMarkupContainer(ID_READ_ONLY_NOTE);
-		readOnlyNote.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				PageResourceWizard wizardPage = (PageResourceWizard) getPageBase();
-				return wizardPage.isReadOnly();
-			}
-		});
-		form.add(readOnlyNote);
+        WebMarkupContainer readOnlyNote = new WebMarkupContainer(ID_READ_ONLY_NOTE);
+        readOnlyNote.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                PageResourceWizard wizardPage = (PageResourceWizard) getPageBase();
+                return wizardPage.isReadOnly();
+            }
+        });
+        form.add(readOnlyNote);
 
-		readOnlyNote.add(new AjaxFallbackLink<String>(ID_READ_ONLY_SWITCH) {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void onClick(Optional<AjaxRequestTarget> optionalTarget) {
-				PageResourceWizard wizardPage = (PageResourceWizard) getPageBase();
-				wizardPage.resetModels();			// e.g. to switch configuration models to read-write
-				wizardPage.setReadOnly(false);
-				optionalTarget.get().add(wizardPage);
-			}
-		});
+        readOnlyNote.add(new AjaxFallbackLink<String>(ID_READ_ONLY_SWITCH) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void onClick(Optional<AjaxRequestTarget> optionalTarget) {
+                PageResourceWizard wizardPage = (PageResourceWizard) getPageBase();
+                wizardPage.resetModels();            // e.g. to switch configuration models to read-write
+                wizardPage.setReadOnly(false);
+                optionalTarget.get().add(wizardPage);
+            }
+        });
 
         IWizardModel wizard = getWizardModel();
         wizard.addListener(this);
         wizard.reset();
     }
 
-	public boolean hasMoreThanOneStep() {
-		Iterator<IWizardStep> iter = getWizardModel().stepIterator();
-		if (!iter.hasNext()) {
-			return false;
-		}
-		iter.next();
-		return iter.hasNext();
-	}
+    public boolean hasMoreThanOneStep() {
+        Iterator<IWizardStep> iter = getWizardModel().stepIterator();
+        if (!iter.hasNext()) {
+            return false;
+        }
+        iter.next();
+        return iter.hasNext();
+    }
 
-	public WizardIssuesPanel getIssuesPanel() {
-		return (WizardIssuesPanel) get(createComponentPath(ID_FORM, ID_ISSUES));
-	}
+    public WizardIssuesPanel getIssuesPanel() {
+        return (WizardIssuesPanel) get(createComponentPath(ID_FORM, ID_ISSUES));
+    }
 
-	public Component getSteps() {
-		return get(createComponentPath(ID_FORM, ID_STEPS));
-	}
+    public Component getSteps() {
+        return get(createComponentPath(ID_FORM, ID_STEPS));
+    }
 
-	public Component getButtons() {
-		return get(createComponentPath(ID_FORM, ID_BUTTONS));
-	}
+    public Component getButtons() {
+        return get(createComponentPath(ID_FORM, ID_BUTTONS));
+    }
 
-	private List<WizardStepDto> loadSteps() {
+    private List<WizardStepDto> loadSteps() {
         List<WizardStepDto> steps = new ArrayList<>();
 
         IWizardModel model = getWizardModel();
@@ -212,26 +212,26 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
 
     @Override
     public void onCancel() {
-		getPageBase().redirectBack();
+        getPageBase().redirectBack();
         //setResponsePage(new PageResources(false));
         //warn(getString("Wizard.message.cancel"));
     }
 
     @Override
     public void onFinish() {
-		// 'show result' is already done
+        // 'show result' is already done
 //        if(getModel() != null && getModel().getObject() != null){
 //            IWizardStep activeStep = getModel().getObject().getActiveStep();
 //
 //            if(activeStep != null){
 //                OperationResult result = ((WizardStep)activeStep).getResult();
-//				if (result != null) {
-//					getPageBase().showResult(result);
-//				}
+//                if (result != null) {
+//                    getPageBase().showResult(result);
+//                }
 //            }
 //        }
 
-		getPageBase().redirectBack();
+        getPageBase().redirectBack();
     }
 
     private void changeStep(AjaxRequestTarget target, WizardStepDto dto){
@@ -296,7 +296,7 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
         target.add(this, getPageBase().getFeedbackPanel());
     }
 //
-//	public boolean noErrors() {
-//		return !issuesModel.getObject().hasErrors();
-//	}
+//    public boolean noErrors() {
+//        return !issuesModel.getObject().hasErrors();
+//    }
 }

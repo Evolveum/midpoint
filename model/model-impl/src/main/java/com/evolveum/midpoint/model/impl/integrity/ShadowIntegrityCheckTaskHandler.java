@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -53,9 +53,9 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     public static final String HANDLER_URI = ModelPublicConstants.SHADOW_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
     // WARNING! This task handler is efficiently singleton!
- 	// It is a spring bean and it is supposed to handle all search task instances
- 	// Therefore it must not have task-specific fields. It can only contain fields specific to
- 	// all tasks of a specified type
+     // It is a spring bean and it is supposed to handle all search task instances
+     // Therefore it must not have task-specific fields. It can only contain fields specific to
+     // all tasks of a specified type
 
     @Autowired
     private ProvisioningService provisioningService;
@@ -67,7 +67,7 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     private SynchronizationService synchronizationService;
 
     @Autowired
-	private SystemObjectCache systemObjectCache;
+    private SystemObjectCache systemObjectCache;
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowIntegrityCheckTaskHandler.class);
 
@@ -82,12 +82,12 @@ public class ShadowIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
         taskManager.registerHandler(HANDLER_URI, this);
     }
 
-	@Override
-	protected ShadowIntegrityCheckResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
+    @Override
+    protected ShadowIntegrityCheckResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
         return new ShadowIntegrityCheckResultHandler(coordinatorTask, ShadowIntegrityCheckTaskHandler.class.getName(),
-				"check shadow integrity", "check shadow integrity", taskManager, prismContext, provisioningService,
+                "check shadow integrity", "check shadow integrity", taskManager, prismContext, provisioningService,
                 matchingRuleRegistry, repositoryService, synchronizationService, systemObjectCache, opResult);
-	}
+    }
 
     @Override
     protected Class<? extends ObjectType> getType(Task task) {

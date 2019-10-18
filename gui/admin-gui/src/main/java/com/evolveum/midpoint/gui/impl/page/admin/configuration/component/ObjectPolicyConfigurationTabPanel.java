@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -55,12 +55,12 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
  */
 public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends BasePanel<PrismContainerWrapper<ObjectPolicyConfigurationType>> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyConfigurationTabPanel.class);
-	
+    private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyConfigurationTabPanel.class);
+
     private static final String ID_OBJECTS_POLICY = "objectsPolicy";
-    
+
     public ObjectPolicyConfigurationTabPanel(String id, IModel<PrismContainerWrapper<ObjectPolicyConfigurationType>> model) {
         super(id, model);
 //        getModel().getObject().getValues().clear();
@@ -68,179 +68,179 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 
     @Override
     protected void onInitialize() {
-    		super.onInitialize();
-    		
-    		PageParameters params = getPage().getPageParameters();
-    		StringValue val = params.get(PageSystemConfiguration.SELECTED_TAB_INDEX);
-    		if (val != null && !val.isNull()) {
-    			params.remove(params.getPosition(PageSystemConfiguration.SELECTED_TAB_INDEX));
-    		} 
-    		params.set(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_OBJECT_POLICY);
-    		
-    		initLayout();
+            super.onInitialize();
+
+            PageParameters params = getPage().getPageParameters();
+            StringValue val = params.get(PageSystemConfiguration.SELECTED_TAB_INDEX);
+            if (val != null && !val.isNull()) {
+                params.remove(params.getPosition(PageSystemConfiguration.SELECTED_TAB_INDEX));
+            }
+            params.set(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_OBJECT_POLICY);
+
+            initLayout();
     }
-    
+
     protected void initLayout() {
-    	
-    	TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
-    	PageStorage pageStorage = getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage();
-    	
-    	MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> multivalueContainerListPanel
-				= new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>(ID_OBJECTS_POLICY, getModel(),
-    			tableId, pageStorage) {
-			
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			protected List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> postSearch(
-					List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> items) {
-				return getObjects();
-			}
-			
-			@Override
-			protected void newItemPerformed(AjaxRequestTarget target) {
-				newObjectPolicyClickPerformed(target);
-			}
-			
-			@Override
-			protected void initPaging() {
-				ObjectPolicyConfigurationTabPanel.this.initPaging(); 
-			}
-			
-			@Override
-			protected boolean enableActionNewObject() {
-				return true;
-			}
-			
-			@Override
-			protected ObjectQuery createQuery() {
-			        return ObjectPolicyConfigurationTabPanel.this.createQuery();
-			}
-			
-			@Override
-			protected List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createColumns() {
-				return initBasicColumns();
-			}
 
-			@Override
-			protected MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerDetailsPanel(
-					ListItem<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
-				return ObjectPolicyConfigurationTabPanel.this.getMultivalueContainerDetailsPanel(item);
-			}
+        TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
+        PageStorage pageStorage = getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage();
 
-			@Override
-			protected List<SearchItemDefinition> initSearchableItems(
-					PrismContainerDefinition<ObjectPolicyConfigurationType> containerDef) {
-				List<SearchItemDefinition> defs = new ArrayList<>();
-				
-				SearchFactory.addSearchRefDef(containerDef, ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-				SearchFactory.addSearchPropertyDef(containerDef, ObjectPolicyConfigurationType.F_SUBTYPE, defs);
-				SearchFactory.addSearchPropertyDef(containerDef, ItemPath
-						.create(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE, LifecycleStateType.F_NAME), defs);
-				
-				return defs;
-			}
-		};
-		add(multivalueContainerListPanel);
-		setOutputMarkupId(true);
-	}
-    
-    private List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> getObjects() {
-    	return getModelObject().getValues();
+        MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> multivalueContainerListPanel
+                = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>(ID_OBJECTS_POLICY, getModel(),
+                tableId, pageStorage) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> postSearch(
+                    List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> items) {
+                return getObjects();
+            }
+
+            @Override
+            protected void newItemPerformed(AjaxRequestTarget target) {
+                newObjectPolicyClickPerformed(target);
+            }
+
+            @Override
+            protected void initPaging() {
+                ObjectPolicyConfigurationTabPanel.this.initPaging();
+            }
+
+            @Override
+            protected boolean enableActionNewObject() {
+                return true;
+            }
+
+            @Override
+            protected ObjectQuery createQuery() {
+                    return ObjectPolicyConfigurationTabPanel.this.createQuery();
+            }
+
+            @Override
+            protected List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createColumns() {
+                return initBasicColumns();
+            }
+
+            @Override
+            protected MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerDetailsPanel(
+                    ListItem<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
+                return ObjectPolicyConfigurationTabPanel.this.getMultivalueContainerDetailsPanel(item);
+            }
+
+            @Override
+            protected List<SearchItemDefinition> initSearchableItems(
+                    PrismContainerDefinition<ObjectPolicyConfigurationType> containerDef) {
+                List<SearchItemDefinition> defs = new ArrayList<>();
+
+                SearchFactory.addSearchRefDef(containerDef, ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+                SearchFactory.addSearchPropertyDef(containerDef, ObjectPolicyConfigurationType.F_SUBTYPE, defs);
+                SearchFactory.addSearchPropertyDef(containerDef, ItemPath
+                        .create(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE, LifecycleStateType.F_NAME), defs);
+
+                return defs;
+            }
+        };
+        add(multivalueContainerListPanel);
+        setOutputMarkupId(true);
     }
-    
+
+    private List<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> getObjects() {
+        return getModelObject().getValues();
+    }
+
     protected void newObjectPolicyClickPerformed(AjaxRequestTarget target) {
         PrismContainerValue<ObjectPolicyConfigurationType> newObjectPolicy = getModel().getObject().getItem().createNewValue();
         PrismContainerValueWrapper<ObjectPolicyConfigurationType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModelObject(), target);
         getMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newObjectPolicyWrapper));
-	}
-    
+    }
+
     private MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerDetailsPanel(
-			ListItem<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
-    	MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> detailsPanel = new  MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
+            ListItem<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
+        MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> detailsPanel = new  MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected DisplayNamePanel<ObjectPolicyConfigurationType> createDisplayNamePanel(String displayNamePanelId) {
-				ItemRealValueModel<ObjectPolicyConfigurationType> displayNameModel = 
-						new ItemRealValueModel<ObjectPolicyConfigurationType>(item.getModel());
-				return new DisplayNamePanel<ObjectPolicyConfigurationType>(displayNamePanelId, displayNameModel);
-			}
-		};
-		return detailsPanel;
-	}
-    
-	private MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> getMultivalueContainerListPanel(){
-		return ((MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>)get(ID_OBJECTS_POLICY));
-	}
-    
+            @Override
+            protected DisplayNamePanel<ObjectPolicyConfigurationType> createDisplayNamePanel(String displayNamePanelId) {
+                ItemRealValueModel<ObjectPolicyConfigurationType> displayNameModel =
+                        new ItemRealValueModel<ObjectPolicyConfigurationType>(item.getModel());
+                return new DisplayNamePanel<ObjectPolicyConfigurationType>(displayNamePanelId, displayNameModel);
+            }
+        };
+        return detailsPanel;
+    }
+
+    private MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> getMultivalueContainerListPanel(){
+        return ((MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>)get(ID_OBJECTS_POLICY));
+    }
+
     private ObjectQuery createQuery() {
-    	return getPageBase().getPrismContext().queryFor(ObjectPolicyConfigurationType.class)
-    			.all()
+        return getPageBase().getPrismContext().queryFor(ObjectPolicyConfigurationType.class)
+                .all()
                 .build();
     }
-    
+
     private void initPaging() {
-    	getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage().setPaging(
-    			getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
+        getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage().setPaging(
+                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
     }
-    
+
     private List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> initBasicColumns() {
-		List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> columns = new ArrayList<>();
+        List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> columns = new ArrayList<>();
 
-		columns.add(new CheckBoxHeaderColumn<>());
-		
-		columns.add(new PrismPropertyWrapperColumn<ObjectPolicyConfigurationType, QName>(getModel(), ObjectPolicyConfigurationType.F_TYPE,
-				ColumnType.LINK, getPageBase()) { 
-			
-			private static final long serialVersionUID = 1L;
+        columns.add(new CheckBoxHeaderColumn<>());
 
-			@Override
-			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
-			}
-			
-			@Override
-			public String getCssClass() {
-				return " col-lg-1 col-md-2 ";
-			}
-			
-		});
-		
-		columns.add(new PrismPropertyWrapperColumn(getModel(), ObjectPolicyConfigurationType.F_SUBTYPE, ColumnType.VALUE, getPageBase()) {
-			
-			@Override
-			public String getCssClass() {
-				return " col-md-2 ";
-			}
-			
-		});
-		
-		columns.add(new PrismReferenceWrapperColumn(getModel(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, ColumnType.VALUE, getPageBase()));
+        columns.add(new PrismPropertyWrapperColumn<ObjectPolicyConfigurationType, QName>(getModel(), ObjectPolicyConfigurationType.F_TYPE,
+                ColumnType.LINK, getPageBase()) {
 
-		columns.add(new PrismReferenceWrapperColumn(getModel(), ItemPath.create(ObjectPolicyConfigurationType.F_APPLICABLE_POLICIES, ApplicablePoliciesType.F_POLICY_GROUP_REF), ColumnType.VALUE, getPageBase()));
+            private static final long serialVersionUID = 1L;
 
-		columns.add(new PrismContainerWrapperColumn<ObjectPolicyConfigurationType>(getModel(),
-				ItemPath.create(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE), getPageBase()) {
-			
-			@Override
-			public String getCssClass() {
-				return " col-md-2 ";
-			}
-			
-		});
-		
-		List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
-		columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
-			
-			@Override
-			public String getCssClass() {
-				return " col-md-1 ";
-			}
-		});
-		
+            @Override
+            protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
+                getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
+            }
+
+            @Override
+            public String getCssClass() {
+                return " col-lg-1 col-md-2 ";
+            }
+
+        });
+
+        columns.add(new PrismPropertyWrapperColumn(getModel(), ObjectPolicyConfigurationType.F_SUBTYPE, ColumnType.VALUE, getPageBase()) {
+
+            @Override
+            public String getCssClass() {
+                return " col-md-2 ";
+            }
+
+        });
+
+        columns.add(new PrismReferenceWrapperColumn(getModel(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, ColumnType.VALUE, getPageBase()));
+
+        columns.add(new PrismReferenceWrapperColumn(getModel(), ItemPath.create(ObjectPolicyConfigurationType.F_APPLICABLE_POLICIES, ApplicablePoliciesType.F_POLICY_GROUP_REF), ColumnType.VALUE, getPageBase()));
+
+        columns.add(new PrismContainerWrapperColumn<ObjectPolicyConfigurationType>(getModel(),
+                ItemPath.create(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE), getPageBase()) {
+
+            @Override
+            public String getCssClass() {
+                return " col-md-2 ";
+            }
+
+        });
+
+        List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
+        columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
+
+            @Override
+            public String getCssClass() {
+                return " col-md-1 ";
+            }
+        });
+
         return columns;
-	}
+    }
 }
 

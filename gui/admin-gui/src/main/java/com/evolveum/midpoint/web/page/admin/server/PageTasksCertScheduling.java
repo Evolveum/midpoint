@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server;
@@ -28,10 +28,10 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                 description = "PageTasks.auth.tasks.description")})
 public class PageTasksCertScheduling extends PageTasks {
 
-	public PageTasksCertScheduling() {
-	}
+    public PageTasksCertScheduling() {
+    }
 
-	public PageTasksCertScheduling(PageParameters parameters) {
-		super(parameters);
-	}
+    public PageTasksCertScheduling(PageParameters parameters) {
+        super(parameters);
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -44,16 +44,16 @@ public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private MidPointGuiAuthorizationEvaluator accessDecisionManager;
-    
+
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/actuator");
         web.ignoring().antMatchers("/actuator/health");
     }
-    
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        
+
         http
         .antMatcher("/actuator/**")
         .authorizeRequests()
@@ -67,9 +67,9 @@ public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
         .exceptionHandling().authenticationEntryPoint(new MidpointRestAuthenticationEntryPoint())
         .and()
         .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
-        
+
     }
-    
+
     @Bean
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -41,112 +41,112 @@ import java.util.List;
 @Component
 public class ApprovalSchemaExecutionInformationHelper {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ApprovalSchemaExecutionInformationHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ApprovalSchemaExecutionInformationHelper.class);
 
-	@Autowired private ModelService modelService;
-	@Autowired private PrismContext prismContext;
-	@Autowired private StageComputeHelper computeHelper;
-	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;
-	@Autowired private ConfigurationHelper configurationHelper;
-	@Autowired
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repositoryService;
+    @Autowired private ModelService modelService;
+    @Autowired private PrismContext prismContext;
+    @Autowired private StageComputeHelper computeHelper;
+    @Autowired private PrimaryChangeProcessor primaryChangeProcessor;
+    @Autowired private ConfigurationHelper configurationHelper;
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
 
-	ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String caseOid, Task opTask,
-			OperationResult result)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException {
-		CaseType aCase = modelService.getObject(CaseType.class, caseOid, null, opTask, result).asObjectable();
-		return getApprovalSchemaExecutionInformation(aCase, false, opTask, result);
-	}
+    ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String caseOid, Task opTask,
+            OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        CaseType aCase = modelService.getObject(CaseType.class, caseOid, null, opTask, result).asObjectable();
+        return getApprovalSchemaExecutionInformation(aCase, false, opTask, result);
+    }
 
-	List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
-			OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		WfConfigurationType wfConfiguration = configurationHelper.getWorkflowConfiguration(modelContext, result);
-		ModelInvocationContext<?> ctx = new ModelInvocationContext<>(modelContext, wfConfiguration, prismContext, repositoryService, opTask);
-		List<PcpStartInstruction> taskInstructions = primaryChangeProcessor.previewModelInvocation(ctx, result);
-		List<ApprovalSchemaExecutionInformationType> rv = new ArrayList<>();
-		for (PcpStartInstruction taskInstruction : taskInstructions) {
-			OperationResult childResult = result.createMinorSubresult(ApprovalSchemaExecutionInformationHelper.class + ".getApprovalSchemaPreview");
-			try {
-				CaseType aCase = taskInstruction.getCase();
-				rv.add(getApprovalSchemaExecutionInformation(aCase, true, opTask, childResult));
-				childResult.computeStatus();
-			} catch (Throwable t) {
-				childResult.recordFatalError("Couldn't preview approval schema for " + taskInstruction, t);
-			}
-		}
-		return rv;
-	}
+    List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
+            OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        WfConfigurationType wfConfiguration = configurationHelper.getWorkflowConfiguration(modelContext, result);
+        ModelInvocationContext<?> ctx = new ModelInvocationContext<>(modelContext, wfConfiguration, prismContext, repositoryService, opTask);
+        List<PcpStartInstruction> taskInstructions = primaryChangeProcessor.previewModelInvocation(ctx, result);
+        List<ApprovalSchemaExecutionInformationType> rv = new ArrayList<>();
+        for (PcpStartInstruction taskInstruction : taskInstructions) {
+            OperationResult childResult = result.createMinorSubresult(ApprovalSchemaExecutionInformationHelper.class + ".getApprovalSchemaPreview");
+            try {
+                CaseType aCase = taskInstruction.getCase();
+                rv.add(getApprovalSchemaExecutionInformation(aCase, true, opTask, childResult));
+                childResult.computeStatus();
+            } catch (Throwable t) {
+                childResult.recordFatalError("Couldn't preview approval schema for " + taskInstruction, t);
+            }
+        }
+        return rv;
+    }
 
-	@NotNull
-	private ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(CaseType aCase, boolean purePreview, Task opTask,
-			OperationResult result) {
-		ApprovalSchemaExecutionInformationType rv = new ApprovalSchemaExecutionInformationType(prismContext);
-		rv.setCaseRef(ObjectTypeUtil.createObjectRefWithFullObject(aCase, prismContext));
-		ApprovalContextType wfc = aCase.getApprovalContext();
-		if (wfc == null) {
-			result.recordFatalError("Workflow context in " + aCase + " is missing or not accessible.");
-			return rv;
-		}
-		ApprovalSchemaType approvalSchema = wfc.getApprovalSchema();
-		if (approvalSchema == null) {
-			result.recordFatalError("Approval schema in " + aCase + " is missing or not accessible.");
-			return rv;
-		}
-		rv.setCurrentStageNumber(aCase.getStageNumber());
-		Integer currentStageNumber = !purePreview ? aCase.getStageNumber() : 0;
-		if (currentStageNumber == null) {
-			result.recordFatalError("Information on current stage number in " + aCase + " is missing or not accessible.");
-			return rv;
-		}
-		List<ApprovalStageDefinitionType> stagesDef = ApprovalContextUtil.sortAndCheckStages(approvalSchema);
-		for (ApprovalStageDefinitionType stageDef : stagesDef) {
-			ApprovalStageExecutionInformationType stageExecution = new ApprovalStageExecutionInformationType(prismContext);
-			stageExecution.setNumber(stageDef.getNumber());
-			stageExecution.setDefinition(stageDef);
-			if (stageDef.getNumber() <= currentStageNumber) {
-				stageExecution.setExecutionRecord(createStageExecutionRecord(aCase, stageDef.getNumber(), currentStageNumber));
-			} else {
-				stageExecution.setExecutionPreview(createStageExecutionPreview(aCase, opTask.getChannel(), stageDef, opTask, result));
-			}
-			rv.getStage().add(stageExecution);
-		}
-		if (wfc.getPolicyRules() != null) {
-			rv.setPolicyRules(wfc.getPolicyRules().clone());
-		}
-		return rv;
-	}
+    @NotNull
+    private ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(CaseType aCase, boolean purePreview, Task opTask,
+            OperationResult result) {
+        ApprovalSchemaExecutionInformationType rv = new ApprovalSchemaExecutionInformationType(prismContext);
+        rv.setCaseRef(ObjectTypeUtil.createObjectRefWithFullObject(aCase, prismContext));
+        ApprovalContextType wfc = aCase.getApprovalContext();
+        if (wfc == null) {
+            result.recordFatalError("Workflow context in " + aCase + " is missing or not accessible.");
+            return rv;
+        }
+        ApprovalSchemaType approvalSchema = wfc.getApprovalSchema();
+        if (approvalSchema == null) {
+            result.recordFatalError("Approval schema in " + aCase + " is missing or not accessible.");
+            return rv;
+        }
+        rv.setCurrentStageNumber(aCase.getStageNumber());
+        Integer currentStageNumber = !purePreview ? aCase.getStageNumber() : 0;
+        if (currentStageNumber == null) {
+            result.recordFatalError("Information on current stage number in " + aCase + " is missing or not accessible.");
+            return rv;
+        }
+        List<ApprovalStageDefinitionType> stagesDef = ApprovalContextUtil.sortAndCheckStages(approvalSchema);
+        for (ApprovalStageDefinitionType stageDef : stagesDef) {
+            ApprovalStageExecutionInformationType stageExecution = new ApprovalStageExecutionInformationType(prismContext);
+            stageExecution.setNumber(stageDef.getNumber());
+            stageExecution.setDefinition(stageDef);
+            if (stageDef.getNumber() <= currentStageNumber) {
+                stageExecution.setExecutionRecord(createStageExecutionRecord(aCase, stageDef.getNumber(), currentStageNumber));
+            } else {
+                stageExecution.setExecutionPreview(createStageExecutionPreview(aCase, opTask.getChannel(), stageDef, opTask, result));
+            }
+            rv.getStage().add(stageExecution);
+        }
+        if (wfc.getPolicyRules() != null) {
+            rv.setPolicyRules(wfc.getPolicyRules().clone());
+        }
+        return rv;
+    }
 
-	private ApprovalStageExecutionPreviewType createStageExecutionPreview(CaseType aCase, String requestChannel,
-			ApprovalStageDefinitionType stageDef, Task opTask, OperationResult result) {
-		ApprovalStageExecutionPreviewType rv = new ApprovalStageExecutionPreviewType(prismContext);
-		try {
-			StageComputeHelper.ComputationResult computationResult = computeHelper
-					.computeStageApprovers(stageDef, aCase,
-							() -> computeHelper.getDefaultVariables(aCase, aCase.getApprovalContext(), requestChannel, result),
-							opTask, result);
-			rv.getExpectedApproverRef().addAll(computationResult.getApproverRefs());
-			rv.setExpectedAutomatedOutcome(computationResult.getPredeterminedOutcome());
-			rv.setExpectedAutomatedCompletionReason(computationResult.getAutomatedCompletionReason());
-		} catch (Throwable t) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't compute stage execution preview", t);
-			rv.setErrorMessage(MiscUtil.formatExceptionMessageWithCause(t));
-			rv.getExpectedApproverRef().addAll(CloneUtil.cloneCollectionMembers(stageDef.getApproverRef()));      // at least something here
-		}
-		return rv;
-	}
+    private ApprovalStageExecutionPreviewType createStageExecutionPreview(CaseType aCase, String requestChannel,
+            ApprovalStageDefinitionType stageDef, Task opTask, OperationResult result) {
+        ApprovalStageExecutionPreviewType rv = new ApprovalStageExecutionPreviewType(prismContext);
+        try {
+            StageComputeHelper.ComputationResult computationResult = computeHelper
+                    .computeStageApprovers(stageDef, aCase,
+                            () -> computeHelper.getDefaultVariables(aCase, aCase.getApprovalContext(), requestChannel, result),
+                            opTask, result);
+            rv.getExpectedApproverRef().addAll(computationResult.getApproverRefs());
+            rv.setExpectedAutomatedOutcome(computationResult.getPredeterminedOutcome());
+            rv.setExpectedAutomatedCompletionReason(computationResult.getAutomatedCompletionReason());
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't compute stage execution preview", t);
+            rv.setErrorMessage(MiscUtil.formatExceptionMessageWithCause(t));
+            rv.getExpectedApproverRef().addAll(CloneUtil.cloneCollectionMembers(stageDef.getApproverRef()));      // at least something here
+        }
+        return rv;
+    }
 
-	private ApprovalStageExecutionRecordType createStageExecutionRecord(CaseType aCase, Integer stageNumberObject,
-			int currentStageNumber) {
-		int stageNumber = stageNumberObject;
-		ApprovalStageExecutionRecordType rv = new ApprovalStageExecutionRecordType(prismContext);
-		aCase.getEvent().stream()
-				.filter(e -> e.getStageNumber() != null && e.getStageNumber() == stageNumber)
-				.forEach(e -> rv.getEvent().add(e.clone()));
-		if (stageNumber == currentStageNumber) {
-			rv.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(aCase.getWorkItem()));
-		}
-		return rv;
-	}
+    private ApprovalStageExecutionRecordType createStageExecutionRecord(CaseType aCase, Integer stageNumberObject,
+            int currentStageNumber) {
+        int stageNumber = stageNumberObject;
+        ApprovalStageExecutionRecordType rv = new ApprovalStageExecutionRecordType(prismContext);
+        aCase.getEvent().stream()
+                .filter(e -> e.getStageNumber() != null && e.getStageNumber() == stageNumber)
+                .forEach(e -> rv.getEvent().add(e.clone()));
+        if (stageNumber == currentStageNumber) {
+            rv.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(aCase.getWorkItem()));
+        }
+        return rv;
+    }
 }

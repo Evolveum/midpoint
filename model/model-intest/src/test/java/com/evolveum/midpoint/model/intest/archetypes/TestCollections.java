@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.archetypes;
@@ -61,186 +61,186 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestCollections extends AbstractArchetypesTest {
 
-	private static Trace LOGGER = TraceManager.getTrace(TestCollections.class);
-	
-	private PrismObject<ObjectCollectionType> collectionActiveUsers;
-	private CompiledObjectCollectionView collectionViewActiveUsers;
-	private int numberOfDisabledUsers = 0;
+    private static Trace LOGGER = TraceManager.getTrace(TestCollections.class);
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    private PrismObject<ObjectCollectionType> collectionActiveUsers;
+    private CompiledObjectCollectionView collectionViewActiveUsers;
+    private int numberOfDisabledUsers = 0;
 
-		repoAddObjectFromFile(COLLECTION_ACTIVE_USERS_FILE, initResult);
-		
-		SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, initTask, initResult);
-		// Make sure effectiveStatus and other attributes are OK
-		recomputeAndRefreshObjects(users.stream().map(o -> o.asObjectable()).collect(Collectors.toList()), initTask, initResult);
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-	@Test
+        repoAddObjectFromFile(COLLECTION_ACTIVE_USERS_FILE, initResult);
+
+        SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, initTask, initResult);
+        // Make sure effectiveStatus and other attributes are OK
+        recomputeAndRefreshObjects(users.stream().map(o -> o.asObjectable()).collect(Collectors.toList()), initTask, initResult);
+    }
+
+    @Test
     public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test000Sanity";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		// WHEN
-		displayWhen(TEST_NAME);
+        // WHEN
+        displayWhen(TEST_NAME);
         collectionActiveUsers = modelService.getObject(ObjectCollectionType.class, COLLECTION_ACTIVE_USERS_OID, null, task, result);
 
-		// THEN
+        // THEN
         displayThen(TEST_NAME);
         display("Collection", collectionActiveUsers);
         assertSuccess(result);
         assertNotNull("No collection", collectionActiveUsers);
-	}
+    }
 
-	@Test
+    @Test
     public void test100CompileCollectionView() throws Exception {
-		final String TEST_NAME = "test100CompileCollectionView";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test100CompileCollectionView";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
-		collectionViewActiveUsers = modelInteractionService.compileObjectCollectionView(collectionActiveUsers, null, task, result);
+        collectionViewActiveUsers = modelInteractionService.compileObjectCollectionView(collectionActiveUsers, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		display("Active users collection view", collectionViewActiveUsers);
-		assertSuccess(result);
-		assertNotNull("Null view", collectionActiveUsers);
-		
-		assertObjectCollectionView(collectionViewActiveUsers)
-			.assertFilter()
-			.assertDomainFilter();
-		
-	}
+        // THEN
+        displayThen(TEST_NAME);
+        display("Active users collection view", collectionViewActiveUsers);
+        assertSuccess(result);
+        assertNotNull("Null view", collectionActiveUsers);
 
-	/**
-	 * All users are enabled.
-	 */
-	@Test
+        assertObjectCollectionView(collectionViewActiveUsers)
+            .assertFilter()
+            .assertDomainFilter();
+
+    }
+
+    /**
+     * All users are enabled.
+     */
+    @Test
     public void test102SearchCollectionUsers() throws Exception {
-		final String TEST_NAME = "test102SearchCollectionUsers";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test102SearchCollectionUsers";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         SearchResultList<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, prismContext.queryFactory().createQuery(collectionViewActiveUsers.getFilter()), null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		display("Users in collection", users);
-		assertSuccess(result);
-		assertEquals("Wrong number of users in collection", getNumberOfUsers(), users.size());
-	}
-	
-	@Test
+        // THEN
+        displayThen(TEST_NAME);
+        display("Users in collection", users);
+        assertSuccess(result);
+        assertEquals("Wrong number of users in collection", getNumberOfUsers(), users.size());
+    }
+
+    @Test
     public void test110CollectionStatsAllEnabled() throws Exception {
-		final String TEST_NAME = "test110CollectionStatsAllEnabled";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test110CollectionStatsAllEnabled";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
-		CollectionStats stats = modelInteractionService.determineCollectionStats(collectionViewActiveUsers, task, result);
+        CollectionStats stats = modelInteractionService.determineCollectionStats(collectionViewActiveUsers, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		display("Collection stats", stats);
-		assertSuccess(result);
-		assertNotNull("Null stats", stats);
-		
-		assertEquals("Wrong object count", getNumberOfUsers(), stats.getObjectCount());
-		assertEquals("Wrong domain count", (Integer)getNumberOfUsers(), stats.getDomainCount());
-		assertPercentage(stats, 100);
-	}
-	
-	@Test
+        // THEN
+        displayThen(TEST_NAME);
+        display("Collection stats", stats);
+        assertSuccess(result);
+        assertNotNull("Null stats", stats);
+
+        assertEquals("Wrong object count", getNumberOfUsers(), stats.getObjectCount());
+        assertEquals("Wrong domain count", (Integer)getNumberOfUsers(), stats.getDomainCount());
+        assertPercentage(stats, 100);
+    }
+
+    @Test
     public void test112EvaluateRulesAllEnabled() throws Exception {
-		final String TEST_NAME = "test112EvaluateRulesAllEnabled";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test112EvaluateRulesAllEnabled";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
-		Collection<EvaluatedPolicyRule> evaluatedRules = modelInteractionService.evaluateCollectionPolicyRules(collectionActiveUsers, collectionViewActiveUsers, null, task, result);
+        Collection<EvaluatedPolicyRule> evaluatedRules = modelInteractionService.evaluateCollectionPolicyRules(collectionActiveUsers, collectionViewActiveUsers, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-		
-		assertEvaluatedPolicyRules(evaluatedRules, collectionActiveUsers)
-			.single()
-				.assertNotTriggered();
-	}
-	
-	@Test
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertEvaluatedPolicyRules(evaluatedRules, collectionActiveUsers)
+            .single()
+                .assertNotTriggered();
+    }
+
+    @Test
     public void test120CollectionStatsOneDisabled() throws Exception {
-		final String TEST_NAME = "test120CollectionStatsOneDisabled";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test120CollectionStatsOneDisabled";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         modifyUserReplace(USER_GUYBRUSH_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
         numberOfDisabledUsers++;
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
-		CollectionStats stats = modelInteractionService.determineCollectionStats(collectionViewActiveUsers, task, result);
+        CollectionStats stats = modelInteractionService.determineCollectionStats(collectionViewActiveUsers, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		display("Collection stats", stats);
-		assertSuccess(result);
-		assertNotNull("Null stats", stats);
-		
-		assertEquals("Wrong object count", getNumberOfUsers() - numberOfDisabledUsers, stats.getObjectCount());
-		assertEquals("Wrong domain count", (Integer)getNumberOfUsers(), stats.getDomainCount());
-		assertPercentage(stats, (Float)((getNumberOfUsers() - numberOfDisabledUsers)*100f)/getNumberOfUsers());
-	}
+        // THEN
+        displayThen(TEST_NAME);
+        display("Collection stats", stats);
+        assertSuccess(result);
+        assertNotNull("Null stats", stats);
 
-	@Test
+        assertEquals("Wrong object count", getNumberOfUsers() - numberOfDisabledUsers, stats.getObjectCount());
+        assertEquals("Wrong domain count", (Integer)getNumberOfUsers(), stats.getDomainCount());
+        assertPercentage(stats, (Float)((getNumberOfUsers() - numberOfDisabledUsers)*100f)/getNumberOfUsers());
+    }
+
+    @Test
     public void test122EvaluateRulesOneDisabled() throws Exception {
-		final String TEST_NAME = "test122EvaluateRulesOneDisabled";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test122EvaluateRulesOneDisabled";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
-		Collection<EvaluatedPolicyRule> evaluatedRules = modelInteractionService.evaluateCollectionPolicyRules(collectionActiveUsers, collectionViewActiveUsers, null, task, result);
+        Collection<EvaluatedPolicyRule> evaluatedRules = modelInteractionService.evaluateCollectionPolicyRules(collectionActiveUsers, collectionViewActiveUsers, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-		
-		assertEvaluatedPolicyRules(evaluatedRules, collectionActiveUsers)
-			.single()
-				.assertPolicySituation(POLICY_SITUATION_TOO_MANY_INACTIVE_USERS)
-				.singleTrigger()
-					.assertConstraintKind(PolicyConstraintKindType.COLLECTION_STATS);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-	}
+        assertEvaluatedPolicyRules(evaluatedRules, collectionActiveUsers)
+            .single()
+                .assertPolicySituation(POLICY_SITUATION_TOO_MANY_INACTIVE_USERS)
+                .singleTrigger()
+                    .assertConstraintKind(PolicyConstraintKindType.COLLECTION_STATS);
+
+    }
 }

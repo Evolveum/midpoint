@@ -2,59 +2,59 @@
 <!--
   ~ Copyright (c) 2010-2016 mythoss, Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate
-	oid="10000000-0000-0000-0000-000000002222"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
-	<name>objectTemplate users</name>
-	    <mapping>
-    	<name> role ShipNWeapon</name>
-    	<source>
-    		<name>extship</name>
-			<path>$user/extension/piracy:ship</path>
-		</source>
-    	<expression>
+    oid="10000000-0000-0000-0000-000000002222"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>objectTemplate users</name>
+        <mapping>
+        <name> role ShipNWeapon</name>
+        <source>
+            <name>extship</name>
+            <path>$user/extension/piracy:ship</path>
+        </source>
+        <expression>
             <!-- <assignmentTargetSearch>
-            	<targetType>c:RoleType</targetType>
-            	<oid>10000000-0000-0000-0000-000000000602</oid>
+                <targetType>c:RoleType</targetType>
+                <oid>10000000-0000-0000-0000-000000000602</oid>
             </assignmentTargetSearch> -->
             <assignmentTargetSearch>
-				<targetType>RoleType</targetType>
-				<filter>
-					<q:equal>
-						<q:path>name</q:path>
-						<expression>
-							<script>
-								<code>
-									return "ShipNWeapon"
-								</code>
-							</script>
-						</expression>
-					</q:equal>
-				</filter>
-			</assignmentTargetSearch>    	
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
-    	<condition>
-			<script>
-				<code>
-				log.debug("objecttemplate extship: "+ extship)
-				result = false
-				if (extship != null) result = true
-				log.debug("objecttemplate calculated result: "+result)
-				return result
-				</code>
-			</script>
-		</condition>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <script>
+                                <code>
+                                    return "ShipNWeapon"
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>
+                log.debug("objecttemplate extship: "+ extship)
+                result = false
+                if (extship != null) result = true
+                log.debug("objecttemplate calculated result: "+result)
+                return result
+                </code>
+            </script>
+        </condition>
     </mapping>
 </objectTemplate>

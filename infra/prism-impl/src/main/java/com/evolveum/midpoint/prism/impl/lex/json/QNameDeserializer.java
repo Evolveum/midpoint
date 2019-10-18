@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.lex.json;
@@ -21,63 +21,63 @@ import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 
 public class QNameDeserializer extends JsonDeserializer<QName>{
 
-	@Override
-	public QName deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
-			JsonProcessingException {
-		//System.out.println("tralalaaaaa   QName deserializer");
-//		Object ob = jp.getEmbeddedObject();
+    @Override
+    public QName deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
+            JsonProcessingException {
+        //System.out.println("tralalaaaaa   QName deserializer");
+//        Object ob = jp.getEmbeddedObject();
 
-//		JsonNode node = jp.getCodec().readTree(jp);
-//		JsonNode node = (JsonNode) ob;
-//		TreeTraversingParser treeParser = (TreeTraversingParser) jp;
-//		if (jp.getCurrentToken() == JsonToken.START_OBJECT){
+//        JsonNode node = jp.getCodec().readTree(jp);
+//        JsonNode node = (JsonNode) ob;
+//        TreeTraversingParser treeParser = (TreeTraversingParser) jp;
+//        if (jp.getCurrentToken() == JsonToken.START_OBJECT){
 
-//		}
-//		jp.
-		ObjectMapper m = new ObjectMapper();
-		JsonNode node = m.readValue(jp, JsonNode.class);
-//		JsonNode node = jp.readValueAsTree();
-//		jp.
-		switch (node.getNodeType()) {
-			case OBJECT:
-				return deserializeFromObject(node);
-//				break;
-			case STRING:
-				return deserializeFromString(node);
-//				break;
-			default:
-				throw new IllegalStateException();
-//				break;
-		}
+//        }
+//        jp.
+        ObjectMapper m = new ObjectMapper();
+        JsonNode node = m.readValue(jp, JsonNode.class);
+//        JsonNode node = jp.readValueAsTree();
+//        jp.
+        switch (node.getNodeType()) {
+            case OBJECT:
+                return deserializeFromObject(node);
+//                break;
+            case STRING:
+                return deserializeFromString(node);
+//                break;
+            default:
+                throw new IllegalStateException();
+//                break;
+        }
 
-	}
+    }
 
-	private QName deserializeFromObject(JsonNode node){
-		JsonNode qnameNode = node.get("@namespace");
-		String namespace = null;
-		if (qnameNode != null){
-			namespace = qnameNode.asText();
-		}
+    private QName deserializeFromObject(JsonNode node){
+        JsonNode qnameNode = node.get("@namespace");
+        String namespace = null;
+        if (qnameNode != null){
+            namespace = qnameNode.asText();
+        }
 
-		qnameNode = node.get("@localPart");
-		String localPart = null;
-		if (qnameNode != null){
-			localPart = qnameNode.asText();
-		}
-		return new QName(namespace, localPart);
-	}
+        qnameNode = node.get("@localPart");
+        String localPart = null;
+        if (qnameNode != null){
+            localPart = qnameNode.asText();
+        }
+        return new QName(namespace, localPart);
+    }
 
-	private QName deserializeFromString(JsonNode node){
-		String qnameUri = node.asText();
-		return QNameUtil.uriToQName(qnameUri, true);
-//		return new QName(node.asText());
-	}
+    private QName deserializeFromString(JsonNode node){
+        String qnameUri = node.asText();
+        return QNameUtil.uriToQName(qnameUri, true);
+//        return new QName(node.asText());
+    }
 
-	@Override
-	public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
-			TypeDeserializer typeDeserializer) throws IOException, JsonProcessingException {
-		// TODO Auto-generated method stub
-		return super.deserializeWithType(jp, ctxt, typeDeserializer);
-	}
+    @Override
+    public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
+            TypeDeserializer typeDeserializer) throws IOException, JsonProcessingException {
+        // TODO Auto-generated method stub
+        return super.deserializeWithType(jp, ctxt, typeDeserializer);
+    }
 
 }

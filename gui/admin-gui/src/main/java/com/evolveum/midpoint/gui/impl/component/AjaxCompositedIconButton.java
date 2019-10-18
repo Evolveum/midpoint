@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -38,7 +38,7 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
         this.title = title;
         this.icon =icon;
-        
+
         add(AttributeAppender.append("class", new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
@@ -48,7 +48,7 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
                 return " position-relative ";
             }
         }));
-        
+
         add(AttributeAppender.append("class", new IModel<String>() {
 
             private static final long serialVersionUID = 1L;
@@ -75,26 +75,26 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
 
         CompositedIcon icon = this.icon;
         if(icon.hasBasicIcon()) {
-        	sb.append("<i class=\"").append(icon.getBasicIcon()).append("\"");
-        	if (icon.hasBasicIconHtmlColor()){
-        	    sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
+            sb.append("<i class=\"").append(icon.getBasicIcon()).append("\"");
+            if (icon.hasBasicIconHtmlColor()){
+                sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
             }
-        	sb.append("></i> ");
+            sb.append("></i> ");
         }
 
         if(icon.hasLayerIcons()) {
-        	for(IconType entry : icon.getLayerIcons()) {
-        	    if (entry == null){
-        	        continue;
+            for(IconType entry : icon.getLayerIcons()) {
+                if (entry == null){
+                    continue;
                 }
-        		if (StringUtils.isNotEmpty(entry.getCssClass())) {
+                if (StringUtils.isNotEmpty(entry.getCssClass())) {
                     sb.append("<i class=\"").append(entry.getCssClass()).append("\"");
                     if (StringUtils.isNotEmpty(entry.getColor())) {
                         sb.append(" style=\"color: ").append(entry.getColor()).append(";\"");
                     }
                     sb.append("></i> ");
                 }
-        	}
+            }
         }
 
         replaceComponentTagBody(markupStream, openTag, sb.toString());

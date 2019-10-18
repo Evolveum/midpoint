@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,36 +23,36 @@ import java.util.Map;
  */
 public class MessageWrapper {
 
-	@NotNull private final AsyncUpdateMessageType message;
+    @NotNull private final AsyncUpdateMessageType message;
 
-	private static final TypeReference<?> MAP_TYPE = new MapTypeReference();
-	private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final TypeReference<?> MAP_TYPE = new MapTypeReference();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
-	private static class MapTypeReference extends TypeReference<Map<String, Object>> {
-	}
+    private static class MapTypeReference extends TypeReference<Map<String, Object>> {
+    }
 
-	public MessageWrapper(@NotNull AsyncUpdateMessageType message) {
-		this.message = message;
-	}
+    public MessageWrapper(@NotNull AsyncUpdateMessageType message) {
+        this.message = message;
+    }
 
-	public Amqp091MessageAttributesType getAttributes() {
-		return ((Amqp091MessageType) message).getAttributes();
-	}
+    public Amqp091MessageAttributesType getAttributes() {
+        return ((Amqp091MessageType) message).getAttributes();
+    }
 
-	public byte[] getBody() {
-		return ((Amqp091MessageType) message).getBody();
-	}
+    public byte[] getBody() {
+        return ((Amqp091MessageType) message).getBody();
+    }
 
-	public String getText() {
-		return new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
-	}
+    public String getText() {
+        return new String(((Amqp091MessageType) message).getBody(), StandardCharsets.UTF_8);
+    }
 
-	public AsyncUpdateMessageType getOriginalMessage() {
-		return message;
-	}
+    public AsyncUpdateMessageType getOriginalMessage() {
+        return message;
+    }
 
-	public Map<String, Object> getBodyAsMap() throws IOException {
-		String json = getText();
-		return MAPPER.readValue(json, MAP_TYPE);
-	}
+    public Map<String, Object> getBodyAsMap() throws IOException {
+        String json = getText();
+        return MAPPER.readValue(json, MAP_TYPE);
+    }
 }

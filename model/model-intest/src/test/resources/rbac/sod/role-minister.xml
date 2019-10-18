@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="95565b4a-55a3-11e7-918a-3f59a532dbfc"
@@ -10,14 +10,14 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Minister</name>
     <assignment>
-    	<policyRule>
-    		<name>government exclusion: minister</name>
-    		<policyConstraints>
-		    	<exclusion>
-			    	<targetRef oid="f6deb182-55a3-11e7-b519-27bdcd6d9490" type="RoleType"/> <!-- Criminal -->
-		    	</exclusion>
-		    </policyConstraints>
-		    <!-- No policy action here. Approval dictated by global policy rule. -->
-		</policyRule>
+        <policyRule>
+            <name>government exclusion: minister</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="f6deb182-55a3-11e7-b519-27bdcd6d9490" type="RoleType"/> <!-- Criminal -->
+                </exclusion>
+            </policyConstraints>
+            <!-- No policy action here. Approval dictated by global policy rule. -->
+        </policyRule>
     </assignment>
 </role>

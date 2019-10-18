@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -42,116 +42,116 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestSoDCertification extends AbstractCertificationTest {
 
-	protected static final File TEST_DIR = new File("src/test/resources/sod");
+    protected static final File TEST_DIR = new File("src/test/resources/sod");
 
-	protected AccessCertificationDefinitionType certificationDefinition;
+    protected AccessCertificationDefinitionType certificationDefinition;
 
     protected static final File SOD_CERTIFICATION_DEF_FILE = new File(TEST_DIR, "sod-certification.xml");
 
     private String campaignOid;
 
-	private static final File ROLE_A_TEST_2A = new File(TEST_DIR, "a-test-2a.xml");
-	private static String roleATest2aOid;
-	private static final File ROLE_A_TEST_2B = new File(TEST_DIR, "a-test-2b.xml");
-	private static String roleATest2bOid;
-	private static final File ROLE_A_TEST_2C = new File(TEST_DIR, "a-test-2c.xml");
-	private static String roleATest2cOid;
-	private static final File ROLE_A_TEST_3A = new File(TEST_DIR, "a-test-3a.xml");
-	private static String roleATest3aOid;
-	private static final File ROLE_A_TEST_3B = new File(TEST_DIR, "a-test-3b.xml");
-	private static String roleATest3bOid;
-	private static final File ROLE_A_TEST_3X = new File(TEST_DIR, "a-test-3x.xml");
-	private static String roleATest3xOid;
-	private static final File ROLE_A_TEST_3Y = new File(TEST_DIR, "a-test-3y.xml");
-	private static String roleATest3yOid;
+    private static final File ROLE_A_TEST_2A = new File(TEST_DIR, "a-test-2a.xml");
+    private static String roleATest2aOid;
+    private static final File ROLE_A_TEST_2B = new File(TEST_DIR, "a-test-2b.xml");
+    private static String roleATest2bOid;
+    private static final File ROLE_A_TEST_2C = new File(TEST_DIR, "a-test-2c.xml");
+    private static String roleATest2cOid;
+    private static final File ROLE_A_TEST_3A = new File(TEST_DIR, "a-test-3a.xml");
+    private static String roleATest3aOid;
+    private static final File ROLE_A_TEST_3B = new File(TEST_DIR, "a-test-3b.xml");
+    private static String roleATest3bOid;
+    private static final File ROLE_A_TEST_3X = new File(TEST_DIR, "a-test-3x.xml");
+    private static String roleATest3xOid;
+    private static final File ROLE_A_TEST_3Y = new File(TEST_DIR, "a-test-3y.xml");
+    private static String roleATest3yOid;
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		roleATest2aOid = addAndRecompute(ROLE_A_TEST_2A, initTask, initResult);
-		roleATest2bOid = addAndRecompute(ROLE_A_TEST_2B, initTask, initResult);
-		roleATest2cOid = addAndRecompute(ROLE_A_TEST_2C, initTask, initResult);
-		roleATest3aOid = addAndRecompute(ROLE_A_TEST_3A, initTask, initResult);
-		roleATest3bOid = addAndRecompute(ROLE_A_TEST_3B, initTask, initResult);
-		roleATest3xOid = addAndRecompute(ROLE_A_TEST_3X, initTask, initResult);
-		roleATest3yOid = addAndRecompute(ROLE_A_TEST_3Y, initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        roleATest2aOid = addAndRecompute(ROLE_A_TEST_2A, initTask, initResult);
+        roleATest2bOid = addAndRecompute(ROLE_A_TEST_2B, initTask, initResult);
+        roleATest2cOid = addAndRecompute(ROLE_A_TEST_2C, initTask, initResult);
+        roleATest3aOid = addAndRecompute(ROLE_A_TEST_3A, initTask, initResult);
+        roleATest3bOid = addAndRecompute(ROLE_A_TEST_3B, initTask, initResult);
+        roleATest3xOid = addAndRecompute(ROLE_A_TEST_3X, initTask, initResult);
+        roleATest3yOid = addAndRecompute(ROLE_A_TEST_3Y, initTask, initResult);
 
-		assignOrg(USER_JACK_OID, ORG_SECURITY_TEAM_OID, initTask, initResult);
+        assignOrg(USER_JACK_OID, ORG_SECURITY_TEAM_OID, initTask, initResult);
 
-		assignRole(USER_JACK_OID, roleATest2aOid);
-		assignRole(USER_JACK_OID, roleATest2bOid);
-		assignRole(USER_JACK_OID, roleATest2cOid);
-		assignRole(USER_JACK_OID, roleATest3aOid);
-		assignRole(USER_JACK_OID, roleATest3bOid);
-		PrismObject<UserType> jack = getUser(USER_JACK_OID);
-		display("jack", jack);
+        assignRole(USER_JACK_OID, roleATest2aOid);
+        assignRole(USER_JACK_OID, roleATest2bOid);
+        assignRole(USER_JACK_OID, roleATest2cOid);
+        assignRole(USER_JACK_OID, roleATest3aOid);
+        assignRole(USER_JACK_OID, roleATest3bOid);
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        display("jack", jack);
 
-		AssignmentType a2a = findAssignmentByTargetRequired(jack, roleATest2aOid);
-		display("assignment 2a", a2a);
+        AssignmentType a2a = findAssignmentByTargetRequired(jack, roleATest2aOid);
+        display("assignment 2a", a2a);
 
-		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
-	}
+        DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+    }
 
-	@Test
-	public void test001Triggers() throws Exception {
-		final String TEST_NAME = "test001Triggers";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+    @Test
+    public void test001Triggers() throws Exception {
+        final String TEST_NAME = "test001Triggers";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-		// GIVEN, WHEN
-		PrismObject<UserType> jack = getUser(USER_JACK_OID);
-		display("jack", jack);
+        // GIVEN, WHEN
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        display("jack", jack);
 
-		// THEN
-		AssignmentType a2a = findAssignmentByTargetRequired(jack, roleATest2aOid);
-		display("assignment 2a", a2a);
-		assertTriggers(a2a, 2, 1);
-		AssignmentType a2b = findAssignmentByTargetRequired(jack, roleATest2bOid);
-		display("assignment 2b", a2b);
-		assertTriggers(a2b, 2, 1);
-		AssignmentType a2c = findAssignmentByTargetRequired(jack, roleATest2cOid);
-		display("assignment 2c", a2c);
-		assertTriggers(a2c, 2, 1);
-		AssignmentType a3a = findAssignmentByTargetRequired(jack, roleATest3aOid);
-		display("assignment 3a", a3a);
-		assertTriggers(a3a, 1, 1);
-		AssignmentType a3b = findAssignmentByTargetRequired(jack, roleATest3bOid);
-		display("assignment 3b", a3b);
-		assertTriggers(a3b, 1, 1);
-	}
+        // THEN
+        AssignmentType a2a = findAssignmentByTargetRequired(jack, roleATest2aOid);
+        display("assignment 2a", a2a);
+        assertTriggers(a2a, 2, 1);
+        AssignmentType a2b = findAssignmentByTargetRequired(jack, roleATest2bOid);
+        display("assignment 2b", a2b);
+        assertTriggers(a2b, 2, 1);
+        AssignmentType a2c = findAssignmentByTargetRequired(jack, roleATest2cOid);
+        display("assignment 2c", a2c);
+        assertTriggers(a2c, 2, 1);
+        AssignmentType a3a = findAssignmentByTargetRequired(jack, roleATest3aOid);
+        display("assignment 3a", a3a);
+        assertTriggers(a3a, 1, 1);
+        AssignmentType a3b = findAssignmentByTargetRequired(jack, roleATest3bOid);
+        display("assignment 3b", a3b);
+        assertTriggers(a3b, 1, 1);
+    }
 
-	private void assertTriggers(AssignmentType assignment, int exclusionExpected, int situationExpected) {
-		int exclusion = 0, situation = 0;
-		for (EvaluatedPolicyRuleType rule : assignment.getTriggeredPolicyRule()) {
-			for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
-				//assertNotNull("Identifier not null in base trigger: " + trigger, trigger.getTriggerId());
-				if (trigger instanceof EvaluatedSituationTriggerType) {
-					EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
-					int sourceTriggers = 0;
-					for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
-						for (EvaluatedPolicyRuleTriggerType sourceTrigger : sourceRule.getTrigger()) {
-							sourceTriggers++;
-							//assertNotNull("Ref not null in situation source trigger: " + sourceTrigger, sourceTrigger.getRef());
-						}
-					}
-					assertEquals("Wrong # of exclusion triggers in situation trigger", exclusionExpected, sourceTriggers);
-					situation++;
-				} else if (trigger instanceof EvaluatedExclusionTriggerType) {
-					exclusion++;
-				} else {
-					fail("Unexpected trigger: " + trigger);
-				}
-			}
-		}
-		assertEquals("Wrong # of exclusion triggers", 0, exclusion);
-		assertEquals("Wrong # of situation triggers", situationExpected, situation);
+    private void assertTriggers(AssignmentType assignment, int exclusionExpected, int situationExpected) {
+        int exclusion = 0, situation = 0;
+        for (EvaluatedPolicyRuleType rule : assignment.getTriggeredPolicyRule()) {
+            for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
+                //assertNotNull("Identifier not null in base trigger: " + trigger, trigger.getTriggerId());
+                if (trigger instanceof EvaluatedSituationTriggerType) {
+                    EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+                    int sourceTriggers = 0;
+                    for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+                        for (EvaluatedPolicyRuleTriggerType sourceTrigger : sourceRule.getTrigger()) {
+                            sourceTriggers++;
+                            //assertNotNull("Ref not null in situation source trigger: " + sourceTrigger, sourceTrigger.getRef());
+                        }
+                    }
+                    assertEquals("Wrong # of exclusion triggers in situation trigger", exclusionExpected, sourceTriggers);
+                    situation++;
+                } else if (trigger instanceof EvaluatedExclusionTriggerType) {
+                    exclusion++;
+                } else {
+                    fail("Unexpected trigger: " + trigger);
+                }
+            }
+        }
+        assertEquals("Wrong # of exclusion triggers", 0, exclusion);
+        assertEquals("Wrong # of situation triggers", situationExpected, situation);
 
-		List<EvaluatedExclusionTriggerType> exclusionTriggers = PolicyRuleTypeUtil
-				.getAllExclusionTriggers(assignment.getTriggeredPolicyRule());
-		display("Exclusion triggers for " + assignment, exclusionTriggers);
-		assertEquals("Wrong # of extracted exclusion triggers", exclusionExpected, exclusionTriggers.size());
-	}
+        List<EvaluatedExclusionTriggerType> exclusionTriggers = PolicyRuleTypeUtil
+                .getAllExclusionTriggers(assignment.getTriggeredPolicyRule());
+        display("Exclusion triggers for " + assignment, exclusionTriggers);
+        assertEquals("Wrong # of extracted exclusion triggers", exclusionExpected, exclusionTriggers.size());
+    }
 
-	@Test
+    @Test
     public void test010CreateCampaign() throws Exception {
         final String TEST_NAME = "test010CreateCampaign";
         TestUtil.displayTestTitle(this, TEST_NAME);
@@ -241,7 +241,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
-		task.setOwner(userAdministrator.asPrismObject());
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         display("jack", getUser(USER_JACK_OID));
@@ -270,8 +270,8 @@ public class TestSoDCertification extends AbstractCertificationTest {
     }
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList)
-			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
-			SecurityViolationException, ExpressionEvaluationException {
+            throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            SecurityViolationException, ExpressionEvaluationException {
         assertEquals("Wrong number of certification cases", 5, caseList.size());
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         checkCaseSanity(caseList, USER_JACK_OID, roleATest2aOid, jack);
@@ -301,7 +301,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         display("caseList", caseList);
         checkAllCases(caseList);
-		UserType jack = getUser(USER_JACK_OID).asObjectable();
+        UserType jack = getUser(USER_JACK_OID).asObjectable();
         AccessCertificationCaseType _case = checkCaseSanity(caseList, USER_JACK_OID, roleATest2aOid, jack);
         assertEquals("Unexpected number of reviewers in a-test-2a case", 1, CertCampaignTypeUtil.getCurrentReviewers(_case).size());
     }
@@ -341,11 +341,11 @@ public class TestSoDCertification extends AbstractCertificationTest {
         displayContainerablesCollection("caseList", caseList);
         checkAllCases(caseList);
 
-		test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
-		test2bCase = findCase(caseList, USER_JACK_OID, roleATest2bOid);
-		test2cCase = findCase(caseList, USER_JACK_OID, roleATest2cOid);
-		test3aCase = findCase(caseList, USER_JACK_OID, roleATest3aOid);
-		test3bCase = findCase(caseList, USER_JACK_OID, roleATest3bOid);
+        test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
+        test2bCase = findCase(caseList, USER_JACK_OID, roleATest2bOid);
+        test2cCase = findCase(caseList, USER_JACK_OID, roleATest2cOid);
+        test3aCase = findCase(caseList, USER_JACK_OID, roleATest3aOid);
+        test3bCase = findCase(caseList, USER_JACK_OID, roleATest3bOid);
 
         assertSingleDecision(test2aCase, REVOKE, "no way", 1, 1, USER_JACK_OID, REVOKE, false);
         assertSingleDecision(test2bCase, ACCEPT, null, 1, 1, USER_JACK_OID, ACCEPT, false);
@@ -370,7 +370,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
-		task.setOwner(userAdministrator.asPrismObject());
+        task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
 
         // WHEN
@@ -388,23 +388,23 @@ public class TestSoDCertification extends AbstractCertificationTest {
         checkAllCases(campaign.getCase());
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
-		AccessCertificationCaseType test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
-		AccessCertificationCaseType test2bCase = findCase(caseList, USER_JACK_OID, roleATest2bOid);
-		AccessCertificationCaseType test2cCase = findCase(caseList, USER_JACK_OID, roleATest2cOid);
-		AccessCertificationCaseType test3aCase = findCase(caseList, USER_JACK_OID, roleATest3aOid);
-		AccessCertificationCaseType test3bCase = findCase(caseList, USER_JACK_OID, roleATest3bOid);
+        AccessCertificationCaseType test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
+        AccessCertificationCaseType test2bCase = findCase(caseList, USER_JACK_OID, roleATest2bOid);
+        AccessCertificationCaseType test2cCase = findCase(caseList, USER_JACK_OID, roleATest2cOid);
+        AccessCertificationCaseType test3aCase = findCase(caseList, USER_JACK_OID, roleATest3aOid);
+        AccessCertificationCaseType test3bCase = findCase(caseList, USER_JACK_OID, roleATest3bOid);
 
-		assertSingleDecision(test2aCase, REVOKE, "no way", 1, 1, USER_JACK_OID, REVOKE, true);
-		assertSingleDecision(test2bCase, ACCEPT, null, 1, 1, USER_JACK_OID, ACCEPT, true);
-		assertSingleDecision(test2cCase, ACCEPT, null, 1, 1, USER_JACK_OID, ACCEPT, true);
-		assertSingleDecision(test3aCase, ACCEPT, "OK", 1, 1, USER_JACK_OID, ACCEPT, true);
-		assertSingleDecision(test3bCase, NOT_DECIDED, "dunno", 1, 1, USER_JACK_OID, ACCEPT, true);
+        assertSingleDecision(test2aCase, REVOKE, "no way", 1, 1, USER_JACK_OID, REVOKE, true);
+        assertSingleDecision(test2bCase, ACCEPT, null, 1, 1, USER_JACK_OID, ACCEPT, true);
+        assertSingleDecision(test2cCase, ACCEPT, null, 1, 1, USER_JACK_OID, ACCEPT, true);
+        assertSingleDecision(test3aCase, ACCEPT, "OK", 1, 1, USER_JACK_OID, ACCEPT, true);
+        assertSingleDecision(test3bCase, NOT_DECIDED, "dunno", 1, 1, USER_JACK_OID, ACCEPT, true);
 
-		assertCaseOutcome(caseList, USER_JACK_OID, roleATest2aOid, REVOKE, REVOKE, 1);
-		assertCaseOutcome(caseList, USER_JACK_OID, roleATest2bOid, ACCEPT, ACCEPT, 1);
-		assertCaseOutcome(caseList, USER_JACK_OID, roleATest2cOid, ACCEPT, ACCEPT, 1);
-		assertCaseOutcome(caseList, USER_JACK_OID, roleATest3aOid, ACCEPT, ACCEPT, 1);
-		assertCaseOutcome(caseList, USER_JACK_OID, roleATest3bOid, ACCEPT, ACCEPT, 1);
+        assertCaseOutcome(caseList, USER_JACK_OID, roleATest2aOid, REVOKE, REVOKE, 1);
+        assertCaseOutcome(caseList, USER_JACK_OID, roleATest2bOid, ACCEPT, ACCEPT, 1);
+        assertCaseOutcome(caseList, USER_JACK_OID, roleATest2cOid, ACCEPT, ACCEPT, 1);
+        assertCaseOutcome(caseList, USER_JACK_OID, roleATest3aOid, ACCEPT, ACCEPT, 1);
+        assertCaseOutcome(caseList, USER_JACK_OID, roleATest3bOid, ACCEPT, ACCEPT, 1);
 
         assertPercentCompleteAll(campaign, 100, 100, 100);
     }
@@ -449,12 +449,12 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         assertEquals("wrong # of cases", 5, caseList.size());
-		AccessCertificationCaseType test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
+        AccessCertificationCaseType test2aCase = findCase(caseList, USER_JACK_OID, roleATest2aOid);
         assertApproximateTime("test2aCase.remediedTimestamp", new Date(), test2aCase.getRemediedTimestamp());
 
         userJack = getUser(USER_JACK_OID).asObjectable();
-		display("userJack after remediation", userJack);
-		assertNotAssignedRole(userJack.asPrismObject(), roleATest2aOid);
+        display("userJack after remediation", userJack);
+        assertNotAssignedRole(userJack.asPrismObject(), roleATest2aOid);
 
         PrismObject<AccessCertificationDefinitionType> def = getObject(AccessCertificationDefinitionType.class, certificationDefinition.getOid());
         assertApproximateTime("last campaign closed", new Date(), def.asObjectable().getLastCampaignClosedTimestamp());
@@ -462,31 +462,31 @@ public class TestSoDCertification extends AbstractCertificationTest {
         assertPercentCompleteAll(campaign, 100, 100, 100);
     }
 
-	@Test
-	public void test210CheckAfterClose() throws Exception {
-		final String TEST_NAME = "test210CheckAfterClose";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(userAdministrator.asPrismObject());
+    @Test
+    public void test210CheckAfterClose() throws Exception {
+        final String TEST_NAME = "test210CheckAfterClose";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator.asPrismObject());
 
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
-		task.setOwner(userAdministrator.asPrismObject());
-		OperationResult result = task.getResult();
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
 
-		// WHEN
-		waitForCampaignTasks(campaignOid, 20000, result);
+        // WHEN
+        waitForCampaignTasks(campaignOid, 20000, result);
 
-		// THEN
-		userJack = getUser(USER_JACK_OID).asObjectable();
-		display("jack", userJack);
-		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2bOid).getMetadata(),
-				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
-		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2cOid).getMetadata(),
-				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
-		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3aOid).getMetadata(),
-				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("jack: OK"));
-		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3bOid).getMetadata(),
-				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("jack: dunno"));
-	}
+        // THEN
+        userJack = getUser(USER_JACK_OID).asObjectable();
+        display("jack", userJack);
+        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2bOid).getMetadata(),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
+        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2cOid).getMetadata(),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
+        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3aOid).getMetadata(),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("jack: OK"));
+        assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3bOid).getMetadata(),
+                SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("jack: dunno"));
+    }
 
 }

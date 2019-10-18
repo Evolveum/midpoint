@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
@@ -32,54 +32,54 @@ import com.evolveum.midpoint.web.component.data.column.LinkPanel;
  */
 public class PrismReferenceWrapperColumnPanel<R extends Referencable> extends AbstractItemWrapperColumnPanel<PrismReferenceWrapper<R>, PrismValueWrapper<R, PrismReferenceValue>> {
 
-	private static final long serialVersionUID = 1L;
-	private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceWrapperColumnPanel.class);
-	
-	PrismReferenceWrapperColumnPanel(String id, IModel<PrismReferenceWrapper<R>> model, ColumnType columnType) {
-		super(id, model, columnType);
-	}
-	
-	@Override
-	protected String createLabel(PrismValueWrapper<R, PrismReferenceValue> object) {
-		return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(object.getRealValue(), false); 
-	}
+    private static final long serialVersionUID = 1L;
+    private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceWrapperColumnPanel.class);
 
-	@Override
-	protected Panel createValuePanel(String id, IModel<PrismReferenceWrapper<R>> model, PrismValueWrapper<R, PrismReferenceValue> object) {
-		
-		Panel panel;
-		try {
-			panel = getPageBase().initItemPanel(id, model.getObject().getTypeName(), model, null);
-		} catch (SchemaException e) {
-			LOGGER.error("Cannot create panel for {}", model.getObject());
-			getSession().error("Cannot create panel for: " + model.getObject());
-			return new ErrorPanel(id, createStringResource("PropertyPropertyWrapperColumnPanel.cannot.create.panel"));
-		}
-		
-		return panel;
-	}
+    PrismReferenceWrapperColumnPanel(String id, IModel<PrismReferenceWrapper<R>> model, ColumnType columnType) {
+        super(id, model, columnType);
+    }
 
-	@Override
-	protected Panel createLink(String id, IModel<PrismValueWrapper<R, PrismReferenceValue>> object) {
-		LinkPanel linkPanel = new LinkPanel(id, new IModel<String>() {
+    @Override
+    protected String createLabel(PrismValueWrapper<R, PrismReferenceValue> object) {
+        return WebComponentUtil.getReferencedObjectDisplayNamesAndNames(object.getRealValue(), false);
+    }
 
-			@Override
-			public String getObject() {
-				return createLabel(object.getObject());
-			}
-			
-		}) {
-			private static final long serialVersionUID = 1L;
+    @Override
+    protected Panel createValuePanel(String id, IModel<PrismReferenceWrapper<R>> model, PrismValueWrapper<R, PrismReferenceValue> object) {
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				PrismReferenceWrapperColumnPanel.this.onClick(target, getModelObject().getParent());
-			}
+        Panel panel;
+        try {
+            panel = getPageBase().initItemPanel(id, model.getObject().getTypeName(), model, null);
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot create panel for {}", model.getObject());
+            getSession().error("Cannot create panel for: " + model.getObject());
+            return new ErrorPanel(id, createStringResource("PropertyPropertyWrapperColumnPanel.cannot.create.panel"));
+        }
 
-		};
-		return linkPanel;
-	}
-	
-	protected void onClick(AjaxRequestTarget target, PrismContainerValueWrapper<?> rowModel) {
-	}
+        return panel;
+    }
+
+    @Override
+    protected Panel createLink(String id, IModel<PrismValueWrapper<R, PrismReferenceValue>> object) {
+        LinkPanel linkPanel = new LinkPanel(id, new IModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createLabel(object.getObject());
+            }
+
+        }) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                PrismReferenceWrapperColumnPanel.this.onClick(target, getModelObject().getParent());
+            }
+
+        };
+        return linkPanel;
+    }
+
+    protected void onClick(AjaxRequestTarget target, PrismContainerValueWrapper<?> rowModel) {
+    }
 }

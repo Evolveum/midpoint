@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2014-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.security.api;
@@ -18,11 +18,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * This would be more appropriate in the security-impl. But we need it as low as this.
  * Otherwise there is a dependency cycle (task->security->repo-common->task)
  * Moving this to task yields better cohesion. So, it may in fact belong here.
- * 
+ *
  * @author semancik
  */
 public interface OwnerResolver {
 
-	<F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 }

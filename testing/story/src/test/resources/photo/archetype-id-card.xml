@@ -8,65 +8,65 @@
 <!-- Derived from MID-5772. This is a workaround for this issue. -->
 
 <archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		   oid="fe13a7f8-8b3b-4094-8417-1743e78a0acd">
-	<name>ID Card</name>
-	<inducement>
-		<focusMappings>
-			<mapping>
-				<name>Assign badge serial number</name>
-				<authoritative>true</authoritative>
-				<strength>strong</strength>
-				<source>
-					<!-- immediate role is the service itself -->
-					<path>$immediateRole/name</path>
-				</source>
-				<expression>
-					<script>
-						<code>
-							log.info("Badge serial number: {} ", name)
+           oid="fe13a7f8-8b3b-4094-8417-1743e78a0acd">
+    <name>ID Card</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <name>Assign badge serial number</name>
+                <authoritative>true</authoritative>
+                <strength>strong</strength>
+                <source>
+                    <!-- immediate role is the service itself -->
+                    <path>$immediateRole/name</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            log.info("Badge serial number: {} ", name)
 
-							name
-						</code>
-					</script>
-				</expression>
-				<target>
-					<path>$focus/telephoneNumber</path>		<!-- just any property -->
-				</target>
-			</mapping>
+                            name
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>$focus/telephoneNumber</path>        <!-- just any property -->
+                </target>
+            </mapping>
 
-			<mapping>
-				<name>Assign photo if not set</name>
-				<authoritative>true</authoritative>
-				<strength>weak</strength>
-				<source>
-					<!-- immediate role is the service itself -->
-					<path>$immediateRole/extension/photo</path>			<!-- TODO change to $immediateRole/jpegPhoto when MID-5772 is going to be fixed -->
-				</source>
-				<expression>
-					<asIs />
-				</expression>
-				<target>
-					<path>$focus/jpegPhoto</path>
-				</target>
-			</mapping>
-		</focusMappings>
-		<order>2</order>
-		<focusType>UserType</focusType>
-	</inducement>
+            <mapping>
+                <name>Assign photo if not set</name>
+                <authoritative>true</authoritative>
+                <strength>weak</strength>
+                <source>
+                    <!-- immediate role is the service itself -->
+                    <path>$immediateRole/extension/photo</path>            <!-- TODO change to $immediateRole/jpegPhoto when MID-5772 is going to be fixed -->
+                </source>
+                <expression>
+                    <asIs />
+                </expression>
+                <target>
+                    <path>$focus/jpegPhoto</path>
+                </target>
+            </mapping>
+        </focusMappings>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
 
-	<!-- TODO remove this when MID-5772 is going to be fixed -->
-	<inducement>
-		<focusMappings>
-			<mapping>
-				<name>jpegPhoto to extension/photo</name>
-				<strength>strong</strength>
-				<source>
-					<path>jpegPhoto</path>
-				</source>
-				<target>
-					<path>extension/photo</path>
-				</target>
-			</mapping>
-		</focusMappings>
-	</inducement>
+    <!-- TODO remove this when MID-5772 is going to be fixed -->
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <name>jpegPhoto to extension/photo</name>
+                <strength>strong</strength>
+                <source>
+                    <path>jpegPhoto</path>
+                </source>
+                <target>
+                    <path>extension/photo</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
 </archetype>

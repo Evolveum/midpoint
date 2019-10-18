@@ -1,24 +1,24 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="00000000-role-0000-0000-888111111112">
-    <name>Stop on delete user (1)</name>   
+    <name>Stop on delete user (1)</name>
     <inducement>
         <policyRule>
             <name>Delete user</name>
             <policyConstraints>
-            	<modification>
-            		<operation>delete</operation>
-            	</modification>
+                <modification>
+                    <operation>delete</operation>
+                </modification>
             </policyConstraints>
             <policyThreshold>
-            	<lowWaterMark>
-            		<count>6</count>
-            	</lowWaterMark>
+                <lowWaterMark>
+                    <count>6</count>
+                </lowWaterMark>
             </policyThreshold>
             <policyActions>
                 <suspendTask/>

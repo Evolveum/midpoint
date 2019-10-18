@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -90,22 +90,22 @@ public class AccCertExpressionHelper {
     }
 
     private List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
-			String shortDesc, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            String shortDesc, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismReferenceDefinition resultDef = prismContext.definitionFactory().createReferenceDefinition(resultName, ObjectReferenceType.COMPLEX_TYPE);
 
         Expression<PrismReferenceValue,PrismReferenceDefinition> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task);
-		context.setAdditionalConvertor(ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE));
+        context.setAdditionalConvertor(ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE));
         PrismValueDeltaSetTriple<PrismReferenceValue> exprResult =
                 ModelExpressionThreadLocalHolder.evaluateRefExpressionInContext(expression, context, task, result);
 
         List<ObjectReferenceType> retval = new ArrayList<>();
         for (PrismReferenceValue value : exprResult.getZeroSet()) {
-        	ObjectReferenceType ort = new ObjectReferenceType();
-        	ort.setupReferenceValue(value);
+            ObjectReferenceType ort = new ObjectReferenceType();
+            ort.setupReferenceValue(value);
             retval.add(ort);
         }
         return retval;
@@ -124,7 +124,7 @@ public class AccCertExpressionHelper {
 //    }
 
     public boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc,
-			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         List<Boolean> exprResult = evaluateExpression(Boolean.class, expressionType, expressionVariables, shortDesc, task, result);
         if (exprResult.size() == 0) {
             return false;

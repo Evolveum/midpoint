@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -398,7 +398,7 @@ public class LocalNodeManager {
             result.recordSuccess();
         } catch (UnableToInterruptJobException e) {
             String message = "Unable to interrupt the task " + oid;
-            LoggingUtils.logUnexpectedException(LOGGER, message, e);			// however, we continue (e.g. to suspend the task)
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);            // however, we continue (e.g. to suspend the task)
             result.recordFatalError(message, e);
         }
     }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -39,7 +39,7 @@ public class EnvironmentalPerformanceInformation {
     private Map<NotificationsStatisticsKey,GenericStatisticsData> notificationsData = new HashMap<>();
     private Map<MappingsStatisticsKey,GenericStatisticsData> mappingsData = new HashMap<>();
 
-	private static final int AGGREGATION_THRESHOLD = 50;
+    private static final int AGGREGATION_THRESHOLD = 50;
 
     private StatusMessage lastMessage;
 
@@ -51,7 +51,7 @@ public class EnvironmentalPerformanceInformation {
         this(null);
     }
 
-	public EnvironmentalPerformanceInformationType getStartValue() {
+    public EnvironmentalPerformanceInformationType getStartValue() {
         return startValue;
     }
 
@@ -101,19 +101,19 @@ public class EnvironmentalPerformanceInformation {
         if (mappingsData == null) {
             return rv;
         }
-		final Map<String,Integer> entriesPerType = new HashMap<>();
-		for (MappingsStatisticsKey key: mappingsData.keySet()) {
-			Integer current = entriesPerType.get(key.getObjectType());
-			entriesPerType.put(key.getObjectType(), current != null ? current+1 : 1);
-		}
+        final Map<String,Integer> entriesPerType = new HashMap<>();
+        for (MappingsStatisticsKey key: mappingsData.keySet()) {
+            Integer current = entriesPerType.get(key.getObjectType());
+            entriesPerType.put(key.getObjectType(), current != null ? current+1 : 1);
+        }
         for (Map.Entry<MappingsStatisticsKey, GenericStatisticsData> entry : mappingsData.entrySet()) {
             final MappingsStatisticsKey key = entry.getKey();
             final String targetEntryName;
-			if (entriesPerType.get(key.getObjectType()) < AGGREGATION_THRESHOLD) {
-				targetEntryName = key.getObjectName();
-			} else {
-				targetEntryName = key.getObjectType() + " (aggregated)";
-			}
+            if (entriesPerType.get(key.getObjectType()) < AGGREGATION_THRESHOLD) {
+                targetEntryName = key.getObjectName();
+            } else {
+                targetEntryName = key.getObjectType() + " (aggregated)";
+            }
             MappingsStatisticsEntryType entryType = findMappingsEntryType(rv.getEntry(), targetEntryName);
             if (entryType == null) {
                 entryType = new MappingsStatisticsEntryType();

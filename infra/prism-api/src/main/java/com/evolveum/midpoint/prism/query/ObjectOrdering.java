@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -16,9 +16,9 @@ import java.io.Serializable;
  */
 public interface ObjectOrdering extends Serializable {
 
-	ItemPath getOrderBy();
+    ItemPath getOrderBy();
 
-	OrderDirection getDirection();
+    OrderDirection getDirection();
 
-	boolean equals(Object o, boolean exact);
+    boolean equals(Object o, boolean exact);
 }

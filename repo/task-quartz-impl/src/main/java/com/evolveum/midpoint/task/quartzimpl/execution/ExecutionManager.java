@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -73,8 +73,8 @@ public class ExecutionManager {
     private static final String DOT_CLASS = ExecutionManager.class.getName() + ".";
 
     // the following values would be (some day) part of TaskManagerConfiguration
-    private static final long WAIT_FOR_COMPLETION_INITIAL = 100;			// initial waiting time (for task or tasks to be finished); it is doubled at each step
-    private static final long WAIT_FOR_COMPLETION_MAX = 1600;				// max waiting time (in one step) for task(s) to be finished
+    private static final long WAIT_FOR_COMPLETION_INITIAL = 100;            // initial waiting time (for task or tasks to be finished); it is doubled at each step
+    private static final long WAIT_FOR_COMPLETION_MAX = 1600;                // max waiting time (in one step) for task(s) to be finished
     private static final long INTERRUPT_TASK_THREAD_AFTER = 5000;           // how long to wait before interrupting task thread (if UseThreadInterrupt = 'whenNecessary')
 
     private static final long ALLOWED_CLUSTER_STATE_INFORMATION_AGE = 1500L;
@@ -510,32 +510,32 @@ public class ExecutionManager {
 
     public TaskManagerQuartzImpl.NextStartTimes getNextStartTimes(@NotNull String oid, boolean retrieveNextRunStartTime,
             boolean retrieveRetryTime, OperationResult result) {
-		try {
+        try {
             if (retrieveNextRunStartTime && !retrieveRetryTime) {
-				Trigger standardTrigger = quartzScheduler.getTrigger(TaskQuartzImplUtil.createTriggerKeyForTaskOid(oid));
-				result.recordSuccess();
-				return new TaskManagerQuartzImpl.NextStartTimes(standardTrigger, null);
-			} else if (retrieveNextRunStartTime || retrieveRetryTime) {
-				List<? extends Trigger> triggers = quartzScheduler
-						.getTriggersOfJob(TaskQuartzImplUtil.createJobKeyForTaskOid(oid));
-				Trigger standardTrigger = null;
-				Trigger nextRetryTrigger = null;
-				for (Trigger trigger : triggers) {
-					if (oid.equals(trigger.getKey().getName())) {
-						standardTrigger = trigger;
-					} else {
-						if (willOccur(trigger) && (nextRetryTrigger == null || isBefore(trigger, nextRetryTrigger))) {
-							nextRetryTrigger = trigger;
-						}
-					}
-				}
-				result.recordSuccess();
-				return new TaskManagerQuartzImpl.NextStartTimes(
-						retrieveNextRunStartTime ? standardTrigger : null,
-						nextRetryTrigger);		// retrieveRetryTime is always true here
-			} else {
-            	return new TaskManagerQuartzImpl.NextStartTimes(null, null);		// shouldn't occur
-			}
+                Trigger standardTrigger = quartzScheduler.getTrigger(TaskQuartzImplUtil.createTriggerKeyForTaskOid(oid));
+                result.recordSuccess();
+                return new TaskManagerQuartzImpl.NextStartTimes(standardTrigger, null);
+            } else if (retrieveNextRunStartTime || retrieveRetryTime) {
+                List<? extends Trigger> triggers = quartzScheduler
+                        .getTriggersOfJob(TaskQuartzImplUtil.createJobKeyForTaskOid(oid));
+                Trigger standardTrigger = null;
+                Trigger nextRetryTrigger = null;
+                for (Trigger trigger : triggers) {
+                    if (oid.equals(trigger.getKey().getName())) {
+                        standardTrigger = trigger;
+                    } else {
+                        if (willOccur(trigger) && (nextRetryTrigger == null || isBefore(trigger, nextRetryTrigger))) {
+                            nextRetryTrigger = trigger;
+                        }
+                    }
+                }
+                result.recordSuccess();
+                return new TaskManagerQuartzImpl.NextStartTimes(
+                        retrieveNextRunStartTime ? standardTrigger : null,
+                        nextRetryTrigger);        // retrieveRetryTime is always true here
+            } else {
+                return new TaskManagerQuartzImpl.NextStartTimes(null, null);        // shouldn't occur
+            }
         } catch (SchedulerException e) {
             String message = "Cannot determine next start times for task with OID " + oid;
             LoggingUtils.logUnexpectedException(LOGGER, message, e);
@@ -545,18 +545,18 @@ public class ExecutionManager {
     }
 
     // null means "never"
-	private boolean isBefore(Trigger t1, Trigger t2) {
-    	Date date1 = t1.getNextFireTime();
-    	Date date2 = t2.getNextFireTime();
-		return date1 != null
-				&& (date2 == null || date1.getTime() < date2.getTime());
-	}
+    private boolean isBefore(Trigger t1, Trigger t2) {
+        Date date1 = t1.getNextFireTime();
+        Date date2 = t2.getNextFireTime();
+        return date1 != null
+                && (date2 == null || date1.getTime() < date2.getTime());
+    }
 
-	private boolean willOccur(Trigger t) {
-		return t.getNextFireTime() != null && t.getNextFireTime().getTime() >= System.currentTimeMillis();
-	}
+    private boolean willOccur(Trigger t) {
+        return t.getNextFireTime() != null && t.getNextFireTime().getTime() >= System.currentTimeMillis();
+    }
 
-	public boolean synchronizeJobStores(OperationResult result) {
+    public boolean synchronizeJobStores(OperationResult result) {
         return taskSynchronizer.synchronizeJobStores(result);
     }
 
@@ -693,7 +693,7 @@ public class ExecutionManager {
             // otherwise, we simply add another trigger to this task
             addTriggerNowForTask(task, result);
         }
-	    result.recordSuccessIfUnknown();
+        result.recordSuccessIfUnknown();
     }
 
     // experimental
@@ -711,14 +711,14 @@ public class ExecutionManager {
             if (!quartzScheduler.checkExists(TaskQuartzImplUtil.createJobKeyForTask(task))) {
                 quartzScheduler.addJob(TaskQuartzImplUtil.createJobDetailForTask(task), false);
             }
-	        ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, TaskExecutionStatusType.WAITING, parentResult);
+            ((InternalTaskInterface) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, TaskExecutionStatusType.WAITING, parentResult);
         } catch (SchedulerException | ObjectNotFoundException | SchemaException | PreconditionViolationException e) {
             String message = "Waiting task " + task + " cannot be scheduled: " + e.getMessage();
             result.recordFatalError(message, e);
             LoggingUtils.logUnexpectedException(LOGGER, message, e);
             return;
         }
-	    addTriggerNowForTask(task, result);
+        addTriggerNowForTask(task, result);
         result.recordSuccessIfUnknown();
     }
 
@@ -766,11 +766,11 @@ public class ExecutionManager {
         try {
             Map<String, Integer> newLimits = new HashMap<>();
             if (limitations != null) {
-	            for (TaskGroupExecutionLimitationType limit : limitations.getGroupLimitation()) {
-		            newLimits.put(MiscUtil.nullIfEmpty(limit.getGroupName()), limit.getLimit());
-	            }
+                for (TaskGroupExecutionLimitationType limit : limitations.getGroupLimitation()) {
+                    newLimits.put(MiscUtil.nullIfEmpty(limit.getGroupName()), limit.getLimit());
+                }
             } else {
-            	// no limits -> everything is allowed
+                // no limits -> everything is allowed
             }
             Map<String, Integer> oldLimits = scheduler.getExecutionLimits();    // just for the logging purposes
             scheduler.setExecutionLimits(newLimits);

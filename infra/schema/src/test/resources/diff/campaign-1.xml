@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <accessCertificationCampaign xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-							 oid="461db8c7-4c1f-4a05-8338-d90dd2b3dba3"
-							 version="4">
-	<name>Assignment certification by Organization 3</name>
-	<description>Assignment certification by Organization membership</description>
-	<trigger id="1">
-		<timestamp>2017-03-17T23:45:58.689+01:00</timestamp>
-		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3</handlerUri>
-	</trigger>
-	<trigger id="2">
-		<timestamp>2017-03-17T23:44:58.689+01:00</timestamp>
-		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-3</handlerUri>
-	</trigger>
+                             oid="461db8c7-4c1f-4a05-8338-d90dd2b3dba3"
+                             version="4">
+    <name>Assignment certification by Organization 3</name>
+    <description>Assignment certification by Organization membership</description>
+    <trigger id="1">
+        <timestamp>2017-03-17T23:45:58.689+01:00</timestamp>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3</handlerUri>
+    </trigger>
+    <trigger id="2">
+        <timestamp>2017-03-17T23:44:58.689+01:00</timestamp>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage-approaching/handler-3</handlerUri>
+    </trigger>
 </accessCertificationCampaign>

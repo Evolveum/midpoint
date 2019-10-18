@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -80,42 +80,42 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
         return null;
     }
 
-//	@NotNull
-//	protected <F extends FocusType> FocusType castToFocus(PrismObject<F> objectPrism) {
-//		ObjectType object = objectPrism.asObjectable();
-//		if (!(object instanceof FocusType)) {
-//			throw new IllegalStateException(ExclusionCertificationHandler.class.getSimpleName() + " cannot be run against non-focal object: " + ObjectTypeUtil
-//					.toShortString(object));
-//		}
-//		return (FocusType) object;
-//	}
+//    @NotNull
+//    protected <F extends FocusType> FocusType castToFocus(PrismObject<F> objectPrism) {
+//        ObjectType object = objectPrism.asObjectable();
+//        if (!(object instanceof FocusType)) {
+//            throw new IllegalStateException(ExclusionCertificationHandler.class.getSimpleName() + " cannot be run against non-focal object: " + ObjectTypeUtil
+//                    .toShortString(object));
+//        }
+//        return (FocusType) object;
+//    }
 
-	// TODO move to some helper?
-	void revokeAssignmentCase(AccessCertificationAssignmentCaseType assignmentCase,
-			AccessCertificationCampaignType campaign, OperationResult caseResult, Task task)
-			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
-			ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException,
-			SecurityViolationException {
-		String objectOid = assignmentCase.getObjectRef().getOid();
-		Class<? extends Objectable> clazz = ObjectTypes.getObjectTypeFromTypeQName(assignmentCase.getObjectRef().getType()).getClassDefinition();
-		//noinspection unchecked
-		PrismContainerValue<AssignmentType> cval = assignmentCase.getAssignment().asPrismContainerValue().clone();
+    // TODO move to some helper?
+    void revokeAssignmentCase(AccessCertificationAssignmentCaseType assignmentCase,
+            AccessCertificationCampaignType campaign, OperationResult caseResult, Task task)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException,
+            SecurityViolationException {
+        String objectOid = assignmentCase.getObjectRef().getOid();
+        Class<? extends Objectable> clazz = ObjectTypes.getObjectTypeFromTypeQName(assignmentCase.getObjectRef().getType()).getClassDefinition();
+        //noinspection unchecked
+        PrismContainerValue<AssignmentType> cval = assignmentCase.getAssignment().asPrismContainerValue().clone();
 
-		ContainerDelta assignmentDelta;
-		if (Boolean.TRUE.equals(assignmentCase.isIsInducement())) {
-			assignmentDelta = prismContext.deltaFactory().container().createModificationDelete(AbstractRoleType.F_INDUCEMENT, clazz,
-					cval);
-		} else {
-			assignmentDelta = prismContext.deltaFactory().container().createModificationDelete(FocusType.F_ASSIGNMENT, clazz, cval);
-		}
-		@SuppressWarnings({ "unchecked", "raw" })
-		ObjectDelta<? extends ObjectType> objectDelta = (ObjectDelta<? extends ObjectType>) prismContext.deltaFactory().object().createModifyDelta(objectOid,
-				Collections.singletonList(assignmentDelta), clazz);
-		LOGGER.info("Going to execute delta: {}", objectDelta.debugDump());
-		modelService.executeChanges(Collections.singletonList(objectDelta), null, task, caseResult);
-		LOGGER.info("Case {} in {} ({} {} of {}) was successfully revoked",
-				assignmentCase.asPrismContainerValue().getId(), ObjectTypeUtil.toShortString(campaign),
-				Boolean.TRUE.equals(assignmentCase.isIsInducement()) ? "inducement":"assignment",
-				cval.getId(), objectOid);
-	}
+        ContainerDelta assignmentDelta;
+        if (Boolean.TRUE.equals(assignmentCase.isIsInducement())) {
+            assignmentDelta = prismContext.deltaFactory().container().createModificationDelete(AbstractRoleType.F_INDUCEMENT, clazz,
+                    cval);
+        } else {
+            assignmentDelta = prismContext.deltaFactory().container().createModificationDelete(FocusType.F_ASSIGNMENT, clazz, cval);
+        }
+        @SuppressWarnings({ "unchecked", "raw" })
+        ObjectDelta<? extends ObjectType> objectDelta = (ObjectDelta<? extends ObjectType>) prismContext.deltaFactory().object().createModifyDelta(objectOid,
+                Collections.singletonList(assignmentDelta), clazz);
+        LOGGER.info("Going to execute delta: {}", objectDelta.debugDump());
+        modelService.executeChanges(Collections.singletonList(objectDelta), null, task, caseResult);
+        LOGGER.info("Case {} in {} ({} {} of {}) was successfully revoked",
+                assignmentCase.asPrismContainerValue().getId(), ObjectTypeUtil.toShortString(campaign),
+                Boolean.TRUE.equals(assignmentCase.isIsInducement()) ? "inducement":"assignment",
+                cval.getId(), objectOid);
+    }
 }

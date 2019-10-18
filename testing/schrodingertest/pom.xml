@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -184,7 +184,7 @@
                                                 <contains value="${project.app.package.name}" />
                                             </linecontains>
                                             <replacestring from="${project.app.package.name}" />
-						                    <trim/>
+                                            <trim/>
                                         </outputfilterchain>
                                     </redirector>
                                 </exec>
@@ -197,7 +197,7 @@
                                     <arg value="-15" />
                                     <arg value="${process.pid}" />
                                 </exec>
-				        </target>
+                        </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>

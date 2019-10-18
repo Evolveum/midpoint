@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,9 +23,9 @@ import java.util.Arrays;
  * @author Viliam Repan (lazyman)
  */
 public class BreadcrumbPageClass extends Breadcrumb {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private Class<? extends WebPage> page;
+    private Class<? extends WebPage> page;
     private PageParameters parameters;
 
     public BreadcrumbPageClass(IModel<String> label, Class<? extends WebPage> page, PageParameters parameters) {
@@ -69,16 +69,16 @@ public class BreadcrumbPageClass extends Breadcrumb {
         }
     }
 
-	@Override
-	public RestartResponseException getRestartResponseException() {
-		if (parameters == null) {
-			return new RestartResponseException(page);
-		} else {
-			return new RestartResponseException(page, parameters);
-		}
-	}
+    @Override
+    public RestartResponseException getRestartResponseException() {
+        if (parameters == null) {
+            return new RestartResponseException(page);
+        } else {
+            return new RestartResponseException(page, parameters);
+        }
+    }
 
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -95,13 +95,13 @@ public class BreadcrumbPageClass extends Breadcrumb {
         return Arrays.hashCode(new Object[]{page, parameters});
     }
 
-	@Override
-	protected void extendsDebugDump(StringBuilder sb, int indent) {
-		super.extendsDebugDump(sb, indent);
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "page", page, indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "parameters", parameters==null?null:parameters.toString(), indent+1);
-	}
+    @Override
+    protected void extendsDebugDump(StringBuilder sb, int indent) {
+        super.extendsDebugDump(sb, indent);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "page", page, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "parameters", parameters==null?null:parameters.toString(), indent+1);
+    }
 
 
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -45,285 +45,285 @@ import java.util.List;
  */
 public class FocusListInlineMenuHelper<F extends FocusType> implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(FocusListInlineMenuHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(FocusListInlineMenuHelper.class);
 
-	// these are prefixed by parent page class name
-	private static final String OPERATION_ENABLE_OBJECTS = "enableObjects";
-	private static final String OPERATION_DISABLE_OBJECTS = "disableObjects";
-	private static final String OPERATION_ENABLE_OBJECT = "enableObject";
-	private static final String OPERATION_DISABLE_OBJECT = "disableObject";
-	private static final String OPERATION_RECONCILE_OBJECTS = "reconcileObjects";
-	private static final String OPERATION_RECONCILE_OBJECT = "reconcileObject";
-	private static final String OPERATION_DELETE_OBJECTS = "deleteObjects";
-	private static final String OPERATION_DELETE_OBJECT = "deleteObject";
+    // these are prefixed by parent page class name
+    private static final String OPERATION_ENABLE_OBJECTS = "enableObjects";
+    private static final String OPERATION_DISABLE_OBJECTS = "disableObjects";
+    private static final String OPERATION_ENABLE_OBJECT = "enableObject";
+    private static final String OPERATION_DISABLE_OBJECT = "disableObject";
+    private static final String OPERATION_RECONCILE_OBJECTS = "reconcileObjects";
+    private static final String OPERATION_RECONCILE_OBJECT = "reconcileObject";
+    private static final String OPERATION_DELETE_OBJECTS = "deleteObjects";
+    private static final String OPERATION_DELETE_OBJECT = "deleteObject";
 
-	@NotNull private final Class<F> objectClass;
-	@NotNull private final PageBase parentPage;
-	@NotNull private final PageAdminObjectList<F> focusListComponent;
-	private F singleDelete;
+    @NotNull private final Class<F> objectClass;
+    @NotNull private final PageBase parentPage;
+    @NotNull private final PageAdminObjectList<F> focusListComponent;
+    private F singleDelete;
 
-	public FocusListInlineMenuHelper(@NotNull Class<F> objectClass, @NotNull PageBase parentPage, @NotNull PageAdminObjectList<F> focusListComponent) {
-		this.objectClass = objectClass;
-		this.parentPage = parentPage;
-		this.focusListComponent = focusListComponent;
-	}
+    public FocusListInlineMenuHelper(@NotNull Class<F> objectClass, @NotNull PageBase parentPage, @NotNull PageAdminObjectList<F> focusListComponent) {
+        this.objectClass = objectClass;
+        this.parentPage = parentPage;
+        this.focusListComponent = focusListComponent;
+    }
 
-	public List<InlineMenuItem> createRowActions() {
-		List<InlineMenuItem> menu = new ArrayList<>();
-		menu.add(new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable")) {
-			private static final long serialVersionUID = 1L;
+    public List<InlineMenuItem> createRowActions() {
+        List<InlineMenuItem> menu = new ArrayList<>();
+        menu.add(new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<SelectableBean<F>>() {
+                return new ColumnMenuAction<SelectableBean<F>>() {
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null) {
-							updateActivationPerformed(target, true, null);
-						} else {
-							SelectableBean<F> rowDto = getRowModel().getObject();
-							updateActivationPerformed(target, true, rowDto.getValue());
-						}
-					}
-				};
-			}
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null) {
+                            updateActivationPerformed(target, true, null);
+                        } else {
+                            SelectableBean<F> rowDto = getRowModel().getObject();
+                            updateActivationPerformed(target, true, rowDto.getValue());
+                        }
+                    }
+                };
+            }
 
-			@Override
+            @Override
             public String getButtonIconCssClass(){
-				return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
-			}
+                return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+            }
 
-			@Override
-			public IModel<String> getConfirmationMessageModel(){
-				String actionName = parentPage.createStringResource("pageUsers.message.enableAction").getString();
-				return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-			}
+            @Override
+            public IModel<String> getConfirmationMessageModel(){
+                String actionName = parentPage.createStringResource("pageUsers.message.enableAction").getString();
+                return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+            }
 
-		});
+        });
 
-		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable")) {
-			private static final long serialVersionUID = 1L;
+        menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<SelectableBean<F>>() {
+                return new ColumnMenuAction<SelectableBean<F>>() {
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null){
-							updateActivationPerformed(target, false, null);
-						} else {
-							SelectableBean<F> rowDto = getRowModel().getObject();
-							updateActivationPerformed(target, false, rowDto.getValue());
-						}
-					}
-				};
-			}
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null){
+                            updateActivationPerformed(target, false, null);
+                        } else {
+                            SelectableBean<F> rowDto = getRowModel().getObject();
+                            updateActivationPerformed(target, false, rowDto.getValue());
+                        }
+                    }
+                };
+            }
 
-			@Override
-			public IModel<String> getConfirmationMessageModel(){
-				String actionName = parentPage.createStringResource("pageUsers.message.disableAction").getString();
-				return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-			}
+            @Override
+            public IModel<String> getConfirmationMessageModel(){
+                String actionName = parentPage.createStringResource("pageUsers.message.disableAction").getString();
+                return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+            }
 
-		});
+        });
 
-		menu.add(new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile")) {
-			private static final long serialVersionUID = 1L;
+        menu.add(new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<SelectableBean<F>>() {
+                return new ColumnMenuAction<SelectableBean<F>>() {
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null){
-							reconcilePerformed(target, null);
-						} else {
-							SelectableBean<F> rowDto = getRowModel().getObject();
-							reconcilePerformed(target, rowDto.getValue());
-						}
-					}
-				};
-			}
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null){
+                            reconcilePerformed(target, null);
+                        } else {
+                            SelectableBean<F> rowDto = getRowModel().getObject();
+                            reconcilePerformed(target, rowDto.getValue());
+                        }
+                    }
+                };
+            }
 
-			@Override
+            @Override
             public String getButtonIconCssClass(){
-				return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
-			}
+                return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
+            }
 
-			@Override
-			public IModel<String> getConfirmationMessageModel(){
-				String actionName = parentPage.createStringResource("pageUsers.message.reconcileAction").getString();
-				return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-			}
+            @Override
+            public IModel<String> getConfirmationMessageModel(){
+                String actionName = parentPage.createStringResource("pageUsers.message.reconcileAction").getString();
+                return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+            }
 
-		});
+        });
 
-		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.delete")) {
-			private static final long serialVersionUID = 1L;
+        menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.delete")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<SelectableBean<F>>() {
+                return new ColumnMenuAction<SelectableBean<F>>() {
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null) {
-							deleteConfirmedPerformed(target, null);
-						} else {
-							SelectableBean<F> rowDto = getRowModel().getObject();
-							deleteConfirmedPerformed(target, rowDto.getValue());
-						}
-					}
-				};
-			}
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null) {
+                            deleteConfirmedPerformed(target, null);
+                        } else {
+                            SelectableBean<F> rowDto = getRowModel().getObject();
+                            deleteConfirmedPerformed(target, rowDto.getValue());
+                        }
+                    }
+                };
+            }
 
-			@Override
-			public IModel<String> getConfirmationMessageModel(){
-				String actionName = parentPage.createStringResource("pageUsers.message.deleteAction").getString();
-				return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-			}
-		});
-		return menu;
-	}
+            @Override
+            public IModel<String> getConfirmationMessageModel(){
+                String actionName = parentPage.createStringResource("pageUsers.message.deleteAction").getString();
+                return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+            }
+        });
+        return menu;
+    }
 
-	public void deleteConfirmedPerformed(AjaxRequestTarget target, F selectedObject) {
-		List<F> objects = getObjectsToActOn(target, selectedObject);
-		if (objects.isEmpty()) {
-			return;
-		}
+    public void deleteConfirmedPerformed(AjaxRequestTarget target, F selectedObject) {
+        List<F> objects = getObjectsToActOn(target, selectedObject);
+        if (objects.isEmpty()) {
+            return;
+        }
 
-		OperationResult result = new OperationResult(getOperationName(OPERATION_DELETE_OBJECTS));
-		for (F object : objects) {
-			OperationResult subResult = result.createSubresult(getOperationName(OPERATION_DELETE_OBJECT));
-			try {
-				Task task = parentPage.createSimpleTask(getOperationName(OPERATION_DELETE_OBJECT));
+        OperationResult result = new OperationResult(getOperationName(OPERATION_DELETE_OBJECTS));
+        for (F object : objects) {
+            OperationResult subResult = result.createSubresult(getOperationName(OPERATION_DELETE_OBJECT));
+            try {
+                Task task = parentPage.createSimpleTask(getOperationName(OPERATION_DELETE_OBJECT));
 
-				ObjectDelta<F> delta = parentPage.getPrismContext().deltaFactory().object().createDeleteDelta(objectClass, object.getOid()
-				);
-				WebModelServiceUtils.save(delta, subResult, task, parentPage);
-				subResult.computeStatus();
-			} catch (RuntimeException ex) {
-				subResult.recomputeStatus();
-				subResult.recordFatalError("FocusListInlineMenuHelper.message.delete.fatalError", ex);
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete object", ex);
-			}
-		}
-		result.computeStatusComposite();
-		focusListComponent.getObjectListPanel().clearCache();
+                ObjectDelta<F> delta = parentPage.getPrismContext().deltaFactory().object().createDeleteDelta(objectClass, object.getOid()
+                );
+                WebModelServiceUtils.save(delta, subResult, task, parentPage);
+                subResult.computeStatus();
+            } catch (RuntimeException ex) {
+                subResult.recomputeStatus();
+                subResult.recordFatalError("FocusListInlineMenuHelper.message.delete.fatalError", ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete object", ex);
+            }
+        }
+        result.computeStatusComposite();
+        focusListComponent.getObjectListPanel().clearCache();
 
-		parentPage.showResult(result);
-		target.add(parentPage.getFeedbackPanel());
-		focusListComponent.getObjectListPanel().refreshTable(objectClass, target);
-		focusListComponent.getObjectListPanel().clearCache();
-	}
+        parentPage.showResult(result);
+        target.add(parentPage.getFeedbackPanel());
+        focusListComponent.getObjectListPanel().refreshTable(objectClass, target);
+        focusListComponent.getObjectListPanel().clearCache();
+    }
 
-	/**
-	 * This method updates object activation. If selectedObject parameter is not null,
-	 * than it updates only that objects, otherwise it checks table for selected
-	 * objects.
-	 */
-	private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling, F selectedObject) {
-		List<F> objects = getObjectsToActOn(target, selectedObject);
-		if (objects.isEmpty()) {
-			return;
-		}
+    /**
+     * This method updates object activation. If selectedObject parameter is not null,
+     * than it updates only that objects, otherwise it checks table for selected
+     * objects.
+     */
+    private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling, F selectedObject) {
+        List<F> objects = getObjectsToActOn(target, selectedObject);
+        if (objects.isEmpty()) {
+            return;
+        }
 
-		OperationResult result = new OperationResult(getOperationName(enabling ? OPERATION_ENABLE_OBJECTS : OPERATION_DISABLE_OBJECTS));
-		for (F object : objects) {
-			String operationName = getOperationName(enabling ? OPERATION_ENABLE_OBJECT : OPERATION_DISABLE_OBJECT);
-			OperationResult subResult = result.createSubresult(operationName);
-			try {
-				Task task = parentPage.createSimpleTask(operationName);
+        OperationResult result = new OperationResult(getOperationName(enabling ? OPERATION_ENABLE_OBJECTS : OPERATION_DISABLE_OBJECTS));
+        for (F object : objects) {
+            String operationName = getOperationName(enabling ? OPERATION_ENABLE_OBJECT : OPERATION_DISABLE_OBJECT);
+            OperationResult subResult = result.createSubresult(operationName);
+            try {
+                Task task = parentPage.createSimpleTask(operationName);
 
-				ObjectDelta objectDelta = WebModelServiceUtils.createActivationAdminStatusDelta(
-						objectClass, object.getOid(), enabling, parentPage.getPrismContext());
-				parentPage.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(objectDelta), null, task, subResult);
-				subResult.recordSuccess();
-			} catch (CommonException|RuntimeException ex) {
-				subResult.recomputeStatus();
-				if (enabling) {
-					subResult.recordFatalError("FocusListInlineMenuHelper.message.enable.fatalError", ex);
-					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't enable object", ex);
-				} else {
-					subResult.recordFatalError("FocusListInlineMenuHelper.message.disable.fatalError", ex);
-					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't disable object", ex);
-				}
-			}
-		}
-		result.recomputeStatus();
+                ObjectDelta objectDelta = WebModelServiceUtils.createActivationAdminStatusDelta(
+                        objectClass, object.getOid(), enabling, parentPage.getPrismContext());
+                parentPage.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(objectDelta), null, task, subResult);
+                subResult.recordSuccess();
+            } catch (CommonException|RuntimeException ex) {
+                subResult.recomputeStatus();
+                if (enabling) {
+                    subResult.recordFatalError("FocusListInlineMenuHelper.message.enable.fatalError", ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't enable object", ex);
+                } else {
+                    subResult.recordFatalError("FocusListInlineMenuHelper.message.disable.fatalError", ex);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't disable object", ex);
+                }
+            }
+        }
+        result.recomputeStatus();
 
-		parentPage.showResult(result);
-		target.add(parentPage.getFeedbackPanel());
-		focusListComponent.getObjectListPanel().clearCache();
-		focusListComponent.getObjectListPanel().refreshTable(objectClass, target);
-	}
+        parentPage.showResult(result);
+        target.add(parentPage.getFeedbackPanel());
+        focusListComponent.getObjectListPanel().clearCache();
+        focusListComponent.getObjectListPanel().refreshTable(objectClass, target);
+    }
 
-	private void reconcilePerformed(AjaxRequestTarget target, F selectedObject) {
-		List<F> objects = getObjectsToActOn(target, selectedObject);
-		if (objects.isEmpty()) {
-			return;
-		}
+    private void reconcilePerformed(AjaxRequestTarget target, F selectedObject) {
+        List<F> objects = getObjectsToActOn(target, selectedObject);
+        if (objects.isEmpty()) {
+            return;
+        }
 
-		OperationResult result = new OperationResult(getOperationName(OPERATION_RECONCILE_OBJECTS));
-		for (F object : objects) {
-			OperationResult opResult = result.createSubresult(getOperationName(OPERATION_RECONCILE_OBJECT));
-			try {
-				Task task = parentPage.createSimpleTask(OPERATION_RECONCILE_OBJECT);
-				ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
-						.createEmptyModifyDelta(objectClass, object.getOid()
-						);
-				Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
-				parentPage.getModelService().executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, opResult);
-				opResult.computeStatusIfUnknown();
-			} catch (CommonException|RuntimeException ex) {
-				opResult.recomputeStatus();
-				opResult.recordFatalError(
-						parentPage.createStringResource("FocusListInlineMenuHelper.message.reconcile.fatalError", object).getString(), ex);
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile object " + object + ".", ex);
-			}
-		}
+        OperationResult result = new OperationResult(getOperationName(OPERATION_RECONCILE_OBJECTS));
+        for (F object : objects) {
+            OperationResult opResult = result.createSubresult(getOperationName(OPERATION_RECONCILE_OBJECT));
+            try {
+                Task task = parentPage.createSimpleTask(OPERATION_RECONCILE_OBJECT);
+                ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
+                        .createEmptyModifyDelta(objectClass, object.getOid()
+                        );
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil.createDeltaCollection(delta);
+                parentPage.getModelService().executeChanges(deltas, ModelExecuteOptions.createReconcile(), task, opResult);
+                opResult.computeStatusIfUnknown();
+            } catch (CommonException|RuntimeException ex) {
+                opResult.recomputeStatus();
+                opResult.recordFatalError(
+                        parentPage.createStringResource("FocusListInlineMenuHelper.message.reconcile.fatalError", object).getString(), ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile object " + object + ".", ex);
+            }
+        }
 
-		result.recomputeStatus();
+        result.recomputeStatus();
 
-		parentPage.showResult(result);
-		target.add(parentPage.getFeedbackPanel());
-		focusListComponent.getObjectListPanel().refreshTable(objectClass, target);
-		focusListComponent.getObjectListPanel().clearCache();
-	}
+        parentPage.showResult(result);
+        target.add(parentPage.getFeedbackPanel());
+        focusListComponent.getObjectListPanel().refreshTable(objectClass, target);
+        focusListComponent.getObjectListPanel().clearCache();
+    }
 
 
-	private String getOperationName(String suffix) {
-		return parentPage.getClass().getName() + "." + suffix;
-	}
+    private String getOperationName(String suffix) {
+        return parentPage.getClass().getName() + "." + suffix;
+    }
 
-	/**
-	 * This method check selection in table. If selectedObject != null than it
-	 * returns only this object.
-	 */
-	private List<F> getObjectsToActOn(AjaxRequestTarget target, F selectedObject) {
-		if (selectedObject != null) {
-			return Collections.singletonList(selectedObject);
-		} else {
-			List<F> objects;
-			objects = focusListComponent.getObjectListPanel().getSelectedObjects();
-			if (objects.isEmpty()) {
-				parentPage.warn(parentPage.getString("FocusListInlineMenuHelper.message.nothingSelected"));
-				target.add(parentPage.getFeedbackPanel());
-			}
-			return objects;
-		}
-	}
+    /**
+     * This method check selection in table. If selectedObject != null than it
+     * returns only this object.
+     */
+    private List<F> getObjectsToActOn(AjaxRequestTarget target, F selectedObject) {
+        if (selectedObject != null) {
+            return Collections.singletonList(selectedObject);
+        } else {
+            List<F> objects;
+            objects = focusListComponent.getObjectListPanel().getSelectedObjects();
+            if (objects.isEmpty()) {
+                parentPage.warn(parentPage.getString("FocusListInlineMenuHelper.message.nothingSelected"));
+                target.add(parentPage.getFeedbackPanel());
+            }
+            return objects;
+        }
+    }
 
-	protected boolean isShowConfirmationDialog(ColumnMenuAction action){
-		return false;
-	}
+    protected boolean isShowConfirmationDialog(ColumnMenuAction action){
+        return false;
+    }
 
-	protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
-		return null;
-	}
+    protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+        return null;
+    }
 }

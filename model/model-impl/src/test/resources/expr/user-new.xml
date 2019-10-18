@@ -1,13 +1,13 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<c:object oid="007" 
-	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'	
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+<c:object oid="007"
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd"
    xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
    xmlns:mi6="http://mi6.gov.uk/schema/"
@@ -84,12 +84,12 @@
             <namespace>http://midpoint.evolveum.com/xml/ns/default/resource/unix4</namespace>
             <schema>
               <definition>
-                <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-                targetNamespace="http://midpoint.evolveum.com/xml/ns/default/resource/unix4" 
-                xmlns:tns="http://midpoint.evolveum.com/xml/ns/default/resource/unix4" 
-                xmlns:r="http://midpoint.evolveum.com/xml/ns/resource/1#" 
-				xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-                xmlns:idc="http://midpoint.evolveum.com/xml/ns/resource/idconnector/1#" 
+                <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                targetNamespace="http://midpoint.evolveum.com/xml/ns/default/resource/unix4"
+                xmlns:tns="http://midpoint.evolveum.com/xml/ns/default/resource/unix4"
+                xmlns:r="http://midpoint.evolveum.com/xml/ns/resource/1#"
+                xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                xmlns:idc="http://midpoint.evolveum.com/xml/ns/resource/idconnector/1#"
                 elementFormDefault="qualified">
                     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/resource/idconnector/1#"/>
 
@@ -129,13 +129,13 @@
                     <xsd:complexType name="AccountObjectClass">
                         <xsd:annotation>
                             <xsd:appinfo>
-                            	 <ra:resourceObject/>
-			                     <ra:identifier>icfs:uid</ra:identifier>
-			                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-			                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-			                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-			                     <ra:account/>
-			                     <ra:default/>
+                                 <ra:resourceObject/>
+                                 <ra:identifier>icfs:uid</ra:identifier>
+                                 <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                                 <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                                 <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                                 <ra:account/>
+                                 <ra:default/>
                             </xsd:appinfo>
                         </xsd:annotation>
                         <xsd:complexContent>

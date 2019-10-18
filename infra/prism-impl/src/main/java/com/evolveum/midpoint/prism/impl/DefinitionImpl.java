@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -49,13 +49,13 @@ import javax.xml.namespace.QName;
  */
 public abstract class DefinitionImpl implements MutableDefinition {
 
-	private static final long serialVersionUID = -2643332934312107274L;
-	@NotNull protected QName typeName;
-	protected ItemProcessing processing;
+    private static final long serialVersionUID = -2643332934312107274L;
+    @NotNull protected QName typeName;
+    protected ItemProcessing processing;
     protected boolean isAbstract = false;
-	protected String displayName;
-	protected Integer displayOrder;
-	protected String help;
+    protected String displayName;
+    protected Integer displayOrder;
+    protected String help;
     protected String documentation;
     protected boolean deprecated = false;
     protected String deprecatedSince;
@@ -70,9 +70,9 @@ public abstract class DefinitionImpl implements MutableDefinition {
      */
     protected boolean inherited = false;
 
-	/**
-	 * This means that this particular definition (of an item or of a type) is part of the runtime schema, e.g.
-	 * extension schema, resource schema or connector schema or something like that. I.e. it is not defined statically.
+    /**
+     * This means that this particular definition (of an item or of a type) is part of the runtime schema, e.g.
+     * extension schema, resource schema or connector schema or something like that. I.e. it is not defined statically.
      */
     protected boolean isRuntimeSchema;
 
@@ -83,41 +83,41 @@ public abstract class DefinitionImpl implements MutableDefinition {
      */
     protected boolean emphasized = false;
 
-	protected transient PrismContext prismContext;
+    protected transient PrismContext prismContext;
 
-	DefinitionImpl(@NotNull QName typeName, @NotNull PrismContext prismContext) {
-		this.typeName = typeName;
-		this.prismContext = prismContext;
-	}
+    DefinitionImpl(@NotNull QName typeName, @NotNull PrismContext prismContext) {
+        this.typeName = typeName;
+        this.prismContext = prismContext;
+    }
 
-
-	@Override
-	@NotNull
-	public QName getTypeName() {
-		return typeName;
-	}
-
-	public void setTypeName(@NotNull QName typeName) {
-		this.typeName = typeName;
-	}
-
-	@Override
-	public boolean isIgnored() {
-		return processing == ItemProcessing.IGNORE;
-	}
-
-	@Override
-	public ItemProcessing getProcessing() {
-		return processing;
-	}
-
-	@Override
-	public void setProcessing(ItemProcessing processing) {
-		this.processing = processing;
-	}
 
     @Override
-	public boolean isAbstract() {
+    @NotNull
+    public QName getTypeName() {
+        return typeName;
+    }
+
+    public void setTypeName(@NotNull QName typeName) {
+        this.typeName = typeName;
+    }
+
+    @Override
+    public boolean isIgnored() {
+        return processing == ItemProcessing.IGNORE;
+    }
+
+    @Override
+    public ItemProcessing getProcessing() {
+        return processing;
+    }
+
+    @Override
+    public void setProcessing(ItemProcessing processing) {
+        this.processing = processing;
+    }
+
+    @Override
+    public boolean isAbstract() {
         return isAbstract;
     }
 
@@ -126,98 +126,98 @@ public abstract class DefinitionImpl implements MutableDefinition {
     }
 
     @Override
-	public boolean isDeprecated() {
-		return deprecated;
-	}
+    public boolean isDeprecated() {
+        return deprecated;
+    }
 
-	@Override
-	public void setDeprecated(boolean deprecated) {
-		this.deprecated = deprecated;
-	}
-	
-	@Override
-	public String getDeprecatedSince() {
-		return deprecatedSince;
-	}
-	
-	public void setDeprecatedSince(String deprecatedSince) {
-		this.deprecatedSince = deprecatedSince;
-	}
+    @Override
+    public void setDeprecated(boolean deprecated) {
+        this.deprecated = deprecated;
+    }
 
-	@Override
+    @Override
+    public String getDeprecatedSince() {
+        return deprecatedSince;
+    }
+
+    public void setDeprecatedSince(String deprecatedSince) {
+        this.deprecatedSince = deprecatedSince;
+    }
+
+    @Override
     public boolean isExperimental() {
-		return experimental;
-	}
+        return experimental;
+    }
 
-	@Override
-	public void setExperimental(boolean experimental) {
-		this.experimental = experimental;
-	}
-	
-	@Override
-	public String getPlannedRemoval() {
-		return plannedRemoval;
-	}
+    @Override
+    public void setExperimental(boolean experimental) {
+        this.experimental = experimental;
+    }
 
-	public void setPlannedRemoval(String plannedRemoval) {
-		this.plannedRemoval = plannedRemoval;
-	}
+    @Override
+    public String getPlannedRemoval() {
+        return plannedRemoval;
+    }
 
-	@Override
-	public boolean isElaborate() {
-		return elaborate;
-	}
+    public void setPlannedRemoval(String plannedRemoval) {
+        this.plannedRemoval = plannedRemoval;
+    }
 
-	public void setElaborate(boolean elaborate) {
-		this.elaborate = elaborate;
-	}
+    @Override
+    public boolean isElaborate() {
+        return elaborate;
+    }
 
-	public void setInherited(boolean inherited) {
+    public void setElaborate(boolean elaborate) {
+        this.elaborate = elaborate;
+    }
+
+    public void setInherited(boolean inherited) {
         this.inherited = inherited;
     }
 
     @Override
-	public boolean isEmphasized() {
-		return emphasized;
-	}
-
-	@Override
-	public void setEmphasized(boolean emphasized) {
-		this.emphasized = emphasized;
-	}
-
-	@Override
-	public String getDisplayName() {
-		return displayName;
-	}
-
-	@Override
-	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
-	}
-
-	@Override
-	public Integer getDisplayOrder() {
-		return displayOrder;
-	}
-
-	@Override
-	public void setDisplayOrder(Integer displayOrder) {
-		this.displayOrder = displayOrder;
-	}
-
-	@Override
-	public String getHelp() {
-		return help;
-	}
-
-	@Override
-	public void setHelp(String help) {
-		this.help = help;
-	}
+    public boolean isEmphasized() {
+        return emphasized;
+    }
 
     @Override
-	public String getDocumentation() {
+    public void setEmphasized(boolean emphasized) {
+        this.emphasized = emphasized;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
+    @Override
+    public Integer getDisplayOrder() {
+        return displayOrder;
+    }
+
+    @Override
+    public void setDisplayOrder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
+    }
+
+    @Override
+    public String getHelp() {
+        return help;
+    }
+
+    @Override
+    public void setHelp(String help) {
+        this.help = help;
+    }
+
+    @Override
+    public String getDocumentation() {
         return documentation;
     }
 
@@ -226,7 +226,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
     }
 
     @Override
-	public String getDocumentationPreview() {
+    public String getDocumentationPreview() {
         if (documentation == null || documentation.isEmpty()) {
             return documentation;
         }
@@ -239,7 +239,7 @@ public abstract class DefinitionImpl implements MutableDefinition {
     }
 
     @Override
-	public boolean isRuntimeSchema() {
+    public boolean isRuntimeSchema() {
         return isRuntimeSchema;
     }
 
@@ -247,140 +247,140 @@ public abstract class DefinitionImpl implements MutableDefinition {
         this.isRuntimeSchema = isRuntimeSchema;
     }
 
-	@Override
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
+    @Override
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
 
     @Override
-	public Class getTypeClassIfKnown() {
+    public Class getTypeClassIfKnown() {
         return XsdTypeMapper.toJavaTypeIfKnown(getTypeName());
     }
 
-	@Override
-	public Class getTypeClass() {
-		return XsdTypeMapper.toJavaType(getTypeName());
-	}
+    @Override
+    public Class getTypeClass() {
+        return XsdTypeMapper.toJavaType(getTypeName());
+    }
 
-	@Override
-	public <A> A getAnnotation(QName qname) {
-		if (annotations == null) {
-			return null;
-		} else {
-			return (A) annotations.get(qname);
-		}
-	}
+    @Override
+    public <A> A getAnnotation(QName qname) {
+        if (annotations == null) {
+            return null;
+        } else {
+            return (A) annotations.get(qname);
+        }
+    }
 
-	@Override
-	public <A> void setAnnotation(QName qname, A value) {
-		if (annotations == null) {
-			// Lazy init. Most definitions will not have any annotations.
-			// We do not want to fill memory with empty hashmaps.
-			annotations = new HashMap<>();
-		}
-		annotations.put(qname, value);
-	}
+    @Override
+    public <A> void setAnnotation(QName qname, A value) {
+        if (annotations == null) {
+            // Lazy init. Most definitions will not have any annotations.
+            // We do not want to fill memory with empty hashmaps.
+            annotations = new HashMap<>();
+        }
+        annotations.put(qname, value);
+    }
 
-	public List<SchemaMigration> getSchemaMigrations() {
-		return schemaMigrations;
-	}
+    public List<SchemaMigration> getSchemaMigrations() {
+        return schemaMigrations;
+    }
 
-	public void addSchemaMigration(SchemaMigration schemaMigration) {
-		if (schemaMigrations == null) {
-			schemaMigrations = new ArrayList<>();
-		}
-		if (!schemaMigrations.contains(schemaMigration)) {
-			schemaMigrations.add(schemaMigration);
-		}
-	}
+    public void addSchemaMigration(SchemaMigration schemaMigration) {
+        if (schemaMigrations == null) {
+            schemaMigrations = new ArrayList<>();
+        }
+        if (!schemaMigrations.contains(schemaMigration)) {
+            schemaMigrations.add(schemaMigration);
+        }
+    }
 
-	public abstract void revive(PrismContext prismContext);
+    public abstract void revive(PrismContext prismContext);
 
-	protected void copyDefinitionData(DefinitionImpl clone) {
-		clone.processing = this.processing;
-		clone.typeName = this.typeName;
-		clone.displayName = this.displayName;
-		clone.displayOrder = this.displayOrder;
-		clone.help = this.help;
-		clone.inherited = this.inherited;
+    protected void copyDefinitionData(DefinitionImpl clone) {
+        clone.processing = this.processing;
+        clone.typeName = this.typeName;
+        clone.displayName = this.displayName;
+        clone.displayOrder = this.displayOrder;
+        clone.help = this.help;
+        clone.inherited = this.inherited;
         clone.documentation = this.documentation;
         clone.isAbstract = this.isAbstract;
         clone.deprecated = this.deprecated;
-		clone.isRuntimeSchema = this.isRuntimeSchema;
-		clone.emphasized = this.emphasized;
-		clone.experimental = this.experimental;
-		clone.elaborate = this.elaborate;
-		if (this.annotations != null) {
-			clone.annotations = new HashMap<>(this.annotations);
-		}
-		clone.schemaMigrations = this.schemaMigrations;
+        clone.isRuntimeSchema = this.isRuntimeSchema;
+        clone.emphasized = this.emphasized;
+        clone.experimental = this.experimental;
+        clone.elaborate = this.elaborate;
+        if (this.annotations != null) {
+            clone.annotations = new HashMap<>(this.annotations);
+        }
+        clone.schemaMigrations = this.schemaMigrations;
     }
 
-	@SuppressWarnings("ConstantConditions")
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((processing == null) ? 0 : processing.hashCode());
-		result = prime * result + ((typeName == null) ? 0 : typeName.hashCode());
-		return result;
-	}
+    @SuppressWarnings("ConstantConditions")
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((processing == null) ? 0 : processing.hashCode());
+        result = prime * result + ((typeName == null) ? 0 : typeName.hashCode());
+        return result;
+    }
 
-	@SuppressWarnings("ConstantConditions")
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		DefinitionImpl other = (DefinitionImpl) obj;
-		if (processing != other.processing)
-			return false;
-		if (typeName == null) {
-			if (other.typeName != null)
-				return false;
-		} else if (!typeName.equals(other.typeName))
-			return false;
-		return true;
-	}
+    @SuppressWarnings("ConstantConditions")
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        DefinitionImpl other = (DefinitionImpl) obj;
+        if (processing != other.processing)
+            return false;
+        if (typeName == null) {
+            if (other.typeName != null)
+                return false;
+        } else if (!typeName.equals(other.typeName))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return getDebugDumpClassName() + " ("+PrettyPrinter.prettyPrint(getTypeName())+")";
-	}
+    @Override
+    public String toString() {
+        return getDebugDumpClassName() + " ("+PrettyPrinter.prettyPrint(getTypeName())+")";
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
-		sb.append(toString());
-		extendDumpHeader(sb);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
+        sb.append(toString());
+        extendDumpHeader(sb);
+        return sb.toString();
+    }
 
-	protected void extendDumpHeader(StringBuilder sb) {
-		if (getSchemaMigrations() != null && !getSchemaMigrations().isEmpty()) {
-			sb.append(", ").append(getSchemaMigrations().size()).append(" schema migrations");
-		}
-	}
-	
-	/**
-	 * Return a human readable name of this class suitable for logs. (e.g. "PPD")
-	 */
-	protected abstract String getDebugDumpClassName();
+    protected void extendDumpHeader(StringBuilder sb) {
+        if (getSchemaMigrations() != null && !getSchemaMigrations().isEmpty()) {
+            sb.append(", ").append(getSchemaMigrations().size()).append(" schema migrations");
+        }
+    }
 
-	/**
+    /**
+     * Return a human readable name of this class suitable for logs. (e.g. "PPD")
+     */
+    protected abstract String getDebugDumpClassName();
+
+    /**
      * Returns human-readable name of this class suitable for documentation. (e.g. "property")
      */
     public abstract String getDocClassName();
 
-	@NotNull
-	@Override
-	public abstract Definition clone();
+    @NotNull
+    @Override
+    public abstract Definition clone();
 
-//	@Override
-//	public void accept(Visitor visitor) {
-//		visitor.visit(this);
-//	}
+//    @Override
+//    public void accept(Visitor visitor) {
+//        visitor.visit(this);
+//    }
 }

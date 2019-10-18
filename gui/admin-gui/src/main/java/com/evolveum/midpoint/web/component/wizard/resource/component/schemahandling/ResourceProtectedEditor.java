@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -56,16 +56,16 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
 
     public ResourceProtectedEditor(String id, IModel<List<ResourceObjectPatternType>> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout(parentPage);
-		if (model.getObject() == null) {		// shouldn't occur, actually
-			model.setObject(new ArrayList<>());
-		} else {
-			for (ResourceObjectPatternType pattern : model.getObject()) {
-				if (pattern.getFilter() == null) {
-					pattern.setFilter(new SearchFilterType());			// in order for SearchFilterPanel work correctly; is normalized before saving resource
-				}
-			}
-		}
+        initLayout(parentPage);
+        if (model.getObject() == null) {        // shouldn't occur, actually
+            model.setObject(new ArrayList<>());
+        } else {
+            for (ResourceObjectPatternType pattern : model.getObject()) {
+                if (pattern.getFilter() == null) {
+                    pattern.setFilter(new SearchFilterType());            // in order for SearchFilterPanel work correctly; is normalized before saving resource
+                }
+            }
+        }
     }
 
     protected void initLayout(final PageResourceWizard parentPage) {
@@ -95,15 +95,15 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                 linkCont.add(accountLabel);
 
                 AjaxLink<Void> delete = new AjaxLink<Void>(ID_BUTTON_DELETE) {
-                	
-                	private static final long serialVersionUID = 1L;
-                	
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteProtectedAccountPerformed(target, item);
                     }
                 };
-				parentPage.addEditingVisibleBehavior(delete);
+                parentPage.addEditingVisibleBehavior(delete);
                 linkCont.add(delete);
 
                 WebMarkupContainer accountBody = new WebMarkupContainer(ID_ACCOUNT_BODY);
@@ -131,13 +131,13 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                 //TODO - maybe add some validator and auto-complete functionality?
                 TextField name = new TextField<>(ID_NAME, new PropertyModel<String>(item.getModel(), "name"));
                 name.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-				parentPage.addEditingEnabledBehavior(name);
-				accountBody.add(name);
+                parentPage.addEditingEnabledBehavior(name);
+                accountBody.add(name);
 
                 //TODO - maybe add some validator and auto-complete functionality?
                 TextField uid = new TextField<>(ID_UID, new PropertyModel<String>(item.getModel(), "uid"));
                 uid.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-				parentPage.addEditingEnabledBehavior(uid);
+                parentPage.addEditingEnabledBehavior(uid);
                 accountBody.add(uid);
 
                 SearchFilterPanel searchFilterPanel = new SearchFilterPanel<>(ID_FILTER_EDITOR,
@@ -161,15 +161,15 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
         container.add(repeater);
 
         AjaxLink<Void> add = new AjaxLink<Void>(ID_BUTTON_ADD) {
-        	private static final long serialVersionUID = 1L;
-		
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addProtectedAccountPerformed(target);
             }
         };
-		parentPage.addEditingVisibleBehavior(add);
-		add(add);
+        parentPage.addEditingVisibleBehavior(add);
+        add(add);
     }
 
     private WebMarkupContainer getMainContainer(){
@@ -196,7 +196,7 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
 
     private void addProtectedAccountPerformed(AjaxRequestTarget target){
         ResourceObjectPatternType account = new ResourceObjectPatternType();
-		account.setFilter(new SearchFilterType());
+        account.setFilter(new SearchFilterType());
         changeState = ChangeState.LAST;
         getModel().getObject().add(account);
         target.add(getMainContainer());

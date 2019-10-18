@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -45,15 +45,15 @@ import org.jetbrains.annotations.NotNull;
  * @author lazyman
  */
 public class PasswordPanel extends InputPanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_LINK_CONTAINER = "linkContainer";
-	private static final String ID_PASSWORD_SET = "passwordSet";
-	private static final String ID_PASSWORD_REMOVE = "passwordRemove";
-	private static final String ID_CHANGE_PASSWORD_LINK = "changePasswordLink";
-	private static final String ID_REMOVE_PASSWORD_LINK = "removePasswordLink";
-	private static final String ID_REMOVE_BUTTON_CONTAINER = "removeButtonContainer";
-	private static final String ID_INPUT_CONTAINER = "inputContainer";
+    private static final String ID_LINK_CONTAINER = "linkContainer";
+    private static final String ID_PASSWORD_SET = "passwordSet";
+    private static final String ID_PASSWORD_REMOVE = "passwordRemove";
+    private static final String ID_CHANGE_PASSWORD_LINK = "changePasswordLink";
+    private static final String ID_REMOVE_PASSWORD_LINK = "removePasswordLink";
+    private static final String ID_REMOVE_BUTTON_CONTAINER = "removeButtonContainer";
+    private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
 
@@ -72,17 +72,17 @@ public class PasswordPanel extends InputPanel {
     }
 
     private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly) {
-    	setOutputMarkupId(true);
-		final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER) {
-			@Override
-			public boolean isVisible() {
-				return passwordInputVisble;
-			}
-		};
-		inputContainer.setOutputMarkupId(true);
-		add(inputContainer);
+        setOutputMarkupId(true);
+        final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER) {
+            @Override
+            public boolean isVisible() {
+                return passwordInputVisble;
+            }
+        };
+        inputContainer.setOutputMarkupId(true);
+        add(inputContainer);
 
-	    final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model));
+        final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model));
         password1.setRequired(false);
         password1.setOutputMarkupId(true);
         password1.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -94,45 +94,45 @@ public class PasswordPanel extends InputPanel {
         inputContainer.add(password2);
 
         password1.add(new AjaxFormComponentUpdatingBehavior("change") {
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				boolean required = !StringUtils.isEmpty(password1.getModelObject());
-				password2.setRequired(required);
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                boolean required = !StringUtils.isEmpty(password1.getModelObject());
+                password2.setRequired(required);
                 //fix of MID-2463
-//				target.add(password2);
-//				target.appendJavaScript("$(\"#"+ password2.getMarkupId() +"\").focus()");
-			}
-		});
+//                target.add(password2);
+//                target.appendJavaScript("$(\"#"+ password2.getMarkupId() +"\").focus()");
+            }
+        });
         password2.add(new PasswordValidator(password1));
 
         final WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER) {
-			@Override
-			public boolean isVisible() {
-				return !passwordInputVisble;
-			}
-		};
-		inputContainer.setOutputMarkupId(true);
+            @Override
+            public boolean isVisible() {
+                return !passwordInputVisble;
+            }
+        };
+        inputContainer.setOutputMarkupId(true);
         linkContainer.setOutputMarkupId(true);
-		add(linkContainer);
+        add(linkContainer);
 
-		final Label passwordSetLabel = new Label(ID_PASSWORD_SET, new ResourceModel("passwordPanel.passwordSet"));
-		linkContainer.add(passwordSetLabel);
+        final Label passwordSetLabel = new Label(ID_PASSWORD_SET, new ResourceModel("passwordPanel.passwordSet"));
+        linkContainer.add(passwordSetLabel);
 
-		final Label passwordRemoveLabel = new Label(ID_PASSWORD_REMOVE, new ResourceModel("passwordPanel.passwordRemoveLabel"));
+        final Label passwordRemoveLabel = new Label(ID_PASSWORD_REMOVE, new ResourceModel("passwordPanel.passwordRemoveLabel"));
         passwordRemoveLabel.setVisible(false);
-		linkContainer.add(passwordRemoveLabel);
+        linkContainer.add(passwordRemoveLabel);
 
         AjaxLink<Void> link = new AjaxLink<Void>(ID_CHANGE_PASSWORD_LINK) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				model.setObject(null);
-				onLinkClick(target);
-			}
-			@Override
-			public boolean isVisible() {
-				return !passwordInputVisble;
-			}
-		};
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                model.setObject(null);
+                onLinkClick(target);
+            }
+            @Override
+            public boolean isVisible() {
+                return !passwordInputVisble;
+            }
+        };
         link.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -142,8 +142,8 @@ public class PasswordPanel extends InputPanel {
             }
         });
         link.setBody(new ResourceModel("passwordPanel.passwordChange"));
-		link.setOutputMarkupId(true);
-		linkContainer.add(link);
+        link.setOutputMarkupId(true);
+        linkContainer.add(link);
 
         final WebMarkupContainer removeButtonContainer = new WebMarkupContainer(ID_REMOVE_BUTTON_CONTAINER);
         AjaxLink<Void> removePassword = new AjaxLink<Void>(ID_REMOVE_PASSWORD_LINK) {
@@ -155,9 +155,9 @@ public class PasswordPanel extends InputPanel {
         };
         removePassword.add(new VisibleEnableBehaviour() {
 
-        	@Override
-        	public boolean isVisible() {
-        		PageBase pageBase = (PageBase)getPage();
+            @Override
+            public boolean isVisible() {
+                PageBase pageBase = (PageBase)getPage();
                 if (pageBase == null){
                     return false;
                 }
@@ -169,7 +169,7 @@ public class PasswordPanel extends InputPanel {
                     return true;
                 }
                 return false;
-        	}
+            }
         });
         removePassword.setBody(new ResourceModel("passwordPanel.passwordRemove"));
         removePassword.setOutputMarkupId(true);
@@ -177,12 +177,12 @@ public class PasswordPanel extends InputPanel {
         add(removeButtonContainer);
     }
 
-	private void onLinkClick(AjaxRequestTarget target) {
-    	passwordInputVisble = true;
-    	target.add(this);
+    private void onLinkClick(AjaxRequestTarget target) {
+        passwordInputVisble = true;
+        target.add(this);
     }
 
-	private void onRemovePassword(IModel<ProtectedStringType> model, AjaxRequestTarget target) {
+    private void onRemovePassword(IModel<ProtectedStringType> model, AjaxRequestTarget target) {
         get(ID_LINK_CONTAINER).get(ID_PASSWORD_SET).setVisible(false);
         get(ID_LINK_CONTAINER).get(ID_PASSWORD_REMOVE).setVisible(true);
         passwordInputVisble = false;
@@ -200,7 +200,7 @@ public class PasswordPanel extends InputPanel {
 
     @Override
     public FormComponent getBaseFormComponent() {
-		return (FormComponent) get(ID_INPUT_CONTAINER + ":" + ID_PASSWORD_ONE);
+        return (FormComponent) get(ID_INPUT_CONTAINER + ":" + ID_PASSWORD_ONE);
     }
 
     private static class PasswordValidator implements IValidator<String> {
@@ -220,11 +220,11 @@ public class PasswordPanel extends InputPanel {
                 return;
             }
 
-	        if (!Objects.equals(s1, s2)) {
-            	validatable = p1.newValidatable();
-            	ValidationError err = new ValidationError();
-    			err.addKey("passwordPanel.error");
-    			validatable.error(err);
+            if (!Objects.equals(s1, s2)) {
+                validatable = p1.newValidatable();
+                ValidationError err = new ValidationError();
+                err.addKey("passwordPanel.error");
+                validatable.error(err);
             }
         }
     }
@@ -242,52 +242,52 @@ public class PasswordPanel extends InputPanel {
 
     private static class PasswordModel implements IModel<String> {
 
-    	IModel<ProtectedStringType> psModel;
+        IModel<ProtectedStringType> psModel;
 
-	    PasswordModel(IModel<ProtectedStringType> psModel) {
-    		this.psModel = psModel;
-	    }
+        PasswordModel(IModel<ProtectedStringType> psModel) {
+            this.psModel = psModel;
+        }
 
-		@Override
-		public void detach() {
-			// Nothing to do
-		}
+        @Override
+        public void detach() {
+            // Nothing to do
+        }
 
-		private Protector getProtector() {
-	    	return ((MidPointApplication) Application.get()).getProtector();
-		}
+        private Protector getProtector() {
+            return ((MidPointApplication) Application.get()).getProtector();
+        }
 
-		@Override
-		public String getObject() {
-			ProtectedStringType ps = psModel.getObject();
-			if (ps == null) {
-				return null;
-			} else {
-				try {
-					return getProtector().decryptString(ps);
-				} catch (EncryptionException e) {
-					throw new SystemException(e.getMessage(), e);   // todo handle somewhat better
-				}
-			}
-		}
+        @Override
+        public String getObject() {
+            ProtectedStringType ps = psModel.getObject();
+            if (ps == null) {
+                return null;
+            } else {
+                try {
+                    return getProtector().decryptString(ps);
+                } catch (EncryptionException e) {
+                    throw new SystemException(e.getMessage(), e);   // todo handle somewhat better
+                }
+            }
+        }
 
-		@Override
-		public void setObject(String object) {
-			if (object == null) {
-				psModel.setObject(null);
-			} else {
-				if (psModel.getObject() == null) {
-					psModel.setObject(new ProtectedStringType());
-				} else {
-					psModel.getObject().clear();
-				}
-				psModel.getObject().setClearValue(object);
-				try {
-					getProtector().encrypt(psModel.getObject());
-				} catch (EncryptionException e) {
-					throw new SystemException(e.getMessage(), e);   // todo handle somewhat better
-				}
-			}
-		}
+        @Override
+        public void setObject(String object) {
+            if (object == null) {
+                psModel.setObject(null);
+            } else {
+                if (psModel.getObject() == null) {
+                    psModel.setObject(new ProtectedStringType());
+                } else {
+                    psModel.getObject().clear();
+                }
+                psModel.getObject().setClearValue(object);
+                try {
+                    getProtector().encrypt(psModel.getObject());
+                } catch (EncryptionException e) {
+                    throw new SystemException(e.getMessage(), e);   // todo handle somewhat better
+                }
+            }
+        }
     }
 }

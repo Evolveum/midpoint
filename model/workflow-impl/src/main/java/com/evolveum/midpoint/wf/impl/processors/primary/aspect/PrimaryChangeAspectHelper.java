@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -129,7 +129,7 @@ public class PrimaryChangeAspectHelper {
             ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables,
                     "applicability condition expression", task);
 
-			exprResultTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
+            exprResultTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             // TODO report as a specific exception?
             throw new SystemException("Couldn't evaluate applicability condition in aspect "

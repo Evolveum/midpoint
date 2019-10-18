@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -44,163 +44,163 @@ import java.util.stream.Collectors;
  */
 public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 
-//	public PrismObject(QName name, Class<O> compileTimeClass) {
-//		super(name, compileTimeClass);
-//	}
+//    public PrismObject(QName name, Class<O> compileTimeClass) {
+//        super(name, compileTimeClass);
+//    }
 //
 //    public PrismObject(QName name, Class<O> compileTimeClass, PrismContext prismContext) {
 //        super(name, compileTimeClass, prismContext);
 //    }
 //
 //    public PrismObject(QName name, PrismObjectDefinition<O> definition, PrismContext prismContext) {
-//		super(name, definition, prismContext);
-//	}
+//        super(name, definition, prismContext);
+//    }
 
-	PrismObjectValue<O> createNewValue();
+    PrismObjectValue<O> createNewValue();
 
-	@NotNull
-	PrismObjectValue<O> getValue();
+    @NotNull
+    PrismObjectValue<O> getValue();
 
-	@Override
-	void setValue(@NotNull PrismContainerValue<O> value) throws SchemaException;
-
-	/**
-	 * Returns Object ID (OID).
-	 *
-	 * May return null if the object does not have an OID.
-	 *
-	 * @return Object ID (OID)
-	 */
-	String getOid();
-
-	void setOid(String oid);
-
-	String getVersion();
-
-	void setVersion(String version);
-
-	@Override
-	PrismObjectDefinition<O> getDefinition();
-
-	@NotNull
-	O asObjectable();
-
-	PolyString getName();
-
-	PrismContainer<?> getExtension();
-
-	PrismContainer<?> getOrCreateExtension() throws SchemaException;
-
-	PrismContainerValue<?> getExtensionContainerValue();
-
-	<I extends Item> I findExtensionItem(String elementLocalName);
-
-	<I extends Item> I findExtensionItem(QName elementName);
-
-	<I extends Item> void addExtensionItem(I item) throws SchemaException;
-
-	PrismContainer<?> createExtension() throws SchemaException;
-
-	@Override
-	void applyDefinition(PrismContainerDefinition<O> definition) throws SchemaException;
-
-	@Override
-	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath path, Class<I> itemType);
-
-	void addReplaceExisting(Item<?, ?> item) throws SchemaException;
-
-	@Override
-	PrismObject<O> clone();
-
-	@Override
-	PrismObject<O> cloneComplex(CloneStrategy strategy);
-
-	PrismObjectDefinition<O> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
-
-	@NotNull
-	ObjectDelta<O> diff(PrismObject<O> other);
-
-	@NotNull
-	ObjectDelta<O> diff(PrismObject<O> other, ParameterizedEquivalenceStrategy strategy);
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications,
-			boolean assumeMissingItems);
-
-	ObjectDelta<O> createDelta(ChangeType changeType);
-
-	ObjectDelta<O> createAddDelta();
-
-	ObjectDelta<O> createModifyDelta();
-
-	ObjectDelta<O> createDeleteDelta();
-
-	@Override
-	void setParent(PrismContainerValue<?> parentValue);
-
-	@Override
-	PrismContainerValue<?> getParent();
-
-	@NotNull
-	@Override
-	ItemPath getPath();
-
-	@Override
-	boolean equals(Object obj);
-
-	/**
-	 * this method ignores some part of the object during comparison (e.g. source demarcation in values)
-	 * These methods compare the "meaningful" parts of the objects.
-	 */
-	boolean equivalent(Object obj);
-
-	@Override
-	String toString();
-
-	/**
-	 * Returns short string representing identity of this object.
-	 * It should container object type, OID and name. It should be presented
-	 * in a form suitable for log and diagnostic messages (understandable for
-	 * system administrator).
-	 */
-	String toDebugName();
-
-	/**
-	 * Returns short string identification of object type. It should be in a form
-	 * suitable for log messages. There is no requirement for the type name to be unique,
-	 * but it rather has to be compact. E.g. short element names are preferred to long
-	 * QNames or URIs.
-	 */
-	String toDebugType();
+    @Override
+    void setValue(@NotNull PrismContainerValue<O> value) throws SchemaException;
 
     /**
-	 * Return display name intended for business users of midPoint
-	 */
+     * Returns Object ID (OID).
+     *
+     * May return null if the object does not have an OID.
+     *
+     * @return Object ID (OID)
+     */
+    String getOid();
+
+    void setOid(String oid);
+
+    String getVersion();
+
+    void setVersion(String version);
+
+    @Override
+    PrismObjectDefinition<O> getDefinition();
+
+    @NotNull
+    O asObjectable();
+
+    PolyString getName();
+
+    PrismContainer<?> getExtension();
+
+    PrismContainer<?> getOrCreateExtension() throws SchemaException;
+
+    PrismContainerValue<?> getExtensionContainerValue();
+
+    <I extends Item> I findExtensionItem(String elementLocalName);
+
+    <I extends Item> I findExtensionItem(QName elementName);
+
+    <I extends Item> void addExtensionItem(I item) throws SchemaException;
+
+    PrismContainer<?> createExtension() throws SchemaException;
+
+    @Override
+    void applyDefinition(PrismContainerDefinition<O> definition) throws SchemaException;
+
+    @Override
+    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath path, Class<I> itemType);
+
+    void addReplaceExisting(Item<?, ?> item) throws SchemaException;
+
+    @Override
+    PrismObject<O> clone();
+
+    @Override
+    PrismObject<O> cloneComplex(CloneStrategy strategy);
+
+    PrismObjectDefinition<O> deepCloneDefinition(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
+
+    @NotNull
+    ObjectDelta<O> diff(PrismObject<O> other);
+
+    @NotNull
+    ObjectDelta<O> diff(PrismObject<O> other, ParameterizedEquivalenceStrategy strategy);
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications,
+            boolean assumeMissingItems);
+
+    ObjectDelta<O> createDelta(ChangeType changeType);
+
+    ObjectDelta<O> createAddDelta();
+
+    ObjectDelta<O> createModifyDelta();
+
+    ObjectDelta<O> createDeleteDelta();
+
+    @Override
+    void setParent(PrismContainerValue<?> parentValue);
+
+    @Override
+    PrismContainerValue<?> getParent();
+
+    @NotNull
+    @Override
+    ItemPath getPath();
+
+    @Override
+    boolean equals(Object obj);
+
+    /**
+     * this method ignores some part of the object during comparison (e.g. source demarcation in values)
+     * These methods compare the "meaningful" parts of the objects.
+     */
+    boolean equivalent(Object obj);
+
+    @Override
+    String toString();
+
+    /**
+     * Returns short string representing identity of this object.
+     * It should container object type, OID and name. It should be presented
+     * in a form suitable for log and diagnostic messages (understandable for
+     * system administrator).
+     */
+    String toDebugName();
+
+    /**
+     * Returns short string identification of object type. It should be in a form
+     * suitable for log messages. There is no requirement for the type name to be unique,
+     * but it rather has to be compact. E.g. short element names are preferred to long
+     * QNames or URIs.
+     */
+    String toDebugType();
+
+    /**
+     * Return display name intended for business users of midPoint
+     */
     String getBusinessDisplayName();
 
-	@Override
-	void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw,
-			ConsistencyCheckScope scope);
+    @Override
+    void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw,
+            ConsistencyCheckScope scope);
 
-	@Override
-	void setImmutable(boolean immutable);
+    @Override
+    void setImmutable(boolean immutable);
 
-	PrismObject<O> cloneIfImmutable();
+    PrismObject<O> cloneIfImmutable();
 
-	PrismObject<O> createImmutableClone();
+    PrismObject<O> createImmutableClone();
 
-	@NotNull
-	static <T extends Objectable> List<T> asObjectableList(@NotNull List<PrismObject<T>> objects) {
-		return objects.stream()
-				.map(o -> o.asObjectable())
-				.collect(Collectors.toList());
-	}
+    @NotNull
+    static <T extends Objectable> List<T> asObjectableList(@NotNull List<PrismObject<T>> objects) {
+        return objects.stream()
+                .map(o -> o.asObjectable())
+                .collect(Collectors.toList());
+    }
 
-	static PrismObject<?> asPrismObject(Objectable o) {
-		return o != null ? o.asPrismObject() : null;
-	}
+    static PrismObject<?> asPrismObject(Objectable o) {
+        return o != null ? o.asPrismObject() : null;
+    }
 
-	static <T extends Objectable> T asObjectable(PrismObject<T> object) {
-		return object != null ? object.asObjectable() : null;
-	}
+    static <T extends Objectable> T asObjectable(PrismObject<T> object) {
+        return object != null ? object.asObjectable() : null;
+    }
 }

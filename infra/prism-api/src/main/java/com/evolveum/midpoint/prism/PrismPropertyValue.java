@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,80 +23,80 @@ import java.io.Serializable;
  */
 public interface PrismPropertyValue<T> extends DebugDumpable, Serializable, PrismValue {
 
-	void setValue(T value);
+    void setValue(T value);
 
-	T getValue();
+    T getValue();
 
-	XNode getRawElement();
+    XNode getRawElement();
 
-	void setRawElement(XNode rawElement);
+    void setRawElement(XNode rawElement);
 
-	boolean isRaw();
+    boolean isRaw();
 
-	@Nullable
-	ExpressionWrapper getExpression();
+    @Nullable
+    ExpressionWrapper getExpression();
 
-	void setExpression(@Nullable ExpressionWrapper expression);
+    void setExpression(@Nullable ExpressionWrapper expression);
 
-	@Override
-	void applyDefinition(ItemDefinition definition) throws SchemaException;
+    @Override
+    void applyDefinition(ItemDefinition definition) throws SchemaException;
 
-	@Override
-	void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException;
+    @Override
+    void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException;
 
-	@Override
-	void revive(PrismContext prismContext) throws SchemaException;
+    @Override
+    void revive(PrismContext prismContext) throws SchemaException;
 
-	void recompute(PrismContext prismContext);
+    void recompute(PrismContext prismContext);
 
-	Object find(ItemPath path);
+    Object find(ItemPath path);
 
-	<IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
+    <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
     @Override
     void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw, ConsistencyCheckScope scope);
 
-	boolean isEmpty();
+    boolean isEmpty();
 
     PrismPropertyValue<T> clone();
-	
-	@Override
-	PrismPropertyValue<T> cloneComplex(CloneStrategy strategy);
 
-	boolean equals(PrismPropertyValue<?> other, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule);
+    @Override
+    PrismPropertyValue<T> cloneComplex(CloneStrategy strategy);
 
-	@Override
-	boolean equals(Object obj);
+    boolean equals(PrismPropertyValue<?> other, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule);
 
-	@Override
-	int hashCode();
+    @Override
+    boolean equals(Object obj);
 
-	@Override
-	String debugDump();
+    @Override
+    int hashCode();
 
-	@Override
-	String debugDump(int indent);
+    @Override
+    String debugDump();
 
-	String debugDump(int indent, boolean detailedDump);
+    @Override
+    String debugDump(int indent);
 
-	@Override
-	String toString();
+    String debugDump(int indent, boolean detailedDump);
 
-	String toHumanReadableString();
+    @Override
+    String toString();
 
-	/**
+    String toHumanReadableString();
+
+    /**
      * Returns JAXBElement corresponding to the this value.
      * Name of the element is the name of parent property; its value is the real value of the property.
      *
      * @return Created JAXBElement.
      */
-	JAXBElement<T> toJaxbElement();
+    JAXBElement<T> toJaxbElement();
 
-	@Override
-	Class<?> getRealClass();
+    @Override
+    Class<?> getRealClass();
 
-	@Nullable
-	@Override
-	<T> T getRealValue();
+    @Nullable
+    @Override
+    <T> T getRealValue();
 
 }

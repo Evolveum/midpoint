@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api.context;
@@ -10,25 +10,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPoli
 
 public class NonceAuthenticationContext extends AbstractAuthenticationContext {
 
-	private String nonce;
-	private NonceCredentialsPolicyType policy;
+    private String nonce;
+    private NonceCredentialsPolicyType policy;
 
-	public NonceAuthenticationContext(String username, String nonce, NonceCredentialsPolicyType policy) {
-		super(username);
-		this.nonce = nonce;
-		this.policy = policy;
-	}
+    public NonceAuthenticationContext(String username, String nonce, NonceCredentialsPolicyType policy) {
+        super(username);
+        this.nonce = nonce;
+        this.policy = policy;
+    }
 
-	public String getNonce() {
-		return nonce;
-	}
+    public String getNonce() {
+        return nonce;
+    }
 
-	public NonceCredentialsPolicyType getPolicy() {
-		return policy;
-	}
+    public NonceCredentialsPolicyType getPolicy() {
+        return policy;
+    }
 
-	@Override
-	public Object getEnteredCredential() {
-		return getNonce();
-	}
+    @Override
+    public Object getEnteredCredential() {
+        return getNonce();
+    }
 }

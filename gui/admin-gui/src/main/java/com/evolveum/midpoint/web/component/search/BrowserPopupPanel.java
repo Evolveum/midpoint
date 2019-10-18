@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -37,7 +37,7 @@ public class BrowserPopupPanel<T extends Serializable> extends SearchPopupPanel<
         add(input);
 
         AjaxLink<Void> browse = new AjaxLink<Void>(ID_BROWSE) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
                 browsePerformed(target);

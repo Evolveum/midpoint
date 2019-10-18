@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -38,13 +38,13 @@ public abstract class BaseHandler implements EventHandler {
     private static final Trace LOGGER = TraceManager.getTrace(BaseHandler.class);
 
     @Autowired protected NotificationManagerImpl notificationManager;
-	@Autowired protected NotificationFunctionsImpl notificationsUtil;
-	@Autowired protected PrismContext prismContext;
-	@Autowired protected ExpressionFactory expressionFactory;
-	@Autowired protected TextFormatter textFormatter;
-	@Autowired protected NotificationExpressionHelper expressionHelper;
+    @Autowired protected NotificationFunctionsImpl notificationsUtil;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected ExpressionFactory expressionFactory;
+    @Autowired protected TextFormatter textFormatter;
+    @Autowired protected NotificationExpressionHelper expressionHelper;
 
-	protected void register(Class<? extends EventHandlerType> clazz) {
+    protected void register(Class<? extends EventHandlerType> clazz) {
         notificationManager.registerEventHandler(clazz, this);
     }
 
@@ -55,30 +55,30 @@ public abstract class BaseHandler implements EventHandler {
     protected void logStart(Trace LOGGER, Event event, EventHandlerType eventHandlerType, Object additionalData) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Starting processing event " + event.shortDump() + " with handler " +
-            		getHumanReadableHandlerDescription(eventHandlerType) + "\n  parameters: " +
-            		(additionalData != null ? ("\n  parameters: " + additionalData) :
+                    getHumanReadableHandlerDescription(eventHandlerType) + "\n  parameters: " +
+                    (additionalData != null ? ("\n  parameters: " + additionalData) :
                         ("\n  configuration: " + eventHandlerType)));
 
         }
     }
 
     protected void logNotApplicable(Event event, String reason) {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(
-				"{} is not applicable for event {}, continuing in the handler chain; reason: {}",
-				this.getClass().getSimpleName(), event.shortDump(), reason);
-		}
-	}
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace(
+                "{} is not applicable for event {}, continuing in the handler chain; reason: {}",
+                this.getClass().getSimpleName(), event.shortDump(), reason);
+        }
+    }
 
     protected String getHumanReadableHandlerDescription(EventHandlerType eventHandlerType) {
-    	if (eventHandlerType.getName() != null) {
-    		return eventHandlerType.getName();
-    	} else {
-    		return eventHandlerType.getClass().getSimpleName();
-    	}
-	}
+        if (eventHandlerType.getName() != null) {
+            return eventHandlerType.getName();
+        } else {
+            return eventHandlerType.getClass().getSimpleName();
+        }
+    }
 
-	public static void staticLogStart(Trace LOGGER, Event event, String description, Object additionalData) {
+    public static void staticLogStart(Trace LOGGER, Event event, String description, Object additionalData) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Starting processing event " + event + " with handler " +
                     description +
@@ -92,17 +92,17 @@ public abstract class BaseHandler implements EventHandler {
         }
     }
 
-	protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
-			String shortDesc, Task task, OperationResult result) {
-		return expressionHelper.evaluateExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
-	}
-	
-	protected List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
-			String shortDesc, Task task, OperationResult result) {
-		return expressionHelper.evaluateNotificationMessageAttachmentTypeExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
-	}
+    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+            String shortDesc, Task task, OperationResult result) {
+        return expressionHelper.evaluateExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
+    }
 
-	protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
-		return expressionHelper.getDefaultVariables(event, result);
+    protected List<NotificationMessageAttachmentType> evaluateNotificationMessageAttachmentTypeExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+            String shortDesc, Task task, OperationResult result) {
+        return expressionHelper.evaluateNotificationMessageAttachmentTypeExpressionChecked(expressionType, expressionVariables, shortDesc, task, result);
+    }
+
+    protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
+        return expressionHelper.getDefaultVariables(event, result);
     }
 }

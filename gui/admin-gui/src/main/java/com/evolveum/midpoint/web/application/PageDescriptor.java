@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -31,7 +31,7 @@ public @interface PageDescriptor {
     Class<? extends IPageParametersEncoder> encoder() default PageParametersEncoder.class;
 
     AuthorizationAction[] action() default {};
-    
+
     /**
      * Permit access to all users (even non-authenticated users)
      */

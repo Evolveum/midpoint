@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.script.velocity;
@@ -48,83 +48,83 @@ import java.util.function.Function;
  */
 public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 
-	private static final String LANGUAGE_URL_BASE = MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX + "/expression/language#";
+    private static final String LANGUAGE_URL_BASE = MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX + "/expression/language#";
 
-	public VelocityScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
-		super(prismContext, protector, localizationService);
-		Properties properties = new Properties();
-//		properties.put("runtime.references.strict", "true");
-		Velocity.init(properties);
-	}
+    public VelocityScriptEvaluator(PrismContext prismContext, Protector protector, LocalizationService localizationService) {
+        super(prismContext, protector, localizationService);
+        Properties properties = new Properties();
+//        properties.put("runtime.references.strict", "true");
+        Velocity.init(properties);
+    }
 
-	@Override
-	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
-			ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
-		checkRestrictions(context);
+    @Override
+    public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
+            ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
+        checkRestrictions(context);
 
-		VelocityContext velocityCtx = createVelocityContext(context);
+        VelocityContext velocityCtx = createVelocityContext(context);
 
-		String codeString = context.getExpressionType().getCode();
-		if (codeString == null) {
-			throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
-		}
+        String codeString = context.getExpressionType().getCode();
+        if (codeString == null) {
+            throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
+        }
 
-		StringWriter resultWriter = new StringWriter();
-		try {
-			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
-			Velocity.evaluate(velocityCtx, resultWriter, "", codeString);
-		} catch (RuntimeException e) {
-			throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
-		}
+        StringWriter resultWriter = new StringWriter();
+        try {
+            InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
+            Velocity.evaluate(velocityCtx, resultWriter, "", codeString);
+        } catch (RuntimeException e) {
+            throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
+        }
 
-		if (context.getOutputDefinition() == null) {
-			// No outputDefinition means "void" return type, we can return right now
-			return null;
-		}
+        if (context.getOutputDefinition() == null) {
+            // No outputDefinition means "void" return type, we can return right now
+            return null;
+        }
 
-		QName xsdReturnType = context.getOutputDefinition().getTypeName();
+        QName xsdReturnType = context.getOutputDefinition().getTypeName();
 
-		Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
-		if (javaReturnType == null) {
-			javaReturnType = getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdReturnType);
-		}
+        Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
+        if (javaReturnType == null) {
+            javaReturnType = getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdReturnType);
+        }
 
-		if (javaReturnType == null) {
-			// TODO quick and dirty hack - because this could be because of enums defined in schema extension (MID-2399)
-			// ...and enums (xsd:simpleType) are not parsed into ComplexTypeDefinitions
-			javaReturnType = (Class) String.class;
-		}
+        if (javaReturnType == null) {
+            // TODO quick and dirty hack - because this could be because of enums defined in schema extension (MID-2399)
+            // ...and enums (xsd:simpleType) are not parsed into ComplexTypeDefinitions
+            javaReturnType = (Class) String.class;
+        }
 
-		T evalResult;
-		try {
-			evalResult = ExpressionUtil.convertValue(javaReturnType, context.getAdditionalConvertor(), resultWriter.toString(), getProtector(), getPrismContext());
-		} catch (IllegalArgumentException e) {
-			throw new ExpressionEvaluationException(e.getMessage()+" in "+context.getContextDescription(), e);
-		}
+        T evalResult;
+        try {
+            evalResult = ExpressionUtil.convertValue(javaReturnType, context.getAdditionalConvertor(), resultWriter.toString(), getProtector(), getPrismContext());
+        } catch (IllegalArgumentException e) {
+            throw new ExpressionEvaluationException(e.getMessage()+" in "+context.getContextDescription(), e);
+        }
 
-		List<V> pvals = new ArrayList<>();
-		pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
-		return pvals;
-	}
+        List<V> pvals = new ArrayList<>();
+        pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
+        return pvals;
+    }
 
-	private VelocityContext createVelocityContext(ScriptExpressionEvaluationContext context) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		VelocityContext velocityCtx = new VelocityContext();
-		Map<String,Object> scriptVariables = prepareScriptVariablesValueMap(context);
-		for (Map.Entry<String,Object> scriptVariable : scriptVariables.entrySet()) {
-			velocityCtx.put(scriptVariable.getKey(), scriptVariable.getValue());
-		}
-		return velocityCtx;
-	}
+    private VelocityContext createVelocityContext(ScriptExpressionEvaluationContext context) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        VelocityContext velocityCtx = new VelocityContext();
+        Map<String,Object> scriptVariables = prepareScriptVariablesValueMap(context);
+        for (Map.Entry<String,Object> scriptVariable : scriptVariables.entrySet()) {
+            velocityCtx.put(scriptVariable.getKey(), scriptVariable.getValue());
+        }
+        return velocityCtx;
+    }
 
 
-	@Override
-	public String getLanguageName() {
-		return "velocity";
-	}
+    @Override
+    public String getLanguageName() {
+        return "velocity";
+    }
 
-	@Override
-	public String getLanguageUrl() {
-		return LANGUAGE_URL_BASE + getLanguageName();
-	}
+    @Override
+    public String getLanguageUrl() {
+        return LANGUAGE_URL_BASE + getLanguageName();
+    }
 
 }

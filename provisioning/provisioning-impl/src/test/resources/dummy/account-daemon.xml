@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -10,17 +10,17 @@
      into the repository. -->
 
 <shadow oid="c0c010c0-dddd-dddd-dddd-dddddddae604"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
-	<name>daemon</name>
-	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<kind>account</kind>
-	<primaryIdentifierValue>daemon</primaryIdentifierValue>
-	<attributes>
-		<icfs:uid>daemon</icfs:uid>
-		<icfs:name>daemon</icfs:name>
-	</attributes>
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
+    <name>daemon</name>
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <primaryIdentifierValue>daemon</primaryIdentifierValue>
+    <attributes>
+        <icfs:uid>daemon</icfs:uid>
+        <icfs:name>daemon</icfs:name>
+    </attributes>
 </shadow>

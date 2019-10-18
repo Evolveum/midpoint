@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.assignment;
@@ -62,7 +62,7 @@ public class ApplicablePolicyConfigPanel extends BasePanel<PrismContainerWrapper
                 List<ObjectReferenceType> policyGroupsList = new ArrayList<>();
                 OperationResult result = new OperationResult(OPERATION_LOAD_SYS_CONFIG);
                 try {
-                	ArchetypePolicyType archetypePolicy = getPageBase().getModelInteractionService().determineArchetypePolicy(getMainPanelFocusObject(), result);
+                    ArchetypePolicyType archetypePolicy = getPageBase().getModelInteractionService().determineArchetypePolicy(getMainPanelFocusObject(), result);
                     if (archetypePolicy == null){
                         return policyGroupsList;
                     } else {

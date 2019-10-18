@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <user xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
-	  xmlns:f='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-	<name>user</name>
-	<accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1112" type="AccountType">
-		<description>This is a reference with a filter</description>
-	</accountRef>
+      xmlns:f='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>user</name>
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1112" type="AccountType">
+        <description>This is a reference with a filter</description>
+    </accountRef>
 </user>

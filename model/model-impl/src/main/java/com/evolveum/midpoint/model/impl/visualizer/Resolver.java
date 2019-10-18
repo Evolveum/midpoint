@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -41,117 +41,117 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 @Component
 public class Resolver {
 
-	private static final Trace LOGGER = TraceManager.getTrace(Resolver.class);
+    private static final Trace LOGGER = TraceManager.getTrace(Resolver.class);
 
-	public static final String CLASS_DOT = Resolver.class.getName() + ".";
-	private static final String OP_RESOLVE = CLASS_DOT + "resolve";
+    public static final String CLASS_DOT = Resolver.class.getName() + ".";
+    private static final String OP_RESOLVE = CLASS_DOT + "resolve";
 
-	@Autowired
-	private PrismContext prismContext;
+    @Autowired
+    private PrismContext prismContext;
 
-	@Autowired
-	private ModelService modelService;
+    @Autowired
+    private ModelService modelService;
 
-	@Autowired
-	private ProvisioningService provisioningService;
+    @Autowired
+    private ProvisioningService provisioningService;
 
-	@Autowired
-	private Visualizer visualizer;
+    @Autowired
+    private Visualizer visualizer;
 
-	public <O extends ObjectType> void resolve(PrismObject<O> object, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
-		/*if (object.getDefinition() == null) */{
-			if (object == null) {
-				return;
-			}
-			Class<O> clazz = object.getCompileTimeClass();
-			if (clazz == null) {
-				warn(result, "Compile time class for " + toShortString(object) + " is not known");
-			} else {
-				PrismObjectDefinition<O> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-				if (def != null) {
-					if (ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz)) {
-						try {
-							provisioningService.applyDefinition(object, task, result);
-						} catch (ObjectNotFoundException|CommunicationException|ConfigurationException e) {
-							LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e,
-									ObjectTypeUtil.toShortString(object));
-						}
-					} else {
-						object.applyDefinition(def);
-					}
-				} else {
-					warn(result, "Definition for " + toShortString(object) + " couldn't be found");
-				}
-			}
-		}
-	}
+    public <O extends ObjectType> void resolve(PrismObject<O> object, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+        /*if (object.getDefinition() == null) */{
+            if (object == null) {
+                return;
+            }
+            Class<O> clazz = object.getCompileTimeClass();
+            if (clazz == null) {
+                warn(result, "Compile time class for " + toShortString(object) + " is not known");
+            } else {
+                PrismObjectDefinition<O> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+                if (def != null) {
+                    if (ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz)) {
+                        try {
+                            provisioningService.applyDefinition(object, task, result);
+                        } catch (ObjectNotFoundException|CommunicationException|ConfigurationException e) {
+                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e,
+                                    ObjectTypeUtil.toShortString(object));
+                        }
+                    } else {
+                        object.applyDefinition(def);
+                    }
+                } else {
+                    warn(result, "Definition for " + toShortString(object) + " couldn't be found");
+                }
+            }
+        }
+    }
 
-	public <O extends ObjectType> void resolve(ObjectDelta<O> objectDelta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
-		if (objectDelta.isAdd()) {
-			resolve(objectDelta.getObjectToAdd(), task, result);
-		} else if (objectDelta.isDelete()) {
-			// nothing to do
-		} else {
-			PrismObject<O> originalObject = null;
-			boolean originalObjectFetched = false;
-			final Class<O> clazz = objectDelta.getObjectTypeClass();
-			boolean managedByProvisioning = ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz);
-			PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-			if (objectDefinition == null) {
-				warn(result, "Definition for " + clazz + " couldn't be found");
-			} else {
-				if (managedByProvisioning) {
-					try {
-						provisioningService.applyDefinition(objectDelta, task, result);
-					} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e, objectDelta);
-					}
-				}
-			}
-			for (ItemDelta itemDelta : objectDelta.getModifications()) {
-				if (objectDefinition != null && !managedByProvisioning) {
-					ItemDefinition<?> def = objectDefinition.findItemDefinition(itemDelta.getPath());
-					if (def != null) {
-						itemDelta.applyDefinition(def);
-					}
-				}
-				if (itemDelta.getEstimatedOldValues() == null) {
-					final String oid = objectDelta.getOid();
-					if (!originalObjectFetched && oid != null) {
-						try {
-							originalObject = modelService.getObject(clazz, oid, createCollection(createNoFetch()), task, result);
-						} catch (ObjectNotFoundException e) {
-							result.recordHandledError(e);
-							LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
-						} catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException | SecurityViolationException e) {
-							LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
-							warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
-						}
-						originalObjectFetched = true;
-					}
-					if (originalObject != null) {
-						Item<?,?> originalItem = originalObject.findItem(itemDelta.getPath());
-						if (originalItem != null) {
-							itemDelta.setEstimatedOldValues(new ArrayList(originalItem.getValues()));
-						}
-					}
-				}
-			}
-		}
-	}
+    public <O extends ObjectType> void resolve(ObjectDelta<O> objectDelta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+        if (objectDelta.isAdd()) {
+            resolve(objectDelta.getObjectToAdd(), task, result);
+        } else if (objectDelta.isDelete()) {
+            // nothing to do
+        } else {
+            PrismObject<O> originalObject = null;
+            boolean originalObjectFetched = false;
+            final Class<O> clazz = objectDelta.getObjectTypeClass();
+            boolean managedByProvisioning = ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz);
+            PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+            if (objectDefinition == null) {
+                warn(result, "Definition for " + clazz + " couldn't be found");
+            } else {
+                if (managedByProvisioning) {
+                    try {
+                        provisioningService.applyDefinition(objectDelta, task, result);
+                    } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e, objectDelta);
+                    }
+                }
+            }
+            for (ItemDelta itemDelta : objectDelta.getModifications()) {
+                if (objectDefinition != null && !managedByProvisioning) {
+                    ItemDefinition<?> def = objectDefinition.findItemDefinition(itemDelta.getPath());
+                    if (def != null) {
+                        itemDelta.applyDefinition(def);
+                    }
+                }
+                if (itemDelta.getEstimatedOldValues() == null) {
+                    final String oid = objectDelta.getOid();
+                    if (!originalObjectFetched && oid != null) {
+                        try {
+                            originalObject = modelService.getObject(clazz, oid, createCollection(createNoFetch()), task, result);
+                        } catch (ObjectNotFoundException e) {
+                            result.recordHandledError(e);
+                            LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
+                        } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException | SecurityViolationException e) {
+                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
+                            warn(result, "Couldn't resolve object " + oid + ": " + e.getMessage(), e);
+                        }
+                        originalObjectFetched = true;
+                    }
+                    if (originalObject != null) {
+                        Item<?,?> originalItem = originalObject.findItem(itemDelta.getPath());
+                        if (originalItem != null) {
+                            itemDelta.setEstimatedOldValues(new ArrayList(originalItem.getValues()));
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-	private void warn(OperationResult result, String text, Exception e) {
-		result.createSubresult(OP_RESOLVE).recordWarning(text, e);
-	}
+    private void warn(OperationResult result, String text, Exception e) {
+        result.createSubresult(OP_RESOLVE).recordWarning(text, e);
+    }
 
-	private void warn(OperationResult result, String text) {
-		result.createSubresult(OP_RESOLVE).recordWarning(text);
-	}
+    private void warn(OperationResult result, String text) {
+        result.createSubresult(OP_RESOLVE).recordWarning(text);
+    }
 
-	// TODO caching retrieved objects
-	public void resolve(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
-		for (ObjectDelta<? extends ObjectType> delta : deltas) {
-			resolve(delta, task, result);
-		}
-	}
+    // TODO caching retrieved objects
+    public void resolve(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+        for (ObjectDelta<? extends ObjectType> delta : deltas) {
+            resolve(delta, task, result);
+        }
+    }
 }

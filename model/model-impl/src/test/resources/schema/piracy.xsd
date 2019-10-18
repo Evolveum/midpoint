@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <xsd:schema elementFormDefault="qualified"
@@ -12,7 +12,7 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
     <!-- user extension -->
 
@@ -115,7 +115,7 @@
             <xsd:element name="p61" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-    
+
      <!-- role extension -->
 
     <xsd:complexType name="RoleTypeExtensionType">
@@ -129,6 +129,6 @@
             <xsd:element name="resourceRef" type="c:ObjectReferenceType" />
         </xsd:sequence>
     </xsd:complexType>
-   
+
 
 </xsd:schema>

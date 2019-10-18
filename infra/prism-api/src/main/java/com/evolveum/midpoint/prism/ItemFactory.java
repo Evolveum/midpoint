@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,54 +23,54 @@ import javax.xml.namespace.QName;
  */
 public interface ItemFactory {
 
-	PrismValue createValue(Object realValue);
+    PrismValue createValue(Object realValue);
 
-	<T> PrismProperty<T> createProperty(QName itemName);
+    <T> PrismProperty<T> createProperty(QName itemName);
 
-	<T> PrismProperty<T> createProperty(QName itemName, PrismPropertyDefinition<T> definition);
+    <T> PrismProperty<T> createProperty(QName itemName, PrismPropertyDefinition<T> definition);
 
-	<T> PrismPropertyValue<T> createPropertyValue();
+    <T> PrismPropertyValue<T> createPropertyValue();
 
-	<T> PrismPropertyValue<T> createPropertyValue(T content);
+    <T> PrismPropertyValue<T> createPropertyValue(T content);
 
-	<T> PrismPropertyValue<T> createPropertyValue(XNode rawContent);
+    <T> PrismPropertyValue<T> createPropertyValue(XNode rawContent);
 
-	<T> PrismPropertyValue<T> createPropertyValue(T value, OriginType originType, Objectable originObject);
+    <T> PrismPropertyValue<T> createPropertyValue(T value, OriginType originType, Objectable originObject);
 
-	PrismReference createReference(QName name);
+    PrismReference createReference(QName name);
 
-	PrismReference createReference(QName name, PrismReferenceDefinition definition);
+    PrismReference createReference(QName name, PrismReferenceDefinition definition);
 
-	PrismReferenceValue createReferenceValue();
+    PrismReferenceValue createReferenceValue();
 
-	PrismReferenceValue createReferenceValue(PrismObject<?> target);
+    PrismReferenceValue createReferenceValue(PrismObject<?> target);
 
-	PrismReferenceValue createReferenceValue(String targetOid);
+    PrismReferenceValue createReferenceValue(String targetOid);
 
-	PrismReferenceValue createReferenceValue(String oid, OriginType originType, Objectable originObject);
+    PrismReferenceValue createReferenceValue(String oid, OriginType originType, Objectable originObject);
 
-	PrismReferenceValue createReferenceValue(String oid, QName targetType);
+    PrismReferenceValue createReferenceValue(String oid, QName targetType);
 
-	PrismContainer createContainer(QName name);
+    PrismContainer createContainer(QName name);
 
-	<C extends Containerable> PrismContainer<C> createContainer(QName name, PrismContainerDefinition<C> definition);
+    <C extends Containerable> PrismContainer<C> createContainer(QName name, PrismContainerDefinition<C> definition);
 
-	<O extends Objectable> PrismObject<O> createObject(QName name, PrismObjectDefinition<O> definition);
+    <O extends Objectable> PrismObject<O> createObject(QName name, PrismObjectDefinition<O> definition);
 
-	// TODO is this needed?
-	<O extends Objectable> PrismObjectValue<O> createObjectValue(O objectable);
+    // TODO is this needed?
+    <O extends Objectable> PrismObjectValue<O> createObjectValue(O objectable);
 
-	// TODO is this needed?
-	<C extends Containerable> PrismContainerValue<C> createContainerValue(C containerable);
+    // TODO is this needed?
+    <C extends Containerable> PrismContainerValue<C> createContainerValue(C containerable);
 
-	<C extends Containerable> PrismContainerValue<C> createContainerValue();
-	
-	/**
-	 * Creates a dummy container with a fixed path. 
-	 * This container is good for storing values, e.g. in case of delta computations to get
-	 * preview of the new item.
-	 * But such container cannot be used to fit into any prism structure (cannot set parent). 
-	 */
-	@Experimental
-	<V extends PrismValue,D extends ItemDefinition> Item<V,D> createDummyItem(Item<V,D> itemOld, D definition, ItemPath path) throws SchemaException;
+    <C extends Containerable> PrismContainerValue<C> createContainerValue();
+
+    /**
+     * Creates a dummy container with a fixed path.
+     * This container is good for storing values, e.g. in case of delta computations to get
+     * preview of the new item.
+     * But such container cannot be used to fit into any prism structure (cannot set parent).
+     */
+    @Experimental
+    <V extends PrismValue,D extends ItemDefinition> Item<V,D> createDummyItem(Item<V,D> itemOld, D definition, ItemPath path) throws SchemaException;
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -14,25 +14,25 @@ import javax.xml.namespace.QName;
  */
 public interface MutableDefinition extends Definition {
 
-	void setProcessing(ItemProcessing processing);
+    void setProcessing(ItemProcessing processing);
 
-	void setDeprecated(boolean deprecated);
+    void setDeprecated(boolean deprecated);
 
-	void setExperimental(boolean experimental);
+    void setExperimental(boolean experimental);
 
-	void setEmphasized(boolean emphasized);
+    void setEmphasized(boolean emphasized);
 
-	void setDisplayName(String displayName);
+    void setDisplayName(String displayName);
 
-	void setDisplayOrder(Integer displayOrder);
+    void setDisplayOrder(Integer displayOrder);
 
-	void setHelp(String help);
+    void setHelp(String help);
 
-	void setRuntimeSchema(boolean value);
+    void setRuntimeSchema(boolean value);
 
-	void setTypeName(QName typeName);
+    void setTypeName(QName typeName);
 
-	void setDocumentation(String value);
-	
-	void addSchemaMigration(SchemaMigration schemaMigration);
+    void setDocumentation(String value);
+
+    void addSchemaMigration(SchemaMigration schemaMigration);
 }

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api;
@@ -28,15 +28,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext> {
 
-	UsernamePasswordAuthenticationToken authenticate(ConnectionEnvironment connEnv, T authnCtx)
-			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
-			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
+    UsernamePasswordAuthenticationToken authenticate(ConnectionEnvironment connEnv, T authnCtx)
+            throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
+            CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
 
-	@NotNull
-	UserType checkCredentials(ConnectionEnvironment connEnv, T authnCtx)
-			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
-			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
+    @NotNull
+    UserType checkCredentials(ConnectionEnvironment connEnv, T authnCtx)
+            throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
+            CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
 
-	PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, String enteredUsername);
+    PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, String enteredUsername);
 
 }

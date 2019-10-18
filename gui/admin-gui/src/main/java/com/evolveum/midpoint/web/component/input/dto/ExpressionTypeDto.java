@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -79,7 +79,7 @@ public class ExpressionTypeDto implements Serializable{
     }
 
     public void updateExpression(PrismContext context) throws SchemaException, IllegalArgumentException {
-		ExpressionUtil.parseExpressionEvaluators(expression, expressionObject, context);
+        ExpressionUtil.parseExpressionEvaluators(expression, expressionObject, context);
     }
 
     public void updateExpressionType(){
@@ -127,17 +127,17 @@ public class ExpressionTypeDto implements Serializable{
     }
 
     @NotNull
-	public ExpressionType getExpressionObject() {
+    public ExpressionType getExpressionObject() {
         return expressionObject;
     }
 
-	public String getDescription() {
-		return expressionObject.getDescription();
-	}
+    public String getDescription() {
+        return expressionObject.getDescription();
+    }
 
-	public void setDescription(String description) {
-		expressionObject.setDescription(description);
-	}
+    public void setDescription(String description) {
+        expressionObject.setDescription(description);
+    }
 
     @Override
     public boolean equals(Object o) {

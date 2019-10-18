@@ -2,21 +2,21 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
     <logging>
-    	<rootLoggerAppender>File Appender</rootLoggerAppender>
-    	<rootLoggerLevel>INFO</rootLoggerLevel>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
         <classLogger>
-	        <level>TRACE</level>
-	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-      	</classLogger>
+            <level>TRACE</level>
+            <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+          </classLogger>
         <c:classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>
@@ -28,37 +28,37 @@
         </appender>
     </logging>
     <notificationConfiguration>
-	    <handler>
-			<simpleWorkflowNotifier>
-				<category>workItemLifecycleEvent</category>
-				<transport>dummy:workItemLifecycle</transport>
-			</simpleWorkflowNotifier>
-			<simpleWorkflowNotifier>
-				<category>workItemAllocationEvent</category>
-				<transport>dummy:workItemAllocation</transport>
-			</simpleWorkflowNotifier>
-			<simpleWorkflowNotifier>
-				<category>workItemCustomEvent</category>
-				<transport>dummy:workItemCustom</transport>
-			</simpleWorkflowNotifier>
-			<simpleWorkflowNotifier>
-				<category>workflowProcessEvent</category>
-				<transport>dummy:process</transport>
-			</simpleWorkflowNotifier>
+        <handler>
+            <simpleWorkflowNotifier>
+                <category>workItemLifecycleEvent</category>
+                <transport>dummy:workItemLifecycle</transport>
+            </simpleWorkflowNotifier>
+            <simpleWorkflowNotifier>
+                <category>workItemAllocationEvent</category>
+                <transport>dummy:workItemAllocation</transport>
+            </simpleWorkflowNotifier>
+            <simpleWorkflowNotifier>
+                <category>workItemCustomEvent</category>
+                <transport>dummy:workItemCustom</transport>
+            </simpleWorkflowNotifier>
+            <simpleWorkflowNotifier>
+                <category>workflowProcessEvent</category>
+                <transport>dummy:process</transport>
+            </simpleWorkflowNotifier>
         </handler>
         <mail>
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>
     </notificationConfiguration>
-	<workflowConfiguration>
-		<useLegacyApproversSpecification>never</useLegacyApproversSpecification>
-		<useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
-	</workflowConfiguration>
-	
-	<internals>
-		<polyStringNormalizer>
-			<className>Ascii7PolyStringNormalizer</className>
-			<nfkd>false</nfkd>
-		</polyStringNormalizer>
-	</internals>
+    <workflowConfiguration>
+        <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
+        <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
+    </workflowConfiguration>
+
+    <internals>
+        <polyStringNormalizer>
+            <className>Ascii7PolyStringNormalizer</className>
+            <nfkd>false</nfkd>
+        </polyStringNormalizer>
+    </internals>
 </systemConfiguration>

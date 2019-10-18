@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -114,7 +114,7 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         } else {
             for(MappingType mapping: activation.getExistence().getInbound()) {
                 if(mapping.equals(new MappingType())){
-                	VariableBindingDefinitionType source = new VariableBindingDefinitionType();
+                    VariableBindingDefinitionType source = new VariableBindingDefinitionType();
                     source.setPath(getPrismContext().itemPathParser().asItemPathType(EXISTENCE_DEFAULT_SOURCE));
                     mapping.getSource().add(source);
                 }
@@ -126,7 +126,7 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         } else {
             for(MappingType outbound: activation.getAdministrativeStatus().getOutbound()){
                 if(outbound.equals(new MappingType())){
-                	VariableBindingDefinitionType source = new VariableBindingDefinitionType();
+                    VariableBindingDefinitionType source = new VariableBindingDefinitionType();
                     source.setPath(getPrismContext().itemPathParser().asItemPathType(ADM_STATUS_OUT_SOURCE_DEFAULT));
                     outbound.getSource().add(source);
 
@@ -279,18 +279,18 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
     }
 
     private void prepareActivationPanelBody(String containerValue, String fetchStrategyId, String outboundId, String inboundId,
-			NonEmptyModel<Boolean> readOnlyModel){
+            NonEmptyModel<Boolean> readOnlyModel){
         DropDownChoice fetchStrategy = new DropDownChoice<>(fetchStrategyId,
             new PropertyModel<>(getModel(), containerValue + ".fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
             new EnumChoiceRenderer<>(this));
         fetchStrategy.setNullValid(true);
-		fetchStrategy.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        fetchStrategy.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(fetchStrategy);
 
-		MultiValueTextEditPanel outbound = new MultiValueTextEditPanel<MappingType>(outboundId,
+        MultiValueTextEditPanel outbound = new MultiValueTextEditPanel<MappingType>(outboundId,
             new PropertyModel<>(getModel(), containerValue + ".outbound"), null, false, true,
-				readOnlyModel) {
+                readOnlyModel) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {

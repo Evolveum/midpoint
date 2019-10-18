@@ -2,18 +2,18 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
-	  oid="892162ee-995a-4699-b196-0aa12d2e79e7">
-	<name>k23-rem-elaine</name>
-	<extension>
-		<ext:remediatorRef oid="771d00e6-792a-4296-8b4e-c4f59f712e0f" type="UserType"/> <!-- elaine -->
-	</extension>
-	<assignment>
-		<targetRef oid="a19ede0a-94ff-4edd-990b-699b3ad7ab94" type="RoleType"/> <!-- k23 -->
-	</assignment>
+      xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
+      oid="892162ee-995a-4699-b196-0aa12d2e79e7">
+    <name>k23-rem-elaine</name>
+    <extension>
+        <ext:remediatorRef oid="771d00e6-792a-4296-8b4e-c4f59f712e0f" type="UserType"/> <!-- elaine -->
+    </extension>
+    <assignment>
+        <targetRef oid="a19ede0a-94ff-4edd-990b-699b3ad7ab94" type="RoleType"/> <!-- k23 -->
+    </assignment>
 </role>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -37,31 +37,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
     private String defaultTargetUrl;
-    
+
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private TaskManager taskManager;
-    
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
-    		throws ServletException, IOException {
-    	
-    	if (WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
-    		String requestUrl = request.getRequestURL().toString();
-			 if (requestUrl.contains("spring_security_login")) {
-				 String target = requestUrl.replace("spring_security_login", "self/postAuthentication");
-				 getRedirectStrategy().sendRedirect(request, response, target);
-				 return;
-			 }
-    	}
-    	super.onAuthenticationSuccess(request, response, authentication);
+            throws ServletException, IOException {
+
+        if (WebModelServiceUtils.isPostAuthenticationEnabled(taskManager, modelInteractionService)) {
+            String requestUrl = request.getRequestURL().toString();
+             if (requestUrl.contains("spring_security_login")) {
+                 String target = requestUrl.replace("spring_security_login", "self/postAuthentication");
+                 getRedirectStrategy().sendRedirect(request, response, target);
+                 return;
+             }
+        }
+        super.onAuthenticationSuccess(request, response, authentication);
     }
 
-	@Override
-	protected String getTargetUrlParameter() {
-		
-    	
-    	return defaultTargetUrl;
-	}
+    @Override
+    protected String getTargetUrlParameter() {
+
+
+        return defaultTargetUrl;
+    }
 
 
     @Override

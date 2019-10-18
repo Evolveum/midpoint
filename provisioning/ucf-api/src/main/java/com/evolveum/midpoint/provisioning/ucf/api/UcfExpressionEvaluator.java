@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,11 +23,11 @@ import java.util.List;
 @Experimental
 public interface UcfExpressionEvaluator {
 
-	/**
-	 * Evaluates given expression.
-	 */
-	<O> List<O> evaluate(ExpressionType expressionBean, VariablesMap variables, QName outputPropertyName,
-			String contextDescription, Task task, OperationResult opResult)
-			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-			ConfigurationException, ExpressionEvaluationException;
+    /**
+     * Evaluates given expression.
+     */
+    <O> List<O> evaluate(ExpressionType expressionBean, VariablesMap variables, QName outputPropertyName,
+            String contextDescription, Task task, OperationResult opResult)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException;
 }

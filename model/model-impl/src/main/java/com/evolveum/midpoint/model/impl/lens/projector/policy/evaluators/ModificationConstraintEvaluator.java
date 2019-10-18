@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -31,36 +31,36 @@ import javax.xml.bind.JAXBElement;
 @Component
 public abstract class ModificationConstraintEvaluator<T extends ModificationPolicyConstraintType> implements PolicyConstraintEvaluator<T> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ModificationConstraintEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ModificationConstraintEvaluator.class);
 
-	@Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
-	@Autowired protected PrismContext prismContext;
-	@Autowired protected RelationRegistry relationRegistry;
+    @Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected RelationRegistry relationRegistry;
 
-	@NotNull
-	protected <AH extends AssignmentHolderType> String createStateKey(PolicyRuleEvaluationContext<AH> rctx) {
-		ModelState state = rctx.lensContext.getState();
-		String stateKey;
-		if (state == ModelState.INITIAL || state == ModelState.PRIMARY) {
-			stateKey = "toBe";
-		} else {
-			stateKey = "was";
-			// TODO derive more precise information from executed deltas, if needed
-		}
-		return stateKey;
-	}
+    @NotNull
+    protected <AH extends AssignmentHolderType> String createStateKey(PolicyRuleEvaluationContext<AH> rctx) {
+        ModelState state = rctx.lensContext.getState();
+        String stateKey;
+        if (state == ModelState.INITIAL || state == ModelState.PRIMARY) {
+            stateKey = "toBe";
+        } else {
+            stateKey = "was";
+            // TODO derive more precise information from executed deltas, if needed
+        }
+        return stateKey;
+    }
 
-	boolean expressionPasses(JAXBElement<T> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException {
-		T constraint = constraintElement.getValue();
-		if (constraint.getExpression() != null) {
-			if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx, constraintElement),
-					"expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
-				return false;
-			}
-			// TODO retrieve localization messages from return (it should be Object then, not Boolean)
-		}
-		return true;
-	}
+    boolean expressionPasses(JAXBElement<T> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        T constraint = constraintElement.getValue();
+        if (constraint.getExpression() != null) {
+            if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createExpressionVariables(ctx, constraintElement),
+                    "expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
+                return false;
+            }
+            // TODO retrieve localization messages from return (it should be Object then, not Boolean)
+        }
+        return true;
+    }
 }

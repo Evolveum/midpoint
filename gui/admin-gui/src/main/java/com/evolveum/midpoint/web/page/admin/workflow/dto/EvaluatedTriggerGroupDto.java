@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,100 +28,100 @@ import static java.util.Collections.singleton;
  */
 public class EvaluatedTriggerGroupDto implements Serializable {
 
-	public final LocalizableMessage title;
+    public final LocalizableMessage title;
 
-	public static final String F_TITLE = "title";
-	public static final String F_TRIGGERS = "triggers";
+    public static final String F_TITLE = "title";
+    public static final String F_TRIGGERS = "triggers";
 
-	@NotNull private final List<EvaluatedTriggerDto> triggers = new ArrayList<>();
+    @NotNull private final List<EvaluatedTriggerDto> triggers = new ArrayList<>();
 
-	EvaluatedTriggerGroupDto(LocalizableMessage title,
-			List<TreeNode<AugmentedTrigger<HighlightingInformation>>> processedTriggers) {
-		this.title = title;
-		for (TreeNode<AugmentedTrigger<HighlightingInformation>> processedTrigger : processedTriggers) {
-			this.triggers.add(new EvaluatedTriggerDto(processedTrigger));
-		}
-	}
+    EvaluatedTriggerGroupDto(LocalizableMessage title,
+            List<TreeNode<AugmentedTrigger<HighlightingInformation>>> processedTriggers) {
+        this.title = title;
+        for (TreeNode<AugmentedTrigger<HighlightingInformation>> processedTrigger : processedTriggers) {
+            this.triggers.add(new EvaluatedTriggerDto(processedTrigger));
+        }
+    }
 
-	public LocalizableMessage getTitle() {
-		return title;
-	}
+    public LocalizableMessage getTitle() {
+        return title;
+    }
 
-	@NotNull
-	public List<EvaluatedTriggerDto> getTriggers() {
-		return triggers;
-	}
+    @NotNull
+    public List<EvaluatedTriggerDto> getTriggers() {
+        return triggers;
+    }
 
-	public static EvaluatedTriggerGroupDto initializeFromRules(List<EvaluatedPolicyRuleType> rules, boolean highlighted,
-			UniquenessFilter uniquenessFilter) {
-		List<AugmentedTrigger<HighlightingInformation>> augmentedTriggers = new ArrayList<>();
-		for (EvaluatedPolicyRuleType rule : rules) {
-			for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
-				augmentedTriggers.add(new AugmentedTrigger<>(trigger, new HighlightingInformation(highlighted)));
-			}
-		}
-		List<TreeNode<AugmentedTrigger<HighlightingInformation>>> triggerTrees = arrangeForPresentationExt(augmentedTriggers, uniquenessFilter);
-		return new EvaluatedTriggerGroupDto(null, triggerTrees);
-	}
+    public static EvaluatedTriggerGroupDto initializeFromRules(List<EvaluatedPolicyRuleType> rules, boolean highlighted,
+            UniquenessFilter uniquenessFilter) {
+        List<AugmentedTrigger<HighlightingInformation>> augmentedTriggers = new ArrayList<>();
+        for (EvaluatedPolicyRuleType rule : rules) {
+            for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
+                augmentedTriggers.add(new AugmentedTrigger<>(trigger, new HighlightingInformation(highlighted)));
+            }
+        }
+        List<TreeNode<AugmentedTrigger<HighlightingInformation>>> triggerTrees = arrangeForPresentationExt(augmentedTriggers, uniquenessFilter);
+        return new EvaluatedTriggerGroupDto(null, triggerTrees);
+    }
 
-	public static class UniquenessFilter implements EvaluatedPolicyRuleUtil.AdditionalFilter<HighlightingInformation> {
+    public static class UniquenessFilter implements EvaluatedPolicyRuleUtil.AdditionalFilter<HighlightingInformation> {
 
-		private static class AlreadyShownTriggerRecord<AD extends EvaluatedPolicyRuleUtil.AdditionalData> {
-			final AugmentedTrigger<AD> augmentedTrigger;
-			final EvaluatedPolicyRuleTriggerType anonymizedTrigger;
+        private static class AlreadyShownTriggerRecord<AD extends EvaluatedPolicyRuleUtil.AdditionalData> {
+            final AugmentedTrigger<AD> augmentedTrigger;
+            final EvaluatedPolicyRuleTriggerType anonymizedTrigger;
 
-			AlreadyShownTriggerRecord(AugmentedTrigger<AD> augmentedTrigger,
-					EvaluatedPolicyRuleTriggerType anonymizedTrigger) {
-				this.augmentedTrigger = augmentedTrigger;
-				this.anonymizedTrigger = anonymizedTrigger;
-			}
-		}
+            AlreadyShownTriggerRecord(AugmentedTrigger<AD> augmentedTrigger,
+                    EvaluatedPolicyRuleTriggerType anonymizedTrigger) {
+                this.augmentedTrigger = augmentedTrigger;
+                this.anonymizedTrigger = anonymizedTrigger;
+            }
+        }
 
-		List<AlreadyShownTriggerRecord<HighlightingInformation>> triggersAlreadyShown = new ArrayList<>();
+        List<AlreadyShownTriggerRecord<HighlightingInformation>> triggersAlreadyShown = new ArrayList<>();
 
-		@Override
-		public boolean accepts(AugmentedTrigger<HighlightingInformation> newAugmentedTrigger) {
-			EvaluatedPolicyRuleTriggerType anonymizedTrigger = newAugmentedTrigger.trigger.clone().ruleName(null);
-			for (AlreadyShownTriggerRecord<HighlightingInformation> alreadyShown : triggersAlreadyShown) {
-				if (alreadyShown.anonymizedTrigger.equals(anonymizedTrigger)) {
-					alreadyShown.augmentedTrigger.additionalData.merge(newAugmentedTrigger.additionalData);
-					return false;
-				}
-			}
-			triggersAlreadyShown.add(new AlreadyShownTriggerRecord<>(newAugmentedTrigger, anonymizedTrigger));
-			return true;
-		}
-	}
+        @Override
+        public boolean accepts(AugmentedTrigger<HighlightingInformation> newAugmentedTrigger) {
+            EvaluatedPolicyRuleTriggerType anonymizedTrigger = newAugmentedTrigger.trigger.clone().ruleName(null);
+            for (AlreadyShownTriggerRecord<HighlightingInformation> alreadyShown : triggersAlreadyShown) {
+                if (alreadyShown.anonymizedTrigger.equals(anonymizedTrigger)) {
+                    alreadyShown.augmentedTrigger.additionalData.merge(newAugmentedTrigger.additionalData);
+                    return false;
+                }
+            }
+            triggersAlreadyShown.add(new AlreadyShownTriggerRecord<>(newAugmentedTrigger, anonymizedTrigger));
+            return true;
+        }
+    }
 
-	public static class HighlightingInformation implements EvaluatedPolicyRuleUtil.AdditionalData {
-		boolean value;
+    public static class HighlightingInformation implements EvaluatedPolicyRuleUtil.AdditionalData {
+        boolean value;
 
-		HighlightingInformation(boolean value) {
-			this.value = value;
-		}
+        HighlightingInformation(boolean value) {
+            this.value = value;
+        }
 
-		public void merge(EvaluatedPolicyRuleUtil.AdditionalData other) {
-			value = value | ((HighlightingInformation) other).value;
-		}
-	}
+        public void merge(EvaluatedPolicyRuleUtil.AdditionalData other) {
+            value = value | ((HighlightingInformation) other).value;
+        }
+    }
 
-	public static boolean isEmpty(Collection<EvaluatedTriggerGroupDto> groups) {
-		// original implementation (after migration from 3.6 to 3.7 is over)
-//		return groups.stream()
-//				.allMatch(g -> g.getTriggers().isEmpty());
+    public static boolean isEmpty(Collection<EvaluatedTriggerGroupDto> groups) {
+        // original implementation (after migration from 3.6 to 3.7 is over)
+//        return groups.stream()
+//                .allMatch(g -> g.getTriggers().isEmpty());
 
-		// temporary implementation for 3.7 - assuming we can display a trigger only if 'message' is not null and/or it has some children
-		return groups.stream()
-				.allMatch(g -> triggersAreEmpty(g.getTriggers()));
+        // temporary implementation for 3.7 - assuming we can display a trigger only if 'message' is not null and/or it has some children
+        return groups.stream()
+                .allMatch(g -> triggersAreEmpty(g.getTriggers()));
 
-	}
+    }
 
-	private static boolean triggersAreEmpty(Collection<EvaluatedTriggerDto> triggers) {
-		return triggers.stream()
-				.allMatch(t -> triggerIsEmpty(t));
-	}
+    private static boolean triggersAreEmpty(Collection<EvaluatedTriggerDto> triggers) {
+        return triggers.stream()
+                .allMatch(t -> triggerIsEmpty(t));
+    }
 
-	private static boolean triggerIsEmpty(EvaluatedTriggerDto trigger) {
-		return trigger.getMessage() == null && isEmpty(singleton(trigger.getChildren()));
-	}
+    private static boolean triggerIsEmpty(EvaluatedTriggerDto trigger) {
+        return trigger.getMessage() == null && isEmpty(singleton(trigger.getChildren()));
+    }
 }

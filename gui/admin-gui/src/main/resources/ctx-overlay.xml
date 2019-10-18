@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -32,5 +32,5 @@
     <!-- Empty.
          This file is meant to be overwritten by overlay projects to include
          additional spring contexts as needed.  -->
-    
+
 </beans>

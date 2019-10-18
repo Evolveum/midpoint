@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -59,21 +59,21 @@ public class TestResourceExecutor extends BaseActionExecutor {
                     operationsHelper.recordEnd(context, resourceType, started, null);
                 } catch (ObjectNotFoundException|RuntimeException e) {
                     operationsHelper.recordEnd(context, resourceType, started, e);
-					exception = processActionException(e, NAME, value, context);
-					testResult = new OperationResult(TestResourceExecutor.class.getName() + ".testResource");
-					testResult.recordFatalError(e);
+                    exception = processActionException(e, NAME, value, context);
+                    testResult = new OperationResult(TestResourceExecutor.class.getName() + ".testResource");
+                    testResult.recordFatalError(e);
                 }
                 result.addSubresult(testResult);
                 context.println("Tested " + resourceTypePrismObject + ": " + testResult.getStatus() + exceptionSuffix(exception));
                 try {
-					PrismObjectValue<ResourceType> resourceValue = operationsHelper.getObject(ResourceType.class, resourceTypePrismObject.getOid(), false, context, result).getValue();
-					output.add(new PipelineItem(resourceValue, item.getResult()));
-				} catch (ExpressionEvaluationException e) {
-					throw new ScriptExecutionException("Error getting resource "+resourceTypePrismObject.getOid()+": "+e.getMessage(), e);
-				}
+                    PrismObjectValue<ResourceType> resourceValue = operationsHelper.getObject(ResourceType.class, resourceTypePrismObject.getOid(), false, context, result).getValue();
+                    output.add(new PipelineItem(resourceValue, item.getResult()));
+                } catch (ExpressionEvaluationException e) {
+                    throw new ScriptExecutionException("Error getting resource "+resourceTypePrismObject.getOid()+": "+e.getMessage(), e);
+                }
             } else {
-				//noinspection ThrowableNotThrown
-				processActionException(new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);
+                //noinspection ThrowableNotThrown
+                processActionException(new ScriptExecutionException("Item is not a PrismObject<ResourceType>"), NAME, value, context);
             }
             operationsHelper.trimAndCloneResult(result, globalResult, context);
         }

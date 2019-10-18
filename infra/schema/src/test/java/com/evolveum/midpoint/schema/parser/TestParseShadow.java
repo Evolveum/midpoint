@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.parser;
@@ -30,127 +30,127 @@ import static org.testng.AssertJUnit.*;
  */
 public class TestParseShadow extends AbstractObjectParserTest<ShadowType> {
 
-	@Override
-	protected File getFile() {
-		return getFile(SHADOW_FILE_BASENAME);
-	}
+    @Override
+    protected File getFile() {
+        return getFile(SHADOW_FILE_BASENAME);
+    }
 
-	@Test
-	public void testParseFileAsPCV() throws Exception {
-		displayTestTitle("testParseFileAsPCV");
-		processParsings(null, null);
-	}
+    @Test
+    public void testParseFileAsPCV() throws Exception {
+        displayTestTitle("testParseFileAsPCV");
+        processParsings(null, null);
+    }
 
-	@Test
-	public void testParseFileAsPO() throws Exception {
-		displayTestTitle("testParseFileAsPO");
-		processParsingsPO(null, null, true);
-	}
+    @Test
+    public void testParseFileAsPO() throws Exception {
+        displayTestTitle("testParseFileAsPO");
+        processParsingsPO(null, null, true);
+    }
 
-	@Test
-	public void testParseRoundTripAsPCV() throws Exception{
-		displayTestTitle("testParseRoundTripAsPCV");
+    @Test
+    public void testParseRoundTripAsPCV() throws Exception{
+        displayTestTitle("testParseRoundTripAsPCV");
 
-		processParsings(v -> getPrismContext().serializerFor(language).serialize(v), "s0");
-		processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
-		processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");		// misleading item name
-		processParsings(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asContainerable()), "s3");
-		processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asContainerable()), "s4");
-	}
+        processParsings(v -> getPrismContext().serializerFor(language).serialize(v), "s0");
+        processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
+        processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");        // misleading item name
+        processParsings(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asContainerable()), "s3");
+        processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asContainerable()), "s4");
+    }
 
-	@Test
-	public void testParseRoundTripAsPO() throws Exception{
-		displayTestTitle("testParseRoundTripAsPO");
+    @Test
+    public void testParseRoundTripAsPO() throws Exception{
+        displayTestTitle("testParseRoundTripAsPO");
 
-		processParsingsPO(v -> getPrismContext().serializerFor(language).serialize(v), "s0", true);
-		processParsingsPO(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1", false);
-		processParsingsPO(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2", false);		// misleading item name
-		processParsingsPO(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asObjectable()), "s3", false);
-		processParsingsPO(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asObjectable()), "s4", false);
-	}
+        processParsingsPO(v -> getPrismContext().serializerFor(language).serialize(v), "s0", true);
+        processParsingsPO(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1", false);
+        processParsingsPO(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2", false);        // misleading item name
+        processParsingsPO(v -> getPrismContext().serializerFor(language).serializeRealValue(v.asObjectable()), "s3", false);
+        processParsingsPO(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asObjectable()), "s4", false);
+    }
 
-	private void processParsings(SerializingFunction<PrismContainerValue<ShadowType>> serializer, String serId) throws Exception {
-		processParsings(ShadowType.class, null, ShadowType.COMPLEX_TYPE, null, serializer, serId);
-	}
+    private void processParsings(SerializingFunction<PrismContainerValue<ShadowType>> serializer, String serId) throws Exception {
+        processParsings(ShadowType.class, null, ShadowType.COMPLEX_TYPE, null, serializer, serId);
+    }
 
-	private void processParsingsPO(SerializingFunction<PrismObject<ShadowType>> serializer, String serId, boolean checkItemName) throws Exception {
-		processObjectParsings(ShadowType.class, ShadowType.COMPLEX_TYPE, serializer, serId, checkItemName);
-	}
-
-
-	@Override
-	protected void assertPrismContainerValueLocal(PrismContainerValue<ShadowType> value) throws SchemaException {
-		PrismObject object = value.asContainerable().asPrismObject();
-		object.checkConsistence();
-		assertPrism(object, false);
-		assertJaxb(value.asContainerable(), false);
-	}
-
-	@Override
-	protected void assertPrismObjectLocal(PrismObject<ShadowType> object) throws SchemaException {
-		assertPrism(object, true);
-		assertJaxb(object.asObjectable(), true);
-		object.checkConsistence(true, false);
-	}
-
-	void assertPrism(PrismObject<ShadowType> shadow, boolean isObject) {
-
-		if (isObject) {
-			assertEquals("Wrong oid", "88519fca-3f4a-44ca-91c8-dc9be5bf3d03", shadow.getOid());
-			if (!SchemaConstants.C_SHADOW.equals(shadow.getElementName()) && !shadow.getElementName().getLocalPart().equals("dummy")
-				&& !SchemaConstants.C_USER.equals(shadow.getElementName())) {
-				fail("Wrong object element name: "+shadow.getElementName());
-			}
-		}
-		PrismObjectDefinition<ShadowType> usedDefinition = shadow.getDefinition();
-		assertNotNull("No object definition", usedDefinition);
-		PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "shadow"),
-				ShadowType.COMPLEX_TYPE, ShadowType.class);
-		assertEquals("Wrong class in object", ShadowType.class, shadow.getCompileTimeClass());
-		ShadowType objectType = shadow.asObjectable();
-		assertNotNull("asObjectable resulted in null", objectType);
-
-		assertPropertyValue(shadow, "name", PrismTestUtil.createPolyString("hbarbossa"));
-		assertPropertyDefinition(shadow, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
-
-//		assertPropertyDefinition(shadow, "organizationalUnit", PolyStringType.COMPLEX_TYPE, 0, -1);
-//		assertPropertyValues(shadow, "organizationalUnit",
-//				new PolyString("Brethren of the Coast", "brethren of the coast"),
-//				new PolyString("Davie Jones' Locker", "davie jones locker"));
+    private void processParsingsPO(SerializingFunction<PrismObject<ShadowType>> serializer, String serId, boolean checkItemName) throws Exception {
+        processObjectParsings(ShadowType.class, ShadowType.COMPLEX_TYPE, serializer, serId, checkItemName);
+    }
 
 
-		ItemPath admStatusPath = ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-		PrismProperty<ActivationStatusType> admStatusProperty1 = shadow.findProperty(admStatusPath);
-		PrismAsserts.assertDefinition(admStatusProperty1.getDefinition(), ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
-		assertNotNull("Property "+admStatusPath+" not found", admStatusProperty1);
-		PrismAsserts.assertPropertyValue(admStatusProperty1, ActivationStatusType.ENABLED);
+    @Override
+    protected void assertPrismContainerValueLocal(PrismContainerValue<ShadowType> value) throws SchemaException {
+        PrismObject object = value.asContainerable().asPrismObject();
+        object.checkConsistence();
+        assertPrism(object, false);
+        assertJaxb(value.asContainerable(), false);
+    }
 
-		PrismReference resourceRef = shadow.findReference(ShadowType.F_RESOURCE_REF);
-		assertEquals("Wrong number of resourceRef values", 1, resourceRef.getValues().size());
-		PrismAsserts.assertReferenceValue(resourceRef, "10000000-0000-0000-0000-000000000003");
-	}
+    @Override
+    protected void assertPrismObjectLocal(PrismObject<ShadowType> object) throws SchemaException {
+        assertPrism(object, true);
+        assertJaxb(object.asObjectable(), true);
+        object.checkConsistence(true, false);
+    }
 
-	private void assertJaxb(ShadowType shadow, boolean isObject) throws SchemaException {
-		if (isObject) {
-			assertEquals("88519fca-3f4a-44ca-91c8-dc9be5bf3d03", shadow.getOid());
-		}
-		assertEquals("Wrong name", PrismTestUtil.createPolyStringType("hbarbossa"), shadow.getName());
+    void assertPrism(PrismObject<ShadowType> shadow, boolean isObject) {
 
-		ActivationType activation = shadow.getActivation();
-		assertNotNull("No activation", activation);
-		assertEquals("User not enabled", ActivationStatusType.ENABLED, activation.getAdministrativeStatus());
+        if (isObject) {
+            assertEquals("Wrong oid", "88519fca-3f4a-44ca-91c8-dc9be5bf3d03", shadow.getOid());
+            if (!SchemaConstants.C_SHADOW.equals(shadow.getElementName()) && !shadow.getElementName().getLocalPart().equals("dummy")
+                && !SchemaConstants.C_USER.equals(shadow.getElementName())) {
+                fail("Wrong object element name: "+shadow.getElementName());
+            }
+        }
+        PrismObjectDefinition<ShadowType> usedDefinition = shadow.getDefinition();
+        assertNotNull("No object definition", usedDefinition);
+        PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "shadow"),
+                ShadowType.COMPLEX_TYPE, ShadowType.class);
+        assertEquals("Wrong class in object", ShadowType.class, shadow.getCompileTimeClass());
+        ShadowType objectType = shadow.asObjectable();
+        assertNotNull("asObjectable resulted in null", objectType);
 
-		ObjectReferenceType resourceRef = shadow.getResourceRef();
-		assertNotNull("No resourceRef", resourceRef);
+        assertPropertyValue(shadow, "name", PrismTestUtil.createPolyString("hbarbossa"));
+        assertPropertyDefinition(shadow, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 
-		assertEquals("Wrong resourceRef oid (jaxb)", "10000000-0000-0000-0000-000000000003", resourceRef.getOid());
-		assertEquals("Wrong resourceRef type (jaxb)", ResourceType.COMPLEX_TYPE, resourceRef.getType());
-	}
+//        assertPropertyDefinition(shadow, "organizationalUnit", PolyStringType.COMPLEX_TYPE, 0, -1);
+//        assertPropertyValues(shadow, "organizationalUnit",
+//                new PolyString("Brethren of the Coast", "brethren of the coast"),
+//                new PolyString("Davie Jones' Locker", "davie jones locker"));
 
-	@Override
-	protected void assertSerializedObject(String serialized) {
-		if (!serialized.startsWith("<shadow") && !serialized.startsWith("<dummy") && !serialized.startsWith("<user")) {
-			fail("Wrong start of serialized value, was:\n"+serialized);
-		}
-	}
+
+        ItemPath admStatusPath = ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+        PrismProperty<ActivationStatusType> admStatusProperty1 = shadow.findProperty(admStatusPath);
+        PrismAsserts.assertDefinition(admStatusProperty1.getDefinition(), ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
+        assertNotNull("Property "+admStatusPath+" not found", admStatusProperty1);
+        PrismAsserts.assertPropertyValue(admStatusProperty1, ActivationStatusType.ENABLED);
+
+        PrismReference resourceRef = shadow.findReference(ShadowType.F_RESOURCE_REF);
+        assertEquals("Wrong number of resourceRef values", 1, resourceRef.getValues().size());
+        PrismAsserts.assertReferenceValue(resourceRef, "10000000-0000-0000-0000-000000000003");
+    }
+
+    private void assertJaxb(ShadowType shadow, boolean isObject) throws SchemaException {
+        if (isObject) {
+            assertEquals("88519fca-3f4a-44ca-91c8-dc9be5bf3d03", shadow.getOid());
+        }
+        assertEquals("Wrong name", PrismTestUtil.createPolyStringType("hbarbossa"), shadow.getName());
+
+        ActivationType activation = shadow.getActivation();
+        assertNotNull("No activation", activation);
+        assertEquals("User not enabled", ActivationStatusType.ENABLED, activation.getAdministrativeStatus());
+
+        ObjectReferenceType resourceRef = shadow.getResourceRef();
+        assertNotNull("No resourceRef", resourceRef);
+
+        assertEquals("Wrong resourceRef oid (jaxb)", "10000000-0000-0000-0000-000000000003", resourceRef.getOid());
+        assertEquals("Wrong resourceRef type (jaxb)", ResourceType.COMPLEX_TYPE, resourceRef.getType());
+    }
+
+    @Override
+    protected void assertSerializedObject(String serialized) {
+        if (!serialized.startsWith("<shadow") && !serialized.startsWith("<dummy") && !serialized.startsWith("<user")) {
+            fail("Wrong start of serialized value, was:\n"+serialized);
+        }
+    }
 }

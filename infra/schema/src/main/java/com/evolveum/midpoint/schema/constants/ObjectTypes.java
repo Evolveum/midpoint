@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.constants;
@@ -76,7 +76,7 @@ public enum ObjectTypes {
                   ObjectManager.MODEL, "reportOutputs"),
 
     SECURITY_POLICY(SecurityPolicyType.COMPLEX_TYPE, SchemaConstants.C_SECURITY_POLICY, SecurityPolicyType.class,
-    			ObjectManager.MODEL, "securityPolicies"),
+                ObjectManager.MODEL, "securityPolicies"),
 
     LOOKUP_TABLE(LookupTableType.COMPLEX_TYPE, SchemaConstantsGenerated.C_LOOKUP_TABLE, LookupTableType.class,
             ObjectManager.MODEL, "lookupTables"),
@@ -96,49 +96,49 @@ public enum ObjectTypes {
             "services"),
 
     CASE(CaseType.COMPLEX_TYPE, SchemaConstantsGenerated.C_CASE, CaseType.class, ObjectManager.MODEL,
-    		"cases"),
-    
+            "cases"),
+
     FUNCTION_LIBRARY(FunctionLibraryType.COMPLEX_TYPE, SchemaConstantsGenerated.C_FUNCTION_LIBRARY, FunctionLibraryType.class, ObjectManager.MODEL,
             "functionLibraries"),
-    
+
     OBJECT_COLLECTION(ObjectCollectionType.COMPLEX_TYPE, SchemaConstantsGenerated.C_OBJECT_COLLECTION, ObjectCollectionType.class, ObjectManager.MODEL,
             "objectCollections"),
-    
+
     ARCHETYPE(ArchetypeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ARCHETYPE, ArchetypeType.class, ObjectManager.MODEL,
             "archetypes"),
-    
+
     DASHBOARD(DashboardType.COMPLEX_TYPE, SchemaConstantsGenerated.C_DASHBOARD, DashboardType.class, ObjectManager.MODEL,
             "dashboards"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
 
-	public List<ObjectTypes> thisAndSupertypes() {
-		List<ObjectTypes> rv = new ArrayList<>();
-		rv.add(this);
-		ObjectTypes superType = superType();
-		if (superType != null) {
-			rv.addAll(superType.thisAndSupertypes());
-		}
-		return rv;
-	}
+    public List<ObjectTypes> thisAndSupertypes() {
+        List<ObjectTypes> rv = new ArrayList<>();
+        rv.add(this);
+        ObjectTypes superType = superType();
+        if (superType != null) {
+            rv.addAll(superType.thisAndSupertypes());
+        }
+        return rv;
+    }
 
-	public ObjectTypes superType() {
-		return getObjectTypeIfKnown(classDefinition.getSuperclass());
-	}
+    public ObjectTypes superType() {
+        return getObjectTypeIfKnown(classDefinition.getSuperclass());
+    }
 
-	public enum ObjectManager {
+    public enum ObjectManager {
         PROVISIONING, TASK_MANAGER, MODEL, REPOSITORY
     }
 
-	@NotNull private final QName type;
-	@NotNull private final QName elementName;
+    @NotNull private final QName type;
+    @NotNull private final QName elementName;
     @NotNull private final Class<? extends ObjectType> classDefinition;
-	@NotNull private final ObjectManager objectManager;
-	@NotNull private final String restType;
+    @NotNull private final ObjectManager objectManager;
+    @NotNull private final String restType;
 
     ObjectTypes(@NotNull QName type, @NotNull QName elementName, @NotNull Class<? extends ObjectType> classDefinition,
-		    @NotNull ObjectManager objectManager, @NotNull String restType) {
+            @NotNull ObjectManager objectManager, @NotNull String restType) {
         this.type = type;
         this.elementName = elementName;
         this.classDefinition = classDefinition;
@@ -158,13 +158,13 @@ public enum ObjectTypes {
         return type.getLocalPart();
     }
 
-	@NotNull
-	public QName getElementName() {
+    @NotNull
+    public QName getElementName() {
         return elementName;
     }
 
-	@NotNull
-	public QName getTypeQName() {
+    @NotNull
+    public QName getTypeQName() {
         return type;
     }
 
@@ -173,23 +173,23 @@ public enum ObjectTypes {
         return classDefinition;
     }
 
-	@NotNull
-	public String getRestType() {
+    @NotNull
+    public String getRestType() {
         return restType;
     }
 
-	@NotNull
-	public String getObjectTypeUri() {
+    @NotNull
+    public String getObjectTypeUri() {
         return QNameUtil.qNameToUri(getTypeQName());
     }
 
-	@NotNull
-	public ObjectManager getObjectManager() {
+    @NotNull
+    public ObjectManager getObjectManager() {
         return objectManager;
     }
 
-	@NotNull
-	public static ObjectTypes getObjectType(String objectType) {
+    @NotNull
+    public static ObjectTypes getObjectType(String objectType) {
         for (ObjectTypes type : values()) {
             if (type.getValue().equals(objectType)) {
                 return type;
@@ -221,8 +221,8 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Unsupported object type qname " + typeQName);
     }
 
-	@NotNull
-	public static ObjectTypes getObjectTypeFromUri(String objectTypeUri) {
+    @NotNull
+    public static ObjectTypes getObjectTypeFromUri(String objectTypeUri) {
         for (ObjectTypes type : values()) {
             if (type.getObjectTypeUri().equals(objectTypeUri)) {
                 return type;
@@ -231,8 +231,8 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Unsupported object type uri " + objectTypeUri);
     }
 
-	@NotNull
-	public static String getObjectTypeUri(String objectType) {
+    @NotNull
+    public static String getObjectTypeUri(String objectType) {
         return getObjectType(objectType).getObjectTypeUri();
     }
 
@@ -258,12 +258,12 @@ public enum ObjectTypes {
     @SuppressWarnings("unchecked")
     @NotNull
     public static ObjectTypes getObjectType(@NotNull Class<? extends ObjectType> objectType) {
-		ObjectTypes rv = getObjectTypeIfKnown(objectType);
-		if (rv == null) {
-			throw new IllegalArgumentException("Unsupported object type " + objectType);
-		}
-		return rv;
-	}
+        ObjectTypes rv = getObjectTypeIfKnown(objectType);
+        if (rv == null) {
+            throw new IllegalArgumentException("Unsupported object type " + objectType);
+        }
+        return rv;
+    }
 
     public static ObjectTypes getObjectTypeIfKnown(@NotNull Class<?> objectType) {
         for (ObjectTypes type : values()) {
@@ -344,7 +344,7 @@ public enum ObjectTypes {
 
         throw new IllegalArgumentException("Not suitable class found for rest type: " + restType);
     }
-    
+
     public static String getRestTypeFromClass(Class<?> clazz) {
         Validate.notNull(clazz, "Class must not be null.");
 
@@ -365,29 +365,29 @@ public enum ObjectTypes {
 
         return list;
     }
-    
+
     /**
      * Makes sure the QNames are full representation of object types, e.g. that they include proper namespace.
      */
     public static List<QName> canonizeObjectTypes(List<QName> inputQNames) {
-    	if (inputQNames == null) {
-    		return null;
-    	}
-    	List<QName> outputQNames = new ArrayList<>(inputQNames.size());
-    	for (QName inputQname : inputQNames) {
-    		outputQNames.add(canonizeObjectType(inputQname));
-    	}
-    	return outputQNames;
-	}
+        if (inputQNames == null) {
+            return null;
+        }
+        List<QName> outputQNames = new ArrayList<>(inputQNames.size());
+        for (QName inputQname : inputQNames) {
+            outputQNames.add(canonizeObjectType(inputQname));
+        }
+        return outputQNames;
+    }
 
     /**
      * Makes sure the QName is full representation of object types, e.g. that it includes proper namespace.
      */
-	public static QName canonizeObjectType(QName inputQName) {
-		if (!StringUtils.isBlank(inputQName.getNamespaceURI())) {
-			return inputQName;
-		}
-		return new QName(SchemaConstants.NS_C, inputQName.getLocalPart());
-	}
+    public static QName canonizeObjectType(QName inputQName) {
+        if (!StringUtils.isBlank(inputQName.getNamespaceURI())) {
+            return inputQName;
+        }
+        return new QName(SchemaConstants.NS_C, inputQName.getLocalPart());
+    }
 }
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.users;
@@ -42,110 +42,110 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/org/unit", encoder = OnePageParameterEncoder.class, action = {
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL,
-				label = "PageAdminUsers.auth.orgAll.label",
-				description = "PageAdminUsers.auth.orgAll.description"),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL,
-				label = "PageOrgUnit.auth.orgUnit.label",
-				description = "PageOrgUnit.auth.orgUnit.description") })
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_ALL_URL,
+                label = "PageAdminUsers.auth.orgAll.label",
+                description = "PageAdminUsers.auth.orgAll.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL,
+                label = "PageOrgUnit.auth.orgUnit.label",
+                description = "PageOrgUnit.auth.orgUnit.description") })
 public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements ProgressReportingAwarePage {
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
 
-	public PageOrgUnit() {
-		super();
-	}
-
-	public PageOrgUnit(PageParameters parameters) {
-		super(parameters);
-	}
-
-	public PageOrgUnit(final PrismObject<OrgType> role) {
-		super(role);
-	}
-
-	public PageOrgUnit(final PrismObject<OrgType> userToEdit, boolean isNewObject) {
-		super(userToEdit, isNewObject);
-	}
-	
-	public PageOrgUnit(final PrismObject<OrgType> abstractRole, boolean isNewObject, boolean isReadonly) {
-		super(abstractRole, isNewObject, isReadonly);
-	}
-	
-	@Override
-	protected OrgType createNewObject() {
-		return new OrgType();
-	}
-
-	@Override
-	public Class<OrgType> getCompileTimeClass() {
-		return OrgType.class;
-	}
-
-	@Override
-	protected Class getRestartResponsePage() {
-		return PageOrgTree.class;
-	}
-
-	@Override
-	protected FocusSummaryPanel<OrgType> createSummaryPanel() {
-    	return new OrgSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
+    public PageOrgUnit() {
+        super();
     }
 
-	@Override
-	protected AbstractObjectMainPanel<OrgType> createMainPanel(String id) {
-		return new AbstractRoleMainPanel<OrgType>(id, getObjectModel(),
-				getProjectionModel(), this) {
+    public PageOrgUnit(PageParameters parameters) {
+        super(parameters);
+    }
 
-			private static final long serialVersionUID = 1L;
+    public PageOrgUnit(final PrismObject<OrgType> role) {
+        super(role);
+    }
 
-			@Override
-			protected boolean isFocusHistoryPage(){
-				return PageOrgUnit.this.isFocusHistoryPage();
-			}
+    public PageOrgUnit(final PrismObject<OrgType> userToEdit, boolean isNewObject) {
+        super(userToEdit, isNewObject);
+    }
 
-			@Override
-			protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<OrgType> object, String date){
-				PageOrgUnit.this.navigateToNext(new PageOrgUnitHistory(object, date));
-			}
+    public PageOrgUnit(final PrismObject<OrgType> abstractRole, boolean isNewObject, boolean isReadonly) {
+        super(abstractRole, isNewObject, isReadonly);
+    }
 
-			@Override
-			public OrgMemberPanel createMemberPanel(String panelId) {
+    @Override
+    protected OrgType createNewObject() {
+        return new OrgType();
+    }
 
-				return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable())) {
+    @Override
+    public Class<OrgType> getCompileTimeClass() {
+        return OrgType.class;
+    }
 
-					private static final long serialVersionUID = 1L;
+    @Override
+    protected Class getRestartResponsePage() {
+        return PageOrgTree.class;
+    }
 
-					@Override
-					protected AvailableRelationDto getSupportedRelations() {
-						return getSupportedMembersTabRelations();
-					}
+    @Override
+    protected FocusSummaryPanel<OrgType> createSummaryPanel() {
+        return new OrgSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
+    }
 
-				};
-			}
+    @Override
+    protected AbstractObjectMainPanel<OrgType> createMainPanel(String id) {
+        return new AbstractRoleMainPanel<OrgType>(id, getObjectModel(),
+                getProjectionModel(), this) {
 
-			@Override
-			public OrgMemberPanel createGovernancePanel(String panelId) {
+            private static final long serialVersionUID = 1L;
 
-				return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable())) {
+            @Override
+            protected boolean isFocusHistoryPage(){
+                return PageOrgUnit.this.isFocusHistoryPage();
+            }
 
-					private static final long serialVersionUID = 1L;
+            @Override
+            protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<OrgType> object, String date){
+                PageOrgUnit.this.navigateToNext(new PageOrgUnitHistory(object, date));
+            }
 
-					@Override
-					protected AvailableRelationDto getSupportedRelations() {
-						return getSupportedGovernanceTabRelations();
-					}
+            @Override
+            public OrgMemberPanel createMemberPanel(String panelId) {
 
-					@Override
-					protected Map<String, String> getAuthorizations(QName complexType) {
-						return getGovernanceTabAuthorizations();
-					}
+                return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable())) {
 
-				};
-			}
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected AvailableRelationDto getSupportedRelations() {
+                        return getSupportedMembersTabRelations();
+                    }
+
+                };
+            }
+
+            @Override
+            public OrgMemberPanel createGovernancePanel(String panelId) {
+
+                return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable())) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected AvailableRelationDto getSupportedRelations() {
+                        return getSupportedGovernanceTabRelations();
+                    }
+
+                    @Override
+                    protected Map<String, String> getAuthorizations(QName complexType) {
+                        return getGovernanceTabAuthorizations();
+                    }
+
+                };
+            }
 
 
-		};
-	}
+        };
+    }
 
 }

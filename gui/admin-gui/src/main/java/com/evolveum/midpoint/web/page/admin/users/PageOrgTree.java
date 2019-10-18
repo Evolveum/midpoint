@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.users;
@@ -51,14 +51,14 @@ public class PageOrgTree extends PageAdmin {
     }
 
     private void initLayout() {
-    	AbstractOrgTabPanel tabbedPanel = new AbstractOrgTabPanel(ID_ORG_PANEL, this) {
-			private static final long serialVersionUID = 1L;
+        AbstractOrgTabPanel tabbedPanel = new AbstractOrgTabPanel(ID_ORG_PANEL, this) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected Panel createTreePanel(String id, Model<String> model, PageBase pageBase) {
-				return new TreeTablePanel(id, model, PageOrgTree.this);
-			}
-		};
+            @Override
+            protected Panel createTreePanel(String id, Model<String> model, PageBase pageBase) {
+                return new TreeTablePanel(id, model, PageOrgTree.this);
+            }
+        };
 
         tabbedPanel.setOutputMarkupId(true);
         add(tabbedPanel);

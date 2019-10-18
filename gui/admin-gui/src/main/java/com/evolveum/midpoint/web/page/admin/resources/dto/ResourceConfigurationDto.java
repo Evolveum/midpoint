@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.resources.dto;
@@ -14,41 +14,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class ResourceConfigurationDto implements Serializable{
 
-	private ResourceObjectTypeDefinitionType objectTypeDefinition;
+    private ResourceObjectTypeDefinitionType objectTypeDefinition;
 
-	private boolean sync;
-	private List<TaskType> definedTasks;
+    private boolean sync;
+    private List<TaskType> definedTasks;
 
-	public ResourceConfigurationDto(ResourceObjectTypeDefinitionType obejctTypeDefinition, boolean sync, List<TaskType> definedTasks) {
-		this.objectTypeDefinition = obejctTypeDefinition;
-		this.sync = sync;
-		this.definedTasks = definedTasks;
-	}
+    public ResourceConfigurationDto(ResourceObjectTypeDefinitionType obejctTypeDefinition, boolean sync, List<TaskType> definedTasks) {
+        this.objectTypeDefinition = obejctTypeDefinition;
+        this.sync = sync;
+        this.definedTasks = definedTasks;
+    }
 
-	public List<TaskType> getDefinedTasks() {
-		return definedTasks;
-	}
+    public List<TaskType> getDefinedTasks() {
+        return definedTasks;
+    }
 
-	public ResourceObjectTypeDefinitionType getObjectTypeDefinition() {
+    public ResourceObjectTypeDefinitionType getObjectTypeDefinition() {
 
-		return objectTypeDefinition;
-	}
+        return objectTypeDefinition;
+    }
 
-	public boolean isSync() {
-		return sync;
-	}
+    public boolean isSync() {
+        return sync;
+    }
 
-	public void setSync(boolean sync) {
-		this.sync = sync;
-	}
+    public void setSync(boolean sync) {
+        this.sync = sync;
+    }
 
-	public void setDefinedTasks(List<TaskType> definedTasks) {
-		this.definedTasks = definedTasks;
-	}
+    public void setDefinedTasks(List<TaskType> definedTasks) {
+        this.definedTasks = definedTasks;
+    }
 
-	public void setObjectTypeDefinition(ResourceObjectTypeDefinitionType objectTypeDefinition) {
-		this.objectTypeDefinition = objectTypeDefinition;
-	}
+    public void setObjectTypeDefinition(ResourceObjectTypeDefinitionType objectTypeDefinition) {
+        this.objectTypeDefinition = objectTypeDefinition;
+    }
 
 
 

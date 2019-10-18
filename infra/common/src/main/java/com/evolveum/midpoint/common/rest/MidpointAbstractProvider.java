@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -42,111 +42,111 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 public abstract class MidpointAbstractProvider<T> extends AbstractConfigurableProvider implements MessageBodyReader<T>, MessageBodyWriter<T>{
 
-	private static transient Trace LOGGER = TraceManager.getTrace(MidpointAbstractProvider.class);
+    private static transient Trace LOGGER = TraceManager.getTrace(MidpointAbstractProvider.class);
 
-	@Autowired protected PrismContext prismContext;
-	@Autowired protected LocalizationService localizationService;
+    @Autowired protected PrismContext prismContext;
+    @Autowired protected LocalizationService localizationService;
 
-	@Override
+    @Override
     public void init(List<ClassResourceInfo> cris) {
         setEnableStreaming(true);
     }
 
-	@Override
-	public boolean isWriteable(Class<?> type, Type genericType,
-			Annotation[] annotations, MediaType mediaType) {
-		if (type.getPackage().getName().startsWith("com.evolveum.midpoint") || type.getPackage().getName().startsWith("com.evolveum.prism")){
-			return true;
-		}
-		return false;
-	}
+    @Override
+    public boolean isWriteable(Class<?> type, Type genericType,
+            Annotation[] annotations, MediaType mediaType) {
+        if (type.getPackage().getName().startsWith("com.evolveum.midpoint") || type.getPackage().getName().startsWith("com.evolveum.prism")){
+            return true;
+        }
+        return false;
+    }
 
-	@Override
-	public long getSize(T t, Class<?> type, Type genericType,
-			Annotation[] annotations, MediaType mediaType) {
-		// TODO Auto-generated method stub
-		return -1;
-	}
+    @Override
+    public long getSize(T t, Class<?> type, Type genericType,
+            Annotation[] annotations, MediaType mediaType) {
+        // TODO Auto-generated method stub
+        return -1;
+    }
 
-	@Override
-	public void writeTo(T object, Class<?> type, Type genericType,
-			Annotation[] annotations, MediaType mediaType,
-			MultivaluedMap<String, Object> httpHeaders,
-			OutputStream entityStream) throws IOException,
-			WebApplicationException {
+    @Override
+    public void writeTo(T object, Class<?> type, Type genericType,
+            Annotation[] annotations, MediaType mediaType,
+            MultivaluedMap<String, Object> httpHeaders,
+            OutputStream entityStream) throws IOException,
+            WebApplicationException {
 
-		// TODO implement in the standard serializer; also change root name
-		QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
-		String xml;
+        // TODO implement in the standard serializer; also change root name
+        QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
+        String xml;
 
-		PrismSerializer<String> serializer = getSerializer()
-				.options(SerializationOptions.createSerializeReferenceNames());
+        PrismSerializer<String> serializer = getSerializer()
+                .options(SerializationOptions.createSerializeReferenceNames());
 
-		try {
-			if (object instanceof PrismObject) {
-				xml = serializer.serialize((PrismObject<?>) object);
-			} else if (object instanceof OperationResult) {
-//				OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
-				Function<LocalizableMessage, String> resolveKeys = msg -> localizationService.translate(msg, Locale.US);
-				OperationResultType operationResultType = ((OperationResult) object).createOperationResultType(resolveKeys);
-				xml = serializer.serializeAnyData(operationResultType, fakeQName);
-			} else {
-				xml = serializer.serializeAnyData(object, fakeQName);
-			}
-			entityStream.write(xml.getBytes("utf-8"));
-		} catch (SchemaException | RuntimeException e) {
-			LoggingUtils.logException(LOGGER, "Couldn't marshal element to string: {}", e, object);
-		}
-	}
+        try {
+            if (object instanceof PrismObject) {
+                xml = serializer.serialize((PrismObject<?>) object);
+            } else if (object instanceof OperationResult) {
+//                OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
+                Function<LocalizableMessage, String> resolveKeys = msg -> localizationService.translate(msg, Locale.US);
+                OperationResultType operationResultType = ((OperationResult) object).createOperationResultType(resolveKeys);
+                xml = serializer.serializeAnyData(operationResultType, fakeQName);
+            } else {
+                xml = serializer.serializeAnyData(object, fakeQName);
+            }
+            entityStream.write(xml.getBytes("utf-8"));
+        } catch (SchemaException | RuntimeException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't marshal element to string: {}", e, object);
+        }
+    }
 
-	protected abstract PrismSerializer<String> getSerializer();
-	protected abstract PrismParser getParser(InputStream entityStream);
+    protected abstract PrismSerializer<String> getSerializer();
+    protected abstract PrismParser getParser(InputStream entityStream);
 
-	@Override
-	public boolean isReadable(Class<?> type, Type genericType,
-			Annotation[] annotations, MediaType mediaType) {
-		if (type.getPackage().getName().startsWith("com.evolveum.midpoint") || type.getPackage().getName().startsWith("com.evolveum.prism")){
-			return true;
-		}
-		return false;
-	}
+    @Override
+    public boolean isReadable(Class<?> type, Type genericType,
+            Annotation[] annotations, MediaType mediaType) {
+        if (type.getPackage().getName().startsWith("com.evolveum.midpoint") || type.getPackage().getName().startsWith("com.evolveum.prism")){
+            return true;
+        }
+        return false;
+    }
 
-	@Override
-	public T readFrom(Class<T> type, Type genericType,
-			Annotation[] annotations, MediaType mediaType,
-			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
-			throws IOException, WebApplicationException {
+    @Override
+    public T readFrom(Class<T> type, Type genericType,
+            Annotation[] annotations, MediaType mediaType,
+            MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
+            throws IOException, WebApplicationException {
 
-		if (entityStream == null) {
-			return null;
-		}
+        if (entityStream == null) {
+            return null;
+        }
 
-		PrismParser parser = getParser(entityStream);
+        PrismParser parser = getParser(entityStream);
 
-		T object;
-		try {
-			if (PrismObject.class.isAssignableFrom(type)) {
-				object = (T) parser.parse();
-			} else {
-                object = parser.parseRealValue();			// TODO consider prescribing type here (if no converter is specified)
-			}
+        T object;
+        try {
+            if (PrismObject.class.isAssignableFrom(type)) {
+                object = (T) parser.parse();
+            } else {
+                object = parser.parseRealValue();            // TODO consider prescribing type here (if no converter is specified)
+            }
 
-			if (object != null && !type.isAssignableFrom(object.getClass())) {	// TODO treat multivalues here
-				Optional<Annotation> converterAnnotation = Arrays.stream(annotations).filter(a -> a instanceof Converter).findFirst();
-				if (converterAnnotation.isPresent()) {
-					Class<? extends ConverterInterface> converterClass = ((Converter) converterAnnotation.get()).value();
-					ConverterInterface converter;
-					try {
-						converter = converterClass.newInstance();
-					} catch (InstantiationException | IllegalAccessException e) {
-						throw new SystemException("Couldn't instantiate converter class " + converterClass, e);
-					}
-					object = (T) converter.convert(object);
-				}
-			}
-			return object;
-		} catch (SchemaException ex) {
-			throw new WebApplicationException(ex);
-		}
-	}
+            if (object != null && !type.isAssignableFrom(object.getClass())) {    // TODO treat multivalues here
+                Optional<Annotation> converterAnnotation = Arrays.stream(annotations).filter(a -> a instanceof Converter).findFirst();
+                if (converterAnnotation.isPresent()) {
+                    Class<? extends ConverterInterface> converterClass = ((Converter) converterAnnotation.get()).value();
+                    ConverterInterface converter;
+                    try {
+                        converter = converterClass.newInstance();
+                    } catch (InstantiationException | IllegalAccessException e) {
+                        throw new SystemException("Couldn't instantiate converter class " + converterClass, e);
+                    }
+                    object = (T) converter.convert(object);
+                }
+            }
+            return object;
+        } catch (SchemaException ex) {
+            throw new WebApplicationException(ex);
+        }
+    }
 }

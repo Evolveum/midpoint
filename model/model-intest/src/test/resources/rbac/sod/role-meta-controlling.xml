@@ -1,12 +1,12 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
   <!--  -->
-  
+
 <role oid="d20aefe6-3ecf-11e7-8068-5f346db1cc00"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -14,24 +14,24 @@
     <name>Controlling metarole</name>
     <description>Excludes all executive roles using a filter</description>
     <inducement>
-    	<policyRule>
-    		<name>executive exclusion</name>
-    		<policyConstraints>
-		    	<exclusion>
-		    		<targetRef type="RoleType">
-			    		<filter>
-							<q:equal>
-								<q:path>roleType</q:path>
-								<q:value>executive</q:value>
-							</q:equal>
-			    		</filter>
-			    		<resolutionTime>run</resolutionTime>
-		    		</targetRef>
-		    	</exclusion>
-		    </policyConstraints>
-		    <policyActions>
-		    	<enforcement/>
-		    </policyActions>
-    	</policyRule>
+        <policyRule>
+            <name>executive exclusion</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef type="RoleType">
+                        <filter>
+                            <q:equal>
+                                <q:path>roleType</q:path>
+                                <q:value>executive</q:value>
+                            </q:equal>
+                        </filter>
+                        <resolutionTime>run</resolutionTime>
+                    </targetRef>
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
     </inducement>
 </role>

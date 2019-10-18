@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -23,7 +23,7 @@
             </q:equal>
         </filter>
     </connectorRef>
-    
+
     <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector">
             <icfcldap:host>localhost</icfcldap:host>
@@ -38,10 +38,10 @@
             <icfcldap:allowUnknownAttributes>true</icfcldap:allowUnknownAttributes>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
-			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
-			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
-			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
-		</icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
 
     <schema>
@@ -62,157 +62,157 @@
             <default>true</default>
             <objectClass>ri:user</objectClass>
 
-			<attribute>
-				<ref>ri:dn</ref>
-				<displayName>Distinguished Name</displayName>
-				<matchingRule>mr:distinguishedName</matchingRule>
-				<outbound>
-				    <source>
-				    	<path>$user/fullName</path>
-				    </source>
-					<expression>
-						<script>
-							<code>
-								'CN=' + fullName + iterationToken + ',CN=Users,DC=win,DC=evolveum,DC=com'
-							</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-			
-			<attribute>
-					<ref>ri:sAMAccountName</ref>
-					<displayName>Login name</displayName>
-					<outbound>
-						<source>
-							<path>$user/name</path>
-						</source>
-					</outbound>
-					<inbound>
-						<target>
-							<path>name</path>
-						</target>
-					</inbound>
-			</attribute>
-			
-			<attribute>
-				<ref>ri:cn</ref>
-				<limitations>
-					<minOccurs>0</minOccurs>
-				</limitations>
-				<outbound>
-					<source>
-						<path>fullName</path>
-					</source>
-				</outbound>
-				<inbound>
-					<target>
-						<path>fullName</path>
-					</target>
-				</inbound>
-			</attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <displayName>Distinguished Name</displayName>
+                <matchingRule>mr:distinguishedName</matchingRule>
+                <outbound>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                'CN=' + fullName + iterationToken + ',CN=Users,DC=win,DC=evolveum,DC=com'
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
 
-			<attribute>
-				<ref>ri:sn</ref>
-				<limitations>
-					<minOccurs>0</minOccurs>
-				</limitations>
-				<outbound>
-					<source>
-						<path>familyName</path>
-					</source>
-				</outbound>
-				<inbound>
-					<target>
-						<path>familyName</path>
-					</target>
-				</inbound>
-			</attribute>
+            <attribute>
+                    <ref>ri:sAMAccountName</ref>
+                    <displayName>Login name</displayName>
+                    <outbound>
+                        <source>
+                            <path>$user/name</path>
+                        </source>
+                    </outbound>
+                    <inbound>
+                        <target>
+                            <path>name</path>
+                        </target>
+                    </inbound>
+            </attribute>
 
-			<attribute>
-				<ref>ri:givenName</ref>
-				<outbound>
-					<source>
-						<path>givenName</path>
-					</source>
-				</outbound>
-				<inbound>
-					<target>
-						<path>givenName</path>
-					</target>
-				</inbound>
-			</attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <outbound>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
 
-			<attribute>
-					<ref>ri:userPrincipalName</ref>
-					<outbound>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>
-								name + iterationToken + '@win.evolveum.com'
-							</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-			
-			<attribute>
-					<ref>ri:pwdLastSet</ref>
-					<outbound>
-					<expression>
-						<value>-1</value>
-					</expression>
-				</outbound>
-			</attribute>
-			
-			<attribute>
-				<ref>ri:createTimeStamp</ref>
-				<fetchStrategy>explicit</fetchStrategy>
-			</attribute>
-			
-			<attribute>
-				<ref>ri:nTSecurityDescriptor</ref>
-				<!-- This is defined as mandatory in top object class.
+            <attribute>
+                <ref>ri:sn</ref>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <outbound>
+                    <source>
+                        <path>familyName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                    <source>
+                        <path>givenName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>givenName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <attribute>
+                    <ref>ri:userPrincipalName</ref>
+                    <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                name + iterationToken + '@win.evolveum.com'
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                    <ref>ri:pwdLastSet</ref>
+                    <outbound>
+                    <expression>
+                        <value>-1</value>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:createTimeStamp</ref>
+                <fetchStrategy>explicit</fetchStrategy>
+            </attribute>
+
+            <attribute>
+                <ref>ri:nTSecurityDescriptor</ref>
+                <!-- This is defined as mandatory in top object class.
                                      But it is not really mandatory. Well done Microsoft. -->
-				<limitations>
-					<minOccurs>0</minOccurs>
-				</limitations>
-			</attribute>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+            </attribute>
 
-			<attribute>
-				<ref>ri:instanceType</ref>
-				<!-- This is defined as mandatory in top object class.
+            <attribute>
+                <ref>ri:instanceType</ref>
+                <!-- This is defined as mandatory in top object class.
                                      But it is not really mandatory. Well done Microsoft. -->
-				<limitations>
-					<minOccurs>0</minOccurs>
-				</limitations>
-			</attribute>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+            </attribute>
 
-			<attribute>
-				<ref>ri:objectCategory</ref>
-				<!-- This is defined as mandatory in top object class.
+            <attribute>
+                <ref>ri:objectCategory</ref>
+                <!-- This is defined as mandatory in top object class.
                                      But it is not really mandatory. Well done Microsoft. -->
-				<limitations>
-					<minOccurs>0</minOccurs>
-				</limitations>
-				<outbound>
-					<expression>
-						<value>CN=Person,CN=Schema,CN=Configuration,DC=win,DC=evolveum,DC=com</value>
-					</expression>
-				</outbound>
-			</attribute>
-			
-			<attribute>
-				<ref>ri:showInAdvancedViewOnly</ref>
-				<outbound>
-					<source>
-						<path>extension/showInAdvancedViewOnly</path>
-					</source>
-				</outbound>
-			</attribute>
+                <limitations>
+                    <minOccurs>0</minOccurs>
+                </limitations>
+                <outbound>
+                    <expression>
+                        <value>CN=Person,CN=Schema,CN=Configuration,DC=win,DC=evolveum,DC=com</value>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:showInAdvancedViewOnly</ref>
+                <outbound>
+                    <source>
+                        <path>extension/showInAdvancedViewOnly</path>
+                    </source>
+                </outbound>
+            </attribute>
 
             <association>
                 <ref>ri:group</ref>
@@ -223,15 +223,15 @@
                 <associationAttribute>ri:member</associationAttribute>
                 <valueAttribute>ri:dn</valueAttribute>
                 <shortcutAssociationAttribute>ri:memberOf</shortcutAssociationAttribute>
-            	<shortcutValueAttribute>ri:dn</shortcutValueAttribute>
-            	<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+                <shortcutValueAttribute>ri:dn</shortcutValueAttribute>
+                <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
             </association>
-            
+
             <activation>
-				<administrativeStatus>
-					<outbound/>
-				</administrativeStatus>
-			</activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
 
             <credentials>
                 <password>
@@ -272,10 +272,10 @@
                     </source>
                 </outbound>
                 <inbound>
-					<target>
-						<path>name</path>
-					</target>
-				</inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:description</ref>
@@ -286,93 +286,93 @@
                     </source>
                 </outbound>
                 <inbound>
-					<target>
-						<path>description</path>
-					</target>
-				</inbound>
+                    <target>
+                        <path>description</path>
+                    </target>
+                </inbound>
             </attribute>
         </objectType>
 
     </schemaHandling>
-    
-    	<synchronization>
 
-		<objectSynchronization>
-			<name>Account sync</name>
-			<objectClass>ri:user</objectClass>
-			<kind>account</kind>
-			<intent>default</intent>
-			<focusType>UserType</focusType>
-			<enabled>true</enabled>
-			<correlation>
-				<q:and>
-					<q:equal>
-						<q:path>c:employeeNumber</q:path>
-						<expression>
-							<path>$shadow/attributes/employeeNumber</path>
-						</expression>
-					</q:equal>
-					<q:not>
-						<q:equal>
-							<q:path>c:employeeNumber</q:path>
-						</q:equal>
-					</q:not>
-				</q:and>
-			</correlation>
+        <synchronization>
 
-			<reaction>
-				<situation>linked</situation>
-				<synchronize>true</synchronize>
-			</reaction>
-			<reaction>
-				<situation>deleted</situation>
-				<action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri></action>
-			</reaction>
-			<reaction>
-				<situation>unlinked</situation>
-				<action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri></action>
-			</reaction>
-			<reaction>
-				<situation>unmatched</situation>
-				<action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri></action>
-			</reaction>
+        <objectSynchronization>
+            <name>Account sync</name>
+            <objectClass>ri:user</objectClass>
+            <kind>account</kind>
+            <intent>default</intent>
+            <focusType>UserType</focusType>
+            <enabled>true</enabled>
+            <correlation>
+                <q:and>
+                    <q:equal>
+                        <q:path>c:employeeNumber</q:path>
+                        <expression>
+                            <path>$shadow/attributes/employeeNumber</path>
+                        </expression>
+                    </q:equal>
+                    <q:not>
+                        <q:equal>
+                            <q:path>c:employeeNumber</q:path>
+                        </q:equal>
+                    </q:not>
+                </q:and>
+            </correlation>
 
-		</objectSynchronization>
-		
-		<objectSynchronization>
-			<name>Group sync</name>
-			<objectClass>ri:group</objectClass>
-			<kind>entitlement</kind>
-			<intent>group</intent>
-			<focusType>RoleType</focusType>
-			<enabled>true</enabled>
-			<correlation>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<expression>
-						<path>$shadow/attributes/cn</path>
-					</expression>
-				</q:equal>
-			</correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri></action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri></action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri></action>
+            </reaction>
 
-			<reaction>
-				<situation>linked</situation>
-				<synchronize>true</synchronize>
-			</reaction>
-			<reaction>
-				<situation>deleted</situation>
-				<action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri></action>
-			</reaction>
-			<reaction>
-				<situation>unlinked</situation>
-				<action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri></action>
-			</reaction>
-			<reaction>
-				<situation>unmatched</situation>
-				<action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri></action>
-			</reaction>
+        </objectSynchronization>
 
-		</objectSynchronization>
-	</synchronization>
+        <objectSynchronization>
+            <name>Group sync</name>
+            <objectClass>ri:group</objectClass>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <focusType>RoleType</focusType>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <path>$shadow/attributes/cn</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri></action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri></action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri></action>
+            </reaction>
+
+        </objectSynchronization>
+    </synchronization>
 
 </resource>

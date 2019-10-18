@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -42,9 +42,9 @@ import java.util.List;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                 label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
                 description = PageAdminWorkItems.AUTH_APPROVALS_ALL_DESCRIPTION),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL,
-				label = "PageWorkItemsClaimable.auth.claimableWorkItems.label",
-				description = "PageWorkItemsClaimable.auth.claimableWorkItems.description")})
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL,
+                label = "PageWorkItemsClaimable.auth.claimableWorkItems.label",
+                description = "PageWorkItemsClaimable.auth.claimableWorkItems.description")})
 public class PageWorkItemsClaimable extends PageCaseWorkItems {
     private static final long serialVersionUID = 1L;
 

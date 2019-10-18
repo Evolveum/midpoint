@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api;
@@ -57,45 +57,45 @@ import java.util.Map;
 @Experimental
 public interface ModelInteractionService {
 
-	String CLASS_NAME_WITH_DOT = ModelInteractionService.class.getName() + ".";
-	String PREVIEW_CHANGES = CLASS_NAME_WITH_DOT + "previewChanges";
-	String GET_EDIT_OBJECT_DEFINITION = CLASS_NAME_WITH_DOT + "getEditObjectDefinition";
-	String GET_EDIT_SHADOW_DEFINITION = CLASS_NAME_WITH_DOT + "getEditShadowDefinition";
-	String GET_ALLOWED_REQUEST_ASSIGNMENT_ITEMS = CLASS_NAME_WITH_DOT + "getAllowedRequestAssignmentItems";
-	String GET_ASSIGNABLE_ROLE_SPECIFICATION = CLASS_NAME_WITH_DOT + "getAssignableRoleSpecification";
-	String GET_CREDENTIALS_POLICY = CLASS_NAME_WITH_DOT + "getCredentialsPolicy";
-	String GET_AUTHENTICATIONS_POLICY = CLASS_NAME_WITH_DOT + "getAuthenticationsPolicy";
-	String GET_REGISTRATIONS_POLICY = CLASS_NAME_WITH_DOT + "getRegistrationsPolicy";
-	String GET_SECURITY_POLICY = CLASS_NAME_WITH_DOT + "resolveSecurityPolicy";
-	String CHECK_PASSWORD = CLASS_NAME_WITH_DOT + "checkPassword";
-	String GET_CONNECTOR_OPERATIONAL_STATUS = CLASS_NAME_WITH_DOT + "getConnectorOperationalStatus";
-	String MERGE_OBJECTS_PREVIEW_DELTA = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewDelta";
-	String MERGE_OBJECTS_PREVIEW_OBJECT = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewObject";
-	String GET_DEPUTY_ASSIGNEES = CLASS_NAME_WITH_DOT + "getDeputyAssignees";
-	String SUBMIT_TASK_FROM_TEMPLATE = CLASS_NAME_WITH_DOT + "submitTaskFromTemplate";
+    String CLASS_NAME_WITH_DOT = ModelInteractionService.class.getName() + ".";
+    String PREVIEW_CHANGES = CLASS_NAME_WITH_DOT + "previewChanges";
+    String GET_EDIT_OBJECT_DEFINITION = CLASS_NAME_WITH_DOT + "getEditObjectDefinition";
+    String GET_EDIT_SHADOW_DEFINITION = CLASS_NAME_WITH_DOT + "getEditShadowDefinition";
+    String GET_ALLOWED_REQUEST_ASSIGNMENT_ITEMS = CLASS_NAME_WITH_DOT + "getAllowedRequestAssignmentItems";
+    String GET_ASSIGNABLE_ROLE_SPECIFICATION = CLASS_NAME_WITH_DOT + "getAssignableRoleSpecification";
+    String GET_CREDENTIALS_POLICY = CLASS_NAME_WITH_DOT + "getCredentialsPolicy";
+    String GET_AUTHENTICATIONS_POLICY = CLASS_NAME_WITH_DOT + "getAuthenticationsPolicy";
+    String GET_REGISTRATIONS_POLICY = CLASS_NAME_WITH_DOT + "getRegistrationsPolicy";
+    String GET_SECURITY_POLICY = CLASS_NAME_WITH_DOT + "resolveSecurityPolicy";
+    String CHECK_PASSWORD = CLASS_NAME_WITH_DOT + "checkPassword";
+    String GET_CONNECTOR_OPERATIONAL_STATUS = CLASS_NAME_WITH_DOT + "getConnectorOperationalStatus";
+    String MERGE_OBJECTS_PREVIEW_DELTA = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewDelta";
+    String MERGE_OBJECTS_PREVIEW_OBJECT = CLASS_NAME_WITH_DOT + "mergeObjectsPreviewObject";
+    String GET_DEPUTY_ASSIGNEES = CLASS_NAME_WITH_DOT + "getDeputyAssignees";
+    String SUBMIT_TASK_FROM_TEMPLATE = CLASS_NAME_WITH_DOT + "submitTaskFromTemplate";
 
-	/**
-	 * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
-	 * add of a user or change of a shadow. The resulting context will sort that out to "focus" and "projection" as needed.
-	 * The supplied delta will be used as a primary change. The resulting context will reflect both this primary change and
-	 * any resulting secondary changes.
-	 *
-	 * The changes are only computed, NOT EXECUTED. It also does not change any state of any repository object or task. Therefore
-	 * this method is safe to use anytime. However it is reading the data from the repository and possibly also from the resources
-	 * therefore there is still potential for communication (and other) errors and invocation of this method may not be cheap.
-	 * However, as no operations are really executed there may be issues with resource dependencies. E.g. identifier that are generated
-	 * by the resource are not taken into account while recomputing the values. This may also cause errors if some expressions depend
-	 * on the generated values.
-	 */
-	<F extends ObjectType> ModelContext<F> previewChanges(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
-			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
+    /**
+     * Computes the most likely changes triggered by the provided delta. The delta may be any change of any object, e.g.
+     * add of a user or change of a shadow. The resulting context will sort that out to "focus" and "projection" as needed.
+     * The supplied delta will be used as a primary change. The resulting context will reflect both this primary change and
+     * any resulting secondary changes.
+     *
+     * The changes are only computed, NOT EXECUTED. It also does not change any state of any repository object or task. Therefore
+     * this method is safe to use anytime. However it is reading the data from the repository and possibly also from the resources
+     * therefore there is still potential for communication (and other) errors and invocation of this method may not be cheap.
+     * However, as no operations are really executed there may be issues with resource dependencies. E.g. identifier that are generated
+     * by the resource are not taken into account while recomputing the values. This may also cause errors if some expressions depend
+     * on the generated values.
+     */
+    <F extends ObjectType> ModelContext<F> previewChanges(
+            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
-	<F extends ObjectType> ModelContext<F> previewChanges(
-			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, Collection<ProgressListener> listeners, OperationResult result)
-			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
+    <F extends ObjectType> ModelContext<F> previewChanges(
+            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, Collection<ProgressListener> listeners, OperationResult result)
+            throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
-	<F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException;
+    <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException;
 
     /**
      * <p>
@@ -152,9 +152,9 @@ public interface ModelInteractionService {
     /**
      * Returns filter for lookup of donors or power of attorney. The donors are the users that have granted
      * the power of attorney to the currently logged-in user.
-     * 
+     *
      * TODO: authorization limitations
-     * 
+     *
      * @param searchResultType type of the expected search results
      * @param origFilter original filter (e.g. taken from GUI search bar)
      * @param targetAuthorizationAction Authorization action that the attorney is trying to execute
@@ -167,7 +167,7 @@ public interface ModelInteractionService {
      * @return original filter with AND clause limiting the search.
      */
     <T extends ObjectType> ObjectFilter getDonorFilter(Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
-    
+
     /**
      * TODO
      * Question: does object make any sense here? E.g. when searching role members, the role OID should be determined from the query.
@@ -191,7 +191,7 @@ public interface ModelInteractionService {
 
     /**
      * Returns an authentications policies as defined in the system configuration security policy. This method is designed to be used
-	 * during registration process or reset password process.
+     * during registration process or reset password process.
      * security questions, etc).
      *
      *
@@ -252,20 +252,20 @@ public interface ModelInteractionService {
     @NotNull
     CompiledUserProfile getCompiledUserProfile(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
-	/**
-	 *
-	 * @return list of logged in users with at least 1 active session
-	 */
-	List<UserSessionManagementType>  getLoggedInUsers();
+    /**
+     *
+     * @return list of logged in users with at least 1 active session
+     */
+    List<UserSessionManagementType>  getLoggedInUsers();
 
     SystemConfigurationType getSystemConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-	DeploymentInformationType getDeploymentInformationConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    DeploymentInformationType getDeploymentInformationConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-	List<MergeConfigurationType> getMergeConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    List<MergeConfigurationType> getMergeConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-	AccessCertificationConfigurationType getCertificationConfiguration(OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException;
+    AccessCertificationConfigurationType getCertificationConfiguration(OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException;
 
     /**
      * Checks if the supplied password matches with current user password. This method is NOT subject to any
@@ -281,156 +281,156 @@ public interface ModelInteractionService {
      */
     boolean checkPassword(String userOid, ProtectedStringType password, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
-	// TEMPORARY
-	List<? extends Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
+    // TEMPORARY
+    List<? extends Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
 
-	@NotNull
-	Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
+    @NotNull
+    Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
 
-	@NotNull
-	Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
+    @NotNull
+    Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
 
-	List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-	<O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type,
-			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
+    <O extends ObjectType> MergeDeltas<O> mergeObjectsPreviewDeltas(Class<O> type,
+            String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
+                    throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
 
-	<O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type,
-			String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
-					throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
+    <O extends ObjectType> PrismObject<O> mergeObjectsPreviewObject(Class<O> type,
+            String leftOid, String rightOid, String mergeConfigurationName, Task task, OperationResult result)
+                    throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException ;
 
-	/**
-	 * TEMPORARY. Need to find out better way how to deal with generated values
-	 *
-	 * @param policy
-	 * @param defaultLength
-	 * @param generateMinimalSize
-	 * @param object object for which we generate the value (e.g. user or shadow)
-	 * @param inputResult
-	 * @return
-	 * @throws ExpressionEvaluationException
-	 */
-	<O extends ObjectType> String generateValue(ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
-			PrismObject<O> object, String shortDesc, Task task, OperationResult inputResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+    /**
+     * TEMPORARY. Need to find out better way how to deal with generated values
+     *
+     * @param policy
+     * @param defaultLength
+     * @param generateMinimalSize
+     * @param object object for which we generate the value (e.g. user or shadow)
+     * @param inputResult
+     * @return
+     * @throws ExpressionEvaluationException
+     */
+    <O extends ObjectType> String generateValue(ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
+            PrismObject<O> object, String shortDesc, Task task, OperationResult inputResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
-	<O extends ObjectType> void generateValue(
-			PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+    <O extends ObjectType> void generateValue(
+            PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
-	<O extends ObjectType> void validateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task,
-			OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
-			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException;
+    <O extends ObjectType> void validateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task,
+            OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException;
 
-	/**
-	 * Gets "deputy assignees" i.e. users that are deputies of assignees. Takes limitations into account.
-	 *
-	 * MAY NOT CHECK AUTHORIZATIONS (uses repository directly, at least at some places) - TODO
-	 * TODO parameterize on limitation kind
-	 */
-	@NotNull
-	List<ObjectReferenceType> getDeputyAssignees(AbstractWorkItemType workItem, Task task, OperationResult parentResult)
-			throws SchemaException;
+    /**
+     * Gets "deputy assignees" i.e. users that are deputies of assignees. Takes limitations into account.
+     *
+     * MAY NOT CHECK AUTHORIZATIONS (uses repository directly, at least at some places) - TODO
+     * TODO parameterize on limitation kind
+     */
+    @NotNull
+    List<ObjectReferenceType> getDeputyAssignees(AbstractWorkItemType workItem, Task task, OperationResult parentResult)
+            throws SchemaException;
 
-	@NotNull
-	List<ObjectReferenceType> getDeputyAssignees(ObjectReferenceType assignee, QName limitationItemName, Task task, OperationResult parentResult)
-			throws SchemaException;
+    @NotNull
+    List<ObjectReferenceType> getDeputyAssignees(ObjectReferenceType assignee, QName limitationItemName, Task task, OperationResult parentResult)
+            throws SchemaException;
 
-	/**
-	 * Computes effective status for the current ActivationType in for an assignment
-	 */
-	ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType);
-	
-	MidPointPrincipal assumePowerOfAttorney(PrismObject<UserType> donor, Task task, OperationResult result) 
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
-	
-	MidPointPrincipal dropPowerOfAttorney(Task task, OperationResult result) 
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    /**
+     * Computes effective status for the current ActivationType in for an assignment
+     */
+    ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType);
 
-	// Maybe a bit of hack: used to deduplicate processing of localizable message templates
-	@NotNull
-	LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
-			VariablesMap variables, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, SecurityViolationException;
-	
-	ExecuteCredentialResetResponseType executeCredentialsReset(PrismObject<UserType> user, 
-			ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+    MidPointPrincipal assumePowerOfAttorney(PrismObject<UserType> donor, Task task, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-	void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    MidPointPrincipal dropPowerOfAttorney(Task task, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-	void expirePrincipals(List<String> oid);
+    // Maybe a bit of hack: used to deduplicate processing of localizable message templates
+    @NotNull
+    LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
+            VariablesMap variables, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException;
 
-	List<RelationDefinitionType> getRelationDefinitions();
+    ExecuteCredentialResetResponseType executeCredentialsReset(PrismObject<UserType> user,
+            ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
-	@NotNull
-	TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems, Task opTask, OperationResult result)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+    void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
-	@NotNull
-	TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult result)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
-	
-	/**
-	 * Efficiently determines information about archetype policy applicable for a particular object.
-	 * Returns null if no archetype policy is applicable.
-	 * This is a "one stop" method for archetype policy in the GUI. The method returns archetype policy even
-	 * for "legacy" situations, e.g. if the policy needs to be determined from system configuration using legacy subtype.
-	 * GUI should not need to to any other processing to determine archetype information.
-	 * 
-	 * This method is invoked very often, usually when any object is displayed (including display of object lists
-	 * and search results). Therefore this method is supposed to be very efficient. 
-	 * It should be using caching as much as possible.
-	 */
-	<O extends AssignmentHolderType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
+    void expirePrincipals(List<String> oid);
 
-	/**
-	 * Returns data structure that contains information about possible assignment targets for a particular holder object.
-	 * 
-	 * This method should be used when editing assignment holder (e.g. user) and looking for available assignment target.
-	 * The determineAssignmentHolderSpecification is a "reverse" version of this method.
-	 * 
-	 * This method is not used that often. It is used when an object is edited. But it should be quite efficient anyway.
-	 * It should use cached archetype information.
-	 */
-	<O extends AssignmentHolderType> AssignmentCandidatesSpecification determineAssignmentTargetSpecification(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
-	
-	/**
-	 * Returns data structure that contains information about possible assignment holders for a particular target object.
-	 * 
-	 * This method should be used when editing assignment target (role, org, service) and looking for object that
-	 * can be potential members. The determineAssignmentTargetSpecification is a "reverse" version of this method.
-	 * 
-	 * This method is not used that often. It is used when an object is edited. But it should be quite efficient anyway.
-	 * It should use cached archetype information.
-	 */
-	<O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result) throws SchemaException, ConfigurationException;
-	
-	/**
-	 * Returns all policy rules that apply to the collection.
-	 * Later, the policy rules are compiled from all the applicable sources (target, meta-roles, etc.).
-	 * But for now we support only policy rules that are directly placed in collection assignments.
-	 * EXPERIMENTAL. Quite likely to change later.
-	 */
-	@Experimental
-	@NotNull
-	Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(@NotNull PrismObject<ObjectCollectionType> collection, @Nullable CompiledObjectCollectionView collectionView, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    List<RelationDefinitionType> getRelationDefinitions();
 
-	@Experimental
-	@NotNull
-	CompiledObjectCollectionView compileObjectCollectionView(@NotNull PrismObject<ObjectCollectionType> collection, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
-			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-			ExpressionEvaluationException, ObjectNotFoundException;
-	
-	@Experimental
-	@NotNull
-	<O extends ObjectType> CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result) 
-			throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
-	
+    @NotNull
+    TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems, Task opTask, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+    @NotNull
+    TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+    /**
+     * Efficiently determines information about archetype policy applicable for a particular object.
+     * Returns null if no archetype policy is applicable.
+     * This is a "one stop" method for archetype policy in the GUI. The method returns archetype policy even
+     * for "legacy" situations, e.g. if the policy needs to be determined from system configuration using legacy subtype.
+     * GUI should not need to to any other processing to determine archetype information.
+     *
+     * This method is invoked very often, usually when any object is displayed (including display of object lists
+     * and search results). Therefore this method is supposed to be very efficient.
+     * It should be using caching as much as possible.
+     */
+    <O extends AssignmentHolderType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
+
+    /**
+     * Returns data structure that contains information about possible assignment targets for a particular holder object.
+     *
+     * This method should be used when editing assignment holder (e.g. user) and looking for available assignment target.
+     * The determineAssignmentHolderSpecification is a "reverse" version of this method.
+     *
+     * This method is not used that often. It is used when an object is edited. But it should be quite efficient anyway.
+     * It should use cached archetype information.
+     */
+    <O extends AssignmentHolderType> AssignmentCandidatesSpecification determineAssignmentTargetSpecification(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
+
+    /**
+     * Returns data structure that contains information about possible assignment holders for a particular target object.
+     *
+     * This method should be used when editing assignment target (role, org, service) and looking for object that
+     * can be potential members. The determineAssignmentTargetSpecification is a "reverse" version of this method.
+     *
+     * This method is not used that often. It is used when an object is edited. But it should be quite efficient anyway.
+     * It should use cached archetype information.
+     */
+    <O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result) throws SchemaException, ConfigurationException;
+
+    /**
+     * Returns all policy rules that apply to the collection.
+     * Later, the policy rules are compiled from all the applicable sources (target, meta-roles, etc.).
+     * But for now we support only policy rules that are directly placed in collection assignments.
+     * EXPERIMENTAL. Quite likely to change later.
+     */
+    @Experimental
+    @NotNull
+    Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(@NotNull PrismObject<ObjectCollectionType> collection, @Nullable CompiledObjectCollectionView collectionView, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    @Experimental
+    @NotNull
+    CompiledObjectCollectionView compileObjectCollectionView(@NotNull PrismObject<ObjectCollectionType> collection, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException, ObjectNotFoundException;
+
+    @Experimental
+    @NotNull
+    <O extends ObjectType> CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
+
 }

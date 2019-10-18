@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.conntest;
@@ -22,9 +22,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class TestOpenDjUnsafe extends TestOpenDj {
 
-	@Override
-	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-unsafe.xml");
-	}
+    @Override
+    protected File getResourceFile() {
+        return new File(getBaseDir(), "resource-unsafe.xml");
+    }
 
 }

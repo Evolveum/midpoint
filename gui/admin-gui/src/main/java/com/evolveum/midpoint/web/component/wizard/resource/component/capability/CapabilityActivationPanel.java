@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
@@ -65,11 +65,11 @@ public class CapabilityActivationPanel extends BasePanel {
 
     public CapabilityActivationPanel(String componentId, IModel<CapabilityDto<ActivationCapabilityType>> model, PageResourceWizard parentPage) {
         super(componentId, model);
-		initLayout(parentPage);
+        initLayout(parentPage);
     }
 
     protected void initLayout(PageResourceWizard parentPage) {
-		parentPage.addEditingEnabledBehavior(this);
+        parentPage.addEditingEnabledBehavior(this);
 
         CheckBox validFromEnabled = new CheckBox(ID_CHECK_VALID_FROM_ENABLED,
             new PropertyModel<>(getModel(), "capability.validFrom.enabled"));
@@ -88,7 +88,7 @@ public class CapabilityActivationPanel extends BasePanel {
         add(validToReturned);
 
         add(new CheckBox(ID_CHECK_STATUS_ENABLED, new PropertyModel<>(getModel(), "capability.status.enabled")));
-		add(new CheckBox(ID_CHECK_STATUS_RETURNED, new PropertyModel<>(getModel(), "capability.status.returnedByDefault")));
+        add(new CheckBox(ID_CHECK_STATUS_RETURNED, new PropertyModel<>(getModel(), "capability.status.returnedByDefault")));
         add(new CheckBox(ID_CHECK_STATUS_IGNORE, new PropertyModel<>(getModel(), "capability.status.ignoreAttribute")));
 
         MultiValueTextPanel statusEnableList = new MultiValueTextPanel<String>(ID_STATUS_ENABLE_LIST,
@@ -119,7 +119,7 @@ public class CapabilityActivationPanel extends BasePanel {
         add(statusChoice);
 
         add(new CheckBox(ID_CHECK_LOCKOUT_ENABLED, new PropertyModel<>(getModel(), "capability.lockoutStatus.enabled")));
-		add(new CheckBox(ID_CHECK_LOCKOUT_RETURNED, new PropertyModel<>(getModel(), "capability.lockoutStatus.returnedByDefault")));
+        add(new CheckBox(ID_CHECK_LOCKOUT_RETURNED, new PropertyModel<>(getModel(), "capability.lockoutStatus.returnedByDefault")));
         add(new CheckBox(ID_CHECK_LOCKOUT_IGNORE, new PropertyModel<>(getModel(), "capability.lockoutStatus.ignoreAttribute")));
 
         MultiValueTextPanel lockoutNormalList = new MultiValueTextPanel<String>(ID_LOCKOUT_NORMAL_LIST,
@@ -149,12 +149,12 @@ public class CapabilityActivationPanel extends BasePanel {
                 createAttributeChoiceModel(lockoutRenderer), lockoutRenderer);
         add(lockoutChoice);
 
-		add(WebComponentUtil.createHelp(ID_T_L_ENABLED));
-		add(WebComponentUtil.createHelp(ID_T_L_RETURNED_BY_DEFAULT));
-		add(WebComponentUtil.createHelp(ID_T_L_IGNORE_ATTR));
-		add(WebComponentUtil.createHelp(ID_T_L_ATTR_NAME));
-		add(WebComponentUtil.createHelp(ID_T_L_NORMAL_LIST));
-		add(WebComponentUtil.createHelp(ID_T_L_LOCKED_LIST));
+        add(WebComponentUtil.createHelp(ID_T_L_ENABLED));
+        add(WebComponentUtil.createHelp(ID_T_L_RETURNED_BY_DEFAULT));
+        add(WebComponentUtil.createHelp(ID_T_L_IGNORE_ATTR));
+        add(WebComponentUtil.createHelp(ID_T_L_ATTR_NAME));
+        add(WebComponentUtil.createHelp(ID_T_L_NORMAL_LIST));
+        add(WebComponentUtil.createHelp(ID_T_L_LOCKED_LIST));
 
         Label enabledTooltip = new Label(ID_T_ENABLED);
         enabledTooltip.add(new InfoTooltipBehavior());

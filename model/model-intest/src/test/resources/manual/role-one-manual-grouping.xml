@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="bc586500-f092-11e7-9cda-f7cd4203a755"
@@ -10,17 +10,17 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>One: Grouping Manual</name>
     <inducement>
-    	<construction>
-    		<resourceRef oid="a6e228a0-f092-11e7-b5bc-579f2e54e15c" type="ResourceType"/> <!-- Manual Grouping -->
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <resourceRef oid="a6e228a0-f092-11e7-b5bc-579f2e54e15c" type="ResourceType"/> <!-- Manual Grouping -->
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:interests</ref>
                 <outbound>
-                	<expression>
-						<value>one</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>one</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 </role>

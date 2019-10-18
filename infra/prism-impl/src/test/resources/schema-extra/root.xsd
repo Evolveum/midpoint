@@ -2,58 +2,58 @@
 <!--
   ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <schema
-	xmlns="http://www.w3.org/2001/XMLSchema" 
-	targetNamespace="http://example.com/xml/ns/test/root.xsd"
-	xmlns:tns="http://example.com/xml/ns/test/root.xsd"
-	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-	xmlns:foo="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
-	elementFormDefault="qualified">
-	
-	<import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
-	<import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd" />
-	
-	<complexType name="MyExtensionType">
-		<sequence>
-			<element name="ext1" type="string" minOccurs="0"/>
-			<element name="ext2" type="string" minOccurs="0" maxOccurs="unbounded"/>
-		</sequence>
-	</complexType>
-	
-	<complexType name="RootType">
-		<annotation>
-			<appinfo>
-				<a:propertyContainer/>
-				<a:object/>
-			</appinfo>
-		</annotation>
-		<sequence>
-			<element name="name" type="string"/>
-			<element ref="foo:extension" minOccurs="0">
-				<annotation>
-					<appinfo>
-						<a:type>tns:MyExtensionType</a:type>
-					</appinfo>
-				</annotation>
-			</element>
-			<element name="foo" type="tns:FooType"/>
-		</sequence>
-		<attribute name="oid" type="string"/>
-		<attribute name="version" type="string" use="optional"/>
-	</complexType>
-	
-	<element name="root" type="tns:RootType"/>
-	
-	<complexType name="FooType">
-		<sequence>
-			<element name="foo" type="string"/>
-			<element name="bar" type="int" minOccurs="0"/>
-			<element name="barbar" type="string" minOccurs="0" maxOccurs="unbounded"/>
-		</sequence>
-	</complexType>
+    xmlns="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://example.com/xml/ns/test/root.xsd"
+    xmlns:tns="http://example.com/xml/ns/test/root.xsd"
+    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+    xmlns:foo="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+    elementFormDefault="qualified">
+
+    <import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+    <import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd" />
+
+    <complexType name="MyExtensionType">
+        <sequence>
+            <element name="ext1" type="string" minOccurs="0"/>
+            <element name="ext2" type="string" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="RootType">
+        <annotation>
+            <appinfo>
+                <a:propertyContainer/>
+                <a:object/>
+            </appinfo>
+        </annotation>
+        <sequence>
+            <element name="name" type="string"/>
+            <element ref="foo:extension" minOccurs="0">
+                <annotation>
+                    <appinfo>
+                        <a:type>tns:MyExtensionType</a:type>
+                    </appinfo>
+                </annotation>
+            </element>
+            <element name="foo" type="tns:FooType"/>
+        </sequence>
+        <attribute name="oid" type="string"/>
+        <attribute name="version" type="string" use="optional"/>
+    </complexType>
+
+    <element name="root" type="tns:RootType"/>
+
+    <complexType name="FooType">
+        <sequence>
+            <element name="foo" type="string"/>
+            <element name="bar" type="int" minOccurs="0"/>
+            <element name="barbar" type="string" minOccurs="0" maxOccurs="unbounded"/>
+        </sequence>
+    </complexType>
 
 </schema>

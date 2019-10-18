@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
@@ -35,40 +35,40 @@ public class ParameterPropertiesPopupPanel extends BasePanel<JasperReportParamet
 //  private static final Trace LOGGER = TraceManager.getTrace(ParameterPropertiesPopupPanel.class);
 
   public ParameterPropertiesPopupPanel(String id, IModel<JasperReportParameterPropertiesDto> model) {
-		super(id, model);
-		initLayout();
-	}
+        super(id, model);
+        initLayout();
+    }
 
   private void initLayout() {
 
-	  addTextPanel(ID_KEY, "key");
-	  addTextPanel(ID_LABEL, "label");
-	  addTextPanel(ID_TARGET_TYPE, "targetType");
-	  CheckBoxPanel multivalue = new CheckBoxPanel(ID_REQUIRED, new PropertyModel<>(getModel(), "mandatory"));
-	  add(multivalue);
-//	  CheckBoxPanel multivalue = new CheckBoxPanel(ID_MULTIVALUE, new PropertyModel<>(getModel(), "multivalue"), Model.of(Boolean.TRUE));
-//	  add(multivalue);
+      addTextPanel(ID_KEY, "key");
+      addTextPanel(ID_LABEL, "label");
+      addTextPanel(ID_TARGET_TYPE, "targetType");
+      CheckBoxPanel multivalue = new CheckBoxPanel(ID_REQUIRED, new PropertyModel<>(getModel(), "mandatory"));
+      add(multivalue);
+//      CheckBoxPanel multivalue = new CheckBoxPanel(ID_MULTIVALUE, new PropertyModel<>(getModel(), "multivalue"), Model.of(Boolean.TRUE));
+//      add(multivalue);
 
-	  AjaxButton update = new AjaxButton(ID_BUTTON_UPDATE) {
+      AjaxButton update = new AjaxButton(ID_BUTTON_UPDATE) {
 
-		private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-		@Override
-		public void onClick(AjaxRequestTarget target) {
-			getPageBase().hideMainPopup(target);
-			IModel<JasperReportParameterPropertiesDto> model = ParameterPropertiesPopupPanel.this.getModel();
-			updateProperties(model.getObject(), target);
-		}
-	};
+        @Override
+        public void onClick(AjaxRequestTarget target) {
+            getPageBase().hideMainPopup(target);
+            IModel<JasperReportParameterPropertiesDto> model = ParameterPropertiesPopupPanel.this.getModel();
+            updateProperties(model.getObject(), target);
+        }
+    };
 
-	add(update);
+    add(update);
 
   }
 
   private void addTextPanel(String id, String expression){
-	  TextPanel<String> keyPanel = new TextPanel<>(id, new PropertyModel<>(getModel(), expression));
-	  keyPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-	  add(keyPanel);
+      TextPanel<String> keyPanel = new TextPanel<>(id, new PropertyModel<>(getModel(), expression));
+      keyPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+      add(keyPanel);
   }
 
   protected void updateProperties(JasperReportParameterPropertiesDto properties, AjaxRequestTarget target) {
@@ -76,33 +76,33 @@ public class ParameterPropertiesPopupPanel extends BasePanel<JasperReportParamet
   }
 
   @Override
-	public int getWidth() {
-		return 800;
-	}
+    public int getWidth() {
+        return 800;
+    }
 
-	@Override
-	public int getHeight() {
-		return 450;
-	}
+    @Override
+    public int getHeight() {
+        return 450;
+    }
 
-	@Override
-	public String getWidthUnit(){
-		return "px";
-	}
+    @Override
+    public String getWidthUnit(){
+        return "px";
+    }
 
-	@Override
-	public String getHeightUnit(){
-		return "px";
-	}
+    @Override
+    public String getHeightUnit(){
+        return "px";
+    }
 
-	@Override
-	public StringResourceModel getTitle() {
-		return createStringResource("JasperReportParameterProperties.title");
-	}
+    @Override
+    public StringResourceModel getTitle() {
+        return createStringResource("JasperReportParameterProperties.title");
+    }
 
-	@Override
-	public Component getComponent() {
-		return this;
-	}
+    @Override
+    public Component getComponent() {
+        return this;
+    }
 
 }

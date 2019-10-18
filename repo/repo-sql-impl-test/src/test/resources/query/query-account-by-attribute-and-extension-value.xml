@@ -3,17 +3,17 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <query xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
 <filter>
   <and>
-	<equal>
+    <equal>
         <path xmlns="">c:attributes/a1</path>
         <value xsi:type="xsd:string">abcdef</value>
     </equal>

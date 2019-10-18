@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -46,11 +46,11 @@ public class RCertWorkItemReference extends RReference {
     public static final String TABLE = "m_acc_cert_wi_reference";
 
     private RAccessCertificationWorkItem owner;
-	private String ownerOwnerOwnerOid;					// campaign OID
-	private Integer ownerOwnerId;						// case ID
-	private Integer ownerId;							// work item ID
+    private String ownerOwnerOwnerOid;                    // campaign OID
+    private Integer ownerOwnerId;                        // case ID
+    private Integer ownerId;                            // work item ID
 
-	@ForeignKey(name = "fk_acc_cert_wi_ref_owner")      // max. 30 chars (Oracle)
+    @ForeignKey(name = "fk_acc_cert_wi_ref_owner")      // max. 30 chars (Oracle)
     @MapsId("workItem")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
@@ -58,46 +58,46 @@ public class RCertWorkItemReference extends RReference {
         return owner;
     }
 
-	public void setOwner(RAccessCertificationWorkItem owner) {
-		this.owner = owner;
-		if (owner != null) {
-			this.ownerOwnerOwnerOid = owner.getOwnerOwnerOid();
-			this.ownerOwnerId = owner.getOwnerId();
-			this.ownerId = owner.getId();
-		}
-	}
+    public void setOwner(RAccessCertificationWorkItem owner) {
+        this.owner = owner;
+        if (owner != null) {
+            this.ownerOwnerOwnerOid = owner.getOwnerOwnerOid();
+            this.ownerOwnerId = owner.getOwnerId();
+            this.ownerId = owner.getId();
+        }
+    }
 
-	@Column(name = "owner_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "owner_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
     public String getOwnerOwnerOwnerOid() {
         return ownerOwnerOwnerOid;
     }
 
-	public void setOwnerOwnerOwnerOid(String ownerOwnerOwnerOid) {
-		this.ownerOwnerOwnerOid = ownerOwnerOwnerOid;
-	}
+    public void setOwnerOwnerOwnerOid(String ownerOwnerOwnerOid) {
+        this.ownerOwnerOwnerOid = ownerOwnerOwnerOid;
+    }
 
-	@Column(name = "owner_owner_id", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "owner_owner_id", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
     public Integer getOwnerOwnerId() {
         return ownerOwnerId;
     }
 
-	public void setOwnerOwnerId(Integer ownerOwnerId) {
-		this.ownerOwnerId = ownerOwnerId;
-	}
+    public void setOwnerOwnerId(Integer ownerOwnerId) {
+        this.ownerOwnerId = ownerOwnerId;
+    }
 
-	@Column(name = "owner_id")
+    @Column(name = "owner_id")
     @NotQueryable
     public Integer getOwnerId() {
         return ownerId;
     }
 
-	public void setOwnerId(Integer ownerId) {
-		this.ownerId = ownerId;
-	}
+    public void setOwnerId(Integer ownerId) {
+        this.ownerId = ownerId;
+    }
 
-	//@MapsId("target")
+    //@MapsId("target")
     @ForeignKey(name="none")
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
@@ -120,15 +120,15 @@ public class RCertWorkItemReference extends RReference {
         return super.getRelation();
     }
 
-	@Column(name = "targetType")
-	@Enumerated(EnumType.ORDINAL)
-	@Override
-	public RObjectType getType() {
-		return super.getType();
-	}
+    @Column(name = "targetType")
+    @Enumerated(EnumType.ORDINAL)
+    @Override
+    public RObjectType getType() {
+        return super.getType();
+    }
 
-	public static Set<RCertWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list,
-			RAccessCertificationWorkItem owner, RelationRegistry relationRegistry) {
+    public static Set<RCertWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list,
+            RAccessCertificationWorkItem owner, RelationRegistry relationRegistry) {
         Set<RCertWorkItemReference> set = new HashSet<>();
         if (list == null || list.isEmpty()) {
             return set;
@@ -144,7 +144,7 @@ public class RCertWorkItemReference extends RReference {
     }
 
     public static RCertWorkItemReference jaxbRefToRepo(ObjectReferenceType reference,
-		    RAccessCertificationWorkItem owner, RelationRegistry relationRegistry) {
+            RAccessCertificationWorkItem owner, RelationRegistry relationRegistry) {
         if (reference == null) {
             return null;
         }

@@ -2,37 +2,37 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
      http://www.springframework.org/schema/beans
      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
      http://www.springframework.org/schema/context
      http://www.springframework.org/schema/context/spring-context-3.0.xsd"
-	default-lazy-init="false" default-autowire="byName">
-	
-	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init">
-		<constructor-arg value="./target/midpoint-home" />
-		<constructor-arg value="test-config.xml" />
-	</bean>
-	
+    default-lazy-init="false" default-autowire="byName">
+
+    <bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init">
+        <constructor-arg value="./target/midpoint-home" />
+        <constructor-arg value="test-config.xml" />
+    </bean>
+
     <!-- protector initialization -->
     <bean name="keyStoreFactory" class="com.evolveum.midpoint.init.ConfigurableProtectorFactory" init-method="init" />
 
     <bean name="protector" class="com.evolveum.midpoint.prism.crypto.Protector" factory-bean="keyStoreFactory"
           factory-method="getProtector" />
 
-	<bean name="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory" init-method="init"
-		destroy-method="destroy" />
+    <bean name="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory" init-method="init"
+        destroy-method="destroy" />
 
-	<bean name="repositoryService" factory-bean="repositoryFactory" factory-method="getRepositoryService"
-		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory"/>
-		
-	<!-- prism context initialization -->
+    <bean name="repositoryService" factory-bean="repositoryFactory" factory-method="getRepositoryService"
+        class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory"/>
+
+    <!-- prism context initialization -->
     <bean id="midPointPrismContextFactory" class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">
         <property name="configuration" ref="midpointConfiguration"/>
     </bean>
@@ -40,12 +40,12 @@
     <bean id="prismContext" class="com.evolveum.midpoint.prism.PrismContext"
           factory-bean="midPointPrismContextFactory" factory-method="createInitializedPrismContext" />
 
-	<!-- todo prism context and other changes from configuration -->
+    <!-- todo prism context and other changes from configuration -->
 
-	<!--  Scan for components:
-		 	- protector (KeyStoreConfigurator)
-	 -->
-	<context:component-scan base-package="com.evolveum.midpoint.schema" />
-	<context:component-scan base-package="com.evolveum.midpoint.init" />
-	<context:annotation-config />
+    <!--  Scan for components:
+             - protector (KeyStoreConfigurator)
+     -->
+    <context:component-scan base-package="com.evolveum.midpoint.schema" />
+    <context:component-scan base-package="com.evolveum.midpoint.init" />
+    <context:annotation-config />
 </beans>

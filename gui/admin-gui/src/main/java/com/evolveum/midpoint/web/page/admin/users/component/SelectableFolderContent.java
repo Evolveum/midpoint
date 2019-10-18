@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
  * @author lazyman
  */
 public class SelectableFolderContent extends Folder<TreeSelectableBean<OrgType>> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private AbstractTree tree;
     private IModel<TreeSelectableBean<OrgType>> selected;
@@ -39,12 +39,12 @@ public class SelectableFolderContent extends Folder<TreeSelectableBean<OrgType>>
     @Override
     protected IModel<?> newLabelModel(final IModel<TreeSelectableBean<OrgType>> model) {
         return new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
                 TreeSelectableBean<OrgType> dto = model.getObject();
-            	return WebComponentUtil.getEffectiveName(dto.getValue(), OrgType.F_DISPLAY_NAME);
+                return WebComponentUtil.getEffectiveName(dto.getValue(), OrgType.F_DISPLAY_NAME);
 
             }
         };
@@ -68,7 +68,7 @@ public class SelectableFolderContent extends Folder<TreeSelectableBean<OrgType>>
 
     @Override
     protected boolean isSelected() {
-    	SelectableBean<OrgType> dto = getModelObject();
+        SelectableBean<OrgType> dto = getModelObject();
         return dto.equals(selected.getObject());
     }
 

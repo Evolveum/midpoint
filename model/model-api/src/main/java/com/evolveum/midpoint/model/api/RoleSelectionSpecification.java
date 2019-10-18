@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api;
@@ -24,120 +24,120 @@ import javax.xml.namespace.QName;
  */
 public class RoleSelectionSpecification implements DebugDumpable {
 
-	ObjectFilter globalFilter = null;
-	private final Map<QName,ObjectFilter> relationMap = new HashMap<>();
+    ObjectFilter globalFilter = null;
+    private final Map<QName,ObjectFilter> relationMap = new HashMap<>();
 
-	public int size() {
-		return relationMap.size();
-	}
+    public int size() {
+        return relationMap.size();
+    }
 
-	public Map<QName, ObjectFilter> getRelationMap() {
-		return relationMap;
-	}
+    public Map<QName, ObjectFilter> getRelationMap() {
+        return relationMap;
+    }
 
-	public ObjectFilter getGlobalFilter() {
-		return globalFilter;
-	}
+    public ObjectFilter getGlobalFilter() {
+        return globalFilter;
+    }
 
-	public void setGlobalFilter(ObjectFilter filter) {
-		globalFilter = filter;
-	}
+    public void setGlobalFilter(ObjectFilter filter) {
+        globalFilter = filter;
+    }
 
-	public ObjectFilter getRelationFilter(QName relation) {
-		return relationMap.get(relation);
-	}
+    public ObjectFilter getRelationFilter(QName relation) {
+        return relationMap.get(relation);
+    }
 
-	public void setFilters(List<QName> relations, ObjectFilter objectFilter) {
-		for (QName relation : relations) {
-			ObjectFilter relationFilter = relationMap.get(relation);
-			if (relationFilter == null) {
-				relationFilter = objectFilter;
-			}
-			relationMap.put(relation, relationFilter);
-		}
-	}
+    public void setFilters(List<QName> relations, ObjectFilter objectFilter) {
+        for (QName relation : relations) {
+            ObjectFilter relationFilter = relationMap.get(relation);
+            if (relationFilter == null) {
+                relationFilter = objectFilter;
+            }
+            relationMap.put(relation, relationFilter);
+        }
+    }
 
-	public boolean isAll() {
-		// Is this correct?
-		return ObjectQueryUtil.isAll(globalFilter);
-	}
+    public boolean isAll() {
+        // Is this correct?
+        return ObjectQueryUtil.isAll(globalFilter);
+    }
 
-	public boolean isNone() {
-		// Is this correct?
-		return ObjectQueryUtil.isNone(globalFilter);
-	}
+    public boolean isNone() {
+        // Is this correct?
+        return ObjectQueryUtil.isNone(globalFilter);
+    }
 
-	public RoleSelectionSpecification and(RoleSelectionSpecification other, PrismContext prismContext) {
-		if (other == null) {
-			return this;
-		}
-		if (other == this) {
-			return this;
-		}
-		return applyBinary(other, (a, b) -> ObjectQueryUtil.filterAnd(a, b, prismContext) );
-	}
+    public RoleSelectionSpecification and(RoleSelectionSpecification other, PrismContext prismContext) {
+        if (other == null) {
+            return this;
+        }
+        if (other == this) {
+            return this;
+        }
+        return applyBinary(other, (a, b) -> ObjectQueryUtil.filterAnd(a, b, prismContext) );
+    }
 
-	public RoleSelectionSpecification or(RoleSelectionSpecification other, PrismContext prismContext) {
-		if (other == null) {
-			return this;
-		}
-		if (other == this) {
-			return this;
-		}
-		return applyBinary(other, (a, b) -> ObjectQueryUtil.filterOr(a, b, prismContext) );
-	}
+    public RoleSelectionSpecification or(RoleSelectionSpecification other, PrismContext prismContext) {
+        if (other == null) {
+            return this;
+        }
+        if (other == this) {
+            return this;
+        }
+        return applyBinary(other, (a, b) -> ObjectQueryUtil.filterOr(a, b, prismContext) );
+    }
 
-	public RoleSelectionSpecification not(PrismContext prismContext) {
-		return applyUnary((a) -> prismContext.queryFactory().createNot(a));
-	}
+    public RoleSelectionSpecification not(PrismContext prismContext) {
+        return applyUnary((a) -> prismContext.queryFactory().createNot(a));
+    }
 
-	public RoleSelectionSpecification simplify(PrismContext prismContext) {
-		return applyUnary((a) -> ObjectQueryUtil.simplify(a, prismContext));
-	}
+    public RoleSelectionSpecification simplify(PrismContext prismContext) {
+        return applyUnary((a) -> ObjectQueryUtil.simplify(a, prismContext));
+    }
 
-	private RoleSelectionSpecification applyBinary(RoleSelectionSpecification other, BinaryOperator<ObjectFilter> operator) {
-		RoleSelectionSpecification out = new RoleSelectionSpecification();
-		out.globalFilter = operator.apply(this.globalFilter, other.globalFilter);
-		out.relationMap.putAll(this.relationMap);
-		other.relationMap.forEach(
-				(otherKey, otherValue) -> out.relationMap.merge(otherKey, otherValue, operator)
-		);
-		return out;
-	}
+    private RoleSelectionSpecification applyBinary(RoleSelectionSpecification other, BinaryOperator<ObjectFilter> operator) {
+        RoleSelectionSpecification out = new RoleSelectionSpecification();
+        out.globalFilter = operator.apply(this.globalFilter, other.globalFilter);
+        out.relationMap.putAll(this.relationMap);
+        other.relationMap.forEach(
+                (otherKey, otherValue) -> out.relationMap.merge(otherKey, otherValue, operator)
+        );
+        return out;
+    }
 
-	private RoleSelectionSpecification applyUnary(UnaryOperator<ObjectFilter> operator) {
-		RoleSelectionSpecification out = new RoleSelectionSpecification();
-		out.globalFilter = operator.apply(this.globalFilter);
-		this.relationMap.forEach(
-				(thisKey, thisValue) -> out.relationMap.put(thisKey, operator.apply(thisValue))
-		);
-		return out;
-	}
+    private RoleSelectionSpecification applyUnary(UnaryOperator<ObjectFilter> operator) {
+        RoleSelectionSpecification out = new RoleSelectionSpecification();
+        out.globalFilter = operator.apply(this.globalFilter);
+        this.relationMap.forEach(
+                (thisKey, thisValue) -> out.relationMap.put(thisKey, operator.apply(thisValue))
+        );
+        return out;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		RoleSelectionSpecification that = (RoleSelectionSpecification) o;
-		return relationMap.equals(that.relationMap);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RoleSelectionSpecification that = (RoleSelectionSpecification) o;
+        return relationMap.equals(that.relationMap);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(relationMap);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(relationMap);
+    }
 
-	@Override
-	public String toString() {
-		return "RoleSelectionSpecification(" + globalFilter + " : " + relationMap + ")";
-	}
+    @Override
+    public String toString() {
+        return "RoleSelectionSpecification(" + globalFilter + " : " + relationMap + ")";
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(RoleSelectionSpecification.class, indent);
-		DebugUtil.debugDumpWithLabelLn(sb, "globalFilter", globalFilter, indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "relationMap", relationMap, indent + 1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(RoleSelectionSpecification.class, indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "globalFilter", globalFilter, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "relationMap", relationMap, indent + 1);
+        return sb.toString();
+    }
 
 }

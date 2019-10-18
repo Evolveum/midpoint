@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -633,7 +633,7 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public PolicyRuleType getPolicyRule() {
-    	throw new UnsupportedOperationException("not implemented yet.");
+        throw new UnsupportedOperationException("not implemented yet.");
     }
 
 
@@ -670,7 +670,7 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void recordSynchronizationOperationEnd(String objectName, String objectDisplayName, QName objectType, String objectOid, long started,
-			Throwable exception, SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement) {
+            Throwable exception, SynchronizationInformation.Record originalStateIncrement, SynchronizationInformation.Record newStateIncrement) {
     }
 
     @Override
@@ -730,7 +730,7 @@ public class SimpleTaskAdapter implements Task {
         return null;
     }
 
-	@Override public void modify(ItemDelta<?, ?> delta) {
+    @Override public void modify(ItemDelta<?, ?> delta) {
     }
 
     @Override public void modify(Collection<ItemDelta<?, ?>> deltas) {
@@ -884,12 +884,12 @@ public class SimpleTaskAdapter implements Task {
     public void addTracingRequest(TracingRootType point) {
     }
 
-	@Override
-	public void removeTracingRequests() {
+    @Override
+    public void removeTracingRequests() {
 
-	}
+    }
 
-	@Override
+    @Override
     public TracingProfileType getTracingProfile() {
         return null;
     }

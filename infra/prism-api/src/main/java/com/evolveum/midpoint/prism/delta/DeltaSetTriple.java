@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.delta;
@@ -29,103 +29,103 @@ import java.util.stream.Stream;
  */
 public interface DeltaSetTriple<T> extends DebugDumpable, ShortDumpable, Serializable, SimpleVisitable<T>, Foreachable<T> {
 
-	/**
-	 * Compares two (unordered) collections and creates a triple describing the differences.
-	 */
-	static <T> DeltaSetTriple<T> diff(Collection<T> valuesOld, Collection<T> valuesNew, PrismContext prismContext) {
-		DeltaSetTriple<T> triple = prismContext.deltaFactory().createDeltaSetTriple();
-		DeltaSetTripleUtil.diff(valuesOld, valuesNew, triple);
-		return triple;
-	}
+    /**
+     * Compares two (unordered) collections and creates a triple describing the differences.
+     */
+    static <T> DeltaSetTriple<T> diff(Collection<T> valuesOld, Collection<T> valuesNew, PrismContext prismContext) {
+        DeltaSetTriple<T> triple = prismContext.deltaFactory().createDeltaSetTriple();
+        DeltaSetTripleUtil.diff(valuesOld, valuesNew, triple);
+        return triple;
+    }
 
-	@NotNull
-	Collection<T> getZeroSet();
+    @NotNull
+    Collection<T> getZeroSet();
 
-	@NotNull
-	Collection<T> getPlusSet();
+    @NotNull
+    Collection<T> getPlusSet();
 
-	@NotNull
-	Collection<T> getMinusSet();
+    @NotNull
+    Collection<T> getMinusSet();
 
-	boolean hasPlusSet();
+    boolean hasPlusSet();
 
-	boolean hasZeroSet();
+    boolean hasZeroSet();
 
-	boolean hasMinusSet();
+    boolean hasMinusSet();
 
-	boolean isZeroOnly();
+    boolean isZeroOnly();
 
-	void addToPlusSet(T item);
+    void addToPlusSet(T item);
 
-	void addToMinusSet(T item);
+    void addToMinusSet(T item);
 
-	void addToZeroSet(T item);
+    void addToZeroSet(T item);
 
-	void addAllToPlusSet(Collection<T> items);
+    void addAllToPlusSet(Collection<T> items);
 
-	void addAllToMinusSet(Collection<T> items);
+    void addAllToMinusSet(Collection<T> items);
 
-	void addAllToZeroSet(Collection<T> items);
+    void addAllToZeroSet(Collection<T> items);
 
-	Collection<T> getSet(PlusMinusZero whichSet);
+    Collection<T> getSet(PlusMinusZero whichSet);
 
-	void addAllToSet(PlusMinusZero destination, Collection<T> items);
+    void addAllToSet(PlusMinusZero destination, Collection<T> items);
 
-	void addToSet(PlusMinusZero destination, T item);
+    void addToSet(PlusMinusZero destination, T item);
 
-	boolean presentInPlusSet(T item);
+    boolean presentInPlusSet(T item);
 
-	boolean presentInMinusSet(T item);
+    boolean presentInMinusSet(T item);
 
-	boolean presentInZeroSet(T item);
+    boolean presentInZeroSet(T item);
 
-	void clearPlusSet();
+    void clearPlusSet();
 
-	void clearMinusSet();
+    void clearMinusSet();
 
-	void clearZeroSet();
+    void clearZeroSet();
 
-	int size();
+    int size();
 
-	/**
-	 * Returns all values, regardless of the internal sets.
-	 */
-	Collection<T> union();
+    /**
+     * Returns all values, regardless of the internal sets.
+     */
+    Collection<T> union();
 
-	T getAnyValue();
+    T getAnyValue();
 
-	Collection<T> getAllValues();
+    Collection<T> getAllValues();
 
-	Stream<T> stream();
+    Stream<T> stream();
 
-	@SuppressWarnings("unchecked")
-	@NotNull
-	Collection<T> getNonNegativeValues();
+    @SuppressWarnings("unchecked")
+    @NotNull
+    Collection<T> getNonNegativeValues();
 
-	@SuppressWarnings("unchecked")
-	@NotNull
-	Collection<T> getNonPositiveValues();
+    @SuppressWarnings("unchecked")
+    @NotNull
+    Collection<T> getNonPositiveValues();
 
-	void merge(DeltaSetTriple<T> triple);
+    void merge(DeltaSetTriple<T> triple);
 
-	DeltaSetTriple<T> clone(Cloner<T> cloner);
+    DeltaSetTriple<T> clone(Cloner<T> cloner);
 
-	boolean isEmpty();
+    boolean isEmpty();
 
-	/**
-	 * Process each element of every set.
-	 * This is different from the visitor. Visitor will go
-	 * deep inside, foreach will remain on the surface.
-	 */
-	@Override
-	void foreach(Processor<T> processor);
+    /**
+     * Process each element of every set.
+     * This is different from the visitor. Visitor will go
+     * deep inside, foreach will remain on the surface.
+     */
+    @Override
+    void foreach(Processor<T> processor);
 
-	@Override
-	void simpleAccept(SimpleVisitor<T> visitor);
+    @Override
+    void simpleAccept(SimpleVisitor<T> visitor);
 
-	<X> void transform(DeltaSetTriple<X> transformTarget, Transformer<T, X> transformer);
+    <X> void transform(DeltaSetTriple<X> transformTarget, Transformer<T, X> transformer);
 
-	void debugDumpSets(StringBuilder sb, Consumer<T> dumper, int indent);
+    void debugDumpSets(StringBuilder sb, Consumer<T> dumper, int indent);
 
-	String toHumanReadableString();
+    String toHumanReadableString();
 }

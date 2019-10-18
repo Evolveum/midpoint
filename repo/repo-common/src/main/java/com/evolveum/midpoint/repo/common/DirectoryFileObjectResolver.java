@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.common;
@@ -34,64 +34,64 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Object resolver that works on files in a directory.
  * This is only used in tests. But due to complicated dependencies this is
  * part of main code. That does not hurt much.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class DirectoryFileObjectResolver implements ObjectResolver {
 
-	private File directory;
+    private File directory;
 
-	public DirectoryFileObjectResolver(File directory) {
-		super();
-		this.directory = directory;
-	}
+    public DirectoryFileObjectResolver(File directory) {
+        super();
+        this.directory = directory;
+    }
 
-	@Override
-	public <T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType,
-											Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription,
-											Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		return getObject(expectedType, ref.getOid(), options, task, result);
-	}
+    @Override
+    public <T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType,
+                                            Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription,
+                                            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        return getObject(expectedType, ref.getOid(), options, task, result);
+    }
 
-	private String oidToFilename(String oid) {
-		return oid+".xml";
-	}
+    private String oidToFilename(String oid) {
+        return oid+".xml";
+    }
 
-	@Override
-	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
-													   Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler,
-													   Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			CommunicationException, ConfigurationException, SecurityViolationException {
-		//TODO: do we want to test custom libraries in the "unit" tests
-		if (type.equals(FunctionLibraryType.class)) {
-			return;
-		}
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
+                                                       Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler,
+                                                       Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        //TODO: do we want to test custom libraries in the "unit" tests
+        if (type.equals(FunctionLibraryType.class)) {
+            return;
+        }
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public <O extends ObjectType> SearchResultList<PrismObject<O>> searchObjects(Class<O> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public <O extends ObjectType> SearchResultList<PrismObject<O>> searchObjects(Class<O> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public <T extends ObjectType> T getObject(Class<T> clazz, String oid,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
-		File file = new File( directory, oidToFilename(oid));
-		if (file.exists()) {
-			try {
-				return (T)PrismTestUtil.parseObject(file).asObjectable();
-			} catch (IOException e) {
-				throw new SystemException(e.getMessage(), e);
-			}
-		} else {
-			throw new ObjectNotFoundException("Object "+oid+" does not exists");
-		}
-	}
+    @Override
+    public <T extends ObjectType> T getObject(Class<T> clazz, String oid,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        File file = new File( directory, oidToFilename(oid));
+        if (file.exists()) {
+            try {
+                return (T)PrismTestUtil.parseObject(file).asObjectable();
+            } catch (IOException e) {
+                throw new SystemException(e.getMessage(), e);
+            }
+        } else {
+            throw new ObjectNotFoundException("Object "+oid+" does not exists");
+        }
+    }
 
 
 }

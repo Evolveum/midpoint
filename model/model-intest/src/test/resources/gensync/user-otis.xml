@@ -2,30 +2,30 @@
 <!--
   ~ Copyright (c) 2015-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="fd5039c8-ddc8-11e4-8ec7-001e8c717e5b" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+<user oid="fd5039c8-ddc8-11e4-8ec7-001e8c717e5b"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>otis</name>
     <subtype>PIRATE</subtype>
     <assignment>
-    	<targetRef oid="90c332ec-ddc8-11e4-bb3b-001e8c717e5b" type="RoleType"/> <!-- Prisoner -->
+        <targetRef oid="90c332ec-ddc8-11e4-bb3b-001e8c717e5b" type="RoleType"/> <!-- Prisoner -->
     </assignment>
-	<activation>
-		<c:administrativeStatus>enabled</c:administrativeStatus>
-	</activation>
-	<!-- No full name -->
+    <activation>
+        <c:administrativeStatus>enabled</c:administrativeStatus>
+    </activation>
+    <!-- No full name -->
     <givenName>Otis</givenName>
-	 <credentials>
+     <credentials>
         <password>
-        	<value>
-	            <clearValue>JailT1m3</clearValue>
+            <value>
+                <clearValue>JailT1m3</clearValue>
             </value>
         </password>
     </credentials>

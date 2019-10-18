@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -213,11 +213,11 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
 
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
-		repo.setRelation(qnameToString(relationRegistry.normalizeRelation(jaxb.getRelation())));
+        repo.setRelation(qnameToString(relationRegistry.normalizeRelation(jaxb.getRelation())));
         repo.setTargetOid(jaxb.getOid());
 
         return repo;
-	}
+    }
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {
         ObjectReferenceType ref = new ObjectReferenceType();

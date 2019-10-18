@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
@@ -17,6 +17,6 @@ import java.util.List;
  */
 @FunctionalInterface
 public interface RelationResolver {
-	// Must return parent-less values
-	List<ObjectReferenceType> getApprovers(Collection<QName> relations);
+    // Must return parent-less values
+    List<ObjectReferenceType> getApprovers(Collection<QName> relations);
 }

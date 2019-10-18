@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,39 +20,39 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RepositoryConnectionProvider implements ConnectionProvider {
 
-	/**
-	 * Maybe too cautious; we could probably go forward with a single-valued static dataSource property here.
-	 */
-	static final Map<Integer, DataSource> dataSources = new ConcurrentHashMap<>();
+    /**
+     * Maybe too cautious; we could probably go forward with a single-valued static dataSource property here.
+     */
+    static final Map<Integer, DataSource> dataSources = new ConcurrentHashMap<>();
 
-	private int dataSourceIndex;
+    private int dataSourceIndex;
 
-	@SuppressWarnings("unused")     // probably called by Quartz
-	public int getDataSourceIndex() {
-		return dataSourceIndex;
-	}
+    @SuppressWarnings("unused")     // probably called by Quartz
+    public int getDataSourceIndex() {
+        return dataSourceIndex;
+    }
 
-	@SuppressWarnings("unused")     // called by Quartz
-	public void setDataSourceIndex(int dataSourceIndex) {
-		this.dataSourceIndex = dataSourceIndex;
-	}
+    @SuppressWarnings("unused")     // called by Quartz
+    public void setDataSourceIndex(int dataSourceIndex) {
+        this.dataSourceIndex = dataSourceIndex;
+    }
 
-	@Override
-	public Connection getConnection() throws SQLException {
-		DataSource dataSource = dataSources.get(dataSourceIndex);
-		if (dataSource == null) {
-			throw new IllegalStateException("no data source with index " + dataSourceIndex);
-		}
-		return dataSource.getConnection();
-	}
+    @Override
+    public Connection getConnection() throws SQLException {
+        DataSource dataSource = dataSources.get(dataSourceIndex);
+        if (dataSource == null) {
+            throw new IllegalStateException("no data source with index " + dataSourceIndex);
+        }
+        return dataSource.getConnection();
+    }
 
-	@Override
-	public void shutdown() {
-		dataSources.remove(dataSourceIndex);
-		// connection pool will be closed on repository shutdown
-	}
+    @Override
+    public void shutdown() {
+        dataSources.remove(dataSourceIndex);
+        // connection pool will be closed on repository shutdown
+    }
 
-	@Override
-	public void initialize() {
-	}
+    @Override
+    public void initialize() {
+    }
 }

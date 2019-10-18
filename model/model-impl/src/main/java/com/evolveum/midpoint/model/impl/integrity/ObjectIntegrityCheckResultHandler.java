@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -67,7 +67,7 @@ public class ObjectIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createMinorSubresult(CLASS_DOT + "handleObject");
         try {
-        	statistics.record(object);
+            statistics.record(object);
         } catch (RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unexpected error while checking object {} integrity", e, ObjectTypeUtil.toShortString(object));
             result.recordPartialError("Unexpected error while checking object integrity", e);
@@ -91,19 +91,19 @@ public class ObjectIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         dumpStatistics();
     }
 
-	private void dumpStatistics() {
-		Map<String, ObjectTypeStatistics> map = statistics.getStatisticsMap();
-		if (map.isEmpty()) {
-			LOGGER.info("(no objects were found)");
-		} else {
-			StringBuilder sb = new StringBuilder();
-			for (Map.Entry<String, ObjectTypeStatistics> entry : map.entrySet()) {
-				sb.append("\n\n**************************************** Statistics for ").append(entry.getKey()).append(" ****************************************\n\n");
-				sb.append(entry.getValue().dump(HISTOGRAM_COLUMNS));
-			}
-			LOGGER.info("{}", sb.toString());
-		}
-		LOGGER.info("Objects processed with errors: {}", statistics.getErrors());
-	}
+    private void dumpStatistics() {
+        Map<String, ObjectTypeStatistics> map = statistics.getStatisticsMap();
+        if (map.isEmpty()) {
+            LOGGER.info("(no objects were found)");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, ObjectTypeStatistics> entry : map.entrySet()) {
+                sb.append("\n\n**************************************** Statistics for ").append(entry.getKey()).append(" ****************************************\n\n");
+                sb.append(entry.getValue().dump(HISTOGRAM_COLUMNS));
+            }
+            LOGGER.info("{}", sb.toString());
+        }
+        LOGGER.info("Objects processed with errors: {}", statistics.getErrors());
+    }
 
 }

@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- Iteration with token expression, pre-iteration condition and post-iteration condition -->
 
 <resource oid="10000000-0000-0000-0000-00000000a204"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -19,136 +19,136 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Violet</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>violet</icfi:instanceId> <!-- Default instance. -->
-			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
-			<icfi:uselessGuardedString>
-				<clearValue>whatever</clearValue>
-			</icfi:uselessGuardedString>
-		</icfc:configurationProperties>
+    <name>Dummy Resource Violet</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	</connectorConfiguration>
-	
-	<schemaHandling>
-		<objectType>
-			<kind>account</kind>
-			<intent>default</intent>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<outbound>
-				    <strength>strong</strength>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>
-								name + iterationToken
-							</code>
-						</script>
-					</expression>
-				</outbound>
-				<inbound>
-					<!-- This avoids "kickback" of a name from account to a user. -->
-					<strength>weak</strength>
-					<target>
-						<path>$c:user/c:name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<outbound>
-					<source>
-						<path>$user/fullName</path>
-					</source>
-				</outbound>
-			</attribute>
+        <icfc:configurationProperties>
+            <icfi:instanceId>violet</icfi:instanceId> <!-- Default instance. -->
+            <icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
+            <icfi:uselessGuardedString>
+                <clearValue>whatever</clearValue>
+            </icfi:uselessGuardedString>
+        </icfc:configurationProperties>
 
-			<iteration>
-				<maxIterations>5</maxIterations>
-				<tokenExpression>
-					<script>
-						<code>
-							if (iteration == 0) {
-								return "";
-							} else {
-								return "."+iteration;
-							}
-						</code>
-					</script>
-				</tokenExpression>
-				<preIterationCondition>
-					<variable>
-						<name>userName</name>
-						<path>$focus/name/t:orig</path>
-					</variable>
-					<script>
-						<code>userName != 'guybrush' || iteration == 3</code>
-					</script>
-				</preIterationCondition>
-				<postIterationCondition>
-					<variable>
-						<name>name</name>
-						<path>$shadow/attributes/icfs:name</path>
-					</variable>
-					<script>
-						<code>name != 'herman'</code>
-					</script>
-				</postIterationCondition>
-			</iteration>
-            
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                name + iterationToken
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <!-- This avoids "kickback" of a name from account to a user. -->
+                    <strength>weak</strength>
+                    <target>
+                        <path>$c:user/c:name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <outbound>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <iteration>
+                <maxIterations>5</maxIterations>
+                <tokenExpression>
+                    <script>
+                        <code>
+                            if (iteration == 0) {
+                                return "";
+                            } else {
+                                return "."+iteration;
+                            }
+                        </code>
+                    </script>
+                </tokenExpression>
+                <preIterationCondition>
+                    <variable>
+                        <name>userName</name>
+                        <path>$focus/name/t:orig</path>
+                    </variable>
+                    <script>
+                        <code>userName != 'guybrush' || iteration == 3</code>
+                    </script>
+                </preIterationCondition>
+                <postIterationCondition>
+                    <variable>
+                        <name>name</name>
+                        <path>$shadow/attributes/icfs:name</path>
+                    </variable>
+                    <script>
+                        <code>name != 'herman'</code>
+                    </script>
+                </postIterationCondition>
+            </iteration>
+
             <activation>
-            	<administrativeStatus>
-            		<outbound/>
-            	</administrativeStatus>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
             </activation>
-            
+
             <credentials>
                 <password>
                     <outbound>
-                    	<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
                     </outbound>
                     <inbound>
-                    	<strength>weak</strength>
+                        <strength>weak</strength>
                         <expression>
                             <generate/>
                         </expression>
                     </inbound>
                 </password>
             </credentials>
-            
-		</objectType>
-		
-	</schemaHandling>
+
+        </objectType>
+
+    </schemaHandling>
 
 </resource>

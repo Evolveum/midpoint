@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -40,7 +40,7 @@ public class TimeValidityNotifier extends SimplePolicyRuleNotifier {
     @Override
     protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
        if (!(event instanceof PolicyRuleEvent)) {
-    	   return false;
+           return false;
        }
        PolicyRuleEvent modelEvent = (PolicyRuleEvent) event;
 
@@ -49,39 +49,39 @@ public class TimeValidityNotifier extends SimplePolicyRuleNotifier {
 
     @Override
     protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-	    PolicyRuleEvent ruleEvent = (PolicyRuleEvent) event;
-	    PolicyConstraintsType policyConstraints = ruleEvent.getPolicyRule().getPolicyConstraints();
-	    return policyConstraints != null &&
-			    policyConstraints.getObjectTimeValidity() != null &&
-			    !policyConstraints.getObjectTimeValidity().isEmpty();
+        PolicyRuleEvent ruleEvent = (PolicyRuleEvent) event;
+        PolicyConstraintsType policyConstraints = ruleEvent.getPolicyRule().getPolicyConstraints();
+        return policyConstraints != null &&
+                policyConstraints.getObjectTimeValidity() != null &&
+                !policyConstraints.getObjectTimeValidity().isEmpty();
     }
 
     @Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task,
-    		OperationResult result) {
+            OperationResult result) {
 
 
-    	return "Planned deactivation of user " + getUserName(event);
+        return "Planned deactivation of user " + getUserName(event);
     }
 
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task,
-    		OperationResult result) throws SchemaException {
+            OperationResult result) throws SchemaException {
 
-    	return "User " + getUserName(event) + " is going to be deactivated on " + getUser(event).getActivation().getValidTo();
+        return "User " + getUserName(event) + " is going to be deactivated on " + getUser(event).getActivation().getValidTo();
 
     }
 
     private String getUserName(Event event){
-		UserType user = getUser(event);
-		PolyStringType username = user.getName();
-		return username.getOrig();
-	}
+        UserType user = getUser(event);
+        PolyStringType username = user.getName();
+        return username.getOrig();
+    }
 
     private UserType getUser(Event event){
-    	PolicyRuleEvent taskEvent = (PolicyRuleEvent) event;
-		UserType user = (UserType) taskEvent.getRequesteeObject();
-		return user;
+        PolicyRuleEvent taskEvent = (PolicyRuleEvent) event;
+        UserType user = (UserType) taskEvent.getRequesteeObject();
+        return user;
     }
 
     @Override

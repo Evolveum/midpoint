@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -14,25 +14,25 @@ import java.util.List;
  */
 public interface LogicalFilter extends ObjectFilter {
 
-	List<ObjectFilter> getConditions();
+    List<ObjectFilter> getConditions();
 
-	void setConditions(List<ObjectFilter> condition);
+    void setConditions(List<ObjectFilter> condition);
 
-	void addCondition(ObjectFilter condition);
+    void addCondition(ObjectFilter condition);
 
-	boolean contains(ObjectFilter condition);
+    boolean contains(ObjectFilter condition);
 
-	LogicalFilter cloneEmpty();
+    LogicalFilter cloneEmpty();
 
-	//List<ObjectFilter> getClonedConditions();
+    //List<ObjectFilter> getClonedConditions();
 
-	boolean isEmpty();
+    boolean isEmpty();
 
-	@Override
-	void checkConsistence(boolean requireDefinitions);
+    @Override
+    void checkConsistence(boolean requireDefinitions);
 
-	@Override
-	void accept(Visitor visitor);
+    @Override
+    void accept(Visitor visitor);
 
-	//String getDebugDumpOperationName();
+    //String getDebugDumpOperationName();
 }

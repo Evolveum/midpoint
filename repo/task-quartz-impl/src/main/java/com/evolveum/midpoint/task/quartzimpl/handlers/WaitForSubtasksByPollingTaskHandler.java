@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -34,26 +34,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 @Deprecated
 public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(WaitForSubtasksByPollingTaskHandler.class);
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-subtasks-polling/handler-3";
+    private static final transient Trace LOGGER = TraceManager.getTrace(WaitForSubtasksByPollingTaskHandler.class);
+    public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-subtasks-polling/handler-3";
 
-	private static WaitForSubtasksByPollingTaskHandler instance = null;
-	private TaskManagerQuartzImpl taskManagerImpl;
+    private static WaitForSubtasksByPollingTaskHandler instance = null;
+    private TaskManagerQuartzImpl taskManagerImpl;
 
-	private WaitForSubtasksByPollingTaskHandler() {}
-	
-	public static void instantiateAndRegister(TaskManagerQuartzImpl taskManager) {
-		if (instance == null)
-			instance = new WaitForSubtasksByPollingTaskHandler();
-		taskManager.registerHandler(HANDLER_URI, instance);
-		instance.taskManagerImpl = taskManager;
-	}
+    private WaitForSubtasksByPollingTaskHandler() {}
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    public static void instantiateAndRegister(TaskManagerQuartzImpl taskManager) {
+        if (instance == null)
+            instance = new WaitForSubtasksByPollingTaskHandler();
+        taskManager.registerHandler(HANDLER_URI, instance);
+        instance.taskManagerImpl = taskManager;
+    }
 
-		OperationResult opResult = new OperationResult(WaitForSubtasksByPollingTaskHandler.class.getName()+".run");
-		TaskRunResult runResult = new TaskRunResult();
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+
+        OperationResult opResult = new OperationResult(WaitForSubtasksByPollingTaskHandler.class.getName()+".run");
+        TaskRunResult runResult = new TaskRunResult();
 
         LOGGER.info("WaitForSubtasksByPollingTaskHandler run starting; in task " + task.getName());
 
@@ -83,18 +83,18 @@ public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
         }
 
         runResult.setRunResultStatus(status);
-		LOGGER.info("WaitForSubtasksByPollingTaskHandler run finishing; in task " + task.getName());
-		return runResult;
-	}
+        LOGGER.info("WaitForSubtasksByPollingTaskHandler run finishing; in task " + task.getName());
+        return runResult;
+    }
 
-	@Override
-	public Long heartbeat(Task task) {
-		return null;		// not to overwrite progress information!
-	}
+    @Override
+    public Long heartbeat(Task task) {
+        return null;        // not to overwrite progress information!
+    }
 
-	@Override
-	public void refreshStatus(Task task) {
-	}
+    @Override
+    public void refreshStatus(Task task) {
+    }
 
     @Override
     public String getCategoryName(Task task) {

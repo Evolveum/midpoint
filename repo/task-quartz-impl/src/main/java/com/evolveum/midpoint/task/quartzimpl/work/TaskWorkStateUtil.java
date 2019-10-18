@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,14 +20,14 @@ import java.util.List;
  */
 public class TaskWorkStateUtil {
 
-	public static Task findWorkerByBucketNumber(List<Task> workers, int sequentialNumber) {
-		for (Task worker : workers) {
-			if (worker.getWorkState() != null && TaskWorkStateTypeUtil
-					.findBucketByNumber(worker.getWorkState().getBucket(), sequentialNumber) != null) {
-				return worker;
-			}
-		}
-		return null;
-	}
+    public static Task findWorkerByBucketNumber(List<Task> workers, int sequentialNumber) {
+        for (Task worker : workers) {
+            if (worker.getWorkState() != null && TaskWorkStateTypeUtil
+                    .findBucketByNumber(worker.getWorkState().getBucket(), sequentialNumber) != null) {
+                return worker;
+            }
+        }
+        return null;
+    }
 
 }

@@ -2,23 +2,23 @@
 <!--
   ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
- 
+
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://midpoint.evolveum.com/xml/ns/test/foo-types-1"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/foo-types-1"
     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-    elementFormDefault="qualified">    
+    elementFormDefault="qualified">
 
     <xsd:annotation>
         <xsd:documentation>
- 			Bla bla
+             Bla bla
         </xsd:documentation>
     </xsd:annotation>
 
-	<xsd:element name="uid" type="xsd:string">
+    <xsd:element name="uid" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
                 UID unique identifier
@@ -36,10 +36,10 @@
                 __NAME__ attribute
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-	
+
 </xsd:schema>
 

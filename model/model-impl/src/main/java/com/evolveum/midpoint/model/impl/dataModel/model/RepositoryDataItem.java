@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,39 +19,39 @@ import javax.xml.namespace.QName;
  */
 public class RepositoryDataItem extends DataItem {
 
-	@NotNull protected final QName typeName;
-	@NotNull protected final ItemPath itemPath;
+    @NotNull protected final QName typeName;
+    @NotNull protected final ItemPath itemPath;
 
-	private PrismObjectDefinition<?> objectDefinition;
+    private PrismObjectDefinition<?> objectDefinition;
 
-	public RepositoryDataItem(@NotNull QName typeName, @NotNull ItemPath itemPath) {
-		this.typeName = typeName;
-		if (itemPath.isEmpty()) {
-			throw new IllegalArgumentException("Empty item path");
-		}
-		this.itemPath = itemPath;
-	}
+    public RepositoryDataItem(@NotNull QName typeName, @NotNull ItemPath itemPath) {
+        this.typeName = typeName;
+        if (itemPath.isEmpty()) {
+            throw new IllegalArgumentException("Empty item path");
+        }
+        this.itemPath = itemPath;
+    }
 
-	@NotNull
-	public QName getTypeName() {
-		return typeName;
-	}
+    @NotNull
+    public QName getTypeName() {
+        return typeName;
+    }
 
-	@NotNull
-	public ItemPath getItemPath() {
-		return itemPath;
-	}
+    @NotNull
+    public ItemPath getItemPath() {
+        return itemPath;
+    }
 
-	public PrismObjectDefinition<?> getObjectDefinition() {
-		return objectDefinition;
-	}
+    public PrismObjectDefinition<?> getObjectDefinition() {
+        return objectDefinition;
+    }
 
-	public void setObjectDefinition(PrismObjectDefinition<?> objectDefinition) {
-		this.objectDefinition = objectDefinition;
-	}
+    public void setObjectDefinition(PrismObjectDefinition<?> objectDefinition) {
+        this.objectDefinition = objectDefinition;
+    }
 
-	public boolean matches(@NotNull QName typeName, @NotNull ItemPath path) {
-		return QNameUtil.match(this.typeName, typeName) && itemPath.equivalent(path);
-	}
+    public boolean matches(@NotNull QName typeName, @NotNull ItemPath path) {
+        return QNameUtil.match(this.typeName, typeName) && itemPath.equivalent(path);
+    }
 
 }

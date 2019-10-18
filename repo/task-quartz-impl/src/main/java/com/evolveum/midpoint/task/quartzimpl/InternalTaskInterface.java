@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,36 +28,36 @@ import java.util.List;
  *
  */
 public interface InternalTaskInterface extends Task {
-	boolean isRecreateQuartzTrigger();
+    boolean isRecreateQuartzTrigger();
 
-	void setRecreateQuartzTrigger(boolean recreateQuartzTrigger);
+    void setRecreateQuartzTrigger(boolean recreateQuartzTrigger);
 
-	void checkDependentTasksOnClose(OperationResult result) throws SchemaException, ObjectNotFoundException;
+    void checkDependentTasksOnClose(OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-	void checkDependencies(OperationResult result) throws SchemaException, ObjectNotFoundException;
+    void checkDependencies(OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-	void setOid(String oid);
+    void setOid(String oid);
 
-	void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException;
+    void setExecutionStatusImmediate(TaskExecutionStatus value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException;
 
-	void setExecutionStatusImmediate(TaskExecutionStatus value, TaskExecutionStatusType previousValue,
-			OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, PreconditionViolationException;
+    void setExecutionStatusImmediate(TaskExecutionStatus value, TaskExecutionStatusType previousValue,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, PreconditionViolationException;
 
-	void setWaitingReasonImmediate(TaskWaitingReason value, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException;
+    void setWaitingReasonImmediate(TaskWaitingReason value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException;
 
-	List<PrismObject<TaskType>> listPersistentSubtasksRaw(OperationResult parentResult) throws SchemaException;
+    List<PrismObject<TaskType>> listPersistentSubtasksRaw(OperationResult parentResult) throws SchemaException;
 
-	@NotNull
-	List<Task> listSubtasksInternal(boolean persistentOnly, OperationResult result) throws SchemaException;
+    @NotNull
+    List<Task> listSubtasksInternal(boolean persistentOnly, OperationResult result) throws SchemaException;
 
-	void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result)
-			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException;
+    void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException;
 
-	// no F_RESULT modifications!
-	void applyModificationsTransient(Collection<ItemDelta<?,?>> modifications) throws SchemaException;
+    // no F_RESULT modifications!
+    void applyModificationsTransient(Collection<ItemDelta<?,?>> modifications) throws SchemaException;
 
-	void addSubtask(TaskType subtaskBean);
+    void addSubtask(TaskType subtaskBean);
 }

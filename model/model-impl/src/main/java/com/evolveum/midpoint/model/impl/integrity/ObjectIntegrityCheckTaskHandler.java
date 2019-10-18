@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -46,9 +46,9 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     public static final String HANDLER_URI = ModelPublicConstants.OBJECT_INTEGRITY_CHECK_TASK_HANDLER_URI;
 
     // WARNING! This task handler is efficiently singleton!
- 	// It is a spring bean and it is supposed to handle all search task instances
- 	// Therefore it must not have task-specific fields. It can only contain fields specific to
- 	// all tasks of a specified type
+     // It is a spring bean and it is supposed to handle all search task instances
+     // Therefore it must not have task-specific fields. It can only contain fields specific to
+     // all tasks of a specified type
 
     @Autowired private SystemObjectCache systemObjectCache;
 
@@ -65,12 +65,12 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
         taskManager.registerHandler(HANDLER_URI, this);
     }
 
-	@Override
-	protected ObjectIntegrityCheckResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
+    @Override
+    protected ObjectIntegrityCheckResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
         return new ObjectIntegrityCheckResultHandler(coordinatorTask, ObjectIntegrityCheckTaskHandler.class.getName(),
-				"check object integrity", "check object integrity", taskManager, prismContext,
+                "check object integrity", "check object integrity", taskManager, prismContext,
                 repositoryService, systemObjectCache, opResult);
-	}
+    }
 
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
@@ -78,22 +78,22 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     }
 
     @Override
-	protected ObjectQuery createQuery(ObjectIntegrityCheckResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+    protected ObjectQuery createQuery(ObjectIntegrityCheckResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
         ObjectQuery query = createQueryFromTask(handler, runResult, task, opResult);
         LOGGER.info("Using query:\n{}", query.debugDump());
         return query;
-	}
+    }
 
-	@Override
-	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
-			ObjectIntegrityCheckResultHandler resultHandler,
-			TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
-		Collection<SelectorOptions<GetOperationOptions>> optionsFromTask = createSearchOptionsFromTask(resultHandler,
-				runResult, coordinatorTask, opResult);
-		return SelectorOptions.updateRootOptions(optionsFromTask, opt -> opt.setAttachDiagData(true), GetOperationOptions::new);
-	}
+    @Override
+    protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
+            ObjectIntegrityCheckResultHandler resultHandler,
+            TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+        Collection<SelectorOptions<GetOperationOptions>> optionsFromTask = createSearchOptionsFromTask(resultHandler,
+                runResult, coordinatorTask, opResult);
+        return SelectorOptions.updateRootOptions(optionsFromTask, opt -> opt.setAttachDiagData(true), GetOperationOptions::new);
+    }
 
-	@Override
+    @Override
     protected boolean requiresDirectRepositoryAccess(ObjectIntegrityCheckResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return true;
     }

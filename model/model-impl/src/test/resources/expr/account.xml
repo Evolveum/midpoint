@@ -2,22 +2,22 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<shadow oid="744aa9a0-9eb6-4dd1-9be2-601901d8021a" 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<name>3082e023-b777-38f5-9563-d86141806be5</name>
-	<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<attributes>
-		<ri:fullname>Hector Barbossa</ri:fullname>
-		<icfs:name>hbarbossa</icfs:name>
-		<ri:location>Caribbean</ri:location>
-		<icfs:uid>hbarbossa</icfs:uid>
-	</attributes>
+<shadow oid="744aa9a0-9eb6-4dd1-9be2-601901d8021a"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>3082e023-b777-38f5-9563-d86141806be5</name>
+    <resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <attributes>
+        <ri:fullname>Hector Barbossa</ri:fullname>
+        <icfs:name>hbarbossa</icfs:name>
+        <ri:location>Caribbean</ri:location>
+        <icfs:uid>hbarbossa</icfs:uid>
+    </attributes>
 </shadow>

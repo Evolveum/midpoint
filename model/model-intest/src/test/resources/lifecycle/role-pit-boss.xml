@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="c4525ef8-31d4-95e6-d542-745e263f596c"
@@ -17,6 +17,6 @@
          <targetRef oid="a7b8de9a-20a1-84f6-b452-01254a1256e3" type="c:RoleType"/>
       </inducement>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#pitBoss</action>
+        <action>http://midpoint.evolveum.com/xml/ns/test/authorization#pitBoss</action>
     </authorization>
 </role>

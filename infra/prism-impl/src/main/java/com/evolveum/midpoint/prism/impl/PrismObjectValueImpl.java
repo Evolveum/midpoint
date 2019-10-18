@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -30,144 +30,144 @@ import java.util.Objects;
  */
 public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerValueImpl<O> implements PrismObjectValue<O> {
 
-	protected String oid;
-	protected String version;
+    protected String oid;
+    protected String version;
 
-	public PrismObjectValueImpl() {
-	}
+    public PrismObjectValueImpl() {
+    }
 
-	public PrismObjectValueImpl(PrismContext prismContext) {
-		super(prismContext);
-	}
+    public PrismObjectValueImpl(PrismContext prismContext) {
+        super(prismContext);
+    }
 
-	public PrismObjectValueImpl(O objectable) {
-		super(objectable);
-	}
+    public PrismObjectValueImpl(O objectable) {
+        super(objectable);
+    }
 
-	public PrismObjectValueImpl(O objectable, PrismContext prismContext) {
-		super(objectable, prismContext);
-	}
+    public PrismObjectValueImpl(O objectable, PrismContext prismContext) {
+        super(objectable, prismContext);
+    }
 
-	private PrismObjectValueImpl(OriginType type, Objectable source, PrismContainerable container, Long id,
-			ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, String oid, String version) {
-		super(type, source, container, id, complexTypeDefinition, prismContext);
-		this.oid = oid;
-		this.version = version;
-	}
+    private PrismObjectValueImpl(OriginType type, Objectable source, PrismContainerable container, Long id,
+            ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, String oid, String version) {
+        super(type, source, container, id, complexTypeDefinition, prismContext);
+        this.oid = oid;
+        this.version = version;
+    }
 
-	public String getOid() {
-		return oid;
-	}
+    public String getOid() {
+        return oid;
+    }
 
-	public void setOid(String oid) {
-		checkMutability();
-		this.oid = oid;
-	}
+    public void setOid(String oid) {
+        checkMutability();
+        this.oid = oid;
+    }
 
-	public String getVersion() {
-		return version;
-	}
+    public String getVersion() {
+        return version;
+    }
 
-	public void setVersion(String version) {
-		checkMutability();
-		this.version = version;
-	}
+    public void setVersion(String version) {
+        checkMutability();
+        this.version = version;
+    }
 
-	public O asObjectable() {
-		return asContainerable();
-	}
+    public O asObjectable() {
+        return asContainerable();
+    }
 
-	public PrismObject<O> asPrismObject() {
-		return asObjectable().asPrismObject();
-	}
+    public PrismObject<O> asPrismObject() {
+        return asObjectable().asPrismObject();
+    }
 
-	public PolyString getName() {
-		return asPrismObject().getName();
-	}
+    public PolyString getName() {
+        return asPrismObject().getName();
+    }
 
-	public PrismContainer<?> getExtension() {
-		return asPrismObject().getExtension();
-	}
+    public PrismContainer<?> getExtension() {
+        return asPrismObject().getExtension();
+    }
 
-	@Override
-	public PrismObjectValueImpl<O> clone() {
-		return cloneComplex(CloneStrategy.LITERAL);
-	}
-	
-	@Override
-	public PrismObjectValueImpl<O> cloneComplex(CloneStrategy strategy) {
-		PrismObjectValueImpl<O> clone = new PrismObjectValueImpl<>(
-				getOriginType(), getOriginObject(), getParent(), getId(), complexTypeDefinition, this.prismContext, oid, version);
-		copyValues(strategy, clone);
-		return clone;
-	}
+    @Override
+    public PrismObjectValueImpl<O> clone() {
+        return cloneComplex(CloneStrategy.LITERAL);
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof PrismObjectValueImpl))
-			return false;
-		if (!super.equals(o))
-			return false;
-		PrismObjectValueImpl<?> that = (PrismObjectValueImpl<?>) o;
-		return Objects.equals(oid, that.oid);
-	}
+    @Override
+    public PrismObjectValueImpl<O> cloneComplex(CloneStrategy strategy) {
+        PrismObjectValueImpl<O> clone = new PrismObjectValueImpl<>(
+                getOriginType(), getOriginObject(), getParent(), getId(), complexTypeDefinition, this.prismContext, oid, version);
+        copyValues(strategy, clone);
+        return clone;
+    }
 
-	// TODO consider the strategy
-	@Override
-	public int hashCode(@NotNull ParameterizedEquivalenceStrategy strategy) {
-		return Objects.hash(super.hashCode(strategy), oid);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof PrismObjectValueImpl))
+            return false;
+        if (!super.equals(o))
+            return false;
+        PrismObjectValueImpl<?> that = (PrismObjectValueImpl<?>) o;
+        return Objects.equals(oid, that.oid);
+    }
 
-	@Override
-	public boolean equivalent(PrismContainerValue<?> other) {
-		if (!(other instanceof PrismObjectValueImpl)) {
-			return false;
-		}
-		PrismObjectValueImpl otherPov = (PrismObjectValueImpl) other;
-		return StringUtils.equals(oid, otherPov.oid) && super.equivalent(other);
-	}
+    // TODO consider the strategy
+    @Override
+    public int hashCode(@NotNull ParameterizedEquivalenceStrategy strategy) {
+        return Objects.hash(super.hashCode(strategy), oid);
+    }
 
-	@Override
-	public String toString() {
-		// we don't delegate to PrismObject, because various exceptions during that process could in turn call this method
-		StringBuilder sb = new StringBuilder();
-		sb.append("POV:");
-		if (getParent() != null) {
-			sb.append(getParent().getElementName().getLocalPart()).append(":");
-		} else if (getComplexTypeDefinition() != null) {
-			sb.append(getComplexTypeDefinition().getTypeName().getLocalPart()).append(":");
-		}
-		sb.append(oid).append("(");
-		PrismProperty nameProperty = findProperty(new ItemName(PrismConstants.NAME_LOCAL_NAME));
-		sb.append(nameProperty != null ? nameProperty.getRealValue() : null);
-		sb.append(")");
-		return sb.toString();
-	}
+    @Override
+    public boolean equivalent(PrismContainerValue<?> other) {
+        if (!(other instanceof PrismObjectValueImpl)) {
+            return false;
+        }
+        PrismObjectValueImpl otherPov = (PrismObjectValueImpl) other;
+        return StringUtils.equals(oid, otherPov.oid) && super.equivalent(other);
+    }
 
-	@Override
-	protected void detailedDebugDumpStart(StringBuilder sb) {
-		sb.append("POV").append(": ");
-	}
+    @Override
+    public String toString() {
+        // we don't delegate to PrismObject, because various exceptions during that process could in turn call this method
+        StringBuilder sb = new StringBuilder();
+        sb.append("POV:");
+        if (getParent() != null) {
+            sb.append(getParent().getElementName().getLocalPart()).append(":");
+        } else if (getComplexTypeDefinition() != null) {
+            sb.append(getComplexTypeDefinition().getTypeName().getLocalPart()).append(":");
+        }
+        sb.append(oid).append("(");
+        PrismProperty nameProperty = findProperty(new ItemName(PrismConstants.NAME_LOCAL_NAME));
+        sb.append(nameProperty != null ? nameProperty.getRealValue() : null);
+        sb.append(")");
+        return sb.toString();
+    }
 
-	@Override
-	protected void debugDumpIdentifiers(StringBuilder sb) {
-		sb.append("oid=").append(oid);
-		sb.append(", version=").append(version);
-	}
+    @Override
+    protected void detailedDebugDumpStart(StringBuilder sb) {
+        sb.append("POV").append(": ");
+    }
 
-	@Override
-	public String toHumanReadableString() {
-		return "oid="+oid+": "+items.size()+" items";
-	}
+    @Override
+    protected void debugDumpIdentifiers(StringBuilder sb) {
+        sb.append("oid=").append(oid);
+        sb.append(", version=").append(version);
+    }
 
-	@Override
-	public PrismContainer<O> asSingleValuedContainer(@NotNull QName itemName) throws SchemaException {
-		throw new UnsupportedOperationException("Not supported for PrismObjectValue yet.");
-	}
+    @Override
+    public String toHumanReadableString() {
+        return "oid="+oid+": "+items.size()+" items";
+    }
 
-	public static <T extends Objectable> T asObjectable(PrismObject<T> object) {
-		return object != null ? object.asObjectable() : null;
-	}
+    @Override
+    public PrismContainer<O> asSingleValuedContainer(@NotNull QName itemName) throws SchemaException {
+        throw new UnsupportedOperationException("Not supported for PrismObjectValue yet.");
+    }
+
+    public static <T extends Objectable> T asObjectable(PrismObject<T> object) {
+        return object != null ? object.asObjectable() : null;
+    }
 }

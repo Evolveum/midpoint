@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.certification.impl;
@@ -35,49 +35,49 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 @Component
 public class AccessCertificationCloseStageTriggerHandler implements SingleTriggerHandler {
 
-	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage/handler-3";
+    static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage/handler-3";
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseStageTriggerHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseStageTriggerHandler.class);
 
-	@Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
-	@Autowired private CertificationManager certificationManager;
+    @Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
+    @Autowired private CertificationManager certificationManager;
 
-	@PostConstruct
-	private void initialize() {
-		triggerHandlerRegistry.register(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        triggerHandlerRegistry.register(HANDLER_URI, this);
+    }
 
-	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, RunningTask task, OperationResult result) {
-		try {
-			ObjectType object = prismObject.asObjectable();
-			if (!(object instanceof AccessCertificationCampaignType)) {
-				LOGGER.error("Trigger of this type is supported only on {} objects, not on {}",
-						AccessCertificationCampaignType.class.getSimpleName(), object.getClass().getName());
-				return;
-			}
+    @Override
+    public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, RunningTask task, OperationResult result) {
+        try {
+            ObjectType object = prismObject.asObjectable();
+            if (!(object instanceof AccessCertificationCampaignType)) {
+                LOGGER.error("Trigger of this type is supported only on {} objects, not on {}",
+                        AccessCertificationCampaignType.class.getSimpleName(), object.getClass().getName());
+                return;
+            }
 
-			AccessCertificationCampaignType campaign = (AccessCertificationCampaignType) object;
-			LOGGER.info("Automatically closing current stage of {}", ObjectTypeUtil.toShortString(campaign));
+            AccessCertificationCampaignType campaign = (AccessCertificationCampaignType) object;
+            LOGGER.info("Automatically closing current stage of {}", ObjectTypeUtil.toShortString(campaign));
 
-			if (campaign.getState() != IN_REVIEW_STAGE) {
-				LOGGER.warn("Campaign {} is not in a review stage; this 'close stage' trigger will be ignored.", ObjectTypeUtil.toShortString(campaign));
-				return;
-			}
+            if (campaign.getState() != IN_REVIEW_STAGE) {
+                LOGGER.warn("Campaign {} is not in a review stage; this 'close stage' trigger will be ignored.", ObjectTypeUtil.toShortString(campaign));
+                return;
+            }
 
-			int currentStageNumber = campaign.getStageNumber();
-			certificationManager.closeCurrentStage(campaign.getOid(), task, result);
-			if (currentStageNumber < CertCampaignTypeUtil.getNumberOfStages(campaign)) {
-				LOGGER.info("Automatically opening next stage of {}", ObjectTypeUtil.toShortString(campaign));
-				certificationManager.openNextStage(campaign.getOid(), task, result);
-			} else {
-				LOGGER.info("Automatically starting remediation for {}", ObjectTypeUtil.toShortString(campaign));
-				certificationManager.startRemediation(campaign.getOid(), task, result);
-			}
-		} catch (CommonException | RuntimeException e) {
-			String message = "Couldn't close current campaign and possibly advance to the next one";
-			LoggingUtils.logUnexpectedException(LOGGER, message, e);
-			throw new SystemException(message + ": " + e.getMessage(), e);
-		}
-	}
+            int currentStageNumber = campaign.getStageNumber();
+            certificationManager.closeCurrentStage(campaign.getOid(), task, result);
+            if (currentStageNumber < CertCampaignTypeUtil.getNumberOfStages(campaign)) {
+                LOGGER.info("Automatically opening next stage of {}", ObjectTypeUtil.toShortString(campaign));
+                certificationManager.openNextStage(campaign.getOid(), task, result);
+            } else {
+                LOGGER.info("Automatically starting remediation for {}", ObjectTypeUtil.toShortString(campaign));
+                certificationManager.startRemediation(campaign.getOid(), task, result);
+            }
+        } catch (CommonException | RuntimeException e) {
+            String message = "Couldn't close current campaign and possibly advance to the next one";
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
+            throw new SystemException(message + ": " + e.getMessage(), e);
+        }
+    }
 }

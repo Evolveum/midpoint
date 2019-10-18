@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -70,7 +70,7 @@ public interface ChangeProcessor {
      */
     @Nullable
     HookOperationMode processModelInvocation(@NotNull ModelInvocationContext<?> ctx, @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * Handles an event from WfMS that indicates finishing of the workflow process instance.
@@ -82,7 +82,7 @@ public interface ChangeProcessor {
      * @throws SchemaException
      */
     void onProcessEnd(EngineInvocationContext ctx, OperationResult result)
-		    throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException;
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException;
 
     /**
      * Prepares a process instance-related audit record.
@@ -98,7 +98,7 @@ public interface ChangeProcessor {
     /**
      * Prepares a work item-related audit record.
      */
-	// workItem contains taskRef, assignee, candidates resolved (if possible)
+    // workItem contains taskRef, assignee, candidates resolved (if possible)
     AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem,
             CaseType aCase, OperationResult result);
 
@@ -109,6 +109,6 @@ public interface ChangeProcessor {
 
     PrismContext getPrismContext();
 
-	RelationRegistry getRelationRegistry();
+    RelationRegistry getRelationRegistry();
 }
 

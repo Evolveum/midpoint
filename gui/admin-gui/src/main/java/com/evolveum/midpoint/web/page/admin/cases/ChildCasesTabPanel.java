@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.cases;
@@ -83,25 +83,25 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
 
                 IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
                 columns.add(column);
-                
+
                 column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
-    				@Override
-    				public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
-    					item.add(new Label(componentId, new IModel<String>() {
-    						@Override
-    						public String getObject() {
-    							return ColumnUtils.getActorsForCase(rowModel, getPageBase());
-    						}
-    					}));
-    				}
-    			};
-    			columns.add(column);
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
+                        item.add(new Label(componentId, new IModel<String>() {
+                            @Override
+                            public String getObject() {
+                                return ColumnUtils.getActorsForCase(rowModel, getPageBase());
+                            }
+                        }));
+                    }
+                };
+                columns.add(column);
 
                 column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state"){
-                	@Override
-                	public String getCssClass() {
-                		return "col-sm-2 col-md-1";
-                	}
+                    @Override
+                    public String getCssClass() {
+                        return "col-sm-2 col-md-1";
+                    }
                 };
                 columns.add(column);
 
@@ -124,7 +124,7 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
 
                     @Override
                     public String getCssClass() {
-                    	return "col-md-2 col-lg-1";
+                        return "col-md-2 col-lg-1";
                     }
                 };
                 columns.add(column);

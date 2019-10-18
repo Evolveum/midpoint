@@ -2,23 +2,23 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>SystemConfiguration</name>
     <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
     <logging>
-    	<rootLoggerAppender>File Appender</rootLoggerAppender>
-    	<rootLoggerLevel>INFO</rootLoggerLevel>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
         <classLogger>
-	        <level>TRACE</level>
-	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-      	</classLogger>
+            <level>TRACE</level>
+            <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+          </classLogger>
         <c:classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>
@@ -30,24 +30,24 @@
         </appender>
     </logging>
 
-	<!-- No defaultObjectPolicyConfiguration, no default object templates, lifecycle, etc. -->    
-    
+    <!-- No defaultObjectPolicyConfiguration, no default object templates, lifecycle, etc. -->
+
     <notificationConfiguration>
-		<handler>
-			<simplePolicyRuleNotifier>
-				<recipientExpression>
-					<value>recipient@evolveum.com</value>
-				</recipientExpression>
-				<transport>dummy:policyRuleNotifier</transport>
-			</simplePolicyRuleNotifier>
-		</handler>
-		<handler>
+        <handler>
+            <simplePolicyRuleNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:policyRuleNotifier</transport>
+            </simplePolicyRuleNotifier>
+        </handler>
+        <handler>
             <accountActivationNotifier>
                 <recipientExpression>
-					<script>
-						<code>requestee.getEmailAddress()</code>
-					</script>
-				</recipientExpression>
+                    <script>
+                        <code>requestee.getEmailAddress()</code>
+                    </script>
+                </recipientExpression>
                 <transport>dummy:accountActivationNotifier</transport>
                 <confirmationMethod>link</confirmationMethod>
             </accountActivationNotifier>
@@ -180,27 +180,27 @@
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>
     </notificationConfiguration>
-    
+
     <internals>
         <maxModelClicks>30</maxModelClicks>     <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->
     </internals>
-    
+
     <adminGuiConfiguration>
-    	<objectForms>
-			<objectForm id="111"> <!-- Make sure there will be id conflict: MID-5002 -->
-				<type>ServiceType</type>
-				<includeDefaultForms>true</includeDefaultForms>
-			</objectForm>
-		</objectForms>
-    	<objectCollectionViews>
-    		<objectCollectionView>
-    			<identifier>all-employees</identifier>
-    			<type>UserType</type>
-    			<collection>
-    				<collectionRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- Employee archetype -->
-    			</collection>
-    		</objectCollectionView>
-    	</objectCollectionViews>
+        <objectForms>
+            <objectForm id="111"> <!-- Make sure there will be id conflict: MID-5002 -->
+                <type>ServiceType</type>
+                <includeDefaultForms>true</includeDefaultForms>
+            </objectForm>
+        </objectForms>
+        <objectCollectionViews>
+            <objectCollectionView>
+                <identifier>all-employees</identifier>
+                <type>UserType</type>
+                <collection>
+                    <collectionRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- Employee archetype -->
+                </collection>
+            </objectCollectionView>
+        </objectCollectionViews>
     </adminGuiConfiguration>
-    
+
 </systemConfiguration>

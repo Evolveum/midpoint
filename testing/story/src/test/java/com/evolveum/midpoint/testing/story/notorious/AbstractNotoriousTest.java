@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.story.notorious;
@@ -76,92 +76,92 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "notorious");
+    public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "notorious");
 
-	private static final int NUMBER_OF_ORDINARY_ROLES = 1; // including superuser role
+    private static final int NUMBER_OF_ORDINARY_ROLES = 1; // including superuser role
 
-	protected static final int NUMBER_OF_LEVEL_A_ROLES = 100;
-	protected static final String ROLE_LEVEL_A_NAME_FORMAT = "Role A %06d";
-	protected static final String ROLE_LEVEL_A_ROLETYPE = "levelA";
-	protected static final String ROLE_LEVEL_A_OID_FORMAT = "00000000-0000-ffff-2a00-000000%06d";
+    protected static final int NUMBER_OF_LEVEL_A_ROLES = 100;
+    protected static final String ROLE_LEVEL_A_NAME_FORMAT = "Role A %06d";
+    protected static final String ROLE_LEVEL_A_ROLETYPE = "levelA";
+    protected static final String ROLE_LEVEL_A_OID_FORMAT = "00000000-0000-ffff-2a00-000000%06d";
 
-	protected static final int NUMBER_OF_LEVEL_B_ROLES = 300;
-	protected static final String ROLE_LEVEL_B_NAME_FORMAT = "Role B %06d";
-	protected static final String ROLE_LEVEL_B_ROLETYPE = "levelB";
-	protected static final String ROLE_LEVEL_B_OID_FORMAT = "00000000-0000-ffff-2b00-000000%06d";
+    protected static final int NUMBER_OF_LEVEL_B_ROLES = 300;
+    protected static final String ROLE_LEVEL_B_NAME_FORMAT = "Role B %06d";
+    protected static final String ROLE_LEVEL_B_ROLETYPE = "levelB";
+    protected static final String ROLE_LEVEL_B_OID_FORMAT = "00000000-0000-ffff-2b00-000000%06d";
 
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractNotoriousTest.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractNotoriousTest.class);
 
-	protected CountingInspector inspector;
+    protected CountingInspector inspector;
 
-	protected abstract String getNotoriousOid();
+    protected abstract String getNotoriousOid();
 
-	protected abstract File getNotoriousFile();
+    protected abstract File getNotoriousFile();
 
-	protected abstract QName getNotoriousType();
+    protected abstract QName getNotoriousType();
 
-	protected abstract int getNumberOfExtraRoles();
+    protected abstract int getNumberOfExtraRoles();
 
-	protected abstract int getNumberOfExtraOrgs();
+    protected abstract int getNumberOfExtraOrgs();
 
-	protected abstract QName getAltRelation();
+    protected abstract QName getAltRelation();
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		generateRoles(NUMBER_OF_LEVEL_A_ROLES, ROLE_LEVEL_A_NAME_FORMAT, ROLE_LEVEL_A_OID_FORMAT,
-				(role,i) -> {
-					role.roleType(ROLE_LEVEL_A_ROLETYPE);
-					role.beginInducement().targetRef(getNotoriousOid(), getNotoriousType()).end();
-				},
-				initResult);
+        generateRoles(NUMBER_OF_LEVEL_A_ROLES, ROLE_LEVEL_A_NAME_FORMAT, ROLE_LEVEL_A_OID_FORMAT,
+                (role,i) -> {
+                    role.roleType(ROLE_LEVEL_A_ROLETYPE);
+                    role.beginInducement().targetRef(getNotoriousOid(), getNotoriousType()).end();
+                },
+                initResult);
 
-		addNotoriousRole(initResult);
+        addNotoriousRole(initResult);
 
-		// Add these using model, so they have proper roleMembershipRef
-		generateObjects(RoleType.class, NUMBER_OF_LEVEL_B_ROLES, ROLE_LEVEL_B_NAME_FORMAT, ROLE_LEVEL_B_OID_FORMAT,
-				this::fillLevelBRole,
-				role -> addObject(role, initTask, initResult),
-				initResult);
+        // Add these using model, so they have proper roleMembershipRef
+        generateObjects(RoleType.class, NUMBER_OF_LEVEL_B_ROLES, ROLE_LEVEL_B_NAME_FORMAT, ROLE_LEVEL_B_OID_FORMAT,
+                this::fillLevelBRole,
+                role -> addObject(role, initTask, initResult),
+                initResult);
 
-		inspector = new CountingInspector();
-		InternalMonitor.setInspector(inspector);
+        inspector = new CountingInspector();
+        InternalMonitor.setInspector(inspector);
 
-		InternalMonitor.setTrace(InternalOperationClasses.ROLE_EVALUATIONS, true);
-	}
+        InternalMonitor.setTrace(InternalOperationClasses.ROLE_EVALUATIONS, true);
+    }
 
-	protected abstract void addNotoriousRole(OperationResult result) throws Exception;
+    protected abstract void addNotoriousRole(OperationResult result) throws Exception;
 
-	protected void fillLevelBRole(RoleType roleType, int i) {
-		roleType
-			.roleType(ROLE_LEVEL_B_ROLETYPE);
-	}
+    protected void fillLevelBRole(RoleType roleType, int i) {
+        roleType
+            .roleType(ROLE_LEVEL_B_ROLETYPE);
+    }
 
-	protected void fillNotorious(AbstractRoleType roleType) throws Exception {
-		for(int i=0; i < NUMBER_OF_LEVEL_B_ROLES; i++) {
-			roleType.beginInducement()
-				.targetRef(generateRoleBOid(i), RoleType.COMPLEX_TYPE)
-				.focusType(UserType.COMPLEX_TYPE)
-			.end();
-		}
-	}
+    protected void fillNotorious(AbstractRoleType roleType) throws Exception {
+        for(int i=0; i < NUMBER_OF_LEVEL_B_ROLES; i++) {
+            roleType.beginInducement()
+                .targetRef(generateRoleBOid(i), RoleType.COMPLEX_TYPE)
+                .focusType(UserType.COMPLEX_TYPE)
+            .end();
+        }
+    }
 
-	private String generateRoleOid(String oidFormat, int num) {
-		return String.format(oidFormat, num);
-	}
+    private String generateRoleOid(String oidFormat, int num) {
+        return String.format(oidFormat, num);
+    }
 
-	private String generateRoleAOid(int num) {
-		return String.format(ROLE_LEVEL_A_OID_FORMAT, num);
-	}
+    private String generateRoleAOid(int num) {
+        return String.format(ROLE_LEVEL_A_OID_FORMAT, num);
+    }
 
-	private String generateRoleBOid(int num) {
-		return String.format(ROLE_LEVEL_B_OID_FORMAT, num);
-	}
+    private String generateRoleBOid(int num) {
+        return String.format(ROLE_LEVEL_B_OID_FORMAT, num);
+    }
 
-	@Test
+    @Test
     public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
+        final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
 
         assertObjects(RoleType.class, NUMBER_OF_LEVEL_A_ROLES + NUMBER_OF_LEVEL_B_ROLES + NUMBER_OF_ORDINARY_ROLES + getNumberOfExtraRoles());
@@ -169,11 +169,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
-	}
+    }
 
-	@Test
+    @Test
     public void test100AssignRa0ToJack() throws Exception {
-		final String TEST_NAME = "test100AssignRa0ToJack";
+        final String TEST_NAME = "test100AssignRa0ToJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -206,11 +206,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test102RecomputeJack() throws Exception {
-		final String TEST_NAME = "test102RecomputeJack";
+        final String TEST_NAME = "test102RecomputeJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -239,11 +239,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test104PreviewChangesJack() throws Exception {
-		final String TEST_NAME = "test104PreviewChangesJack";
+        final String TEST_NAME = "test104PreviewChangesJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -260,7 +260,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-		ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -279,11 +279,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, 1);
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 2)*2);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test109UnassignRa0FromJack() throws Exception {
-		final String TEST_NAME = "test109UnassignRa0FromJack";
+        final String TEST_NAME = "test109UnassignRa0FromJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -313,11 +313,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test110Assign5ARolesToJack() throws Exception {
-		final String TEST_NAME = "test110AssignAllARolesToJack";
+        final String TEST_NAME = "test110AssignAllARolesToJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -346,11 +346,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test112RecomputeJack() throws Exception {
-		final String TEST_NAME = "test112RecomputeJack";
+        final String TEST_NAME = "test112RecomputeJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -379,11 +379,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test119Unassign5ARolesFromJack() throws Exception {
-		final String TEST_NAME = "test119Unassign5ARolesFromJack";
+        final String TEST_NAME = "test119Unassign5ARolesFromJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -413,11 +413,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + 5));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test120AssignAllARolesToJack() throws Exception {
-		final String TEST_NAME = "test120AssignAllARolesToJack";
+        final String TEST_NAME = "test120AssignAllARolesToJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -446,11 +446,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test122RecomputeJack() throws Exception {
-		final String TEST_NAME = "test122RecomputeJack";
+        final String TEST_NAME = "test122RecomputeJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -479,11 +479,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test124PreviewChangesJack() throws Exception {
-		final String TEST_NAME = "test124PreviewChangesJack";
+        final String TEST_NAME = "test124PreviewChangesJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -500,7 +500,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-		ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        ModelContext<ObjectType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -519,11 +519,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, 1);
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, (NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES)*2);
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test129UnassignAllARolesFromJack() throws Exception {
-		final String TEST_NAME = "test129UnassignAllARolesFromJack";
+        final String TEST_NAME = "test129UnassignAllARolesFromJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -553,11 +553,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 1 + NUMBER_OF_LEVEL_A_ROLES));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test130AssignRb0ToJack() throws Exception {
-		final String TEST_NAME = "test130AssignRb0ToJack";
+        final String TEST_NAME = "test130AssignRb0ToJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -590,17 +590,17 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	/**
-	 * Now jack has RoleB0 assigned in two ways: directly and through RA0->notorious->RB0
-	 * This may cause problems e.g. for supernotorious roles where the direct assignment
-	 * may cause evaluation of notorious role as metarole. And then the second evaluation
-	 * may be skipped. Which is wrong.
-	 */
-	@Test
+    /**
+     * Now jack has RoleB0 assigned in two ways: directly and through RA0->notorious->RB0
+     * This may cause problems e.g. for supernotorious roles where the direct assignment
+     * may cause evaluation of notorious role as metarole. And then the second evaluation
+     * may be skipped. Which is wrong.
+     */
+    @Test
     public void test132AssignRa0ToJack() throws Exception {
-		final String TEST_NAME = "test132AssignRa0ToJack";
+        final String TEST_NAME = "test132AssignRa0ToJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -633,11 +633,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test134RecomputeJack() throws Exception {
-		final String TEST_NAME = "test134RecomputeJack";
+        final String TEST_NAME = "test134RecomputeJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -668,11 +668,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test136UnassignRb0FromJack() throws Exception {
-		final String TEST_NAME = "test136UnassignRb0FromJack";
+        final String TEST_NAME = "test136UnassignRb0FromJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -705,11 +705,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test138AssignRb0ToJackAgain() throws Exception {
-		final String TEST_NAME = "test138AssignRb0ToJackAgain";
+        final String TEST_NAME = "test138AssignRb0ToJackAgain";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -742,11 +742,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test140RecomputeJackAgain() throws Exception {
-		final String TEST_NAME = "test140RecomputeJackAgain";
+        final String TEST_NAME = "test140RecomputeJackAgain";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -777,11 +777,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test142RecomputeJackAlt() throws Exception {
-		final String TEST_NAME = "test142RecomputeJackAlt";
+        final String TEST_NAME = "test142RecomputeJackAlt";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -813,11 +813,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test144UnassignRa0FromJack() throws Exception {
-		final String TEST_NAME = "test144UnassignRa0FromJack";
+        final String TEST_NAME = "test144UnassignRa0FromJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -850,11 +850,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(NUMBER_OF_LEVEL_B_ROLES + 2 + 1));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test149UnassignRb0FromJack() throws Exception {
-		final String TEST_NAME = "test149UnassignRb0FromJack";
+        final String TEST_NAME = "test149UnassignRb0FromJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -888,15 +888,15 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	/**
-	 * Assign notorious role to Jack directly. That should behave correctly.
-	 * No special expectations here.
-	 */
-	@Test
+    /**
+     * Assign notorious role to Jack directly. That should behave correctly.
+     * No special expectations here.
+     */
+    @Test
     public void test150AssignNotoriousDefaultToJack() throws Exception {
-		final String TEST_NAME = "test150AssignNotoriousDefaultToJack";
+        final String TEST_NAME = "test150AssignNotoriousDefaultToJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -909,7 +909,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
-        		getNotoriousOid(), getNotoriousType(), null, task, null, null, true, result);
+                getNotoriousOid(), getNotoriousType(), null, task, null, null, true, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -930,16 +930,16 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(1 + NUMBER_OF_LEVEL_B_ROLES));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	/**
-	 * Assign notorious role to Jack directly. This time use alternative relation
-	 * (manager or owner). Make sure that both relations are reflected in
-	 * parentOrgRef and roleMembershipRef.
-	 */
-	@Test
+    /**
+     * Assign notorious role to Jack directly. This time use alternative relation
+     * (manager or owner). Make sure that both relations are reflected in
+     * parentOrgRef and roleMembershipRef.
+     */
+    @Test
     public void test152AssignNotoriousAltRelationToJack() throws Exception {
-		final String TEST_NAME = "test152AssignNotoriousAltRelationToJack";
+        final String TEST_NAME = "test152AssignNotoriousAltRelationToJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -952,7 +952,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
-        		getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, true, result);
+                getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, true, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -964,11 +964,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", assignmentSummary(userAfter));
 
-		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
-		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
-		assertRoleMembershipRefs(userAfter, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
+        assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
+        assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
+        assertRoleMembershipRefs(userAfter, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
 
-		assertRoleMembershipRefs(userAfter, 2 + NUMBER_OF_LEVEL_B_ROLES);
+        assertRoleMembershipRefs(userAfter, 2 + NUMBER_OF_LEVEL_B_ROLES);
 
         assertNotoriousParentOrgRefRelations(userAfter, SchemaConstants.ORG_DEFAULT, getAltRelation());
 
@@ -979,11 +979,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(2*(1 + NUMBER_OF_LEVEL_B_ROLES)));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test154RecomputeJack() throws Exception {
-		final String TEST_NAME = "test154RecomputeJack";
+        final String TEST_NAME = "test154RecomputeJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1007,11 +1007,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", assignmentSummary(userAfter));
 
-		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
-		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
-		assertRoleMembershipRefs(userAfter, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
+        assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
+        assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
+        assertRoleMembershipRefs(userAfter, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
 
-		assertRoleMembershipRefs(userAfter, 2 + NUMBER_OF_LEVEL_B_ROLES);
+        assertRoleMembershipRefs(userAfter, 2 + NUMBER_OF_LEVEL_B_ROLES);
 
         assertNotoriousParentOrgRefRelations(userAfter, SchemaConstants.ORG_DEFAULT, getAltRelation());
 
@@ -1022,15 +1022,15 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(getTest15xRoleEvaluationIncrement()));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	protected int getTest15xRoleEvaluationIncrement() {
-		return 2*(1 + NUMBER_OF_LEVEL_B_ROLES);
-	}
+    protected int getTest15xRoleEvaluationIncrement() {
+        return 2*(1 + NUMBER_OF_LEVEL_B_ROLES);
+    }
 
-	@Test
+    @Test
     public void test156RecomputeJackAlt() throws Exception {
-		final String TEST_NAME = "test156RecomputeJackAlt";
+        final String TEST_NAME = "test156RecomputeJackAlt";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1054,11 +1054,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", assignmentSummary(userAfter));
 
-		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
-		assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
-		assertRoleMembershipRefs(userAfter, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
+        assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), SchemaConstants.ORG_DEFAULT);
+        assertRoleMembershipRefNonExclusive(userAfter, getNotoriousOid(), getNotoriousType(), getAltRelation());
+        assertRoleMembershipRefs(userAfter, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
 
-		assertRoleMembershipRefs(userAfter, 2 + NUMBER_OF_LEVEL_B_ROLES);
+        assertRoleMembershipRefs(userAfter, 2 + NUMBER_OF_LEVEL_B_ROLES);
 
         assertNotoriousParentOrgRefRelations(userAfter, SchemaConstants.ORG_DEFAULT, getAltRelation());
 
@@ -1069,11 +1069,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(getTest15xRoleEvaluationIncrement()));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	@Test
+    @Test
     public void test158UnassignNotoriousDefaultFromJack() throws Exception {
-		final String TEST_NAME = "test156UnassignNotoriousDefaultFromJack";
+        final String TEST_NAME = "test156UnassignNotoriousDefaultFromJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1086,7 +1086,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
-        		getNotoriousOid(), getNotoriousType(), null, task, null, null, false, result);
+                getNotoriousOid(), getNotoriousType(), null, task, null, null, false, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1107,15 +1107,15 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(getTest15xRoleEvaluationIncrement()));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	protected void assertTest158RoleMembershipRef(PrismObject<UserType> userAfter) {
-		assertJackRoleAMembershipRef(userAfter, 0, getAltRelation());
-	}
+    protected void assertTest158RoleMembershipRef(PrismObject<UserType> userAfter) {
+        assertJackRoleAMembershipRef(userAfter, 0, getAltRelation());
+    }
 
-	@Test
+    @Test
     public void test159UnassignNotoriousAltRelationFromJack() throws Exception {
-		final String TEST_NAME = "test159UnassignNotoriousAltRelationFromJack";
+        final String TEST_NAME = "test159UnassignNotoriousAltRelationFromJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1128,7 +1128,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyAssignmentHolderAssignment(UserType.class, USER_JACK_OID,
-        		getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, false, result);
+                getNotoriousOid(), getNotoriousType(), getAltRelation(), task, null, null, false, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1150,95 +1150,95 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
         assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify((1 + NUMBER_OF_LEVEL_B_ROLES)));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	private void assignJackARoles(int numberOfRoles, Task task, OperationResult result) throws Exception {
-		modifyJackARolesAssignment(numberOfRoles, true, task, result);
-	}
+    private void assignJackARoles(int numberOfRoles, Task task, OperationResult result) throws Exception {
+        modifyJackARolesAssignment(numberOfRoles, true, task, result);
+    }
 
-	private void unassignJackARoles(int numberOfRoles, Task task, OperationResult result) throws Exception {
-		modifyJackARolesAssignment(numberOfRoles, false, task, result);
-	}
+    private void unassignJackARoles(int numberOfRoles, Task task, OperationResult result) throws Exception {
+        modifyJackARolesAssignment(numberOfRoles, false, task, result);
+    }
 
-	private void modifyJackARolesAssignment(int numberOfRoles, boolean add, Task task, OperationResult result) throws Exception {
-		Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		for (int i=0; i<numberOfRoles; i++) {
-			modifications.add((createAssignmentModification(generateRoleAOid(i), RoleType.COMPLEX_TYPE, null, null, null, add)));
-		}
-		ObjectDelta<UserType> delta = prismContext.deltaFactory().object()
-				.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
+    private void modifyJackARolesAssignment(int numberOfRoles, boolean add, Task task, OperationResult result) throws Exception {
+        Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
+        for (int i=0; i<numberOfRoles; i++) {
+            modifications.add((createAssignmentModification(generateRoleAOid(i), RoleType.COMPLEX_TYPE, null, null, null, add)));
+        }
+        ObjectDelta<UserType> delta = prismContext.deltaFactory().object()
+                .createModifyDelta(USER_JACK_OID, modifications, UserType.class);
 
-		executeChanges(delta, null, task, result);
-	}
+        executeChanges(delta, null, task, result);
+    }
 
-	private void assertJackRoleAMembershipRef(PrismObject<UserType> user, int numberOfLevelARoles) {
-		assertJackRoleAMembershipRef(user, numberOfLevelARoles, SchemaConstants.ORG_DEFAULT);
-	}
+    private void assertJackRoleAMembershipRef(PrismObject<UserType> user, int numberOfLevelARoles) {
+        assertJackRoleAMembershipRef(user, numberOfLevelARoles, SchemaConstants.ORG_DEFAULT);
+    }
 
-	private void assertJackRoleAMembershipRef(PrismObject<UserType> user, int numberOfLevelARoles, QName notoriousRelation) {
+    private void assertJackRoleAMembershipRef(PrismObject<UserType> user, int numberOfLevelARoles, QName notoriousRelation) {
 
-		assertRoleMembershipRefs(user, ROLE_LEVEL_A_OID_FORMAT, numberOfLevelARoles, SchemaConstants.ORG_DEFAULT);
-		assertRoleMembershipRefNonExclusive(user, getNotoriousOid(), getNotoriousType(), notoriousRelation);
-		assertRoleMembershipRefs(user, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
+        assertRoleMembershipRefs(user, ROLE_LEVEL_A_OID_FORMAT, numberOfLevelARoles, SchemaConstants.ORG_DEFAULT);
+        assertRoleMembershipRefNonExclusive(user, getNotoriousOid(), getNotoriousType(), notoriousRelation);
+        assertRoleMembershipRefs(user, ROLE_LEVEL_B_OID_FORMAT, NUMBER_OF_LEVEL_B_ROLES, SchemaConstants.ORG_DEFAULT);
 
-		assertRoleMembershipRefs(user, numberOfLevelARoles + 1 + NUMBER_OF_LEVEL_B_ROLES);
-	}
+        assertRoleMembershipRefs(user, numberOfLevelARoles + 1 + NUMBER_OF_LEVEL_B_ROLES);
+    }
 
-	private void assertRoleMembershipRefs(PrismObject<UserType> user, String oidFormat, int num, QName relation) {
-		for (int i = 0; i < num; i++) {
-			assertRoleMembershipRefNonExclusive(user, generateRoleOid(oidFormat, i), RoleType.COMPLEX_TYPE, relation);
-		}
-	}
+    private void assertRoleMembershipRefs(PrismObject<UserType> user, String oidFormat, int num, QName relation) {
+        for (int i = 0; i < num; i++) {
+            assertRoleMembershipRefNonExclusive(user, generateRoleOid(oidFormat, i), RoleType.COMPLEX_TYPE, relation);
+        }
+    }
 
-	private void assertRoleMembershipRefNonExclusive(PrismObject<UserType> user, String roleOid, QName roleType, QName relation) {
-		List<ObjectReferenceType> roleMembershipRefs = user.asObjectable().getRoleMembershipRef();
-		for (ObjectReferenceType roleMembershipRef: roleMembershipRefs) {
-			if (ObjectTypeUtil.referenceMatches(roleMembershipRef, roleOid, roleType, relation, prismContext)) {
-				return;
-			}
-		}
-		fail("Cannot find membership of role "+roleOid+" in "+user);
-	}
+    private void assertRoleMembershipRefNonExclusive(PrismObject<UserType> user, String roleOid, QName roleType, QName relation) {
+        List<ObjectReferenceType> roleMembershipRefs = user.asObjectable().getRoleMembershipRef();
+        for (ObjectReferenceType roleMembershipRef: roleMembershipRefs) {
+            if (ObjectTypeUtil.referenceMatches(roleMembershipRef, roleOid, roleType, relation, prismContext)) {
+                return;
+            }
+        }
+        fail("Cannot find membership of role "+roleOid+" in "+user);
+    }
 
-	protected void assertRoleEvaluationCount(int numberOfLevelAAssignments, int numberOfOtherAssignments) {
-		// for subclasses
-	}
+    protected void assertRoleEvaluationCount(int numberOfLevelAAssignments, int numberOfOtherAssignments) {
+        // for subclasses
+    }
 
-	protected void assertNoNotoriousParentOrgRef(PrismObject<UserType> userAfter) {
-		assertHasNoOrg(userAfter, getNotoriousOid());
-	}
+    protected void assertNoNotoriousParentOrgRef(PrismObject<UserType> userAfter) {
+        assertHasNoOrg(userAfter, getNotoriousOid());
+    }
 
-	protected void assertNotoriousParentOrgRef(PrismObject<UserType> userAfter) {
-		assertNotoriousParentOrgRefRelations(userAfter, SchemaConstants.ORG_DEFAULT);
-	}
+    protected void assertNotoriousParentOrgRef(PrismObject<UserType> userAfter) {
+        assertNotoriousParentOrgRefRelations(userAfter, SchemaConstants.ORG_DEFAULT);
+    }
 
-	protected void assertNotoriousParentOrgRefRelations(PrismObject<UserType> userAfter, QName... relations) {
-		// for subclasses
-	}
+    protected void assertNotoriousParentOrgRefRelations(PrismObject<UserType> userAfter, QName... relations) {
+        // for subclasses
+    }
 
-	private void prepareTest() {
-		InternalsConfig.resetTestingPaths();
-		inspector.reset();
+    private void prepareTest() {
+        InternalsConfig.resetTestingPaths();
+        inspector.reset();
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         rememberCounter(InternalCounters.PROJECTOR_RUN_COUNT);
         rememberCounter(InternalCounters.ROLE_EVALUATION_COUNT);
-	}
+    }
 
-	private void displayCountersAndInspector() {
-		displayCounters(
-        		InternalCounters.REPOSITORY_READ_COUNT,
-        		InternalCounters.PROJECTOR_RUN_COUNT,
-        		InternalCounters.ROLE_EVALUATION_COUNT,
-        		InternalCounters.ROLE_EVALUATION_SKIP_COUNT,
-        		InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
-		display("Inspector", inspector);
-	}
+    private void displayCountersAndInspector() {
+        displayCounters(
+                InternalCounters.REPOSITORY_READ_COUNT,
+                InternalCounters.PROJECTOR_RUN_COUNT,
+                InternalCounters.ROLE_EVALUATION_COUNT,
+                InternalCounters.ROLE_EVALUATION_SKIP_COUNT,
+                InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+        display("Inspector", inspector);
+    }
 
 
-	protected int hackify(int i) {
-		// TODO: projector now runs three times instead of one.
-		return i*3;
-	}
+    protected int hackify(int i) {
+        // TODO: projector now runs three times instead of one.
+        return i*3;
+    }
 
 }

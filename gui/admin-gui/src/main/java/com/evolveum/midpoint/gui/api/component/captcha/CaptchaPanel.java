@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component.captcha;
@@ -22,91 +22,91 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
 public class CaptchaPanel extends BasePanel<Void> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * The text provided by the user
-	 */
-	private String captchaText;
+    /**
+     * The text provided by the user
+     */
+    private String captchaText;
 
-	private final CaptchaImageResource captchaImageResource;
+    private final CaptchaImageResource captchaImageResource;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param id
-	 *            The component id
-	 */
-	public CaptchaPanel(String id, PageBase pageBase) {
-		super(id);
+    /**
+     * Constructor.
+     *
+     * @param id
+     *            The component id
+     */
+    public CaptchaPanel(String id, PageBase pageBase) {
+        super(id);
 
-		FeedbackAlerts feedback = new FeedbackAlerts("feedback");
-		feedback.setFilter(new ContainerFeedbackMessageFilter(CaptchaPanel.this));
-		add(feedback);
-		
-		captchaImageResource = createCaptchImageResource();
-		final Image captchaImage = new Image("image", captchaImageResource);
-		captchaImage.setOutputMarkupId(true);
-		add(captchaImage);
+        FeedbackAlerts feedback = new FeedbackAlerts("feedback");
+        feedback.setFilter(new ContainerFeedbackMessageFilter(CaptchaPanel.this));
+        add(feedback);
 
-		AjaxLink<Void> changeCaptchaLink = new AjaxLink<Void>("changeLink") {
-					private static final long serialVersionUID = 1L;
+        captchaImageResource = createCaptchImageResource();
+        final Image captchaImage = new Image("image", captchaImageResource);
+        captchaImage.setOutputMarkupId(true);
+        add(captchaImage);
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				captchaImageResource.invalidate();
-				target.add(captchaImage);
-			}
-		};
-		changeCaptchaLink.add(new Label("changeLinkLabel",
-				pageBase.createStringResource("CaptchaPanel.changeLinkLabel")));
-		add(changeCaptchaLink);
+        AjaxLink<Void> changeCaptchaLink = new AjaxLink<Void>("changeLink") {
+                    private static final long serialVersionUID = 1L;
 
-		add(new Label("textDescriptionLabel",
-				pageBase.createStringResource("CaptchaPanel.textDescriptionLabel")));
-		
-		add(new RequiredTextField<String>("text",
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                captchaImageResource.invalidate();
+                target.add(captchaImage);
+            }
+        };
+        changeCaptchaLink.add(new Label("changeLinkLabel",
+                pageBase.createStringResource("CaptchaPanel.changeLinkLabel")));
+        add(changeCaptchaLink);
+
+        add(new Label("textDescriptionLabel",
+                pageBase.createStringResource("CaptchaPanel.textDescriptionLabel")));
+
+        add(new RequiredTextField<String>("text",
             new PropertyModel<>(CaptchaPanel.this, "captchaText"), String.class) {
-								private static final long serialVersionUID = 1L;
+                                private static final long serialVersionUID = 1L;
 
-			@Override
-			protected final void onComponentTag(final ComponentTag tag) {
-				super.onComponentTag(tag);
-				// clear the field after each render
-				tag.put("value", "");
-			}
-		});
-	}
+            @Override
+            protected final void onComponentTag(final ComponentTag tag) {
+                super.onComponentTag(tag);
+                // clear the field after each render
+                tag.put("value", "");
+            }
+        });
+    }
 
-	protected CaptchaImageResource createCaptchImageResource() {
-		return new CaptchaImageResource(randomString(), 48, 30) {
-			private static final long serialVersionUID = 1L;
+    protected CaptchaImageResource createCaptchImageResource() {
+        return new CaptchaImageResource(randomString(), 48, 30) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected byte[] render() {
-				String randomText = randomString();
-				getChallengeIdModel().setObject(randomText);
-				return super.render();
-			}
+            @Override
+            protected byte[] render() {
+                String randomText = randomString();
+                getChallengeIdModel().setObject(randomText);
+                return super.render();
+            }
 
-		};
-	}
+        };
+    }
 
-	public void invalidateCaptcha() {
-		captchaImageResource.invalidate();
-	}
+    public void invalidateCaptcha() {
+        captchaImageResource.invalidate();
+    }
 
-	static int randomInt(int min, int max)
+    static int randomInt(int min, int max)
     {
-		return (int)(Math.random() * (max - min) + min);
+        return (int)(Math.random() * (max - min) + min);
     }
 
     static String randomString()
     {
-    	return new Integer(randomInt(1000, 9999)).toString();
-//    	for (int i = 0; i< length; i++){
+        return new Integer(randomInt(1000, 9999)).toString();
+//        for (int i = 0; i< length; i++){
 //
-//    	}
+//        }
 //
 //        int num = randomInt(min, max);
 //        byte b[] = new byte[num];
@@ -116,11 +116,11 @@ public class CaptchaPanel extends BasePanel<Void> {
     }
 
     public String getCaptchaText() {
-		return captchaText;
-	}
+        return captchaText;
+    }
 
     public String getRandomText() {
-		return captchaImageResource.getChallengeId();
-	}
+        return captchaImageResource.getChallengeId();
+    }
 
 }

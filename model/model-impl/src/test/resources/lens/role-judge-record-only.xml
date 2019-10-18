@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="12345111-1111-2222-1111-121212111111"
@@ -11,56 +11,56 @@
     <name>Judge</name>
     <description>Role with role exclusions</description>
     <assignment>
-    	<policyRule>
-    		<name>criminal exclusion</name>
-    		<policyConstraints>
-		    	<exclusion>
-			    	<description>A judge cannot be a pirate at the same time. At least not openly.</description>
-			    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
-		    	</exclusion>
-		    </policyConstraints>
-		    <policyActions>
-				<!-- no enforcement here -->
-				<record/>
-			</policyActions>
-    	</policyRule>
+        <policyRule>
+            <name>criminal exclusion</name>
+            <policyConstraints>
+                <exclusion>
+                    <description>A judge cannot be a pirate at the same time. At least not openly.</description>
+                    <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <!-- no enforcement here -->
+                <record/>
+            </policyActions>
+        </policyRule>
     </assignment>
-	<assignment>
-		<policyRule>
-			<name>unassignment</name>
-			<policyConstraints>
-				<assignment>
-					<operation>delete</operation>
-				</assignment>
-			</policyConstraints>
-			<policyActions>
-				<notification/>
-			</policyActions>
-		</policyRule>
-	</assignment>
-	<assignment>
-		<policyRule>
-			<name>all-assignment-operations</name>
-			<policyConstraints>
-				<assignment/>
-			</policyConstraints>
-			<policyActions>
-				<!-- no approval here -->
-			</policyActions>
-		</policyRule>
-	</assignment>
+    <assignment>
+        <policyRule>
+            <name>unassignment</name>
+            <policyConstraints>
+                <assignment>
+                    <operation>delete</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <notification/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>all-assignment-operations</name>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <!-- no approval here -->
+            </policyActions>
+        </policyRule>
+    </assignment>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-						<value>Honorable Justice</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>Honorable Justice</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 </role>

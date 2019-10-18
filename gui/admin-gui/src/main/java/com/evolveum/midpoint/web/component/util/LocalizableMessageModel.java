@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,30 +20,30 @@ import java.io.Serializable;
  */
 public class LocalizableMessageModel implements Serializable, IModel<String> {
 
-	private final IModel<LocalizableMessageType> model;
-	private final Component component;
+    private final IModel<LocalizableMessageType> model;
+    private final Component component;
 
-	public LocalizableMessageModel(IModel<LocalizableMessageType> model, Component component) {
-		this.model = model;
-		this.component = component;
-	}
+    public LocalizableMessageModel(IModel<LocalizableMessageType> model, Component component) {
+        this.model = model;
+        this.component = component;
+    }
 
-	@Override
-	public String getObject() {
-		LocalizableMessageType message = model.getObject();
-		if (message != null) {
-			return WebComponentUtil.resolveLocalizableMessage(message, component);
-		} else {
-			return null;
-		}
-	}
+    @Override
+    public String getObject() {
+        LocalizableMessageType message = model.getObject();
+        if (message != null) {
+            return WebComponentUtil.resolveLocalizableMessage(message, component);
+        } else {
+            return null;
+        }
+    }
 
-	@Override
-	public void setObject(String object) {
-		// silently ignored
-	}
+    @Override
+    public void setObject(String object) {
+        // silently ignored
+    }
 
-	@Override
-	public void detach() {
-	}
+    @Override
+    public void detach() {
+    }
 }

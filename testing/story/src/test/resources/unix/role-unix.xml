@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -11,62 +11,62 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Unix User</name>
-    
+
     <inducement>
-    	<construction>
-    		<!-- OpenDJ resource -->
-    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<auxiliaryObjectClass>ri:posixAccount</auxiliaryObjectClass>
-    		<attribute>
+        <construction>
+            <!-- OpenDJ resource -->
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+            <kind>account</kind>
+            <auxiliaryObjectClass>ri:posixAccount</auxiliaryObjectClass>
+            <attribute>
                 <ref>ri:uidNumber</ref>
                 <outbound>
-                	<strength>strong</strength>
-                	<source>
-                		<path>extension/uidNumber</path>
-                	</source>
+                    <strength>strong</strength>
+                    <source>
+                        <path>extension/uidNumber</path>
+                    </source>
                 </outbound>
             </attribute>
-    		<attribute>
+            <attribute>
                 <ref>ri:gidNumber</ref>
                 <outbound>
-                	<strength>strong</strength>
-                	<source>
-                		<path>extension/uidNumber</path>
-                	</source>
+                    <strength>strong</strength>
+                    <source>
+                        <path>extension/uidNumber</path>
+                    </source>
                 </outbound>
             </attribute>
-    		<attribute>
+            <attribute>
                 <ref>ri:homeDirectory</ref>
                 <outbound>
-                	<strength>strong</strength>
-                	<source>
-                		<path>name</path>
-                	</source>
-                	<expression>
-                		<script>
-                			<code>'/home/' + name</code>
-                		</script>
-                	</expression>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>'/home/' + name</code>
+                        </script>
+                    </expression>
                 </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 
-	<inducement>
-		<focusMappings>
-			<mapping>
-				<name>sequenceUID</name>
-				<strength>weak</strength>
-				<expression>
-					<sequentialValue>
-						<sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
-					</sequentialValue>
-				</expression>
-				<target>
-					<path>extension/uidNumber</path>
-				</target>
-			</mapping>
-		</focusMappings>
-	</inducement>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <name>sequenceUID</name>
+                <strength>weak</strength>
+                <expression>
+                    <sequentialValue>
+                        <sequenceRef oid="7d4acb8c-65e3-11e5-9ef4-6382ba96fe6c"/>
+                    </sequentialValue>
+                </expression>
+                <target>
+                    <path>extension/uidNumber</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
 </role>

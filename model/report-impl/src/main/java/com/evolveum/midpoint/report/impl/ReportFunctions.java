@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report.impl;
@@ -59,7 +59,7 @@ public class ReportFunctions {
     private final AuditService auditService;
 
     public ReportFunctions(PrismContext prismContext, SchemaHelper schemaHelper,
-		    ModelService modelService, TaskManager taskManager, AuditService auditService) {
+            ModelService modelService, TaskManager taskManager, AuditService auditService) {
         this.prismContext = prismContext;
         this.schemaHelper = schemaHelper;
         this.model = modelService;
@@ -323,7 +323,7 @@ public class ReportFunctions {
             ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
         return searchApprovalWorkItems(0, null);
     }
-    
+
     /*
      * @param days - return only workitems with createTimestamp older than (now-days), 0 to return all
      * @sortColumn - optionally AbstractWorkItemType QName to asc sort results (e.g. AbstractWorkItemType.F_CREATE_TIMESTAMP)
@@ -334,27 +334,27 @@ public class ReportFunctions {
         Task task = taskManager.createTaskInstance();
         OperationResult result = task.getResult();
         ObjectQuery query = prismContext.queryFor(AbstractWorkItemType.class).build();
-        
+
         if (days > 0) {
             XMLGregorianCalendar since = (new Clock()).currentTimeXMLGregorianCalendar();
-            DatatypeFactory df = DatatypeFactory.newInstance();        
+            DatatypeFactory df = DatatypeFactory.newInstance();
             since.add (df.newDuration(false, 0, 0, days, 0, 0, 0));
 
             query.addFilter(prismContext.queryFor(AbstractWorkItemType.class)
                          .item(AbstractWorkItemType.F_CREATE_TIMESTAMP).lt(since).buildFilter());
-        } 
-        
+        }
+
         if (sortColumn != null) {
             query.addFilter(prismContext.queryFor(AbstractWorkItemType.class)
                         .asc(sortColumn)
                         .buildFilter());
         }
-	    Object[] itemsToResolve = { CaseWorkItemType.F_ASSIGNEE_REF,
+        Object[] itemsToResolve = { CaseWorkItemType.F_ASSIGNEE_REF,
                 ItemPath.create(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF),
                 ItemPath.create(PrismConstants.T_PARENT, CaseType.F_TARGET_REF),
                 ItemPath.create(PrismConstants.T_PARENT, CaseType.F_REQUESTOR_REF) };
-	    SearchResultList<CaseWorkItemType> workItems = model.searchContainers(CaseWorkItemType.class, query,
-		        schemaHelper.getOperationOptionsBuilder().items(itemsToResolve).resolve().build(), task, result);
+        SearchResultList<CaseWorkItemType> workItems = model.searchContainers(CaseWorkItemType.class, query,
+                schemaHelper.getOperationOptionsBuilder().items(itemsToResolve).resolve().build(), task, result);
         return PrismContainerValue.toPcvList(workItems);
     }
 
@@ -383,34 +383,34 @@ public class ReportFunctions {
         }
 
         ResultHandler<AccessCertificationCampaignType> handler = (campaignObject, parentResult) -> {
-			AccessCertificationCampaignType campaign = campaignObject.asObjectable();
-			if (campaign.getDefinitionRef() != null) {
-				String definitionOid = campaign.getDefinitionRef().getOid();
-				PrismObject<AccessCertificationDefinitionForReportType> definitionObject = definitionsForReportMap.get(definitionOid);
-				if (definitionObject != null) {
-					AccessCertificationDefinitionForReportType definition = definitionObject.asObjectable();
-					int campaigns = definition.getCampaigns() != null ? definition.getCampaigns() : 0;
-					definition.setCampaigns(campaigns+1);
-					AccessCertificationCampaignStateType state = campaign.getState();
-					if (state != AccessCertificationCampaignStateType.CREATED && state != CLOSED) {
-						int openCampaigns = definition.getOpenCampaigns() != null ? definition.getOpenCampaigns() : 0;
-						definition.setOpenCampaigns(openCampaigns+1);
-					}
-				}
-			}
-			return true;
-		};
+            AccessCertificationCampaignType campaign = campaignObject.asObjectable();
+            if (campaign.getDefinitionRef() != null) {
+                String definitionOid = campaign.getDefinitionRef().getOid();
+                PrismObject<AccessCertificationDefinitionForReportType> definitionObject = definitionsForReportMap.get(definitionOid);
+                if (definitionObject != null) {
+                    AccessCertificationDefinitionForReportType definition = definitionObject.asObjectable();
+                    int campaigns = definition.getCampaigns() != null ? definition.getCampaigns() : 0;
+                    definition.setCampaigns(campaigns+1);
+                    AccessCertificationCampaignStateType state = campaign.getState();
+                    if (state != AccessCertificationCampaignStateType.CREATED && state != CLOSED) {
+                        int openCampaigns = definition.getOpenCampaigns() != null ? definition.getOpenCampaigns() : 0;
+                        definition.setOpenCampaigns(openCampaigns+1);
+                    }
+                }
+            }
+            return true;
+        };
         model.searchObjectsIterative(AccessCertificationCampaignType.class, null, handler, null, task, result);
 
         List<PrismObject<AccessCertificationDefinitionForReportType>> rv = new ArrayList<>(definitionsForReportMap.values());
         Collections.sort(rv, (o1, o2) -> {
-			String n1 = o1.asObjectable().getName().getOrig();
-			String n2 = o2.asObjectable().getName().getOrig();
-			if (n1 == null) {
-				n1 = "";
-			}
-			return n1.compareTo(n2);
-		});
+            String n1 = o1.asObjectable().getName().getOrig();
+            String n2 = o2.asObjectable().getName().getOrig();
+            if (n1 == null) {
+                n1 = "";
+            }
+            return n1.compareTo(n2);
+        });
         for (PrismObject<AccessCertificationDefinitionForReportType> defObject : rv) {
             AccessCertificationDefinitionForReportType def = defObject.asObjectable();
             if (def.getCampaigns() == null) {

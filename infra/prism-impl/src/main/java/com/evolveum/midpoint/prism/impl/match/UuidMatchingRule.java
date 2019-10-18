@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.match;
@@ -27,50 +27,50 @@ import com.evolveum.midpoint.util.DOMUtil;
  */
 public class UuidMatchingRule implements MatchingRule<String> {
 
-	@Override
-	public QName getName() {
-		return PrismConstants.UUID_MATCHING_RULE_NAME;
-	}
+    @Override
+    public QName getName() {
+        return PrismConstants.UUID_MATCHING_RULE_NAME;
+    }
 
-	@Override
-	public boolean isSupported(QName xsdType) {
-		return (DOMUtil.XSD_STRING.equals(xsdType));
-	}
+    @Override
+    public boolean isSupported(QName xsdType) {
+        return (DOMUtil.XSD_STRING.equals(xsdType));
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
-	 */
-	@Override
-	public boolean match(String a, String b) {
-		if (a == null && b == null) {
-			return true;
-		}
-		if (a == null || b == null) {
-			return false;
-		}
-		return StringUtils.equalsIgnoreCase(a.trim(), b.trim());
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
+     */
+    @Override
+    public boolean match(String a, String b) {
+        if (a == null && b == null) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        return StringUtils.equalsIgnoreCase(a.trim(), b.trim());
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
-	 */
-	@Override
-	public String normalize(String original) {
-		if (original == null) {
-			return null;
-		}
-		return StringUtils.lowerCase(original).trim();
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
+     */
+    @Override
+    public String normalize(String original) {
+        if (original == null) {
+            return null;
+        }
+        return StringUtils.lowerCase(original).trim();
+    }
 
-	@Override
-	public boolean matchRegex(String a, String regex) {
-		if (a == null){
-			return false;
-		}
+    @Override
+    public boolean matchRegex(String a, String regex) {
+        if (a == null){
+            return false;
+        }
 
-		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-		Matcher matcher = pattern.matcher(a);
-		return matcher.matches();
-	}
+        Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(a);
+        return matcher.matches();
+    }
 
 }

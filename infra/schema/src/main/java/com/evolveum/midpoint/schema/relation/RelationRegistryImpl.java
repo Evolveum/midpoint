@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -34,149 +34,149 @@ import static java.util.Collections.emptyList;
 @Component
 public class RelationRegistryImpl implements RelationRegistry {
 
-	private static final Trace LOGGER = TraceManager.getTrace(RelationRegistryImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RelationRegistryImpl.class);
 
-	@Autowired private PrismContext prismContext;
+    @Autowired private PrismContext prismContext;
 
-	@NotNull
-	private IndexedRelationDefinitions indexedRelationDefinitions = createAndIndexRelationDefinitions(null);
+    @NotNull
+    private IndexedRelationDefinitions indexedRelationDefinitions = createAndIndexRelationDefinitions(null);
 
-	@Override
-	public void applyRelationsConfiguration(SystemConfigurationType systemConfiguration) {
-		RoleManagementConfigurationType roleManagement = systemConfiguration != null ? systemConfiguration.getRoleManagement() : null;
-		RelationsDefinitionType relationsDef = roleManagement != null ? roleManagement.getRelations() : null;
-		LOGGER.debug("Applying relation configuration ({} entries)", relationsDef != null ? relationsDef.getRelation().size() : 0);
-		indexedRelationDefinitions = createAndIndexRelationDefinitions(relationsDef);
-		prismContext.setDefaultRelation(indexedRelationDefinitions.getDefaultRelationFor(RelationKindType.MEMBER));
-	}
+    @Override
+    public void applyRelationsConfiguration(SystemConfigurationType systemConfiguration) {
+        RoleManagementConfigurationType roleManagement = systemConfiguration != null ? systemConfiguration.getRoleManagement() : null;
+        RelationsDefinitionType relationsDef = roleManagement != null ? roleManagement.getRelations() : null;
+        LOGGER.debug("Applying relation configuration ({} entries)", relationsDef != null ? relationsDef.getRelation().size() : 0);
+        indexedRelationDefinitions = createAndIndexRelationDefinitions(relationsDef);
+        prismContext.setDefaultRelation(indexedRelationDefinitions.getDefaultRelationFor(RelationKindType.MEMBER));
+    }
 
-	public List<RelationDefinitionType> getRelationDefinitions() {
-		return indexedRelationDefinitions.getDefinitions();
-	}
+    public List<RelationDefinitionType> getRelationDefinitions() {
+        return indexedRelationDefinitions.getDefinitions();
+    }
 
-	@NotNull
-	private IndexedRelationDefinitions createAndIndexRelationDefinitions(RelationsDefinitionType relationsDef) {
-		List<RelationDefinitionType> configuredRelations = emptyList();
-		boolean includeDefaultRelations = true;
-		if (relationsDef != null) {
-			configuredRelations = relationsDef.getRelation();
-			if (BooleanUtils.isFalse(relationsDef.isIncludeDefaultRelations())) {
-				includeDefaultRelations = false;
-			}
-		}
-		List<RelationDefinitionType> relations = new ArrayList<>();
-		for (RelationDefinitionType configuredRelation: configuredRelations) {
-			relations.add(cloneAndNormalize(configuredRelation));
-		}
-		if (includeDefaultRelations) {
-			addStaticallyDefinedRelations(relations);
-		}
-		return new IndexedRelationDefinitions(relations);
-	}
+    @NotNull
+    private IndexedRelationDefinitions createAndIndexRelationDefinitions(RelationsDefinitionType relationsDef) {
+        List<RelationDefinitionType> configuredRelations = emptyList();
+        boolean includeDefaultRelations = true;
+        if (relationsDef != null) {
+            configuredRelations = relationsDef.getRelation();
+            if (BooleanUtils.isFalse(relationsDef.isIncludeDefaultRelations())) {
+                includeDefaultRelations = false;
+            }
+        }
+        List<RelationDefinitionType> relations = new ArrayList<>();
+        for (RelationDefinitionType configuredRelation: configuredRelations) {
+            relations.add(cloneAndNormalize(configuredRelation));
+        }
+        if (includeDefaultRelations) {
+            addStaticallyDefinedRelations(relations);
+        }
+        return new IndexedRelationDefinitions(relations);
+    }
 
-	private RelationDefinitionType cloneAndNormalize(RelationDefinitionType definition) {
-		RelationDefinitionType clone = definition.clone();
-		if (clone.getDefaultFor() != null && !clone.getKind().contains(clone.getDefaultFor())) {
-			clone.getKind().add(clone.getDefaultFor());
-		}
-		clone.setStaticallyDefined(false);
-		return clone;
-	}
+    private RelationDefinitionType cloneAndNormalize(RelationDefinitionType definition) {
+        RelationDefinitionType clone = definition.clone();
+        if (clone.getDefaultFor() != null && !clone.getKind().contains(clone.getDefaultFor())) {
+            clone.getKind().add(clone.getDefaultFor());
+        }
+        clone.setStaticallyDefined(false);
+        return clone;
+    }
 
-	private void addStaticallyDefinedRelations(List<RelationDefinitionType> relations) {
-		for (RelationTypes staticRelationDefinition : RelationTypes.values()) {
-			if (ObjectTypeUtil.findRelationDefinition(relations, staticRelationDefinition.getRelation()) == null) {
-				relations.add(createRelationDefinitionFromStaticDefinition(staticRelationDefinition));
-			}
-		}
-	}
+    private void addStaticallyDefinedRelations(List<RelationDefinitionType> relations) {
+        for (RelationTypes staticRelationDefinition : RelationTypes.values()) {
+            if (ObjectTypeUtil.findRelationDefinition(relations, staticRelationDefinition.getRelation()) == null) {
+                relations.add(createRelationDefinitionFromStaticDefinition(staticRelationDefinition));
+            }
+        }
+    }
 
-	@NotNull
-	static RelationDefinitionType createRelationDefinitionFromStaticDefinition(RelationTypes defaultRelationDefinition) {
-		RelationDefinitionType relationDef = new RelationDefinitionType();
-		relationDef.setRef(defaultRelationDefinition.getRelation());
-		DisplayType display = new DisplayType();
-		display.setLabel(new PolyStringType(defaultRelationDefinition.getLabelKey()));
-		if (StringUtils.isNotEmpty(defaultRelationDefinition.getDefaultIconStyle())){
-			IconType icon = new IconType();
-			icon.setCssClass(defaultRelationDefinition.getDefaultIconStyle());
-			if (StringUtils.isNotEmpty(defaultRelationDefinition.getDefaultIconColor())){
-				icon.setColor(defaultRelationDefinition.getDefaultIconColor());
-			}
-			display.setIcon(icon);
-		}
-		relationDef.setDisplay(display);
-		relationDef.setDefaultFor(defaultRelationDefinition.getDefaultFor());
-		relationDef.getKind().addAll(defaultRelationDefinition.getKinds());
-		relationDef.getCategory().addAll(Arrays.asList(defaultRelationDefinition.getCategories()));
-		relationDef.setStaticallyDefined(true);
-		return relationDef;
-	}
+    @NotNull
+    static RelationDefinitionType createRelationDefinitionFromStaticDefinition(RelationTypes defaultRelationDefinition) {
+        RelationDefinitionType relationDef = new RelationDefinitionType();
+        relationDef.setRef(defaultRelationDefinition.getRelation());
+        DisplayType display = new DisplayType();
+        display.setLabel(new PolyStringType(defaultRelationDefinition.getLabelKey()));
+        if (StringUtils.isNotEmpty(defaultRelationDefinition.getDefaultIconStyle())){
+            IconType icon = new IconType();
+            icon.setCssClass(defaultRelationDefinition.getDefaultIconStyle());
+            if (StringUtils.isNotEmpty(defaultRelationDefinition.getDefaultIconColor())){
+                icon.setColor(defaultRelationDefinition.getDefaultIconColor());
+            }
+            display.setIcon(icon);
+        }
+        relationDef.setDisplay(display);
+        relationDef.setDefaultFor(defaultRelationDefinition.getDefaultFor());
+        relationDef.getKind().addAll(defaultRelationDefinition.getKinds());
+        relationDef.getCategory().addAll(Arrays.asList(defaultRelationDefinition.getCategories()));
+        relationDef.setStaticallyDefined(true);
+        return relationDef;
+    }
 
-	//region =============================================================================================== query methods
+    //region =============================================================================================== query methods
 
-	@Override
-	public RelationDefinitionType getRelationDefinition(QName relation) {
-		return indexedRelationDefinitions.getRelationDefinition(relation);
-	}
+    @Override
+    public RelationDefinitionType getRelationDefinition(QName relation) {
+        return indexedRelationDefinitions.getRelationDefinition(relation);
+    }
 
-	@Override
-	public boolean isOfKind(QName relation, RelationKindType kind) {
-		return indexedRelationDefinitions.isOfKind(relation, kind);
-	}
+    @Override
+    public boolean isOfKind(QName relation, RelationKindType kind) {
+        return indexedRelationDefinitions.isOfKind(relation, kind);
+    }
 
-	@Override
-	public boolean isProcessedOnLogin(QName relation) {
-		return indexedRelationDefinitions.isProcessedOnLogin(relation);
-	}
+    @Override
+    public boolean isProcessedOnLogin(QName relation) {
+        return indexedRelationDefinitions.isProcessedOnLogin(relation);
+    }
 
-	@Override
-	public boolean isProcessedOnRecompute(QName relation) {
-		return indexedRelationDefinitions.isProcessedOnRecompute(relation);
-	}
+    @Override
+    public boolean isProcessedOnRecompute(QName relation) {
+        return indexedRelationDefinitions.isProcessedOnRecompute(relation);
+    }
 
-	@Override
-	public boolean isStoredIntoParentOrgRef(QName relation) {
-		return indexedRelationDefinitions.isStoredIntoParentOrgRef(relation);
-	}
+    @Override
+    public boolean isStoredIntoParentOrgRef(QName relation) {
+        return indexedRelationDefinitions.isStoredIntoParentOrgRef(relation);
+    }
 
-	@Override
-	public boolean isAutomaticallyMatched(QName relation) {
-		return indexedRelationDefinitions.isAutomaticallyMatched(relation);
-	}
+    @Override
+    public boolean isAutomaticallyMatched(QName relation) {
+        return indexedRelationDefinitions.isAutomaticallyMatched(relation);
+    }
 
-	@Override
-	public QName getDefaultRelationFor(RelationKindType kind) {
-		return indexedRelationDefinitions.getDefaultRelationFor(kind);
-	}
+    @Override
+    public QName getDefaultRelationFor(RelationKindType kind) {
+        return indexedRelationDefinitions.getDefaultRelationFor(kind);
+    }
 
-	@NotNull
-	@Override
-	public Collection<QName> getAllRelationsFor(RelationKindType kind) {
-		return indexedRelationDefinitions.getAllRelationsFor(kind);
-	}
+    @NotNull
+    @Override
+    public Collection<QName> getAllRelationsFor(RelationKindType kind) {
+        return indexedRelationDefinitions.getAllRelationsFor(kind);
+    }
 
-	@Override
-	public QName getDefaultRelation() {
-		return getDefaultRelationFor(RelationKindType.MEMBER);
-	}
+    @Override
+    public QName getDefaultRelation() {
+        return getDefaultRelationFor(RelationKindType.MEMBER);
+    }
 
-	@NotNull
-	@Override
-	public QName normalizeRelation(QName relation) {
-		return indexedRelationDefinitions.normalizeRelation(relation);
-	}
+    @NotNull
+    @Override
+    public QName normalizeRelation(QName relation) {
+        return indexedRelationDefinitions.normalizeRelation(relation);
+    }
 
-	@Override
-	public boolean isDefault(QName relation) {
-		return prismContext.isDefaultRelation(relation);
-	}
+    @Override
+    public boolean isDefault(QName relation) {
+        return prismContext.isDefaultRelation(relation);
+    }
 
-	@Override
-	@NotNull
-	public Collection<QName> getAliases(QName relation) {
-		return indexedRelationDefinitions.getAliases(relation);
-	}
+    @Override
+    @NotNull
+    public Collection<QName> getAliases(QName relation) {
+        return indexedRelationDefinitions.getAliases(relation);
+    }
 
-	//endregion
+    //endregion
 }

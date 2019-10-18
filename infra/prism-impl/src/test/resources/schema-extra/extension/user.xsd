@@ -2,51 +2,51 @@
 <!--
   ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <schema
-	xmlns="http://www.w3.org/2001/XMLSchema" 
-	targetNamespace="http://example.com/xml/ns/user-extension"
-	xmlns:tns="http://example.com/xml/ns/user-extension"
-	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-	xmlns:foo="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
-	elementFormDefault="qualified">
-	
-	<import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
-	
-	<complexType name="UserExtensionType">
-		<annotation>
-			<appinfo>
-				<a:extension ref="foo:UserType"/>
-			</appinfo>
-		</annotation>
-		<sequence>
-			<element name="bar" type="string">
-				<annotation>
-					<appinfo>
-						<a:indexed>true</a:indexed>
-					</appinfo>
-				</annotation>
-			</element>
-			<element name="foobar" type="string" minOccurs="0"/>
-			<element name="num" type="int" minOccurs="0"/>
-			<element name="multi" type="string" minOccurs="0" maxOccurs="unbounded">
-				<annotation>
-					<appinfo>
-						<a:indexed>false</a:indexed>
-					</appinfo>
-				</annotation>			
-			</element>
-			<!--<element name="singleStringType" type="string">-->
-				<!--<annotation>-->
-					<!--<appinfo>-->
-						<!--<a:maxOccurs>1</a:maxOccurs>-->
-					<!--</appinfo>-->
-				<!--</annotation>-->
-			<!--</element>-->
+    xmlns="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://example.com/xml/ns/user-extension"
+    xmlns:tns="http://example.com/xml/ns/user-extension"
+    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+    xmlns:foo="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+    elementFormDefault="qualified">
 
-		</sequence>
-	</complexType>
+    <import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+
+    <complexType name="UserExtensionType">
+        <annotation>
+            <appinfo>
+                <a:extension ref="foo:UserType"/>
+            </appinfo>
+        </annotation>
+        <sequence>
+            <element name="bar" type="string">
+                <annotation>
+                    <appinfo>
+                        <a:indexed>true</a:indexed>
+                    </appinfo>
+                </annotation>
+            </element>
+            <element name="foobar" type="string" minOccurs="0"/>
+            <element name="num" type="int" minOccurs="0"/>
+            <element name="multi" type="string" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <appinfo>
+                        <a:indexed>false</a:indexed>
+                    </appinfo>
+                </annotation>
+            </element>
+            <!--<element name="singleStringType" type="string">-->
+                <!--<annotation>-->
+                    <!--<appinfo>-->
+                        <!--<a:maxOccurs>1</a:maxOccurs>-->
+                    <!--</appinfo>-->
+                <!--</annotation>-->
+            <!--</element>-->
+
+        </sequence>
+    </complexType>
 </schema>

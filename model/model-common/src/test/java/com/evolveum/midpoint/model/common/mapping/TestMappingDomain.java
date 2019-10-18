@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.mapping;
@@ -36,14 +36,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class TestMappingDomain {
 
-	private static final String MAPPING_DOMAIN_FILENAME = "mapping-domain.xml";
+    private static final String MAPPING_DOMAIN_FILENAME = "mapping-domain.xml";
 
-	private MappingTestEvaluator evaluator;
+    private MappingTestEvaluator evaluator;
 
     @BeforeClass
     public void setupFactory() throws SchemaException, SAXException, IOException {
-    	evaluator = new MappingTestEvaluator();
-    	evaluator.init();
+        evaluator = new MappingTestEvaluator();
+        evaluator.init();
     }
 
     /**
@@ -51,36 +51,36 @@ public class TestMappingDomain {
      */
     @Test
     public void testControlReplaceSingleValue() throws Exception {
-    	final String TEST_NAME = "testControlReplaceSingleValue";
-    	TestUtil.displayTestTitle(this, TEST_NAME);
+        final String TEST_NAME = "testControlReplaceSingleValue";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-    	// GIVEN
+        // GIVEN
 
-    	PrismObject<UserType> userOld = evaluator.getUserOld();
-    	List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
-    	employeeTypeOld.clear();
-    	employeeTypeOld.add("1234567890");
+        PrismObject<UserType> userOld = evaluator.getUserOld();
+        List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
+        employeeTypeOld.clear();
+        employeeTypeOld.add("1234567890");
 
-    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_ADDITIONAL_NAME, "Jackie");
-    	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "321");
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+                UserType.F_ADDITIONAL_NAME, "Jackie");
+        delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "321");
 
-		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-				MAPPING_DOMAIN_FILENAME,
-    			TEST_NAME, "organization", delta, userOld);
-		
-    	OperationResult opResult = new OperationResult(TEST_NAME);
-    	
-    	// WHEN
-		mapping.evaluate(null, opResult);
+        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+                MAPPING_DOMAIN_FILENAME,
+                TEST_NAME, "organization", delta, userOld);
 
-    	// THEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-		outputTriple.checkConsistence();
-		PrismAsserts.assertTripleNoZero(outputTriple);
-	  	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Pirate Jackie (321)"));
-	  	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Pirate null (1234567890)"));
+        OperationResult opResult = new OperationResult(TEST_NAME);
+
+        // WHEN
+        mapping.evaluate(null, opResult);
+
+        // THEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        outputTriple.checkConsistence();
+        PrismAsserts.assertTripleNoZero(outputTriple);
+          PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Pirate Jackie (321)"));
+          PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Pirate null (1234567890)"));
     }
 
     /**
@@ -88,178 +88,178 @@ public class TestMappingDomain {
      */
     @Test
     public void testControlReplaceMultiValue() throws Exception {
-    	final String TEST_NAME = "testControlReplaceMultiValue";
-    	TestUtil.displayTestTitle(this, TEST_NAME);
+        final String TEST_NAME = "testControlReplaceMultiValue";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-    	// GIVEN
+        // GIVEN
 
-    	PrismObject<UserType> userOld = evaluator.getUserOld();
-    	List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
-    	employeeTypeOld.clear();
-    	employeeTypeOld.add("001");
-    	employeeTypeOld.add("002");
-    	employeeTypeOld.add("003");
+        PrismObject<UserType> userOld = evaluator.getUserOld();
+        List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
+        employeeTypeOld.clear();
+        employeeTypeOld.add("001");
+        employeeTypeOld.add("002");
+        employeeTypeOld.add("003");
 
-    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_ADDITIONAL_NAME, "Jackie");
-    	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "991", "992");
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+                UserType.F_ADDITIONAL_NAME, "Jackie");
+        delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "991", "992");
 
-		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-				MAPPING_DOMAIN_FILENAME,
-    			TEST_NAME, "organization", delta, userOld);
-		
-    	OperationResult opResult = new OperationResult(TEST_NAME);
-    	
-    	// WHEN
-		mapping.evaluate(null, opResult);
+        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+                MAPPING_DOMAIN_FILENAME,
+                TEST_NAME, "organization", delta, userOld);
 
-    	// THEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-		outputTriple.checkConsistence();
-		PrismAsserts.assertTripleNoZero(outputTriple);
-	  	PrismAsserts.assertTriplePlus(outputTriple,
-	  			PrismTestUtil.createPolyString("Pirate Jackie (991)"),
-	  			PrismTestUtil.createPolyString("Pirate Jackie (992)"));
-	  	PrismAsserts.assertTripleMinus(outputTriple,
-	  			PrismTestUtil.createPolyString("Pirate null (001)"),
-	  			PrismTestUtil.createPolyString("Pirate null (002)"),
-	  			PrismTestUtil.createPolyString("Pirate null (003)"));
+        OperationResult opResult = new OperationResult(TEST_NAME);
+
+        // WHEN
+        mapping.evaluate(null, opResult);
+
+        // THEN
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        outputTriple.checkConsistence();
+        PrismAsserts.assertTripleNoZero(outputTriple);
+          PrismAsserts.assertTriplePlus(outputTriple,
+                  PrismTestUtil.createPolyString("Pirate Jackie (991)"),
+                  PrismTestUtil.createPolyString("Pirate Jackie (992)"));
+          PrismAsserts.assertTripleMinus(outputTriple,
+                  PrismTestUtil.createPolyString("Pirate null (001)"),
+                  PrismTestUtil.createPolyString("Pirate null (002)"),
+                  PrismTestUtil.createPolyString("Pirate null (003)"));
     }
 
     @Test
     public void testReplaceMixedMultiValue() throws Exception {
-    	final String TEST_NAME = "testReplaceMixedMultiValue";
-    	TestUtil.displayTestTitle(this, TEST_NAME);
+        final String TEST_NAME = "testReplaceMixedMultiValue";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-    	// GIVEN
+        // GIVEN
 
-    	PrismObject<UserType> userOld = evaluator.getUserOld();
-    	List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
-    	employeeTypeOld.clear();
-    	employeeTypeOld.add("001");
-    	employeeTypeOld.add("A02");
-    	employeeTypeOld.add("B03");
-    	employeeTypeOld.add("004");
+        PrismObject<UserType> userOld = evaluator.getUserOld();
+        List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
+        employeeTypeOld.clear();
+        employeeTypeOld.add("001");
+        employeeTypeOld.add("A02");
+        employeeTypeOld.add("B03");
+        employeeTypeOld.add("004");
 
-    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-			    .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_ADDITIONAL_NAME, "Jackie");
-    	delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "X91", "992", "Y93", "994");
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+                .createModificationReplaceProperty(UserType.class, evaluator.USER_OLD_OID,
+                UserType.F_ADDITIONAL_NAME, "Jackie");
+        delta.addModificationReplaceProperty(UserType.F_EMPLOYEE_TYPE, "X91", "992", "Y93", "994");
 
-		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-				MAPPING_DOMAIN_FILENAME,
-    			TEST_NAME, "organization", delta, userOld);
-		
-    	OperationResult opResult = new OperationResult(TEST_NAME);
-    	
-    	// WHEN
-    	TestUtil.displayWhen(TEST_NAME);
-		mapping.evaluate(null, opResult);
+        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+                MAPPING_DOMAIN_FILENAME,
+                TEST_NAME, "organization", delta, userOld);
 
-    	// THEN
-		TestUtil.displayThen(TEST_NAME);
-		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-		display("Output triple", outputTriple);
-		outputTriple.checkConsistence();
-		PrismAsserts.assertTripleNoZero(outputTriple);
-	  	PrismAsserts.assertTriplePlus(outputTriple,
-	  			PrismTestUtil.createPolyString("Pirate Jackie (992)"),
-	  			PrismTestUtil.createPolyString("Pirate Jackie (994)"));
-	  	PrismAsserts.assertTripleMinus(outputTriple,
-	  			PrismTestUtil.createPolyString("Pirate null (001)"),
-	  			PrismTestUtil.createPolyString("Pirate null (004)"));
+        OperationResult opResult = new OperationResult(TEST_NAME);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        mapping.evaluate(null, opResult);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        display("Output triple", outputTriple);
+        outputTriple.checkConsistence();
+        PrismAsserts.assertTripleNoZero(outputTriple);
+          PrismAsserts.assertTriplePlus(outputTriple,
+                  PrismTestUtil.createPolyString("Pirate Jackie (992)"),
+                  PrismTestUtil.createPolyString("Pirate Jackie (994)"));
+          PrismAsserts.assertTripleMinus(outputTriple,
+                  PrismTestUtil.createPolyString("Pirate null (001)"),
+                  PrismTestUtil.createPolyString("Pirate null (004)"));
     }
 
     @Test
     public void testAddMixedMultiValue() throws Exception {
-    	final String TEST_NAME = "testAddMixedMultiValue";
-    	TestUtil.displayTestTitle(this, TEST_NAME);
+        final String TEST_NAME = "testAddMixedMultiValue";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-    	// GIVEN
+        // GIVEN
 
-    	PrismObject<UserType> userOld = evaluator.getUserOld();
-    	userOld.asObjectable().setAdditionalName(PrismTestUtil.createPolyStringType("Jackie"));
-    	List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
-    	employeeTypeOld.clear();
-    	employeeTypeOld.add("001");
-    	employeeTypeOld.add("A02");
-    	employeeTypeOld.add("B03");
-    	employeeTypeOld.add("004");
+        PrismObject<UserType> userOld = evaluator.getUserOld();
+        userOld.asObjectable().setAdditionalName(PrismTestUtil.createPolyStringType("Jackie"));
+        List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
+        employeeTypeOld.clear();
+        employeeTypeOld.add("001");
+        employeeTypeOld.add("A02");
+        employeeTypeOld.add("B03");
+        employeeTypeOld.add("004");
 
-    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-			    .createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_EMPLOYEE_TYPE, "X91", "992", "Y93", "994");
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+                .createModificationAddProperty(UserType.class, evaluator.USER_OLD_OID,
+                UserType.F_EMPLOYEE_TYPE, "X91", "992", "Y93", "994");
 
-		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-				MAPPING_DOMAIN_FILENAME,
-    			TEST_NAME, "organization", delta, userOld);
-		
-    	OperationResult opResult = new OperationResult(TEST_NAME);
-    	
-    	// WHEN
-    	TestUtil.displayWhen(TEST_NAME);
-		mapping.evaluate(null, opResult);
+        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+                MAPPING_DOMAIN_FILENAME,
+                TEST_NAME, "organization", delta, userOld);
 
-    	// THEN
-		TestUtil.displayThen(TEST_NAME);
-		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-		display("Output triple", outputTriple);
-		outputTriple.checkConsistence();
-		PrismAsserts.assertTripleZero(outputTriple,
-	  			PrismTestUtil.createPolyString("Pirate Jackie (001)"),
-	  			PrismTestUtil.createPolyString("Pirate Jackie (004)"));
-	  	PrismAsserts.assertTriplePlus(outputTriple,
-	  			PrismTestUtil.createPolyString("Pirate Jackie (992)"),
-	  			PrismTestUtil.createPolyString("Pirate Jackie (994)"));
-	  	PrismAsserts.assertTripleNoMinus(outputTriple);
+        OperationResult opResult = new OperationResult(TEST_NAME);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        mapping.evaluate(null, opResult);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        display("Output triple", outputTriple);
+        outputTriple.checkConsistence();
+        PrismAsserts.assertTripleZero(outputTriple,
+                  PrismTestUtil.createPolyString("Pirate Jackie (001)"),
+                  PrismTestUtil.createPolyString("Pirate Jackie (004)"));
+          PrismAsserts.assertTriplePlus(outputTriple,
+                  PrismTestUtil.createPolyString("Pirate Jackie (992)"),
+                  PrismTestUtil.createPolyString("Pirate Jackie (994)"));
+          PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test
     public void testDeleteMixedMultiValue() throws Exception {
-    	final String TEST_NAME = "testDeleteMixedMultiValue";
-    	TestUtil.displayTestTitle(this, TEST_NAME);
+        final String TEST_NAME = "testDeleteMixedMultiValue";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-    	// GIVEN
+        // GIVEN
 
-    	PrismObject<UserType> userOld = evaluator.getUserOld();
-    	userOld.asObjectable().setAdditionalName(PrismTestUtil.createPolyStringType("Jackie"));
-    	List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
-    	employeeTypeOld.clear();
-    	employeeTypeOld.add("001");
-    	employeeTypeOld.add("A02");
-    	employeeTypeOld.add("B03");
-    	employeeTypeOld.add("004");
-    	employeeTypeOld.add("005");
-    	employeeTypeOld.add("C06");
-    	employeeTypeOld.add("007");
+        PrismObject<UserType> userOld = evaluator.getUserOld();
+        userOld.asObjectable().setAdditionalName(PrismTestUtil.createPolyStringType("Jackie"));
+        List<String> employeeTypeOld = userOld.asObjectable().getEmployeeType();
+        employeeTypeOld.clear();
+        employeeTypeOld.add("001");
+        employeeTypeOld.add("A02");
+        employeeTypeOld.add("B03");
+        employeeTypeOld.add("004");
+        employeeTypeOld.add("005");
+        employeeTypeOld.add("C06");
+        employeeTypeOld.add("007");
 
-    	ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
-			    .createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
-    			UserType.F_EMPLOYEE_TYPE, "005", "C06", "007");
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
+                .createModificationDeleteProperty(UserType.class, evaluator.USER_OLD_OID,
+                UserType.F_EMPLOYEE_TYPE, "005", "C06", "007");
 
-		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
-				MAPPING_DOMAIN_FILENAME,
-    			TEST_NAME, "organization", delta, userOld);
-		
-    	OperationResult opResult = new OperationResult(TEST_NAME);
-    	
-    	// WHEN
-    	TestUtil.displayWhen(TEST_NAME);
-		mapping.evaluate(null, opResult);
+        MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
+                MAPPING_DOMAIN_FILENAME,
+                TEST_NAME, "organization", delta, userOld);
 
-    	// THEN
-		TestUtil.displayThen(TEST_NAME);
-		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-		display("Output triple", outputTriple);
-		outputTriple.checkConsistence();
-		PrismAsserts.assertTripleZero(outputTriple,
-	  			PrismTestUtil.createPolyString("Pirate Jackie (001)"),
-	  			PrismTestUtil.createPolyString("Pirate Jackie (004)"));
-		PrismAsserts.assertTripleNoPlus(outputTriple);
-	  	PrismAsserts.assertTripleMinus(outputTriple,
-	  			PrismTestUtil.createPolyString("Pirate Jackie (005)"),
-	  			PrismTestUtil.createPolyString("Pirate Jackie (007)"));
+        OperationResult opResult = new OperationResult(TEST_NAME);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        mapping.evaluate(null, opResult);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        display("Output triple", outputTriple);
+        outputTriple.checkConsistence();
+        PrismAsserts.assertTripleZero(outputTriple,
+                  PrismTestUtil.createPolyString("Pirate Jackie (001)"),
+                  PrismTestUtil.createPolyString("Pirate Jackie (004)"));
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+          PrismAsserts.assertTripleMinus(outputTriple,
+                  PrismTestUtil.createPolyString("Pirate Jackie (005)"),
+                  PrismTestUtil.createPolyString("Pirate Jackie (007)"));
     }
 
 }

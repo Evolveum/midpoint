@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,17 +29,17 @@ public class ObjectClassDto extends Selectable implements Comparable<ObjectClass
         this.refinedDefinition = definition;
     }
 
-	public QName getObjectClassName() {
-		return refinedDefinition.getTypeName();
-	}
+    public QName getObjectClassName() {
+        return refinedDefinition.getTypeName();
+    }
 
     public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
-		if (refinedDefinition.getTypeName() != null) {
-			builder.append(refinedDefinition.getTypeName().getLocalPart());
-		}
-		if (StringUtils.isNotEmpty(refinedDefinition.getDisplayName())) {
-			builder.append(" (").append(refinedDefinition.getDisplayName()).append(")");
+        if (refinedDefinition.getTypeName() != null) {
+            builder.append(refinedDefinition.getTypeName().getLocalPart());
+        }
+        if (StringUtils.isNotEmpty(refinedDefinition.getDisplayName())) {
+            builder.append(" (").append(refinedDefinition.getDisplayName()).append(")");
         }
         return builder.toString().trim();
     }

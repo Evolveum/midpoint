@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
@@ -32,18 +32,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSchemalessResource extends AbstractInitializedModelIntegrationTest {
 
-	private static String accountOid;
+    private static String accountOid;
 
-	public TestSchemalessResource() throws JAXBException {
-		super();
-	}
+    public TestSchemalessResource() throws JAXBException {
+        super();
+    }
 
-	/**
-	 * Just test if this does not die on an exception.
-	 */
-	@Test
+    /**
+     * Just test if this does not die on an exception.
+     */
+    @Test
     public void test001GetObject() throws Exception {
-		final String TEST_NAME = "test001GetObject";
+        final String TEST_NAME = "test001GetObject";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -54,12 +54,12 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
 
         // THEN
         assertNotNull("Null resource returned", resource);
-	}
+    }
 
-	@Test
+    @Test
     public void test002TestConnection() throws Exception {
-		final String TEST_NAME = "test002TestConnection";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+        final String TEST_NAME = "test002TestConnection";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = createTask(TEST_NAME);
 
@@ -67,15 +67,15 @@ public class TestSchemalessResource extends AbstractInitializedModelIntegrationT
         OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_SCHEMALESS_OID, task);
 
         // THEN
-		display("Test result", testResult);
-		OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
-		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
-		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
-		assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
-		assertSuccess(connectorResult);
-		assertTestResourceFailure(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
-		assertFailure(testResult);
+        display("Test result", testResult);
+        OperationResult connectorResult = assertSingleConnectorTestResult(testResult);
+        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_INITIALIZATION);
+        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONFIGURATION);
+        assertTestResourceSuccess(connectorResult, ConnectorTestOperation.CONNECTOR_CONNECTION);
+        assertSuccess(connectorResult);
+        assertTestResourceFailure(testResult, ConnectorTestOperation.RESOURCE_SCHEMA);
+        assertFailure(testResult);
 
-	}
+    }
 
 }

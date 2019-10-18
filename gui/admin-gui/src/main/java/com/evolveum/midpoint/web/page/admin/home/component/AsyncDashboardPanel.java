@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,9 +29,9 @@ import org.apache.wicket.util.time.Duration;
  */
 public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, CallableResult<T>> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_DASHBOARD_PARENT = "dashboardParent";
+    private static final String ID_DASHBOARD_PARENT = "dashboardParent";
     private static final String ID_DASHBOARD_TITLE = "dashboardTitle";
     private static final String ID_TITLE = "title";
     private static final String ID_PRELOADER_CONTAINER = "preloaderContainer";
@@ -49,7 +49,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
     }
 
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
-    		String boxCssClasses) {
+            String boxCssClasses) {
         this(id, title, icon, callableParameterModel, Duration.seconds(DEFAULT_TIMER_DURATION), boxCssClasses);
     }
 
@@ -71,7 +71,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         label.setDefaultModel(title);
 
         if (boxCssClasses == null) {
-        	boxCssClasses = GuiStyleConstants.CLASS_BOX_DEFAULT;
+            boxCssClasses = GuiStyleConstants.CLASS_BOX_DEFAULT;
         }
         Component dashboardParent = get(ID_DASHBOARD_PARENT);
         dashboardParent.add(new AttributeAppender("class", " " + boxCssClasses));

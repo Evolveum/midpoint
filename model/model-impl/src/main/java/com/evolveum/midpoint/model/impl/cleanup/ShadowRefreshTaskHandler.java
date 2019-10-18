@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.cleanup;
@@ -38,78 +38,78 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
 @Component
 public class ShadowRefreshTaskHandler extends AbstractScannerTaskHandler<ShadowType, AbstractScannerResultHandler<ShadowType>> {
 
-	// WARNING! This task handler is efficiently singleton!
-	// It is a spring bean and it is supposed to handle all search task instances
-	// Therefore it must not have task-specific fields. It can only contain fields specific to
-	// all tasks of a specified type
+    // WARNING! This task handler is efficiently singleton!
+    // It is a spring bean and it is supposed to handle all search task instances
+    // Therefore it must not have task-specific fields. It can only contain fields specific to
+    // all tasks of a specified type
 
-	public static final String HANDLER_URI = ModelPublicConstants.SHADOW_REFRESH_TASK_HANDLER_URI;
+    public static final String HANDLER_URI = ModelPublicConstants.SHADOW_REFRESH_TASK_HANDLER_URI;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(ShadowRefreshTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(ShadowRefreshTaskHandler.class);
 
-	@Autowired(required = true)
+    @Autowired(required = true)
     protected ProvisioningService provisioningService;
 
-	public ShadowRefreshTaskHandler() {
+    public ShadowRefreshTaskHandler() {
         super(ShadowType.class, "Shadow refresh", OperationConstants.SHADOW_REFRESH);
     }
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
 
-	@Override
-	protected Class<ShadowType> getType(Task task) {
-		return ShadowType.class;
-	}
+    @Override
+    protected Class<ShadowType> getType(Task task) {
+        return ShadowType.class;
+    }
 
-	@Override
-	protected boolean requiresDirectRepositoryAccess(AbstractScannerResultHandler<ShadowType> resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+    @Override
+    protected boolean requiresDirectRepositoryAccess(AbstractScannerResultHandler<ShadowType> resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
         return true;
     }
 
-	@Override
-	protected ObjectQuery createQuery(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
-		ObjectQuery query = super.createQuery(handler, runResult, coordinatorTask, opResult);
-		
-		if (query == null) {
-			query = getPrismContext().queryFactory().createQuery();
-		}
-		if (query.getFilter() == null) {
-			ObjectFilter filter = prismContext.queryFor(ShadowType.class)
-					.exists(ShadowType.F_PENDING_OPERATION)
-				.buildFilter();
-			query.setFilter(filter);
-		}
-		
-		return query;
-	}
+    @Override
+    protected ObjectQuery createQuery(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
+        ObjectQuery query = super.createQuery(handler, runResult, coordinatorTask, opResult);
 
-	@Override
-	protected void finish(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, RunningTask task, OperationResult opResult)
-			throws SchemaException {
-		super.finish(handler, runResult, task, opResult);
-	}
+        if (query == null) {
+            query = getPrismContext().queryFactory().createQuery();
+        }
+        if (query.getFilter() == null) {
+            ObjectFilter filter = prismContext.queryFor(ShadowType.class)
+                    .exists(ShadowType.F_PENDING_OPERATION)
+                .buildFilter();
+            query.setFilter(filter);
+        }
 
-	@Override
-	protected AbstractScannerResultHandler<ShadowType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
-			OperationResult opResult) {
+        return query;
+    }
 
-		AbstractScannerResultHandler<ShadowType> handler = new AbstractScannerResultHandler<ShadowType>(
-				coordinatorTask, ShadowRefreshTaskHandler.class.getName(), "shadowRefresh", "shadow refresh task", taskManager) {
-			@Override
-			protected boolean handleObject(PrismObject<ShadowType> object, RunningTask workerTask, OperationResult result) throws CommonException {
-				LOGGER.trace("Refreshing {}", object);
+    @Override
+    protected void finish(AbstractScannerResultHandler<ShadowType> handler, TaskRunResult runResult, RunningTask task, OperationResult opResult)
+            throws SchemaException {
+        super.finish(handler, runResult, task, opResult);
+    }
 
-				provisioningService.refreshShadow(object, null, workerTask, result);
+    @Override
+    protected AbstractScannerResultHandler<ShadowType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
+            OperationResult opResult) {
 
-				LOGGER.trace("Refreshed {}", object);
-				return true;
-			}
-		};
+        AbstractScannerResultHandler<ShadowType> handler = new AbstractScannerResultHandler<ShadowType>(
+                coordinatorTask, ShadowRefreshTaskHandler.class.getName(), "shadowRefresh", "shadow refresh task", taskManager) {
+            @Override
+            protected boolean handleObject(PrismObject<ShadowType> object, RunningTask workerTask, OperationResult result) throws CommonException {
+                LOGGER.trace("Refreshing {}", object);
+
+                provisioningService.refreshShadow(object, null, workerTask, result);
+
+                LOGGER.trace("Refreshed {}", object);
+                return true;
+            }
+        };
         handler.setStopOnError(false);
         return handler;
-	}
+    }
 
 }

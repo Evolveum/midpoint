@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -160,7 +160,7 @@ public class CertificationCaseHelper {
     }
 
     public <T extends ObjectType> void updateCampaignCases(Session session, String campaignOid,
-			Collection<? extends ItemDelta> modifications, RepoModifyOptions modifyOptions) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
+            Collection<? extends ItemDelta> modifications, RepoModifyOptions modifyOptions) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
         if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
             return;
         }
@@ -231,8 +231,8 @@ public class CertificationCaseHelper {
     }
 
     private void updateCasesContent(Session session, String campaignOid, Collection<? extends ItemDelta> modifications,
-			List<Long> casesAddedOrDeleted, RepoModifyOptions modifyOptions) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
-		Set<Long> casesModified = new HashSet<>();
+            List<Long> casesAddedOrDeleted, RepoModifyOptions modifyOptions) throws SchemaException, ObjectNotFoundException, DtoTranslationException {
+        Set<Long> casesModified = new HashSet<>();
         for (ItemDelta delta : modifications) {
             ItemPath deltaPath = delta.getPath();
             if (deltaPath.size() > 1) {
@@ -263,30 +263,30 @@ public class CertificationCaseHelper {
                 session.merge(rCase);
 
                 LOGGER.trace("Access certification case {} merged", rCase);
-				casesModified.add(aCase.getId());
+                casesModified.add(aCase.getId());
             }
         }
 
-		// refresh campaign cases, if requested
-		if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
-			Query query = session.getNamedQuery("get.campaignCases");
-			query.setString("ownerOid", campaignOid);
-			@SuppressWarnings({"raw", "unchecked"})
-			List<Object> cases = query.list();
-			for (Object o : cases) {
-				if (!(o instanceof byte[])) {
-					throw new IllegalStateException("Certification case: expected byte[], got " + o.getClass());
-				}
-				byte[] fullObject = (byte[]) o;
-				AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
-				Long id = aCase.getId();
-				if (id != null && casesAddedOrDeleted != null && !casesAddedOrDeleted.contains(id) && !casesModified.contains(id)) {
-					RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
-					session.merge(rCase);
-					LOGGER.trace("Access certification case {} refreshed", rCase);
-				}
-			}
-		}
+        // refresh campaign cases, if requested
+        if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
+            Query query = session.getNamedQuery("get.campaignCases");
+            query.setString("ownerOid", campaignOid);
+            @SuppressWarnings({"raw", "unchecked"})
+            List<Object> cases = query.list();
+            for (Object o : cases) {
+                if (!(o instanceof byte[])) {
+                    throw new IllegalStateException("Certification case: expected byte[], got " + o.getClass());
+                }
+                byte[] fullObject = (byte[]) o;
+                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
+                Long id = aCase.getId();
+                if (id != null && casesAddedOrDeleted != null && !casesAddedOrDeleted.contains(id) && !casesModified.contains(id)) {
+                    RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
+                    session.merge(rCase);
+                    LOGGER.trace("Access certification case {} refreshed", rCase);
+                }
+            }
+        }
     }
 
     private long checkPathSanity(ItemPath deltaPath, List<Long> casesAddedOrDeleted) {
@@ -310,11 +310,11 @@ public class CertificationCaseHelper {
 
     // TODO find a better name
     public AccessCertificationCaseType updateLoadedCertificationCase(GetContainerableResult result, Map<String, PrismObject<AccessCertificationCampaignType>> ownersMap,
-			Collection<SelectorOptions<GetOperationOptions>> options,
-			Session session, OperationResult operationResult) throws SchemaException {
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Session session, OperationResult operationResult) throws SchemaException {
 
-		byte[] fullObject = result.getFullObject();
-		AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
+        byte[] fullObject = result.getFullObject();
+        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
         generalHelper.validateContainerable(aCase, AccessCertificationCaseType.class);
 
         String ownerOid = result.getOwnerOid();
@@ -322,53 +322,53 @@ public class CertificationCaseHelper {
         if (campaign != null && !campaign.asObjectable().getCase().contains(aCase)) {
             campaign.asObjectable().getCase().add(aCase);
         }
-		objectRetriever.attachDiagDataIfRequested(aCase.asPrismContainerValue(), fullObject, options);
-		return aCase;
+        objectRetriever.attachDiagDataIfRequested(aCase.asPrismContainerValue(), fullObject, options);
+        return aCase;
     }
 
     public AccessCertificationWorkItemType updateLoadedCertificationWorkItem(GetCertificationWorkItemResult result,
-            Map<String, PrismContainerValue<AccessCertificationCaseType>> casesCache,		// key=OID:ID
-            Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache,		// key=OID
-			Collection<SelectorOptions<GetOperationOptions>> options,
-			QueryEngine2 engine, Session session, OperationResult operationResult) throws SchemaException, QueryException {
+            Map<String, PrismContainerValue<AccessCertificationCaseType>> casesCache,        // key=OID:ID
+            Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache,        // key=OID
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            QueryEngine2 engine, Session session, OperationResult operationResult) throws SchemaException, QueryException {
 
-		String campaignOid = result.getCampaignOid();
-		Integer caseId = result.getCaseId();
-		Integer workItemId = result.getId();
-		String caseKey = campaignOid + ":" + caseId;
-		PrismContainerValue<AccessCertificationCaseType> casePcv = casesCache.get(caseKey);
-		if (casePcv == null) {
-			ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
-					.ownerId(campaignOid)
-					.and().id(caseId)
-					.build();
-			RQuery caseQuery = engine.interpret(query, AccessCertificationCaseType.class, null, false, session);
-			@SuppressWarnings({"raw", "unchecked"})
-			List<GetContainerableResult> cases = caseQuery.list();
-			if (cases.size() > 1) {
-				throw new IllegalStateException(
-						"More than one certification case found for campaign " + campaignOid + ", ID " + caseId);
-			} else if (cases.isEmpty()) {
-				// we need it, because otherwise we have only identifiers for the work item, no data
-				throw new IllegalStateException("No certification case found for campaign " + campaignOid + ", ID " + caseId);
-			}
-			// TODO really use options of 'null' ?
-			AccessCertificationCaseType _case = updateLoadedCertificationCase(cases.get(0), campaignsCache, null, session, operationResult);
-			casePcv = _case.asPrismContainerValue();
-			casesCache.put(caseKey, casePcv);
-		}
-		@SuppressWarnings({"raw", "unchecked"})
-		PrismContainerValue<AccessCertificationWorkItemType> workItemPcv = (PrismContainerValue<AccessCertificationWorkItemType>)
-				casePcv.find(ItemPath.create(AccessCertificationCaseType.F_WORK_ITEM, workItemId));
-		if (workItemPcv == null) {
-			throw new IllegalStateException("No work item " + workItemId + " in " + casePcv);
-		} else {
-			return workItemPcv.asContainerable();
-		}
+        String campaignOid = result.getCampaignOid();
+        Integer caseId = result.getCaseId();
+        Integer workItemId = result.getId();
+        String caseKey = campaignOid + ":" + caseId;
+        PrismContainerValue<AccessCertificationCaseType> casePcv = casesCache.get(caseKey);
+        if (casePcv == null) {
+            ObjectQuery query = prismContext.queryFor(AccessCertificationCaseType.class)
+                    .ownerId(campaignOid)
+                    .and().id(caseId)
+                    .build();
+            RQuery caseQuery = engine.interpret(query, AccessCertificationCaseType.class, null, false, session);
+            @SuppressWarnings({"raw", "unchecked"})
+            List<GetContainerableResult> cases = caseQuery.list();
+            if (cases.size() > 1) {
+                throw new IllegalStateException(
+                        "More than one certification case found for campaign " + campaignOid + ", ID " + caseId);
+            } else if (cases.isEmpty()) {
+                // we need it, because otherwise we have only identifiers for the work item, no data
+                throw new IllegalStateException("No certification case found for campaign " + campaignOid + ", ID " + caseId);
+            }
+            // TODO really use options of 'null' ?
+            AccessCertificationCaseType _case = updateLoadedCertificationCase(cases.get(0), campaignsCache, null, session, operationResult);
+            casePcv = _case.asPrismContainerValue();
+            casesCache.put(caseKey, casePcv);
+        }
+        @SuppressWarnings({"raw", "unchecked"})
+        PrismContainerValue<AccessCertificationWorkItemType> workItemPcv = (PrismContainerValue<AccessCertificationWorkItemType>)
+                casePcv.find(ItemPath.create(AccessCertificationCaseType.F_WORK_ITEM, workItemId));
+        if (workItemPcv == null) {
+            throw new IllegalStateException("No work item " + workItemId + " in " + casePcv);
+        } else {
+            return workItemPcv.asContainerable();
+        }
     }
 
     private PrismObject<AccessCertificationCampaignType> resolveCampaign(String campaignOid, Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache, Session session,
-			OperationResult operationResult) {
+            OperationResult operationResult) {
         PrismObject<AccessCertificationCampaignType> campaign = campaignsCache.get(campaignOid);
         if (campaign != null) {
             return campaign;
@@ -400,7 +400,7 @@ public class CertificationCaseHelper {
         Query query = session.createQuery(cq);
 
         // TODO fetch only XML representation
-		@SuppressWarnings({"raw", "unchecked"})
+        @SuppressWarnings({"raw", "unchecked"})
         List<RAccessCertificationCase> cases = query.list();
         if (cases == null || cases.isEmpty()) {
             return;

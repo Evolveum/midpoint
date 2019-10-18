@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="d3abd794-9c30-11e6-bb5a-af14bf2cc29b"
@@ -12,21 +12,21 @@
     <delegable>true</delegable>
     <idempotence>conservative</idempotence>
     <inducement id="1111">
-    	<construction>
-    		<!-- Dummy CYAN -->
-    		<resourceRef oid="10000000-0000-0000-0000-00000000c204" type="ResourceType"/>
-    		<kind>account</kind>
+        <construction>
+            <!-- Dummy CYAN -->
+            <resourceRef oid="10000000-0000-0000-0000-00000000c204" type="ResourceType"/>
+            <kind>account</kind>
             <attribute>
                 <ref>ri:drink</ref>
                 <outbound>
-                	<expression>
-						<value>grog</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>grog</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#sail</action>
+        <action>http://midpoint.evolveum.com/xml/ns/test/authorization#sail</action>
     </authorization>
 </role>

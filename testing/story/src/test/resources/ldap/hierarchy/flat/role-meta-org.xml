@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -21,40 +21,40 @@
             <intent>group</intent>
         </construction>
     </inducement>
-    
+
     <inducement>
-    	<description>RM-I2</description>
-    	<construction>
-    		<description>RM-I2</description>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<intent>default</intent>
-    		<association>
-            	<ref>ri:group</ref>
-            	<outbound>
-            		<strength>strong</strength>
-            		<expression>
-            			<associationFromLink>
-            				<projectionDiscriminator>
-	            				<kind>entitlement</kind>
-	            				<intent>group</intent>
-            				</projectionDiscriminator>
-            				<recurseUpOrgType>functional</recurseUpOrgType>
-            			</associationFromLink>
-            		</expression>
-            	</outbound>
+        <description>RM-I2</description>
+        <construction>
+            <description>RM-I2</description>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>group</intent>
+                            </projectionDiscriminator>
+                            <recurseUpOrgType>functional</recurseUpOrgType>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
             </association>
-    	</construction>
-    	<order>2</order>
-    	<condition>
-	    <expression>
-	      <script>
-	        <code>
-	          focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.class
-	        </code>
-	      </script>
-	    </expression>
-	  </condition> 
+        </construction>
+        <order>2</order>
+        <condition>
+        <expression>
+          <script>
+            <code>
+              focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.class
+            </code>
+          </script>
+        </expression>
+      </condition>
     </inducement>
-    
+
 </role>

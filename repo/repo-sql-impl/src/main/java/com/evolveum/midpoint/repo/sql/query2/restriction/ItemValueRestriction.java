@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -52,7 +52,7 @@ public abstract class ItemValueRestriction<T extends ValueFilter> extends ItemRe
     @Override
     public Condition interpret() throws QueryException {
 
-    	ItemPath path = getItemPath();
+        ItemPath path = getItemPath();
         if (ItemPath.isEmpty(path)) {
             throw new QueryException("Null or empty path for ItemValueRestriction in " + filter.debugDump());
         }

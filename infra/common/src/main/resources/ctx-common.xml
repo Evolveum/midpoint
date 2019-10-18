@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <beans
@@ -18,18 +18,18 @@
     <context:spring-configured/>
 
     <bean id="matchingRuleRegistry" class="com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory"
-    	factory-method="createRegistry">
+        factory-method="createRegistry">
     </bean>
-    
+
     <bean id="polyStringNormalizerRegistry" class="com.evolveum.midpoint.prism.impl.polystring.PolyStringNormalizerRegistryFactory"
-    	factory-method="createRegistry">
+        factory-method="createRegistry">
     </bean>
 
     <bean id="clock" class="com.evolveum.midpoint.common.Clock">
     </bean>
-    
+
     <bean id="activationComputer" class="com.evolveum.midpoint.common.ActivationComputer">
-    	<property name="clock">
+        <property name="clock">
             <ref bean="clock"/>
         </property>
     </bean>
@@ -39,9 +39,9 @@
     <bean id="messageSource" name="messageSource" class="com.evolveum.midpoint.common.LocalizationMessageSource">
         <constructor-arg ref="localizationService"/>
     </bean>
-    
+
     <bean id="internalsConfigController" class="com.evolveum.midpoint.common.InternalsConfigController">
-    	<property name="midpointConfiguration">
+        <property name="midpointConfiguration">
             <ref bean="midpointConfiguration"/>
         </property>
     </bean>

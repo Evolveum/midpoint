@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.util;
@@ -13,6 +13,6 @@ package com.evolveum.midpoint.util;
 @FunctionalInterface
 public interface Transformer<T,X> {
 
-	X transform(T in);
+    X transform(T in);
 
 }

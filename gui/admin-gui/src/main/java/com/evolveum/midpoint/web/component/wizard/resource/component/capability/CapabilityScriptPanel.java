@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -39,28 +39,28 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
     private static final String ID_T_ON_RESOURCE = "onResourceTooltip";
 
     public CapabilityScriptPanel(String componentId, IModel<CapabilityDto<ScriptCapabilityType>> model, WebMarkupContainer capabilitiesTable,
-			PageResourceWizard parentPage){
+            PageResourceWizard parentPage){
         super(componentId, model);
-		initLayout(capabilitiesTable, parentPage);
+        initLayout(capabilitiesTable, parentPage);
     }
 
     protected void initLayout(final WebMarkupContainer capabilitiesTable, PageResourceWizard parentPage) {
-		parentPage.addEditingEnabledBehavior(this);
+        parentPage.addEditingEnabledBehavior(this);
 
         CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<>(getModel(), "capability.enabled"));
-		enabled.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				target.add(capabilitiesTable);
-			}
-		});
+        enabled.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(capabilitiesTable);
+            }
+        });
         add(enabled);
 
         MultiValueTextPanel onConnector = new MultiValueTextPanel(ID_ON_CONNECTOR, prepareOnConnectorModel(), parentPage.getReadOnlyModel(), true);
         add(onConnector);
 
         MultiValueTextPanel onResource = new MultiValueTextPanel(ID_ON_RESOURCE, Model.of(prepareOnResourceModel()), parentPage.getReadOnlyModel(),
-				true);
+                true);
         add(onResource);
 
         Label enabledTooltip = new Label(ID_T_ENABLED);

@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -38,7 +38,7 @@
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
     <dependencies>
-   		<dependency>
+           <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
             <version>4.0.1-SNAPSHOT</version>
@@ -106,25 +106,25 @@
                 </executions>
             </plugin>
             <plugin>
-		        <artifactId>maven-assembly-plugin</artifactId>
+                <artifactId>maven-assembly-plugin</artifactId>
                 <inherited>false</inherited>
-		        <configuration>
-		          <descriptors>
-		            <descriptor>src/main/assembly/dist.xml</descriptor>
-		          </descriptors>
-		          <finalName>midpoint-${project.version}</finalName>
+                <configuration>
+                  <descriptors>
+                    <descriptor>src/main/assembly/dist.xml</descriptor>
+                  </descriptors>
+                  <finalName>midpoint-${project.version}</finalName>
                     <tarLongFileMode>gnu</tarLongFileMode>
-		        </configuration>
-		        <executions>
-		          <execution>
-		            <id>dist-assembly</id>
-		            <phase>package</phase> <!-- bind to the packaging phase -->
-		            <goals>
-		              <goal>single</goal>
-		            </goals>
-		          </execution>
-		        </executions>
-	        </plugin>
+                </configuration>
+                <executions>
+                  <execution>
+                    <id>dist-assembly</id>
+                    <phase>package</phase> <!-- bind to the packaging phase -->
+                    <goals>
+                      <goal>single</goal>
+                    </goals>
+                  </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
     <modules>

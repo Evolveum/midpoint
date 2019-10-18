@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.notifications.impl;
@@ -67,7 +67,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
     public static final String CHANGES_DIR_NAME = "src/test/resources/changes";
     public static final String USER_JACK_MODIFICATION_FILE = CHANGES_DIR_NAME + "/user-jack-modification.xml";
 
-	protected static final List<ItemPath> auxiliaryPaths = Arrays.asList(
+    protected static final List<ItemPath> auxiliaryPaths = Arrays.asList(
             UserType.F_FAMILY_NAME,               // for testing purposes
             ShadowType.F_METADATA,
             ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),
@@ -131,16 +131,16 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         System.out.println("hide auxiliary paths + hide operational attributes: " + jackFormattedHideAuxAndOper);
 
         // THEN
-        // if fails with hidden operational attribute when it should be shown ('hide none'), check the schema.properties 
-		final String CREATE_TIMESTAMP = "Created at:";
-		final String EFFECTIVE_STATUS = "Effective status: ENABLED";
-		final String FAMILY_NAME = "Family name: Sparrow";
-		final String SHIP = "ship: Black Pearl";
+        // if fails with hidden operational attribute when it should be shown ('hide none'), check the schema.properties
+        final String CREATE_TIMESTAMP = "Created at:";
+        final String EFFECTIVE_STATUS = "Effective status: ENABLED";
+        final String FAMILY_NAME = "Family name: Sparrow";
+        final String SHIP = "ship: Black Pearl";
 
-		assertTrue("hidden operational attribute when it should be shown ('hide none')", jackFormattedHideNone.contains(CREATE_TIMESTAMP));
-		assertTrue("hidden auxiliary attribute (effective status) when it should be shown ('hide none')", jackFormattedHideNone.contains(EFFECTIVE_STATUS));
-		assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide none')", jackFormattedHideNone.contains(FAMILY_NAME));
-		assertTrue("hidden standard attribute when it should be shown ('hide none')", jackFormattedHideNone.contains(SHIP));
+        assertTrue("hidden operational attribute when it should be shown ('hide none')", jackFormattedHideNone.contains(CREATE_TIMESTAMP));
+        assertTrue("hidden auxiliary attribute (effective status) when it should be shown ('hide none')", jackFormattedHideNone.contains(EFFECTIVE_STATUS));
+        assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide none')", jackFormattedHideNone.contains(FAMILY_NAME));
+        assertTrue("hidden standard attribute when it should be shown ('hide none')", jackFormattedHideNone.contains(SHIP));
 
         assertTrue("shown operational attribute when it should be hidden ('hide oper')", !jackFormattedHideOper.contains(CREATE_TIMESTAMP));
         assertTrue("shown operational attribute when it should be shown ('hide oper')", !jackFormattedHideOper.contains(EFFECTIVE_STATUS));
@@ -189,8 +189,8 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         checkNotes(deltaFormattedHideAuxAndOper);
         checkNotes(deltaFormattedHideNone);
         checkNotes(deltaFormattedHideOper);
-        
-        // if fails with hidden operational attribute when it should be shown ('hide none'), check the schema.properties  
+
+        // if fails with hidden operational attribute when it should be shown ('hide none'), check the schema.properties
         final String CREATE_TIMESTAMP = "Created at:";
 
         assertTrue("hidden operational attribute when it should be shown ('hide none')", deltaFormattedHideNone.contains(CREATE_TIMESTAMP));
@@ -245,15 +245,15 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
 
         // THEN
 
-		final String NAME = "Name: jack";
-		final String PASSWORD = "(protected string)";
-		final String ADMINISTRATIVE_STATUS = "Administrative status: ENABLED";
-		final String EFFECTIVE_STATUS = "Effective status: ENABLED";
+        final String NAME = "Name: jack";
+        final String PASSWORD = "(protected string)";
+        final String ADMINISTRATIVE_STATUS = "Administrative status: ENABLED";
+        final String EFFECTIVE_STATUS = "Effective status: ENABLED";
 
-		assertTrue("account name is not shown", jackFormattedHideNone.contains(NAME));
-		assertTrue("account password is not shown", jackFormattedHideNone.contains(PASSWORD));
-		assertTrue("administrative status is not shown", jackFormattedHideNone.contains(ADMINISTRATIVE_STATUS));
-		assertTrue("effective status is not shown", jackFormattedHideNone.contains(EFFECTIVE_STATUS));
+        assertTrue("account name is not shown", jackFormattedHideNone.contains(NAME));
+        assertTrue("account password is not shown", jackFormattedHideNone.contains(PASSWORD));
+        assertTrue("administrative status is not shown", jackFormattedHideNone.contains(ADMINISTRATIVE_STATUS));
+        assertTrue("effective status is not shown", jackFormattedHideNone.contains(EFFECTIVE_STATUS));
 
         assertTrue("account name is not shown", jackFormattedHideAux.contains(NAME));
         assertTrue("account password is not shown", jackFormattedHideAux.contains(PASSWORD));

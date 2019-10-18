@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.parser;
@@ -39,296 +39,296 @@ import static org.testng.AssertJUnit.assertNull;
  */
 public class TestParseUserPolyString extends AbstractObjectParserTest<UserType> {
 
-	@Override
-	protected File getFile() {
-		return getFile(USER_JACK_POLYSTRING_FILE_BASENAME);
-	}
+    @Override
+    protected File getFile() {
+        return getFile(USER_JACK_POLYSTRING_FILE_BASENAME);
+    }
 
-	@Test
-	public void testParseFileAsPCV() throws Exception {
-		displayTestTitle("testParseFileAsPCV");
-		processParsingsPCV(null, null);
-	}
+    @Test
+    public void testParseFileAsPCV() throws Exception {
+        displayTestTitle("testParseFileAsPCV");
+        processParsingsPCV(null, null);
+    }
 
-	@Test
-	public void testParseFileAsPO() throws Exception {
-		displayTestTitle("testParseFileAsPO");
-		processParsingsPO(null, null, true);
-	}
+    @Test
+    public void testParseFileAsPO() throws Exception {
+        displayTestTitle("testParseFileAsPO");
+        processParsingsPO(null, null, true);
+    }
 
-	@Test
-	public void testParseRoundTripAsPCV() throws Exception {
-		displayTestTitle("testParseRoundTripAsPCV");
+    @Test
+    public void testParseRoundTripAsPCV() throws Exception {
+        displayTestTitle("testParseRoundTripAsPCV");
 
-		SerializationOptions o = SerializationOptions.createSerializeReferenceNames();
-		processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).serialize(v), "s0");
-		processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serialize(v), "s1");
-		processParsingsPCV(
-				v -> getPrismContext().serializerFor(language).options(o).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION)
-						.serialize(v), "s2");        // misleading item name
-		processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).serializeRealValue(v.asContainerable()),
-				"s3");
-		processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy"))
-				.serializeAnyData(v.asContainerable()), "s4");
-	}
+        SerializationOptions o = SerializationOptions.createSerializeReferenceNames();
+        processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).serialize(v), "s0");
+        processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serialize(v), "s1");
+        processParsingsPCV(
+                v -> getPrismContext().serializerFor(language).options(o).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION)
+                        .serialize(v), "s2");        // misleading item name
+        processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).serializeRealValue(v.asContainerable()),
+                "s3");
+        processParsingsPCV(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy"))
+                .serializeAnyData(v.asContainerable()), "s4");
+    }
 
-	@Test
-	public void testParseRoundTripAsPO() throws Exception {
-		displayTestTitle("testParseRoundTripAsPO");
+    @Test
+    public void testParseRoundTripAsPO() throws Exception {
+        displayTestTitle("testParseRoundTripAsPO");
 
-		SerializationOptions o = SerializationOptions.createSerializeReferenceNames();
-		processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).serialize(v), "s0", true);
-		processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serialize(v), "s1",
-				false);
-		processParsingsPO(
-				v -> getPrismContext().serializerFor(language).options(o).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION)
-						.serialize(v), "s2", false);        // misleading item name
-		processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).serializeRealValue(v.asObjectable()), "s3",
-				false);
-		processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy"))
-				.serializeAnyData(v.asObjectable()), "s4", false);
-	}
+        SerializationOptions o = SerializationOptions.createSerializeReferenceNames();
+        processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).serialize(v), "s0", true);
+        processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serialize(v), "s1",
+                false);
+        processParsingsPO(
+                v -> getPrismContext().serializerFor(language).options(o).root(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION)
+                        .serialize(v), "s2", false);        // misleading item name
+        processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).serializeRealValue(v.asObjectable()), "s3",
+                false);
+        processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy"))
+                .serializeAnyData(v.asObjectable()), "s4", false);
+    }
 
-	@Test
-	public void testSkipItems() throws SchemaException, IOException {
-		PrismContext prismContext = getPrismContext();
-		PrismObject<UserType> jack = prismContext.parserFor(getFile()).language(language).parse();
-		String serialized = prismContext.serializerFor(language)
-				.itemsToSkip(Arrays.asList(UserType.F_ORGANIZATIONAL_UNIT, UserType.F_LINK_REF, UserType.F_ASSIGNMENT))
-				.options(SerializationOptions.createSkipIndexOnly())
-				.serialize(jack);
-		System.out.println("Serialization with org unit, linkRef and assignment skipped:\n" + serialized);
-		PrismObject<UserType> jackReparsed = prismContext.parserFor(serialized).language(language).parse();
-		assertEquals("Wrong # of org units", 0, jackReparsed.asObjectable().getOrganizationalUnit().size());
-		assertEquals("Wrong # of assignments", 0, jackReparsed.asObjectable().getAssignment().size());
-		assertEquals("Wrong # of links", 0, jackReparsed.asObjectable().getLinkRef().size());
-		assertNotNull("ext:stringType is not present", jackReparsed.getExtensionContainerValue().find(new ItemName("stringType")));
-		assertNull("ext:hidden is present", jackReparsed.getExtensionContainerValue().find(new ItemName("hidden")));
-	}
+    @Test
+    public void testSkipItems() throws SchemaException, IOException {
+        PrismContext prismContext = getPrismContext();
+        PrismObject<UserType> jack = prismContext.parserFor(getFile()).language(language).parse();
+        String serialized = prismContext.serializerFor(language)
+                .itemsToSkip(Arrays.asList(UserType.F_ORGANIZATIONAL_UNIT, UserType.F_LINK_REF, UserType.F_ASSIGNMENT))
+                .options(SerializationOptions.createSkipIndexOnly())
+                .serialize(jack);
+        System.out.println("Serialization with org unit, linkRef and assignment skipped:\n" + serialized);
+        PrismObject<UserType> jackReparsed = prismContext.parserFor(serialized).language(language).parse();
+        assertEquals("Wrong # of org units", 0, jackReparsed.asObjectable().getOrganizationalUnit().size());
+        assertEquals("Wrong # of assignments", 0, jackReparsed.asObjectable().getAssignment().size());
+        assertEquals("Wrong # of links", 0, jackReparsed.asObjectable().getLinkRef().size());
+        assertNotNull("ext:stringType is not present", jackReparsed.getExtensionContainerValue().find(new ItemName("stringType")));
+        assertNull("ext:hidden is present", jackReparsed.getExtensionContainerValue().find(new ItemName("hidden")));
+    }
 
-	private void processParsingsPCV(SerializingFunction<PrismContainerValue<UserType>> serializer, String serId)
-			throws Exception {
-		processParsings(UserType.class, null, UserType.COMPLEX_TYPE, null, serializer, serId);
-	}
+    private void processParsingsPCV(SerializingFunction<PrismContainerValue<UserType>> serializer, String serId)
+            throws Exception {
+        processParsings(UserType.class, null, UserType.COMPLEX_TYPE, null, serializer, serId);
+    }
 
-	private void processParsingsPO(SerializingFunction<PrismObject<UserType>> serializer, String serId, boolean checkItemName)
-			throws Exception {
-		processObjectParsings(UserType.class, UserType.COMPLEX_TYPE, serializer, serId, checkItemName);
-	}
+    private void processParsingsPO(SerializingFunction<PrismObject<UserType>> serializer, String serId, boolean checkItemName)
+            throws Exception {
+        processObjectParsings(UserType.class, UserType.COMPLEX_TYPE, serializer, serId, checkItemName);
+    }
 
-	@Override
-	protected void assertPrismContainerValueLocal(PrismContainerValue<UserType> value) throws SchemaException {
-		PrismObject user = value.asContainerable().asPrismObject();
-		user.checkConsistence();
-		assertUserPrism(user, false);
-		assertUserJaxb(value.asContainerable(), false);
-	}
+    @Override
+    protected void assertPrismContainerValueLocal(PrismContainerValue<UserType> value) throws SchemaException {
+        PrismObject user = value.asContainerable().asPrismObject();
+        user.checkConsistence();
+        assertUserPrism(user, false);
+        assertUserJaxb(value.asContainerable(), false);
+    }
 
-	@Override
-	protected void assertPrismObjectLocal(PrismObject<UserType> user) throws SchemaException {
-		assertUserPrism(user, true);
-		assertUserJaxb(user.asObjectable(), true);
-		user.checkConsistence(true, true);
-	}
+    @Override
+    protected void assertPrismObjectLocal(PrismObject<UserType> user) throws SchemaException {
+        assertUserPrism(user, true);
+        assertUserJaxb(user.asObjectable(), true);
+        user.checkConsistence(true, true);
+    }
 
-	void assertUserPrism(PrismObject<UserType> user, boolean isObject) {
+    void assertUserPrism(PrismObject<UserType> user, boolean isObject) {
 
-		if (isObject) {
-			assertEquals("Wrong oid", "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", user.getOid());
-		}
-		//		assertEquals("Wrong version", "42", user.getVersion());
-		PrismObjectDefinition<UserType> usedDefinition = user.getDefinition();
-		assertNotNull("No user definition", usedDefinition);
-		PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "user"),
-				UserType.COMPLEX_TYPE, UserType.class);
-		assertEquals("Wrong class in user", UserType.class, user.getCompileTimeClass());
-		UserType userType = user.asObjectable();
-		assertNotNull("asObjectable resulted in null", userType);
+        if (isObject) {
+            assertEquals("Wrong oid", "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", user.getOid());
+        }
+        //        assertEquals("Wrong version", "42", user.getVersion());
+        PrismObjectDefinition<UserType> usedDefinition = user.getDefinition();
+        assertNotNull("No user definition", usedDefinition);
+        PrismAsserts.assertObjectDefinition(usedDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "user"),
+                UserType.COMPLEX_TYPE, UserType.class);
+        assertEquals("Wrong class in user", UserType.class, user.getCompileTimeClass());
+        UserType userType = user.asObjectable();
+        assertNotNull("asObjectable resulted in null", userType);
 
-		assertPropertyValue(user, "name", getExpectedName());
-		assertPropertyDefinition(user, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
-		assertPropertyValue(user, "fullName", new PolyString("Jack Sparrow", "jack sparrow"));
-		assertPropertyDefinition(user, "fullName", PolyStringType.COMPLEX_TYPE, 0, 1);
-		assertPropertyValue(user, "givenName", new PolyString("Jack", "jack"));
-		assertPropertyDefinition(user, "givenName", PolyStringType.COMPLEX_TYPE, 0, 1);
-		assertPropertyValue(user, "familyName", new PolyString("Sparrow", "sparrow"));
-		assertPropertyDefinition(user, "familyName", PolyStringType.COMPLEX_TYPE, 0, 1);
+        assertPropertyValue(user, "name", getExpectedName());
+        assertPropertyDefinition(user, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
+        assertPropertyValue(user, "fullName", new PolyString("Jack Sparrow", "jack sparrow"));
+        assertPropertyDefinition(user, "fullName", PolyStringType.COMPLEX_TYPE, 0, 1);
+        assertPropertyValue(user, "givenName", new PolyString("Jack", "jack"));
+        assertPropertyDefinition(user, "givenName", PolyStringType.COMPLEX_TYPE, 0, 1);
+        assertPropertyValue(user, "familyName", new PolyString("Sparrow", "sparrow"));
+        assertPropertyDefinition(user, "familyName", PolyStringType.COMPLEX_TYPE, 0, 1);
 
-		assertPropertyDefinition(user, "organizationalUnit", PolyStringType.COMPLEX_TYPE, 0, -1);
-		assertPropertyValues(user, "organizationalUnit",
-				new PolyString("Brethren of the Coast", "brethren of the coast"),
-				new PolyString("Davie Jones' Locker", "davie jones locker"));
+        assertPropertyDefinition(user, "organizationalUnit", PolyStringType.COMPLEX_TYPE, 0, -1);
+        assertPropertyValues(user, "organizationalUnit",
+                new PolyString("Brethren of the Coast", "brethren of the coast"),
+                new PolyString("Davie Jones' Locker", "davie jones locker"));
 
-		//		PrismContainer extension = user.getExtension();
-		//		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
-		//		PrismContainerValue extensionValue = extension.getValue();
-		//		assertTrue("Extension parent", extensionValue.getParent() == extension);
-		//		assertNull("Extension ID", extensionValue.getId());
+        //        PrismContainer extension = user.getExtension();
+        //        assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
+        //        PrismContainerValue extensionValue = extension.getValue();
+        //        assertTrue("Extension parent", extensionValue.getParent() == extension);
+        //        assertNull("Extension ID", extensionValue.getId());
 
-		ItemPath admStatusPath = ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-		PrismProperty<ActivationStatusType> admStatusProperty1 = user.findProperty(admStatusPath);
-		PrismAsserts.assertDefinition(admStatusProperty1.getDefinition(), ActivationType.F_ADMINISTRATIVE_STATUS,
-				SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
-		assertNotNull("Property " + admStatusPath + " not found", admStatusProperty1);
-		PrismAsserts.assertPropertyValue(admStatusProperty1, ActivationStatusType.ENABLED);
+        ItemPath admStatusPath = ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+        PrismProperty<ActivationStatusType> admStatusProperty1 = user.findProperty(admStatusPath);
+        PrismAsserts.assertDefinition(admStatusProperty1.getDefinition(), ActivationType.F_ADMINISTRATIVE_STATUS,
+                SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
+        assertNotNull("Property " + admStatusPath + " not found", admStatusProperty1);
+        PrismAsserts.assertPropertyValue(admStatusProperty1, ActivationStatusType.ENABLED);
 
-		//		PrismProperty validFromProperty = user.findProperty(new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM));
-		//		assertNotNull("Property "+ActivationType.F_VALID_FROM+" not found", validFromProperty);
-		//		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
+        //        PrismProperty validFromProperty = user.findProperty(new PropertyPath(UserType.F_ACTIVATION, ActivationType.F_VALID_FROM));
+        //        assertNotNull("Property "+ActivationType.F_VALID_FROM+" not found", validFromProperty);
+        //        PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
 
-		PrismContainer<AssignmentType> assignmentContainer = user.findContainer(UserType.F_ASSIGNMENT);
-		PrismAsserts
-				.assertDefinition(assignmentContainer.getDefinition(), UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
-		assertEquals("Wrong number of assignment values", 1, assignmentContainer.getValues().size());
-		PrismContainerValue<AssignmentType> firstAssignmentValue = assignmentContainer.getValues().iterator().next();
+        PrismContainer<AssignmentType> assignmentContainer = user.findContainer(UserType.F_ASSIGNMENT);
+        PrismAsserts
+                .assertDefinition(assignmentContainer.getDefinition(), UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
+        assertEquals("Wrong number of assignment values", 1, assignmentContainer.getValues().size());
+        PrismContainerValue<AssignmentType> firstAssignmentValue = assignmentContainer.getValues().iterator().next();
 
-		PrismContainer<Containerable> assignmentExtensionContainer = firstAssignmentValue
-				.findContainer(AssignmentType.F_EXTENSION);
-		PrismAsserts.assertDefinition(assignmentExtensionContainer.getDefinition(), AssignmentType.F_EXTENSION,
-				ExtensionType.COMPLEX_TYPE, 0, 1);
-		Collection<Item<?, ?>> assignmentExtensionItems = assignmentExtensionContainer.getValue().getItems();
-		assertNotNull("No assignment extension items", assignmentExtensionItems);
-		assertEquals("Wrong number of assignment extension items", 1, assignmentExtensionItems.size());
-		PrismProperty<String> firstAssignmentExtensionItem = (PrismProperty<String>) assignmentExtensionItems.iterator().next();
-		PrismAsserts
-				.assertDefinition(firstAssignmentExtensionItem.getDefinition(), EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INT, 0,
-						-1);
-		PrismPropertyValue<String> firstValueOfFirstAssignmentExtensionItem = firstAssignmentExtensionItem.getValues().get(0);
-		assertEquals("Wrong value of " + EXTENSION_INT_TYPE_ELEMENT + " in assignment extension", 42,
-				firstValueOfFirstAssignmentExtensionItem.getValue());
+        PrismContainer<Containerable> assignmentExtensionContainer = firstAssignmentValue
+                .findContainer(AssignmentType.F_EXTENSION);
+        PrismAsserts.assertDefinition(assignmentExtensionContainer.getDefinition(), AssignmentType.F_EXTENSION,
+                ExtensionType.COMPLEX_TYPE, 0, 1);
+        Collection<Item<?, ?>> assignmentExtensionItems = assignmentExtensionContainer.getValue().getItems();
+        assertNotNull("No assignment extension items", assignmentExtensionItems);
+        assertEquals("Wrong number of assignment extension items", 1, assignmentExtensionItems.size());
+        PrismProperty<String> firstAssignmentExtensionItem = (PrismProperty<String>) assignmentExtensionItems.iterator().next();
+        PrismAsserts
+                .assertDefinition(firstAssignmentExtensionItem.getDefinition(), EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INT, 0,
+                        -1);
+        PrismPropertyValue<String> firstValueOfFirstAssignmentExtensionItem = firstAssignmentExtensionItem.getValues().get(0);
+        assertEquals("Wrong value of " + EXTENSION_INT_TYPE_ELEMENT + " in assignment extension", 42,
+                firstValueOfFirstAssignmentExtensionItem.getValue());
 
-		PrismContainer<Containerable> constructionContainer = firstAssignmentValue.findContainer(AssignmentType.F_CONSTRUCTION);
-		PrismAsserts.assertDefinition(constructionContainer.getDefinition(), AssignmentType.F_CONSTRUCTION,
-				ConstructionType.COMPLEX_TYPE, 0, 1);
-		Collection<Item<?, ?>> constructionItems = constructionContainer.getValue().getItems();
-		assertNotNull("No construction items", constructionItems);
-		assertEquals("Wrong number of construction items", 1, constructionItems.size());
-		PrismReference firstConstructionItem = (PrismReference) constructionItems.iterator().next();
-		PrismAsserts.assertDefinition(firstConstructionItem.getDefinition(), ConstructionType.F_RESOURCE_REF,
-				ObjectReferenceType.COMPLEX_TYPE, 0, 1);
-		PrismReferenceValue firstValueOfFirstConstructionItem = firstConstructionItem.getValues().get(0);
-		assertEquals("Wrong resource name", "resource1", PolyString.getOrig(firstValueOfFirstConstructionItem.getTargetName()));
+        PrismContainer<Containerable> constructionContainer = firstAssignmentValue.findContainer(AssignmentType.F_CONSTRUCTION);
+        PrismAsserts.assertDefinition(constructionContainer.getDefinition(), AssignmentType.F_CONSTRUCTION,
+                ConstructionType.COMPLEX_TYPE, 0, 1);
+        Collection<Item<?, ?>> constructionItems = constructionContainer.getValue().getItems();
+        assertNotNull("No construction items", constructionItems);
+        assertEquals("Wrong number of construction items", 1, constructionItems.size());
+        PrismReference firstConstructionItem = (PrismReference) constructionItems.iterator().next();
+        PrismAsserts.assertDefinition(firstConstructionItem.getDefinition(), ConstructionType.F_RESOURCE_REF,
+                ObjectReferenceType.COMPLEX_TYPE, 0, 1);
+        PrismReferenceValue firstValueOfFirstConstructionItem = firstConstructionItem.getValues().get(0);
+        assertEquals("Wrong resource name", "resource1", PolyString.getOrig(firstValueOfFirstConstructionItem.getTargetName()));
 
-		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
-		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
-		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_1_OID);
-		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_2_OID);
-		PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_3_OID);
+        PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
+        assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
+        PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_1_OID);
+        PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_2_OID);
+        PrismAsserts.assertReferenceValue(accountRef, USER_ACCOUNT_REF_3_OID);
 
-		PrismReferenceValue accountRef1Val = accountRef.findValueByOid(USER_ACCOUNT_REF_1_OID);
-		assertEquals("Wrong ref1 oid (prism)", USER_ACCOUNT_REF_1_OID, accountRef1Val.getOid());
-		assertEquals("Wrong ref1 type (prism)", ShadowType.COMPLEX_TYPE, accountRef1Val.getTargetType());
+        PrismReferenceValue accountRef1Val = accountRef.findValueByOid(USER_ACCOUNT_REF_1_OID);
+        assertEquals("Wrong ref1 oid (prism)", USER_ACCOUNT_REF_1_OID, accountRef1Val.getOid());
+        assertEquals("Wrong ref1 type (prism)", ShadowType.COMPLEX_TYPE, accountRef1Val.getTargetType());
 
-		PrismReferenceValue accountRef3Val = accountRef.findValueByOid(USER_ACCOUNT_REF_3_OID);
-		assertEquals("Wrong ref3 oid (prism)", USER_ACCOUNT_REF_3_OID, accountRef3Val.getOid());
-		assertEquals("Wrong ref3 type (prism)", ShadowType.COMPLEX_TYPE, accountRef3Val.getTargetType());
-		assertEquals("Wrong ref3 description (prism)", "This is third accountRef", accountRef3Val.getDescription());
-		SearchFilterType accountRef3ValFilterElement = accountRef3Val.getFilter();
-		assertFilter("ref3", accountRef3ValFilterElement);
-	}
+        PrismReferenceValue accountRef3Val = accountRef.findValueByOid(USER_ACCOUNT_REF_3_OID);
+        assertEquals("Wrong ref3 oid (prism)", USER_ACCOUNT_REF_3_OID, accountRef3Val.getOid());
+        assertEquals("Wrong ref3 type (prism)", ShadowType.COMPLEX_TYPE, accountRef3Val.getTargetType());
+        assertEquals("Wrong ref3 description (prism)", "This is third accountRef", accountRef3Val.getDescription());
+        SearchFilterType accountRef3ValFilterElement = accountRef3Val.getFilter();
+        assertFilter("ref3", accountRef3ValFilterElement);
+    }
 
-	@NotNull
-	private PolyString getExpectedName() {
-		Map<String, String> expectedLangMap = new HashMap<>();
-		expectedLangMap.put("sk", "Ivan");
-		expectedLangMap.put("pl", "Iwan");
-		return new PolyString("Jack", "jack", new PolyStringTranslationType().key("Users.jack"),
-				expectedLangMap);
-	}
+    @NotNull
+    private PolyString getExpectedName() {
+        Map<String, String> expectedLangMap = new HashMap<>();
+        expectedLangMap.put("sk", "Ivan");
+        expectedLangMap.put("pl", "Iwan");
+        return new PolyString("Jack", "jack", new PolyStringTranslationType().key("Users.jack"),
+                expectedLangMap);
+    }
 
-	private void assertFilterElement(String message, Element filterElement) {
-		assertNotNull("No " + message + " filter", filterElement);
-		System.out.println("Filter element " + message);
-		System.out.println(DOMUtil.serializeDOMToString(filterElement));
-		if (namespaces) {
-			assertEquals("Wrong " + message + " filter namespace", PrismConstants.NS_QUERY, filterElement.getNamespaceURI());
-		}
-		assertEquals("Wrong " + message + " filter localName", "equal", filterElement.getLocalName());
-	}
+    private void assertFilterElement(String message, Element filterElement) {
+        assertNotNull("No " + message + " filter", filterElement);
+        System.out.println("Filter element " + message);
+        System.out.println(DOMUtil.serializeDOMToString(filterElement));
+        if (namespaces) {
+            assertEquals("Wrong " + message + " filter namespace", PrismConstants.NS_QUERY, filterElement.getNamespaceURI());
+        }
+        assertEquals("Wrong " + message + " filter localName", "equal", filterElement.getLocalName());
+    }
 
-	private void assertFilter(String message, SearchFilterType filter) {
-		assertNotNull("No " + message + " filter", filter);
-	}
+    private void assertFilter(String message, SearchFilterType filter) {
+        assertNotNull("No " + message + " filter", filter);
+    }
 
-	private void assertUserJaxb(UserType userType, boolean isObject) throws SchemaException {
-		assertEquals("Wrong name", new PolyStringType(getExpectedName()), userType.getName());
-		assertEquals("Wrong fullName (orig)", "Jack Sparrow", userType.getFullName().getOrig());
-		assertEquals("Wrong fullName (norm)", "jack sparrow", userType.getFullName().getNorm());
-		assertEquals("Wrong givenName (orig)", "Jack", userType.getGivenName().getOrig());
-		assertEquals("Wrong givenName (norm)", "jack", userType.getGivenName().getNorm());
-		assertEquals("Wrong familyName (orig)", "Sparrow", userType.getFamilyName().getOrig());
-		assertEquals("Wrong familyName (norm)", "sparrow", userType.getFamilyName().getNorm());
+    private void assertUserJaxb(UserType userType, boolean isObject) throws SchemaException {
+        assertEquals("Wrong name", new PolyStringType(getExpectedName()), userType.getName());
+        assertEquals("Wrong fullName (orig)", "Jack Sparrow", userType.getFullName().getOrig());
+        assertEquals("Wrong fullName (norm)", "jack sparrow", userType.getFullName().getNorm());
+        assertEquals("Wrong givenName (orig)", "Jack", userType.getGivenName().getOrig());
+        assertEquals("Wrong givenName (norm)", "jack", userType.getGivenName().getNorm());
+        assertEquals("Wrong familyName (orig)", "Sparrow", userType.getFamilyName().getOrig());
+        assertEquals("Wrong familyName (norm)", "sparrow", userType.getFamilyName().getNorm());
 
-		ActivationType activation = userType.getActivation();
-		assertNotNull("No activation", activation);
-		assertEquals("User not enabled", ActivationStatusType.ENABLED, activation.getAdministrativeStatus());
+        ActivationType activation = userType.getActivation();
+        assertNotNull("No activation", activation);
+        assertEquals("User not enabled", ActivationStatusType.ENABLED, activation.getAdministrativeStatus());
 
-		List<ObjectReferenceType> accountRefs = userType.getLinkRef();
-		assertNotNull("No accountRef list", accountRefs);
-		assertEquals("Wrong number of list entries", 3, accountRefs.size());
+        List<ObjectReferenceType> accountRefs = userType.getLinkRef();
+        assertNotNull("No accountRef list", accountRefs);
+        assertEquals("Wrong number of list entries", 3, accountRefs.size());
 
-		ObjectReferenceType ref1 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_1_OID, accountRefs);
-		assertEquals("Wrong ref1 oid (jaxb)", USER_ACCOUNT_REF_1_OID, ref1.getOid());
-		assertEquals("Wrong ref1 type (jaxb)", ShadowType.COMPLEX_TYPE, ref1.getType());
+        ObjectReferenceType ref1 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_1_OID, accountRefs);
+        assertEquals("Wrong ref1 oid (jaxb)", USER_ACCOUNT_REF_1_OID, ref1.getOid());
+        assertEquals("Wrong ref1 type (jaxb)", ShadowType.COMPLEX_TYPE, ref1.getType());
 
-		ObjectReferenceType ref2 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_2_OID, accountRefs);
-		assertEquals("Wrong ref2 oid (jaxb)", USER_ACCOUNT_REF_2_OID, ref2.getOid());
-		assertEquals("Wrong ref2 type (jaxb)", ShadowType.COMPLEX_TYPE, ref2.getType());
+        ObjectReferenceType ref2 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_2_OID, accountRefs);
+        assertEquals("Wrong ref2 oid (jaxb)", USER_ACCOUNT_REF_2_OID, ref2.getOid());
+        assertEquals("Wrong ref2 type (jaxb)", ShadowType.COMPLEX_TYPE, ref2.getType());
 
-		ObjectReferenceType ref3 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_3_OID, accountRefs);
-		assertEquals("Wrong ref3 oid (jaxb)", USER_ACCOUNT_REF_3_OID, ref3.getOid());
-		assertEquals("Wrong ref3 type (jaxb)", ShadowType.COMPLEX_TYPE, ref3.getType());
-		SearchFilterType ref3Filter = ref3.getFilter();
-		assertNotNull("No ref3 filter (jaxb,class)", ref3Filter);
-		assertFilterElement("ref filter (jaxb)", ref3Filter.getFilterClauseAsElement(getPrismContext()));
-	}
+        ObjectReferenceType ref3 = ObjectTypeUtil.findRef(USER_ACCOUNT_REF_3_OID, accountRefs);
+        assertEquals("Wrong ref3 oid (jaxb)", USER_ACCOUNT_REF_3_OID, ref3.getOid());
+        assertEquals("Wrong ref3 type (jaxb)", ShadowType.COMPLEX_TYPE, ref3.getType());
+        SearchFilterType ref3Filter = ref3.getFilter();
+        assertNotNull("No ref3 filter (jaxb,class)", ref3Filter);
+        assertFilterElement("ref filter (jaxb)", ref3Filter.getFilterClauseAsElement(getPrismContext()));
+    }
 
-	@Test
-	public void testPrismConsistency() throws Exception {
+    @Test
+    public void testPrismConsistency() throws Exception {
 
-		System.out.println("===[ testPrismConsistency ]===");
+        System.out.println("===[ testPrismConsistency ]===");
 
-		// GIVEN
-		PrismContext ctx = getPrismContext();
-		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(UserType.class);
+        // GIVEN
+        PrismContext ctx = getPrismContext();
+        PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class);
 
-		// WHEN
-		PrismObject<UserType> user = userDefinition.instantiate();
-		user.setOid("12345");
+        // WHEN
+        PrismObject<UserType> user = userDefinition.instantiate();
+        user.setOid("12345");
 
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
+        // THEN
+        System.out.println("User:");
+        System.out.println(user.debugDump());
 
-		System.out.println("Checking consistency, 1st time.");
-		user.checkConsistence();
-		UserType userType = user.getValue().getValue();
+        System.out.println("Checking consistency, 1st time.");
+        user.checkConsistence();
+        UserType userType = user.getValue().getValue();
 
-		System.out.println("Checking consistency, 2nd time - after getValue().getValue().");
-		user.checkConsistence();
+        System.out.println("Checking consistency, 2nd time - after getValue().getValue().");
+        user.checkConsistence();
 
-		System.out.println("OK.");
-	}
+        System.out.println("OK.");
+    }
 
-	// should be in some other test, but... :)
-	@Test
-	public void testPolyStringInDelta() throws Exception {
-		PrismContext ctx = getPrismContext();
-		ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
-		odo.setObjectName(new PolyStringType(getExpectedName()));
-		testDeltaInLanguage(ctx, odo, PrismContext.LANG_XML);
-		testDeltaInLanguage(ctx, odo, PrismContext.LANG_JSON);
-		testDeltaInLanguage(ctx, odo, PrismContext.LANG_YAML);
-	}
+    // should be in some other test, but... :)
+    @Test
+    public void testPolyStringInDelta() throws Exception {
+        PrismContext ctx = getPrismContext();
+        ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
+        odo.setObjectName(new PolyStringType(getExpectedName()));
+        testDeltaInLanguage(ctx, odo, PrismContext.LANG_XML);
+        testDeltaInLanguage(ctx, odo, PrismContext.LANG_JSON);
+        testDeltaInLanguage(ctx, odo, PrismContext.LANG_YAML);
+    }
 
-	private void testDeltaInLanguage(PrismContext ctx, ObjectDeltaOperationType odo, String language) throws SchemaException {
-		String data = ctx.serializerFor(language).serializeRealValue(odo, new QName(SchemaConstants.NS_C, "odo"));
-		System.out.println(data);
-		ObjectDeltaOperationType odoParsed = ctx.parserFor(data).language(language).parseRealValue(ObjectDeltaOperationType.class);
-		assertEquals("Object does not match after parsing", odo, odoParsed);
-		System.out.println(odo.getObjectName().toPolyString().debugDump());
-		System.out.println(odoParsed.getObjectName().toPolyString().debugDump());
-		assertEquals("Wrong objectName", getExpectedName(), odoParsed.getObjectName().toPolyString());
-	}
+    private void testDeltaInLanguage(PrismContext ctx, ObjectDeltaOperationType odo, String language) throws SchemaException {
+        String data = ctx.serializerFor(language).serializeRealValue(odo, new QName(SchemaConstants.NS_C, "odo"));
+        System.out.println(data);
+        ObjectDeltaOperationType odoParsed = ctx.parserFor(data).language(language).parseRealValue(ObjectDeltaOperationType.class);
+        assertEquals("Object does not match after parsing", odo, odoParsed);
+        System.out.println(odo.getObjectName().toPolyString().debugDump());
+        System.out.println(odoParsed.getObjectName().toPolyString().debugDump());
+        assertEquals("Wrong objectName", getExpectedName(), odoParsed.getObjectName().toPolyString());
+    }
 }

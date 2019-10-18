@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="024e204d-ce40-4fe9-ae5a-0da3cbce989a"
@@ -12,14 +12,14 @@
     <name>Screaming</name>
     <description>Role that creates a notification each time it is assigned</description>
     <assignment>
-    	<policyRule>
-    		<name>screaming when assigned</name>
-    		<policyConstraints>
-		    	<assignment/>
-		    </policyConstraints>
-		    <policyActions>
-				<notification/>
-		    </policyActions>
-    	</policyRule>
+        <policyRule>
+            <name>screaming when assigned</name>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <notification/>
+            </policyActions>
+        </policyRule>
     </assignment>
 </role>

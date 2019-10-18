@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,64 +29,64 @@ import java.util.List;
  * @author mederly
  */
 public interface RefinedResourceSchema extends ResourceSchema, DebugDumpable {
-	List<? extends RefinedObjectClassDefinition> getRefinedDefinitions();
+    List<? extends RefinedObjectClassDefinition> getRefinedDefinitions();
 
-	List<? extends RefinedObjectClassDefinition> getRefinedDefinitions(ShadowKindType kind);
+    List<? extends RefinedObjectClassDefinition> getRefinedDefinitions(ShadowKindType kind);
 
-	ResourceSchema getOriginalResourceSchema();
+    ResourceSchema getOriginalResourceSchema();
 
-	default RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, ShadowType shadow) {
-		return getRefinedDefinition(kind, ShadowUtil.getIntent(shadow));
-	}
+    default RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, ShadowType shadow) {
+        return getRefinedDefinition(kind, ShadowUtil.getIntent(shadow));
+    }
 
-	/**
-	 * if null accountType is provided, default account definition is returned.
-	 */
-	RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, String intent);
+    /**
+     * if null accountType is provided, default account definition is returned.
+     */
+    RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, String intent);
 
-	CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(ResourceShadowDiscriminator discriminator);
+    CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(ResourceShadowDiscriminator discriminator);
 
-	CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(PrismObject<ShadowType> shadow) throws
-			SchemaException;
+    CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(PrismObject<ShadowType> shadow) throws
+            SchemaException;
 
-	CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(PrismObject<ShadowType> shadow,
-			Collection<QName> additionalAuxiliaryObjectClassQNames) throws SchemaException;
+    CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(PrismObject<ShadowType> shadow,
+            Collection<QName> additionalAuxiliaryObjectClassQNames) throws SchemaException;
 
-	CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(QName structuralObjectClassQName,
-			ShadowKindType kind, String intent);
+    CompositeRefinedObjectClassDefinition determineCompositeObjectClassDefinition(QName structuralObjectClassQName,
+            ShadowKindType kind, String intent);
 
-	/**
-	 * If no intents are provided, default account definition is returned.
-	 * We check whether there is only one relevant rOCD.
-	 */
-	RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, Collection<String> intents) throws SchemaException;
+    /**
+     * If no intents are provided, default account definition is returned.
+     * We check whether there is only one relevant rOCD.
+     */
+    RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, Collection<String> intents) throws SchemaException;
 
-	RefinedObjectClassDefinition getRefinedDefinition(QName objectClassName);
+    RefinedObjectClassDefinition getRefinedDefinition(QName objectClassName);
 
-	default RefinedObjectClassDefinition getDefaultRefinedDefinition(ShadowKindType kind) {
-		return getRefinedDefinition(kind, (String)null);
-	}
+    default RefinedObjectClassDefinition getDefaultRefinedDefinition(ShadowKindType kind) {
+        return getRefinedDefinition(kind, (String)null);
+    }
 
-	default PrismObjectDefinition<ShadowType> getObjectDefinition(ShadowKindType kind, String intent) {
-		return getRefinedDefinition(kind, intent).getObjectDefinition();
-	}
+    default PrismObjectDefinition<ShadowType> getObjectDefinition(ShadowKindType kind, String intent) {
+        return getRefinedDefinition(kind, intent).getObjectDefinition();
+    }
 
-	default PrismObjectDefinition<ShadowType> getObjectDefinition(ShadowKindType kind, ShadowType shadow) {
-		return getObjectDefinition(kind, ShadowUtil.getIntent(shadow));
-	}
+    default PrismObjectDefinition<ShadowType> getObjectDefinition(ShadowKindType kind, ShadowType shadow) {
+        return getObjectDefinition(kind, ShadowUtil.getIntent(shadow));
+    }
 
-	RefinedObjectClassDefinition findRefinedDefinitionByObjectClassQName(ShadowKindType kind, QName objectClass);
+    RefinedObjectClassDefinition findRefinedDefinitionByObjectClassQName(ShadowKindType kind, QName objectClass);
 
-	ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName);
+    ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName);
 
-	LayerRefinedResourceSchema forLayer(LayerType layer);
+    LayerRefinedResourceSchema forLayer(LayerType layer);
 
-	static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException {
-		return RefinedResourceSchemaImpl.getRefinedSchema(resource);
-	}
+    static RefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource) throws SchemaException {
+        return RefinedResourceSchemaImpl.getRefinedSchema(resource);
+    }
 
-	static ResourceSchema getResourceSchema(PrismObject<ResourceType> resource, PrismContext prismContext)
-			throws SchemaException {
-		return RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
-	}
+    static ResourceSchema getResourceSchema(PrismObject<ResourceType> resource, PrismContext prismContext)
+            throws SchemaException {
+        return RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+    }
 }

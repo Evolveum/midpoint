@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -35,9 +35,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *  @author shood
  * */
 public class ObjectPolicyDialogDto implements Serializable{
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String DOT_CLASS = ObjectPolicyDialogDto.class.getName() + ".";
+    private static final String DOT_CLASS = ObjectPolicyDialogDto.class.getName() + ".";
 
     private static final String OPERATION_LOAD_OBJECT_TEMPLATE = DOT_CLASS + "loadObjectTemplate";
 
@@ -61,13 +61,13 @@ public class ObjectPolicyDialogDto implements Serializable{
         this.page =page;
 
 //        for (PropertyConstraintType constraint : config.getPropertyConstraint()) {
-//        	propertyConstraintsList.add(new PropertyConstraintTypeDto(constraint));
+//            propertyConstraintsList.add(new PropertyConstraintTypeDto(constraint));
 //        }
-        
+
         propertyConstraintsList = config.getPropertyConstraint();
-        
+
         if (propertyConstraintsList.isEmpty()) {
-        		propertyConstraintsList.add(new PropertyConstraintType());
+                propertyConstraintsList.add(new PropertyConstraintType());
         }
 
         if(config.getObjectTemplateRef() != null){
@@ -80,26 +80,26 @@ public class ObjectPolicyDialogDto implements Serializable{
         ObjectPolicyConfigurationType newConfig = new ObjectPolicyConfigurationType();
 
         for (PropertyConstraintType constraintType : propertyConstraintsList) {
-        		PrismContainerValue<PropertyConstraintType> constraint = constraintType.asPrismContainerValue();
-        		if (BooleanUtils.isTrue(constraintType.isOidBound()) && constraintType.getPath() == null) {
-        			result.recordWarning(page.createStringResource("ObjectPolicyDialogDto.message.preparePolicyConfig.warning").getString());
-        		}
-        		if (!constraint.isEmpty() && constraintType.getPath() != null) {
-        			newConfig.getPropertyConstraint().add(constraint.clone().asContainerable());
-        		}
+                PrismContainerValue<PropertyConstraintType> constraint = constraintType.asPrismContainerValue();
+                if (BooleanUtils.isTrue(constraintType.isOidBound()) && constraintType.getPath() == null) {
+                    result.recordWarning(page.createStringResource("ObjectPolicyDialogDto.message.preparePolicyConfig.warning").getString());
+                }
+                if (!constraint.isEmpty() && constraintType.getPath() != null) {
+                    newConfig.getPropertyConstraint().add(constraint.clone().asContainerable());
+                }
         }
         newConfig.setType(type);
         newConfig.setSubtype(subtype);
         newConfig.setConflictResolution(config.getConflictResolution());
 
         if (templateRef != null) {
-	        ObjectReferenceType ref = new ObjectReferenceType();
+            ObjectReferenceType ref = new ObjectReferenceType();
             ref.setOid(templateRef.getOid());
             ref.setType(ObjectTemplateType.COMPLEX_TYPE);
             ref.setTargetName(new PolyStringType(templateRef.getName()));
-	        newConfig.setObjectTemplateRef(ref);
+            newConfig.setObjectTemplateRef(ref);
         }
-        
+
         result.recordSuccessIfUnknown();
         return newConfig;
     }
@@ -121,19 +121,19 @@ public class ObjectPolicyDialogDto implements Serializable{
     }
 
     public String getSubtype() {
-		return subtype;
-	}
+        return subtype;
+    }
 
-	public void setSubtype(String subtype) {
-		this.subtype = subtype;
-	}
+    public void setSubtype(String subtype) {
+        this.subtype = subtype;
+    }
 
-	private String getObjectTemplateName(String oid, PageBase page){
-    	Task task = page.createSimpleTask(OPERATION_LOAD_OBJECT_TEMPLATE);
+    private String getObjectTemplateName(String oid, PageBase page){
+        Task task = page.createSimpleTask(OPERATION_LOAD_OBJECT_TEMPLATE);
         OperationResult result = task.getResult();
 
         PrismObject<ObjectTemplateType> templatePrism =  WebModelServiceUtils.loadObject(ObjectTemplateType.class, oid,
-        		page, task, result);
+                page, task, result);
 
         if(templatePrism != null){
             return WebComponentUtil.getName(templatePrism);
@@ -158,74 +158,74 @@ public class ObjectPolicyDialogDto implements Serializable{
         this.templateRef = templateRef;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((config == null) ? 0 : config.hashCode());
-		result = prime * result
-				+ ((propertyConstraintsList == null) ? 0 : propertyConstraintsList.hashCode());
-		result = prime * result + ((subtype == null) ? 0 : subtype.hashCode());
-		result = prime * result + ((templateRef == null) ? 0 : templateRef.hashCode());
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((config == null) ? 0 : config.hashCode());
+        result = prime * result
+                + ((propertyConstraintsList == null) ? 0 : propertyConstraintsList.hashCode());
+        result = prime * result + ((subtype == null) ? 0 : subtype.hashCode());
+        result = prime * result + ((templateRef == null) ? 0 : templateRef.hashCode());
+        result = prime * result + ((type == null) ? 0 : type.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		ObjectPolicyDialogDto other = (ObjectPolicyDialogDto) obj;
-		if (config == null) {
-			if (other.config != null) {
-				return false;
-			}
-		} else if (!config.equals(other.config)) {
-			return false;
-		}
-		if (propertyConstraintsList == null) {
-			if (other.propertyConstraintsList != null) {
-				return false;
-			}
-		} else if (!propertyConstraintsList.equals(other.propertyConstraintsList)) {
-			return false;
-		}
-		if (subtype == null) {
-			if (other.subtype != null) {
-				return false;
-			}
-		} else if (!subtype.equals(other.subtype)) {
-			return false;
-		}
-		if (templateRef == null) {
-			if (other.templateRef != null) {
-				return false;
-			}
-		} else if (!templateRef.equals(other.templateRef)) {
-			return false;
-		}
-		if (type == null) {
-			if (other.type != null) {
-				return false;
-			}
-		} else if (!type.equals(other.type)) {
-			return false;
-		}
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        ObjectPolicyDialogDto other = (ObjectPolicyDialogDto) obj;
+        if (config == null) {
+            if (other.config != null) {
+                return false;
+            }
+        } else if (!config.equals(other.config)) {
+            return false;
+        }
+        if (propertyConstraintsList == null) {
+            if (other.propertyConstraintsList != null) {
+                return false;
+            }
+        } else if (!propertyConstraintsList.equals(other.propertyConstraintsList)) {
+            return false;
+        }
+        if (subtype == null) {
+            if (other.subtype != null) {
+                return false;
+            }
+        } else if (!subtype.equals(other.subtype)) {
+            return false;
+        }
+        if (templateRef == null) {
+            if (other.templateRef != null) {
+                return false;
+            }
+        } else if (!templateRef.equals(other.templateRef)) {
+            return false;
+        }
+        if (type == null) {
+            if (other.type != null) {
+                return false;
+            }
+        } else if (!type.equals(other.type)) {
+            return false;
+        }
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "ObjectPolicyDialogDto(propertyConstraintsList=" + propertyConstraintsList + ", config="
-				+ config + ", type=" + type + ", subtype=" + subtype + ", templateRef=" + templateRef + ")";
-	}
-	
-	
+    @Override
+    public String toString() {
+        return "ObjectPolicyDialogDto(propertyConstraintsList=" + propertyConstraintsList + ", config="
+                + config + ", type=" + type + ", subtype=" + subtype + ", templateRef=" + templateRef + ")";
+    }
+
+
 }

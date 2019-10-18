@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -22,20 +22,20 @@
                       relation="org:default"
                       type="c:ResourceType"></resourceRef>
          <association>
-         	<ref>ri:group</ref>
-            	<outbound>
-            		<expression>
-            			<associationTargetSearch>
-            				<filter>
-								<q:equal>
-									<q:path>attributes/ri:cn</q:path>
-									<q:value>mapleLeafGraduateLicense</q:value>
-								</q:equal>
-            				</filter>
-            				<searchStrategy>onResourceIfNeeded</searchStrategy>
-            			</associationTargetSearch>
-            		</expression>
-            	</outbound>
+             <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/ri:cn</q:path>
+                                    <q:value>mapleLeafGraduateLicense</q:value>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
          </association>
       </construction>
       <order>2</order>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -110,8 +110,8 @@ public class SimpleReviewerNotifier extends GeneralNotifier {
             body.append("Stage start time: ").append(XmlTypeConverter.toDate(stage.getStartTimestamp()));
             body.append("\nStage deadline: ").append(XmlTypeConverter.toDate(stage.getDeadline()));
             if (stage.getEscalationLevel() != null) {
-            	body.append("\nEscalation level: ").append(ApprovalContextUtil.getEscalationLevelInfo(stage.getEscalationLevel()));
-			}
+                body.append("\nEscalation level: ").append(ApprovalContextUtil.getEscalationLevelInfo(stage.getEscalationLevel()));
+            }
             if (stage.getDeadline() != null) {
                 long delta = XmlTypeConverter.toMillis(stage.getDeadline()) - System.currentTimeMillis();
                 if (delta > 0) {

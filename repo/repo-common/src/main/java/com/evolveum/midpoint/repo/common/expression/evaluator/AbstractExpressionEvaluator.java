@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.common.expression.evaluator;
@@ -23,51 +23,51 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
  */
 public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extends ItemDefinition, E> implements ExpressionEvaluator<V,D> {
 
-	private final QName elementName;
-	private final E expressionEvaluatorType;
-	protected final PrismContext prismContext;
-	protected final D outputDefinition;
-	protected final Protector protector;
+    private final QName elementName;
+    private final E expressionEvaluatorType;
+    protected final PrismContext prismContext;
+    protected final D outputDefinition;
+    protected final Protector protector;
 
-	public AbstractExpressionEvaluator(QName elementName, E expressionEvaluatorType, D outputDefinition, Protector protector, PrismContext prismContext) {
-		this.elementName = elementName;
-		this.expressionEvaluatorType = expressionEvaluatorType;
-		this.outputDefinition = outputDefinition;
-		this.prismContext = prismContext;
-		this.protector = protector;
-	}
+    public AbstractExpressionEvaluator(QName elementName, E expressionEvaluatorType, D outputDefinition, Protector protector, PrismContext prismContext) {
+        this.elementName = elementName;
+        this.expressionEvaluatorType = expressionEvaluatorType;
+        this.outputDefinition = outputDefinition;
+        this.prismContext = prismContext;
+        this.protector = protector;
+    }
 
-	@Override
-	public QName getElementName() {
-		return elementName;
-	}
+    @Override
+    public QName getElementName() {
+        return elementName;
+    }
 
-	protected E getExpressionEvaluatorType() {
-		return expressionEvaluatorType;
-	}
-	
-	protected PrismContext getPrismContext() {
-		return prismContext;
-	}
+    protected E getExpressionEvaluatorType() {
+        return expressionEvaluatorType;
+    }
 
-	protected D getOutputDefinition() {
-		return outputDefinition;
-	}
+    protected PrismContext getPrismContext() {
+        return prismContext;
+    }
 
-	protected Protector getProtector() {
-		return protector;
-	}
+    protected D getOutputDefinition() {
+        return outputDefinition;
+    }
 
-	/**
-	 * Check expression profile. Throws security exception if the execution is not allowed by the profile.
-	 * 
-	 * This implementation works only for simple evaluators that do not have any profile settings.
-	 * Complex evaluators should override this method.
-	 * 
-	 * @throws SecurityViolationException expression execution is not allowed by the profile. 
-	 */
-	protected void checkEvaluatorProfile(ExpressionEvaluationContext context) throws SecurityViolationException {
-		ExpressionUtil.checkEvaluatorProfileSimple(this, context);
-	}
+    protected Protector getProtector() {
+        return protector;
+    }
+
+    /**
+     * Check expression profile. Throws security exception if the execution is not allowed by the profile.
+     *
+     * This implementation works only for simple evaluators that do not have any profile settings.
+     * Complex evaluators should override this method.
+     *
+     * @throws SecurityViolationException expression execution is not allowed by the profile.
+     */
+    protected void checkEvaluatorProfile(ExpressionEvaluationContext context) throws SecurityViolationException {
+        ExpressionUtil.checkEvaluatorProfileSimple(this, context);
+    }
 
 }

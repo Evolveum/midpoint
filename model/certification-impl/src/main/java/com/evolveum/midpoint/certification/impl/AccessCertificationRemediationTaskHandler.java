@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.certification.impl;
@@ -47,7 +47,7 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 @Component
 public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
-	private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/remediation/handler-3";
+    private static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TASK_PREFIX + "/remediation/handler-3";
 
     private static final String CLASS_DOT = AccessCertificationRemediationTaskHandler.class.getName() + ".";
 
@@ -61,31 +61,31 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationRemediationTaskHandler.class);
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
 
-	@NotNull
-	@Override
-	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-		return new StatisticsCollectionStrategy()
-				.fromZero();
-		// implement iteration stats when needed
-	}
+    @NotNull
+    @Override
+    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        return new StatisticsCollectionStrategy()
+                .fromZero();
+        // implement iteration stats when needed
+    }
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-		LOGGER.trace("Task run starting");
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        LOGGER.trace("Task run starting");
 
-		OperationResult opResult = new OperationResult(CLASS_DOT+"run");
+        OperationResult opResult = new OperationResult(CLASS_DOT+"run");
         opResult.setSummarizeSuccesses(true);
-		TaskRunResult runResult = new TaskRunResult();
-		runResult.setOperationResult(opResult);
+        TaskRunResult runResult = new TaskRunResult();
+        runResult.setOperationResult(opResult);
 
-		if (task.getChannel() == null) {
-			task.setChannel(SchemaConstants.CHANNEL_REMEDIATION_URI);
-		}
+        if (task.getChannel() == null) {
+            task.setChannel(SchemaConstants.CHANNEL_REMEDIATION_URI);
+        }
 
         String campaignOid = task.getObjectOid();
         if (campaignOid == null) {
@@ -122,7 +122,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
                         caseHelper.markCaseAsRemedied(campaignOid, caseId, task, caseResult);
                         caseResult.computeStatus();
                         revokedOk++;
-						task.incrementProgressAndStoreStatsIfNeeded();
+                        task.incrementProgressAndStoreStatsIfNeeded();
                     } catch (CommonException | RuntimeException e) {
                         String message = "Couldn't revoke case " + caseId + ": " + e.getMessage();
                         LoggingUtils.logUnexpectedException(LOGGER, message, e);
@@ -148,17 +148,17 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-	}
+    }
 
-	@Override
-	public Long heartbeat(Task task) {
-		return null;	// not to reset progress information
-	}
+    @Override
+    public Long heartbeat(Task task) {
+        return null;    // not to reset progress information
+    }
 
-	@Override
-	public void refreshStatus(Task task) {
-		// Do nothing. Everything is fresh already.
-	}
+    @Override
+    public void refreshStatus(Task task) {
+        // Do nothing. Everything is fresh already.
+    }
 
     @Override
     public String getCategoryName(Task task) {
@@ -187,7 +187,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
 
         taskManager.switchToBackground(task, result);
-		result.setBackgroundTaskOid(task.getOid());
+        result.setBackgroundTaskOid(task.getOid());
         if (result.isInProgress()) {
             result.recordStatus(OperationResultStatus.IN_PROGRESS, "Remediation task "+task+" was successfully started, please use Server Tasks to see its status.");
         }

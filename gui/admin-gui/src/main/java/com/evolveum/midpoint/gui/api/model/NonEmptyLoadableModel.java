@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,24 +20,24 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class NonEmptyLoadableModel<T> extends LoadableModel<T> implements NonEmptyModel<T> {
 
-	public NonEmptyLoadableModel(boolean alwaysReload) {
-		super(alwaysReload);
-	}
+    public NonEmptyLoadableModel(boolean alwaysReload) {
+        super(alwaysReload);
+    }
 
-	@NotNull
+    @NotNull
     public T getObject() {
         T object = super.getObject();
-		if (object == null) {
-			throw new IllegalStateException("Model object is null");
-		}
-		return object;
+        if (object == null) {
+            throw new IllegalStateException("Model object is null");
+        }
+        return object;
     }
 
     public void setObject(@NotNull T object) {
         Validate.notNull(object, "Model object is to be set to null");
-		super.setObject(object);
+        super.setObject(object);
     }
 
-	@NotNull
-	abstract protected T load();
+    @NotNull
+    abstract protected T load();
 }

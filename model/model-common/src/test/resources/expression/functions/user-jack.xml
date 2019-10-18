@@ -2,29 +2,29 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111111" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:ext='http://midpoint.evolveum.com/xml/ns/test/extension'>
+<user oid="c0c010c0-d34d-b33f-f00d-111111111111"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:ext='http://midpoint.evolveum.com/xml/ns/test/extension'>
     <name>jack</name>
     <description>Where's the rum?</description>
-    
+
     <extension>
-    	<ext:ship>Black Pearl</ext:ship>
+        <ext:ship>Black Pearl</ext:ship>
     </extension>
-    
+
     <fullName>Jack Sparrow</fullName>
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
     <additionalName>Jackie</additionalName>
     <honorificPrefix>Cpt.</honorificPrefix>
-    
+
     <honorificSuffix>PhD.</honorificSuffix>
     <emailAddress>jack.sparrow@evolveum.com</emailAddress>
     <telephoneNumber>555-1234</telephoneNumber>
@@ -34,13 +34,13 @@
 
     <credentials>
         <password>
-        	<value>
-	            <clearValue>deadmentellnotales</clearValue>
+            <value>
+                <clearValue>deadmentellnotales</clearValue>
             </value>
         </password>
     </credentials>
-    
+
     <activation>
-    	<administrativeStatus>enabled</administrativeStatus>
+        <administrativeStatus>enabled</administrativeStatus>
     </activation>
 </user>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server.handlers;
@@ -18,22 +18,22 @@ import com.evolveum.midpoint.web.page.admin.server.handlers.dto.GenericHandlerDt
  * @author mederly
  */
 public class GenericHandlerPanel extends BasePanel<GenericHandlerDto> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final String ID_CONTAINER = "container";
+    public static final String ID_CONTAINER = "container";
 
-	public GenericHandlerPanel(String id, IModel<GenericHandlerDto> model, PageTaskEdit parentPage) {
-		super(id, model);
-		initLayout(parentPage);
-		setOutputMarkupId(true);
-	}
+    public GenericHandlerPanel(String id, IModel<GenericHandlerDto> model, PageTaskEdit parentPage) {
+        super(id, model);
+        initLayout(parentPage);
+        setOutputMarkupId(true);
+    }
 
-	//TODO refactor to use registry
-	private void initLayout(final PageTaskEdit parentPage) {
-		PrismContainerPanel containerPanel = new PrismContainerPanel(
-				ID_CONTAINER, new PropertyModel<>(getModel(), GenericHandlerDto.F_CONTAINER), null);
-		add(containerPanel);
+    //TODO refactor to use registry
+    private void initLayout(final PageTaskEdit parentPage) {
+        PrismContainerPanel containerPanel = new PrismContainerPanel(
+                ID_CONTAINER, new PropertyModel<>(getModel(), GenericHandlerDto.F_CONTAINER), null);
+        add(containerPanel);
 
-	}
+    }
 
 }

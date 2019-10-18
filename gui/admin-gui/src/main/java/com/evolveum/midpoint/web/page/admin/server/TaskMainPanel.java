@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server;
@@ -36,308 +36,308 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  */
 public class TaskMainPanel extends Panel {
 
-	private static final String ID_MAIN_FORM = "mainForm";
-	private static final String ID_TAB_PANEL = "tabPanel";
-	private static final String ID_BUTTON_PANEL = "buttonPanel";
-	private static final String ID_EDIT = "edit";
-	private static final String ID_BACK = "back";
-	private static final String ID_CANCEL_EDITING = "cancelEditing";
-	private static final String ID_SAVE = "save";
-	private static final String ID_SUSPEND = "suspend";
-	private static final String ID_RESUME = "resume";
-	private static final String ID_RUN_NOW = "runNow";
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_TAB_PANEL = "tabPanel";
+    private static final String ID_BUTTON_PANEL = "buttonPanel";
+    private static final String ID_EDIT = "edit";
+    private static final String ID_BACK = "back";
+    private static final String ID_CANCEL_EDITING = "cancelEditing";
+    private static final String ID_SAVE = "save";
+    private static final String ID_SUSPEND = "suspend";
+    private static final String ID_RESUME = "resume";
+    private static final String ID_RUN_NOW = "runNow";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
 
-	private final LoadableModel<PrismObjectWrapper<TaskType>> objectModel;
-	private final IModel<TaskDto> taskDtoModel;
-	private final IModel<Boolean> showAdvancedFeaturesModel;
-	private final PageTaskEdit parentPage;
+    private final LoadableModel<PrismObjectWrapper<TaskType>> objectModel;
+    private final IModel<TaskDto> taskDtoModel;
+    private final IModel<Boolean> showAdvancedFeaturesModel;
+    private final PageTaskEdit parentPage;
 
-	public TaskMainPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> objectModel, IModel<TaskDto> taskDtoModel,
-			IModel<Boolean> showAdvancedFeaturesModel, PageTaskEdit parentPage) {
-		super(id, objectModel);
-		this.objectModel = objectModel;
-		this.taskDtoModel = taskDtoModel;
-		this.showAdvancedFeaturesModel = showAdvancedFeaturesModel;
-		this.parentPage = parentPage;
-		initLayout();
-	}
+    public TaskMainPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> objectModel, IModel<TaskDto> taskDtoModel,
+            IModel<Boolean> showAdvancedFeaturesModel, PageTaskEdit parentPage) {
+        super(id, objectModel);
+        this.objectModel = objectModel;
+        this.taskDtoModel = taskDtoModel;
+        this.showAdvancedFeaturesModel = showAdvancedFeaturesModel;
+        this.parentPage = parentPage;
+        initLayout();
+    }
 
-	private void initLayout() {
-		Form mainForm = new Form<>(ID_MAIN_FORM, true);
-		add(mainForm);
-		initTabPanel(mainForm);
-		initButtons(mainForm);
-	}
+    private void initLayout() {
+        Form mainForm = new Form<>(ID_MAIN_FORM, true);
+        add(mainForm);
+        initTabPanel(mainForm);
+        initButtons(mainForm);
+    }
 
-	protected void initTabPanel(Form mainForm) {
-		List<ITab> tabs = createTabs();
-		TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, new TabbedPanel.RightSideItemProvider() {
-			@Override
-			public Component createRightSideItem(String id) {
-				VisibleEnableBehaviour boxEnabled = new VisibleEnableBehaviour() {
-					@Override
-					public boolean isEnabled() {
-						return !parentPage.isEdit();
-					}
-				};
-				TaskShowAdvancedFeaturesPanel advancedFeaturesPanel = new TaskShowAdvancedFeaturesPanel(id, showAdvancedFeaturesModel, boxEnabled) {
-					@Override
-					protected void onAdvancedFeaturesUpdate(AjaxRequestTarget target) {
-						target.add(getTabPanel());
-						target.add(getButtonPanel());
-						// we DO NOT call parentPage.refresh here because in edit mode this would erase any model changes
-						// (well, because - for some strange reasons - even this code erases name and description input fields
-						// occassionally, we hide 'advanced features' checkbox in editing mode)
-					}
-				};
-				advancedFeaturesPanel.add(new VisibleEnableBehaviour() {
-					@Override
-					public boolean isVisible() {
-						return parentPage.getTaskDto().isWorkflow();			// we don't distinguish between basic/advanced features for other task types yet
-					}
-				});
-				return advancedFeaturesPanel;
-			}
-		});
-		mainForm.add(tabPanel);
-	}
+    protected void initTabPanel(Form mainForm) {
+        List<ITab> tabs = createTabs();
+        TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, new TabbedPanel.RightSideItemProvider() {
+            @Override
+            public Component createRightSideItem(String id) {
+                VisibleEnableBehaviour boxEnabled = new VisibleEnableBehaviour() {
+                    @Override
+                    public boolean isEnabled() {
+                        return !parentPage.isEdit();
+                    }
+                };
+                TaskShowAdvancedFeaturesPanel advancedFeaturesPanel = new TaskShowAdvancedFeaturesPanel(id, showAdvancedFeaturesModel, boxEnabled) {
+                    @Override
+                    protected void onAdvancedFeaturesUpdate(AjaxRequestTarget target) {
+                        target.add(getTabPanel());
+                        target.add(getButtonPanel());
+                        // we DO NOT call parentPage.refresh here because in edit mode this would erase any model changes
+                        // (well, because - for some strange reasons - even this code erases name and description input fields
+                        // occassionally, we hide 'advanced features' checkbox in editing mode)
+                    }
+                };
+                advancedFeaturesPanel.add(new VisibleEnableBehaviour() {
+                    @Override
+                    public boolean isVisible() {
+                        return parentPage.getTaskDto().isWorkflow();            // we don't distinguish between basic/advanced features for other task types yet
+                    }
+                });
+                return advancedFeaturesPanel;
+            }
+        });
+        mainForm.add(tabPanel);
+    }
 
-	protected List<ITab> createTabs() {
-		List<ITab> tabs = new ArrayList<>();
-		final TaskTabsVisibility visibility = new TaskTabsVisibility();
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.basic")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskBasicTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeBasicVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.scheduleTitle")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskSchedulingTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeSchedulingVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.subtasksAndThreads")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskSubtasksAndThreadsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeSubtasksAndThreadsVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.progress")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskProgressTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeProgressVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.performance")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskPerformanceTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeEnvironmentalPerformanceVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.internalPerformance")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskInternalPerformanceTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeInternalPerformanceVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskOperationTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeOperationVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.result")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskResultTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeResultVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.errors")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskErrorsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeErrorsVisible(parentPage);
-					}
-				});
-		return tabs;
-	}
+    protected List<ITab> createTabs() {
+        List<ITab> tabs = new ArrayList<>();
+        final TaskTabsVisibility visibility = new TaskTabsVisibility();
+        tabs.add(
+                new AbstractTab(parentPage.createStringResource("pageTaskEdit.basic")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskBasicTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return visibility.computeBasicVisible(parentPage);
+                    }
+                });
+        tabs.add(
+                new AbstractTab(parentPage.createStringResource("pageTaskEdit.scheduleTitle")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskSchedulingTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return visibility.computeSchedulingVisible(parentPage);
+                    }
+                });
+        tabs.add(
+                new AbstractTab(parentPage.createStringResource("pageTaskEdit.subtasksAndThreads")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskSubtasksAndThreadsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return visibility.computeSubtasksAndThreadsVisible(parentPage);
+                    }
+                });
+        tabs.add(
+                new AbstractTab(parentPage.createStringResource("pageTaskEdit.progress")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskProgressTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return visibility.computeProgressVisible(parentPage);
+                    }
+                });
+        tabs.add(
+                new AbstractTab(parentPage.createStringResource("pageTaskEdit.performance")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskPerformanceTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return visibility.computeEnvironmentalPerformanceVisible(parentPage);
+                    }
+                });
+        tabs.add(
+                new AbstractTab(parentPage.createStringResource("pageTaskEdit.internalPerformance")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskInternalPerformanceTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return visibility.computeInternalPerformanceVisible(parentPage);
+                    }
+                });
+        tabs.add(
+                new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskOperationTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return visibility.computeOperationVisible(parentPage);
+                    }
+                });
+        tabs.add(
+                new AbstractTab(parentPage.createStringResource("pageTaskEdit.result")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskResultTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return visibility.computeResultVisible(parentPage);
+                    }
+                });
+        tabs.add(
+                new AbstractTab(parentPage.createStringResource("pageTaskEdit.errors")) {
+                    @Override
+                    public WebMarkupContainer getPanel(String panelId) {
+                        return new TaskErrorsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
+                    }
+                    @Override
+                    public boolean isVisible() {
+                        return visibility.computeErrorsVisible(parentPage);
+                    }
+                });
+        return tabs;
+    }
 
-	public Form getMainForm() {
-		return (Form) get(ID_MAIN_FORM);
-	}
+    public Form getMainForm() {
+        return (Form) get(ID_MAIN_FORM);
+    }
 
-	public TabbedPanel<ITab> getTabPanel() {
-		return (TabbedPanel<ITab>) getMainForm().get(ID_TAB_PANEL);
-	}
+    public TabbedPanel<ITab> getTabPanel() {
+        return (TabbedPanel<ITab>) getMainForm().get(ID_TAB_PANEL);
+    }
 
-	public WebMarkupContainer getButtonPanel() {
-		return (WebMarkupContainer) getMainForm().get(ID_BUTTON_PANEL);
-	}
+    public WebMarkupContainer getButtonPanel() {
+        return (WebMarkupContainer) getMainForm().get(ID_BUTTON_PANEL);
+    }
 
-	private void initButtons(Form mainForm) {
-		WebMarkupContainer buttonPanel = new WebMarkupContainer(ID_BUTTON_PANEL);
-		buttonPanel.setOutputMarkupId(true);
-		mainForm.add(buttonPanel);
+    private void initButtons(Form mainForm) {
+        WebMarkupContainer buttonPanel = new WebMarkupContainer(ID_BUTTON_PANEL);
+        buttonPanel.setOutputMarkupId(true);
+        mainForm.add(buttonPanel);
 
-		final TaskButtonsVisibility visibility = new TaskButtonsVisibility();
+        final TaskButtonsVisibility visibility = new TaskButtonsVisibility();
 
-		AjaxButton backButton = new AjaxButton(ID_BACK, parentPage.createStringResource("pageTaskEdit.button.back")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().backPerformed(target);
-			}
-		};
-		backButton.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return visibility.computeBackVisible(parentPage);
-			}
-		});
-		buttonPanel.add(backButton);
+        AjaxButton backButton = new AjaxButton(ID_BACK, parentPage.createStringResource("pageTaskEdit.button.back")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                parentPage.getController().backPerformed(target);
+            }
+        };
+        backButton.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return visibility.computeBackVisible(parentPage);
+            }
+        });
+        buttonPanel.add(backButton);
 
-		AjaxButton cancelEditingButton = new AjaxButton(ID_CANCEL_EDITING, parentPage.createStringResource("pageTaskEdit.button.cancelEditing")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().cancelEditingPerformed(target);
-			}
-		};
-		cancelEditingButton.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return visibility.computeCancelEditVisible(parentPage);
-			}
-		});
-		buttonPanel.add(cancelEditingButton);
+        AjaxButton cancelEditingButton = new AjaxButton(ID_CANCEL_EDITING, parentPage.createStringResource("pageTaskEdit.button.cancelEditing")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                parentPage.getController().cancelEditingPerformed(target);
+            }
+        };
+        cancelEditingButton.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return visibility.computeCancelEditVisible(parentPage);
+            }
+        });
+        buttonPanel.add(cancelEditingButton);
 
-		AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE, parentPage.createStringResource("pageTaskEdit.button.save")) {
+        AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE, parentPage.createStringResource("pageTaskEdit.button.save")) {
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target) {
-				parentPage.getController().savePerformed(target);
-			}
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                parentPage.getController().savePerformed(target);
+            }
 
-			@Override
-			protected void onError(AjaxRequestTarget target) {
-				target.add(parentPage.getFeedbackPanel());
-			}
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(parentPage.getFeedbackPanel());
+            }
 
-		};
-		saveButton.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return visibility.computeSaveVisible(parentPage);
-			}
-		});
-		mainForm.setDefaultButton(saveButton);
-		buttonPanel.add(saveButton);
+        };
+        saveButton.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return visibility.computeSaveVisible(parentPage);
+            }
+        });
+        mainForm.setDefaultButton(saveButton);
+        buttonPanel.add(saveButton);
 
-		AjaxButton editButton = new AjaxButton(ID_EDIT, parentPage.createStringResource("pageTaskEdit.button.edit")) {
+        AjaxButton editButton = new AjaxButton(ID_EDIT, parentPage.createStringResource("pageTaskEdit.button.edit")) {
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.setEdit(true);
-				parentPage.refresh(target);		// stops refreshing as well
-				target.add(getMainForm());
-			}
-		};
-		editButton.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return visibility.computeEditVisible(parentPage);
-			}
-		});
-		buttonPanel.add(editButton);
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                parentPage.setEdit(true);
+                parentPage.refresh(target);        // stops refreshing as well
+                target.add(getMainForm());
+            }
+        };
+        editButton.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return visibility.computeEditVisible(parentPage);
+            }
+        });
+        buttonPanel.add(editButton);
 
-		AjaxButton suspend = new AjaxButton(ID_SUSPEND, parentPage.createStringResource("pageTaskEdit.button.suspend")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().suspendPerformed(target);
-			}
-		};
-		suspend.add(new VisibleEnableBehaviour() {
+        AjaxButton suspend = new AjaxButton(ID_SUSPEND, parentPage.createStringResource("pageTaskEdit.button.suspend")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                parentPage.getController().suspendPerformed(target);
+            }
+        };
+        suspend.add(new VisibleEnableBehaviour() {
 
-			@Override
-			public boolean isVisible() {
-				return visibility.computeSuspendVisible(parentPage);
-			}
-		});
-		buttonPanel.add(suspend);
+            @Override
+            public boolean isVisible() {
+                return visibility.computeSuspendVisible(parentPage);
+            }
+        });
+        buttonPanel.add(suspend);
 
-		AjaxButton resume = new AjaxButton(ID_RESUME, parentPage.createStringResource("pageTaskEdit.button.resume")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().resumePerformed(target);
-			}
-		};
-		resume.add(new VisibleEnableBehaviour() {
+        AjaxButton resume = new AjaxButton(ID_RESUME, parentPage.createStringResource("pageTaskEdit.button.resume")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                parentPage.getController().resumePerformed(target);
+            }
+        };
+        resume.add(new VisibleEnableBehaviour() {
 
-			@Override
-			public boolean isVisible() {
-				return visibility.computeResumeVisible(parentPage);
-			}
-		});
-		buttonPanel.add(resume);
+            @Override
+            public boolean isVisible() {
+                return visibility.computeResumeVisible(parentPage);
+            }
+        });
+        buttonPanel.add(resume);
 
-		AjaxButton runNow = new AjaxButton(ID_RUN_NOW, parentPage.createStringResource("pageTaskEdit.button.runNow")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().runNowPerformed(target);
-			}
-		};
-		runNow.add(new VisibleEnableBehaviour() {
+        AjaxButton runNow = new AjaxButton(ID_RUN_NOW, parentPage.createStringResource("pageTaskEdit.button.runNow")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                parentPage.getController().runNowPerformed(target);
+            }
+        };
+        runNow.add(new VisibleEnableBehaviour() {
 
-			@Override
-			public boolean isVisible() {
-				return visibility.computeRunNowVisible(parentPage);
-			}
-		});
-		buttonPanel.add(runNow);
-	}
+            @Override
+            public boolean isVisible() {
+                return visibility.computeRunNowVisible(parentPage);
+            }
+        });
+        buttonPanel.add(runNow);
+    }
 }

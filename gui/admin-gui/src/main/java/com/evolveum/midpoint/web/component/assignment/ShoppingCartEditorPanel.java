@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,9 +17,9 @@ import org.apache.wicket.model.PropertyModel;
  * Created by honchar.
  */
 public class ShoppingCartEditorPanel extends AssignmentEditorPanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	protected static final String ID_BOX = "shoppingCartDetailsBox";
+    protected static final String ID_BOX = "shoppingCartDetailsBox";
     protected static final String ID_DESCRIPTION = "description";
     protected static final String ID_ICON_BOX = "shoppingCartIconBox";
     protected static final String ID_ICON = "shoppingCartIcon";

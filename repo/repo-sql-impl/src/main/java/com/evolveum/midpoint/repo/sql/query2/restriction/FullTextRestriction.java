@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -31,29 +31,29 @@ public class FullTextRestriction extends Restriction<FullTextFilter> {
 
     @Override
     public Condition interpret() throws QueryException {
-	    // TODO implement multiple values
-	    if (filter.getValues().size() != 1) {
-		    throw new QueryException("FullText filter currently supports only a single string");
-	    }
-	    String text = filter.getValues().iterator().next();
-	    String normalized = getContext().getPrismContext().getDefaultPolyStringNormalizer().normalize(text);
-	    String[] words = StringUtils.split(normalized);
-	    List<Condition> conditions = new ArrayList<>(words.length);
-	    for (String word : words) {
-		    conditions.add(createWordQuery(word));
-	    }
-	    if (conditions.isEmpty()) {
-	    	return createWordQuery("");                     // original behavior -> match all records (TODO return something like 'empty condition')
-	    } else if (conditions.size() == 1) {
-	    	return conditions.get(0);
-	    } else {
-	    	return getContext().getHibernateQuery().createAnd(conditions);
-	    }
+        // TODO implement multiple values
+        if (filter.getValues().size() != 1) {
+            throw new QueryException("FullText filter currently supports only a single string");
+        }
+        String text = filter.getValues().iterator().next();
+        String normalized = getContext().getPrismContext().getDefaultPolyStringNormalizer().normalize(text);
+        String[] words = StringUtils.split(normalized);
+        List<Condition> conditions = new ArrayList<>(words.length);
+        for (String word : words) {
+            conditions.add(createWordQuery(word));
+        }
+        if (conditions.isEmpty()) {
+            return createWordQuery("");                     // original behavior -> match all records (TODO return something like 'empty condition')
+        } else if (conditions.size() == 1) {
+            return conditions.get(0);
+        } else {
+            return getContext().getHibernateQuery().createAnd(conditions);
+        }
     }
 
-	private Condition createWordQuery(String word) throws QueryException {
-		String textInfoItemsAlias = getItemPathResolver().addTextInfoJoin(getBaseHqlEntity().getHqlPath());
-		String textPath = textInfoItemsAlias + "." + RObjectTextInfo.F_TEXT;
-		return getContext().getHibernateQuery().createLike(textPath, word, MatchMode.ANYWHERE, false);
-	}
+    private Condition createWordQuery(String word) throws QueryException {
+        String textInfoItemsAlias = getItemPathResolver().addTextInfoJoin(getBaseHqlEntity().getHqlPath());
+        String textPath = textInfoItemsAlias + "." + RObjectTextInfo.F_TEXT;
+        return getContext().getHibernateQuery().createLike(textPath, word, MatchMode.ANYWHERE, false);
+    }
 }

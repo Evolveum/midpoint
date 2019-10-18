@@ -1,44 +1,44 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="34d73991-8cbc-46e5-b8c2-b8b62029e711"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-	<name>metarole-criminal-exclusion</name>
-	<inducement>
-		<policyRule>
-			<name>criminal exclusion</name>
-			<policyConstraints>
-				<!-- For the time being let's assume that pirate and thief are also mutually exclusive. -->
-				<or>
-					<exclusion>
-						<targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
-					</exclusion>
-					<exclusion>
-						<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
-					</exclusion>
-					<exclusion>
-						<targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> <!-- Thief -->
-					</exclusion>
-				</or>
-			</policyConstraints>
-			<policyActions>
-				<approval>
-					<approverRef type="UserType">
-						<filter>
-							<q:equal>
-								<q:path>name</q:path>
-								<q:value>sod-approver</q:value>
-							</q:equal>
-						</filter>
-						<resolutionTime>run</resolutionTime>
-					</approverRef>
-				</approval>
-			</policyActions>
-		</policyRule>
-	</inducement>
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>metarole-criminal-exclusion</name>
+    <inducement>
+        <policyRule>
+            <name>criminal exclusion</name>
+            <policyConstraints>
+                <!-- For the time being let's assume that pirate and thief are also mutually exclusive. -->
+                <or>
+                    <exclusion>
+                        <targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
+                    </exclusion>
+                    <exclusion>
+                        <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
+                    </exclusion>
+                    <exclusion>
+                        <targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> <!-- Thief -->
+                    </exclusion>
+                </or>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approverRef type="UserType">
+                        <filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <q:value>sod-approver</q:value>
+                            </q:equal>
+                        </filter>
+                        <resolutionTime>run</resolutionTime>
+                    </approverRef>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
 </role>

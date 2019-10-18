@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="e0f81542-af58-11e8-8537-87b51775fc04"
@@ -10,58 +10,58 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Prop Get+Search Some Modify Some User</name>
-    <description>Almost the same as role-prop-read-some-modify-some-user. But get+search actions are used insead of read.</description>    
+    <description>Almost the same as role-prop-read-some-modify-some-user. But get+search actions are used insead of read.</description>
     <authorization>
-    	<name>get-search some</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
-    	<object>
-    		<type>UserType</type>
-    		<filter>
-	            <q:equal>
-	               <q:path>subtype</q:path>
-	               <q:value>captain</q:value>
-	            </q:equal>
-	        </filter>
-    	</object>
-    	<item>c:name</item>
-    	<item>fullName</item>
-    	<item>activation/administrativeStatus</item>
-    	<item>assignment</item>
+        <name>get-search some</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
+        <object>
+            <type>UserType</type>
+            <filter>
+                <q:equal>
+                   <q:path>subtype</q:path>
+                   <q:value>captain</q:value>
+                </q:equal>
+            </filter>
+        </object>
+        <item>c:name</item>
+        <item>fullName</item>
+        <item>activation/administrativeStatus</item>
+        <item>assignment</item>
     </authorization>
     <authorization>
-    	<name>modify some</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<object>
-    		<type>UserType</type>
-    		<filter>
-	            <q:equal>
-	               <q:path>subtype</q:path>
-	               <q:value>captain</q:value>
-	            </q:equal>
-	        </filter>
-    	</object>
-    	<item>fullName</item>
-    	<item>additionalName</item>
-    	<item>description</item>
-    	<item>activation/validFrom</item>
+        <name>modify some</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <object>
+            <type>UserType</type>
+            <filter>
+                <q:equal>
+                   <q:path>subtype</q:path>
+                   <q:value>captain</q:value>
+                </q:equal>
+            </filter>
+        </object>
+        <item>fullName</item>
+        <item>additionalName</item>
+        <item>description</item>
+        <item>activation/validFrom</item>
     </authorization>
     <authorization>
-    	<name>modify-some-operational-exec</name>
-    	<description>Required, these are operational properties that midPoint changes automatically</description>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<phase>execution</phase>
-    	<object>
-    		<type>UserType</type>
-    		<filter>
-	            <q:equal>
-	               <q:path>subtype</q:path>
-	               <q:value>captain</q:value>
-	            </q:equal>
-	        </filter>
-    	</object>
-    	<item>activation/validityStatus</item>
-    	<item>activation/validityChangeTimestamp</item>
-    	<item>activation/effectiveStatus</item>
+        <name>modify-some-operational-exec</name>
+        <description>Required, these are operational properties that midPoint changes automatically</description>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <object>
+            <type>UserType</type>
+            <filter>
+                <q:equal>
+                   <q:path>subtype</q:path>
+                   <q:value>captain</q:value>
+                </q:equal>
+            </filter>
+        </object>
+        <item>activation/validityStatus</item>
+        <item>activation/validityChangeTimestamp</item>
+        <item>activation/effectiveStatus</item>
     </authorization>
 </role>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,73 +28,73 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component
 public class AccountActivationNotifier extends ConfirmationNotifier {
 
-	private static final Trace LOGGER = TraceManager.getTrace(AccountActivationNotifier.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AccountActivationNotifier.class);
 
-	@Override
-	public void init() {
-		register(AccountActivationNotifierType.class);
-	}
+    @Override
+    public void init() {
+        register(AccountActivationNotifierType.class);
+    }
 
-	@Override
-	protected Trace getLogger() {
-		return LOGGER;
-	}
+    @Override
+    protected Trace getLogger() {
+        return LOGGER;
+    }
 
-	@Override
-	protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType,
-			OperationResult result) {
-		if (!event.isSuccess()) {
-			logNotApplicable(event, "operation was not successful");
-			return false;
-		}
+    @Override
+    protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType,
+            OperationResult result) {
+        if (!event.isSuccess()) {
+            logNotApplicable(event, "operation was not successful");
+            return false;
+        }
 
-		ModelEvent modelEvent = (ModelEvent) event;
-		if (modelEvent.getFocusDeltas().isEmpty()) {
-			logNotApplicable(event, "no user deltas in event");
-			return false;
-		}
+        ModelEvent modelEvent = (ModelEvent) event;
+        if (modelEvent.getFocusDeltas().isEmpty()) {
+            logNotApplicable(event, "no user deltas in event");
+            return false;
+        }
 
-		List<ShadowType> shadows = getShadowsToActivate(modelEvent);
+        List<ShadowType> shadows = getShadowsToActivate(modelEvent);
 
-		if (shadows.isEmpty()) {
-			logNotApplicable(event, "no shadows to activate found in model context");
-			return false;
-		}
+        if (shadows.isEmpty()) {
+            logNotApplicable(event, "no shadows to activate found in model context");
+            return false;
+        }
 
-		LOGGER.trace("Found shadows to activate: {}. Processing notifications.", shadows);
-		return true;
-	}
+        LOGGER.trace("Found shadows to activate: {}. Processing notifications.", shadows);
+        return true;
+    }
 
 
-	@Override
-	protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport,
-			Task task, OperationResult result) {
-		return "Activate your accounts";
-	}
+    @Override
+    protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport,
+            Task task, OperationResult result) {
+        return "Activate your accounts";
+    }
 
-	@Override
-	protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport,
-			Task task, OperationResult result) throws SchemaException {
+    @Override
+    protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport,
+            Task task, OperationResult result) throws SchemaException {
 
-		String message = "Your accounts was successfully created. To activate your accounts, please click on the link bellow.";
+        String message = "Your accounts was successfully created. To activate your accounts, please click on the link bellow.";
 
-		String accountsToActivate = "Shadow to be activated: \n";
-		for (ShadowType shadow : getShadowsToActivate((ModelEvent) event)) {
-			accountsToActivate = accountsToActivate + shadow.asPrismObject().debugDump() + "\n";
-		}
+        String accountsToActivate = "Shadow to be activated: \n";
+        for (ShadowType shadow : getShadowsToActivate((ModelEvent) event)) {
+            accountsToActivate = accountsToActivate + shadow.asPrismObject().debugDump() + "\n";
+        }
 
-		String body = message + "\n\n" + createConfirmationLink(getUser(event), generalNotifierType, result) + "\n\n" + accountsToActivate;
+        String body = message + "\n\n" + createConfirmationLink(getUser(event), generalNotifierType, result) + "\n\n" + accountsToActivate;
 
-		return body;
-	}
+        return body;
+    }
 
-	private List<ShadowType> getShadowsToActivate(ModelEvent modelEvent) {
-		Collection<? extends ModelElementContext> projectionContexts = modelEvent.getProjectionContexts();
-		return getMidpointFunctions().getShadowsToActivate(projectionContexts);
-	}
+    private List<ShadowType> getShadowsToActivate(ModelEvent modelEvent) {
+        Collection<? extends ModelElementContext> projectionContexts = modelEvent.getProjectionContexts();
+        return getMidpointFunctions().getShadowsToActivate(projectionContexts);
+    }
 
-	@Override
-	public String getConfirmationLink(UserType userType) {
-		return getMidpointFunctions().createAccountActivationLink(userType);
-	}
+    @Override
+    public String getConfirmationLink(UserType userType) {
+        return getMidpointFunctions().createAccountActivationLink(userType);
+    }
 }

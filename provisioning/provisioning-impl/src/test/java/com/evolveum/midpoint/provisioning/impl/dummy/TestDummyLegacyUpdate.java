@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
@@ -30,33 +30,33 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
 @DirtiesContext
 public class TestDummyLegacyUpdate extends TestDummy {
 
-	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy-legacy-update.xml");
+    public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy-legacy-update.xml");
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-	}
-	
-	@Override
-	protected File getResourceDummyFile() {
-		return RESOURCE_DUMMY_FILE;
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+    }
 
-	@Override
-	protected String getDummyConnectorType() {
-		return IntegrationTestTools.DUMMY_CONNECTOR_LEGACY_UPDATE_TYPE;
-	}
-	
-	@Override
-	protected Class<?> getDummyConnectorClass() {
-		return  DummyConnectorLegacyUpdate.class;
-	}
+    @Override
+    protected File getResourceDummyFile() {
+        return RESOURCE_DUMMY_FILE;
+    }
 
-	@Override
-	protected void assertUpdateCapability(UpdateCapabilityType capUpdate) {
-		assertNotNull("native update capability not present", capUpdate);
-		assertNull("native update capability is manual", capUpdate.isManual());
-		assertNull("native update capability is delta", capUpdate.isDelta());
-	}
-	
+    @Override
+    protected String getDummyConnectorType() {
+        return IntegrationTestTools.DUMMY_CONNECTOR_LEGACY_UPDATE_TYPE;
+    }
+
+    @Override
+    protected Class<?> getDummyConnectorClass() {
+        return  DummyConnectorLegacyUpdate.class;
+    }
+
+    @Override
+    protected void assertUpdateCapability(UpdateCapabilityType capUpdate) {
+        assertNotNull("native update capability not present", capUpdate);
+        assertNull("native update capability is manual", capUpdate.isManual());
+        assertNull("native update capability is delta", capUpdate.isDelta());
+    }
+
 }

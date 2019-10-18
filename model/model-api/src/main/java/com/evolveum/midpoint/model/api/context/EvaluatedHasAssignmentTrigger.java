@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,16 +17,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EvaluatedHasAssignmentTrigger extends EvaluatedPolicyRuleTrigger<HasAssignmentPolicyConstraintType> {
 
-	public EvaluatedHasAssignmentTrigger(@NotNull PolicyConstraintKindType kind, @NotNull HasAssignmentPolicyConstraintType constraint,
-			LocalizableMessage message, LocalizableMessage shortMessage) {
-		super(kind, constraint, message, shortMessage, false);
-	}
+    public EvaluatedHasAssignmentTrigger(@NotNull PolicyConstraintKindType kind, @NotNull HasAssignmentPolicyConstraintType constraint,
+            LocalizableMessage message, LocalizableMessage shortMessage) {
+        super(kind, constraint, message, shortMessage, false);
+    }
 
-	@Override
-	public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
-			PrismContext prismContext) {
-		EvaluatedHasAssignmentTriggerType rv = new EvaluatedHasAssignmentTriggerType();
-		fillCommonContent(rv);
-		return rv;
-	}
+    @Override
+    public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+            PrismContext prismContext) {
+        EvaluatedHasAssignmentTriggerType rv = new EvaluatedHasAssignmentTriggerType();
+        fillCommonContent(rv);
+        return rv;
+    }
 }

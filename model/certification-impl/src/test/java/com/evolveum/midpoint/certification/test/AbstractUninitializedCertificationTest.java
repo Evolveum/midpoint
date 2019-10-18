@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.certification.test;
@@ -29,58 +29,58 @@ import java.io.File;
  */
 public class AbstractUninitializedCertificationTest extends AbstractModelIntegrationTest {
 
-	@Autowired
-	private AccCertResponseComputationHelper computationHelper;
+    @Autowired
+    private AccCertResponseComputationHelper computationHelper;
 
-	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
+    public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
+    public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
-	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
+    public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
+    protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
-	public static final File USER_ADMINISTRATOR_PLAIN_FILE = new File(COMMON_DIR, "user-administrator-plain.xml");
-	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-	protected static final String USER_ADMINISTRATOR_NAME = "administrator";
+    public static final File USER_ADMINISTRATOR_PLAIN_FILE = new File(COMMON_DIR, "user-administrator-plain.xml");
+    protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+    protected static final String USER_ADMINISTRATOR_NAME = "administrator";
 
-	protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
+    protected static final Trace LOGGER = TraceManager.getTrace(AbstractModelIntegrationTest.class);
 
     @Autowired protected CertificationManagerImpl certificationManager;
-	@Autowired protected AccessCertificationService certificationService;
-	@Autowired protected AccCertUpdateHelper updateHelper;
-	@Autowired protected AccCertQueryHelper queryHelper;
+    @Autowired protected AccessCertificationService certificationService;
+    @Autowired protected AccCertUpdateHelper updateHelper;
+    @Autowired protected AccCertQueryHelper queryHelper;
 
-	protected RoleType roleSuperuser;
-	protected UserType userAdministrator;
+    protected RoleType roleSuperuser;
+    protected UserType userAdministrator;
 
     @Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		LOGGER.trace("initSystem");
-		super.initSystem(initTask, initResult);
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        LOGGER.trace("initSystem");
+        super.initSystem(initTask, initResult);
 
-		modelService.postInit(initResult);
+        modelService.postInit(initResult);
 
-		// System Configuration
-		try {
-			repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
-		} catch (ObjectAlreadyExistsException e) {
-			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
-					"looks like the previous test haven't cleaned it up", e);
-		}
+        // System Configuration
+        try {
+            repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
+                    "looks like the previous test haven't cleaned it up", e);
+        }
 
-		// Administrator
-		roleSuperuser = repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult).asObjectable();
-		userAdministrator = repoAddObjectFromFile(getUserAdministratorFile(), UserType.class, initResult).asObjectable();
-		login(userAdministrator.asPrismObject());
-	}
+        // Administrator
+        roleSuperuser = repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult).asObjectable();
+        userAdministrator = repoAddObjectFromFile(getUserAdministratorFile(), UserType.class, initResult).asObjectable();
+        login(userAdministrator.asPrismObject());
+    }
 
-	@NotNull
-	protected File getUserAdministratorFile() {
-		return USER_ADMINISTRATOR_PLAIN_FILE;
-	}
+    @NotNull
+    protected File getUserAdministratorFile() {
+        return USER_ADMINISTRATOR_PLAIN_FILE;
+    }
 
-	@NotNull
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_FILE;
-	}
+    @NotNull
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_FILE;
+    }
 
 }

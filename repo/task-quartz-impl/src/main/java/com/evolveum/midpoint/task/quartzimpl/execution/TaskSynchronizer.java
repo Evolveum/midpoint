@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl.execution;
@@ -196,8 +196,8 @@ public class TaskSynchronizer {
             TriggerKey standardTriggerKey = TaskQuartzImplUtil.createTriggerKeyForTask(task);
 
             boolean waitingOrClosedOrSuspended = task.getExecutionStatus() == TaskExecutionStatus.WAITING
-					|| task.getExecutionStatus() == TaskExecutionStatus.CLOSED
-					|| task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED;
+                    || task.getExecutionStatus() == TaskExecutionStatus.CLOSED
+                    || task.getExecutionStatus() == TaskExecutionStatus.SUSPENDED;
 
             if (!scheduler.checkExists(jobKey) && !waitingOrClosedOrSuspended) {
                 String m1 = "Quartz job does not exist for a task, adding it. Task = " + task;
@@ -212,23 +212,23 @@ public class TaskSynchronizer {
             List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
             boolean standardTriggerExists = triggers.stream().anyMatch(t -> t.getKey().equals(standardTriggerKey));
             if (waitingOrClosedOrSuspended) {
-				for (Trigger trigger : triggers) {
-					if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED || !trigger.getKey().equals(standardTriggerKey)) {
-						String m1 = "Removing Quartz trigger " + trigger.getKey() + " for WAITING/CLOSED/SUSPENDED task " + task;
-						message += "[" + m1 + "] ";
-						LOGGER.trace(" - {}", m1);
-						scheduler.unscheduleJob(trigger.getKey());
-						changed = true;
-					} else {
-						// For SUSPENDED/WAITING tasks, we keep the standard trigger untouched. We want to preserve original
-						// scheduled time. (This might or might not be what the user wants ... but it has been so for so
-						// many years, so let's not change it now.)
-						//
-						// It's harmless to keep the standard trigger, because:
-						// 1) If a trigger is mistakenly alive, JobExecutor will take care of it.
-						// 2) If a trigger has wrong parameters, this will be corrected on task resume/unpause.
-					}
-				}
+                for (Trigger trigger : triggers) {
+                    if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED || !trigger.getKey().equals(standardTriggerKey)) {
+                        String m1 = "Removing Quartz trigger " + trigger.getKey() + " for WAITING/CLOSED/SUSPENDED task " + task;
+                        message += "[" + m1 + "] ";
+                        LOGGER.trace(" - {}", m1);
+                        scheduler.unscheduleJob(trigger.getKey());
+                        changed = true;
+                    } else {
+                        // For SUSPENDED/WAITING tasks, we keep the standard trigger untouched. We want to preserve original
+                        // scheduled time. (This might or might not be what the user wants ... but it has been so for so
+                        // many years, so let's not change it now.)
+                        //
+                        // It's harmless to keep the standard trigger, because:
+                        // 1) If a trigger is mistakenly alive, JobExecutor will take care of it.
+                        // 2) If a trigger has wrong parameters, this will be corrected on task resume/unpause.
+                    }
+                }
             } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
                 Trigger triggerToBe;
                 try {
@@ -242,8 +242,8 @@ public class TaskSynchronizer {
                 }
                 if (triggerToBe == null) {
                     if (standardTriggerExists) {
-                    	// TODO what about non-standard triggers?
-						// These may be legal here (e.g. for a manually-run recurring task waiting to get a chance to run)
+                        // TODO what about non-standard triggers?
+                        // These may be legal here (e.g. for a manually-run recurring task waiting to get a chance to run)
                         String m1 = "Removing standard Quartz trigger for RUNNABLE task that should not have it; task = " + task;
                         message += "[" + m1 + "] ";
                         LOGGER.trace(" - " + m1);
@@ -261,7 +261,7 @@ public class TaskSynchronizer {
                     } else {
                         // we have to compare trigger parameters with the task's ones
                         Trigger triggerAsIs = scheduler.getTrigger(standardTriggerKey);
-						if (isRecreateQuartzTrigger(task) || TaskQuartzImplUtil.triggersDiffer(triggerAsIs, triggerToBe)) {
+                        if (isRecreateQuartzTrigger(task) || TaskQuartzImplUtil.triggersDiffer(triggerAsIs, triggerToBe)) {
                             String m1 = "Existing trigger has incompatible parameters or was explicitly requested to be recreated; recreating it. Task = " + task;
                             LOGGER.trace(" - " + m1);
                             message += "[" + m1 + "] ";

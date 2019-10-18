@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -299,7 +299,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 if (propertyDefinition2 == null) {
                     throw new IllegalArgumentException("No definition for " + attribute2 + " in " + userPrismDefinition);
                 }
-                
+
                 ItemDelta delta2;
                 if (propertyDefinition2 instanceof PrismContainerDefinition) {
                     //noinspection unchecked
@@ -324,11 +324,11 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
             try {
                 repositoryService.modifyObject(UserType.class, oid, deltas, result);
-				result.computeStatus();
-				if (result.isError()) {
-					LOGGER.error("Error found in operation result:\n{}", result.debugDump());
-					throw new IllegalStateException("Error found in operation result");
-				}
+                result.computeStatus();
+                if (result.isError()) {
+                    LOGGER.error("Error found in operation result:\n{}", result.debugDump());
+                    throw new IllegalStateException("Error found in operation result");
+                }
             } catch (Exception e) {
                 String msg = "modifyObject failed while modifying attribute(s) " + attributeNames() + " to value " + dataWritten;
                 throw new RuntimeException(msg, e);
@@ -380,7 +380,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                         return;
                     }
                 }
-                
+
                 String currentVersion = user.getVersion();
                 String versionError = SqlRepoTestUtil.checkVersionProgress(lastVersion, currentVersion);
                 if (versionError != null) {
@@ -488,8 +488,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 (object, parentResult) -> {
                     LOGGER.info("Handling " + object + "...");
                     ObjectDelta delta = prismContext.deltaFactory().object()
-		                    .createModificationReplaceProperty(UserType.class, object.getOid(),
-		                    UserType.F_FULL_NAME, new PolyString(newFullName));
+                            .createModificationReplaceProperty(UserType.class, object.getOid(),
+                            UserType.F_FULL_NAME, new PolyString(newFullName));
                     try {
                         //noinspection unchecked
                         repositoryService.modifyObject(UserType.class,
@@ -558,18 +558,18 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         if (getConfiguration().isUsingH2()) {
             // Because of:
             // Caused by: javax.persistence.EntityExistsException: A different object with the same identifier value was already associated with the session : [com.evolveum.midpoint.repo.sql.data.common.container.RAssignment#RContainerId{44c3e25d-e790-4142-958d-ff7ff3ff3a9f, 62}]
-            //	at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:118)
-            //	at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:157)
-            //	at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:164)
-            //	at org.hibernate.internal.SessionImpl.doFlush(SessionImpl.java:1443)
-            //	at org.hibernate.internal.SessionImpl.managedFlush(SessionImpl.java:493)
-            //	at org.hibernate.internal.SessionImpl.flushBeforeTransactionCompletion(SessionImpl.java:3207)
-            //	at org.hibernate.internal.SessionImpl.beforeTransactionCompletion(SessionImpl.java:2413)
-            //	at org.hibernate.engine.jdbc.internal.JdbcCoordinatorImpl.beforeTransactionCompletion(JdbcCoordinatorImpl.java:473)
-            //	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.beforeCompletionCallback(JdbcResourceLocalTransactionCoordinatorImpl.java:156)
-            //	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.access$100(JdbcResourceLocalTransactionCoordinatorImpl.java:38)
-            //	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.commit(JdbcResourceLocalTransactionCoordinatorImpl.java:231)
-            //	at org.hibernate.engine.transaction.internal.TransactionImpl.commit(TransactionImpl.java:68)
+            //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:118)
+            //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:157)
+            //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:164)
+            //    at org.hibernate.internal.SessionImpl.doFlush(SessionImpl.java:1443)
+            //    at org.hibernate.internal.SessionImpl.managedFlush(SessionImpl.java:493)
+            //    at org.hibernate.internal.SessionImpl.flushBeforeTransactionCompletion(SessionImpl.java:3207)
+            //    at org.hibernate.internal.SessionImpl.beforeTransactionCompletion(SessionImpl.java:2413)
+            //    at org.hibernate.engine.jdbc.internal.JdbcCoordinatorImpl.beforeTransactionCompletion(JdbcCoordinatorImpl.java:473)
+            //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.beforeCompletionCallback(JdbcResourceLocalTransactionCoordinatorImpl.java:156)
+            //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.access$100(JdbcResourceLocalTransactionCoordinatorImpl.java:38)
+            //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.commit(JdbcResourceLocalTransactionCoordinatorImpl.java:231)
+            //    at org.hibernate.engine.transaction.internal.TransactionImpl.commit(TransactionImpl.java:68)
             return;         // TODO
         }
 

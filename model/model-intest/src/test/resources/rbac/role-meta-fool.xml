@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="2edc5fe4-af3c-11e6-a81e-eb332578ec4f"
@@ -12,33 +12,33 @@
     <name>Fool Metarole</name>
     <inducement id="10001">
         <construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-    		<kind>account</kind>
-    		<attribute>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<strength>strong</strength>
-                	<expression>
-						<value>Fool</value>
-					</expression>
-				</outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>Fool</value>
+                    </expression>
+                </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<outbound>
-            		<strength>strong</strength>
-                	<expression>
-						<associationTargetSearch>
-							<filter>
-								<q:equal>
-									<q:path>attributes/icfs:name</q:path>
-									<q:value>fools</q:value>
-								</q:equal>
-							</filter>
-							<searchStrategy>onResourceIfNeeded</searchStrategy>
-						</associationTargetSearch>
-					</expression>
-				</outbound>
+                <ref>ri:group</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/icfs:name</q:path>
+                                    <q:value>fools</q:value>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
             </association>
         </construction>
         <focusType>UserType</focusType>
@@ -46,32 +46,32 @@
     </inducement>
     <inducement id="10002">
         <construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-    		<kind>account</kind>
-    		<attribute>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-						<value>Simpleton</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>Simpleton</value>
+                    </expression>
+                </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<outbound>
-            		<strength>strong</strength>
-                	<expression>
-						<associationTargetSearch>
-							<filter>
-								<q:equal>
-									<q:path>attributes/icfs:name</q:path>
-									<q:value>simpletons</q:value>
-								</q:equal>
-							</filter>
-							<searchStrategy>onResourceIfNeeded</searchStrategy>
-						</associationTargetSearch>
-					</expression>
-				</outbound>
+                <ref>ri:group</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/icfs:name</q:path>
+                                    <q:value>simpletons</q:value>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
             </association>
         </construction>
         <focusType>UserType</focusType>

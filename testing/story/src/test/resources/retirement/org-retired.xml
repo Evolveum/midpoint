@@ -2,52 +2,52 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
- 
+
 <org oid="00000000-8888-6666-0000-100000ffffff"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
     xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
-	<name>RETIRED</name>
-	<displayName>Retired</displayName>
-	<identifier>RRRR</identifier>
-	<orgType>functional</orgType>
-	
-	<assignment>
-    	<description>RET-OU</description>
-    	<construction>
-    		<description>RET-OU</description>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
-    		<kind>generic</kind>
-    		<intent>ou</intent>
-    	</construction>
+    <name>RETIRED</name>
+    <displayName>Retired</displayName>
+    <identifier>RRRR</identifier>
+    <orgType>functional</orgType>
+
+    <assignment>
+        <description>RET-OU</description>
+        <construction>
+            <description>RET-OU</description>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+            <kind>generic</kind>
+            <intent>ou</intent>
+        </construction>
     </assignment>
-    
+
     <inducement>
-    	<description>RET-ACC</description>
-    	<construction>
-    		<description>RET-ACC</description>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
-    		<kind>account</kind>
-    		<intent>default</intent>
-    		<attribute>
-				<ref>ri:dn</ref>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>$focus/name</path>
-					</source>
-					<expression>
-                    	<script>
-	                        <code>
-	                        	basic.composeDnWithSuffix('uid', 'RRR-' + name, 'ou=RETIRED,dc=example,dc=com')
-	                        </code>
+        <description>RET-ACC</description>
+        <construction>
+            <description>RET-ACC</description>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <attribute>
+                <ref>ri:dn</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                basic.composeDnWithSuffix('uid', 'RRR-' + name, 'ou=RETIRED,dc=example,dc=com')
+                            </code>
                         </script>
                     </expression>
-				</outbound>
-			</attribute>
-    	</construction>
+                </outbound>
+            </attribute>
+        </construction>
     </inducement>
 </org>

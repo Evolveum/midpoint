@@ -2,12 +2,12 @@
 <!--
   ~ Copyright (c) 2014-2016 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
   <!-- Iteration with token expression (sequential) and post-condition that checks for e-mail uniquness. -->
-  
+
 <objectTemplate oid="10000000-0000-0000-0000-0000000d0004"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
@@ -16,70 +16,70 @@
     <name>Iteration User Template: Unique email</name>
 
     <iterationSpecification>
-		<maxIterations>5</maxIterations>
-		<tokenExpression>
-			<script>
-				<code>
-					if (iteration == 0) {
-						return "";
-					} else {
-						return "."+iteration;
-					}
-				</code>
-			</script>
-		</tokenExpression>
-		<postIterationCondition>
-			<variable>
-				<name>nickName</name>
-				<path>$focus/nickName</path>
-			</variable>
-			<script>
-				<code>
-					if (nickName == null) { return true }
-					def emailAddress = nickName + iterationToken + '@example.com'
-					midpoint.isUniquePropertyValue(focus, 'emailAddress', emailAddress.toString())
-				</code>
-			</script>
-		</postIterationCondition>
-	</iterationSpecification>
+        <maxIterations>5</maxIterations>
+        <tokenExpression>
+            <script>
+                <code>
+                    if (iteration == 0) {
+                        return "";
+                    } else {
+                        return "."+iteration;
+                    }
+                </code>
+            </script>
+        </tokenExpression>
+        <postIterationCondition>
+            <variable>
+                <name>nickName</name>
+                <path>$focus/nickName</path>
+            </variable>
+            <script>
+                <code>
+                    if (nickName == null) { return true }
+                    def emailAddress = nickName + iterationToken + '@example.com'
+                    midpoint.isUniquePropertyValue(focus, 'emailAddress', emailAddress.toString())
+                </code>
+            </script>
+        </postIterationCondition>
+    </iterationSpecification>
 
-	<item>
-		<ref>emailAddress</ref>
-		<mapping>
-	    	<source>
-	    		<path>nickName</path>
-	    	</source>
-	    	<expression>
-				<script>
-					<code>
-						nickName + iterationToken + '@example.com'
-					</code>
-	         	</script>
-			</expression>
-	    </mapping>
-	</item>
+    <item>
+        <ref>emailAddress</ref>
+        <mapping>
+            <source>
+                <path>nickName</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        nickName + iterationToken + '@example.com'
+                    </code>
+                 </script>
+            </expression>
+        </mapping>
+    </item>
 
-	<item>
-		<ref>fullName</ref>
-		<mapping>
-	    	<strength>weak</strength>
-	    	<source>
-	    		<path>$user/givenName</path>
-	    	</source>
-	    	<source>
-	    		<path>$user/familyName</path>
-	    	</source>
-	    	<expression>
-				<script>
-					<code>
-						givenName + ' ' + familyName
-					</code>
-	         	</script>
-			</expression>
-	    	<target>
-	    		<path>fullName</path>
-	    	</target>
-	    </mapping>		
-	</item>
-	
+    <item>
+        <ref>fullName</ref>
+        <mapping>
+            <strength>weak</strength>
+            <source>
+                <path>$user/givenName</path>
+            </source>
+            <source>
+                <path>$user/familyName</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        givenName + ' ' + familyName
+                    </code>
+                 </script>
+            </expression>
+            <target>
+                <path>fullName</path>
+            </target>
+        </mapping>
+    </item>
+
 </objectTemplate>

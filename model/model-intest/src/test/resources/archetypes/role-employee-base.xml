@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="e869d6c4-f6ef-11e8-b51f-df3e51bba129"
@@ -9,9 +9,9 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <name>Employee base</name>    
-	<description>Role that induces an archetype</description>
-	<inducement>
-		<targetRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- employee archetype -->
-	</inducement>
+    <name>Employee base</name>
+    <description>Role that induces an archetype</description>
+    <inducement>
+        <targetRef oid="7135e68c-ee53-11e8-8025-170b77da3fd6" type="ArchetypeType"/> <!-- employee archetype -->
+    </inducement>
 </role>

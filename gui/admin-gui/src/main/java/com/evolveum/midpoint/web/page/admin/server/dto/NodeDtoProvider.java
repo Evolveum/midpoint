@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -38,18 +38,18 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
 
     @Override
     public Iterator<? extends NodeDto> internalIterator(long first, long count) {
-		Collection<String> selectedOids = getSelectedOids();
+        Collection<String> selectedOids = getSelectedOids();
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_NODES);
         Task task = getTaskManager().createTaskInstance(OPERATION_LIST_NODES);
         try {
-        	ObjectPaging paging = createPaging(first, count);
-        	ObjectQuery query = getQuery();
-        	if (query == null) {
-        		query = getPrismContext().queryFactory().createQuery();
-        	}
-        	query.setPaging(paging);
+            ObjectPaging paging = createPaging(first, count);
+            ObjectQuery query = getQuery();
+            if (query == null) {
+                query = getPrismContext().queryFactory().createQuery();
+            }
+            query.setPaging(paging);
 
             List<PrismObject<NodeType>> nodes = getModel().searchObjects(NodeType.class, query, getDefaultOptionsBuilder().build(), task, result);
 
@@ -62,30 +62,30 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
             result.recordFatalError(getPage().createStringResource("NodeDtoProvider.message.internalIterator.fatalError").getString(), ex);
         }
 
-		setSelectedOids(selectedOids);
+        setSelectedOids(selectedOids);
         return getAvailableData().iterator();
     }
 
-	private Collection<String> getSelectedOids() {
-		Set<String> oids = new HashSet<>();
-		for (NodeDto nodeDto : getAvailableData()) {
-			if (nodeDto.isSelected()) {
-				oids.add(nodeDto.getOid());
-			}
-		}
-		return oids;
-	}
+    private Collection<String> getSelectedOids() {
+        Set<String> oids = new HashSet<>();
+        for (NodeDto nodeDto : getAvailableData()) {
+            if (nodeDto.isSelected()) {
+                oids.add(nodeDto.getOid());
+            }
+        }
+        return oids;
+    }
 
-	private void setSelectedOids(Collection<String> selectedOids) {
-		for (NodeDto nodeDto : getAvailableData()) {
-			if (selectedOids.contains(nodeDto.getOid())) {
-				nodeDto.setSelected(true);
-			}
-		}
-	}
+    private void setSelectedOids(Collection<String> selectedOids) {
+        for (NodeDto nodeDto : getAvailableData()) {
+            if (selectedOids.contains(nodeDto.getOid())) {
+                nodeDto.setSelected(true);
+            }
+        }
+    }
 
 
-	public NodeDto createNodeDto(PrismObject<NodeType> node) {
+    public NodeDto createNodeDto(PrismObject<NodeType> node) {
         return new NodeDto(node.asObjectable());
     }
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api.context;
@@ -17,15 +17,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  */
 public interface EvaluatedConstruction extends DebugDumpable {
 
-	PrismObject<ResourceType> getResource();
+    PrismObject<ResourceType> getResource();
 
-	ShadowKindType getKind();
+    ShadowKindType getKind();
 
-	String getIntent();
+    String getIntent();
 
-	boolean isDirectlyAssigned();
+    boolean isDirectlyAssigned();
 
-	AssignmentPath getAssignmentPath();
+    AssignmentPath getAssignmentPath();
 
-	boolean isWeak();
+    boolean isWeak();
 }

@@ -2,42 +2,42 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<name>midPoint Report - impl</name>
-	<groupId>com.evolveum.midpoint.model</groupId>
-	<artifactId>report-impl</artifactId>
-	<packaging>jar</packaging>
-	<parent>
-		<artifactId>model</artifactId>
-		<groupId>com.evolveum.midpoint</groupId>
-		<version>4.0.1-SNAPSHOT</version>
-	</parent>
-	<organization>
-		<name>Evolveum</name>
-		<url>http://www.evolveum.com</url>
-	</organization>
-	<licenses>
-		<license>
-			<name>Apache License v2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
-	<issueManagement>
-		<system>Atlassian JIRA</system>
-		<url>http://jira.evolveum.com/</url>
-	</issueManagement>
-	<scm>
-		<connection>https://github.com/Evolveum/midpoint.git</connection>
-		<developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
-		<url>https://fisheye.evolveum.com/browse/midPoint</url>
-	</scm>
-	<dependencies>
+    <modelVersion>4.0.0</modelVersion>
+    <name>midPoint Report - impl</name>
+    <groupId>com.evolveum.midpoint.model</groupId>
+    <artifactId>report-impl</artifactId>
+    <packaging>jar</packaging>
+    <parent>
+        <artifactId>model</artifactId>
+        <groupId>com.evolveum.midpoint</groupId>
+        <version>4.0.1-SNAPSHOT</version>
+    </parent>
+    <organization>
+        <name>Evolveum</name>
+        <url>http://www.evolveum.com</url>
+    </organization>
+    <licenses>
+        <license>
+            <name>Apache License v2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <issueManagement>
+        <system>Atlassian JIRA</system>
+        <url>http://jira.evolveum.com/</url>
+    </issueManagement>
+    <scm>
+        <connection>https://github.com/Evolveum/midpoint.git</connection>
+        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
+        <url>https://fisheye.evolveum.com/browse/midPoint</url>
+    </scm>
+    <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-api</artifactId>
@@ -53,16 +53,16 @@
             <artifactId>schema</artifactId>
             <version>4.0.1-SNAPSHOT</version>
         </dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>prism-api</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>prism-api</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
             <version>4.0.1-SNAPSHOT</version>
-			<scope>test</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
@@ -75,145 +75,145 @@
             <version>4.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-common</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>security-enforcer-api</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-common</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+        </dependency>
         <dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>common</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.model</groupId>
-			<artifactId>model-api</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.model</groupId>
-			<artifactId>certification-api</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.model</groupId>
-			<artifactId>model-common</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.model</groupId>
-			<artifactId>model-impl</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-		</dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-enforcer-api</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>common</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-api</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>certification-api</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-common</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-impl</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>workflow-api</artifactId>
             <version>4.0.1-SNAPSHOT</version>
         </dependency>
 
-		<dependency>
-			<groupId>org.jetbrains</groupId>
-			<artifactId>annotations-java5</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations-java5</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+        </dependency>
 
- 		<!-- Jasper reports -->
+         <!-- Jasper reports -->
 <!--         <dependency> -->
-<!--   			<groupId>net.sf.jasperreports</groupId> -->
-<!--    			<artifactId>jasperreports</artifactId> -->
-<!--    			<version>4.7.0-e1</version> -->
-<!--  		</dependency> -->
-		<dependency>
-			<groupId>net.sf.jasperreports</groupId>
-			<artifactId>jasperreports</artifactId>
-		</dependency>
+<!--               <groupId>net.sf.jasperreports</groupId> -->
+<!--                <artifactId>jasperreports</artifactId> -->
+<!--                <version>4.7.0-e1</version> -->
+<!--          </dependency> -->
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports</artifactId>
+        </dependency>
 <!-- <dependency> -->
-<!-- 	<groupId>com.google.code.maven-play-plugin.org.apache.commons</groupId> -->
-<!-- 	<artifactId>commons-javaflow</artifactId> -->
-<!-- 	<version>1590792</version> -->
+<!--     <groupId>com.google.code.maven-play-plugin.org.apache.commons</groupId> -->
+<!--     <artifactId>commons-javaflow</artifactId> -->
+<!--     <version>1590792</version> -->
 <!-- </dependency> -->
 
-		<dependency>
-			<groupId>commons-javaflow</groupId>
-			<artifactId>commons-javaflow</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+        <dependency>
+            <groupId>commons-javaflow</groupId>
+            <artifactId>commons-javaflow</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
-  		<dependency>
-   			<groupId>org.apache.cxf</groupId>
-   			<artifactId>cxf-core</artifactId>
-  		</dependency>
-  		<dependency>
-   			<groupId>org.apache.cxf</groupId>
-   			<artifactId>cxf-rt-wsdl</artifactId>
-  		</dependency>
-  		
-  		<dependency>
-   			<groupId>org.springframework</groupId>
-   			<artifactId>spring-context</artifactId>
-  		</dependency>
-  		<dependency>
-   			<groupId>org.springframework</groupId>
-   			<artifactId>spring-beans</artifactId>
-  		</dependency>
-  		<dependency>
-   			<groupId>javax.annotation</groupId>
-   			<artifactId>javax.annotation-api</artifactId>
-  		</dependency>
-  		<dependency>
-		    <groupId>javax.xml.ws</groupId>
-			<artifactId>jaxws-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>javax.xml.soap</groupId>
-			<artifactId>javax.xml.soap-api</artifactId>
-	    </dependency>
+          <dependency>
+               <groupId>org.apache.cxf</groupId>
+               <artifactId>cxf-core</artifactId>
+          </dependency>
+          <dependency>
+               <groupId>org.apache.cxf</groupId>
+               <artifactId>cxf-rt-wsdl</artifactId>
+          </dependency>
 
-		<!-->Dependency definnition added, client to fetch reports <-->
+          <dependency>
+               <groupId>org.springframework</groupId>
+               <artifactId>spring-context</artifactId>
+          </dependency>
+          <dependency>
+               <groupId>org.springframework</groupId>
+               <artifactId>spring-beans</artifactId>
+          </dependency>
+          <dependency>
+               <groupId>javax.annotation</groupId>
+               <artifactId>javax.annotation-api</artifactId>
+          </dependency>
+          <dependency>
+            <groupId>javax.xml.ws</groupId>
+            <artifactId>jaxws-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.soap</groupId>
+            <artifactId>javax.xml.soap-api</artifactId>
+        </dependency>
 
-		<dependency>
-			<groupId>javax.ws.rs</groupId>
-			<artifactId>javax.ws.rs-api</artifactId>
-		</dependency>
-		
-		<!-- Dependency for dashboard reports-->
-		
-		<dependency>
-    		<groupId>com.j2html</groupId>
-    		<artifactId>j2html</artifactId>
-    		<version>1.4.0</version>
-		</dependency>
+        <!-->Dependency definnition added, client to fetch reports <-->
 
-		<dependency>
-			<groupId>org.apache.cxf</groupId>
-			<artifactId>cxf-rt-rs-client</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+        </dependency>
+
+        <!-- Dependency for dashboard reports-->
+
+        <dependency>
+            <groupId>com.j2html</groupId>
+            <artifactId>j2html</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-client</artifactId>
+        </dependency>
 
 
-		<!-- Test -->
+        <!-- Test -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
@@ -226,18 +226,18 @@
             <version>4.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
-     	<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>task-quartz-impl</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.icf</groupId>
-			<artifactId>dummy-resource</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
+         <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-quartz-impl</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.icf</groupId>
+            <artifactId>dummy-resource</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-impl</artifactId>
@@ -251,99 +251,99 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>security-enforcer-impl</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-enforcer-impl</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-test</artifactId>
             <version>4.0.1-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-sql-impl</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint</groupId>
-			<artifactId>midpoint-localization</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-test-util</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>test-util</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.tools</groupId>
-			<artifactId>test-ng</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>system-init</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-sql-impl-test</artifactId>
-			<version>4.0.1-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
-			<groupId>org.springframework</groupId> 
-			<artifactId>spring-aspects</artifactId>
-			<scope>test</scope> 
-		</dependency>
-        <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
-			<groupId>org.springframework</groupId> 
-			<artifactId>spring-aop</artifactId>
-			<scope>test</scope> 
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>log4j-over-slf4j</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-sql-impl</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint</groupId>
+            <artifactId>midpoint-localization</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-test-util</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>test-util</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>system-init</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-sql-impl-test</artifactId>
+            <version>4.0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-		    <groupId>com.googlecode.java-diff-utils</groupId>
-		    <artifactId>diffutils</artifactId>
-		    <version>1.2.1</version>
+            <groupId>com.googlecode.java-diff-utils</groupId>
+            <artifactId>diffutils</artifactId>
+            <version>1.2.1</version>
             <scope>test</scope>
-		</dependency>
-	</dependencies>
+        </dependency>
+    </dependencies>
 </project>

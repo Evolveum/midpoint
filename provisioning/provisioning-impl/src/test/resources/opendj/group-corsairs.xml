@@ -2,23 +2,23 @@
 <!--
   ~ Copyright (c) 2014-2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 
 <shadow oid="70a1f3ee-4b5b-11e5-95d0-001e8c717e5b"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<name>cn=corsairs,ou=groups,dc=example,dc=com</name>
-	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<objectClass>ri:groupOfUniqueNames</objectClass>
-	<kind>entitlement</kind>
-	<intent>ldapGroup</intent>
-	<attributes>
-		<ri:dn>cn=CorsairS,ou=gROUPs,dc=example,dc=COM</ri:dn>
-		<ri:cn>corsairs</ri:cn>
-	</attributes>
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+    <name>cn=corsairs,ou=groups,dc=example,dc=com</name>
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+    <objectClass>ri:groupOfUniqueNames</objectClass>
+    <kind>entitlement</kind>
+    <intent>ldapGroup</intent>
+    <attributes>
+        <ri:dn>cn=CorsairS,ou=gROUPs,dc=example,dc=COM</ri:dn>
+        <ri:cn>corsairs</ri:cn>
+    </attributes>
 </shadow>

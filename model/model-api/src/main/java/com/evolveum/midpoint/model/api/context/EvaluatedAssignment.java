@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api.context;
@@ -29,74 +29,74 @@ import org.jetbrains.annotations.NotNull;
 
 public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends DebugDumpable {
 
-	AssignmentType getAssignmentType();
+    AssignmentType getAssignmentType();
 
-	Long getAssignmentId();
+    Long getAssignmentId();
 
-	Collection<Authorization> getAuthorizations();
+    Collection<Authorization> getAuthorizations();
 
-	Collection<AdminGuiConfigurationType> getAdminGuiConfigurations();
+    Collection<AdminGuiConfigurationType> getAdminGuiConfigurations();
 
-	DeltaSetTriple<? extends EvaluatedAssignmentTarget> getRoles();
+    DeltaSetTriple<? extends EvaluatedAssignmentTarget> getRoles();
 
-	DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-	PrismObject<?> getTarget();
+    PrismObject<?> getTarget();
 
-	AssignmentType getAssignmentType(boolean old);
+    AssignmentType getAssignmentType(boolean old);
 
-	// return value of null is ambiguous: either targetRef is null or targetRef.relation is null
-	QName getRelation();
+    // return value of null is ambiguous: either targetRef is null or targetRef.relation is null
+    QName getRelation();
 
-	QName getNormalizedRelation(RelationRegistry relationRegistry);
+    QName getNormalizedRelation(RelationRegistry relationRegistry);
 
-	boolean isValid();
+    boolean isValid();
 
-	boolean isPresentInCurrentObject();
+    boolean isPresentInCurrentObject();
 
-	boolean isPresentInOldObject();
+    boolean isPresentInOldObject();
 
-	/**
-	 * Returns all policy rules that apply to the focal object and are derived from this assignment
-	 * - even those that were not triggered. The policy rules are compiled from all the applicable
-	 * sources (target, meta-roles, etc.)
-	 */
-	@NotNull
-	Collection<EvaluatedPolicyRule> getFocusPolicyRules();
+    /**
+     * Returns all policy rules that apply to the focal object and are derived from this assignment
+     * - even those that were not triggered. The policy rules are compiled from all the applicable
+     * sources (target, meta-roles, etc.)
+     */
+    @NotNull
+    Collection<EvaluatedPolicyRule> getFocusPolicyRules();
 
-	/**
-	 * Returns all policy rules that directly apply to the target object of this assignment
-	 * (and are derived from this assignment) - even those that were not triggered. The policy rules
-	 * are compiled from all the applicable sources (target, meta-roles, etc.)
-	 */
-	@NotNull
-	Collection<EvaluatedPolicyRule> getThisTargetPolicyRules();
+    /**
+     * Returns all policy rules that directly apply to the target object of this assignment
+     * (and are derived from this assignment) - even those that were not triggered. The policy rules
+     * are compiled from all the applicable sources (target, meta-roles, etc.)
+     */
+    @NotNull
+    Collection<EvaluatedPolicyRule> getThisTargetPolicyRules();
 
-	/**
-	 * Returns all policy rules that apply to some other target object of this assignment
-	 * (and are derived from this assignment) - even those that were not triggered. The policy rules
-	 * are compiled from all the applicable sources (target, meta-roles, etc.)
-	 */
-	@NotNull
-	Collection<EvaluatedPolicyRule> getOtherTargetsPolicyRules();
+    /**
+     * Returns all policy rules that apply to some other target object of this assignment
+     * (and are derived from this assignment) - even those that were not triggered. The policy rules
+     * are compiled from all the applicable sources (target, meta-roles, etc.)
+     */
+    @NotNull
+    Collection<EvaluatedPolicyRule> getOtherTargetsPolicyRules();
 
-	/**
-	 * Returns all policy rules that apply to any of the target objects provided by this assignment
-	 * (and are derived from this assignment) - even those that were not triggered. The policy rules
-	 * are compiled from all the applicable sources (target, meta-roles, etc.)
-	 *
-	 * The difference to getThisTargetPolicyRules is that if e.g.
-	 * jack is a Pirate, and Pirate induces Sailor, then
-	 *  - getThisTargetPolicyRules will show rules that are attached to Pirate
-	 *  - getAllTargetsPolicyRules will show rules that are attached to Pirate and Sailor
-	 *  - getOtherTargetsPolicyRules will show rules that are attached to Sailor
-	 */
-	@NotNull
-	Collection<EvaluatedPolicyRule> getAllTargetsPolicyRules();
+    /**
+     * Returns all policy rules that apply to any of the target objects provided by this assignment
+     * (and are derived from this assignment) - even those that were not triggered. The policy rules
+     * are compiled from all the applicable sources (target, meta-roles, etc.)
+     *
+     * The difference to getThisTargetPolicyRules is that if e.g.
+     * jack is a Pirate, and Pirate induces Sailor, then
+     *  - getThisTargetPolicyRules will show rules that are attached to Pirate
+     *  - getAllTargetsPolicyRules will show rules that are attached to Pirate and Sailor
+     *  - getOtherTargetsPolicyRules will show rules that are attached to Sailor
+     */
+    @NotNull
+    Collection<EvaluatedPolicyRule> getAllTargetsPolicyRules();
 
 
-	Collection<String> getPolicySituations();
+    Collection<String> getPolicySituations();
 
-	void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
+    void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
 }

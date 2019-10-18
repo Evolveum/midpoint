@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.prism;
@@ -42,153 +42,153 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(DynamicFieldGroupPanel.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(DynamicFieldGroupPanel.class);
 
-	private static final String ID_PROPERTY = "property";
-	private static final String ID_HEADER = "header";
+    private static final String ID_PROPERTY = "property";
+    private static final String ID_HEADER = "header";
 
-	private List<AbstractFormItemType> formItems;
+    private List<AbstractFormItemType> formItems;
 
-	public DynamicFieldGroupPanel(String id, String groupName, IModel<PrismObjectWrapper<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageBase parentPage) {
-		super(id, objectWrapper);
-		setParent(parentPage);
-		this.formItems = formItems;
-		initLayout(groupName, formItems, mainForm);
-	}
+    public DynamicFieldGroupPanel(String id, String groupName, IModel<PrismObjectWrapper<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageBase parentPage) {
+        super(id, objectWrapper);
+        setParent(parentPage);
+        this.formItems = formItems;
+        initLayout(groupName, formItems, mainForm);
+    }
 
-	public DynamicFieldGroupPanel(String id, IModel<PrismObjectWrapper<O>> objectWrapper, @NotNull FormDefinitionType formDefinition, Form<?> mainForm, PageBase parentPage) {
-		super(id, objectWrapper);
-		setParent(parentPage);
-		this.formItems = FormTypeUtil.getFormItems(formDefinition.getFormItems());
-		initLayout(getGroupName(formDefinition), formItems, mainForm);
-	}
+    public DynamicFieldGroupPanel(String id, IModel<PrismObjectWrapper<O>> objectWrapper, @NotNull FormDefinitionType formDefinition, Form<?> mainForm, PageBase parentPage) {
+        super(id, objectWrapper);
+        setParent(parentPage);
+        this.formItems = FormTypeUtil.getFormItems(formDefinition.getFormItems());
+        initLayout(getGroupName(formDefinition), formItems, mainForm);
+    }
 
-	private String getGroupName(@NotNull FormDefinitionType formDefinition) {
-		if (formDefinition.getDisplay() != null) {
-			return formDefinition.getDisplay().getLabel().getOrig();
-		} else {
-			return "Basic";
-		}
-	}
+    private String getGroupName(@NotNull FormDefinitionType formDefinition) {
+        if (formDefinition.getDisplay() != null) {
+            return formDefinition.getDisplay().getLabel().getOrig();
+        } else {
+            return "Basic";
+        }
+    }
 
-	private void initLayout(String groupName, List<AbstractFormItemType> formItems, Form<?> mainForm) {
+    private void initLayout(String groupName, List<AbstractFormItemType> formItems, Form<?> mainForm) {
 
-		Label header = new Label(ID_HEADER, getPageBase().getString(groupName, (Object []) null));
-		add(header);
+        Label header = new Label(ID_HEADER, getPageBase().getString(groupName, (Object []) null));
+        add(header);
 
-		RepeatingView itemView = new RepeatingView(ID_PROPERTY);
-		add(itemView);
+        RepeatingView itemView = new RepeatingView(ID_PROPERTY);
+        add(itemView);
 
-		for (AbstractFormItemType formItem : formItems) {
+        for (AbstractFormItemType formItem : formItems) {
 
-			if (formItem instanceof FormFieldGroupType) {
-				DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<>(itemView.newChildId(), formItem.getName(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageBase());
-				dynamicFieldGroupPanel.setOutputMarkupId(true);
-				itemView.add(dynamicFieldGroupPanel);
-				continue;
-			}
+            if (formItem instanceof FormFieldGroupType) {
+                DynamicFieldGroupPanel<O> dynamicFieldGroupPanel = new DynamicFieldGroupPanel<>(itemView.newChildId(), formItem.getName(), getModel(), FormTypeUtil.getFormItems(((FormFieldGroupType) formItem).getFormItems()), mainForm, getPageBase());
+                dynamicFieldGroupPanel.setOutputMarkupId(true);
+                itemView.add(dynamicFieldGroupPanel);
+                continue;
+            }
 
-			ItemWrapper<?,?,?,?> itemWrapper = findAndTailorItemWrapper(formItem, getObjectWrapper());
+            ItemWrapper<?,?,?,?> itemWrapper = findAndTailorItemWrapper(formItem, getObjectWrapper());
 
-			try {
-				Panel panel = getPageBase().initItemPanel(itemView.newChildId(), itemWrapper.getTypeName(), Model.of(itemWrapper), null);
-				panel.setOutputMarkupId(true);
-				itemView.add(panel);
-			} catch (SchemaException e) {
-				getSession().error("Cannot create panel " + e.getMessage());
-			}
-			
-		}
-	}
+            try {
+                Panel panel = getPageBase().initItemPanel(itemView.newChildId(), itemWrapper.getTypeName(), Model.of(itemWrapper), null);
+                panel.setOutputMarkupId(true);
+                itemView.add(panel);
+            } catch (SchemaException e) {
+                getSession().error("Cannot create panel " + e.getMessage());
+            }
 
-	private RepeatingView getRepeatingPropertyView() {
-		return (RepeatingView) get(ID_PROPERTY);
-	}
+        }
+    }
 
-	@NotNull
-	private ItemWrapper<?, ?, ?, ?> findAndTailorItemWrapper(AbstractFormItemType formField, PrismObjectWrapper<O> objectWrapper) {
-		ItemWrapper<?, ?, ?, ?> itemWrapper = findItemWrapper(formField, objectWrapper);
-		applyFormDefinition(itemWrapper, formField);
-		return itemWrapper;
-	}
+    private RepeatingView getRepeatingPropertyView() {
+        return (RepeatingView) get(ID_PROPERTY);
+    }
 
-	@NotNull
-	private ItemWrapper<?, ?, ?, ?> findItemWrapper(AbstractFormItemType formField, PrismObjectWrapper<O> objectWrapper) {
-		ItemPath path = GuiImplUtil.getItemPath(formField);
-		if (path == null) {
-			getSession().error("Bad form item definition. It has to contain reference to the real attribute");
-			LOGGER.error("Bad form item definition. It has to contain reference to the real attribute");
-			throw new RestartResponseException(getPageBase());
-		}
+    @NotNull
+    private ItemWrapper<?, ?, ?, ?> findAndTailorItemWrapper(AbstractFormItemType formField, PrismObjectWrapper<O> objectWrapper) {
+        ItemWrapper<?, ?, ?, ?> itemWrapper = findItemWrapper(formField, objectWrapper);
+        applyFormDefinition(itemWrapper, formField);
+        return itemWrapper;
+    }
 
-		ItemWrapper<?,?,?,?> itemWrapper;
-		ItemDefinition<?> itemDef = objectWrapper.getObject().getDefinition().findItemDefinition(path);
-		try {
-			itemWrapper = objectWrapper.findItem(path, ItemWrapper.class);
-		} catch (SchemaException e) {
-			getSession().error("Bad form item definition. No attribute with path: " + path + " was found");
-			LOGGER.error("Bad form item definition. No attribute with path: " + path + " was found");
-			throw new RestartResponseException(getPageBase());
-		}
-		
-		if (itemWrapper == null) {
-			getSession().error("Bad form item definition. No attribute with path: " + path + " was found");
-			LOGGER.error("Bad form item definition. No attribute with path: " + path + " was found");
-			throw new RestartResponseException(getPageBase());
-		}
-		return itemWrapper;
-	}
+    @NotNull
+    private ItemWrapper<?, ?, ?, ?> findItemWrapper(AbstractFormItemType formField, PrismObjectWrapper<O> objectWrapper) {
+        ItemPath path = GuiImplUtil.getItemPath(formField);
+        if (path == null) {
+            getSession().error("Bad form item definition. It has to contain reference to the real attribute");
+            LOGGER.error("Bad form item definition. It has to contain reference to the real attribute");
+            throw new RestartResponseException(getPageBase());
+        }
 
-	private void applyFormDefinition(ItemWrapper<?, ?, ?, ?> itemWrapper, AbstractFormItemType formField) {
+        ItemWrapper<?,?,?,?> itemWrapper;
+        ItemDefinition<?> itemDef = objectWrapper.getObject().getDefinition().findItemDefinition(path);
+        try {
+            itemWrapper = objectWrapper.findItem(path, ItemWrapper.class);
+        } catch (SchemaException e) {
+            getSession().error("Bad form item definition. No attribute with path: " + path + " was found");
+            LOGGER.error("Bad form item definition. No attribute with path: " + path + " was found");
+            throw new RestartResponseException(getPageBase());
+        }
 
-		FormItemDisplayType displayType = formField.getDisplay();
+        if (itemWrapper == null) {
+            getSession().error("Bad form item definition. No attribute with path: " + path + " was found");
+            LOGGER.error("Bad form item definition. No attribute with path: " + path + " was found");
+            throw new RestartResponseException(getPageBase());
+        }
+        return itemWrapper;
+    }
 
-		if (displayType == null) {
-			return;
-		}
+    private void applyFormDefinition(ItemWrapper<?, ?, ?, ?> itemWrapper, AbstractFormItemType formField) {
 
-		MutableItemDefinition itemDef = itemWrapper.toMutable();
-		if (PolyStringUtils.isNotEmpty(displayType.getLabel())) {
-			itemDef.setDisplayName(displayType.getLabel().getOrig());
-		}
-		if (PolyStringUtils.isNotEmpty(displayType.getHelp())) {
-			itemDef.setHelp(displayType.getHelp().getOrig());
-		}
-		if (StringUtils.isNotEmpty(displayType.getMaxOccurs())) {
-			itemDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMaxOccurs()));
-		}
-		if (StringUtils.isNotEmpty(displayType.getMinOccurs())) {
-			itemDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMinOccurs()));
-		}
-	}
+        FormItemDisplayType displayType = formField.getDisplay();
 
-	public PrismObjectWrapper<O> getObjectWrapper() {
-		return getModelObject();
-	}
+        if (displayType == null) {
+            return;
+        }
 
-	public List<AbstractFormItemType> getFormItems() {
-		return formItems;
-	}
+        MutableItemDefinition itemDef = itemWrapper.toMutable();
+        if (PolyStringUtils.isNotEmpty(displayType.getLabel())) {
+            itemDef.setDisplayName(displayType.getLabel().getOrig());
+        }
+        if (PolyStringUtils.isNotEmpty(displayType.getHelp())) {
+            itemDef.setHelp(displayType.getHelp().getOrig());
+        }
+        if (StringUtils.isNotEmpty(displayType.getMaxOccurs())) {
+            itemDef.setMaxOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMaxOccurs()));
+        }
+        if (StringUtils.isNotEmpty(displayType.getMinOccurs())) {
+            itemDef.setMinOccurs(XsdTypeMapper.multiplicityToInteger(displayType.getMinOccurs()));
+        }
+    }
 
-	/**
-	 * Checks embedded properties if they are the minOccurs check.
-	 * Experimental implementation. Please do not rely on it too much.
-	 */
-	public boolean checkRequiredFields(PageBase pageBase) {
-		Holder<Boolean> rvHolder = new Holder<>(true);
-		getRepeatingPropertyView().visitChildren((component, iVisit) -> {
-			if (component instanceof PrismPropertyPanel) {
-				IModel<?> model = component.getDefaultModel();
-				if (model != null && model.getObject() instanceof ItemWrapper) {
-					ItemWrapper<?, ?, ?, ?> itemWrapper = (ItemWrapper<?, ?, ?, ?>) model.getObject();
-					if (!itemWrapper.checkRequired(pageBase)) {
-						rvHolder.setValue(false);
-					}
-				}
-			}
-		});
-		return rvHolder.getValue();
-	}
+    public PrismObjectWrapper<O> getObjectWrapper() {
+        return getModelObject();
+    }
+
+    public List<AbstractFormItemType> getFormItems() {
+        return formItems;
+    }
+
+    /**
+     * Checks embedded properties if they are the minOccurs check.
+     * Experimental implementation. Please do not rely on it too much.
+     */
+    public boolean checkRequiredFields(PageBase pageBase) {
+        Holder<Boolean> rvHolder = new Holder<>(true);
+        getRepeatingPropertyView().visitChildren((component, iVisit) -> {
+            if (component instanceof PrismPropertyPanel) {
+                IModel<?> model = component.getDefaultModel();
+                if (model != null && model.getObject() instanceof ItemWrapper) {
+                    ItemWrapper<?, ?, ?, ?> itemWrapper = (ItemWrapper<?, ?, ?, ?>) model.getObject();
+                    if (!itemWrapper.checkRequired(pageBase)) {
+                        rvHolder.setValue(false);
+                    }
+                }
+            }
+        });
+        return rvHolder.getValue();
+    }
 }

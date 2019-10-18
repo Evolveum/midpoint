@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,63 +20,63 @@ import java.util.Collection;
  */
 public interface GetOperationOptionsBuilder {
 
-	GetOperationOptionsBuilder root();
-	GetOperationOptionsBuilder items(Object... items);
-	GetOperationOptionsBuilder item(ItemPath path);
-	GetOperationOptionsBuilder item(Object... components);
+    GetOperationOptionsBuilder root();
+    GetOperationOptionsBuilder items(Object... items);
+    GetOperationOptionsBuilder item(ItemPath path);
+    GetOperationOptionsBuilder item(Object... components);
 
-	GetOperationOptionsBuilder retrieve();
-	GetOperationOptionsBuilder dontRetrieve();
-	GetOperationOptionsBuilder retrieve(RetrieveOption value);
-	GetOperationOptionsBuilder retrieve(RelationalValueSearchQuery query);
-	GetOperationOptionsBuilder.Query retrieveQuery();
+    GetOperationOptionsBuilder retrieve();
+    GetOperationOptionsBuilder dontRetrieve();
+    GetOperationOptionsBuilder retrieve(RetrieveOption value);
+    GetOperationOptionsBuilder retrieve(RelationalValueSearchQuery query);
+    GetOperationOptionsBuilder.Query retrieveQuery();
 
-	GetOperationOptionsBuilder resolve();
-	GetOperationOptionsBuilder resolve(Boolean value);
-	GetOperationOptionsBuilder resolveNames();
-	GetOperationOptionsBuilder resolveNames(Boolean value);
-	GetOperationOptionsBuilder noFetch();
-	GetOperationOptionsBuilder noFetch(Boolean value);
-	GetOperationOptionsBuilder raw();
-	GetOperationOptionsBuilder raw(Boolean value);
-	GetOperationOptionsBuilder tolerateRawData();
-	GetOperationOptionsBuilder tolerateRawData(Boolean value);
-	GetOperationOptionsBuilder doNotDiscovery();
-	GetOperationOptionsBuilder doNotDiscovery(Boolean value);
-	GetOperationOptionsBuilder allowNotFound();
-	GetOperationOptionsBuilder allowNotFound(Boolean value);
-	GetOperationOptionsBuilder readOnly();
-	GetOperationOptionsBuilder readOnly(Boolean value);
-	GetOperationOptionsBuilder pointInTime(PointInTimeType value);
-	GetOperationOptionsBuilder staleness(Long value);
-	GetOperationOptionsBuilder forceRefresh();
-	GetOperationOptionsBuilder forceRefresh(Boolean value);
-	GetOperationOptionsBuilder distinct();
-	GetOperationOptionsBuilder distinct(Boolean value);
-	GetOperationOptionsBuilder attachDiagData();
-	GetOperationOptionsBuilder attachDiagData(Boolean value);
-	GetOperationOptionsBuilder definitionProcessing(DefinitionProcessingOption value);
-	GetOperationOptionsBuilder iterationMethod(IterationMethodType value);
-	GetOperationOptionsBuilder executionPhase();
-	GetOperationOptionsBuilder executionPhase(Boolean value);
+    GetOperationOptionsBuilder resolve();
+    GetOperationOptionsBuilder resolve(Boolean value);
+    GetOperationOptionsBuilder resolveNames();
+    GetOperationOptionsBuilder resolveNames(Boolean value);
+    GetOperationOptionsBuilder noFetch();
+    GetOperationOptionsBuilder noFetch(Boolean value);
+    GetOperationOptionsBuilder raw();
+    GetOperationOptionsBuilder raw(Boolean value);
+    GetOperationOptionsBuilder tolerateRawData();
+    GetOperationOptionsBuilder tolerateRawData(Boolean value);
+    GetOperationOptionsBuilder doNotDiscovery();
+    GetOperationOptionsBuilder doNotDiscovery(Boolean value);
+    GetOperationOptionsBuilder allowNotFound();
+    GetOperationOptionsBuilder allowNotFound(Boolean value);
+    GetOperationOptionsBuilder readOnly();
+    GetOperationOptionsBuilder readOnly(Boolean value);
+    GetOperationOptionsBuilder pointInTime(PointInTimeType value);
+    GetOperationOptionsBuilder staleness(Long value);
+    GetOperationOptionsBuilder forceRefresh();
+    GetOperationOptionsBuilder forceRefresh(Boolean value);
+    GetOperationOptionsBuilder distinct();
+    GetOperationOptionsBuilder distinct(Boolean value);
+    GetOperationOptionsBuilder attachDiagData();
+    GetOperationOptionsBuilder attachDiagData(Boolean value);
+    GetOperationOptionsBuilder definitionProcessing(DefinitionProcessingOption value);
+    GetOperationOptionsBuilder iterationMethod(IterationMethodType value);
+    GetOperationOptionsBuilder executionPhase();
+    GetOperationOptionsBuilder executionPhase(Boolean value);
 
-	GetOperationOptionsBuilder setFrom(Collection<SelectorOptions<GetOperationOptions>> options);
-	GetOperationOptionsBuilder mergeFrom(Collection<SelectorOptions<GetOperationOptions>> options);
+    GetOperationOptionsBuilder setFrom(Collection<SelectorOptions<GetOperationOptions>> options);
+    GetOperationOptionsBuilder mergeFrom(Collection<SelectorOptions<GetOperationOptions>> options);
 
-	interface Query {
-		Query asc(ItemPath path);
-		Query asc(Object... components);
-		Query desc(ItemPath path);
-		Query desc(Object... components);
-		Query offset(Integer n);
-		Query maxSize(Integer n);
-		Query item(QName column);
-		Query eq(String value);
-		Query startsWith(String value);
-		Query contains(String value);
-		GetOperationOptionsBuilder end();
-	}
+    interface Query {
+        Query asc(ItemPath path);
+        Query asc(Object... components);
+        Query desc(ItemPath path);
+        Query desc(Object... components);
+        Query offset(Integer n);
+        Query maxSize(Integer n);
+        Query item(QName column);
+        Query eq(String value);
+        Query startsWith(String value);
+        Query contains(String value);
+        GetOperationOptionsBuilder end();
+    }
 
-	@NotNull
-	Collection<SelectorOptions<GetOperationOptions>> build();
+    @NotNull
+    Collection<SelectorOptions<GetOperationOptions>> build();
 }

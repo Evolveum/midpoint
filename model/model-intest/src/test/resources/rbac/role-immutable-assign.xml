@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2015-2016 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="a6b10a7c-b57e-11e6-bcb3-1ba47cb07e2e"
@@ -11,7 +11,7 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Immutable Assign</name>
     <assignment>
-    	<!-- Untouchable metarole -->
-    	<targetRef oid="a80c9572-b57d-11e6-80a9-6fdae1dc39bc" type="RoleType"/>
+        <!-- Untouchable metarole -->
+        <targetRef oid="a80c9572-b57d-11e6-80a9-6fdae1dc39bc" type="RoleType"/>
     </assignment>
 </role>

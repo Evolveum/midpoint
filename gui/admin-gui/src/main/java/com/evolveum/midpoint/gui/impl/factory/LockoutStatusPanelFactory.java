@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,30 +28,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 @Component
 public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPropertyPanelContext<LockoutStatusType>> {
 
-	private static final long serialVersionUID = 1L;
-	
-	@Autowired GuiComponentRegistry registry;
-	
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	public Integer getOrder() {
-		return 1000;
-	}
+    @Autowired GuiComponentRegistry registry;
 
-	@Override
-	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return ActivationType.F_LOCKOUT_STATUS.equals(wrapper.getItemName());
-	}
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
 
-	@Override
-	public Panel createPanel(PrismPropertyPanelContext<LockoutStatusType> panelCtx) {
-		LockoutStatusPanel panel = new LockoutStatusPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
-		panelCtx.getFeedbackPanel().setFilter(new ComponentFeedbackMessageFilter(panel));
-		return panel;
-	}
-	
+    @Override
+    public Integer getOrder() {
+        return 1000;
+    }
+
+    @Override
+    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+        return ActivationType.F_LOCKOUT_STATUS.equals(wrapper.getItemName());
+    }
+
+    @Override
+    public Panel createPanel(PrismPropertyPanelContext<LockoutStatusType> panelCtx) {
+        LockoutStatusPanel panel = new LockoutStatusPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
+        panelCtx.getFeedbackPanel().setFilter(new ComponentFeedbackMessageFilter(panel));
+        return panel;
+    }
+
 }

@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -16,7 +16,7 @@
             <value>first value</value>
             <label>first label</label>
             <lastChangeTimestamp>2013-05-07T10:38:21.350+02:00</lastChangeTimestamp>
-   	</row>
+       </row>
     <row>
             <key>2 key</key>
             <value>2 value</value>

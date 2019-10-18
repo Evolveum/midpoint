@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema;
@@ -56,23 +56,23 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  */
 public class TestParseDiffPatch {
 
-	private static final String TEST_DIR = "src/test/resources/diff/";
+    private static final String TEST_DIR = "src/test/resources/diff/";
 
-	private static final File USER_BEFORE_FILE = new File(TEST_DIR, "user-before.xml");
-	private static final File USER_AFTER_FILE = new File(TEST_DIR, "user-after.xml");
-	private static final File TASK_BEFORE_FILE = new File(TEST_DIR, "task-before.xml");
-	private static final File TASK_AFTER_FILE = new File(TEST_DIR, "task-after.xml");
-	private static final File RESOURCE_BEFORE_FILE = new File(TEST_DIR, "resource-before.xml");
-	private static final File RESOURCE_AFTER_FILE = new File(TEST_DIR, "resource-after.xml");
-	private static final File RESOURCE_AFTER_CONST_FILE = new File(TEST_DIR, "resource-after-const.xml");
-	private static final File RESOURCE_AFTER_NS_CHANGE_FILE = new File(TEST_DIR, "resource-after-ns-change.xml");
-	private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+    private static final File USER_BEFORE_FILE = new File(TEST_DIR, "user-before.xml");
+    private static final File USER_AFTER_FILE = new File(TEST_DIR, "user-after.xml");
+    private static final File TASK_BEFORE_FILE = new File(TEST_DIR, "task-before.xml");
+    private static final File TASK_AFTER_FILE = new File(TEST_DIR, "task-after.xml");
+    private static final File RESOURCE_BEFORE_FILE = new File(TEST_DIR, "resource-before.xml");
+    private static final File RESOURCE_AFTER_FILE = new File(TEST_DIR, "resource-after.xml");
+    private static final File RESOURCE_AFTER_CONST_FILE = new File(TEST_DIR, "resource-after-const.xml");
+    private static final File RESOURCE_AFTER_NS_CHANGE_FILE = new File(TEST_DIR, "resource-after-ns-change.xml");
+    private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
-	@BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
     @Test
     public void testUserCredentialsDiff() throws Exception {
@@ -96,7 +96,7 @@ public class TestParseDiffPatch {
                 CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PrismAsserts.assertPropertyAdd(userDelta, path, 1);
         path = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
-        		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
+                CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PropertyDelta propertyDelta = userDelta.findPropertyDelta(path);
         assertNotNull("Property delta for "+path+" not found",propertyDelta);
         assertEquals(1, propertyDelta.getValuesToAdd().size());
@@ -139,7 +139,7 @@ public class TestParseDiffPatch {
                 AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 //        PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
 //        path = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
-//        		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
+//                CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
         PropertyDelta propertyDelta = ItemDeltaCollectionsUtil.findPropertyDelta(userDelta, path);
         assertNotNull("Property delta for "+path+" not found",propertyDelta);
 //        assertEquals(1, propertyDelta.getValuesToAdd().size());
@@ -166,7 +166,7 @@ public class TestParseDiffPatch {
               AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 //      PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
 //      path = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
-//      		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
+//              CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
       propertyDelta = ItemDeltaCollectionsUtil.findPropertyDelta(userDelta, path);
 
 
@@ -189,14 +189,14 @@ public class TestParseDiffPatch {
             AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 //    PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
 //    path = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
-//    		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
+//            CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
     propertyDelta = ItemDeltaCollectionsUtil.findPropertyDelta(userDelta, path);
 
     }
 
-	@Test
-	public void testUser() throws SchemaException, SAXException, IOException, JAXBException {
-		System.out.println("===[ testUser ]===");
+    @Test
+    public void testUser() throws SchemaException, SAXException, IOException, JAXBException {
+        System.out.println("===[ testUser ]===");
 
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(new File(TEST_DIR, "user-jack-before.xml"));
         userBefore.checkConsistence();
@@ -227,9 +227,9 @@ public class TestParseDiffPatch {
         PrismAsserts.assertPropertyReplace(userDelta, new ItemName(SchemaConstants.NS_C,"fullName"),
                 new PolyString("Cpt. Jack Sparrow", "cpt jack sparrow"));
         PrismAsserts.assertPropertyAdd(userDelta, new ItemName(SchemaConstants.NS_C,"honorificPrefix"),
-        		new PolyString("Cpt.", "cpt"));
+                new PolyString("Cpt.", "cpt"));
         PrismAsserts.assertPropertyAdd(userDelta, new ItemName(SchemaConstants.NS_C,"locality"),
-        		new PolyString("Tortuga", "tortuga"));
+                new PolyString("Tortuga", "tortuga"));
 
         ObjectModificationType objectModificationType = DeltaConvertor.toObjectModificationType(userDelta);
         System.out.println("Modification XML:");
@@ -270,11 +270,11 @@ public class TestParseDiffPatch {
         System.out.println(roundTripDelta.debugDump());
 
         assertTrue("Roundtrip delta is not empty",roundTripDelta.isEmpty());
-	}
+    }
 
-	@Test
-	public void testUserReal() throws SchemaException, SAXException, IOException, JAXBException {
-		System.out.println("===[ testUserReal ]===");
+    @Test
+    public void testUserReal() throws SchemaException, SAXException, IOException, JAXBException {
+        System.out.println("===[ testUserReal ]===");
 
         String userBeforeXml = MiscUtil.readFile(new File(TEST_DIR, "user-real-before.xml"));
         String userAfterXml = MiscUtil.readFile(new File(TEST_DIR, "user-real-after.xml"));
@@ -295,15 +295,15 @@ public class TestParseDiffPatch {
         assertEquals("Unexpected number of modifications", 4, modifications.size());
         PrismAsserts.assertPropertyReplace(userDelta, new ItemName(SchemaConstants.NS_C,"emailAddress"), "jack@blackpearl.com");
         PrismAsserts.assertPropertyReplace(userDelta, new ItemName(SchemaConstants.NS_C,"locality"),
-        		new PolyString("World's End", "worlds end"));
+                new PolyString("World's End", "worlds end"));
         PrismAsserts.assertPropertyReplace(userDelta, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.DISABLED);
         PrismAsserts.assertPropertyAdd(userDelta, new ItemName(SchemaConstants.NS_C,"organizationalUnit"),
-        		new PolyString("Brethren of the Coast", "brethren of the coast"));
-	}
+                new PolyString("Brethren of the Coast", "brethren of the coast"));
+    }
 
-	@Test
-	public void testAddDelta() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testAddDelta ]===");
+    @Test
+    public void testAddDelta() throws SchemaException, SAXException, IOException {
+        System.out.println("===[ testAddDelta ]===");
 
         // WHEN
         ObjectDelta<UserType> userDelta = DiffUtil.diff(null,new File(TEST_DIR, "user-jack-after.xml"), UserType.class, getPrismContext());
@@ -317,16 +317,16 @@ public class TestParseDiffPatch {
         assertEquals("Wrong change type", ChangeType.ADD, userDelta.getChangeType());
 
         // TODO
-	}
+    }
 
-	@Test
-	public void testTask() throws SchemaException, SAXException, IOException, JAXBException {
-		System.out.println("===[ testTask ]===");
+    @Test
+    public void testTask() throws SchemaException, SAXException, IOException, JAXBException {
+        System.out.println("===[ testTask ]===");
 
         // WHEN
 
         ObjectDelta<TaskType> diffDelta = DiffUtil.diff(TASK_BEFORE_FILE,
-        		new File(TEST_DIR, "task-after.xml"), TaskType.class, getPrismContext());
+                new File(TEST_DIR, "task-after.xml"), TaskType.class, getPrismContext());
 
         // THEN
 
@@ -341,7 +341,7 @@ public class TestParseDiffPatch {
         // there is only one property in the container. after deleting this property, all container will be deleted, isn't it right?
         PrismAsserts.assertContainerDeleteGetContainerDelta(diffDelta, TaskType.F_EXTENSION);
 //        PrismAsserts.assertPropertyDelete(diffDelta, ItemPath.create(TaskType.F_EXTENSION,
-//        		new SingleNamePath("http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd","token")), 480);
+//                new SingleNamePath("http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-1.xsd","token")), 480);
 
         // Convert to XML form. This should include xsi:type to pass the type information
 
@@ -355,7 +355,7 @@ public class TestParseDiffPatch {
 
         // parse back delta
 //        ObjectDelta<TaskType> patchDelta = DeltaConvertor.createObjectDelta(objectModificationType,
-//        		TaskType.class, PrismTestUtil.getPrismContext());
+//                TaskType.class, PrismTestUtil.getPrismContext());
 //        patchDelta.checkConsistence();
 
         // ROUNDTRIP
@@ -390,13 +390,13 @@ public class TestParseDiffPatch {
         diffDelta.checkConsistence();
         taskPatch.checkConsistence();
         taskAfter.checkConsistence();
-	}
+    }
 
-	@Test
-	public void testResource() throws Exception {
-		System.out.println("===[ testResource ]===");
+    @Test
+    public void testResource() throws Exception {
+        System.out.println("===[ testResource ]===");
 
-		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
+        PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
         PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_FILE);
 
         resourceBefore.checkConsistence();
@@ -428,7 +428,7 @@ public class TestParseDiffPatch {
         PrismAsserts.assertPropertyReplace(resourceDelta, pathTimeouts("scriptOnResource"), 4);
         PrismAsserts.assertPropertyDelete(resourceDelta,
                 ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, new ItemName(SchemaTestConstants.NS_ICFC, "producerBufferSize")),
-        		100);
+                100);
         PrismAsserts.assertPropertyReplaceSimple(resourceDelta, ResourceType.F_SYNCHRONIZATION);
         // Configuration properties changes
         assertConfigurationPropertyChange(resourceDelta, "principal");
@@ -437,13 +437,13 @@ public class TestParseDiffPatch {
         resourceDelta.checkConsistence();
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
-	}
+    }
 
-	@Test
-	public void testResourceConst() throws Exception {
-		System.out.println("===[ testResourceConst ]===");
+    @Test
+    public void testResourceConst() throws Exception {
+        System.out.println("===[ testResourceConst ]===");
 
-		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
+        PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
         PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_CONST_FILE);
 
         resourceBefore.checkConsistence();
@@ -476,13 +476,13 @@ public class TestParseDiffPatch {
         resourceDelta.checkConsistence();
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
-	}
+    }
 
-	@Test
-	public void testResourceConstLiteral() throws Exception {
-		System.out.println("===[ testResourceConstLiteral ]===");
+    @Test
+    public void testResourceConstLiteral() throws Exception {
+        System.out.println("===[ testResourceConstLiteral ]===");
 
-		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
+        PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
         PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_CONST_FILE);
 
         // WHEN
@@ -509,29 +509,29 @@ public class TestParseDiffPatch {
         resourceDelta.checkConsistence();
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
-	}
+    }
 
-	private void assertConfigurationPropertyChange(ObjectDelta<ResourceType> resourceDelta, String propName) {
-		resourceDelta.checkConsistence();
-		PropertyDelta propertyDelta = resourceDelta.findPropertyDelta(pathConfigProperties(propName));
-		assertNotNull("No delta for configuration property "+propName, propertyDelta);
-		// TODO
-		resourceDelta.checkConsistence();
-	}
+    private void assertConfigurationPropertyChange(ObjectDelta<ResourceType> resourceDelta, String propName) {
+        resourceDelta.checkConsistence();
+        PropertyDelta propertyDelta = resourceDelta.findPropertyDelta(pathConfigProperties(propName));
+        assertNotNull("No delta for configuration property "+propName, propertyDelta);
+        // TODO
+        resourceDelta.checkConsistence();
+    }
 
-	private ItemPath pathConfigProperties(String propName) {
-		return ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES,
-				new ItemName(SchemaTestConstants.NS_ICFC_LDAP, propName));
-	}
+    private ItemPath pathConfigProperties(String propName) {
+        return ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES,
+                new ItemName(SchemaTestConstants.NS_ICFC_LDAP, propName));
+    }
 
-	private ItemPath pathTimeouts(String last) {
-		return ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, new ItemName(SchemaTestConstants.NS_ICFC, "timeouts"),
-				new ItemName(SchemaTestConstants.NS_ICFC, last));
-	}
+    private ItemPath pathTimeouts(String last) {
+        return ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, new ItemName(SchemaTestConstants.NS_ICFC, "timeouts"),
+                new ItemName(SchemaTestConstants.NS_ICFC, last));
+    }
 
-	@Test
-	public void testResourceRoundTrip() throws SchemaException, SAXException, IOException, JAXBException {
-		System.out.println("===[ testResourceRoundTrip ]===");
+    @Test
+    public void testResourceRoundTrip() throws SchemaException, SAXException, IOException, JAXBException {
+        System.out.println("===[ testResourceRoundTrip ]===");
 
         PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
         PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_FILE);
@@ -595,13 +595,13 @@ public class TestParseDiffPatch {
         resourceDelta.assertDefinitions(true);
         resourceBefore.checkConsistence();
         resourceAfter.checkConsistence();
-	}
+    }
 
-	@Test
-	public void testResourceNsChange() throws SchemaException, SAXException, IOException, JAXBException {
-		System.out.println("===[ testResourceNsChange ]===");
+    @Test
+    public void testResourceNsChange() throws SchemaException, SAXException, IOException, JAXBException {
+        System.out.println("===[ testResourceNsChange ]===");
 
-		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
+        PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
         PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_NS_CHANGE_FILE);
 
         resourceBefore.checkConsistence();
@@ -622,19 +622,19 @@ public class TestParseDiffPatch {
         resourceAfter.checkConsistence();
 
         if (!resourceDelta.isEmpty()) {
-        	AssertJUnit.fail("The delta is not empty; it is "+resourceDelta);
+            AssertJUnit.fail("The delta is not empty; it is "+resourceDelta);
         }
 
         // "post" sanity
         assertTrue("equals does not work", resourceBefore.equals(resourceAfter));
         assertTrue("equivalent does not work", resourceBefore.equivalent(resourceAfter));
-	}
+    }
 
-	@Test
-	public void testResourceNsChangeLiteral() throws SchemaException, SAXException, IOException, JAXBException {
-		System.out.println("===[ testResourceNsChangeLiteral ]===");
+    @Test
+    public void testResourceNsChangeLiteral() throws SchemaException, SAXException, IOException, JAXBException {
+        System.out.println("===[ testResourceNsChangeLiteral ]===");
 
-		PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
+        PrismObject<ResourceType> resourceBefore = PrismTestUtil.parseObject(RESOURCE_BEFORE_FILE);
         PrismObject<ResourceType> resourceAfter = PrismTestUtil.parseObject(RESOURCE_AFTER_NS_CHANGE_FILE);
 
         resourceBefore.checkConsistence();
@@ -655,7 +655,7 @@ public class TestParseDiffPatch {
 
         assertFalse("The delta is empty", resourceDelta.isEmpty());
 
-	}
+    }
 
     @Test
     public void testResourceNsFixUndeclaredPrefixes() throws SchemaException, SAXException, IOException, JAXBException {
@@ -715,20 +715,20 @@ public class TestParseDiffPatch {
 
     private void assertXmlPolyMod(ObjectModificationType objectModificationType, QName propertyName,
             ModificationTypeType modType, PolyStringType... expectedValues) throws SchemaException {
-    	//FIXME:
+        //FIXME:
         for (ItemDeltaType mod : objectModificationType.getItemDelta()) {
-        	 if (!propertyName.equals(mod.getPath().getItemPath().last())) {
+             if (!propertyName.equals(mod.getPath().getItemPath().last())) {
                continue;
            }
-        	 assertEquals(modType, mod.getModificationType());
+             assertEquals(modType, mod.getModificationType());
             for (RawType val  : mod.getValue()){
-            	assertModificationPolyStringValue(val, expectedValues);
+                assertModificationPolyStringValue(val, expectedValues);
             }
         }
     }
 
     private void assertModificationPolyStringValue(RawType value, PolyStringType... expectedValues) throws SchemaException {
-    	XNode xnode = value.serializeToXNode();
+        XNode xnode = value.serializeToXNode();
         assertFalse(xnode.isEmpty());
         PrismContext pc = value.getPrismContext();
         RootXNode rootNode = pc.xnodeFactory().root(new ItemName("dummy"), xnode);
@@ -754,35 +754,35 @@ public class TestParseDiffPatch {
         return value.equals(element.getTextContent());
     }
 
-//	private void assertXmlMod(ObjectModificationType objectModificationType, QName propertyName,
-//			ModificationTypeType modType, String... expectedValues) {
-//		for (ItemDeltaType mod: objectModificationType.getItemDelta()) {
-//			assertEquals(modType, mod.getModificationType());
-//			for (RawType val : mod.getValue()){
-//				List<Object> elements = val.getContent();
-//				assertFalse(elements.isEmpty());
-//				Object first = elements.get(0);
-////				QName elementQName = JAXBUtil.getElementQName(first);
-//				if (propertyName.equals(mod.getPath().getItemPath().last())) {
+//    private void assertXmlMod(ObjectModificationType objectModificationType, QName propertyName,
+//            ModificationTypeType modType, String... expectedValues) {
+//        for (ItemDeltaType mod: objectModificationType.getItemDelta()) {
+//            assertEquals(modType, mod.getModificationType());
+//            for (RawType val : mod.getValue()){
+//                List<Object> elements = val.getContent();
+//                assertFalse(elements.isEmpty());
+//                Object first = elements.get(0);
+////                QName elementQName = JAXBUtil.getElementQName(first);
+//                if (propertyName.equals(mod.getPath().getItemPath().last())) {
 //
-//					assertEquals(expectedValues.length, elements.size());
-//					for (Object element: elements) {
-//						boolean found = false;
-//						for (String expectedValue: expectedValues) {
-//							Element domElement = (Element)element;
-//							if (expectedValue.equals(domElement.getTextContent())) {
-//								found = true;
-//							}
-//						}
-//						assertTrue(found);
-//					}
-//				}
-//			}
-//		}
-//	}
+//                    assertEquals(expectedValues.length, elements.size());
+//                    for (Object element: elements) {
+//                        boolean found = false;
+//                        for (String expectedValue: expectedValues) {
+//                            Element domElement = (Element)element;
+//                            if (expectedValue.equals(domElement.getTextContent())) {
+//                                found = true;
+//                            }
+//                        }
+//                        assertTrue(found);
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     // this is a simple test of applying delta (don't know where to put it)
-	// MID-3828
+    // MID-3828
     @Test
     public void testCampaign() throws SchemaException, SAXException, IOException, JAXBException {
         System.out.println("===[ testCampaign ]===");
@@ -791,26 +791,26 @@ public class TestParseDiffPatch {
         campaign.checkConsistence();
         assertEquals("Wrong # of triggers", 2, campaign.asObjectable().getTrigger().size());
 
-		// WHEN
-		TriggerType triggerToDelete = new TriggerType(getPrismContext());
-		triggerToDelete.setId(3L);			// non-existing ID
-		triggerToDelete.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar("2017-03-17T23:43:49.705+01:00"));
-		triggerToDelete.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3");
+        // WHEN
+        TriggerType triggerToDelete = new TriggerType(getPrismContext());
+        triggerToDelete.setId(3L);            // non-existing ID
+        triggerToDelete.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar("2017-03-17T23:43:49.705+01:00"));
+        triggerToDelete.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3");
 
-		@SuppressWarnings({"unchecked", "raw"})
+        @SuppressWarnings({"unchecked", "raw"})
         ObjectDelta<AccessCertificationCampaignType> delta =
-				getPrismContext().deltaFor(AccessCertificationCampaignType.class)
-				.item(AccessCertificationCampaignType.F_TRIGGER).delete(triggerToDelete)
-				.asObjectDelta(campaign.getOid());
+                getPrismContext().deltaFor(AccessCertificationCampaignType.class)
+                .item(AccessCertificationCampaignType.F_TRIGGER).delete(triggerToDelete)
+                .asObjectDelta(campaign.getOid());
 
         // THEN
-		delta.applyTo(campaign);
-		System.out.println("Campaign after:\n" + campaign.debugDump());
+        delta.applyTo(campaign);
+        System.out.println("Campaign after:\n" + campaign.debugDump());
 
-		assertEquals("Wrong # of triggers", 2, campaign.asObjectable().getTrigger().size());
-	}
+        assertEquals("Wrong # of triggers", 2, campaign.asObjectable().getTrigger().size());
+    }
 
-	@Test(enabled = false)
+    @Test(enabled = false)
     public void testReplaceModelOperationContext() throws Exception {
         PrismObject prismObject = PrismTestUtil.parseObject(new File(TEST_DIR, "task-modelOperationContext-before.xml"));
 
@@ -827,21 +827,21 @@ public class TestParseDiffPatch {
         assertNull(prismObject.findContainer(TaskType.F_MODEL_OPERATION_CONTEXT));
     }
 
-	@Test
-	public void testDiffSameValues() throws Exception {
-		PrismObject<ResourceType> before = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-before.xml"));
-		PrismObject<ResourceType> after = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-after.xml"));
+    @Test
+    public void testDiffSameValues() throws Exception {
+        PrismObject<ResourceType> before = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-before.xml"));
+        PrismObject<ResourceType> after = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-after.xml"));
 
-		Collection<? extends ItemDelta> differences = before.diffModifications(after, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        Collection<? extends ItemDelta> differences = before.diffModifications(after, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
 
-		assertEquals(1, differences.size());
-		System.out.println(differences.iterator().next().debugDump());
+        assertEquals(1, differences.size());
+        System.out.println(differences.iterator().next().debugDump());
 
-		PrismObject<ResourceType> differencesApplied = before.clone();
-		ItemDeltaCollectionsUtil.applyTo(differences, differencesApplied);
+        PrismObject<ResourceType> differencesApplied = before.clone();
+        ItemDeltaCollectionsUtil.applyTo(differences, differencesApplied);
 
-		System.out.println(differencesApplied.debugDump());
-		assertEquals("'after' is different from the object with differences applied", after, differencesApplied);
-	}
+        System.out.println(differencesApplied.debugDump());
+        assertEquals("'after' is different from the object with differences applied", after, differencesApplied);
+    }
 
 }

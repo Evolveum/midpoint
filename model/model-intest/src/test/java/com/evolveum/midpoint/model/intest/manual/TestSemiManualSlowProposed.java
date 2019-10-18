@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Tests a slow semi manual resource with the use of proposed shadows.
  * The resource is "slow" in a way that it takes approx. a second to process a ticket.
  * This may cause all sorts of race conditions.
- * 
+ *
  * THIS TEST IS DISABLED MID-4166
  *
  * @author Radovan Semancik
@@ -40,74 +40,74 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManualSlowProposed extends TestSemiManual {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestSemiManualSlowProposed.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestSemiManualSlowProposed.class);
 
-	@Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private RepositoryCache repositoryCache;
+    @Autowired(required = true)
+    @Qualifier("cacheRepositoryService")
+    private RepositoryCache repositoryCache;
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		initManualConnector();
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        initManualConnector();
 
-		repositoryCache.setModifyRandomDelayRange(150);
-	}
+        repositoryCache.setModifyRandomDelayRange(150);
+    }
 
-	@Override
-	protected String getResourceOid() {
-		return RESOURCE_SEMI_MANUAL_SLOW_PROPOSED_OID;
-	}
+    @Override
+    protected String getResourceOid() {
+        return RESOURCE_SEMI_MANUAL_SLOW_PROPOSED_OID;
+    }
 
-	@Override
-	protected File getResourceFile() {
-		return RESOURCE_SEMI_MANUAL_SLOW_PROPOSED_FILE;
-	}
+    @Override
+    protected File getResourceFile() {
+        return RESOURCE_SEMI_MANUAL_SLOW_PROPOSED_FILE;
+    }
 
-	@Override
-	protected String getRoleOneOid() {
-		return ROLE_ONE_SEMI_MANUAL_SLOW_PROPOSED_OID;
-	}
+    @Override
+    protected String getRoleOneOid() {
+        return ROLE_ONE_SEMI_MANUAL_SLOW_PROPOSED_OID;
+    }
 
-	@Override
-	protected File getRoleOneFile() {
-		return ROLE_ONE_SEMI_MANUAL_SLOW_PROPOSED_FILE;
-	}
+    @Override
+    protected File getRoleOneFile() {
+        return ROLE_ONE_SEMI_MANUAL_SLOW_PROPOSED_FILE;
+    }
 
-	@Override
-	protected String getRoleTwoOid() {
-		return ROLE_TWO_SEMI_MANUAL_SLOW_PROPOSED_OID;
-	}
+    @Override
+    protected String getRoleTwoOid() {
+        return ROLE_TWO_SEMI_MANUAL_SLOW_PROPOSED_OID;
+    }
 
-	@Override
-	protected File getRoleTwoFile() {
-		return ROLE_TWO_SEMI_MANUAL_SLOW_PROPOSED_FILE;
-	}
+    @Override
+    protected File getRoleTwoFile() {
+        return ROLE_TWO_SEMI_MANUAL_SLOW_PROPOSED_FILE;
+    }
 
-	// Make the test fast ...
-	@Override
-	protected int getConcurrentTestRandomStartDelayRangeAssign() {
-		return 300;
-	}
+    // Make the test fast ...
+    @Override
+    protected int getConcurrentTestRandomStartDelayRangeAssign() {
+        return 300;
+    }
 
-	@Override
-	protected int getConcurrentTestRandomStartDelayRangeUnassign() {
-		return 3;
-	}
+    @Override
+    protected int getConcurrentTestRandomStartDelayRangeUnassign() {
+        return 3;
+    }
 
-	// ... and intense ...
-	@Override
-	protected int getConcurrentTestNumberOfThreads() {
-		return 10;
-	}
+    // ... and intense ...
+    @Override
+    protected int getConcurrentTestNumberOfThreads() {
+        return 10;
+    }
 
-	// .. and make the resource slow.
-	protected void initManualConnector() {
-		ManualConnectorInstance.setRandomDelayRange(1000);
-	}
+    // .. and make the resource slow.
+    protected void initManualConnector() {
+        ManualConnectorInstance.setRandomDelayRange(1000);
+    }
 
-	@Override
-	protected boolean are9xxTestsEnabled() {
-		return true;
-	}
+    @Override
+    protected boolean are9xxTestsEnabled() {
+        return true;
+    }
 }

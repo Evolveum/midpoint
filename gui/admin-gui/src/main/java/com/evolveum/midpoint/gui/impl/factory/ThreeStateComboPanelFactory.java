@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -27,24 +27,24 @@ import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 @Component
 public class ThreeStateComboPanelFactory extends AbstractGuiComponentFactory<Boolean> {
 
-	private static final long serialVersionUID = 1L;
-	
-	@Autowired private GuiComponentRegistry registry;
-	
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
-	@Override
-	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return DOMUtil.XSD_BOOLEAN.equals(wrapper.getTypeName());
-	}
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	protected Panel getPanel(PrismPropertyPanelContext<Boolean> panelCtx) {
-		return new TriStateComboPanel(panelCtx.getComponentId(), (IModel<Boolean>) panelCtx.getRealValueModel());
-	}
-	
-	
-	
+    @Autowired private GuiComponentRegistry registry;
+
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
+    @Override
+    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+        return DOMUtil.XSD_BOOLEAN.equals(wrapper.getTypeName());
+    }
+
+    @Override
+    protected Panel getPanel(PrismPropertyPanelContext<Boolean> panelCtx) {
+        return new TriStateComboPanel(panelCtx.getComponentId(), (IModel<Boolean>) panelCtx.getRealValueModel());
+    }
+
+
+
 }

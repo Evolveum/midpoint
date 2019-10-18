@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
@@ -43,16 +43,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
-	public static final File TEST_DIR = new File("src/test/resources/deputy");
+    public static final File TEST_DIR = new File("src/test/resources/deputy");
 
-	@Override
+    @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
     }
 
-	@Test
+    @Test
     public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
+        final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -66,15 +66,15 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertNoAssignments(userBarbossa);
         assertLinks(userBarbossa, 0);
         assertNoAuthorizations(userBarbossa);
-	}
+    }
 
-	/**
-	 * Jack and Barbossa does not have any accounts or roles.
-	 * Assign Barbossa as Jack's deputy. Not much should happen.
-	 */
+    /**
+     * Jack and Barbossa does not have any accounts or roles.
+     * Assign Barbossa as Jack's deputy. Not much should happen.
+     */
     @Test
     public void test100AssignDeputyNoBigDeal() throws Exception {
-		final String TEST_NAME = "test100AssignDeputyNoBigDeal";
+        final String TEST_NAME = "test100AssignDeputyNoBigDeal";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -106,12 +106,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-	 * Jack and Barbossa does not have any accounts or roles.
-	 * Unassign Barbossa as Jack's deputy. Not much should happen.
-	 */
+     * Jack and Barbossa does not have any accounts or roles.
+     * Unassign Barbossa as Jack's deputy. Not much should happen.
+     */
     @Test
     public void test109UnassignDeputyNoBigDeal() throws Exception {
-		final String TEST_NAME = "test109UnassignDeputyNoBigDeal";
+        final String TEST_NAME = "test109UnassignDeputyNoBigDeal";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -142,12 +142,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-	 * Still not much here. Just preparing Jack.
-	 * Make sure that Barbossa is not affected though.
-	 */
+     * Still not much here. Just preparing Jack.
+     * Make sure that Barbossa is not affected though.
+     */
     @Test
     public void test110AssignJackPirate() throws Exception {
-		final String TEST_NAME = "test110AssignJackPirate";
+        final String TEST_NAME = "test110AssignJackPirate";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -180,12 +180,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-	 * Assign Barbossa as Jack's deputy. Barbossa should get equivalent
-	 * accounts and authorizations as Jack.
-	 */
+     * Assign Barbossa as Jack's deputy. Barbossa should get equivalent
+     * accounts and authorizations as Jack.
+     */
     @Test
     public void test112AssignDeputyPirate() throws Exception {
-		final String TEST_NAME = "test112AssignDeputyPirate";
+        final String TEST_NAME = "test112AssignDeputyPirate";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -223,12 +223,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     // TODO: recompute barbossa, recompute jack
 
     /**
-	 * Unassign Barbossa as Jack's deputy. Barbossa should get
-	 * back to emptiness.
-	 */
+     * Unassign Barbossa as Jack's deputy. Barbossa should get
+     * back to emptiness.
+     */
     @Test
     public void test119UnassignDeputyPirate() throws Exception {
-		final String TEST_NAME = "test119UnassignDeputyPirate";
+        final String TEST_NAME = "test119UnassignDeputyPirate";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -261,12 +261,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-	 * Guybrush and Barbossa does not have any accounts or roles. Yet.
-	 * Assign Barbossa as Guybrush's deputy. Not much should happen.
-	 */
+     * Guybrush and Barbossa does not have any accounts or roles. Yet.
+     * Assign Barbossa as Guybrush's deputy. Not much should happen.
+     */
     @Test
     public void test120AssignbarbossaDeputyOfGuybrush() throws Exception {
-		final String TEST_NAME = "test120AssignbarbossaDeputyOfGuybrush";
+        final String TEST_NAME = "test120AssignbarbossaDeputyOfGuybrush";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -302,14 +302,14 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-	 * Assign Guybrush pirate role. Barbossa is Guybrushe's deputy,
-	 * but Barbossa should be only partially affected yet.
-	 * Barbossa should not have the accounts, but he should have the
-	 * authorization. Barbossa will be completely affected after recompute.
-	 */
+     * Assign Guybrush pirate role. Barbossa is Guybrushe's deputy,
+     * but Barbossa should be only partially affected yet.
+     * Barbossa should not have the accounts, but he should have the
+     * authorization. Barbossa will be completely affected after recompute.
+     */
     @Test
     public void test122AssignGuybrushPirate() throws Exception {
-		final String TEST_NAME = "test122AssignGuybrushPirate";
+        final String TEST_NAME = "test122AssignGuybrushPirate";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -343,12 +343,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-	 * Recompute Barbossa. Barbossa should get the deputy rights
-	 * from Guybrush after recompute.
-	 */
+     * Recompute Barbossa. Barbossa should get the deputy rights
+     * from Guybrush after recompute.
+     */
     @Test
     public void test124RecomputeBarbossa() throws Exception {
-		final String TEST_NAME = "test124RecomputeBarbossa";
+        final String TEST_NAME = "test124RecomputeBarbossa";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -384,12 +384,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-	 * Unassign Guybrush pirate role. Barbossa is Guybrushe's deputy,
-	 * but Barbossa should be only partially affected yet.
-	 */
+     * Unassign Guybrush pirate role. Barbossa is Guybrushe's deputy,
+     * but Barbossa should be only partially affected yet.
+     */
     @Test
     public void test126UnassignGuybrushPirate() throws Exception {
-		final String TEST_NAME = "test126UnassignGuybrushPirate";
+        final String TEST_NAME = "test126UnassignGuybrushPirate";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -422,12 +422,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-	 * Recompute Barbossa. Barbossa should get the deputy rights
-	 * from Guybrush after recompute.
-	 */
+     * Recompute Barbossa. Barbossa should get the deputy rights
+     * from Guybrush after recompute.
+     */
     @Test
     public void test128RecomputeBarbossa() throws Exception {
-		final String TEST_NAME = "test128RecomputeBarbossa";
+        final String TEST_NAME = "test128RecomputeBarbossa";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -461,7 +461,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test129UnassignBarbossaDeputyOfGuybrush() throws Exception {
-		final String TEST_NAME = "test129UnassignBarbossaDeputyOfGuybrush";
+        final String TEST_NAME = "test129UnassignBarbossaDeputyOfGuybrush";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -492,37 +492,37 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-	 * Assign more roles and orgs to Jack. We will use these for
-	 * selective delegation in subsequent tests.
-	 */
+     * Assign more roles and orgs to Jack. We will use these for
+     * selective delegation in subsequent tests.
+     */
     @Test
     public void test150AssignJackMoreRoles() throws Exception {
-		final String TEST_NAME = "test150AssignJackMoreRoles";
+        final String TEST_NAME = "test150AssignJackMoreRoles";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE,
-        		null, null, (ActivationType) null, true);
+                null, null, (ActivationType) null, true);
         // Captain is NOT delegable
         userDelta.addModification((createAssignmentModification(ROLE_CAPTAIN_OID, RoleType.COMPLEX_TYPE,
-        		null, null, (ActivationType) null, true)));
+                null, null, (ActivationType) null, true)));
         userDelta.addModification((createAssignmentModification(ROLE_RED_SAILOR_OID, RoleType.COMPLEX_TYPE,
-        		null, null, (ActivationType) null, true)));
+                null, null, (ActivationType) null, true)));
         userDelta.addModification((createAssignmentModification(ROLE_CYAN_SAILOR_OID, RoleType.COMPLEX_TYPE,
-        		null, null, (ActivationType) null, true)));
+                null, null, (ActivationType) null, true)));
         userDelta.addModification((createAssignmentModification(ORG_SWASHBUCKLER_SECTION_OID, OrgType.COMPLEX_TYPE,
-        		null, null, (ActivationType) null, true)));
+                null, null, (ActivationType) null, true)));
         userDelta.addModification((createAssignmentModification(ORG_MINISTRY_OF_RUM_OID, OrgType.COMPLEX_TYPE,
-        		SchemaConstants.ORG_MANAGER, null, (ActivationType) null, true)));
+                SchemaConstants.ORG_MANAGER, null, (ActivationType) null, true)));
         userDelta.addModification((createAssignmentModification(ROLE_EMPTY_OID, RoleType.COMPLEX_TYPE,
-        		null, null, (ActivationType) null, true)));
+                null, null, (ActivationType) null, true)));
 
         // WHEN
         displayWhen(TEST_NAME);
 
-		modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -551,7 +551,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test152AssignbarbossaDeputyLimitedDeputy() throws Exception {
-		final String TEST_NAME = "test152AssignbarbossaDeputyLimitedDeputy";
+        final String TEST_NAME = "test152AssignbarbossaDeputyLimitedDeputy";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -561,8 +561,8 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
-        		createRoleReference(ROLE_PIRATE_OID),
-        		createOrgReference(ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER));
+                createRoleReference(ROLE_PIRATE_OID),
+                createOrgReference(ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER));
 
         // THEN
         displayThen(TEST_NAME);
@@ -588,7 +588,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test154UnassignbarbossaDeputyLimitedDeputy() throws Exception {
-		final String TEST_NAME = "test154UnassignbarbossaDeputyLimitedDeputy";
+        final String TEST_NAME = "test154UnassignbarbossaDeputyLimitedDeputy";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -598,8 +598,8 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
-        		createRoleReference(ROLE_PIRATE_OID),
-        		createOrgReference(ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER));
+                createRoleReference(ROLE_PIRATE_OID),
+                createOrgReference(ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER));
 
         // THEN
         displayThen(TEST_NAME);
@@ -622,7 +622,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test156AssignbarbossaDeputyLimitedDeputyRed() throws Exception {
-		final String TEST_NAME = "test156AssignbarbossaDeputyLimitedDeputyRed";
+        final String TEST_NAME = "test156AssignbarbossaDeputyLimitedDeputyRed";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -632,8 +632,8 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
-        		createRoleReference(ROLE_RED_SAILOR_OID),
-        		createOrgReference(ORG_MINISTRY_OF_RUM_OID) // There is no assignment like this in Jack
+                createRoleReference(ROLE_RED_SAILOR_OID),
+                createOrgReference(ORG_MINISTRY_OF_RUM_OID) // There is no assignment like this in Jack
         );
 
         // THEN
@@ -660,7 +660,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test159UnassignbarbossaDeputyLimitedDeputyRed() throws Exception {
-		final String TEST_NAME = "test159UnassignbarbossaDeputyLimitedDeputyRed";
+        final String TEST_NAME = "test159UnassignbarbossaDeputyLimitedDeputyRed";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -673,8 +673,8 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
-        		createRoleReference(ROLE_RED_SAILOR_OID),
-        		createOrgReference(ORG_MINISTRY_OF_RUM_OID) // There is no assignment like this in Jack
+                createRoleReference(ROLE_RED_SAILOR_OID),
+                createOrgReference(ORG_MINISTRY_OF_RUM_OID) // There is no assignment like this in Jack
         );
 
         // THEN
@@ -702,7 +702,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test160AssignbarbossaDeputyLimitedDeputyEmpty() throws Exception {
-		final String TEST_NAME = "test160AssignbarbossaDeputyLimitedDeputyEmpty";
+        final String TEST_NAME = "test160AssignbarbossaDeputyLimitedDeputyEmpty";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -712,7 +712,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
-        		createRoleReference(ROLE_EMPTY_OID)
+                createRoleReference(ROLE_EMPTY_OID)
         );
 
         // THEN
@@ -739,7 +739,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test162UnassignbarbossaDeputyLimitedDeputyEmpty() throws Exception {
-		final String TEST_NAME = "test162UnassignbarbossaDeputyLimitedDeputyEmpty";
+        final String TEST_NAME = "test162UnassignbarbossaDeputyLimitedDeputyEmpty";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -752,7 +752,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
-        		createRoleReference(ROLE_EMPTY_OID)
+                createRoleReference(ROLE_EMPTY_OID)
         );
 
         // THEN
@@ -779,7 +779,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test170AddRoleDrinker() throws Exception {
-		final String TEST_NAME = "test170AssignJackRoleDrinker";
+        final String TEST_NAME = "test170AssignJackRoleDrinker";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -804,7 +804,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test172AssignJackRoleDrinker() throws Exception {
-		final String TEST_NAME = "test170AssignJackRoleDrinker";
+        final String TEST_NAME = "test170AssignJackRoleDrinker";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -834,7 +834,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test174AssignBarbossaDeputyLimitedDeputyDrinker() throws Exception {
-		final String TEST_NAME = "test174AssignBarbossaDeputyLimitedDeputyDrinker";
+        final String TEST_NAME = "test174AssignBarbossaDeputyLimitedDeputyDrinker";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -844,7 +844,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
-        		createRoleReference(ROLE_DRINKER_OID)
+                createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
@@ -857,7 +857,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertAssignments(userJackAfter, 8);
         assertLinks(userJackAfter, 3);
         assertAuthorizations(userJackAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL, AUTZ_DRINK_URL);
-        
+
         PrismObject<UserType> userBarbossaAfter = getUser(USER_BARBOSSA_OID);
         display("User Barbossa after", userBarbossaAfter);
         assertAssignments(userBarbossaAfter, 1);
@@ -866,19 +866,19 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertLinks(userBarbossaAfter, 1);
         assertAuthorizations(userBarbossaAfter, AUTZ_DRINK_URL);
     }
-    
+
     /**
      * Deputy of a deputy. Limited, allow transitive.
      * MID-4176
      */
     @Test
     public void test176AssignbarGuybrushLimitedDeputyOfBarbossa() throws Exception {
-		final String TEST_NAME = "test176AssignbarGuybrushLimitedDeputyOfBarbossa";
+        final String TEST_NAME = "test176AssignbarGuybrushLimitedDeputyOfBarbossa";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userGuybrushBefore = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush after", userGuybrushBefore);
         assertAssignments(userGuybrushBefore, 0);
@@ -890,10 +890,10 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         // WHEN
         displayWhen(TEST_NAME);
 
-        assignDeputyLimits(USER_GUYBRUSH_OID, USER_BARBOSSA_OID, 
-        		assignment -> assignment.beginLimitTargetContent().allowTransitive(true),
-        		task, result,
-        		createRoleReference(ROLE_DRINKER_OID)
+        assignDeputyLimits(USER_GUYBRUSH_OID, USER_BARBOSSA_OID,
+                assignment -> assignment.beginLimitTargetContent().allowTransitive(true),
+                task, result,
+                createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
@@ -911,7 +911,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test178UnassignBarbossaDeputyLimitedDeputyDrinker() throws Exception {
-		final String TEST_NAME = "test178UnassignBsarbossaDeputyLimitedDeputyDrinker";
+        final String TEST_NAME = "test178UnassignBsarbossaDeputyLimitedDeputyDrinker";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -924,7 +924,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
-        		createRoleReference(ROLE_DRINKER_OID)
+                createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
@@ -955,22 +955,22 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
     }
-    
+
     @Test
     public void test179UnassignbarGuybrushLimitedDeputyOfBarbossa() throws Exception {
-		final String TEST_NAME = "test179UnassignbarGuybrushLimitedDeputyOfBarbossa";
+        final String TEST_NAME = "test179UnassignbarGuybrushLimitedDeputyOfBarbossa";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
 
         unassignDeputyLimits(USER_GUYBRUSH_OID, USER_BARBOSSA_OID,
-        		assignment -> assignment.beginLimitTargetContent().allowTransitive(true),
-        		task, result,
-        		createRoleReference(ROLE_DRINKER_OID)
+                assignment -> assignment.beginLimitTargetContent().allowTransitive(true),
+                task, result,
+                createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
@@ -984,10 +984,10 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertNoAuthorizations(userGuybrushAfter);
 
     }
-    
+
     @Test
     public void test180AssignBarbossaDeputyOfJack() throws Exception {
-		final String TEST_NAME = "test180AssignBarbossaDeputyOfJack";
+        final String TEST_NAME = "test180AssignBarbossaDeputyOfJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1010,18 +1010,18 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertLinks(userBarbossaAfter, 3);
         assertAuthorizations(userBarbossaAfter, AUTZ_LOOT_URL, AUTZ_SAIL_URL, AUTZ_COMMAND_URL, AUTZ_DRINK_URL);
     }
-    
+
     /**
      * Deputy of a deputy. Limited, do NOT allow transitive.
      */
     @Test
     public void test182AssignGuybrushLimitedDeputyOfBarbossa() throws Exception {
-		final String TEST_NAME = "test182AssignGuybrushLimitedDeputyOfBarbossa";
+        final String TEST_NAME = "test182AssignGuybrushLimitedDeputyOfBarbossa";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userGuybrushBefore = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush after", userGuybrushBefore);
         assertAssignments(userGuybrushBefore, 0);
@@ -1034,7 +1034,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         assignDeputyLimits(USER_GUYBRUSH_OID, USER_BARBOSSA_OID, task, result,
-        		createRoleReference(ROLE_DRINKER_OID)
+                createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
@@ -1049,20 +1049,20 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
     }
-    
+
     @Test
     public void test184UnassignGuybrushLimitedDeputyOfBarbossa() throws Exception {
-		final String TEST_NAME = "test182AssignGuybrushLimitedDeputyOfBarbossa";
+        final String TEST_NAME = "test182AssignGuybrushLimitedDeputyOfBarbossa";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
 
         unassignDeputyLimits(USER_GUYBRUSH_OID, USER_BARBOSSA_OID, task, result,
-        		createRoleReference(ROLE_DRINKER_OID)
+                createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
@@ -1081,12 +1081,12 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test186AssignGuybrushDeputyOfBarbossa() throws Exception {
-		final String TEST_NAME = "test182AssignGuybrushLimitedDeputyOfBarbossa";
+        final String TEST_NAME = "test182AssignGuybrushLimitedDeputyOfBarbossa";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userGuybrushBefore = getUser(USER_GUYBRUSH_OID);
         display("User Guybrush after", userGuybrushBefore);
         assertAssignments(userGuybrushBefore, 0);
@@ -1112,15 +1112,15 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         assertLinks(userGuybrushAfter, 0);
         assertNoAuthorizations(userGuybrushAfter);
     }
-    
+
     @Test
     public void test188UnassignGuybrushDeputyOfBarbossa() throws Exception {
-		final String TEST_NAME = "test188UnassignGuybrushDeputyOfBarbossa";
+        final String TEST_NAME = "test188UnassignGuybrushDeputyOfBarbossa";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
 
@@ -1139,7 +1139,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test189UnassignBarbossaDeputyOfJack() throws Exception {
-		final String TEST_NAME = "test189UnassignBarbossaDeputyOfJack";
+        final String TEST_NAME = "test189UnassignBarbossaDeputyOfJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1163,7 +1163,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test190AssignBarbossaDeputyLimitedDeputyEmptyDrinker() throws Exception {
-		final String TEST_NAME = "test190AssignBarbossaDeputyLimitedDeputyEmptyDrinker";
+        final String TEST_NAME = "test190AssignBarbossaDeputyLimitedDeputyEmptyDrinker";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1173,8 +1173,8 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         assignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
-        		createRoleReference(ROLE_EMPTY_OID),
-        		createRoleReference(ROLE_DRINKER_OID)
+                createRoleReference(ROLE_EMPTY_OID),
+                createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
@@ -1201,7 +1201,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test192UnassignbarbossaDeputyLimitedDeputyEmptyDrinker() throws Exception {
-		final String TEST_NAME = "test192UnassignbarbossaDeputyLimitedDeputyEmptyDrinker";
+        final String TEST_NAME = "test192UnassignbarbossaDeputyLimitedDeputyEmptyDrinker";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1214,8 +1214,8 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         unassignDeputyLimits(USER_BARBOSSA_OID, USER_JACK_OID, task, result,
-        		createRoleReference(ROLE_EMPTY_OID),
-        		createRoleReference(ROLE_DRINKER_OID)
+                createRoleReference(ROLE_EMPTY_OID),
+                createRoleReference(ROLE_DRINKER_OID)
         );
 
         // THEN
@@ -1243,7 +1243,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test800ImportValidityScannerTask() throws Exception {
-		final String TEST_NAME = "test800ImportValidityScannerTask";
+        final String TEST_NAME = "test800ImportValidityScannerTask";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1252,7 +1252,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
-		/// WHEN
+        /// WHEN
         displayWhen(TEST_NAME);
         importObjectFromFile(TASK_VALIDITY_SCANNER_FILENAME);
 
@@ -1261,17 +1261,17 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+        XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
         assertLastScanTimestamp(TASK_VALIDITY_SCANNER_OID, startCal, endCal);
-	}
+    }
 
     /**
-	 * Assign Barbossa as Jack's deputy. Barbossa should have all the privileges now.
-	 * But they will expire soon ...
-	 */
+     * Assign Barbossa as Jack's deputy. Barbossa should have all the privileges now.
+     * But they will expire soon ...
+     */
     @Test
     public void test802AssignBarbossaDeputyOfJack() throws Exception {
-		final String TEST_NAME = "test802AssignBarbossaDeputyOfJack";
+        final String TEST_NAME = "test802AssignBarbossaDeputyOfJack";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -1292,7 +1292,7 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
         displayWhen(TEST_NAME);
 
         assignDeputy(USER_BARBOSSA_OID, USER_JACK_OID, assignment -> assignment.setActivation(activationType),
-        		task, result);
+                task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1321,11 +1321,11 @@ public class TestDeputy extends AbstractInitializedModelIntegrationTest {
     }
 
     /**
-	 * Assign Barbossa as Jack's deputy. Barbossa privileges are about to expire.
-	 */
+     * Assign Barbossa as Jack's deputy. Barbossa privileges are about to expire.
+     */
     @Test
     public void test804BarbosaThreeHoursLater() throws Exception {
-		final String TEST_NAME = "test804BarbosaThreeHoursLater";
+        final String TEST_NAME = "test804BarbosaThreeHoursLater";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);

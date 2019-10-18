@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.story.notorious;
@@ -81,59 +81,59 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestNotoriousRole extends AbstractNotoriousTest {
 
-	public static final File ROLE_NOTORIOUS_FILE = new File(TEST_DIR, "role-notorious.xml");
-	public static final String ROLE_NOTORIOUS_OID = "1e95a1b8-46d1-11e7-84c5-e36e43bb0f00";
+    public static final File ROLE_NOTORIOUS_FILE = new File(TEST_DIR, "role-notorious.xml");
+    public static final String ROLE_NOTORIOUS_OID = "1e95a1b8-46d1-11e7-84c5-e36e43bb0f00";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestNotoriousRole.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestNotoriousRole.class);
 
-	@Override
-	protected String getNotoriousOid() {
-		return ROLE_NOTORIOUS_OID;
-	}
+    @Override
+    protected String getNotoriousOid() {
+        return ROLE_NOTORIOUS_OID;
+    }
 
-	@Override
-	protected File getNotoriousFile() {
-		return ROLE_NOTORIOUS_FILE;
-	}
+    @Override
+    protected File getNotoriousFile() {
+        return ROLE_NOTORIOUS_FILE;
+    }
 
-	@Override
-	protected QName getNotoriousType() {
-		return RoleType.COMPLEX_TYPE;
-	}
+    @Override
+    protected QName getNotoriousType() {
+        return RoleType.COMPLEX_TYPE;
+    }
 
-	@Override
-	protected QName getAltRelation() {
-		return SchemaConstants.ORG_OWNER;
-	}
+    @Override
+    protected QName getAltRelation() {
+        return SchemaConstants.ORG_OWNER;
+    }
 
-	@Override
-	protected int getNumberOfExtraRoles() {
-		return 1;
-	}
+    @Override
+    protected int getNumberOfExtraRoles() {
+        return 1;
+    }
 
-	@Override
-	protected int getNumberOfExtraOrgs() {
-		return 0;
-	}
+    @Override
+    protected int getNumberOfExtraOrgs() {
+        return 0;
+    }
 
-	@Override
-	protected void addNotoriousRole(OperationResult result) throws Exception {
-		PrismObject<RoleType> role = parseObject(getNotoriousFile());
-		RoleType roleType = role.asObjectable();
-		fillNotorious(roleType);
-		LOGGER.info("Adding {}:\n{}", role, role.debugDump(1));
-		repositoryService.addObject(role, null, result);
-	}
+    @Override
+    protected void addNotoriousRole(OperationResult result) throws Exception {
+        PrismObject<RoleType> role = parseObject(getNotoriousFile());
+        RoleType roleType = role.asObjectable();
+        fillNotorious(roleType);
+        LOGGER.info("Adding {}:\n{}", role, role.debugDump(1));
+        repositoryService.addObject(role, null, result);
+    }
 
-	// Owner relation is non-evaluated
-	@Override
-	protected int getTest15xRoleEvaluationIncrement() {
-		return 1 + NUMBER_OF_LEVEL_B_ROLES;
-	}
+    // Owner relation is non-evaluated
+    @Override
+    protected int getTest15xRoleEvaluationIncrement() {
+        return 1 + NUMBER_OF_LEVEL_B_ROLES;
+    }
 
-	// Owner relation is non-evaluated, therefore the B-level roles are not in roleMembershipRef here
-	@Override
-	protected void assertTest158RoleMembershipRef(PrismObject<UserType> userAfter) {
-		assertRoleMembershipRef(userAfter, getAltRelation(), getNotoriousOid());
-	}
+    // Owner relation is non-evaluated, therefore the B-level roles are not in roleMembershipRef here
+    @Override
+    protected void assertTest158RoleMembershipRef(PrismObject<UserType> userAfter) {
+        assertRoleMembershipRef(userAfter, getAltRelation(), getNotoriousOid());
+    }
 }

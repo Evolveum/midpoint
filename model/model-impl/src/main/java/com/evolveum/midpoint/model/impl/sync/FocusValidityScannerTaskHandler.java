@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.sync;
@@ -71,267 +71,267 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.F_A
 @Component
 public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<FocusType, AbstractScannerResultHandler<FocusType>> {
 
-	// WARNING! This task handler is efficiently singleton!
-	// It is a spring bean and it is supposed to handle all search task instances
-	// Therefore it must not have task-specific fields. It can only contain fields specific to
-	// all tasks of a specified type
+    // WARNING! This task handler is efficiently singleton!
+    // It is a spring bean and it is supposed to handle all search task instances
+    // Therefore it must not have task-specific fields. It can only contain fields specific to
+    // all tasks of a specified type
 
-	@Autowired private ExpressionFactory expressionFactory;
-	@Autowired private ContextFactory contextFactory;
+    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private ContextFactory contextFactory;
     @Autowired private Clockwork clockwork;
     // task OID -> object OIDs; cleared on task start
-	// we use plain map, as it is much easier to synchronize explicitly than to play with ConcurrentMap methods
-	private Map<String,Set<String>> processedOidsMap = new HashMap<>();
+    // we use plain map, as it is much easier to synchronize explicitly than to play with ConcurrentMap methods
+    private Map<String,Set<String>> processedOidsMap = new HashMap<>();
 
-	private synchronized void initProcessedOids(Task coordinatorTask) {
-		Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
-		processedOidsMap.put(coordinatorTask.getOid(), new HashSet<>());
-	}
+    private synchronized void initProcessedOids(Task coordinatorTask) {
+        Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
+        processedOidsMap.put(coordinatorTask.getOid(), new HashSet<>());
+    }
 
-	// TODO fix possible (although very small) memory leak occurring when task finishes unsuccessfully
-	private synchronized void cleanupProcessedOids(Task coordinatorTask) {
-		Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
-		processedOidsMap.remove(coordinatorTask.getOid());
-	}
+    // TODO fix possible (although very small) memory leak occurring when task finishes unsuccessfully
+    private synchronized void cleanupProcessedOids(Task coordinatorTask) {
+        Validate.notNull(coordinatorTask.getOid(), "Task OID is null");
+        processedOidsMap.remove(coordinatorTask.getOid());
+    }
 
-	private synchronized boolean oidAlreadySeen(Task coordinatorTask, String objectOid) {
-		Validate.notNull(coordinatorTask.getOid(), "Coordinator task OID is null");
-		Set<String> oids = processedOidsMap.get(coordinatorTask.getOid());
-		if (oids == null) {
-			throw new IllegalStateException("ProcessedOids set was not initialized for task = " + coordinatorTask);
-		}
-		return !oids.add(objectOid);
-	}
+    private synchronized boolean oidAlreadySeen(Task coordinatorTask, String objectOid) {
+        Validate.notNull(coordinatorTask.getOid(), "Coordinator task OID is null");
+        Set<String> oids = processedOidsMap.get(coordinatorTask.getOid());
+        if (oids == null) {
+            throw new IllegalStateException("ProcessedOids set was not initialized for task = " + coordinatorTask);
+        }
+        return !oids.add(objectOid);
+    }
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(FocusValidityScannerTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(FocusValidityScannerTaskHandler.class);
 
-	public FocusValidityScannerTaskHandler() {
+    public FocusValidityScannerTaskHandler() {
         super(FocusType.class, "Focus validity scan", OperationConstants.FOCUS_VALIDITY_SCAN);
     }
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
-		taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_1, this);
-		taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_2, this);
-		taskManager.registerAdditionalHandlerUri(ModelPublicConstants.DEPRECATED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(ModelPublicConstants.FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
+        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_1, this);
+        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_2, this);
+        taskManager.registerAdditionalHandlerUri(ModelPublicConstants.DEPRECATED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI, this);
+    }
 
-	@Override
-	protected Class<? extends ObjectType> getType(Task task) {
-		return getTypeFromTask(task, UserType.class);
-	}
+    @Override
+    protected Class<? extends ObjectType> getType(Task task) {
+        return getTypeFromTask(task, UserType.class);
+    }
 
-	private Integer getPartition(Task task) {
-		String handlerUri = task.getHandlerUri();
-		if (ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_1.equals(handlerUri)) {
-			return 1;
-		} else if (ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_2.equals(handlerUri)) {
-			return 2;
-		} else {
-			return null;
-		}
-	}
+    private Integer getPartition(Task task) {
+        String handlerUri = task.getHandlerUri();
+        if (ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_1.equals(handlerUri)) {
+            return 1;
+        } else if (ModelPublicConstants.PARTITIONED_FOCUS_VALIDITY_SCANNER_TASK_HANDLER_URI_2.equals(handlerUri)) {
+            return 2;
+        } else {
+            return null;
+        }
+    }
 
-	private boolean checkFocusValidity(Integer partition) {
-		return partition == null || partition == 1;
-	}
+    private boolean checkFocusValidity(Integer partition) {
+        return partition == null || partition == 1;
+    }
 
-	private boolean checkAssignmentValidity(Integer partition) {
-		return partition == null || partition == 2;
-	}
+    private boolean checkAssignmentValidity(Integer partition) {
+        return partition == null || partition == 2;
+    }
 
-	@Override
-	protected ObjectQuery createQuery(AbstractScannerResultHandler<FocusType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
-		initProcessedOids(coordinatorTask);
+    @Override
+    protected ObjectQuery createQuery(AbstractScannerResultHandler<FocusType> handler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) throws SchemaException {
+        initProcessedOids(coordinatorTask);
 
-		TimeValidityPolicyConstraintType validityConstraintType = getValidityPolicyConstraint(coordinatorTask);
+        TimeValidityPolicyConstraintType validityConstraintType = getValidityPolicyConstraint(coordinatorTask);
 
-		Duration activateOn = getActivateOn(validityConstraintType);
+        Duration activateOn = getActivateOn(validityConstraintType);
 
-		Integer partition = getPartition(coordinatorTask);
+        Integer partition = getPartition(coordinatorTask);
 
-		ObjectQuery query = getPrismContext().queryFactory().createQuery();
-		ObjectFilter filter;
+        ObjectQuery query = getPrismContext().queryFactory().createQuery();
+        ObjectFilter filter;
 
-		XMLGregorianCalendar lastScanTimestamp = handler.getLastScanTimestamp();
-		XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
-		if (activateOn != null) {
-			ItemPathType itemPathType = validityConstraintType.getItem();
-			ItemPath path = itemPathType.getItemPath();
-			if (path == null) {
-				throw new SchemaException("No path defined in the validity constraint.");
-			}
-			thisScanTimestamp.add(activateOn.negate());
-			if (lastScanTimestamp != null) {
-				lastScanTimestamp.add(activateOn.negate());
-			}
-			filter = createFilterFor(getType(coordinatorTask), path, lastScanTimestamp, thisScanTimestamp);
-		} else {
-			filter = createBasicFilter(lastScanTimestamp, thisScanTimestamp, partition);
-		}
+        XMLGregorianCalendar lastScanTimestamp = handler.getLastScanTimestamp();
+        XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
+        if (activateOn != null) {
+            ItemPathType itemPathType = validityConstraintType.getItem();
+            ItemPath path = itemPathType.getItemPath();
+            if (path == null) {
+                throw new SchemaException("No path defined in the validity constraint.");
+            }
+            thisScanTimestamp.add(activateOn.negate());
+            if (lastScanTimestamp != null) {
+                lastScanTimestamp.add(activateOn.negate());
+            }
+            filter = createFilterFor(getType(coordinatorTask), path, lastScanTimestamp, thisScanTimestamp);
+        } else {
+            filter = createBasicFilter(lastScanTimestamp, thisScanTimestamp, partition);
+        }
 
-		query.setFilter(filter);
+        query.setFilter(filter);
 
-		return query;
-	}
+        return query;
+    }
 
-	private Duration getActivateOn(TimeValidityPolicyConstraintType validityConstraintType) {
-		if (validityConstraintType != null) {
-			return validityConstraintType.getActivateOn();
-		} else {
-			return null;
-		}
-	}
+    private Duration getActivateOn(TimeValidityPolicyConstraintType validityConstraintType) {
+        if (validityConstraintType != null) {
+            return validityConstraintType.getActivateOn();
+        } else {
+            return null;
+        }
+    }
 
-	private ObjectFilter createBasicFilter(XMLGregorianCalendar lastScanTimestamp, XMLGregorianCalendar thisScanTimestamp,
-			Integer partition) {
-		S_AtomicFilterExit i = prismContext.queryFor(FocusType.class).none();
-		if (lastScanTimestamp == null) {
-			if (checkFocusValidity(partition)) {
-				i = i.or().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
-						.or().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp);
-			}
-			if (checkAssignmentValidity(partition)) {
-				i = i.or().exists(F_ASSIGNMENT)
-						.block()
-							.item(AssignmentType.F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
-							.or().item(AssignmentType.F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
-						.endBlock();
-			}
-		} else {
-			if (checkFocusValidity(partition)) {
-				i = i.or().item(F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
-							.and().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
-						.or().item(F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
-							.and().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp);
+    private ObjectFilter createBasicFilter(XMLGregorianCalendar lastScanTimestamp, XMLGregorianCalendar thisScanTimestamp,
+            Integer partition) {
+        S_AtomicFilterExit i = prismContext.queryFor(FocusType.class).none();
+        if (lastScanTimestamp == null) {
+            if (checkFocusValidity(partition)) {
+                i = i.or().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+                        .or().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp);
+            }
+            if (checkAssignmentValidity(partition)) {
+                i = i.or().exists(F_ASSIGNMENT)
+                        .block()
+                            .item(AssignmentType.F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+                            .or().item(AssignmentType.F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
+                        .endBlock();
+            }
+        } else {
+            if (checkFocusValidity(partition)) {
+                i = i.or().item(F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
+                            .and().item(F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+                        .or().item(F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
+                            .and().item(F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp);
 
-			}
-			if (checkAssignmentValidity(partition)) {
-				i = i.or().exists(F_ASSIGNMENT)
-						.block()
-							.item(AssignmentType.F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
-								.and().item(AssignmentType.F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
-							.or().item(AssignmentType.F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
-								.and().item(AssignmentType.F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
-						.endBlock();
-			}
-		}
-		return i.buildFilter();
-	}
+            }
+            if (checkAssignmentValidity(partition)) {
+                i = i.or().exists(F_ASSIGNMENT)
+                        .block()
+                            .item(AssignmentType.F_ACTIVATION, F_VALID_FROM).gt(lastScanTimestamp)
+                                .and().item(AssignmentType.F_ACTIVATION, F_VALID_FROM).le(thisScanTimestamp)
+                            .or().item(AssignmentType.F_ACTIVATION, F_VALID_TO).gt(lastScanTimestamp)
+                                .and().item(AssignmentType.F_ACTIVATION, F_VALID_TO).le(thisScanTimestamp)
+                        .endBlock();
+            }
+        }
+        return i.buildFilter();
+    }
 
-	private ObjectFilter createFilterFor(Class<? extends Containerable> type, ItemPath path, XMLGregorianCalendar lastScanTimestamp,
-			XMLGregorianCalendar thisScanTimestamp) {
-		if (lastScanTimestamp == null) {
-			return prismContext.queryFor(type)
-					.item(path).le(thisScanTimestamp)
-					.buildFilter();
-		} else {
-			return prismContext.queryFor(type)
-					.item(path).gt(lastScanTimestamp)
-						.and().item(path).le(thisScanTimestamp)
-					.buildFilter();
-		}
-	}
+    private ObjectFilter createFilterFor(Class<? extends Containerable> type, ItemPath path, XMLGregorianCalendar lastScanTimestamp,
+            XMLGregorianCalendar thisScanTimestamp) {
+        if (lastScanTimestamp == null) {
+            return prismContext.queryFor(type)
+                    .item(path).le(thisScanTimestamp)
+                    .buildFilter();
+        } else {
+            return prismContext.queryFor(type)
+                    .item(path).gt(lastScanTimestamp)
+                        .and().item(path).le(thisScanTimestamp)
+                    .buildFilter();
+        }
+    }
 
-	@Override
-	protected void finish(AbstractScannerResultHandler<FocusType> handler, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult)
-			throws SchemaException {
-		TimeValidityPolicyConstraintType validityConstraintType = getValidityPolicyConstraint(coordinatorTask);
+    @Override
+    protected void finish(AbstractScannerResultHandler<FocusType> handler, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult)
+            throws SchemaException {
+        TimeValidityPolicyConstraintType validityConstraintType = getValidityPolicyConstraint(coordinatorTask);
 
-		Duration activateOn = getActivateOn(validityConstraintType);
-		if (activateOn != null) {
-			handler.getThisScanTimestamp().add(activateOn);
-		}
+        Duration activateOn = getActivateOn(validityConstraintType);
+        if (activateOn != null) {
+            handler.getThisScanTimestamp().add(activateOn);
+        }
 
-		super.finish(handler, runResult, coordinatorTask, opResult);
-		cleanupProcessedOids(coordinatorTask);
-	}
+        super.finish(handler, runResult, coordinatorTask, opResult);
+        cleanupProcessedOids(coordinatorTask);
+    }
 
-	@NotNull
-	@Override
-	protected AbstractScannerResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
-			OperationResult opResult) {
+    @NotNull
+    @Override
+    protected AbstractScannerResultHandler<FocusType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
+            OperationResult opResult) {
 
-		AbstractScannerResultHandler<FocusType> handler = new AbstractScannerResultHandler<FocusType>(
-				coordinatorTask, FocusValidityScannerTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
-			@Override
-			protected boolean handleObject(PrismObject<FocusType> object, RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
-				if (oidAlreadySeen(coordinatorTask, object.getOid())) {
-					LOGGER.trace("Recomputation already executed for {}", ObjectTypeUtil.toShortString(object));
-				} else {
-					reconcileFocus(object, workerTask, result);
-				}
-				return true;
-			}
-		};
+        AbstractScannerResultHandler<FocusType> handler = new AbstractScannerResultHandler<FocusType>(
+                coordinatorTask, FocusValidityScannerTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
+            @Override
+            protected boolean handleObject(PrismObject<FocusType> object, RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
+                if (oidAlreadySeen(coordinatorTask, object.getOid())) {
+                    LOGGER.trace("Recomputation already executed for {}", ObjectTypeUtil.toShortString(object));
+                } else {
+                    reconcileFocus(object, workerTask, result);
+                }
+                return true;
+            }
+        };
         handler.setStopOnError(false);
-		return handler;
-	}
+        return handler;
+    }
 
-	private void reconcileFocus(PrismObject<FocusType> focus, Task workerTask, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
-			ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
-		LOGGER.trace("Recomputing focus {}", focus);
-		// We want reconcile option here. There may be accounts that are in wrong activation state.
-		// We will not notice that unless we go with reconcile.
-		LensContext<FocusType> lensContext = contextFactory.createRecomputeContext(focus, ModelExecuteOptions.createReconcile(), workerTask, result);
-		TimeValidityPolicyConstraintType constraint = getValidityPolicyConstraint(workerTask);
-		if (hasNotifyAction(workerTask) && constraint != null) {
-			EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(CloneUtil.clone(workerTask.getPolicyRule()), null, prismContext);
-			policyRule.computeEnabledActions(null, focus, expressionFactory, prismContext, workerTask, result);
-			EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
-					Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,
-					constraint,
-					LocalizableMessageBuilder.buildFallbackMessage("Applying time validity constraint for focus"),
-					LocalizableMessageBuilder.buildFallbackMessage("Time validity"));
-			policyRule.getTriggers().add(evaluatedTrigger);
-			lensContext.getFocusContext().addPolicyRule(policyRule);
-		}
-		LOGGER.trace("Recomputing of focus {}: context:\n{}", focus, lensContext.debugDumpLazily());
-		clockwork.run(lensContext, workerTask, result);
-		LOGGER.trace("Recomputing of focus {}: {}", focus, result.getStatus());
-	}
+    private void reconcileFocus(PrismObject<FocusType> focus, Task workerTask, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
+            ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
+        LOGGER.trace("Recomputing focus {}", focus);
+        // We want reconcile option here. There may be accounts that are in wrong activation state.
+        // We will not notice that unless we go with reconcile.
+        LensContext<FocusType> lensContext = contextFactory.createRecomputeContext(focus, ModelExecuteOptions.createReconcile(), workerTask, result);
+        TimeValidityPolicyConstraintType constraint = getValidityPolicyConstraint(workerTask);
+        if (hasNotifyAction(workerTask) && constraint != null) {
+            EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(CloneUtil.clone(workerTask.getPolicyRule()), null, prismContext);
+            policyRule.computeEnabledActions(null, focus, expressionFactory, prismContext, workerTask, result);
+            EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
+                    Boolean.TRUE.equals(constraint.isAssignment()) ? PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY : PolicyConstraintKindType.OBJECT_TIME_VALIDITY,
+                    constraint,
+                    LocalizableMessageBuilder.buildFallbackMessage("Applying time validity constraint for focus"),
+                    LocalizableMessageBuilder.buildFallbackMessage("Time validity"));
+            policyRule.getTriggers().add(evaluatedTrigger);
+            lensContext.getFocusContext().addPolicyRule(policyRule);
+        }
+        LOGGER.trace("Recomputing of focus {}: context:\n{}", focus, lensContext.debugDumpLazily());
+        clockwork.run(lensContext, workerTask, result);
+        LOGGER.trace("Recomputing of focus {}: {}", focus, result.getStatus());
+    }
 
-	private TimeValidityPolicyConstraintType getValidityPolicyConstraint(Task coordinatorTask) {
-		PolicyRuleType policyRule = coordinatorTask.getPolicyRule();
+    private TimeValidityPolicyConstraintType getValidityPolicyConstraint(Task coordinatorTask) {
+        PolicyRuleType policyRule = coordinatorTask.getPolicyRule();
 
-		if (policyRule == null) {
-			return null;
-		}
+        if (policyRule == null) {
+            return null;
+        }
 
-		if (policyRule.getPolicyConstraints() == null) {
-			return null;
-		}
+        if (policyRule.getPolicyConstraints() == null) {
+            return null;
+        }
 
-		List<TimeValidityPolicyConstraintType> timeValidityConstraints = policyRule.getPolicyConstraints().getObjectTimeValidity();
-		if (CollectionUtils.isEmpty(timeValidityConstraints)) {
-			return null;
-		}
-		return timeValidityConstraints.iterator().next();
-	}
+        List<TimeValidityPolicyConstraintType> timeValidityConstraints = policyRule.getPolicyConstraints().getObjectTimeValidity();
+        if (CollectionUtils.isEmpty(timeValidityConstraints)) {
+            return null;
+        }
+        return timeValidityConstraints.iterator().next();
+    }
 
-	private List<NotificationPolicyActionType> getNotificationActions(Task coordinatorTask){
-		PolicyRuleType policyRule = coordinatorTask.getPolicyRule();
+    private List<NotificationPolicyActionType> getNotificationActions(Task coordinatorTask){
+        PolicyRuleType policyRule = coordinatorTask.getPolicyRule();
 
-		if (policyRule == null) {
-			return Collections.emptyList();
-		}
+        if (policyRule == null) {
+            return Collections.emptyList();
+        }
 
-		if (policyRule.getPolicyActions() == null) {
-			return Collections.emptyList();
-		}
+        if (policyRule.getPolicyActions() == null) {
+            return Collections.emptyList();
+        }
 
-		return policyRule.getPolicyActions().getNotification();
-	}
+        return policyRule.getPolicyActions().getNotification();
+    }
 
-	private boolean hasNotifyAction(Task coordinatorTask) {
-		return !getNotificationActions(coordinatorTask).isEmpty();
-	}
+    private boolean hasNotifyAction(Task coordinatorTask) {
+        return !getNotificationActions(coordinatorTask).isEmpty();
+    }
 
-	@SuppressWarnings("unused")
-	private boolean isTimeValidityConstraint(Task coordinatorTask) {
-		return getValidityPolicyConstraint(coordinatorTask) != null;
-	}
+    @SuppressWarnings("unused")
+    private boolean isTimeValidityConstraint(Task coordinatorTask) {
+        return getValidityPolicyConstraint(coordinatorTask) != null;
+    }
 
 }

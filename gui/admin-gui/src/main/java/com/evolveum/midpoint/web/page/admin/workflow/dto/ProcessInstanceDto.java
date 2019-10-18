@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,8 +27,8 @@ import javax.xml.namespace.QName;
  */
 public class ProcessInstanceDto extends Selectable {
 
-	public static final String F_OBJECT_NAME = "objectName";
-	public static final String F_TARGET_NAME = "targetName";
+    public static final String F_OBJECT_NAME = "objectName";
+    public static final String F_TARGET_NAME = "targetName";
     public static final String F_NAME = "name";
     public static final String F_START_FORMATTED = "startFormatted";
     public static final String F_END_FORMATTED = "endFormatted";
@@ -43,7 +43,7 @@ public class ProcessInstanceDto extends Selectable {
         this.aCase = aCase;
         converter = new PatternDateConverter
                 (WebComponentUtil.getLocalizedDatePattern(dateTimeStyle), true );
-	    Validate.notNull(aCase.getApprovalContext(), "Case has no workflow context");
+        Validate.notNull(aCase.getApprovalContext(), "Case has no workflow context");
     }
 
     public XMLGregorianCalendar getStartTimestamp() {
@@ -66,7 +66,7 @@ public class ProcessInstanceDto extends Selectable {
 
     @NotNull
     public ApprovalContextType getApprovalContext() {
-    	return aCase.getApprovalContext();
+        return aCase.getApprovalContext();
     }
 
     public String getName() {
@@ -77,37 +77,37 @@ public class ProcessInstanceDto extends Selectable {
         return aCase.getOutcome();
     }
 
-	public String getObjectName() {
-		return WebComponentUtil.getName(aCase.getObjectRef());
-	}
+    public String getObjectName() {
+        return WebComponentUtil.getName(aCase.getObjectRef());
+    }
 
-	public ObjectReferenceType getObjectRef() {
-		return aCase.getObjectRef();
-	}
+    public ObjectReferenceType getObjectRef() {
+        return aCase.getObjectRef();
+    }
 
-	public ObjectReferenceType getTargetRef() {
-		return aCase.getTargetRef();
-	}
+    public ObjectReferenceType getTargetRef() {
+        return aCase.getTargetRef();
+    }
 
-	public QName getObjectType() {
-		return getObjectRef() != null ? getObjectRef().getType() : null;
-	}
+    public QName getObjectType() {
+        return getObjectRef() != null ? getObjectRef().getType() : null;
+    }
 
-	public QName getTargetType() {
-		return getTargetRef() != null ? getTargetRef().getType() : null;
-	}
+    public QName getTargetType() {
+        return getTargetRef() != null ? getTargetRef().getType() : null;
+    }
 
-	public String getTargetName() {
-		return WebComponentUtil.getName(aCase.getTargetRef());
-	}
+    public String getTargetName() {
+        return WebComponentUtil.getName(aCase.getTargetRef());
+    }
 
-	public String getStage() {
-    	return ApprovalContextUtil.getStageInfo(aCase);
-	}
+    public String getStage() {
+        return ApprovalContextUtil.getStageInfo(aCase);
+    }
 
-	public String getProcessInstanceId() {
-		return aCase.getOid();
-	}
+    public String getProcessInstanceId() {
+        return aCase.getOid();
+    }
 
 //    public List<WorkItemDto> getWorkItems() {
 //        List<WorkItemDto> retval = new ArrayList<WorkItemDto>();

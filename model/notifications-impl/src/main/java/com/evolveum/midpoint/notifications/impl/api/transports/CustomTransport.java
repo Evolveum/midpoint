@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -92,7 +92,7 @@ public class CustomTransport implements Transport {
         result.addParam("message subject", message.getSubject());
 
         SystemConfigurationType systemConfiguration = NotificationFunctionsImpl
-				.getSystemConfiguration(cacheRepositoryService, result);
+                .getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
             String msg = "No notifications are configured. Custom notification to " + message.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
@@ -115,42 +115,42 @@ public class CustomTransport implements Transport {
         if (logToFile != null) {
             TransportUtil.logToFile(logToFile, TransportUtil.formatToFileNew(message, transportName), LOGGER);
         }
-        
+
         int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(configuration);
-        
+
         List<String> allowedRecipientTo = new ArrayList<String>();
-    	List<String> forbiddenRecipientTo = new ArrayList<String>();
-    	List<String> allowedRecipientCc = new ArrayList<String>();
-    	List<String> forbiddenRecipientCc = new ArrayList<String>();
-    	List<String> allowedRecipientBcc = new ArrayList<String>();
-    	List<String> forbiddenRecipientBcc = new ArrayList<String>();
-    	
-    	String file = configuration.getRedirectToFile();
+        List<String> forbiddenRecipientTo = new ArrayList<String>();
+        List<String> allowedRecipientCc = new ArrayList<String>();
+        List<String> forbiddenRecipientCc = new ArrayList<String>();
+        List<String> allowedRecipientBcc = new ArrayList<String>();
+        List<String> forbiddenRecipientBcc = new ArrayList<String>();
+
+        String file = configuration.getRedirectToFile();
         if (optionsForFilteringRecipient != 0) {
-        	TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, task, result,
-        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
-        	TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, message.getCc(), configuration, task, result,
-        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
-        	TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, message.getBcc(), configuration, task, result,
-        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
-        	
-        	if (file != null) {
-        		if(!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
-        			message.setTo(forbiddenRecipientTo);
-        			message.setCc(forbiddenRecipientCc);
-        			message.setBcc(forbiddenRecipientBcc);
-        			writeToFile(message, file, result);
-        		}
-            	message.setTo(allowedRecipientTo);
-            	message.setCc(allowedRecipientCc);
-            	message.setBcc(allowedRecipientBcc);
+            TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, task, result,
+                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+            TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, message.getCc(), configuration, task, result,
+                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+            TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, message.getBcc(), configuration, task, result,
+                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+
+            if (file != null) {
+                if(!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
+                    message.setTo(forbiddenRecipientTo);
+                    message.setCc(forbiddenRecipientCc);
+                    message.setBcc(forbiddenRecipientBcc);
+                    writeToFile(message, file, result);
+                }
+                message.setTo(allowedRecipientTo);
+                message.setCc(allowedRecipientCc);
+                message.setBcc(allowedRecipientBcc);
             }
-        	
+
         } else if (file != null) {
-        	writeToFile(message, file, result);
-           	return;
+            writeToFile(message, file, result);
+               return;
         }
-        
+
         try {
             evaluateExpression(configuration.getExpression(), getDefaultVariables(message, event),
                     "custom transport expression", task, result);
@@ -180,7 +180,7 @@ public class CustomTransport implements Transport {
 
     // TODO deduplicate
     private void evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
-    		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
@@ -191,7 +191,7 @@ public class CustomTransport implements Transport {
     }
 
     protected ExpressionVariables getDefaultVariables(Message message, Event event) throws UnsupportedEncodingException {
-    	ExpressionVariables variables = new ExpressionVariables();
+        ExpressionVariables variables = new ExpressionVariables();
         variables.put(ExpressionConstants.VAR_MESSAGE, message, Message.class);
         variables.put(ExpressionConstants.VAR_EVENT, event, Event.class);
         return variables;

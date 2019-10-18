@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,43 +25,43 @@ import javax.xml.datatype.Duration;
  */
 public interface WorkflowListener {
 
-	/**
-	 * This method is called by wf module when a process instance successfully starts.
+    /**
+     * This method is called by wf module when a process instance successfully starts.
      * @param result implementer should report its result here
      */
-	void onProcessInstanceStart(CaseType aCase, Task task, OperationResult result);
+    void onProcessInstanceStart(CaseType aCase, Task task, OperationResult result);
 
-	/**
-	 * This method is called by wf module when a process instance ends.
-	 * @param result implementer should report its result here
-	 */
-	void onProcessInstanceEnd(CaseType aCase, Task task, OperationResult result);
+    /**
+     * This method is called by wf module when a process instance ends.
+     * @param result implementer should report its result here
+     */
+    void onProcessInstanceEnd(CaseType aCase, Task task, OperationResult result);
 
-	/**
+    /**
      * This method is called by wf module when a work item is created.
-	 */
+     */
     void onWorkItemCreation(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
-		    CaseType aCase, Task task, OperationResult result);
+            CaseType aCase, Task task, OperationResult result);
 
     /**
      * This method is called by wf module when a work item is completed.
-	 */
+     */
     void onWorkItemDeletion(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
-		    @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-		    CaseType aCase, Task task, OperationResult result);
+            @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
+            CaseType aCase, Task task, OperationResult result);
 
     void onWorkItemCustomEvent(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
-		    @NotNull WorkItemNotificationActionType notificationAction, @Nullable WorkItemEventCauseInformationType cause,
-		    CaseType aCase, Task task, OperationResult result);
+            @NotNull WorkItemNotificationActionType notificationAction, @Nullable WorkItemEventCauseInformationType cause,
+            CaseType aCase, Task task, OperationResult result);
 
-	/**
-	 * EXPERIMENTAL
-	 */
-	void onWorkItemAllocationChangeCurrentActors(@NotNull CaseWorkItemType workItem,
-			@NotNull WorkItemAllocationChangeOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			Duration timeBefore, CaseType aCase, Task task, OperationResult result);
+    /**
+     * EXPERIMENTAL
+     */
+    void onWorkItemAllocationChangeCurrentActors(@NotNull CaseWorkItemType workItem,
+            @NotNull WorkItemAllocationChangeOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
+            Duration timeBefore, CaseType aCase, Task task, OperationResult result);
 
-	void onWorkItemAllocationChangeNewActors(@NotNull CaseWorkItemType workItem,
-			@NotNull WorkItemAllocationChangeOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			CaseType aCase, Task task, OperationResult result);
+    void onWorkItemAllocationChangeNewActors(@NotNull CaseWorkItemType workItem,
+            @NotNull WorkItemAllocationChangeOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
+            CaseType aCase, Task task, OperationResult result);
 }

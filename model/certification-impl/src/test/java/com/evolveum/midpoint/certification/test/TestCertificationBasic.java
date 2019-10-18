@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -67,12 +67,12 @@ public class TestCertificationBasic extends AbstractCertificationTest {
                 AccessCertificationDefinitionType.class, initResult).asObjectable();
 
         // to test MID-3838
-		assignFocus(UserType.class, USER_JACK_OID, UserType.COMPLEX_TYPE, USER_GUYBRUSH_OID, SchemaConstants.ORG_DEPUTY, null, initTask, initResult);
+        assignFocus(UserType.class, USER_JACK_OID, UserType.COMPLEX_TYPE, USER_GUYBRUSH_OID, SchemaConstants.ORG_DEPUTY, null, initTask, initResult);
     }
 
-	/*
-	 *  "Foreign" campaign - generates a few cases, just to test authorizations.
-	 */
+    /*
+     *  "Foreign" campaign - generates a few cases, just to test authorizations.
+     */
     @Test
     public void test001CreateForeignCampaign() throws Exception {
         final String TEST_NAME = "test001CreateForeignCampaign";
@@ -514,11 +514,11 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         ObjectQuery query = prismContext.queryFor(AccessCertificationWorkItemType.class)
-				.exists(T_PARENT)
-				.block()
-                	.item(AccessCertificationCaseType.F_ORG_REF).ref(ORG_SCUMM_BAR_OID)
-                	.and().ownerId(campaignOid)
-				.endBlock()
+                .exists(T_PARENT)
+                .block()
+                    .item(AccessCertificationCaseType.F_ORG_REF).ref(ORG_SCUMM_BAR_OID)
+                    .and().ownerId(campaignOid)
+                .endBlock()
                 .build();
         List<AccessCertificationWorkItemType> workItems =
                 certificationService.searchOpenWorkItems(query, false, null, task, result);

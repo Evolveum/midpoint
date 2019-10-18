@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!-- experimental -->
@@ -12,15 +12,15 @@
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Trace</name>
     <description>
-    	Archetype for execution trace, as a special case of report output.
+        Archetype for execution trace, as a special case of report output.
     </description>
     <archetypePolicy>
-    	<display>
-    		<label>Trace</label>
-    		<pluralLabel>Traces</pluralLabel>
+        <display>
+            <label>Trace</label>
+            <pluralLabel>Traces</pluralLabel>
             <icon>
                 <cssClass>fa fa-stethoscope</cssClass>
             </icon>
-    	</display>
+        </display>
     </archetypePolicy>
 </archetype>

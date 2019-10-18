@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -30,64 +30,64 @@ public interface PropertyDelta<T extends Object> extends ItemDelta<PrismProperty
 
     PrismPropertyDefinition<T> getPropertyDefinition();
 
-	void setPropertyDefinition(PrismPropertyDefinition<T> propertyDefinition);
+    void setPropertyDefinition(PrismPropertyDefinition<T> propertyDefinition);
 
-	@Override
-	void setDefinition(PrismPropertyDefinition<T> definition);
+    @Override
+    void setDefinition(PrismPropertyDefinition<T> definition);
 
-	@Override
-	void applyDefinition(PrismPropertyDefinition<T> definition) throws SchemaException;
+    @Override
+    void applyDefinition(PrismPropertyDefinition<T> definition) throws SchemaException;
 
-	@Override
-	Class<PrismProperty> getItemClass();
+    @Override
+    Class<PrismProperty> getItemClass();
 
-	/**
+    /**
      * Returns all values regardless of whether they are added or removed or replaced.
      * Useful for iterating over all the changed values.
      */
-	<T> Collection<PrismPropertyValue<T>> getValues(Class<T> type);
+    <T> Collection<PrismPropertyValue<T>> getValues(Class<T> type);
 
-	T getAnyRealValue();
+    T getAnyRealValue();
 
-	<P extends PrismProperty> P instantiateEmptyProperty();
+    <P extends PrismProperty> P instantiateEmptyProperty();
 
-	boolean isApplicableToType(Item item);
+    boolean isApplicableToType(Item item);
 
-	@Override
-	PropertyDelta<T> clone();
+    @Override
+    PropertyDelta<T> clone();
 
     boolean isRealValueToAdd(PrismPropertyValue<?> value);
 
-	boolean isRealValueToDelete(PrismPropertyValue<?> value);
+    boolean isRealValueToDelete(PrismPropertyValue<?> value);
 
-	/**
+    /**
      * Returns the "new" state of the property - the state that would be after the delta
      * is applied.
      */
-	PrismProperty<T> getPropertyNewMatchingPath() throws SchemaException;
+    PrismProperty<T> getPropertyNewMatchingPath() throws SchemaException;
 
-	/**
+    /**
      * Returns the "new" state of the property - the state that would be after the delta
      * is applied.
      */
-	PrismProperty<T> getPropertyNewMatchingPath(PrismProperty<T> propertyOld) throws SchemaException;
+    PrismProperty<T> getPropertyNewMatchingPath(PrismProperty<T> propertyOld) throws SchemaException;
 
-	@Override
-	PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems);
+    @Override
+    PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems);
 
-	PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule,
-			boolean assumeMissingItems);
+    PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule,
+            boolean assumeMissingItems);
 
-	boolean isRedundant(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule, boolean assumeMissingItems);
+    boolean isRedundant(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule, boolean assumeMissingItems);
 
     // convenience method
     void setRealValuesToReplace(T... newValues);
 
-	void addRealValuesToAdd(T... newValues);
+    void addRealValuesToAdd(T... newValues);
 
-	void addRealValuesToDelete(T... newValues);
+    void addRealValuesToDelete(T... newValues);
 
-	void addRealValuesToAdd(Collection<T> newValues);
+    void addRealValuesToAdd(Collection<T> newValues);
 
-	void addRealValuesToDelete(Collection<T> values);
+    void addRealValuesToDelete(Collection<T> values);
 }

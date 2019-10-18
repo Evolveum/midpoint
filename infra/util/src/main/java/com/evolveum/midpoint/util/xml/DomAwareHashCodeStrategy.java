@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.util.xml;
@@ -24,16 +24,16 @@ import org.w3c.dom.Element;
 
 public class DomAwareHashCodeStrategy extends JAXBHashCodeStrategy {
 
-	public static HashCodeStrategy INSTANCE = new DomAwareHashCodeStrategy();
+    public static HashCodeStrategy INSTANCE = new DomAwareHashCodeStrategy();
 
-	@Override
-	protected int hashCodeInternal(ObjectLocator locator, int hashCode, Object value) {
-		if (value instanceof Element) {
-			// Ignore DOM elements in hashcode.
-			return 1;
-		} else {
-			return super.hashCodeInternal(locator, hashCode, value);
-		}
-	}
+    @Override
+    protected int hashCodeInternal(ObjectLocator locator, int hashCode, Object value) {
+        if (value instanceof Element) {
+            // Ignore DOM elements in hashcode.
+            return 1;
+        } else {
+            return super.hashCodeInternal(locator, hashCode, value);
+        }
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -107,12 +107,12 @@ public class CertCampaignDto extends Selectable {
                 AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
                 String stageName = stage != null ? stage.getName() : null;
                 if (stageName != null) {
-					String key = createEnumResourceKey(state) + "_FULL";
-					return createStringResourceStatic(page, key, stageNumber, stageName).getString();
-				} else {
-					String key = createEnumResourceKey(state);
-					return createStringResourceStatic(page, key).getString() + " " + stageNumber;
-				}
+                    String key = createEnumResourceKey(state) + "_FULL";
+                    return createStringResourceStatic(page, key, stageNumber, stageName).getString();
+                } else {
+                    String key = createEnumResourceKey(state);
+                    return createStringResourceStatic(page, key).getString() + " " + stageNumber;
+                }
             default:
                 return null;        // todo warning/error?
         }

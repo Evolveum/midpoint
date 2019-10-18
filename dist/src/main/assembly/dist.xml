@@ -2,11 +2,11 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
-<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0" 
+
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
   <id>dist</id>
@@ -15,10 +15,10 @@
     <format>zip</format>
   </formats>
   <files>
-  	<file>
-  		<source>../INSTALL-dist</source>
-  		<destName>INSTALL</destName>
-  	</file>
+      <file>
+          <source>../INSTALL-dist</source>
+          <destName>INSTALL</destName>
+      </file>
   </files>
   <fileSets>
     <fileSet>
@@ -39,24 +39,24 @@
       <directory>../config</directory>
       <outputDirectory>doc/config</outputDirectory>
       <excludes>
-      	<exclude>.project</exclude>
-      	<exclude>.classpath</exclude>
-      	<exclude>.settings/</exclude>
-      	<exclude>pom.xml</exclude>
-      	<exclude>*~</exclude>
-      	<exclude>**/*~</exclude>
+          <exclude>.project</exclude>
+          <exclude>.classpath</exclude>
+          <exclude>.settings/</exclude>
+          <exclude>pom.xml</exclude>
+          <exclude>*~</exclude>
+          <exclude>**/*~</exclude>
       </excludes>
     </fileSet>
     <fileSet>
       <directory>target/schemadist</directory>
       <outputDirectory>doc/schema</outputDirectory>
       <excludes>
-      	<exclude>.project</exclude>
-      	<exclude>.classpath</exclude>
-      	<exclude>.settings/</exclude>
-      	<exclude>pom.xml</exclude>
-      	<exclude>*~</exclude>
-      	<exclude>**/*~</exclude>
+          <exclude>.project</exclude>
+          <exclude>.classpath</exclude>
+          <exclude>.settings/</exclude>
+          <exclude>pom.xml</exclude>
+          <exclude>*~</exclude>
+          <exclude>**/*~</exclude>
       </excludes>
     </fileSet>
     <fileSet>
@@ -104,9 +104,9 @@
       </includes>
       <unpack>true</unpack>
       <unpackOptions>
-	      <excludes>
-	      	<exclude>META-INF/</exclude>
-	      </excludes>      	
+          <excludes>
+              <exclude>META-INF/</exclude>
+          </excludes>
       </unpackOptions>
     </dependencySet>
   </dependencySets>

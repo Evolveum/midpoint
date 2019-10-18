@@ -2,32 +2,32 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="fe20de40-a7e3-11e9-aead-a7fdc95b31e2" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+<user oid="fe20de40-a7e3-11e9-aead-a7fdc95b31e2"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>reader-runner</name>
     <description>User that can read read and run.</description>
 
-	<assignment>
-		<targetRef oid="057aab3c-a7e2-11e9-9920-dbe16a0e2b89" type="RoleType"/>
-	</assignment>
-	<assignment>
-		<targetRef oid="32146416-a7e3-11e9-8a02-c3506b21c7eb" type="RoleType"/>
-	</assignment>
-    
+    <assignment>
+        <targetRef oid="057aab3c-a7e2-11e9-9920-dbe16a0e2b89" type="RoleType"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="32146416-a7e3-11e9-8a02-c3506b21c7eb" type="RoleType"/>
+    </assignment>
+
     <credentials>
         <password>
-        	<value>
-	            <t:clearValue>1eyeSEEandRUNS</t:clearValue>
+            <value>
+                <t:clearValue>1eyeSEEandRUNS</t:clearValue>
             </value>
         </password>
     </credentials>
-    
+
 </user>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,106 +29,106 @@ import javax.xml.namespace.QName;
  */
 public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 
-	private static final String ID_ICON = "icon";
-	private static final String ID_LABEL = "label";
-	private static final String ID_LINK = "link";
-	private static final String ID_ADDITIONAL_TEXT = "additionalText";
+    private static final String ID_ICON = "icon";
+    private static final String ID_LABEL = "label";
+    private static final String ID_LINK = "link";
+    private static final String ID_ADDITIONAL_TEXT = "additionalText";
 
-	public SceneItemValuePanel(String id, IModel<SceneItemValue> model) {
-		super(id, model);
-	}
+    public SceneItemValuePanel(String id, IModel<SceneItemValue> model) {
+        super(id, model);
+    }
 
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		initLayout();
-	}
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
 
-	private void initLayout() {
+    private void initLayout() {
 
-		final VisibleEnableBehaviour visibleIfReference = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				SceneItemValue object = getModelObject();
-				return hasValidReferenceValue(object);
-			}
-		};
-		final VisibleEnableBehaviour visibleIfNotReference = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				SceneItemValue object = getModelObject();
-				return !hasValidReferenceValue(object);
-			}
-		};
+        final VisibleEnableBehaviour visibleIfReference = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                SceneItemValue object = getModelObject();
+                return hasValidReferenceValue(object);
+            }
+        };
+        final VisibleEnableBehaviour visibleIfNotReference = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                SceneItemValue object = getModelObject();
+                return !hasValidReferenceValue(object);
+            }
+        };
 
-		final ImagePanel icon = new ImagePanel(ID_ICON, new IconModel(), new TitleModel());
-		icon.add(visibleIfReference);
-		add(icon);
+        final ImagePanel icon = new ImagePanel(ID_ICON, new IconModel(), new TitleModel());
+        icon.add(visibleIfReference);
+        add(icon);
 
-		final Label label = new Label(ID_LABEL, new LabelModel());
-		label.add(visibleIfNotReference);
-		add(label);
+        final Label label = new Label(ID_LABEL, new LabelModel());
+        label.add(visibleIfNotReference);
+        add(label);
 
-		final LinkPanel link = new LinkPanel(ID_LINK, new LabelModel()) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				if (!(getModelObject().getSourceValue() instanceof PrismReferenceValue)) {
-					return;
-				}
-				PrismReferenceValue refValue = (PrismReferenceValue) getModelObject().getSourceValue();
-				ObjectReferenceType ort = new ObjectReferenceType();
-				ort.setupReferenceValue(refValue);
-				WebComponentUtil.dispatchToObjectDetailsPage(ort, getPageBase(), false);
+        final LinkPanel link = new LinkPanel(ID_LINK, new LabelModel()) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                if (!(getModelObject().getSourceValue() instanceof PrismReferenceValue)) {
+                    return;
+                }
+                PrismReferenceValue refValue = (PrismReferenceValue) getModelObject().getSourceValue();
+                ObjectReferenceType ort = new ObjectReferenceType();
+                ort.setupReferenceValue(refValue);
+                WebComponentUtil.dispatchToObjectDetailsPage(ort, getPageBase(), false);
 
-			}
-		};
-		link.add(visibleIfReference);
-		add(link);
+            }
+        };
+        link.add(visibleIfReference);
+        add(link);
 
-		final Label additionalText = new Label(ID_ADDITIONAL_TEXT, new IModel<String>() {
-			@Override
-			public String getObject() {
-				return getModelObject() != null ? getModelObject().getAdditionalText() : null;
-			}
-		});
-		add(additionalText);
-	}
+        final Label additionalText = new Label(ID_ADDITIONAL_TEXT, new IModel<String>() {
+            @Override
+            public String getObject() {
+                return getModelObject() != null ? getModelObject().getAdditionalText() : null;
+            }
+        });
+        add(additionalText);
+    }
 
-	private boolean hasValidReferenceValue(SceneItemValue object) {
-		return object != null && object.getSourceValue() instanceof PrismReferenceValue
-				&& ((PrismReferenceValue) object.getSourceValue()).getTargetType() != null;
-	}
+    private boolean hasValidReferenceValue(SceneItemValue object) {
+        return object != null && object.getSourceValue() instanceof PrismReferenceValue
+                && ((PrismReferenceValue) object.getSourceValue()).getTargetType() != null;
+    }
 
-	private ObjectTypeGuiDescriptor getObjectTypeDescriptor() {
-		SceneItemValue value = getModelObject();
-		if (value != null && value.getSourceValue() instanceof PrismReferenceValue) {
-			QName targetType = ((PrismReferenceValue) value.getSourceValue()).getTargetType();
-			return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(targetType));
-		} else {
-			return null;
-		}
-	}
+    private ObjectTypeGuiDescriptor getObjectTypeDescriptor() {
+        SceneItemValue value = getModelObject();
+        if (value != null && value.getSourceValue() instanceof PrismReferenceValue) {
+            QName targetType = ((PrismReferenceValue) value.getSourceValue()).getTargetType();
+            return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(targetType));
+        } else {
+            return null;
+        }
+    }
 
-	private class IconModel implements IModel<String> {
-		@Override
-		public String getObject() {
-			ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
-			return guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-		}
-	}
+    private class IconModel implements IModel<String> {
+        @Override
+        public String getObject() {
+            ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
+            return guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+        }
+    }
 
-	private class TitleModel implements IModel<String> {
-		@Override
-		public String getObject() {
-			ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
-			return guiDescriptor != null ? createStringResource(guiDescriptor.getLocalizationKey()).getObject() : null;
-		}
-	}
+    private class TitleModel implements IModel<String> {
+        @Override
+        public String getObject() {
+            ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor();
+            return guiDescriptor != null ? createStringResource(guiDescriptor.getLocalizationKey()).getObject() : null;
+        }
+    }
 
-	private class LabelModel implements IModel<String> {
-		@Override
-		public String getObject() {
-			return getModelObject() != null ? getModelObject().getText() : null;
-		}
-	}
+    private class LabelModel implements IModel<String> {
+        @Override
+        public String getObject() {
+            return getModelObject() != null ? getModelObject().getText() : null;
+        }
+    }
 }

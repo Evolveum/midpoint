@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.converter;
@@ -22,30 +22,30 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
  */
 public class QueryTypeConverter implements IConverter<QueryType> {
 
-	private static final long serialVersionUID = 1L;
-	private PrismContext prismContext;
-	
-	public QueryTypeConverter(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
-	
-	@Override
-	public QueryType convertToObject(String arg0, Locale arg1) throws ConversionException {
-		try {
-			return prismContext.parserFor(arg0).parseRealValue();
-		} catch (SchemaException e) {
-			throw new ConversionException(e);
-		}
-	}
+    private static final long serialVersionUID = 1L;
+    private PrismContext prismContext;
 
-	@Override
-	public String convertToString(QueryType value, Locale arg1) {		
+    public QueryTypeConverter(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
+
+    @Override
+    public QueryType convertToObject(String arg0, Locale arg1) throws ConversionException {
+        try {
+            return prismContext.parserFor(arg0).parseRealValue();
+        } catch (SchemaException e) {
+            throw new ConversionException(e);
+        }
+    }
+
+    @Override
+    public String convertToString(QueryType value, Locale arg1) {
          try {
              return prismContext.xmlSerializer().serializeAnyData(value);
          } catch (SchemaException e) {
              throw new SystemException(
                  "Couldn't serialize property value of type: " + value + ": " + e.getMessage(), e);
          }
-	}
+    }
 
 }

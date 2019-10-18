@@ -2,10 +2,10 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<c:user oid="c0c010c0-d34d-b33f-f00d-111111111112" 
+<c:user oid="c0c010c0-d34d-b33f-f00d-111111111112"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:xsd='http://www.w3.org/2001/XMLSchema'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
@@ -13,8 +13,8 @@
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
    <!-- This is parsed by JAXB in the tests. Therefore we need to provide this in full -->
     <c:name>
-    	<t:orig>barbossa</t:orig>
-    	<t:norm>barbossa</t:norm>
+        <t:orig>barbossa</t:orig>
+        <t:norm>barbossa</t:norm>
     </c:name>
     <!-- Description is a string as opposed to name which is PolyString. We use description instead of
          name in tests where we need string. -->
@@ -25,5 +25,5 @@
     <c:fullName>Hector Barbossa</c:fullName>
     <c:givenName>Hector</c:givenName>
     <c:familyName>Basbossa</c:familyName>
-    <c:honorificPrefix>Cpt.</c:honorificPrefix>    
+    <c:honorificPrefix>Cpt.</c:honorificPrefix>
 </c:user>

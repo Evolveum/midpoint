@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -67,1071 +67,1071 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  */
 public class SchemaDebugUtil {
 
-	private static int SHOW_LIST_MEMBERS = 3;
+    private static int SHOW_LIST_MEMBERS = 3;
 
-	public static String debugDump(Collection<? extends DebugDumpable> dumpables) {
-		return debugDump(dumpables,0);
-	}
+    public static String debugDump(Collection<? extends DebugDumpable> dumpables) {
+        return debugDump(dumpables,0);
+    }
 
-	public static String debugDump(Collection<? extends DebugDumpable> dumpables, int indent) {
-		StringBuilder sb = new StringBuilder();
-		indentDebugDump(sb, indent);
-		sb.append(getCollectionOpeningSymbol(dumpables));
-		if (!dumpables.isEmpty()) {
-			sb.append("\n");
-			for (DebugDumpable dd : dumpables) {
-				if (dd == null) {
-					indentDebugDump(sb, indent + 1);
-					sb.append("null");
-				} else {
-					sb.append(dd.debugDump(indent + 1));
-				}
-				sb.append("\n");
-			}
-			indentDebugDump(sb, indent);
-		}
-		sb.append(getCollectionClosingSymbol(dumpables));
-		return sb.toString();
-	}
+    public static String debugDump(Collection<? extends DebugDumpable> dumpables, int indent) {
+        StringBuilder sb = new StringBuilder();
+        indentDebugDump(sb, indent);
+        sb.append(getCollectionOpeningSymbol(dumpables));
+        if (!dumpables.isEmpty()) {
+            sb.append("\n");
+            for (DebugDumpable dd : dumpables) {
+                if (dd == null) {
+                    indentDebugDump(sb, indent + 1);
+                    sb.append("null");
+                } else {
+                    sb.append(dd.debugDump(indent + 1));
+                }
+                sb.append("\n");
+            }
+            indentDebugDump(sb, indent);
+        }
+        sb.append(getCollectionClosingSymbol(dumpables));
+        return sb.toString();
+    }
 
-	public static String debugDumpXsdAnyProperties(Collection<?> xsdAnyCollection, int indent) {
-		StringBuilder sb = new StringBuilder();
-		indentDebugDump(sb, indent);
-		sb.append(getCollectionOpeningSymbol(xsdAnyCollection));
-		for (Object element : xsdAnyCollection) {
-			sb.append("\n");
-			indentDebugDump(sb, indent+1);
-			sb.append(prettyPrintElementAsProperty(element));
-		}
-		sb.append("\n");
-		indentDebugDump(sb, indent);
-		sb.append(getCollectionClosingSymbol(xsdAnyCollection));
-		return sb.toString();
-	}
-	
-	public static void debugDumpWithLabelLn(StringBuilder sb, String label, Collection<ObjectReferenceType> refs, int indent) {
-		debugDumpWithLabel(sb, label, refs, indent);
-		sb.append("\n");
-	}
-	
-	public static void debugDumpWithLabel(StringBuilder sb, String label, Collection<ObjectReferenceType> refs, int indent) {
-		DebugUtil.debugDumpLabel(sb, label, indent);
-		if (refs == null) {
-			sb.append(" null");
-		} else if (refs.isEmpty()) {
-			sb.append(" ");
-			sb.append(DebugUtil.getCollectionOpeningSymbol(refs));
-			sb.append(DebugUtil.getCollectionClosingSymbol(refs));
-		} else {
-			sb.append(" (").append(refs.size()).append(")");
-			sb.append("\n");
-			debugDump(sb, refs, indent + 1);
-		}
-	}
+    public static String debugDumpXsdAnyProperties(Collection<?> xsdAnyCollection, int indent) {
+        StringBuilder sb = new StringBuilder();
+        indentDebugDump(sb, indent);
+        sb.append(getCollectionOpeningSymbol(xsdAnyCollection));
+        for (Object element : xsdAnyCollection) {
+            sb.append("\n");
+            indentDebugDump(sb, indent+1);
+            sb.append(prettyPrintElementAsProperty(element));
+        }
+        sb.append("\n");
+        indentDebugDump(sb, indent);
+        sb.append(getCollectionClosingSymbol(xsdAnyCollection));
+        return sb.toString();
+    }
 
-	public static void debugDump(StringBuilder sb, Collection<ObjectReferenceType> refs, int indent) {
-		Iterator<ObjectReferenceType> iterator = refs.iterator();
-		while (iterator.hasNext()) {
-			ObjectReferenceType ref = iterator.next();
-			if (ref == null) {
-				indentDebugDump(sb, indent + 1);
-				sb.append("null");
-			} else {
-				debugDump(sb, ref, indent + 1);
-			}
-			if (iterator.hasNext()) {
-				sb.append("\n");
-			}
-		}
-	}
-	
-	public static void debugDump(StringBuilder sb, ObjectReferenceType ref, int indent) {
-		indentDebugDump(sb, indent);
-		// TODO: Maybe more detailed dump later
-		sb.append(prettyPrint(ref));
-	}
-	
-	public static void shortDumpReferenceCollectionOptionalBrackets(StringBuilder sb, List<ObjectReferenceType> refs) {
-		if (refs == null) {
-			sb.append("null");
-			return;
-		}
-		if (refs.isEmpty()) {
-			return;
-		}
-		if (refs.size() == 1) {
-			shortDump(sb, refs.get(0));
-			return;
-		}
-		sb.append("[");
-		Iterator<ObjectReferenceType> iterator = refs.iterator();
-		while (iterator.hasNext()) {
-			ObjectReferenceType ref = iterator.next();
-			shortDump(sb, ref);
-			if (iterator.hasNext()) {
-				sb.append(",");
-			}
-		}
-		sb.append("]");
-		
-	}
+    public static void debugDumpWithLabelLn(StringBuilder sb, String label, Collection<ObjectReferenceType> refs, int indent) {
+        debugDumpWithLabel(sb, label, refs, indent);
+        sb.append("\n");
+    }
 
-	public static void shortDump(StringBuilder sb, ObjectReferenceType ref) {
-		if (ref == null) {
-			sb.append("null");
-		}
-		sb.append(ref.getOid());
-		if (ref.getTargetName() != null) {
-			sb.append(",name=");
-			sb.append(ref.getTargetName().getOrig());
-		}
-		if (ref.getType() != null) {
-			sb.append(",type=");
-			sb.append(prettyPrint(ref.getType()));
-		}
-	}
+    public static void debugDumpWithLabel(StringBuilder sb, String label, Collection<ObjectReferenceType> refs, int indent) {
+        DebugUtil.debugDumpLabel(sb, label, indent);
+        if (refs == null) {
+            sb.append(" null");
+        } else if (refs.isEmpty()) {
+            sb.append(" ");
+            sb.append(DebugUtil.getCollectionOpeningSymbol(refs));
+            sb.append(DebugUtil.getCollectionClosingSymbol(refs));
+        } else {
+            sb.append(" (").append(refs.size()).append(")");
+            sb.append("\n");
+            debugDump(sb, refs, indent + 1);
+        }
+    }
 
-	private static String prettyPrintElementAsProperty(Object element) {
-		if (element == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("<");
-		QName elementName = JAXBUtil.getElementQName(element);
-		sb.append(prettyPrint(elementName));
-		sb.append(">");
-		if (element instanceof Element) {
-			Element domElement = (Element)element;
-			// TODO: this is too simplistic, expand later
-			sb.append(domElement.getTextContent());
-		} else {
-			sb.append(element.toString());
-		}
-		return sb.toString();
-	}
+    public static void debugDump(StringBuilder sb, Collection<ObjectReferenceType> refs, int indent) {
+        Iterator<ObjectReferenceType> iterator = refs.iterator();
+        while (iterator.hasNext()) {
+            ObjectReferenceType ref = iterator.next();
+            if (ref == null) {
+                indentDebugDump(sb, indent + 1);
+                sb.append("null");
+            } else {
+                debugDump(sb, ref, indent + 1);
+            }
+            if (iterator.hasNext()) {
+                sb.append("\n");
+            }
+        }
+    }
 
-	private static String getCollectionOpeningSymbol(Collection<?> col) {
-		if (col instanceof List) {
-			return "[";
-		}
-		if (col instanceof Set) {
-			return "{";
-		}
-		return col.getClass().getSimpleName()+"(";
-	}
+    public static void debugDump(StringBuilder sb, ObjectReferenceType ref, int indent) {
+        indentDebugDump(sb, indent);
+        // TODO: Maybe more detailed dump later
+        sb.append(prettyPrint(ref));
+    }
 
-	private static String getCollectionClosingSymbol(Collection<?> col) {
-		if (col instanceof List) {
-			return "]";
-		}
-		if (col instanceof Set) {
-			return "}";
-		}
-		return ")";
-	}
+    public static void shortDumpReferenceCollectionOptionalBrackets(StringBuilder sb, List<ObjectReferenceType> refs) {
+        if (refs == null) {
+            sb.append("null");
+            return;
+        }
+        if (refs.isEmpty()) {
+            return;
+        }
+        if (refs.size() == 1) {
+            shortDump(sb, refs.get(0));
+            return;
+        }
+        sb.append("[");
+        Iterator<ObjectReferenceType> iterator = refs.iterator();
+        while (iterator.hasNext()) {
+            ObjectReferenceType ref = iterator.next();
+            shortDump(sb, ref);
+            if (iterator.hasNext()) {
+                sb.append(",");
+            }
+        }
+        sb.append("]");
 
-	public static void indentDebugDump(StringBuilder sb, int indent) {
-		for(int i = 0; i < indent; i++) {
-			sb.append(DebugDumpable.INDENT_STRING);
-		}
-	}
+    }
 
-	public static <K, V extends DebugDumpable> String dumpMapMultiLine(Map<K, V> map) {
-		StringBuilder sb = new StringBuilder();
-		debugDumpMapMultiLine(sb, map, 0);
-		return sb.toString();
-	}
+    public static void shortDump(StringBuilder sb, ObjectReferenceType ref) {
+        if (ref == null) {
+            sb.append("null");
+        }
+        sb.append(ref.getOid());
+        if (ref.getTargetName() != null) {
+            sb.append(",name=");
+            sb.append(ref.getTargetName().getOrig());
+        }
+        if (ref.getType() != null) {
+            sb.append(",type=");
+            sb.append(prettyPrint(ref.getType()));
+        }
+    }
 
-	public static <K, V extends DebugDumpable> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
-		Iterator<Entry<K, V>> i = map.entrySet().iterator();
-		while (i.hasNext()) {
-			Entry<K,V> entry = i.next();
-			indentDebugDump(sb,indent);
-			sb.append(prettyPrint(entry.getKey()));
-			sb.append(" => ");
-			V value = entry.getValue();
-			if (value == null) {
-				sb.append("null");
-			} else {
-				sb.append("\n");
-				sb.append(value.debugDump(indent+1));
-			}
-			if (i.hasNext()) {
-				sb.append("\n");
-			}
-		}
-	}
+    private static String prettyPrintElementAsProperty(Object element) {
+        if (element == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("<");
+        QName elementName = JAXBUtil.getElementQName(element);
+        sb.append(prettyPrint(elementName));
+        sb.append(">");
+        if (element instanceof Element) {
+            Element domElement = (Element)element;
+            // TODO: this is too simplistic, expand later
+            sb.append(domElement.getTextContent());
+        } else {
+            sb.append(element.toString());
+        }
+        return sb.toString();
+    }
 
-	public static <K, V> void debugDumpMapSingleLine(StringBuilder sb, Map<K, V> map, int indent) {
-		Iterator<Entry<K, V>> i = map.entrySet().iterator();
-		while (i.hasNext()) {
-			Entry<K,V> entry = i.next();
-			indentDebugDump(sb,indent);
-			sb.append(prettyPrint(entry.getKey()));
-			sb.append(" => ");
-			V value = entry.getValue();
-			if (value == null) {
-				sb.append("null");
-			} else {
-				sb.append(value);
-			}
-			if (i.hasNext()) {
-				sb.append("\n");
-			}
-		}
-	}
+    private static String getCollectionOpeningSymbol(Collection<?> col) {
+        if (col instanceof List) {
+            return "[";
+        }
+        if (col instanceof Set) {
+            return "{";
+        }
+        return col.getClass().getSimpleName()+"(";
+    }
 
-	public static String debugDump(ObjectType objectType, int indent) {
-		if (objectType == null) {
-			StringBuilder sb = new StringBuilder();
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null");
-			return sb.toString();
-		}
-		return objectType.asPrismObject().debugDump(indent);
-	}
+    private static String getCollectionClosingSymbol(Collection<?> col) {
+        if (col instanceof List) {
+            return "]";
+        }
+        if (col instanceof Set) {
+            return "}";
+        }
+        return ")";
+    }
 
-	public static String prettyPrint(Collection<?> collection) {
-		if (collection == null) {
-			return null;
-		}
-		StringBuilder sb = new StringBuilder(getCollectionOpeningSymbol(collection));
-		Iterator<?> iterator = collection.iterator();
-		while (iterator.hasNext()) {
-			sb.append(prettyPrint(iterator.next()));
-			if (iterator.hasNext()) {
-				sb.append(",");
-			}
-		}
-		sb.append(getCollectionClosingSymbol(collection));
-		return sb.toString();
-	}
+    public static void indentDebugDump(StringBuilder sb, int indent) {
+        for(int i = 0; i < indent; i++) {
+            sb.append(DebugDumpable.INDENT_STRING);
+        }
+    }
 
-	public static String prettyPrint(QName qname) {
-		if (qname == null) {
-			return "null";
-		}
-		if (qname.getNamespaceURI() != null && qname.getNamespaceURI().startsWith(SchemaConstants.NS_MIDPOINT_PUBLIC_PREFIX)) {
-			return "{..."+qname.getNamespaceURI().substring(SchemaConstants.NS_MIDPOINT_PUBLIC_PREFIX.length())+"}"+qname.getLocalPart();
-		}
-		return qname.toString();
-	}
+    public static <K, V extends DebugDumpable> String dumpMapMultiLine(Map<K, V> map) {
+        StringBuilder sb = new StringBuilder();
+        debugDumpMapMultiLine(sb, map, 0);
+        return sb.toString();
+    }
 
-	public static String prettyPrint(AssignmentType assignmentType) {
-		if (assignmentType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("AssignmentType(");
-		if (assignmentType.getTargetRef() != null) {
-			sb.append("target:");
-			sb.append(prettyPrint(assignmentType.getTargetRef()));
-		}
-		if (assignmentType.getConstruction() != null) {
-			sb.append(prettyPrint(assignmentType.getConstruction()));
-		}
-		sb.append(", ");
-		if (assignmentType.getActivation() != null) {
-			sb.append(prettyPrint(assignmentType.getActivation()));
-		}
-		sb.append(")");
-		return sb.toString();
-	}
+    public static <K, V extends DebugDumpable> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
+        Iterator<Entry<K, V>> i = map.entrySet().iterator();
+        while (i.hasNext()) {
+            Entry<K,V> entry = i.next();
+            indentDebugDump(sb,indent);
+            sb.append(prettyPrint(entry.getKey()));
+            sb.append(" => ");
+            V value = entry.getValue();
+            if (value == null) {
+                sb.append("null");
+            } else {
+                sb.append("\n");
+                sb.append(value.debugDump(indent+1));
+            }
+            if (i.hasNext()) {
+                sb.append("\n");
+            }
+        }
+    }
 
-	public static String prettyPrint(ConstructionType act) {
-		if (act == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ConstructionType(");
-		if (act.getResourceRef() != null) {
-			sb.append(prettyPrint(act.getResourceRef()));
-		}
-		sb.append(", ");
-		if (act.getIntent() != null) {
-			sb.append("intent=");
-			sb.append(act.getIntent());
-			sb.append(", ");
-		}
-		if (act.getAttribute() != null) {
-			for (ResourceAttributeDefinitionType attrConstr: act.getAttribute()) {
-				sb.append(prettyPrint(attrConstr));
-			}
-		}
-		// TODO: Other properties
-		sb.append(")");
-		return sb.toString();
-	}
+    public static <K, V> void debugDumpMapSingleLine(StringBuilder sb, Map<K, V> map, int indent) {
+        Iterator<Entry<K, V>> i = map.entrySet().iterator();
+        while (i.hasNext()) {
+            Entry<K,V> entry = i.next();
+            indentDebugDump(sb,indent);
+            sb.append(prettyPrint(entry.getKey()));
+            sb.append(" => ");
+            V value = entry.getValue();
+            if (value == null) {
+                sb.append("null");
+            } else {
+                sb.append(value);
+            }
+            if (i.hasNext()) {
+                sb.append("\n");
+            }
+        }
+    }
 
-	public static String prettyPrint(ResourceAttributeDefinitionType vc) {
-		if (vc == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ResourceAttributeDefinitionType(");
-		if (vc.getRef() != null) {
-			sb.append("ref=");
-			sb.append(prettyPrint(vc.getRef()));
+    public static String debugDump(ObjectType objectType, int indent) {
+        if (objectType == null) {
+            StringBuilder sb = new StringBuilder();
+            DebugUtil.indentDebugDump(sb, indent);
+            sb.append("null");
+            return sb.toString();
+        }
+        return objectType.asPrismObject().debugDump(indent);
+    }
 
-			boolean other = !vc.getInbound().isEmpty();
-			if (vc.getOutbound() != null && vc.getOutbound().getExpression() != null ) {
-				Object value = SimpleExpressionUtil.getConstantIfPresent(vc.getOutbound().getExpression());
-				if (value != null) {
-					sb.append(", value='").append(PrettyPrinter.prettyPrint(value)).append("'");
-				} else {
-					other = true;
-				}
-			}
+    public static String prettyPrint(Collection<?> collection) {
+        if (collection == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder(getCollectionOpeningSymbol(collection));
+        Iterator<?> iterator = collection.iterator();
+        while (iterator.hasNext()) {
+            sb.append(prettyPrint(iterator.next()));
+            if (iterator.hasNext()) {
+                sb.append(",");
+            }
+        }
+        sb.append(getCollectionClosingSymbol(collection));
+        return sb.toString();
+    }
 
-			if (other) {
-				sb.append(", ...");
-			}
-		}
+    public static String prettyPrint(QName qname) {
+        if (qname == null) {
+            return "null";
+        }
+        if (qname.getNamespaceURI() != null && qname.getNamespaceURI().startsWith(SchemaConstants.NS_MIDPOINT_PUBLIC_PREFIX)) {
+            return "{..."+qname.getNamespaceURI().substring(SchemaConstants.NS_MIDPOINT_PUBLIC_PREFIX.length())+"}"+qname.getLocalPart();
+        }
+        return qname.toString();
+    }
 
-		// TODO: Other properties
-		sb.append(")");
-		return sb.toString();
-	}
-	
-	public static String prettyPrint(ResourceObjectTypeDependencyType depType) {
-		if (depType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ResourceObjectTypeDependencyType(");
-		
-		if (depType.getResourceRef() != null) {
-			sb.append(depType.getResourceRef().getOid());
-			sb.append(":");
-		}
-		sb.append(depType.getKind());
-		sb.append("/");
-		sb.append(depType.getIntent());
-		sb.append(")");
-		return sb.toString();
-	}
-	
-	public static String prettyPrint(ExpressionType expressionType) {
-		if (expressionType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ExpressionType(");
-		appendPropertyIfNotNull(sb, "description", expressionType.getDescription());
-		appendPropertyIfNotNull(sb, "extension", expressionType.getExtension());
-		appendPropertyIfNotNull(sb, "trace", expressionType.isTrace());
-		appendPropertyIfNotNull(sb, "variable", expressionType.getVariable());
-		appendPropertyIfNotNull(sb, "returnMultiplicity", expressionType.getReturnMultiplicity());
-		appendPropertyIfNotNull(sb, "allowEmptyValues", expressionType.isAllowEmptyValues());
-		appendPropertyIfNotNull(sb, "queryInterpretationOfNoValue", expressionType.getQueryInterpretationOfNoValue());
-		appendPropertyIfNotNull(sb, "runAsRef", expressionType.getRunAsRef());
-		List<JAXBElement<?>> expressionEvaluators = expressionType.getExpressionEvaluator();
-		sb.append("evaluator").append("=");
-		if (expressionEvaluators.isEmpty()) {
-			sb.append("[]");
-		} else {
-			if (expressionEvaluators.size() > 1) {
-				sb.append("[");
-			}
-			for (JAXBElement<?> expressionEvaluator : expressionEvaluators) {
-				sb.append(expressionEvaluator.getName().getLocalPart());
-				sb.append(":");
-				sb.append(PrettyPrinter.prettyPrint(expressionEvaluator.getValue()));
-				if (expressionEvaluators.size() > 1) {
-					sb.append(", ");
-				}
-			}
-			if (expressionEvaluators.size() > 1) {
-				sb.append("]");
-			}
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-	
-	public static String prettyPrint(ConstExpressionEvaluatorType expressionType) {
-		if (expressionType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ConstExpressionEvaluatorType(");
-		sb.append(expressionType.getValue());
-		sb.append(")");
-		return sb.toString();
-	}
+    public static String prettyPrint(AssignmentType assignmentType) {
+        if (assignmentType == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("AssignmentType(");
+        if (assignmentType.getTargetRef() != null) {
+            sb.append("target:");
+            sb.append(prettyPrint(assignmentType.getTargetRef()));
+        }
+        if (assignmentType.getConstruction() != null) {
+            sb.append(prettyPrint(assignmentType.getConstruction()));
+        }
+        sb.append(", ");
+        if (assignmentType.getActivation() != null) {
+            sb.append(prettyPrint(assignmentType.getActivation()));
+        }
+        sb.append(")");
+        return sb.toString();
+    }
 
-	private static void appendPropertyIfNotNull(StringBuilder sb, String propName, Object value) {
-		if (value != null) {
-			sb.append(propName).append("=").append(value).append(",");
-		}
-	}
+    public static String prettyPrint(ConstructionType act) {
+        if (act == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("ConstructionType(");
+        if (act.getResourceRef() != null) {
+            sb.append(prettyPrint(act.getResourceRef()));
+        }
+        sb.append(", ");
+        if (act.getIntent() != null) {
+            sb.append("intent=");
+            sb.append(act.getIntent());
+            sb.append(", ");
+        }
+        if (act.getAttribute() != null) {
+            for (ResourceAttributeDefinitionType attrConstr: act.getAttribute()) {
+                sb.append(prettyPrint(attrConstr));
+            }
+        }
+        // TODO: Other properties
+        sb.append(")");
+        return sb.toString();
+    }
 
-	public static String prettyPrint(CachingMetadataType cachingMetadata) {
-		if (cachingMetadata == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("CachingMetadataType(");
-		if (cachingMetadata.getSerialNumber() != null) {
-			sb.append("serialNumber:");
-			sb.append(prettyPrint(cachingMetadata.getSerialNumber()));
-		}
-		if (cachingMetadata.getRetrievalTimestamp() != null) {
-			sb.append("retrievalTimestamp:");
-			sb.append(prettyPrint(cachingMetadata.getRetrievalTimestamp()));
-		}
-		sb.append(")");
-		return sb.toString();
-	}
+    public static String prettyPrint(ResourceAttributeDefinitionType vc) {
+        if (vc == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("ResourceAttributeDefinitionType(");
+        if (vc.getRef() != null) {
+            sb.append("ref=");
+            sb.append(prettyPrint(vc.getRef()));
 
-	public static String prettyPrint(ScheduleType scheduleType) {
-		if (scheduleType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ScheduleType(");
-		if (scheduleType.getCronLikePattern() != null) {
-			sb.append("cronLikePattern:");
-			sb.append(scheduleType.getCronLikePattern());
-		}
+            boolean other = !vc.getInbound().isEmpty();
+            if (vc.getOutbound() != null && vc.getOutbound().getExpression() != null ) {
+                Object value = SimpleExpressionUtil.getConstantIfPresent(vc.getOutbound().getExpression());
+                if (value != null) {
+                    sb.append(", value='").append(PrettyPrinter.prettyPrint(value)).append("'");
+                } else {
+                    other = true;
+                }
+            }
 
-		if (scheduleType.getEarliestStartTime() != null) {
-			sb.append("earliestStartTime:");
-			sb.append(prettyPrint(scheduleType.getEarliestStartTime()));
-		}
-		if (scheduleType.getInterval() != null) {
-			sb.append("interval:");
-			sb.append(prettyPrint(scheduleType.getInterval()));
-		}
-		if (scheduleType.getLatestStartTime() != null) {
-			sb.append("latestStartTime:");
-			sb.append(prettyPrint(scheduleType.getLatestStartTime()));
-		}
-		if (scheduleType.getLatestFinishTime() != null) {
-			sb.append("latestFinishTime:");
-			sb.append(prettyPrint(scheduleType.getLatestFinishTime()));
-		}
-		if (scheduleType.getMisfireAction() != null) {
-			sb.append("misfireAction:");
-			sb.append(prettyPrint(scheduleType.getMisfireAction()));
-		}
+            if (other) {
+                sb.append(", ...");
+            }
+        }
 
-		sb.append(")");
-		return sb.toString();
-	}
+        // TODO: Other properties
+        sb.append(")");
+        return sb.toString();
+    }
 
-	public static String prettyPrint(ObjectReferenceType ref) {
-		if (ref == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ref(");
-		sb.append(ref.getOid());
-		sb.append(",");
-		sb.append(prettyPrint(ref.getType()));
-		sb.append(")");
-		return sb.toString();
-	}
+    public static String prettyPrint(ResourceObjectTypeDependencyType depType) {
+        if (depType == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("ResourceObjectTypeDependencyType(");
 
-	public static String prettyPrint(PropertyReferenceListType reflist) {
-		if (reflist == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("[");
-		Iterator<ItemPathType> iterator = reflist.getProperty().iterator();
-		while (iterator.hasNext()) {
-			ItemPathType xpath = iterator.next();
-			sb.append(xpath.toString());
-			if (iterator.hasNext()) {
-				sb.append(",");
-			}
-		}
-		sb.append("]");
-		return sb.toString();
-	}
+        if (depType.getResourceRef() != null) {
+            sb.append(depType.getResourceRef().getOid());
+            sb.append(":");
+        }
+        sb.append(depType.getKind());
+        sb.append("/");
+        sb.append(depType.getIntent());
+        sb.append(")");
+        return sb.toString();
+    }
 
-	public static String prettyPrint(ObjectType object) {
-		if (object == null) {
-			return "null";
-		}
-		return object.asPrismObject().toString();
-	}
+    public static String prettyPrint(ExpressionType expressionType) {
+        if (expressionType == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("ExpressionType(");
+        appendPropertyIfNotNull(sb, "description", expressionType.getDescription());
+        appendPropertyIfNotNull(sb, "extension", expressionType.getExtension());
+        appendPropertyIfNotNull(sb, "trace", expressionType.isTrace());
+        appendPropertyIfNotNull(sb, "variable", expressionType.getVariable());
+        appendPropertyIfNotNull(sb, "returnMultiplicity", expressionType.getReturnMultiplicity());
+        appendPropertyIfNotNull(sb, "allowEmptyValues", expressionType.isAllowEmptyValues());
+        appendPropertyIfNotNull(sb, "queryInterpretationOfNoValue", expressionType.getQueryInterpretationOfNoValue());
+        appendPropertyIfNotNull(sb, "runAsRef", expressionType.getRunAsRef());
+        List<JAXBElement<?>> expressionEvaluators = expressionType.getExpressionEvaluator();
+        sb.append("evaluator").append("=");
+        if (expressionEvaluators.isEmpty()) {
+            sb.append("[]");
+        } else {
+            if (expressionEvaluators.size() > 1) {
+                sb.append("[");
+            }
+            for (JAXBElement<?> expressionEvaluator : expressionEvaluators) {
+                sb.append(expressionEvaluator.getName().getLocalPart());
+                sb.append(":");
+                sb.append(PrettyPrinter.prettyPrint(expressionEvaluator.getValue()));
+                if (expressionEvaluators.size() > 1) {
+                    sb.append(", ");
+                }
+            }
+            if (expressionEvaluators.size() > 1) {
+                sb.append("]");
+            }
+        }
+        sb.append(")");
+        return sb.toString();
+    }
+
+    public static String prettyPrint(ConstExpressionEvaluatorType expressionType) {
+        if (expressionType == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("ConstExpressionEvaluatorType(");
+        sb.append(expressionType.getValue());
+        sb.append(")");
+        return sb.toString();
+    }
+
+    private static void appendPropertyIfNotNull(StringBuilder sb, String propName, Object value) {
+        if (value != null) {
+            sb.append(propName).append("=").append(value).append(",");
+        }
+    }
+
+    public static String prettyPrint(CachingMetadataType cachingMetadata) {
+        if (cachingMetadata == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("CachingMetadataType(");
+        if (cachingMetadata.getSerialNumber() != null) {
+            sb.append("serialNumber:");
+            sb.append(prettyPrint(cachingMetadata.getSerialNumber()));
+        }
+        if (cachingMetadata.getRetrievalTimestamp() != null) {
+            sb.append("retrievalTimestamp:");
+            sb.append(prettyPrint(cachingMetadata.getRetrievalTimestamp()));
+        }
+        sb.append(")");
+        return sb.toString();
+    }
+
+    public static String prettyPrint(ScheduleType scheduleType) {
+        if (scheduleType == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("ScheduleType(");
+        if (scheduleType.getCronLikePattern() != null) {
+            sb.append("cronLikePattern:");
+            sb.append(scheduleType.getCronLikePattern());
+        }
+
+        if (scheduleType.getEarliestStartTime() != null) {
+            sb.append("earliestStartTime:");
+            sb.append(prettyPrint(scheduleType.getEarliestStartTime()));
+        }
+        if (scheduleType.getInterval() != null) {
+            sb.append("interval:");
+            sb.append(prettyPrint(scheduleType.getInterval()));
+        }
+        if (scheduleType.getLatestStartTime() != null) {
+            sb.append("latestStartTime:");
+            sb.append(prettyPrint(scheduleType.getLatestStartTime()));
+        }
+        if (scheduleType.getLatestFinishTime() != null) {
+            sb.append("latestFinishTime:");
+            sb.append(prettyPrint(scheduleType.getLatestFinishTime()));
+        }
+        if (scheduleType.getMisfireAction() != null) {
+            sb.append("misfireAction:");
+            sb.append(prettyPrint(scheduleType.getMisfireAction()));
+        }
+
+        sb.append(")");
+        return sb.toString();
+    }
+
+    public static String prettyPrint(ObjectReferenceType ref) {
+        if (ref == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("ref(");
+        sb.append(ref.getOid());
+        sb.append(",");
+        sb.append(prettyPrint(ref.getType()));
+        sb.append(")");
+        return sb.toString();
+    }
+
+    public static String prettyPrint(PropertyReferenceListType reflist) {
+        if (reflist == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("[");
+        Iterator<ItemPathType> iterator = reflist.getProperty().iterator();
+        while (iterator.hasNext()) {
+            ItemPathType xpath = iterator.next();
+            sb.append(xpath.toString());
+            if (iterator.hasNext()) {
+                sb.append(",");
+            }
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    public static String prettyPrint(ObjectType object) {
+        if (object == null) {
+            return "null";
+        }
+        return object.asPrismObject().toString();
+    }
 
 
-	public static String prettyPrint(ProtectedStringType protectedStringType) {
-		if (protectedStringType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ProtectedStringType(");
+    public static String prettyPrint(ProtectedStringType protectedStringType) {
+        if (protectedStringType == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("ProtectedStringType(");
 
-		if (protectedStringType.getEncryptedDataType() != null) {
-			sb.append("[encrypted data]");
-		}
+        if (protectedStringType.getEncryptedDataType() != null) {
+            sb.append("[encrypted data]");
+        }
 
-		if (protectedStringType.getHashedDataType() != null) {
-			sb.append("[hashed data]");
-		}
+        if (protectedStringType.getHashedDataType() != null) {
+            sb.append("[hashed data]");
+        }
 
-		if (protectedStringType.getClearValue() != null) {
-			sb.append("\"");
-			if (InternalsConfig.isAllowClearDataLogging()) {
-				sb.append(protectedStringType.getClearValue());
-			} else {
-				sb.append("[clear data]");
-			}
-			sb.append("\"");
-		}
+        if (protectedStringType.getClearValue() != null) {
+            sb.append("\"");
+            if (InternalsConfig.isAllowClearDataLogging()) {
+                sb.append(protectedStringType.getClearValue());
+            } else {
+                sb.append("[clear data]");
+            }
+            sb.append("\"");
+        }
 
-		sb.append(")");
-		return sb.toString();
-	}
+        sb.append(")");
+        return sb.toString();
+    }
 
-	public static String prettyPrint(OperationResultType resultType) {
-		if (resultType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("RT(");
-		sb.append(resultType.getOperation());
-		sb.append(",");
-		sb.append(resultType.getStatus());
-		sb.append(",");
-		sb.append(resultType.getMessage());
-		sb.append(")");
-		return sb.toString();
-	}
+    public static String prettyPrint(OperationResultType resultType) {
+        if (resultType == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("RT(");
+        sb.append(resultType.getOperation());
+        sb.append(",");
+        sb.append(resultType.getStatus());
+        sb.append(",");
+        sb.append(resultType.getMessage());
+        sb.append(")");
+        return sb.toString();
+    }
 
-	public static String prettyPrint(ItemDeltaType change) throws SchemaException {
-		if (change == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("PropertyModification(");
-		sb.append(change.getModificationType());
-		sb.append(",");
-		if (change.getPath() != null) {
-			sb.append(change.getPath().getItemPath());      // todo ... with declarations?
-		} else {
-			sb.append("xpath=null");
-		}
-		sb.append(",");
+    public static String prettyPrint(ItemDeltaType change) throws SchemaException {
+        if (change == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("PropertyModification(");
+        sb.append(change.getModificationType());
+        sb.append(",");
+        if (change.getPath() != null) {
+            sb.append(change.getPath().getItemPath());      // todo ... with declarations?
+        } else {
+            sb.append("xpath=null");
+        }
+        sb.append(",");
 
-		List<RawType> values = change.getValue();
-		for (RawType value : values) {
-			sb.append(prettyPrint(value.serializeToXNode()));       // todo implement correctly...
-			sb.append(",");
-		}
+        List<RawType> values = change.getValue();
+        for (RawType value : values) {
+            sb.append(prettyPrint(value.serializeToXNode()));       // todo implement correctly...
+            sb.append(",");
+        }
 
-		return sb.toString();
-	}
+        return sb.toString();
+    }
 
-	/**
-	 * Assumes that all elements in the lists have the same QName
-	 *
-	 * @param list
-	 * @return
-	 */
-	public static String prettyPrint(List<Element> list) {
-		if (list == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder();
-		if (list.size() > 0) {
-			Element el0 = list.get(0);
-			QName elQName;
-			if (el0.getPrefix() != null) {
-				elQName = new QName(el0.getNamespaceURI(), el0.getLocalName(), el0.getPrefix());
-			} else {
-				elQName = new QName(el0.getNamespaceURI(), el0.getLocalName());
-			}
-			sb.append(elQName);
-			sb.append("[");
-			Iterator<Element> iterator = list.iterator();
-			while (iterator.hasNext()) {
-				// TODO: improve for non-strings
-				Element el = iterator.next();
-				sb.append(prettyPrint(el, false));
-				if (iterator.hasNext()) {
-					sb.append(",");
-				}
-				sb.append("]");
-			}
-		} else {
-			sb.append("[]");
-		}
-		return sb.toString();
-	}
+    /**
+     * Assumes that all elements in the lists have the same QName
+     *
+     * @param list
+     * @return
+     */
+    public static String prettyPrint(List<Element> list) {
+        if (list == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (list.size() > 0) {
+            Element el0 = list.get(0);
+            QName elQName;
+            if (el0.getPrefix() != null) {
+                elQName = new QName(el0.getNamespaceURI(), el0.getLocalName(), el0.getPrefix());
+            } else {
+                elQName = new QName(el0.getNamespaceURI(), el0.getLocalName());
+            }
+            sb.append(elQName);
+            sb.append("[");
+            Iterator<Element> iterator = list.iterator();
+            while (iterator.hasNext()) {
+                // TODO: improve for non-strings
+                Element el = iterator.next();
+                sb.append(prettyPrint(el, false));
+                if (iterator.hasNext()) {
+                    sb.append(",");
+                }
+                sb.append("]");
+            }
+        } else {
+            sb.append("[]");
+        }
+        return sb.toString();
+    }
 
-	public static String prettyPrint(Node node) {
-		if (node instanceof Element) {
-			return prettyPrint((Element) node);
-		}
-		// TODO: Better print
-		return "Node:" + node.getNodeName();
-	}
+    public static String prettyPrint(Node node) {
+        if (node instanceof Element) {
+            return prettyPrint((Element) node);
+        }
+        // TODO: Better print
+        return "Node:" + node.getNodeName();
+    }
 
-	public static String prettyPrint(Element element) {
-		return prettyPrint(element, true);
-	}
+    public static String prettyPrint(Element element) {
+        return prettyPrint(element, true);
+    }
 
-	public static String prettyPrint(Element element, boolean displayTag) {
-		if (element == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder();
-		if (displayTag) {
-			sb.append("<");
-			if (element.getLocalName() != null) {
-				sb.append(new QName(element.getNamespaceURI(), element.getLocalName()));
-			} else {
-				sb.append("<null>");
-			}
-			sb.append(">");
-		}
-		NamedNodeMap attributes = element.getAttributes();
-		for (int i = 0; i < attributes.getLength(); i++) {
-			Node attr = attributes.item(i);
-			if ("xmlns".equals(attr.getPrefix())) {
-				// Don't display XML NS declarations
-				// they are too long for prettyPrint
-				continue;
-			}
-			if ((attr.getPrefix() == null || attr.getPrefix().isEmpty())
-					&& "xmlns".equals(attr.getLocalName())) {
-				// Skip default ns declaration as well
-				continue;
-			}
-			sb.append("@");
-			sb.append(attr.getLocalName());
-			sb.append("=");
-			sb.append(attr.getTextContent());
-			if (i < (attributes.getLength() - 1)) {
-				sb.append(",");
-			}
-		}
-		if (attributes.getLength() > 0) {
-			sb.append(":");
-		}
-		StringBuilder content = new StringBuilder();
-		Node child = element.getFirstChild();
-		while (child != null) {
-			if (child.getNodeType() == Node.TEXT_NODE) {
-				content.append(((Text) child).getTextContent());
-			} else if (child.getNodeType() == Node.COMMENT_NODE) {
-				// just ignore this
-			} else {
-				content = new StringBuilder("[complex content]");
-				break;
-			}
-			child = child.getNextSibling();
-		}
+    public static String prettyPrint(Element element, boolean displayTag) {
+        if (element == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (displayTag) {
+            sb.append("<");
+            if (element.getLocalName() != null) {
+                sb.append(new QName(element.getNamespaceURI(), element.getLocalName()));
+            } else {
+                sb.append("<null>");
+            }
+            sb.append(">");
+        }
+        NamedNodeMap attributes = element.getAttributes();
+        for (int i = 0; i < attributes.getLength(); i++) {
+            Node attr = attributes.item(i);
+            if ("xmlns".equals(attr.getPrefix())) {
+                // Don't display XML NS declarations
+                // they are too long for prettyPrint
+                continue;
+            }
+            if ((attr.getPrefix() == null || attr.getPrefix().isEmpty())
+                    && "xmlns".equals(attr.getLocalName())) {
+                // Skip default ns declaration as well
+                continue;
+            }
+            sb.append("@");
+            sb.append(attr.getLocalName());
+            sb.append("=");
+            sb.append(attr.getTextContent());
+            if (i < (attributes.getLength() - 1)) {
+                sb.append(",");
+            }
+        }
+        if (attributes.getLength() > 0) {
+            sb.append(":");
+        }
+        StringBuilder content = new StringBuilder();
+        Node child = element.getFirstChild();
+        while (child != null) {
+            if (child.getNodeType() == Node.TEXT_NODE) {
+                content.append(((Text) child).getTextContent());
+            } else if (child.getNodeType() == Node.COMMENT_NODE) {
+                // just ignore this
+            } else {
+                content = new StringBuilder("[complex content]");
+                break;
+            }
+            child = child.getNextSibling();
+        }
 
-		sb.append(content);
+        sb.append(content);
 
-		return sb.toString();
-	}
+        return sb.toString();
+    }
 
-	public static String prettyPrint(ObjectListType list) {
-		if (list == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ObjectList[");
-		Iterator<ObjectType> iterator = list.getObject().iterator();
-		int i = 0;
-		while (iterator.hasNext()) {
-			if (i < SHOW_LIST_MEMBERS) {
-				sb.append(prettyPrint(iterator.next()));
-				if (iterator.hasNext()) {
-					sb.append(",");
-				}
-			} else {
-				sb.append("(and ");
-				sb.append(list.getObject().size() - i);
-				sb.append(" more)");
-				break;
-			}
-			i++;
-		}
-		sb.append("]");
-		return sb.toString();
-	}
+    public static String prettyPrint(ObjectListType list) {
+        if (list == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("ObjectList[");
+        Iterator<ObjectType> iterator = list.getObject().iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            if (i < SHOW_LIST_MEMBERS) {
+                sb.append(prettyPrint(iterator.next()));
+                if (iterator.hasNext()) {
+                    sb.append(",");
+                }
+            } else {
+                sb.append("(and ");
+                sb.append(list.getObject().size() - i);
+                sb.append(" more)");
+                break;
+            }
+            i++;
+        }
+        sb.append("]");
+        return sb.toString();
+    }
 
-//	public static String prettyPrint(QueryType query) {
+//    public static String prettyPrint(QueryType query) {
 //
-//		if (query == null) {
-//			return "null";
-//		}
+//        if (query == null) {
+//            return "null";
+//        }
 //
-//		SearchFilterType filterType = query.getFilter();
-//		Element filter = null;
-//		if (filterType != null) {
-//			filter = filterType.getFilterClause();
-//		}
+//        SearchFilterType filterType = query.getFilter();
+//        Element filter = null;
+//        if (filterType != null) {
+//            filter = filterType.getFilterClause();
+//        }
 //
-//		StringBuilder sb = new StringBuilder("Query(");
+//        StringBuilder sb = new StringBuilder("Query(");
 //
-//		prettyPrintFilter(sb, filter);
+//        prettyPrintFilter(sb, filter);
 //
-//		sb.append(")");
+//        sb.append(")");
 //
-//		return sb.toString();
-//	}
+//        return sb.toString();
+//    }
 
-	private static void prettyPrintFilter(StringBuilder sb, Element filter) {
+    private static void prettyPrintFilter(StringBuilder sb, Element filter) {
 
-		if (filter == null) {
-			sb.append("null");
-			return;
-		}
+        if (filter == null) {
+            sb.append("null");
+            return;
+        }
 
-		String tag = filter.getLocalName();
+        String tag = filter.getLocalName();
 
-		sb.append(tag);
-		sb.append("(");
+        sb.append(tag);
+        sb.append("(");
 
-		if ("type".equals(tag)) {
-			String uri = filter.getAttribute("uri");
-			QName typeQname = QNameUtil.uriToQName(uri);
-			sb.append(typeQname.getLocalPart());
-			sb.append(")");
-			return;
-		}
+        if ("type".equals(tag)) {
+            String uri = filter.getAttribute("uri");
+            QName typeQname = QNameUtil.uriToQName(uri);
+            sb.append(typeQname.getLocalPart());
+            sb.append(")");
+            return;
+        }
 
-		NodeList childNodes = filter.getChildNodes();
-		for (int i = 0; i < childNodes.getLength(); i++) {
-			Node node = childNodes.item(i);
-			if (node.getNodeType() == Node.TEXT_NODE) {
-				sb.append("\"");
-				sb.append(node.getTextContent());
-				sb.append("\"");
-			} else if (node.getNodeType() == Node.ELEMENT_NODE) {
-				prettyPrintFilter(sb, (Element) node);
-			} else {
-				sb.append("!");
-				sb.append(node.getNodeType());
-			}
-			sb.append(",");
-		}
+        NodeList childNodes = filter.getChildNodes();
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node node = childNodes.item(i);
+            if (node.getNodeType() == Node.TEXT_NODE) {
+                sb.append("\"");
+                sb.append(node.getTextContent());
+                sb.append("\"");
+            } else if (node.getNodeType() == Node.ELEMENT_NODE) {
+                prettyPrintFilter(sb, (Element) node);
+            } else {
+                sb.append("!");
+                sb.append(node.getNodeType());
+            }
+            sb.append(",");
+        }
 
-		sb.append(")");
-	}
+        sb.append(")");
+    }
 
-	private static void prettyPrintFilter(StringBuilder sb, ObjectFilter filter) {
+    private static void prettyPrintFilter(StringBuilder sb, ObjectFilter filter) {
 
-		if (filter == null) {
-			sb.append("null");
-			return;
-		}
-		sb.append("(");
-		sb.append(filter.toString());
-		sb.append(")");
-	}
+        if (filter == null) {
+            sb.append("null");
+            return;
+        }
+        sb.append("(");
+        sb.append(filter.toString());
+        sb.append(")");
+    }
 
-	private static void prettyPrintPaging(StringBuilder sb, ObjectPaging paging) {
+    private static void prettyPrintPaging(StringBuilder sb, ObjectPaging paging) {
 
-		if (paging == null) {
-			sb.append("null");
-			return;
-		}
+        if (paging == null) {
+            sb.append("null");
+            return;
+        }
 
-		sb.append("(");
-		sb.append(paging.toString());
-		sb.append(")");
-	}
+        sb.append("(");
+        sb.append(paging.toString());
+        sb.append(")");
+    }
 
-	public static String prettyPrint(PagingType paging) {
+    public static String prettyPrint(PagingType paging) {
 
-		if (paging == null) {
-			return "null";
-		}
+        if (paging == null) {
+            return "null";
+        }
 
-		StringBuilder sb = new StringBuilder("Paging(");
+        StringBuilder sb = new StringBuilder("Paging(");
 
-		if (paging.getOffset() != null) {
-			sb.append(paging.getOffset()).append(",");
-		} else {
-			sb.append(",");
-		}
+        if (paging.getOffset() != null) {
+            sb.append(paging.getOffset()).append(",");
+        } else {
+            sb.append(",");
+        }
 
-		if (paging.getMaxSize() != null) {
-			sb.append(paging.getMaxSize()).append(",");
-		} else {
-			sb.append(",");
-		}
+        if (paging.getMaxSize() != null) {
+            sb.append(paging.getMaxSize()).append(",");
+        } else {
+            sb.append(",");
+        }
 
-		if (paging.getOrderBy() != null) {
-			sb.append(prettyPrint(paging.getOrderBy())).append(",");
-		} else {
-			sb.append(",");
-		}
+        if (paging.getOrderBy() != null) {
+            sb.append(prettyPrint(paging.getOrderBy())).append(",");
+        } else {
+            sb.append(",");
+        }
 
-		if (paging.getOrderDirection() != null) {
-			sb.append(paging.getOrderDirection());
-		}
+        if (paging.getOrderDirection() != null) {
+            sb.append(paging.getOrderDirection());
+        }
 
-		sb.append(")");
+        sb.append(")");
 
-		return sb.toString();
-	}
+        return sb.toString();
+    }
 
-	public static String prettyPrint(SynchronizationSituationDescriptionType syncDescType) {
-		if (syncDescType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("SyncDesc(");
-		sb.append(syncDescType.getSituation());
-		sb.append(",");
-		sb.append(syncDescType.getTimestamp());
-		if (syncDescType.getChannel() != null) {
-			sb.append(",");
-			sb.append(syncDescType.getChannel());
-		}
-		if (syncDescType.isFull() != null && syncDescType.isFull()) {
-			sb.append(",full");
-		}
-		sb.append(")");
-		return sb.toString();
-	}
+    public static String prettyPrint(SynchronizationSituationDescriptionType syncDescType) {
+        if (syncDescType == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("SyncDesc(");
+        sb.append(syncDescType.getSituation());
+        sb.append(",");
+        sb.append(syncDescType.getTimestamp());
+        if (syncDescType.getChannel() != null) {
+            sb.append(",");
+            sb.append(syncDescType.getChannel());
+        }
+        if (syncDescType.isFull() != null && syncDescType.isFull()) {
+            sb.append(",full");
+        }
+        sb.append(")");
+        return sb.toString();
+    }
 
-	public static String prettyPrint(ObjectDeltaType deltaType) {
-		if (deltaType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ObjectDeltaType(");
-		sb.append(prettyPrint(deltaType.getObjectType())).append(" ");
-		sb.append(prettyPrint(deltaType.getOid())).append(" ");
-		sb.append(deltaType.getChangeType()).append(": ");
-		com.evolveum.prism.xml.ns._public.types_3.ObjectType objectToAdd = deltaType.getObjectToAdd();
-		if (objectToAdd != null) {
-			sb.append(prettyPrint(objectToAdd));
-		}
-		List<ItemDeltaType> itemDelta = deltaType.getItemDelta();
-		if (itemDelta != null && !itemDelta.isEmpty()) {
-			sb.append(prettyPrint(itemDelta));
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-	
-	public static String prettyPrint(ObjectDeltaOperationType deltaOpType) {
-		if (deltaOpType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ObjectDeltaOperationType(");
-		sb.append(prettyPrint(deltaOpType.getObjectDelta()));
-		sb.append(": ");
-		OperationResultType result = deltaOpType.getExecutionResult();
-		if (result == null) {
-			sb.append("null result");
-		} else {
-			sb.append(result.getStatus());
-		}
-		// object, resource?
-		sb.append(")");
-		return sb.toString();
-	}
-	
-	public static String prettyPrint(LoginEventType loginEventType) {
-		if (loginEventType == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("LoginEventType(");
-		sb.append(prettyPrint(loginEventType.getTimestamp()));
-		String from = loginEventType.getFrom();
-		if (from != null) {
-			sb.append(" from ").append(from);
-		}
-		sb.append(")");
-		return sb.toString();
-	}
+    public static String prettyPrint(ObjectDeltaType deltaType) {
+        if (deltaType == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("ObjectDeltaType(");
+        sb.append(prettyPrint(deltaType.getObjectType())).append(" ");
+        sb.append(prettyPrint(deltaType.getOid())).append(" ");
+        sb.append(deltaType.getChangeType()).append(": ");
+        com.evolveum.prism.xml.ns._public.types_3.ObjectType objectToAdd = deltaType.getObjectToAdd();
+        if (objectToAdd != null) {
+            sb.append(prettyPrint(objectToAdd));
+        }
+        List<ItemDeltaType> itemDelta = deltaType.getItemDelta();
+        if (itemDelta != null && !itemDelta.isEmpty()) {
+            sb.append(prettyPrint(itemDelta));
+        }
+        sb.append(")");
+        return sb.toString();
+    }
 
-	public static String prettyPrint(JAXBElement<?> element) {
-		return "JAXBElement("+PrettyPrinter.prettyPrint(element.getName())+"): "+element.getValue();
-	}
+    public static String prettyPrint(ObjectDeltaOperationType deltaOpType) {
+        if (deltaOpType == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("ObjectDeltaOperationType(");
+        sb.append(prettyPrint(deltaOpType.getObjectDelta()));
+        sb.append(": ");
+        OperationResultType result = deltaOpType.getExecutionResult();
+        if (result == null) {
+            sb.append("null result");
+        } else {
+            sb.append(result.getStatus());
+        }
+        // object, resource?
+        sb.append(")");
+        return sb.toString();
+    }
 
-	public static String prettyPrint(UnknownJavaObjectType xml) {
-		if (xml == null) {
-			return "null";
-		}
-		return "Java("+xml.getClazz()+","+xml.getToString()+")";
-	}
-	
-	public static String prettyPrint(OrderConstraintsType constraints) {
-		StringBuilder sb = new StringBuilder("OrderConstraintsType(");
-		shortDump(sb, constraints);
-		sb.append(")");
-		return sb.toString();
-	}
+    public static String prettyPrint(LoginEventType loginEventType) {
+        if (loginEventType == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder("LoginEventType(");
+        sb.append(prettyPrint(loginEventType.getTimestamp()));
+        String from = loginEventType.getFrom();
+        if (from != null) {
+            sb.append(" from ").append(from);
+        }
+        sb.append(")");
+        return sb.toString();
+    }
 
-//	public static String prettyPrint(OperationProvisioningScriptsType scriptsType) {
-//		if (scriptsType == null) {
-//			return "null";
-//		}
-//		StringBuilder sb = new StringBuilder("")
-//		for (OperationProvisioningScriptType scriptType: scriptsType.getScript()) {
+    public static String prettyPrint(JAXBElement<?> element) {
+        return "JAXBElement("+PrettyPrinter.prettyPrint(element.getName())+"): "+element.getValue();
+    }
+
+    public static String prettyPrint(UnknownJavaObjectType xml) {
+        if (xml == null) {
+            return "null";
+        }
+        return "Java("+xml.getClazz()+","+xml.getToString()+")";
+    }
+
+    public static String prettyPrint(OrderConstraintsType constraints) {
+        StringBuilder sb = new StringBuilder("OrderConstraintsType(");
+        shortDump(sb, constraints);
+        sb.append(")");
+        return sb.toString();
+    }
+
+//    public static String prettyPrint(OperationProvisioningScriptsType scriptsType) {
+//        if (scriptsType == null) {
+//            return "null";
+//        }
+//        StringBuilder sb = new StringBuilder("")
+//        for (OperationProvisioningScriptType scriptType: scriptsType.getScript()) {
 //
-//		}
-//	}
+//        }
+//    }
 
-	public static Object prettyPrintLazily(Object value) {
-		return new Object() {
-			@Override
-			public String toString() {
-				return prettyPrint(value);
-			}
-		};
-	}
+    public static Object prettyPrintLazily(Object value) {
+        return new Object() {
+            @Override
+            public String toString() {
+                return prettyPrint(value);
+            }
+        };
+    }
 
-	public static String prettyPrint(Object value) {
-		if (value == null) {
-			return "null";
-		}
-		String out = null;
-		if (value instanceof JAXBElement) {
-			Object elementValue = ((JAXBElement)value).getValue();
-			out = tryPrettyPrint(elementValue);
-			if (out != null) {
-				return ("JAXBElement("+((JAXBElement)value).getName()+","+out+")");
-			}
-		}
-		out = tryPrettyPrint(value);
-		if (out == null) {
-			out = value.toString();
-		}
-		return out;
-	}
+    public static String prettyPrint(Object value) {
+        if (value == null) {
+            return "null";
+        }
+        String out = null;
+        if (value instanceof JAXBElement) {
+            Object elementValue = ((JAXBElement)value).getValue();
+            out = tryPrettyPrint(elementValue);
+            if (out != null) {
+                return ("JAXBElement("+((JAXBElement)value).getName()+","+out+")");
+            }
+        }
+        out = tryPrettyPrint(value);
+        if (out == null) {
+            out = value.toString();
+        }
+        return out;
+    }
 
-	private static String tryPrettyPrint(Object value) {
-		if (value instanceof Class) {
-			Class<?> c = (Class<?>)value;
-			if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_3")) {
-				return c.getSimpleName();
-			}
-			return c.getName();
-		}
-		if (value instanceof Collection) {
-			return prettyPrint((Collection<?>)value);
-		}
-		if (value instanceof ObjectQuery){
-			return prettyPrint((ObjectQuery) value);
-		}
-		if (value instanceof ObjectType) {
-			// ObjectType has many subtypes, difficult to sort out using reflection
-			// therefore we special-case it
-			return prettyPrint((ObjectType)value);
-		}
-		if (value instanceof Node) {
-			// This is interface, won't catch it using reflection
-			return prettyPrint((Node)value);
-		}
-		for (Method method : SchemaDebugUtil.class.getMethods()) {
-			if (method.getName().equals("prettyPrint")) {
-				Class<?>[] parameterTypes = method.getParameterTypes();
-				if (parameterTypes.length == 1 && parameterTypes[0].equals(value.getClass())) {
-					try {
-						return (String)method.invoke(null, value);
-					} catch (IllegalArgumentException e) {
-						return "###INTERNAL#ERROR### Illegal argument: "+e.getMessage();
-					} catch (IllegalAccessException e) {
-						return "###INTERNAL#ERROR### Illegal access: "+e.getMessage();
-					} catch (InvocationTargetException e) {
-						return "###INTERNAL#ERROR### Illegal target: "+e.getMessage();
-					} catch (Throwable e) {
-						return "###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage();
-					}
-				}
-			}
-		}
-		return null;
-	}
+    private static String tryPrettyPrint(Object value) {
+        if (value instanceof Class) {
+            Class<?> c = (Class<?>)value;
+            if (c.getPackage().getName().equals("com.evolveum.midpoint.xml.ns._public.common.common_3")) {
+                return c.getSimpleName();
+            }
+            return c.getName();
+        }
+        if (value instanceof Collection) {
+            return prettyPrint((Collection<?>)value);
+        }
+        if (value instanceof ObjectQuery){
+            return prettyPrint((ObjectQuery) value);
+        }
+        if (value instanceof ObjectType) {
+            // ObjectType has many subtypes, difficult to sort out using reflection
+            // therefore we special-case it
+            return prettyPrint((ObjectType)value);
+        }
+        if (value instanceof Node) {
+            // This is interface, won't catch it using reflection
+            return prettyPrint((Node)value);
+        }
+        for (Method method : SchemaDebugUtil.class.getMethods()) {
+            if (method.getName().equals("prettyPrint")) {
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if (parameterTypes.length == 1 && parameterTypes[0].equals(value.getClass())) {
+                    try {
+                        return (String)method.invoke(null, value);
+                    } catch (IllegalArgumentException e) {
+                        return "###INTERNAL#ERROR### Illegal argument: "+e.getMessage();
+                    } catch (IllegalAccessException e) {
+                        return "###INTERNAL#ERROR### Illegal access: "+e.getMessage();
+                    } catch (InvocationTargetException e) {
+                        return "###INTERNAL#ERROR### Illegal target: "+e.getMessage();
+                    } catch (Throwable e) {
+                        return "###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage();
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
-	public static String prettyPrint(ObjectQuery query) {
-		return query.toString();
-	}
-	
-	public static void shortDump(StringBuilder sb, ObjectDeltaType deltaType) {
-		if (deltaType == null) {
-			sb.append("null");
-			return;
-		}
-		sb.append("delta(");
-		QName objectType = deltaType.getObjectType();
-		if (objectType == null) {
-			sb.append("null");
-		} else {
-			sb.append(objectType.getLocalPart());
-		}
-		sb.append(" ");
-		sb.append(deltaType.getOid()).append(" ");
-		sb.append(deltaType.getChangeType()).append(": ");
-		com.evolveum.prism.xml.ns._public.types_3.ObjectType objectToAdd = deltaType.getObjectToAdd();
-		if (objectToAdd != null) {
-			sb.append(prettyPrint(objectToAdd));
-		}
-		List<ItemDeltaType> itemDelta = deltaType.getItemDelta();
-		if (itemDelta != null && !itemDelta.isEmpty()) {
-			sb.append(prettyPrint(itemDelta));
-		}
-		sb.append(")");
-	}
-	
-	public static void shortDump(StringBuilder sb, ObjectDeltaOperationType deltaOpType) {
-		if (deltaOpType == null) {
-			sb.append("null");
-			return;
-		}
-		shortDump(sb, deltaOpType.getObjectDelta());
-		sb.append(": ");
-		OperationResultType result = deltaOpType.getExecutionResult();
-		if (result == null) {
-			sb.append("null result");
-		} else {
-			sb.append(result.getStatus());
-		}
-	}
-	
-	public static void shortDump(StringBuilder sb, OrderConstraintsType constraints) {
-		if (constraints == null) {
-			sb.append("null");
-			return;
-		}
-		Integer order = constraints.getOrder();
-		if (order != null) {
-			sb.append(order);
-		}
-		String orderMin = constraints.getOrderMin();
-		String orderMax = constraints.getOrderMax();
-		if (orderMin != null || orderMax != null) {
-			sb.append("<").append(orderMin).append(",").append(orderMax).append(">");
-		}
-		QName relation = constraints.getRelation();
-		if (relation != null) {
-			sb.append(",relation=").append(prettyPrint(relation));
-		}
-		Integer resetOrder = constraints.getResetOrder();
-		if (resetOrder != null) {
-			sb.append(",resetOrder=").append(resetOrder);
-		}
-	}
-	
-	public static void shortDumpOrderConstraintsList(StringBuilder sb, List<OrderConstraintsType> orderConstraints) {
-		if (orderConstraints == null) {
-			sb.append("null");
-		} else {
-			sb.append("[");
-			Iterator<OrderConstraintsType> i = orderConstraints.iterator();
-			while (i.hasNext()) {
-				sb.append("(");
-				SchemaDebugUtil.shortDump(sb, i.next());
-				sb.append(")");
-				if (i.hasNext()) {
-					sb.append(",");
-				}
-			}
-			sb.append("]");
-		}
-	}
-	
-	public static String shortDumpOrderConstraintsList(List<OrderConstraintsType> orderConstraints) {
-		StringBuilder sb = new StringBuilder();
-		shortDumpOrderConstraintsList(sb, orderConstraints);
-		return sb.toString();
-	}
+    public static String prettyPrint(ObjectQuery query) {
+        return query.toString();
+    }
 
-	static {
-		PrettyPrinter.registerPrettyPrinter(SchemaDebugUtil.class);
-	}
+    public static void shortDump(StringBuilder sb, ObjectDeltaType deltaType) {
+        if (deltaType == null) {
+            sb.append("null");
+            return;
+        }
+        sb.append("delta(");
+        QName objectType = deltaType.getObjectType();
+        if (objectType == null) {
+            sb.append("null");
+        } else {
+            sb.append(objectType.getLocalPart());
+        }
+        sb.append(" ");
+        sb.append(deltaType.getOid()).append(" ");
+        sb.append(deltaType.getChangeType()).append(": ");
+        com.evolveum.prism.xml.ns._public.types_3.ObjectType objectToAdd = deltaType.getObjectToAdd();
+        if (objectToAdd != null) {
+            sb.append(prettyPrint(objectToAdd));
+        }
+        List<ItemDeltaType> itemDelta = deltaType.getItemDelta();
+        if (itemDelta != null && !itemDelta.isEmpty()) {
+            sb.append(prettyPrint(itemDelta));
+        }
+        sb.append(")");
+    }
 
-	public static void initialize() {
-		// nothing to do here, we just make sure static initialization will take place
-	}
+    public static void shortDump(StringBuilder sb, ObjectDeltaOperationType deltaOpType) {
+        if (deltaOpType == null) {
+            sb.append("null");
+            return;
+        }
+        shortDump(sb, deltaOpType.getObjectDelta());
+        sb.append(": ");
+        OperationResultType result = deltaOpType.getExecutionResult();
+        if (result == null) {
+            sb.append("null result");
+        } else {
+            sb.append(result.getStatus());
+        }
+    }
+
+    public static void shortDump(StringBuilder sb, OrderConstraintsType constraints) {
+        if (constraints == null) {
+            sb.append("null");
+            return;
+        }
+        Integer order = constraints.getOrder();
+        if (order != null) {
+            sb.append(order);
+        }
+        String orderMin = constraints.getOrderMin();
+        String orderMax = constraints.getOrderMax();
+        if (orderMin != null || orderMax != null) {
+            sb.append("<").append(orderMin).append(",").append(orderMax).append(">");
+        }
+        QName relation = constraints.getRelation();
+        if (relation != null) {
+            sb.append(",relation=").append(prettyPrint(relation));
+        }
+        Integer resetOrder = constraints.getResetOrder();
+        if (resetOrder != null) {
+            sb.append(",resetOrder=").append(resetOrder);
+        }
+    }
+
+    public static void shortDumpOrderConstraintsList(StringBuilder sb, List<OrderConstraintsType> orderConstraints) {
+        if (orderConstraints == null) {
+            sb.append("null");
+        } else {
+            sb.append("[");
+            Iterator<OrderConstraintsType> i = orderConstraints.iterator();
+            while (i.hasNext()) {
+                sb.append("(");
+                SchemaDebugUtil.shortDump(sb, i.next());
+                sb.append(")");
+                if (i.hasNext()) {
+                    sb.append(",");
+                }
+            }
+            sb.append("]");
+        }
+    }
+
+    public static String shortDumpOrderConstraintsList(List<OrderConstraintsType> orderConstraints) {
+        StringBuilder sb = new StringBuilder();
+        shortDumpOrderConstraintsList(sb, orderConstraints);
+        return sb.toString();
+    }
+
+    static {
+        PrettyPrinter.registerPrettyPrinter(SchemaDebugUtil.class);
+    }
+
+    public static void initialize() {
+        // nothing to do here, we just make sure static initialization will take place
+    }
 
 }

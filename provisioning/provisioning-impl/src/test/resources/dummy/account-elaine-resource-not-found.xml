@@ -2,28 +2,28 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <shadow oid="c0c010c0-d34d-b44f-f11d-33322212eeee"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
-	<name>will</name>
-	<resourceRef oid="ef2bc95b-does-noot-exis-t999dddddddd" />
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<kind>account</kind>
-	<attributes>
-		<icfs:name>elaine</icfs:name>
-		<ri:fullname>Elaine Marley</ri:fullname>
-	</attributes>
-	<credentials>
-		<password>
-			<value>
-				<clearValue>3lizab3th</clearValue>
-			</value>
-		</password>
-	</credentials>
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
+    <name>will</name>
+    <resourceRef oid="ef2bc95b-does-noot-exis-t999dddddddd" />
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <attributes>
+        <icfs:name>elaine</icfs:name>
+        <ri:fullname>Elaine Marley</ri:fullname>
+    </attributes>
+    <credentials>
+        <password>
+            <value>
+                <clearValue>3lizab3th</clearValue>
+            </value>
+        </password>
+    </credentials>
 </shadow>

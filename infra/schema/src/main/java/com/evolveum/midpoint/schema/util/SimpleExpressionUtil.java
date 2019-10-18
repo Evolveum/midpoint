@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,15 +22,15 @@ import javax.xml.bind.JAXBElement;
  */
 public class SimpleExpressionUtil {
 
-	public static Object getConstantIfPresent(ExpressionType expression) {
-		if (expression == null || expression.getExpressionEvaluator().size() != 1) {
-			return null;
-		}
-		JAXBElement<?> jaxb = expression.getExpressionEvaluator().get(0);
-		if (QNameUtil.match(jaxb.getName(), SchemaConstants.C_VALUE)) {
-			return jaxb.getValue();
-		} else {
-			return null;
-		}
-	}
+    public static Object getConstantIfPresent(ExpressionType expression) {
+        if (expression == null || expression.getExpressionEvaluator().size() != 1) {
+            return null;
+        }
+        JAXBElement<?> jaxb = expression.getExpressionEvaluator().get(0);
+        if (QNameUtil.match(jaxb.getName(), SchemaConstants.C_VALUE)) {
+            return jaxb.getValue();
+        } else {
+            return null;
+        }
+    }
 }

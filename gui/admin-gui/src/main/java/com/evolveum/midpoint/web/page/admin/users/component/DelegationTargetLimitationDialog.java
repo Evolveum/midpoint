@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,32 +17,32 @@ import java.util.List;
  */
 public class DelegationTargetLimitationDialog extends AssignmentsInfoDialog {
 
-	public DelegationTargetLimitationDialog(String id, List<AssignmentInfoDto> data, PageBase pageBase) {
-		super(id, data, pageBase);
-	}
+    public DelegationTargetLimitationDialog(String id, List<AssignmentInfoDto> data, PageBase pageBase) {
+        super(id, data, pageBase);
+    }
 
-	@Override
-	public StringResourceModel getTitle() {
-		return new StringResourceModel("AssignmentPreviewDialog.delegationPreviewLabel");
-	}
+    @Override
+    public StringResourceModel getTitle() {
+        return new StringResourceModel("AssignmentPreviewDialog.delegationPreviewLabel");
+    }
 
-	@Override
-	protected boolean enableMultiSelect() {
-		return true;
-	}
+    @Override
+    protected boolean enableMultiSelect() {
+        return true;
+    }
 
-	@Override
-	protected boolean showDirectIndirectColumn() {
-		return false;
-	}
+    @Override
+    protected boolean showDirectIndirectColumn() {
+        return false;
+    }
 
-	@Override
-	protected boolean showKindAndIntentColumns() {
-		return false;
-	}
+    @Override
+    protected boolean showKindAndIntentColumns() {
+        return false;
+    }
 
-	@Override
-	protected boolean showRelationColumn() {
-		return false;
-	}
+    @Override
+    protected boolean showRelationColumn() {
+        return false;
+    }
 }

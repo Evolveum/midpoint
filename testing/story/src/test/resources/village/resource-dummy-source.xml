@@ -2,12 +2,12 @@
 <!--
   ~ Copyright (c) 2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <resource oid="10000000-0000-0000-0000-000000000001"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -16,155 +16,155 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Source Resource</name>
-	<description>Authoritative HR-like resource</description>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>SRC</icfi:instanceId>
-		</icfc:configurationProperties>
+    <name>Dummy Source Resource</name>
+    <description>Authoritative HR-like resource</description>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	</connectorConfiguration>
-	
-	<schemaHandling>
-		<objectType>
-			<intent>default</intent>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<!-- No real inbound here. The following inbound is only for
-				     debuging -->
-				<inbound>
-					<strength>weak</strength>
-					<expression>
-						<script>
-							<code>'Created from source account '+input</code>
-						</script>
-					</expression>
-					<target>
-						<path>description</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:firstname</ref>
-				<inbound>
-					<target>
-						<path>givenName</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:lastname</ref>
-				<inbound>
-					<target>
-						<path>familyName</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:type</ref>
-				<inbound>
-					<target>
-						<path>employeeType</path>
-						<set>
-							<predefined>all</predefined>
-						</set>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:loc</ref>
-				<inbound>
-					<target>
-						<path>locality</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:org</ref>
-				<inbound>
-					<target>
-						<path>organization</path>
-						<set>
-							<predefined>all</predefined>
-						</set>
-					</target>
-				</inbound>
-			</attribute>
+        <icfc:configurationProperties>
+            <icfi:instanceId>SRC</icfi:instanceId>
+        </icfc:configurationProperties>
 
-			<activation>
-            	<administrativeStatus>
-            		<inbound/>
-            	</administrativeStatus>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <!-- No real inbound here. The following inbound is only for
+                     debuging -->
+                <inbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <script>
+                            <code>'Created from source account '+input</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>description</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:firstname</ref>
+                <inbound>
+                    <target>
+                        <path>givenName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:lastname</ref>
+                <inbound>
+                    <target>
+                        <path>familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:type</ref>
+                <inbound>
+                    <target>
+                        <path>employeeType</path>
+                        <set>
+                            <predefined>all</predefined>
+                        </set>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:loc</ref>
+                <inbound>
+                    <target>
+                        <path>locality</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:org</ref>
+                <inbound>
+                    <target>
+                        <path>organization</path>
+                        <set>
+                            <predefined>all</predefined>
+                        </set>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <activation>
+                <administrativeStatus>
+                    <inbound/>
+                </administrativeStatus>
             </activation>
-			
-			<credentials>
+
+            <credentials>
                 <password>
                     <inbound>
-                    	<strength>weak</strength>
+                        <strength>weak</strength>
                         <expression>
                             <generate/>
                         </expression>
                     </inbound>
                 </password>
             </credentials>
-            
-		</objectType>
-		
-	</schemaHandling>
-	
-	<projection>
-		<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
-	</projection>
-	
-	<synchronization>
-		<objectSynchronization>
-			<enabled>true</enabled>
-			<reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-	            </action>
-	        </reaction>
+
+        </objectType>
+
+    </schemaHandling>
+
+    <projection>
+        <assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
+    </projection>
+
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
         </objectSynchronization>
-	</synchronization>
+    </synchronization>
 
 </resource>

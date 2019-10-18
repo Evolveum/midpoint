@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,19 +25,19 @@ import org.testng.annotations.Listeners;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestManualCapabilities extends TestManual {
 
-	@Override
-	protected File getResourceFile() {
-		return RESOURCE_MANUAL_CAPABILITIES_FILE;
-	}
-	
-	@Override
-	protected boolean nativeCapabilitiesEntered() {
-		return true;
-	}
-	
-	@Override
-	protected int getNumberOfAccountAttributeDefinitions() {
-		return 5;
-	}
+    @Override
+    protected File getResourceFile() {
+        return RESOURCE_MANUAL_CAPABILITIES_FILE;
+    }
+
+    @Override
+    protected boolean nativeCapabilitiesEntered() {
+        return true;
+    }
+
+    @Override
+    protected int getNumberOfAccountAttributeDefinitions() {
+        return 5;
+    }
 
 }

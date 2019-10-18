@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.assignment;
@@ -102,13 +102,13 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
 
             @Override
             protected void populateItem(ListItem<PrismObject<AbstractRoleType>> listItem) {
-            	PrismObject<AbstractRoleType> abstractRole = listItem.getModelObject();
-            	CheckBoxPanel policyCheckBox = new CheckBoxPanel(ID_POLICY_CHECK_BOX,
-            			getCheckboxModel(abstractRole),
-            			null, // visibility
-            			Model.of(WebComponentUtil.getDisplayNameOrName(abstractRole)), // label
-            			null // tooltip
-            			) {
+                PrismObject<AbstractRoleType> abstractRole = listItem.getModelObject();
+                CheckBoxPanel policyCheckBox = new CheckBoxPanel(ID_POLICY_CHECK_BOX,
+                        getCheckboxModel(abstractRole),
+                        null, // visibility
+                        Model.of(WebComponentUtil.getDisplayNameOrName(abstractRole)), // label
+                        null // tooltip
+                        ) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -125,7 +125,7 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     }
 
     private IModel<Boolean> getCheckboxModel(PrismObject<AbstractRoleType> abstractRole) {
-    	return Model.of(isAssignmentAlreadyInList(abstractRole.getOid()) &&
+        return Model.of(isAssignmentAlreadyInList(abstractRole.getOid()) &&
                 !ValueStatus.DELETED.equals(getExistingAssignmentStatus(abstractRole.getOid())));
     }
 
@@ -151,7 +151,7 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
 
     private void onPolicyAddedOrRemoved(PrismObject<AbstractRoleType> assignmentTargetObject, boolean added){
         if (isAssignmentAlreadyInList(assignmentTargetObject.getOid())){
-        	PrismContainerValueWrapper<AssignmentType> assignmentToRemove = null;
+            PrismContainerValueWrapper<AssignmentType> assignmentToRemove = null;
             for (PrismContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
                 ObjectReferenceType targetRef = assignment.getRealValue().getTargetRef();
                 if (targetRef != null && targetRef.getOid().equals(assignmentTargetObject.getOid())){
@@ -167,24 +167,24 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
             assignmentsModel.getObject().getValues().remove(assignmentToRemove);
         } else {
             if (added){
-            	//TODO: not sure if this is correct way of creating new value.. this value is added directly to the origin object... what about deltas??
+                //TODO: not sure if this is correct way of creating new value.. this value is added directly to the origin object... what about deltas??
                 PrismContainerValue<AssignmentType> newAssignment = assignmentsModel.getObject().getItem().createNewValue();
                 ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(assignmentTargetObject, getPageBase().getPrismContext());
                 AssignmentType assignmentType = newAssignment.asContainerable();
                 assignmentType.setTargetRef(ref);
                 Task task = getPageBase().createSimpleTask("Creating new applicable policy");
-                
+
                 WrapperContext context = new WrapperContext(task, null);
                 PrismContainerValueWrapper<AssignmentType> valueWrapper;
-				try {
-					valueWrapper = (PrismContainerValueWrapper<AssignmentType>) getPageBase().createValueWrapper(assignmentsModel.getObject(), newAssignment, ValueStatus.ADDED, context);
-					assignmentsModel.getObject().getValues().add(valueWrapper);
-				} catch (SchemaException e) {
-					//TOTO error handling
-				}
-//                
+                try {
+                    valueWrapper = (PrismContainerValueWrapper<AssignmentType>) getPageBase().createValueWrapper(assignmentsModel.getObject(), newAssignment, ValueStatus.ADDED, context);
+                    assignmentsModel.getObject().getValues().add(valueWrapper);
+                } catch (SchemaException e) {
+                    //TOTO error handling
+                }
+//
 //                valueWrapper.setShowEmpty(true, false);
-             
+
             }
         }
     }

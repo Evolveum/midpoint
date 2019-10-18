@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -70,19 +70,19 @@ public class RecomputeExecutor extends BaseActionExecutor {
                         LOGGER.trace("Recomputing object {} with dryRun={}", focalPrismObject, dryRun);
                     }
                     ObjectDelta<? extends FocusType> emptyDelta = prismContext.deltaFactory().object()
-		                    .createEmptyDelta(focusType.getClass(), focusType.getOid(), ChangeType.MODIFY
+                            .createEmptyDelta(focusType.getClass(), focusType.getOid(), ChangeType.MODIFY
                             );
                     operationsHelper.applyDelta(emptyDelta, ModelExecuteOptions.createReconcile(), dryRun, context, result);
                     LOGGER.trace("Recomputing of object {}: {}", focalPrismObject, result.getStatus());
                     operationsHelper.recordEnd(context, focusType, started, null);
                 } catch (Throwable e) {
                     operationsHelper.recordEnd(context, focusType, started, e);
-					exception = processActionException(e, NAME, value, context);
+                    exception = processActionException(e, NAME, value, context);
                 }
                 context.println((exception != null ? "Attempted to recompute " : "Recomputed ") + focalPrismObject.toString() + drySuffix(dryRun) + exceptionSuffix(exception));
             } else {
-				//noinspection ThrowableNotThrown
-				processActionException(new ScriptExecutionException("Item is not a PrismObject<FocusType>"), NAME, value, context);
+                //noinspection ThrowableNotThrown
+                processActionException(new ScriptExecutionException("Item is not a PrismObject<FocusType>"), NAME, value, context);
             }
             operationsHelper.trimAndCloneResult(result, globalResult, context);
         }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -86,9 +86,9 @@ public class CertCampaignTypeUtil {
     }
 
     public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, long workItemId) {
-		return _case.getWorkItem().stream()
-				.filter(wi -> wi.getId() != null && wi.getId() == workItemId)
-				.findFirst().orElse(null);
+        return _case.getWorkItem().stream()
+                .filter(wi -> wi.getId() != null && wi.getId() == workItemId)
+                .findFirst().orElse(null);
     }
 
     public static int getNumberOfStages(AccessCertificationCampaignType campaign) {
@@ -306,8 +306,8 @@ public class CertCampaignTypeUtil {
         int decidedWorkItems = 0;
         for (AccessCertificationCaseType aCase : caseList) {
             List<AccessCertificationWorkItemType> workItems = aCase.getWorkItem().stream().filter(wi -> workItemMatches(wi, stage, iteration)).collect(toList());
-			if (iteration == null) {
-			    removeRedundantWorkItems(workItems);
+            if (iteration == null) {
+                removeRedundantWorkItems(workItems);
             }
             for (AccessCertificationWorkItemType workItem : workItems) {
                 allWorkItems++;
@@ -544,13 +544,13 @@ public class CertCampaignTypeUtil {
     public static Collection<String> getActiveReviewers(List<AccessCertificationCaseType> caseList) {
         Set<String> oids = new HashSet<>();
         for (AccessCertificationCaseType aCase : caseList) {
-			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-				if (workItem.getCloseTimestamp() == null) {
-					for (ObjectReferenceType reviewerRef : workItem.getAssigneeRef()) {
-						oids.add(reviewerRef.getOid());
-					}
-				}
-			}
+            for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+                if (workItem.getCloseTimestamp() == null) {
+                    for (ObjectReferenceType reviewerRef : workItem.getAssigneeRef()) {
+                        oids.add(reviewerRef.getOid());
+                    }
+                }
+            }
         }
         return oids;
     }

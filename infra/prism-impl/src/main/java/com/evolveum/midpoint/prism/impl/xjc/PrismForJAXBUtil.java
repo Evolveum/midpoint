@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -36,7 +36,7 @@ public final class PrismForJAXBUtil {
 
     private static final Object JAXB_CLASS_MANGLED = "clazz";
 
-	private PrismForJAXBUtil() {
+    private PrismForJAXBUtil() {
     }
 
     public static <T> T getPropertyValue(PrismContainerValue container, QName name, Class<T> clazz) {
@@ -61,40 +61,40 @@ public final class PrismForJAXBUtil {
         Object propertyRealValue = pvalue.getValue();
 
         if (propertyRealValue instanceof Element) {
-        	if (requestedType.isAssignableFrom(Element.class)) {
-        		return (T) propertyRealValue;
-        	}
-        	Field anyField = getAnyField(requestedType);
-        	if (anyField == null) {
-        		throw new IllegalArgumentException("Attempt to read raw property "+property+" while the requested class ("+requestedType+") does not have 'any' field");
-        	}
-        	anyField.setAccessible(true);
-        	Collection<?> anyElementList = property.getRealValues();
-        	T requestedTypeInstance;
-			try {
-				requestedTypeInstance = requestedType.newInstance();
-				anyField.set(requestedTypeInstance, anyElementList);
-			} catch (InstantiationException e) {
-				throw new IllegalArgumentException("Instantiate error while reading raw property "+property+", requested class ("+requestedType+"):"
-						+e.getMessage(), e);
-			} catch (IllegalAccessException e) {
-				throw new IllegalArgumentException("Illegal access error while reading raw property "+property+", requested class ("+requestedType+")"
-						+", field "+anyField+": "+e.getMessage(), e);
-			}
-			return requestedTypeInstance;
+            if (requestedType.isAssignableFrom(Element.class)) {
+                return (T) propertyRealValue;
+            }
+            Field anyField = getAnyField(requestedType);
+            if (anyField == null) {
+                throw new IllegalArgumentException("Attempt to read raw property "+property+" while the requested class ("+requestedType+") does not have 'any' field");
+            }
+            anyField.setAccessible(true);
+            Collection<?> anyElementList = property.getRealValues();
+            T requestedTypeInstance;
+            try {
+                requestedTypeInstance = requestedType.newInstance();
+                anyField.set(requestedTypeInstance, anyElementList);
+            } catch (InstantiationException e) {
+                throw new IllegalArgumentException("Instantiate error while reading raw property "+property+", requested class ("+requestedType+"):"
+                        +e.getMessage(), e);
+            } catch (IllegalAccessException e) {
+                throw new IllegalArgumentException("Illegal access error while reading raw property "+property+", requested class ("+requestedType+")"
+                        +", field "+anyField+": "+e.getMessage(), e);
+            }
+            return requestedTypeInstance;
         }
 
         return JaxbTypeConverter.mapPropertyRealValueToJaxb(propertyRealValue);
     }
 
     private static <T> Field getAnyField(Class<T> clazz) {
-    	for (Field field: clazz.getDeclaredFields()) {
-    		XmlAnyElement xmlAnyElementAnnotation = field.getAnnotation(XmlAnyElement.class);
-    		if (xmlAnyElementAnnotation != null) {
-    			return field;
-    		}
-    	}
-    	return null;
+        for (Field field: clazz.getDeclaredFields()) {
+            XmlAnyElement xmlAnyElementAnnotation = field.getAnnotation(XmlAnyElement.class);
+            if (xmlAnyElementAnnotation != null) {
+                return field;
+            }
+        }
+        return null;
     }
 
     public static <T> List<T> getPropertyValues(PrismContainerValue<?> container, QName name, Class<T> clazz) {
@@ -102,16 +102,16 @@ public final class PrismForJAXBUtil {
         Validate.notNull(name, "QName must not be null.");
         Validate.notNull(clazz, "Class type must not be null.");
 
-		PrismProperty<?> property;
-		try {
-			property = container.findProperty(ItemName.fromQName(name));
-			if (property == null) {
-				property = container.createDetachedSubItem(name, PrismPropertyImpl.class, null, container.isImmutable());
-			}
-		} catch (SchemaException e) {
-			// This should not happen. Code generator and compiler should take care of that.
-			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-		}
+        PrismProperty<?> property;
+        try {
+            property = container.findProperty(ItemName.fromQName(name));
+            if (property == null) {
+                property = container.createDetachedSubItem(name, PrismPropertyImpl.class, null, container.isImmutable());
+            }
+        } catch (SchemaException e) {
+            // This should not happen. Code generator and compiler should take care of that.
+            throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+        }
         return new PropertyArrayList<>(property, container);
     }
 
@@ -121,21 +121,21 @@ public final class PrismForJAXBUtil {
         Validate.notNull(name, "QName must not be null.");
 
         if (value == null) {
-        	container.removeProperty(name);
+            container.removeProperty(name);
         } else {
-	        PrismProperty<?> property;
-			try {
-				property = container.findOrCreateProperty(name);
-			} catch (SchemaException e) {
-				// This should not happen. Code generator and compiler should take care of that.
-				throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-			}
-	    	Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(value);
-	    	if (propertyRealValue == null) {
-	    		container.removeProperty(name);
-	    	} else {
-	    		property.setValue(new PrismPropertyValueImpl(propertyRealValue));
-	    	}
+            PrismProperty<?> property;
+            try {
+                property = container.findOrCreateProperty(name);
+            } catch (SchemaException e) {
+                // This should not happen. Code generator and compiler should take care of that.
+                throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+            }
+            Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(value);
+            if (propertyRealValue == null) {
+                container.removeProperty(name);
+            } else {
+                property.setValue(new PrismPropertyValueImpl(propertyRealValue));
+            }
         }
     }
 
@@ -148,77 +148,77 @@ public final class PrismForJAXBUtil {
     }
 
     public static <T extends Containerable> T getFieldSingleContainerable(PrismContainerValue<?> parent, QName fieldName, Class<T> fieldClass) {
-    	PrismContainerValue<T> fieldContainerValue = getFieldContainerValue(parent, fieldName);
-    	if (fieldContainerValue == null) {
-    		return null;
-    	}
-    	return fieldContainerValue.asContainerable(fieldClass);
+        PrismContainerValue<T> fieldContainerValue = getFieldContainerValue(parent, fieldName);
+        if (fieldContainerValue == null) {
+            return null;
+        }
+        return fieldContainerValue.asContainerable(fieldClass);
     }
 
     public static <T extends PrismContainer<?>> T getContainer(PrismContainerValue parentValue, QName name) {
         Validate.notNull(parentValue, "Parent container value must not be null.");
         Validate.notNull(name, "QName must not be null.");
-        
+
         // This is how JAXB compiler handles elements of name "class".
         if (JAXB_CLASS_MANGLED.equals(name.getLocalPart())) {
-        	name = new QName(name.getNamespaceURI(), "class");
+            name = new QName(name.getNamespaceURI(), "class");
         }
 
         try {
-			PrismContainer container = parentValue.findContainer(name);
-			if (container != null) {
-				return (T) container;
-			} else {
-				return (T) parentValue.createDetachedSubItem(name, PrismContainerImpl.class, null, parentValue.isImmutable());
-			}
+            PrismContainer container = parentValue.findContainer(name);
+            if (container != null) {
+                return (T) container;
+            } else {
+                return (T) parentValue.createDetachedSubItem(name, PrismContainerImpl.class, null, parentValue.isImmutable());
+            }
         } catch (SchemaException ex) {
             throw new SystemException(ex.getMessage(),  ex);
         }
     }
 
     public static PrismContainer<?> createContainer(PrismContainerValue parentValue, QName name) {
-    	return createItem(parentValue, name, PrismContainer.class);
-	}
+        return createItem(parentValue, name, PrismContainer.class);
+    }
 
     public static PrismReference createReference(PrismContainerValue parentValue, QName name) {
-    	return createItem(parentValue, name, PrismReference.class);
-	}
+        return createItem(parentValue, name, PrismReference.class);
+    }
 
     public static PrismProperty<?> createProperty(PrismContainerValue parentValue, QName name) {
-    	return createItem(parentValue, name, PrismProperty.class);
-	}
+        return createItem(parentValue, name, PrismProperty.class);
+    }
 
     public static <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I createItem(PrismContainerValue parentValue, QName name, Class<I> type) {
         Validate.notNull(parentValue, "Parent container value must not be null.");
         Validate.notNull(name, "QName must not be null.");
         try {
-			return (I) parentValue.findOrCreateItem(name, type);
+            return (I) parentValue.findOrCreateItem(name, type);
         } catch (SchemaException ex) {
             throw new SystemException(ex.getMessage(),  ex);
         }
     }
 
     public static <T extends Containerable> boolean setFieldContainerValue(PrismContainerValue<?> parent, ItemName fieldName,
-    		PrismContainerValue<T> fieldContainerValue) {
+            PrismContainerValue<T> fieldContainerValue) {
         Validate.notNull(parent, "Prism container value must not be null.");
         Validate.notNull(fieldName, "QName must not be null.");
 
         try {
-	        PrismContainer<T> fieldContainer = null;
-	        if (fieldContainerValue == null) {
-	        	parent.removeContainer(fieldName);
-	        } else {
-	        	if (fieldContainerValue.getParent() != null && fieldContainerValue.getParent() != parent) {
-	        		// This value is already part of another prism. We need to clone it to add it here.
-	        		fieldContainerValue = fieldContainerValue.clone();
-	        	}
-	            fieldContainer = new PrismContainerImpl<>(fieldName, parent.getPrismContext());
-	            fieldContainer.add(fieldContainerValue);
+            PrismContainer<T> fieldContainer = null;
+            if (fieldContainerValue == null) {
+                parent.removeContainer(fieldName);
+            } else {
+                if (fieldContainerValue.getParent() != null && fieldContainerValue.getParent() != parent) {
+                    // This value is already part of another prism. We need to clone it to add it here.
+                    fieldContainerValue = fieldContainerValue.clone();
+                }
+                fieldContainer = new PrismContainerImpl<>(fieldName, parent.getPrismContext());
+                fieldContainer.add(fieldContainerValue);
                 parent.addReplaceExisting(fieldContainer);
-	        }
+            }
         } catch (SchemaException e) {
-        	// This should not happen. Code generator and compiler should take care of that.
-			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+            // This should not happen. Code generator and compiler should take care of that.
+            throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
         }
         return true;
     }
@@ -244,14 +244,14 @@ public final class PrismForJAXBUtil {
         Validate.notNull(referenceName, "QName must not be null.");
 
         PrismReference reference;
-		try {
-			reference = parentValue.findOrCreateItem(referenceName, PrismReferenceImpl.class);
-		} catch (SchemaException e) {
-			// This should not happen. Code generator and compiler should take care of that.
-			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-		}
-		if (reference == null) {
-        	throw new IllegalArgumentException("No reference "+referenceName+" in "+parentValue);
+        try {
+            reference = parentValue.findOrCreateItem(referenceName, PrismReferenceImpl.class);
+        } catch (SchemaException e) {
+            // This should not happen. Code generator and compiler should take care of that.
+            throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+        }
+        if (reference == null) {
+            throw new IllegalArgumentException("No reference "+referenceName+" in "+parentValue);
         }
         if (value == null) {
             parentValue.remove(reference);
@@ -260,11 +260,11 @@ public final class PrismForJAXBUtil {
                 if (value.getParent() != null) {
                     value = value.clone();
                 }
-	            try {
-		            reference.add(value);
-	            } catch (SchemaException e) {
-		            throw new IllegalStateException("Couldn't add a value: " + e.getMessage(), e);
-	            }
+                try {
+                    reference.add(value);
+                } catch (SchemaException e) {
+                    throw new IllegalStateException("Couldn't add a value: " + e.getMessage(), e);
+                }
             } else {
                 reference.getValue().setOid(value.getOid());
                 reference.getValue().setTargetType(value.getTargetType());
@@ -287,21 +287,21 @@ public final class PrismForJAXBUtil {
         Validate.notNull(referenceQName, "QName must not be null.");
 
         PrismReference reference;
-		try {
-			reference = parentValue.findOrCreateReference(referenceQName);
-		} catch (SchemaException e) {
-			// This should not happen. Code generator and compiler should take care of that.
-			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-		}
+        try {
+            reference = parentValue.findOrCreateReference(referenceQName);
+        } catch (SchemaException e) {
+            // This should not happen. Code generator and compiler should take care of that.
+            throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+        }
         if (reference == null) {
-        	throw new IllegalArgumentException("No reference "+referenceQName+" in "+parentValue);
+            throw new IllegalArgumentException("No reference "+referenceQName+" in "+parentValue);
         }
         PrismReferenceValue referenceValue = reference.getValue();
         referenceValue.setObject(targetObject);
     }
 
     public static <T extends Objectable> PrismReferenceValue objectableAsReferenceValue(T objectable, PrismReference reference ) {
-    	PrismObject<T> object = objectable.asPrismObject();
+        PrismObject<T> object = objectable.asPrismObject();
         for (PrismReferenceValue refValue: reference.getValues()) {
             if (object == refValue.getObject()) {
                 return refValue;
@@ -313,44 +313,44 @@ public final class PrismForJAXBUtil {
     }
 
     public static <T> List<T> getAny(PrismContainerValue value, Class<T> clazz) {
-    	return new AnyArrayList(value);
+        return new AnyArrayList(value);
     }
 
-	public static PrismObject setupContainerValue(PrismObject prismObject, PrismContainerValue containerValue) {
-		PrismContainerable parent = containerValue.getParent();
-		if (parent != null && parent instanceof PrismObject) {
-			return (PrismObject)parent;
-		}
-		try {
-			prismObject.setValue(containerValue);
-			return prismObject;
-		} catch (SchemaException e) {
-			// This should not happen. Code generator and compiler should take care of that.
-			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-		}
-	}
+    public static PrismObject setupContainerValue(PrismObject prismObject, PrismContainerValue containerValue) {
+        PrismContainerable parent = containerValue.getParent();
+        if (parent != null && parent instanceof PrismObject) {
+            return (PrismObject)parent;
+        }
+        try {
+            prismObject.setValue(containerValue);
+            return prismObject;
+        } catch (SchemaException e) {
+            // This should not happen. Code generator and compiler should take care of that.
+            throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+        }
+    }
 
-	public static PrismReference getReference(PrismContainerValue parent, QName fieldName) {
-		try {
-			PrismReference reference = parent.findReference(fieldName);
-			if (reference != null) {
-				return reference;
-			} else {
-				return (PrismReference) parent.createDetachedSubItem(fieldName, PrismReferenceImpl.class, null, parent.isImmutable());
-			}
-		} catch (SchemaException e) {
-			// This should not happen. Code generator and compiler should take care of that.
-			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
-		}
-	}
-	
-	public static Objectable getReferenceObjectable(PrismReferenceValue rval) {
-		PrismObject object = rval.getObject();
-		if (object == null) {
-			return null;
-		}
-		return object.asObjectable();
-	}
+    public static PrismReference getReference(PrismContainerValue parent, QName fieldName) {
+        try {
+            PrismReference reference = parent.findReference(fieldName);
+            if (reference != null) {
+                return reference;
+            } else {
+                return (PrismReference) parent.createDetachedSubItem(fieldName, PrismReferenceImpl.class, null, parent.isImmutable());
+            }
+        } catch (SchemaException e) {
+            // This should not happen. Code generator and compiler should take care of that.
+            throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+        }
+    }
+
+    public static Objectable getReferenceObjectable(PrismReferenceValue rval) {
+        PrismObject object = rval.getObject();
+        if (object == null) {
+            return null;
+        }
+        return object.asObjectable();
+    }
 
     public static void setReferenceFilterClauseXNode(PrismReferenceValue rval, SearchFilterType filterType) {
         if (filterType != null) {
@@ -378,22 +378,22 @@ public final class PrismForJAXBUtil {
 
     public static void setReferenceTargetName(PrismReferenceValue rval, PolyStringType name) {
         if (name == null) {
-        	rval.setTargetName((PolyString) null);
+            rval.setTargetName((PolyString) null);
         } else {
-        	rval.setTargetName(name.toPolyString());
+            rval.setTargetName(name.toPolyString());
         }
     }
 
     public static void accept(Object object, JaxbVisitor visitor) {
-    	if (object instanceof JaxbVisitable) {
-    		((JaxbVisitable) object).accept(visitor);
-	    } else if (object instanceof Collection) {
-		    for (Object item : ((Collection) object)) {
-			    accept(item, visitor);
-		    }
-	    } else if (object instanceof JAXBElement) {
-		    accept(((JAXBElement) object).getValue(), visitor);
-	    }
+        if (object instanceof JaxbVisitable) {
+            ((JaxbVisitable) object).accept(visitor);
+        } else if (object instanceof Collection) {
+            for (Object item : ((Collection) object)) {
+                accept(item, visitor);
+            }
+        } else if (object instanceof JAXBElement) {
+            accept(((JAXBElement) object).getValue(), visitor);
+        }
     }
 
 }

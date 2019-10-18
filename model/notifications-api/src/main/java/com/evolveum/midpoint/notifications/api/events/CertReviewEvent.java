@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,32 +29,32 @@ import java.util.List;
 public class CertReviewEvent extends AccessCertificationEvent {
 
     private List<AccessCertificationCaseType> cases;
-    private SimpleObjectRef actualReviewer;					// Actual reviewer - the person which the work item is assigned to. I.e. _not_ his deputy.
-															// Must be set to non-null value just after instantiation (TODO do more cleanly)
+    private SimpleObjectRef actualReviewer;                    // Actual reviewer - the person which the work item is assigned to. I.e. _not_ his deputy.
+                                                            // Must be set to non-null value just after instantiation (TODO do more cleanly)
 
     public CertReviewEvent(LightweightIdentifierGenerator idGenerator, List<AccessCertificationCaseType> cases, AccessCertificationCampaignType campaign, EventOperationType opType) {
         super(idGenerator, campaign, opType);
         this.cases = cases;
     }
 
-	public SimpleObjectRef getActualReviewer() {
-		return actualReviewer;
-	}
+    public SimpleObjectRef getActualReviewer() {
+        return actualReviewer;
+    }
 
-	public void setActualReviewer(SimpleObjectRef actualReviewer) {
-		this.actualReviewer = actualReviewer;
-	}
+    public void setActualReviewer(SimpleObjectRef actualReviewer) {
+        this.actualReviewer = actualReviewer;
+    }
 
-	@Override
+    @Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {
         return super.isCategoryType(eventCategoryType) ||
                 EventCategoryType.CERT_CASE_EVENT.equals(eventCategoryType);
     }
 
-    @Deprecated	// obsolete name
+    @Deprecated    // obsolete name
     public Collection<AccessCertificationCaseType> getCasesAwaitingResponseFromRequestee() {
-    	return getCasesAwaitingResponseFromActualReviewer();
-	}
+        return getCasesAwaitingResponseFromActualReviewer();
+    }
 
     public Collection<AccessCertificationCaseType> getCasesAwaitingResponseFromActualReviewer() {
         List<AccessCertificationCaseType> rv = new ArrayList<>();
@@ -69,9 +69,9 @@ public class CertReviewEvent extends AccessCertificationEvent {
     private boolean awaitsResponseFrom(AccessCertificationCaseType aCase, String reviewerOid, int currentStageNumber) {
         for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
             if (workItem.getStageNumber() == currentStageNumber
-					&& WorkItemTypeUtil.getOutcome(workItem) == null
-					&& workItem.getCloseTimestamp() == null
-					&& ObjectTypeUtil.containsOid(workItem.getAssigneeRef(), reviewerOid)) {
+                    && WorkItemTypeUtil.getOutcome(workItem) == null
+                    && workItem.getCloseTimestamp() == null
+                    && ObjectTypeUtil.containsOid(workItem.getAssigneeRef(), reviewerOid)) {
                 return true;
             }
         }
@@ -82,11 +82,11 @@ public class CertReviewEvent extends AccessCertificationEvent {
         return cases;
     }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
-		debugDumpCommon(sb, indent);
-		DebugUtil.debugDumpWithLabelLn(sb, "cases", cases, indent + 1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
+        debugDumpCommon(sb, indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "cases", cases, indent + 1);
+        return sb.toString();
+    }
 }

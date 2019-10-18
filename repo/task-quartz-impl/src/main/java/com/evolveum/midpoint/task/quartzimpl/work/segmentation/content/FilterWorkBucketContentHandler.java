@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -30,22 +30,22 @@ import java.util.function.Function;
 @Component
 public class FilterWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 
-	@PostConstruct
-	public void register() {
-		registry.registerHandler(FilterWorkBucketContentType.class, this);
-	}
+    @PostConstruct
+    public void register() {
+        registry.registerHandler(FilterWorkBucketContentType.class, this);
+    }
 
-	@NotNull
-	@Override
-	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket,
-			AbstractWorkSegmentationType configuration, Class<? extends ObjectType> type,
-			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) throws SchemaException {
+    @NotNull
+    @Override
+    public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket,
+            AbstractWorkSegmentationType configuration, Class<? extends ObjectType> type,
+            Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) throws SchemaException {
 
-		FilterWorkBucketContentType content = (FilterWorkBucketContentType) bucket.getContent();
-		List<ObjectFilter> rv = new ArrayList<>();
-		for (SearchFilterType filter : content.getFilter()) {
-			rv.add(prismContext.getQueryConverter().createObjectFilter(type, filter));
-		}
-		return rv;
-	}
+        FilterWorkBucketContentType content = (FilterWorkBucketContentType) bucket.getContent();
+        List<ObjectFilter> rv = new ArrayList<>();
+        for (SearchFilterType filter : content.getFilter()) {
+            rv.add(prismContext.getQueryConverter().createObjectFilter(type, filter));
+        }
+        return rv;
+    }
 }

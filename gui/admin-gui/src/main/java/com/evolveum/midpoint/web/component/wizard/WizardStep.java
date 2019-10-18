@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -50,7 +50,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
 
     @Override
     public Component getHeader(String id, Component parent, IWizard wizard) {
-		return new Label(id, "");		// we don't want to display step names twice (in upper bar and in page header)
+        return new Label(id, "");        // we don't want to display step names twice (in upper bar and in page header)
 //        return new Label(id, new IModel<String>() {
 //            @Override
 //            public String getObject() {
@@ -59,7 +59,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
 //        });
     }
 
-	public PageBase getPageBase() {
+    public PageBase getPageBase() {
         return pageBase;
     }
 
@@ -68,7 +68,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(this, resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(Enum e) {
@@ -103,7 +103,7 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
         return StringUtils.join(components, ":");
     }
 
-	@NotNull
+    @NotNull
     protected List<QName> loadResourceObjectClassList(IModel<PrismObject<ResourceType>> model, Trace LOGGER, String message){
         List<QName> list = new ArrayList<>();
         try {
@@ -148,13 +148,13 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
         this.result = result;
     }
 
-	@Override
-	public boolean isComplete() {
-		if (!super.isComplete()) {
-			return false;
-		}
+    @Override
+    public boolean isComplete() {
+        if (!super.isComplete()) {
+            return false;
+        }
 
-		PageResourceWizard pageResourceWizard = (PageResourceWizard) getPageBase();
-		return !pageResourceWizard.getIssuesModel().getObject().hasErrorsFor(getClass());
-	}
+        PageResourceWizard pageResourceWizard = (PageResourceWizard) getPageBase();
+        return !pageResourceWizard.getIssuesModel().getObject().hasErrorsFor(getClass());
+    }
 }

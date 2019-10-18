@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,41 +19,41 @@ import java.util.List;
  */
 public interface PrismContainerDefinition<C extends Containerable> extends ItemDefinition<PrismContainer<C>>, LocalDefinitionStore {
 
-	Class<C> getCompileTimeClass();
+    Class<C> getCompileTimeClass();
 
-	ComplexTypeDefinition getComplexTypeDefinition();
+    ComplexTypeDefinition getComplexTypeDefinition();
 
-	@Override
-	void revive(PrismContext prismContext);
+    @Override
+    void revive(PrismContext prismContext);
 
-	String getDefaultNamespace();
+    String getDefaultNamespace();
 
-	List<String> getIgnoredNamespaces();
+    List<String> getIgnoredNamespaces();
 
-	List<? extends ItemDefinition> getDefinitions();
+    List<? extends ItemDefinition> getDefinitions();
 
-	List<PrismPropertyDefinition> getPropertyDefinitions();
+    List<PrismPropertyDefinition> getPropertyDefinitions();
 
-	@Override
-	ContainerDelta<C> createEmptyDelta(ItemPath path);
+    @Override
+    ContainerDelta<C> createEmptyDelta(ItemPath path);
 
-	@NotNull
-	@Override
-	PrismContainerDefinition<C> clone();
+    @NotNull
+    @Override
+    PrismContainerDefinition<C> clone();
 
-	PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
+    PrismContainerDefinition<C> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
 
-	void replaceDefinition(QName itemName, ItemDefinition newDefinition);
+    void replaceDefinition(QName itemName, ItemDefinition newDefinition);
 
-	PrismContainerValue<C> createValue();
+    PrismContainerValue<C> createValue();
 
-	boolean isEmpty();
+    boolean isEmpty();
 
-	boolean canRepresent(@NotNull QName type);
+    boolean canRepresent(@NotNull QName type);
 
-	@Override
-	MutablePrismContainerDefinition<C> toMutable();
-	
-	@Override
-	Class<C> getTypeClass();
+    @Override
+    MutablePrismContainerDefinition<C> toMutable();
+
+    @Override
+    Class<C> getTypeClass();
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.common.expression;
@@ -27,14 +27,14 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
  */
 public interface ExpressionEvaluatorFactory {
 
-	QName getElementName();
+    QName getElementName();
 
-	<V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(
-			Collection<JAXBElement<?>> evaluatorElements,
-			D outputDefinition,
-			ExpressionProfile expressionProfile,
-			ExpressionFactory factory,
-			String contextDescription, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, SecurityViolationException;
+    <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(
+            Collection<JAXBElement<?>> evaluatorElements,
+            D outputDefinition,
+            ExpressionProfile expressionProfile,
+            ExpressionFactory factory,
+            String contextDescription, Task task, OperationResult result)
+                    throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
 }

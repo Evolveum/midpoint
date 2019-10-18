@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -31,7 +31,7 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
     final private AssignmentPath assignmentPath;
     final private boolean weak;
 
-	public <AH extends AssignmentHolderType> EvaluatedConstructionImpl(Construction<AH> construction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public <AH extends AssignmentHolderType> EvaluatedConstructionImpl(Construction<AH> construction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         resource = construction.getResource(task, result).asPrismObject();
         kind = construction.getKind();
         intent = construction.getIntent();
@@ -39,7 +39,7 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
         directlyAssigned = assignmentPath == null || assignmentPath.size() == 1;
         weak = construction.isWeak();
     }
-    
+
     @Override
     public PrismObject<ResourceType> getResource() {
         return resource;
@@ -67,8 +67,8 @@ public class EvaluatedConstructionImpl implements EvaluatedConstruction {
 
     @Override
     public boolean isWeak() {
-		return weak;
-	}
+        return weak;
+    }
 
     @Override
     public String debugDump(int indent) {

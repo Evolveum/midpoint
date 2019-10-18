@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,33 +26,33 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public class UcfChangeUtil {
 
-	public static UcfChangeType createForNewObject(QName objectClassName, Map<QName, Object> attributes,
-			PrismContext prismContext) throws SchemaException {
-		ShadowType shadow = new ShadowType(prismContext);
-		copyAttributes(attributes, shadow.asPrismObject().findOrCreateContainer(ShadowType.F_ATTRIBUTES).getValue(), prismContext);
-		UcfChangeType change = new UcfChangeType();
-		ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(shadow.asPrismObject());
-		change.setObjectClass(objectClassName);
-		change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
-		return change;
-	}
+    public static UcfChangeType createForNewObject(QName objectClassName, Map<QName, Object> attributes,
+            PrismContext prismContext) throws SchemaException {
+        ShadowType shadow = new ShadowType(prismContext);
+        copyAttributes(attributes, shadow.asPrismObject().findOrCreateContainer(ShadowType.F_ATTRIBUTES).getValue(), prismContext);
+        UcfChangeType change = new UcfChangeType();
+        ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(shadow.asPrismObject());
+        change.setObjectClass(objectClassName);
+        change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
+        return change;
+    }
 
-	private static void copyAttributes(Map<QName, Object> attributes, PrismContainerValue<?> target, PrismContext prismContext)
-			throws SchemaException {
-		for (Map.Entry<QName, Object> entry : attributes.entrySet()) {
-			PrismProperty<Object> attribute = prismContext.itemFactory().createProperty(entry.getKey());
-			attribute.setValue(prismContext.itemFactory().createPropertyValue(entry.getValue()));
-			target.add(attribute);
-		}
-	}
+    private static void copyAttributes(Map<QName, Object> attributes, PrismContainerValue<?> target, PrismContext prismContext)
+            throws SchemaException {
+        for (Map.Entry<QName, Object> entry : attributes.entrySet()) {
+            PrismProperty<Object> attribute = prismContext.itemFactory().createProperty(entry.getKey());
+            attribute.setValue(prismContext.itemFactory().createPropertyValue(entry.getValue()));
+            target.add(attribute);
+        }
+    }
 
-	public static UcfChangeType create(QName objectClassName, Map<QName, Object> identifiers, ObjectDeltaType delta, PrismContext prismContext)
-			throws SchemaException {
-		UcfChangeType change = new UcfChangeType();
-		change.setObjectClass(objectClassName);
-		change.setIdentifiers(new ShadowAttributesType(prismContext));
-		copyAttributes(identifiers, change.getIdentifiers().asPrismContainerValue(), prismContext);
-		change.setObjectDelta(delta);
-		return change;
-	}
+    public static UcfChangeType create(QName objectClassName, Map<QName, Object> identifiers, ObjectDeltaType delta, PrismContext prismContext)
+            throws SchemaException {
+        UcfChangeType change = new UcfChangeType();
+        change.setObjectClass(objectClassName);
+        change.setIdentifiers(new ShadowAttributesType(prismContext));
+        copyAttributes(identifiers, change.getIdentifiers().asPrismContainerValue(), prismContext);
+        change.setObjectDelta(delta);
+        return change;
+    }
 }

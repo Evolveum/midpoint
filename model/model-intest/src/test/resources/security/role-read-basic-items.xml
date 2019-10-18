@@ -1,18 +1,18 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="519e8bf4-3af3-11e7-bc89-cbcee62d4088"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Read Basic Items</name>    
+    <name>Read Basic Items</name>
     <authorization>
-    	<name>autz-read-basic</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<item>name</item>
-    	<item>description</item>
+        <name>autz-read-basic</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <item>name</item>
+        <item>description</item>
     </authorization>
 </role>

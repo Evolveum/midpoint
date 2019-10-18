@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl;
@@ -20,52 +20,52 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
  */
 public class MockLongTaskHandler implements TaskHandler {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(MockLongTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(MockLongTaskHandler.class);
 
     private TaskManagerQuartzImpl taskManager;
 
-	private String id;
+    private String id;
 
     MockLongTaskHandler(String id, TaskManagerQuartzImpl taskManager) {
-		this.id = id;
+        this.id = id;
         this.taskManager = taskManager;
-	}
+    }
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-		LOGGER.info("MockLong.run starting (id = {}, progress = {})", id, task.getProgress());
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        LOGGER.info("MockLong.run starting (id = {}, progress = {})", id, task.getProgress());
 
-		OperationResult opResult = new OperationResult(MockLongTaskHandler.class.getName()+".run");
-		TaskRunResult runResult = new TaskRunResult();
+        OperationResult opResult = new OperationResult(MockLongTaskHandler.class.getName()+".run");
+        TaskRunResult runResult = new TaskRunResult();
 
-		while (task.canRun()) {
-			task.incrementProgressAndStoreStatsIfNeeded();
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				LOGGER.info("Interrupted: exiting", e);
-				break;
-			}
-		}
+        while (task.canRun()) {
+            task.incrementProgressAndStoreStatsIfNeeded();
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                LOGGER.info("Interrupted: exiting", e);
+                break;
+            }
+        }
 
-		opResult.recordSuccess();
+        opResult.recordSuccess();
 
-		runResult.setOperationResult(opResult);
-		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(task.getProgress());
+        runResult.setOperationResult(opResult);
+        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        runResult.setProgress(task.getProgress());
 
-		LOGGER.info("MockLong.run stopping; progress = {}", task.getProgress());
-		return runResult;
-	}
+        LOGGER.info("MockLong.run stopping; progress = {}", task.getProgress());
+        return runResult;
+    }
 
-	@Override
-	public Long heartbeat(Task task) {
-		return 0L;
-	}
+    @Override
+    public Long heartbeat(Task task) {
+        return 0L;
+    }
 
-	@Override
-	public void refreshStatus(Task task) {
-	}
+    @Override
+    public void refreshStatus(Task task) {
+    }
 
     @Override
     public String getCategoryName(Task task) {

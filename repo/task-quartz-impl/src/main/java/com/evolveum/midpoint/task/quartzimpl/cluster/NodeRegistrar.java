@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -188,8 +188,8 @@ public class NodeRegistrar {
     private NodeType createLocalNodeObject(TaskManagerConfiguration configuration) {
         XMLGregorianCalendar currentTime = getCurrentTime();
         NodeType node = getPrismContext().createKnownObjectable(NodeType.class);
-	    String nodeId = configuration.getNodeId();
-	    node.setNodeIdentifier(nodeId);
+        String nodeId = configuration.getNodeId();
+        node.setNodeIdentifier(nodeId);
         node.setName(new PolyStringType(nodeId));
         node.setHostname(getMyHostname());
         node.getIpAddress().addAll(getMyIpAddresses());
@@ -395,7 +395,7 @@ public class NodeRegistrar {
     }
 
 
-	/**
+    /**
      * Checks whether this Node object was not overwritten by another node (implying there is duplicate node ID in cluster).
      *
      * @return current node, if everything is OK
@@ -528,10 +528,10 @@ public class NodeRegistrar {
                 if (hostName != null) {
                     return hostName;
                 } else {
-            		LOGGER.error("Cannot get local host name");
-            		// Make sure this has special characters so it cannot be interpreted as valid hostname
+                    LOGGER.error("Cannot get local host name");
+                    // Make sure this has special characters so it cannot be interpreted as valid hostname
                     return "(unknown-host)";
-            	}
+                }
             } catch (UnknownHostException e) {
                 LoggingUtils.logException(LOGGER, "Cannot get local hostname address", e);
                 // Make sure this has special characters so it cannot be interpreted as valid hostname
@@ -627,50 +627,50 @@ public class NodeRegistrar {
         }
         return localHost.getHostAddress();
     }
-    
-    private List<String> getMyIpAddresses() {
-    	List<String> addresses = new ArrayList<>();
-    	Enumeration<NetworkInterface> nets;
-		try {
-			nets = NetworkInterface.getNetworkInterfaces();
-			for (NetworkInterface netint : Collections.list(nets)) {
-				for (InetAddress inetAddress: Collections.list(netint.getInetAddresses())) {
-					String hostAddress = inetAddress.getHostAddress();
-					String normalizedAddress = normalizeAddress(hostAddress);
-					if (!isLocalAddress(normalizedAddress) || taskManager.isLocalNodeClusteringEnabled()) {
-						addresses.add(normalizedAddress);
-					}
-				}
-			}
-		} catch (SocketException e) {
-			LoggingUtils.logException(LOGGER, "Cannot get local IP address", e);
-			return addresses;
-		}
-		return addresses;
-	}
 
-	private String normalizeAddress(String hostAddress) {
-		int i = hostAddress.indexOf('%');
-		if (i < 0) {
-			return hostAddress;
-		} else {
-			return hostAddress.substring(0, i);
-		}
-	}
-	
-	@SuppressWarnings("RedundantIfStatement")
+    private List<String> getMyIpAddresses() {
+        List<String> addresses = new ArrayList<>();
+        Enumeration<NetworkInterface> nets;
+        try {
+            nets = NetworkInterface.getNetworkInterfaces();
+            for (NetworkInterface netint : Collections.list(nets)) {
+                for (InetAddress inetAddress: Collections.list(netint.getInetAddresses())) {
+                    String hostAddress = inetAddress.getHostAddress();
+                    String normalizedAddress = normalizeAddress(hostAddress);
+                    if (!isLocalAddress(normalizedAddress) || taskManager.isLocalNodeClusteringEnabled()) {
+                        addresses.add(normalizedAddress);
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            LoggingUtils.logException(LOGGER, "Cannot get local IP address", e);
+            return addresses;
+        }
+        return addresses;
+    }
+
+    private String normalizeAddress(String hostAddress) {
+        int i = hostAddress.indexOf('%');
+        if (i < 0) {
+            return hostAddress;
+        } else {
+            return hostAddress.substring(0, i);
+        }
+    }
+
+    @SuppressWarnings("RedundantIfStatement")
     private boolean isLocalAddress(String addr) {
-		if (addr.startsWith("127.")) {
-			return true;
-		}
-		if (addr.equals("0:0:0:0:0:0:0:1")) {
-			return true;
-		}
-		if (addr.equals("::1")) {
-			return true;
-		}
-		return false;
-	}
+        if (addr.startsWith("127.")) {
+            return true;
+        }
+        if (addr.equals("0:0:0:0:0:0:0:1")) {
+            return true;
+        }
+        if (addr.equals("::1")) {
+            return true;
+        }
+        return false;
+    }
 
     PrismObject<NodeType> getCachedLocalNodeObject() {
         return cachedLocalNodeObject;

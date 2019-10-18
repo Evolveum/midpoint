@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -355,7 +355,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     public S_ConditionEntry item(QName... names) {
         return item(ItemPath.create((Object[]) names));
     }
-    
+
     @Override
     public S_ConditionEntry item(String... names) {
         return item(ItemPath.create((Object[]) names));
@@ -406,9 +406,9 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (parentFilter == null) {
             throw new IllegalStateException("endBlock() call without preceding block() one");
         }
-	    if (hasRestriction()) {
-		    return addSubfilter(null).endBlock();         // finish if this is open 'type' or 'exists' filter
-	    }
+        if (hasRestriction()) {
+            return addSubfilter(null).endBlock();         // finish if this is open 'type' or 'exists' filter
+        }
         if (currentFilter != null || parentFilter.hasRestriction()) {
             ObjectFilter simplified = simplify(currentFilter);
             if (simplified != null || parentFilter.hasRestriction()) {

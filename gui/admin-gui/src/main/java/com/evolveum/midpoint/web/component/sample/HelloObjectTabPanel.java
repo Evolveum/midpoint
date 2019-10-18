@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.sample;
@@ -25,33 +25,33 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class HelloObjectTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 
-	private static final String ID_HELLO_LABEL = "helloLabel";
+    private static final String ID_HELLO_LABEL = "helloLabel";
 
-	public HelloObjectTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
-		super(id, mainForm, focusModel);
-		
-	}
-	
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		initLayout();
-	}
+    public HelloObjectTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
+        super(id, mainForm, focusModel);
 
-	private void initLayout() {
-		add(new Label(ID_HELLO_LABEL, new Model<String>() {
-			@Override
-			public String getObject() {
-				PrismObject<F> focus = getObjectWrapper().getObject();
-				if (focus != null) {
-					PolyStringType name = focus.asObjectable().getName();
-					if (name != null) {
-						return "Hello "+name.getOrig()+"!";
-					}
-				}
-				return "Hello world!";
-			}
-		}));
-	}
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+    private void initLayout() {
+        add(new Label(ID_HELLO_LABEL, new Model<String>() {
+            @Override
+            public String getObject() {
+                PrismObject<F> focus = getObjectWrapper().getObject();
+                if (focus != null) {
+                    PolyStringType name = focus.asObjectable().getName();
+                    if (name != null) {
+                        return "Hello "+name.getOrig()+"!";
+                    }
+                }
+                return "Hello world!";
+            }
+        }));
+    }
 
 }

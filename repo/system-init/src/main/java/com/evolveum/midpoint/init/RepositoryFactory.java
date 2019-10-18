@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.init;
@@ -34,7 +34,7 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     MidpointConfiguration midpointConfiguration;
     @Autowired
     private PrismContext prismContext;
-	//Repository factory
+    //Repository factory
     private RepositoryServiceFactory factory;
     //Repository services
     private RepositoryService repositoryService;

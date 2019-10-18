@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -30,50 +30,50 @@ import static org.testng.AssertJUnit.fail;
  */
 public class TestParseObjectsIterativelyWrong extends AbstractParserTest {
 
-	@Override
-	protected File getFile() {
-		return getFile(OBJECTS_WRONG_FILE_BASENAME);
-	}
+    @Override
+    protected File getFile() {
+        return getFile(OBJECTS_WRONG_FILE_BASENAME);
+    }
 
-	@Test
-	public void testParse() throws Exception {
-		displayTestTitle("testParse");
-		PrismContext prismContext = getPrismContext();
+    @Test
+    public void testParse() throws Exception {
+        displayTestTitle("testParse");
+        PrismContext prismContext = getPrismContext();
 
-		PrismParser parser = prismContext.parserFor(getFile());
-		List<PrismObject<?>> objects = new ArrayList<>();
-		AtomicInteger errors = new AtomicInteger(0);
-		parser.parseObjectsIteratively(new PrismParser.ObjectHandler() {
-			@Override
-			public boolean handleData(PrismObject<?> object) {
-				objects.add(object);
-				return true;
-			}
+        PrismParser parser = prismContext.parserFor(getFile());
+        List<PrismObject<?>> objects = new ArrayList<>();
+        AtomicInteger errors = new AtomicInteger(0);
+        parser.parseObjectsIteratively(new PrismParser.ObjectHandler() {
+            @Override
+            public boolean handleData(PrismObject<?> object) {
+                objects.add(object);
+                return true;
+            }
 
-			@Override
-			public boolean handleError(Throwable t) {
-				System.out.println("Got (probably expected) exception:");
-				t.printStackTrace(System.out);
-				assert t instanceof SchemaException;
-				errors.incrementAndGet();
-				return true;
-			}
-		});
+            @Override
+            public boolean handleError(Throwable t) {
+                System.out.println("Got (probably expected) exception:");
+                t.printStackTrace(System.out);
+                assert t instanceof SchemaException;
+                errors.incrementAndGet();
+                return true;
+            }
+        });
 
-		System.out.println("Objects as parsed: " + DebugUtil.debugDump(objects));
+        System.out.println("Objects as parsed: " + DebugUtil.debugDump(objects));
 
-		assertEquals("Wrong # of objects", 2, objects.size());
-		assertEquals("Wrong class of object 1", UserType.class, objects.get(0).asObjectable().getClass());
-		assertEquals("Wrong class of object 2", RoleType.class, objects.get(1).asObjectable().getClass());
+        assertEquals("Wrong # of objects", 2, objects.size());
+        assertEquals("Wrong class of object 1", UserType.class, objects.get(0).asObjectable().getClass());
+        assertEquals("Wrong class of object 2", RoleType.class, objects.get(1).asObjectable().getClass());
 
-		assertEquals("Wrong # of errors", 1, errors.get());
+        assertEquals("Wrong # of errors", 1, errors.get());
 
-		try {
-			prismContext.parserFor(getFile()).parseObjects();
-			fail("unexpected success");
-		} catch (SchemaException e) {
-			System.out.println("Got expected exception: " + e);
-		}
-	}
+        try {
+            prismContext.parserFor(getFile()).parseObjects();
+            fail("unexpected success");
+        } catch (SchemaException e) {
+            System.out.println("Got expected exception: " + e);
+        }
+    }
 
 }

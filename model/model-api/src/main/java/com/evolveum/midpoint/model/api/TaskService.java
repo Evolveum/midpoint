@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api;
@@ -42,14 +42,14 @@ public interface TaskService {
      *                                  their executions (if any) will be left as they are. Use this option only when you know what you're doing.
      * @param operationTask Task in which the operation is executed. NOT the task that be being operated on.
      * @param parentResult
-     * @return true if all the tasks were stopped, false if some tasks continue to run or if stopping was not requested (DO_NOT_STOP option) 
+     * @return true if all the tasks were stopped, false if some tasks continue to run or if stopping was not requested (DO_NOT_STOP option)
      */
     boolean suspendTasks(Collection<String> taskOids, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
     boolean suspendTask(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-	boolean suspendTaskTree(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    boolean suspendTaskTree(String taskOid, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-	/**
+    /**
      * Suspends tasks and deletes them.
      *
      * @param taskOids Collection of task OIDs to be suspended and deleted.
@@ -59,7 +59,7 @@ public interface TaskService {
      *                      DO_NOT_STOP means do not try to stop the task execution. Tasks will only be put into SUSPENDED state, and
      *                                  their executions (if any) will be left as they are. Use this option only when you know what you're doing.
      * @param alsoSubtasks Should also subtasks be deleted?
-     * @param parentResult 
+     * @param parentResult
      */
     void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
     void suspendAndDeleteTask(String taskOid, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
@@ -69,7 +69,7 @@ public interface TaskService {
      *
      * @param taskOids a collection of OIDs of tasks that have to be resumed
      * @throws SchemaException
-     * @throws com.evolveum.midpoint.util.exception.ObjectNotFoundException 
+     * @throws com.evolveum.midpoint.util.exception.ObjectNotFoundException
      */
     void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
     void resumeTask(String taskOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
@@ -80,7 +80,7 @@ public interface TaskService {
      * depends e.g. on whether a scheduler is started, whether there are available threads, and so on.)
      *
      * @param taskOids a collection of OIDs of tasks that have to be scheduled
-     * @param parentResult 
+     * @param parentResult
      */
     void scheduleTasksNow(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
     void scheduleTaskNow(String taskOid, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
@@ -90,7 +90,7 @@ public interface TaskService {
      * @param identifier
      * @param options
      * @param parentResult
-     * @return  
+     * @return
      */
     PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, Task operationTask, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException;
     //endregion
@@ -130,7 +130,7 @@ public interface TaskService {
     /**
      * Stops the schedulers on a given nodes. This means that at that nodes no tasks will be started.
      *
-     * @param nodeIdentifiers Nodes on which the schedulers should be stopped. 
+     * @param nodeIdentifiers Nodes on which the schedulers should be stopped.
      */
     void stopSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
@@ -143,7 +143,7 @@ public interface TaskService {
      *                 DO_NOT_WAIT means stop the tasks, but do not wait for finishing their execution
      * @param parentResult
      * @return
-     * @throws ExpressionEvaluationException 
+     * @throws ExpressionEvaluationException
      */
     boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
@@ -152,7 +152,7 @@ public interface TaskService {
      * TaskManagers are not in an error state.
      *
      * @param nodeIdentifiers Nodes on which the scheduler should be started.
-     * @return true if the operation succeeded; false otherwise. 
+     * @return true if the operation succeeded; false otherwise.
      */
     void startSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
     //endregion
@@ -166,7 +166,7 @@ public interface TaskService {
      */
     void synchronizeTasks(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-	/**
+    /**
      * Gets a list of all task categories.
      * TODO consider removing this method
      *
@@ -183,33 +183,33 @@ public interface TaskService {
      */
     String getHandlerUriForCategory(String category);
 
-	void reconcileWorkers(String oid, Task opTask, OperationResult result)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException;
+    void reconcileWorkers(String oid, Task opTask, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException;
 
-	void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
-			OperationResult parentResult)
-			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-			CommunicationException, ConfigurationException;
+    void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
+            OperationResult parentResult)
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException;
 
-	String getThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult) throws CommunicationException,
-			ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException;
+    String getThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException;
 
-	// TODO migrate to more structured information
-	String getRunningTasksThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException;
+    // TODO migrate to more structured information
+    String getRunningTasksThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException;
 
-	// TODO reconsider the return value
-	String recordRunningTasksThreadsDump(String cause, @NotNull Task task, @NotNull OperationResult parentResult)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException;
+    // TODO reconsider the return value
+    String recordRunningTasksThreadsDump(String cause, @NotNull Task task, @NotNull OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException;
 
-	// TODO migrate to more structured information
-	String getTaskThreadsDump(@NotNull String taskOid, @NotNull Task task, @NotNull OperationResult parentResult)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException;
+    // TODO migrate to more structured information
+    String getTaskThreadsDump(@NotNull String taskOid, @NotNull Task task, @NotNull OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException;
 
-	//endregion
+    //endregion
 }

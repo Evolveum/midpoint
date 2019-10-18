@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja.action;
@@ -19,13 +19,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 public class VerifyRepositoryAction extends AbstractRepositorySearchAction<VerifyOptions> {
 
     @Override
-	protected String getOperationShortName() {
-		return "verify";
-	}
+    protected String getOperationShortName() {
+        return "verify";
+    }
 
-	@Override
-	protected Runnable createConsumer(BlockingQueue<PrismObject> queue, OperationStatus operation) {
-		return new VerifyConsumerWorker(context, options, queue, operation);
-	}
+    @Override
+    protected Runnable createConsumer(BlockingQueue<PrismObject> queue, OperationStatus operation) {
+        return new VerifyConsumerWorker(context, options, queue, operation);
+    }
 
 }

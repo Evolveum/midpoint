@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
@@ -48,79 +48,79 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  */
 public class PrismContainerWrapperColumnPanel<C extends Containerable> extends AbstractItemWrapperColumnPanel<PrismContainerWrapper<C>, PrismContainerValueWrapper<C>> {
 
-	private static final long serialVersionUID = 1L;
-	private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperColumn.class);
-	
-	PrismContainerWrapperColumnPanel(String id, IModel<PrismContainerWrapper<C>> model, ColumnType columnType) {
-		super(id, model, columnType);
-	}
-	
-	@Override
-	protected String createLabel(PrismContainerValueWrapper<C> object) {
-		C realValue = object.getRealValue();
-		if(realValue == null) {
-			return "";
-		}
-		
-		if (PolicyConstraintsType.class.isAssignableFrom(realValue.getClass())) {
-			return PolicyRuleTypeUtil.toShortString((PolicyConstraintsType) realValue);
-		}
-		
-		if (PolicyActionsType.class.isAssignableFrom(realValue.getClass())) {
-			return PolicyRuleTypeUtil.toShortString((PolicyActionsType) realValue);
-		}
-		
-		if (ActivationType.class.isAssignableFrom(realValue.getClass())) {
-			return getActivationLabelLabel((ActivationType) realValue);
-		}
-		
-		
-		//TODO what to show?
-		if (LifecycleStateModelType.class.isAssignableFrom(realValue.getClass())) {
-			return realValue.toString();
-		}
-		
-		if (LifecycleStateType.class.isAssignableFrom(realValue.getClass())) {
-			LifecycleStateType state = (LifecycleStateType) realValue;
-			if(StringUtils.isBlank(state.getDisplayName())) {
-				return state.getName();
-			}
-			return state.getDisplayName();
-		}
-		
-		if (ResourceObjectAssociationType.class.isAssignableFrom(realValue.getClass())) {
-			return getAssociationLabel((ResourceObjectAssociationType) realValue);
-		}
-		
-		if(PendingOperationType.class.isAssignableFrom(realValue.getClass())) {
-			return WebComponentUtil.getPendingOperationLabel((PendingOperationType) realValue, this);
-		}
-		
-		return realValue.toString();
-		
-		
-	}
+    private static final long serialVersionUID = 1L;
+    private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperColumn.class);
 
-	private String getActivationLabelLabel(ActivationType activation){
-		if (activation.getAdministrativeStatus() != null) {
-			return activation.getAdministrativeStatus().value();
-		}
-		
-		PrismContainerWrapper<AssignmentType> assignmentModel =  (PrismContainerWrapper<AssignmentType>) getModel().getObject();
-		PrismPropertyWrapper<String> lifecycle = null;
-		try {
-			lifecycle = assignmentModel.findProperty(AssignmentType.F_LIFECYCLE_STATE);
-		} catch (SchemaException e) {
-			LOGGER.error("Cannot find lifecycle property: ", e.getMessage(), e);
-		}
-		
-		String lifecycleState = getLifecycleState(lifecycle);
-		
-		ActivationStatusType status = WebModelServiceUtils.getAssignmentEffectiveStatus(lifecycleState, activation, getPageBase());
-		return AssignmentsUtil.createActivationTitleModel(status, activation.getValidFrom(), activation.getValidTo(), getPageBase());
-	
-	}
-	
+    PrismContainerWrapperColumnPanel(String id, IModel<PrismContainerWrapper<C>> model, ColumnType columnType) {
+        super(id, model, columnType);
+    }
+
+    @Override
+    protected String createLabel(PrismContainerValueWrapper<C> object) {
+        C realValue = object.getRealValue();
+        if(realValue == null) {
+            return "";
+        }
+
+        if (PolicyConstraintsType.class.isAssignableFrom(realValue.getClass())) {
+            return PolicyRuleTypeUtil.toShortString((PolicyConstraintsType) realValue);
+        }
+
+        if (PolicyActionsType.class.isAssignableFrom(realValue.getClass())) {
+            return PolicyRuleTypeUtil.toShortString((PolicyActionsType) realValue);
+        }
+
+        if (ActivationType.class.isAssignableFrom(realValue.getClass())) {
+            return getActivationLabelLabel((ActivationType) realValue);
+        }
+
+
+        //TODO what to show?
+        if (LifecycleStateModelType.class.isAssignableFrom(realValue.getClass())) {
+            return realValue.toString();
+        }
+
+        if (LifecycleStateType.class.isAssignableFrom(realValue.getClass())) {
+            LifecycleStateType state = (LifecycleStateType) realValue;
+            if(StringUtils.isBlank(state.getDisplayName())) {
+                return state.getName();
+            }
+            return state.getDisplayName();
+        }
+
+        if (ResourceObjectAssociationType.class.isAssignableFrom(realValue.getClass())) {
+            return getAssociationLabel((ResourceObjectAssociationType) realValue);
+        }
+
+        if(PendingOperationType.class.isAssignableFrom(realValue.getClass())) {
+            return WebComponentUtil.getPendingOperationLabel((PendingOperationType) realValue, this);
+        }
+
+        return realValue.toString();
+
+
+    }
+
+    private String getActivationLabelLabel(ActivationType activation){
+        if (activation.getAdministrativeStatus() != null) {
+            return activation.getAdministrativeStatus().value();
+        }
+
+        PrismContainerWrapper<AssignmentType> assignmentModel =  (PrismContainerWrapper<AssignmentType>) getModel().getObject();
+        PrismPropertyWrapper<String> lifecycle = null;
+        try {
+            lifecycle = assignmentModel.findProperty(AssignmentType.F_LIFECYCLE_STATE);
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot find lifecycle property: ", e.getMessage(), e);
+        }
+
+        String lifecycleState = getLifecycleState(lifecycle);
+
+        ActivationStatusType status = WebModelServiceUtils.getAssignmentEffectiveStatus(lifecycleState, activation, getPageBase());
+        return AssignmentsUtil.createActivationTitleModel(status, activation.getValidFrom(), activation.getValidTo(), getPageBase());
+
+    }
+
 
     private String getAssociationLabel(ResourceObjectAssociationType association){
         if (association == null){
@@ -132,28 +132,28 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
 
     }
 
-	
-	private String getLifecycleState(PrismPropertyWrapper<String> lifecycle) {
-		if (lifecycle == null) {
-			return null;
-		}
-		
-		List<PrismPropertyValueWrapper<String>> values = lifecycle.getValues();
-		if (CollectionUtils.isEmpty(values)) {
-			return null;
-		}
-		
-		return values.iterator().next().getRealValue();
-	}
-	
-	
-	@Override
-	protected Panel createValuePanel(String id, IModel<PrismContainerWrapper<C>> headerModel, PrismContainerValueWrapper<C> object) {
-		throw new UnsupportedOperationException("Panels not supported for container values.");
-	}
 
-	@Override
-	protected Panel createLink(String id, IModel<PrismContainerValueWrapper<C>> object) {
-		throw new UnsupportedOperationException("Links not supported for container values.");
-	}
+    private String getLifecycleState(PrismPropertyWrapper<String> lifecycle) {
+        if (lifecycle == null) {
+            return null;
+        }
+
+        List<PrismPropertyValueWrapper<String>> values = lifecycle.getValues();
+        if (CollectionUtils.isEmpty(values)) {
+            return null;
+        }
+
+        return values.iterator().next().getRealValue();
+    }
+
+
+    @Override
+    protected Panel createValuePanel(String id, IModel<PrismContainerWrapper<C>> headerModel, PrismContainerValueWrapper<C> object) {
+        throw new UnsupportedOperationException("Panels not supported for container values.");
+    }
+
+    @Override
+    protected Panel createLink(String id, IModel<PrismContainerValueWrapper<C>> object) {
+        throw new UnsupportedOperationException("Links not supported for container values.");
+    }
 }

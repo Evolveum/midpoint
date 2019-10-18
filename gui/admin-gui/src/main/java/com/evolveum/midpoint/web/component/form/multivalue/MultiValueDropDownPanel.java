@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -81,7 +81,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
         }));
         placeholderAdd.setOutputMarkupId(true);
         placeholderAdd.setOutputMarkupPlaceholderTag(true);
-		placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         placeholderContainer.add(placeholderAdd);
 
         ListView repeater = new ListView<T>(ID_REPEATER, getModel()){
@@ -92,7 +92,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
                 DropDownChoice choice = new DropDownChoice<>(ID_INPUT, createDropDownItemModel(item.getModel()),
                         createChoiceList(), createRenderer());
                 choice.setNullValid(nullValid);
-				choice.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+                choice.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
                 item.add(choice);
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
@@ -140,7 +140,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
             }
         };
         add.add(new AttributeAppender("class", getPlusClassModifier(item)));
-		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(add);
 
         AjaxLink<Void> remove = new AjaxLink<Void>(ID_REMOVE) {
@@ -151,7 +151,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
             }
         };
         remove.add(new AttributeAppender("class", getMinusClassModifier()));
-		remove.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        remove.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(remove);
     }
 
@@ -230,10 +230,10 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
     protected IChoiceRenderer<T> createRenderer(){
         return new IChoiceRenderer<T>() {
 
-        	@Override
-        	public T getObject(String id, IModel<? extends List<? extends T>> choices) {
-        		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
-        	}
+            @Override
+            public T getObject(String id, IModel<? extends List<? extends T>> choices) {
+                return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
+            }
 
             @Override
             public Object getDisplayValue(T object) {

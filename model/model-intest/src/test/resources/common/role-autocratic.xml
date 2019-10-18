@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="4a678382-e3f4-11e6-8c3d-cfd3dba8168f"
@@ -14,40 +14,40 @@
     <name>Autocratic</name>
     <roleType>auto</roleType> <!-- may be used for mapping range -->
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-00000000a404" type="ResourceType"/>
-    		<kind>account</kind>
-    		<association>
-    			<ref>ri:group</ref>
-            	<outbound>
-            		<strength>strong</strength>
-                	<expression>
-						<associationTargetSearch>
-							<filter>
-								<q:equal>
-									<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"; attributes/icfs:name</q:path>
-									<expression>
-										<script>
-											<code>
-												log.info("######## returning cratic group name")
-												return "cratic"
-											</code>
-										</script>
-									</expression>
-								</q:equal>
-							</filter>
-							<searchStrategy>onResourceIfNeeded</searchStrategy>
-						</associationTargetSearch>
-					</expression>
-				</outbound>
-    		</association>
-    	</construction>
-		<condition>
-			<expression>
-				<script>
-					<code>com.evolveum.midpoint.tools.testng.CurrentTestResultHolder.isTestClassSimpleName("TestMappingAutoInbound")</code>
-				</script>
-			</expression>
-		</condition>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-00000000a404" type="ResourceType"/>
+            <kind>account</kind>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"; attributes/icfs:name</q:path>
+                                    <expression>
+                                        <script>
+                                            <code>
+                                                log.info("######## returning cratic group name")
+                                                return "cratic"
+                                            </code>
+                                        </script>
+                                    </expression>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <condition>
+            <expression>
+                <script>
+                    <code>com.evolveum.midpoint.tools.testng.CurrentTestResultHolder.isTestClassSimpleName("TestMappingAutoInbound")</code>
+                </script>
+            </expression>
+        </condition>
     </inducement>
 </role>

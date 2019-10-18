@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -39,7 +39,7 @@ public abstract class AbstractWriterConsumerWorker<OP extends ExportOptions> ext
         Log log = context.getLog();
 
         // todo handle split option
-        
+
         init();
 
         try (Writer writer = createWriter()) {
@@ -77,17 +77,17 @@ public abstract class AbstractWriterConsumerWorker<OP extends ExportOptions> ext
 
     protected abstract void init();
 
-	protected abstract String getProlog();
-    
+    protected abstract String getProlog();
+
     protected abstract <O extends ObjectType> void write(Writer writer, PrismObject<O> object) throws SchemaException, IOException;
 
     protected abstract String getEpilog();
-    
-	private Writer createWriter() throws IOException {
+
+    private Writer createWriter() throws IOException {
         Writer writer = NinjaUtils.createWriter(options.getOutput(), context.getCharset(), options.isZip());
         String prolog = getProlog();
         if (prolog != null) {
-        	writer.write(prolog);
+            writer.write(prolog);
         }
 
         return writer;
@@ -100,7 +100,7 @@ public abstract class AbstractWriterConsumerWorker<OP extends ExportOptions> ext
 
         String epilog = getEpilog();
         if (epilog != null) {
-        	writer.write(epilog);
+            writer.write(epilog);
         }
         writer.flush();
     }

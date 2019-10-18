@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,55 +26,55 @@ import java.util.List;
  */
 public abstract class RemovableAjaxTimerBehavior extends AbstractAjaxTimerBehavior {
 
-	private static final Trace LOGGER = TraceManager.getTrace(RemovableAjaxTimerBehavior.class);
+    private static final Trace LOGGER = TraceManager.getTrace(RemovableAjaxTimerBehavior.class);
 
-	@NotNull private final Component parent;
-	private final long updateInterval;
-	private boolean enabled = true;
-	private long expires;
+    @NotNull private final Component parent;
+    private final long updateInterval;
+    private boolean enabled = true;
+    private long expires;
 
-	public RemovableAjaxTimerBehavior(@NotNull Component parent, long updateInterval) {
-		super(Duration.milliseconds(updateInterval));
-		this.updateInterval = updateInterval;
-		this.parent = parent;
-	}
+    public RemovableAjaxTimerBehavior(@NotNull Component parent, long updateInterval) {
+        super(Duration.milliseconds(updateInterval));
+        this.updateInterval = updateInterval;
+        this.parent = parent;
+    }
 
-	@Override
-	protected void onTimer(AjaxRequestTarget target) {
-		LOGGER.trace("onTimer called for {}; enabled = {}", this, enabled);
-		if (enabled) {
-			handleOnTimer(target);
-		}
-		cleanup();
-	}
+    @Override
+    protected void onTimer(AjaxRequestTarget target) {
+        LOGGER.trace("onTimer called for {}; enabled = {}", this, enabled);
+        if (enabled) {
+            handleOnTimer(target);
+        }
+        cleanup();
+    }
 
-	public void cleanup() {
-		synchronized (parent) {
-			List<RemovableAjaxTimerBehavior> toBeRemoved = new ArrayList<>();
-			for (Behavior behavior : parent.getBehaviors()) {
-				if (behavior instanceof RemovableAjaxTimerBehavior && ((RemovableAjaxTimerBehavior) behavior).isExpired()) {
-					toBeRemoved.add((RemovableAjaxTimerBehavior) behavior);
-				}
-			}
-			for (RemovableAjaxTimerBehavior behavior : toBeRemoved) {
-				LOGGER.trace("Removing {} from {}", behavior, parent);
-				parent.remove(behavior);
-			}
-		}
-	}
+    public void cleanup() {
+        synchronized (parent) {
+            List<RemovableAjaxTimerBehavior> toBeRemoved = new ArrayList<>();
+            for (Behavior behavior : parent.getBehaviors()) {
+                if (behavior instanceof RemovableAjaxTimerBehavior && ((RemovableAjaxTimerBehavior) behavior).isExpired()) {
+                    toBeRemoved.add((RemovableAjaxTimerBehavior) behavior);
+                }
+            }
+            for (RemovableAjaxTimerBehavior behavior : toBeRemoved) {
+                LOGGER.trace("Removing {} from {}", behavior, parent);
+                parent.remove(behavior);
+            }
+        }
+    }
 
-	private boolean isExpired() {
-		return expires != 0 && System.currentTimeMillis() >= expires;
-	}
+    private boolean isExpired() {
+        return expires != 0 && System.currentTimeMillis() >= expires;
+    }
 
-	protected abstract void handleOnTimer(AjaxRequestTarget target);
+    protected abstract void handleOnTimer(AjaxRequestTarget target);
 
-	public void remove(AjaxRequestTarget target) {
-		LOGGER.trace("remove() called, setting enabled := false and calling stop() method [{}]", this);
-		enabled = false;
-		expires = System.currentTimeMillis() + 2*updateInterval;
-		stop(target);
-		cleanup();			// just to call cleanup at every possible place
-	}
+    public void remove(AjaxRequestTarget target) {
+        LOGGER.trace("remove() called, setting enabled := false and calling stop() method [{}]", this);
+        enabled = false;
+        expires = System.currentTimeMillis() + 2*updateInterval;
+        stop(target);
+        cleanup();            // just to call cleanup at every possible place
+    }
 
 }

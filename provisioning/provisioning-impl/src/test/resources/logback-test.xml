@@ -2,45 +2,45 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <configuration>
-	<appender name="X" class="ch.qos.logback.core.FileAppender">
-		<file>./target/test.log</file>
-		<encoder>
-			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
-		</encoder>
-	</appender>
-	<appender name="TracingAppender" class="com.evolveum.midpoint.util.logging.TracingAppender">
-		<layout>
-			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
-		</layout>
-	</appender>
-	<turboFilter class="com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter"/>
+    <appender name="X" class="ch.qos.logback.core.FileAppender">
+        <file>./target/test.log</file>
+        <encoder>
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="TracingAppender" class="com.evolveum.midpoint.util.logging.TracingAppender">
+        <layout>
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+        </layout>
+    </appender>
+    <turboFilter class="com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter"/>
 
-	<logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="ERROR"/>
-	<logger name="com.evolveum.midpoint" level="TRACE" />
-	<logger name="com.evolveum.midpoint.provisioning.impl" level="ALL" />
-	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.repo.api.OptimisticLockingRunner" level="TRACE" />
+    <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="ERROR"/>
+    <logger name="com.evolveum.midpoint" level="TRACE" />
+    <logger name="com.evolveum.midpoint.provisioning.impl" level="ALL" />
+    <logger name="com.evolveum.midpoint.repo" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.repo.api.OptimisticLockingRunner" level="TRACE" />
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="INFO"/>
-    
+
     <!-- Do not change this. Make sure complete ConnId logging is always enabled in
          the tests. If there is any bug in ConnId logging this should reveal it. -->
     <logger name="org.identityconnectors" level="TRACE" />
-    
+
     <logger name="com.evolveum.polygon" level="TRACE" />
     <logger name="com.evolveum.icf" level="TRACE" />
     <logger name="org.forgerock.openicf" level="TRACE" />
-    
+
     <logger name="com.evolveum.icf.dummy.resource" level="TRACE"/>
-    
+
     <!-- too loud: DEBUG -->
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="TRACE" />
     <logger name="com.evolveum.midpoint.prism.impl.schema" level="DEBUG" />
-    
+
     <!-- WARNING! See also logging.properties. Apache LDAP API logs too much. Therefore it is limited on JUL level. -->
     <logger name="org.apache.directory" level="INFO" />
     <logger name="org.apache.directory.api.ldap.model.schema.registries" level="INFO" />
@@ -49,10 +49,10 @@
     <logger name="org.apache.directory.api.CODEC_LOG" level="INFO" />
     <logger name="org.apache.directory.api.ldap.codec" level="INFO" />
     <logger name="org.apache.directory.CURSOR_LOG" level="INFO" />
-	<logger name="PROFILING" level="TRACE" />
-	<root level="INFO">
-		<appender-ref ref="X" />
-		<appender-ref ref="TracingAppender" />
-	</root>
+    <logger name="PROFILING" level="TRACE" />
+    <root level="INFO">
+        <appender-ref ref="X" />
+        <appender-ref ref="TracingAppender" />
+    </root>
 </configuration>
 

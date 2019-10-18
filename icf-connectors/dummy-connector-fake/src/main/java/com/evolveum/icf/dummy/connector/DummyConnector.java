@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.icf.dummy.connector;
@@ -32,7 +32,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 
     private static final Log log = Log.getLog(DummyConnector.class);
 
-	private static final String FAKE_ATTR_NAME = "fakeAttr";
+    private static final String FAKE_ATTR_NAME = "fakeAttr";
 
     /**
      * Place holder for the {@link Configuration} passed into the init() method
@@ -84,7 +84,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         throw new UnsupportedOperationException("Create is not supported in this shamefull fake");
     }
 
-	/**
+    /**
      * {@inheritDoc}
      */
     public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
@@ -92,7 +92,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         throw new UnsupportedOperationException("Update is not supported in this shamefull fake");
     }
 
-	/**
+    /**
      * {@inheritDoc}
      */
     public Uid addAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
@@ -108,7 +108,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         throw new UnsupportedOperationException("Remove attribute values is not supported in this shamefull fake");
     }
 
-	/**
+    /**
      * {@inheritDoc}
      */
     public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
@@ -129,9 +129,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 
 
         AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(FAKE_ATTR_NAME, String.class);
-    	attrBuilder.setMultiValued(true);
-    	attrBuilder.setRequired(false);
-    	objClassBuilder.addAttributeInfo(attrBuilder.build());
+        attrBuilder.setMultiValued(true);
+        attrBuilder.setRequired(false);
+        objClassBuilder.addAttributeInfo(attrBuilder.build());
 
         // __PASSWORD__ attribute
         objClassBuilder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
@@ -171,7 +171,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public Object runScriptOnConnector(ScriptContext request, OperationOptions options) {
 
-    	throw new UnsupportedOperationException("Scripts are not supported in this shamefull fake");
+        throw new UnsupportedOperationException("Scripts are not supported in this shamefull fake");
     }
 
     /**
@@ -179,7 +179,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
 
-    	throw new UnsupportedOperationException("Scripts are not supported in this shamefull fake");
+        throw new UnsupportedOperationException("Scripts are not supported in this shamefull fake");
     }
 
     /**
@@ -200,7 +200,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("executeQuery::end");
     }
 
-	/**
+    /**
      * {@inheritDoc}
      */
     public void sync(ObjectClass objectClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
@@ -230,20 +230,20 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("test::end");
     }
 
-	private ConnectorObject getFooConnectorObject() {
-		ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
+    private ConnectorObject getFooConnectorObject() {
+        ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
 
-		builder.setUid("foo");
-		builder.addAttribute(Name.NAME, "foo");
+        builder.setUid("foo");
+        builder.addAttribute(Name.NAME, "foo");
 
-		builder.addAttribute(FAKE_ATTR_NAME, "fake foo");
+        builder.addAttribute(FAKE_ATTR_NAME, "fake foo");
 
-		GuardedString gs = new GuardedString("sup3rS3cr3tFak3".toCharArray());
-		builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
+        GuardedString gs = new GuardedString("sup3rS3cr3tFak3".toCharArray());
+        builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
 
-		builder.addAttribute(OperationalAttributes.ENABLE_NAME, true);
+        builder.addAttribute(OperationalAttributes.ENABLE_NAME, true);
 
         return builder.build();
-	}
+    }
 
 }

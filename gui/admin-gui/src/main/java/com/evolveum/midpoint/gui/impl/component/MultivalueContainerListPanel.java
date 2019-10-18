@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.component;
@@ -63,34 +63,34 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 public abstract class MultivalueContainerListPanel<C extends Containerable, S extends Serializable> extends BasePanel<PrismContainerWrapper<C>> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String DOT_CLASS = MultivalueContainerListPanel.class.getName() + ".";
-	private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
-	
-	public static final String ID_ITEMS = "items";
-	private static final String ID_ITEMS_TABLE = "itemsTable";
-	public static final String ID_SEARCH_ITEM_PANEL = "search";
-	
+    private static final String DOT_CLASS = MultivalueContainerListPanel.class.getName() + ".";
+    private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
 
-	private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanel.class);
+    public static final String ID_ITEMS = "items";
+    private static final String ID_ITEMS_TABLE = "itemsTable";
+    public static final String ID_SEARCH_ITEM_PANEL = "search";
 
-	private TableId tableId;
-	private PageStorage pageStorage;
-	
-	private LoadableModel<Search> searchModel = null;
-	
-	public MultivalueContainerListPanel(String id, IModel<PrismContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
-		super(id, model);
-		this.tableId = tableId;
-		this.pageStorage = pageStorage;
 
-		searchModel = new LoadableModel<Search>(false) {
+    private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanel.class);
 
-			private static final long serialVersionUID = 1L;
+    private TableId tableId;
+    private PageStorage pageStorage;
 
-			@Override
-			protected Search load() {
+    private LoadableModel<Search> searchModel = null;
+
+    public MultivalueContainerListPanel(String id, IModel<PrismContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
+        super(id, model);
+        this.tableId = tableId;
+        this.pageStorage = pageStorage;
+
+        searchModel = new LoadableModel<Search>(false) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Search load() {
                 if (model == null || model.getObject() == null){
                     return null;
                 }
@@ -98,460 +98,460 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
                 Search search = new Search(model.getObject().getCompileTimeClass(), availableDefs);
                 return search;
-			}
+            }
 
 
-		};
-	}
-	
-	
-	public MultivalueContainerListPanel(String id, PrismContainerDefinition<C> def, TableId tableId, PageStorage pageStorage) {
-		super(id);
-		this.tableId = tableId;
-		this.pageStorage = pageStorage;
+        };
+    }
 
-		searchModel = new LoadableModel<Search>(false) {
 
-			private static final long serialVersionUID = 1L;
+    public MultivalueContainerListPanel(String id, PrismContainerDefinition<C> def, TableId tableId, PageStorage pageStorage) {
+        super(id);
+        this.tableId = tableId;
+        this.pageStorage = pageStorage;
 
-			@Override
-			protected Search load() {
+        searchModel = new LoadableModel<Search>(false) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected Search load() {
                 List<SearchItemDefinition> availableDefs = initSearchableItems(def);
 
                 Search search = new Search(def.getCompileTimeClass(), availableDefs);
                 return search;
-			}
+            }
 
 
-		};
-	}
-	
-	protected abstract List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef);
-	
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
+        };
+    }
 
-		initPaging();
-		initLayout();
-	}
-	
-	private void initLayout() {
+    protected abstract List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef);
 
-		initListPanel();
-		setOutputMarkupId(true);
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
 
-	}
-	
-	protected abstract void initPaging();
+        initPaging();
+        initLayout();
+    }
 
-	private void initListPanel() {
-		WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS);
-		itemsContainer.setOutputMarkupId(true);
-		itemsContainer.setOutputMarkupPlaceholderTag(true);
-		add(itemsContainer);
+    private void initLayout() {
 
-		BoxedTablePanel<PrismContainerValueWrapper<C>> itemTable = initItemTable();
-		itemTable.setOutputMarkupId(true);
-		itemTable.setOutputMarkupPlaceholderTag(true);
-		itemsContainer.add(itemTable);
+        initListPanel();
+        setOutputMarkupId(true);
 
-		WebMarkupContainer searchContainer = getSearchPanel(ID_SEARCH_ITEM_PANEL);
-		searchContainer.setOutputMarkupId(true);
-		searchContainer.setOutputMarkupPlaceholderTag(true);
-		itemsContainer.add(searchContainer);
-		itemsContainer.add(new VisibleEnableBehaviour() {
+    }
 
-			private static final long serialVersionUID = 1L;
+    protected abstract void initPaging();
 
-			@Override
-			public boolean isVisible() {
-				return isListPanelVisible();
-			}
-		});
+    private void initListPanel() {
+        WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS);
+        itemsContainer.setOutputMarkupId(true);
+        itemsContainer.setOutputMarkupPlaceholderTag(true);
+        add(itemsContainer);
 
-	}
-	
-	protected boolean isListPanelVisible() {
-		return true;
-	}
-	
-	protected WebMarkupContainer getSearchPanel(String contentAreaId) {
-		return new WebMarkupContainer(contentAreaId);
-	}
-	
-	protected abstract boolean enableActionNewObject();
+        BoxedTablePanel<PrismContainerValueWrapper<C>> itemTable = initItemTable();
+        itemTable.setOutputMarkupId(true);
+        itemTable.setOutputMarkupPlaceholderTag(true);
+        itemsContainer.add(itemTable);
 
-	protected IModel<List<PrismContainerValueWrapper<C>>> loadValuesModel() {
-		if (getModel() == null) {
-			LOGGER.info("Parent model is null. Cannot load model for values for table: {}", tableId.name());
-		}
-		
-		return new PropertyModel<>(getModel(), "values");
-	}
-	
-	private BoxedTablePanel<PrismContainerValueWrapper<C>> initItemTable() {
+        WebMarkupContainer searchContainer = getSearchPanel(ID_SEARCH_ITEM_PANEL);
+        searchContainer.setOutputMarkupId(true);
+        searchContainer.setOutputMarkupPlaceholderTag(true);
+        itemsContainer.add(searchContainer);
+        itemsContainer.add(new VisibleEnableBehaviour() {
 
-		MultivalueContainerListDataProvider<C> containersProvider = new MultivalueContainerListDataProvider<C>(this, loadValuesModel()) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-				pageStorage.setPaging(paging);
-			}
+            @Override
+            public boolean isVisible() {
+                return isListPanelVisible();
+            }
+        });
 
-			@Override
-			public ObjectQuery getQuery() {
-				return MultivalueContainerListPanel.this.createProviderQuery();
-			}
-			
-			@Override
-			protected List<PrismContainerValueWrapper<C>> searchThroughList() {
-				List<PrismContainerValueWrapper<C>> resultList = super.searchThroughList();
-				return postSearch(resultList);
-			}
+    }
 
-		};
+    protected boolean isListPanelVisible() {
+        return true;
+    }
 
-		List<IColumn<PrismContainerValueWrapper<C>, String>> columns = createColumns();
+    protected WebMarkupContainer getSearchPanel(String contentAreaId) {
+        return new WebMarkupContainer(contentAreaId);
+    }
 
-		int itemPerPage = (int) getPageBase().getItemsPerPage(tableId);
-		BoxedTablePanel<PrismContainerValueWrapper<C>> itemTable = new BoxedTablePanel<PrismContainerValueWrapper<C>>(ID_ITEMS_TABLE,
-				containersProvider, columns, tableId, itemPerPage) {
-			private static final long serialVersionUID = 1L;
+    protected abstract boolean enableActionNewObject();
 
-			@Override
-			protected WebMarkupContainer createHeader(String headerId) {
-				return MultivalueContainerListPanel.this.initSearch(headerId);
-			}
+    protected IModel<List<PrismContainerValueWrapper<C>>> loadValuesModel() {
+        if (getModel() == null) {
+            LOGGER.info("Parent model is null. Cannot load model for values for table: {}", tableId.name());
+        }
 
-			@Override
-			public int getItemsPerPage() {
-				return getPageBase().getSessionStorage().getUserProfile().getTables()
-						.get(getTableId());
-			}
+        return new PropertyModel<>(getModel(), "values");
+    }
 
-			@Override
-			protected Item<PrismContainerValueWrapper<C>> customizeNewRowItem(Item<PrismContainerValueWrapper<C>> item,
-																					  IModel<PrismContainerValueWrapper<C>> model) {
-				item.add(AttributeModifier.append("class", new IModel<String>() {
-					
-							private static final long serialVersionUID = 1L;
+    private BoxedTablePanel<PrismContainerValueWrapper<C>> initItemTable() {
 
-							@Override
-							public String getObject() {
-								return GuiImplUtil.getObjectStatus(model.getObject());
-							}
-						}));
-				return item;
-			}
-			
-			@Override
-			protected WebMarkupContainer createButtonToolbar(String id) {
-				return initButtonToolbar(id);
-			}
+        MultivalueContainerListDataProvider<C> containersProvider = new MultivalueContainerListDataProvider<C>(this, loadValuesModel()) {
+            private static final long serialVersionUID = 1L;
 
-		};
-		itemTable.setOutputMarkupId(true);
-		itemTable.setCurrentPage(pageStorage != null ? pageStorage.getPaging() : null);
-		return itemTable;
+            @Override
+            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+                pageStorage.setPaging(paging);
+            }
 
-	}
-	
-	protected WebMarkupContainer initButtonToolbar(String id) {
-		return getNewItemButton(id);
-	}
-	
-	public MultifunctionalButton<S> getNewItemButton(String id) {
-		MultifunctionalButton<S> newObjectIcon =
-				new MultifunctionalButton<S>(id) {
-					private static final long serialVersionUID = 1L;
+            @Override
+            public ObjectQuery getQuery() {
+                return MultivalueContainerListPanel.this.createProviderQuery();
+            }
 
-					@Override
-					protected List<S> getAdditionalButtonsObjects() {
-						return getNewObjectInfluencesList();
-					}
+            @Override
+            protected List<PrismContainerValueWrapper<C>> searchThroughList() {
+                List<PrismContainerValueWrapper<C>> resultList = super.searchThroughList();
+                return postSearch(resultList);
+            }
 
-					@Override
-					protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject) {
-						List<S> additionalButtonObjects = getNewObjectInfluencesList();
-						if (influencingObject == null && (additionalButtonObjects == null || additionalButtonObjects.size() == 0)) {
-							newItemPerformed(target);
-						} else {
-							newItemPerformed(target, influencingObject);
-						}
-					}
+        };
 
-					@Override
-					protected CompositedIconBuilder getAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
-						CompositedIconBuilder builder = MultivalueContainerListPanel.this.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
-						return builder != null ? builder : super.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
-					}
+        List<IColumn<PrismContainerValueWrapper<C>, String>> columns = createColumns();
 
-					@Override
-					protected DisplayType getMainButtonDisplayType() {
-						return getNewObjectButtonDisplayType();
-					}
+        int itemPerPage = (int) getPageBase().getItemsPerPage(tableId);
+        BoxedTablePanel<PrismContainerValueWrapper<C>> itemTable = new BoxedTablePanel<PrismContainerValueWrapper<C>>(ID_ITEMS_TABLE,
+                containersProvider, columns, tableId, itemPerPage) {
+            private static final long serialVersionUID = 1L;
 
-					@Override
-					protected DisplayType getAdditionalButtonDisplayType(S buttonObject) {
-						return getNewObjectAdditionalButtonDisplayType(buttonObject);
-					}
+            @Override
+            protected WebMarkupContainer createHeader(String headerId) {
+                return MultivalueContainerListPanel.this.initSearch(headerId);
+            }
 
-					@Override
-					protected DisplayType getDefaultObjectButtonDisplayType() {
-						return getNewObjectButtonDisplayType();
-					}
-				};
-		newObjectIcon.add(AttributeModifier.append("class", "btn-group btn-margin-right"));
-		newObjectIcon.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+            @Override
+            public int getItemsPerPage() {
+                return getPageBase().getSessionStorage().getUserProfile().getTables()
+                        .get(getTableId());
+            }
 
-			@Override
-			public boolean isVisible() {
-				return enableActionNewObject();
-			}
+            @Override
+            protected Item<PrismContainerValueWrapper<C>> customizeNewRowItem(Item<PrismContainerValueWrapper<C>> item,
+                                                                                      IModel<PrismContainerValueWrapper<C>> model) {
+                item.add(AttributeModifier.append("class", new IModel<String>() {
 
-			@Override
-			public boolean isEnabled() {
-				return isNewObjectButtonEnabled();
-			}
-		});
-//		newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
-		return newObjectIcon;
-	}
+                            private static final long serialVersionUID = 1L;
 
-	protected boolean isNewObjectButtonEnabled(){
-		return true;
-	}
+                            @Override
+                            public String getObject() {
+                                return GuiImplUtil.getObjectStatus(model.getObject());
+                            }
+                        }));
+                return item;
+            }
 
-	protected List<S> getNewObjectInfluencesList(){
-		return new ArrayList<>();
-	}
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                return initButtonToolbar(id);
+            }
 
-	protected CompositedIconBuilder getAdditionalIconBuilder(S additionalButtonObject, DisplayType additionalButtonDisplayType){
-		return null;
-	}
+        };
+        itemTable.setOutputMarkupId(true);
+        itemTable.setCurrentPage(pageStorage != null ? pageStorage.getPaging() : null);
+        return itemTable;
 
-	protected DisplayType getNewObjectButtonDisplayType(){
-		return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
-	}
+    }
 
-	protected DisplayType getNewObjectAdditionalButtonDisplayType(S buttonObject){
-		return null;
-	}
+    protected WebMarkupContainer initButtonToolbar(String id) {
+        return getNewItemButton(id);
+    }
 
-	protected WebMarkupContainer initSearch(String headerId) {
-		SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
-			
-			private static final long serialVersionUID = 1L;
+    public MultifunctionalButton<S> getNewItemButton(String id) {
+        MultifunctionalButton<S> newObjectIcon =
+                new MultifunctionalButton<S>(id) {
+                    private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-				MultivalueContainerListPanel.this.searchPerformed(query, target);
-			}
-		};
-		searchPanel.add(new VisibleBehaviour(() -> isSearchEnabled()));
-		return searchPanel;
-	}
+                    @Override
+                    protected List<S> getAdditionalButtonsObjects() {
+                        return getNewObjectInfluencesList();
+                    }
 
-	protected boolean isSearchEnabled(){
-		return true;
-	}
+                    @Override
+                    protected void buttonClickPerformed(AjaxRequestTarget target, S influencingObject) {
+                        List<S> additionalButtonObjects = getNewObjectInfluencesList();
+                        if (influencingObject == null && (additionalButtonObjects == null || additionalButtonObjects.size() == 0)) {
+                            newItemPerformed(target);
+                        } else {
+                            newItemPerformed(target, influencingObject);
+                        }
+                    }
 
-	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-		Table table = getItemTable();
-		table.setCurrentPage(null);
-		target.add((Component) table);
-		target.add(getPageBase().getFeedbackPanel());
+                    @Override
+                    protected CompositedIconBuilder getAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
+                        CompositedIconBuilder builder = MultivalueContainerListPanel.this.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
+                        return builder != null ? builder : super.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
+                    }
 
-	}
-	
-	private ObjectQuery getQuery() {
-		Search search = searchModel.getObject();
-		ObjectQuery query = search.createObjectQuery(getPageBase().getPrismContext());
-		return query;
-	}
-	
-	private MultivalueContainerListDataProvider<C> getDataProvider() {
-		return (MultivalueContainerListDataProvider<C>) getItemTable().getDataTable().getDataProvider();
-	}
+                    @Override
+                    protected DisplayType getMainButtonDisplayType() {
+                        return getNewObjectButtonDisplayType();
+                    }
 
-	
-	protected IModel<String> createStyleClassModelForNewObjectIcon() {
+                    @Override
+                    protected DisplayType getAdditionalButtonDisplayType(S buttonObject) {
+                        return getNewObjectAdditionalButtonDisplayType(buttonObject);
+                    }
+
+                    @Override
+                    protected DisplayType getDefaultObjectButtonDisplayType() {
+                        return getNewObjectButtonDisplayType();
+                    }
+                };
+        newObjectIcon.add(AttributeModifier.append("class", "btn-group btn-margin-right"));
+        newObjectIcon.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return enableActionNewObject();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return isNewObjectButtonEnabled();
+            }
+        });
+//        newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
+        return newObjectIcon;
+    }
+
+    protected boolean isNewObjectButtonEnabled(){
+        return true;
+    }
+
+    protected List<S> getNewObjectInfluencesList(){
+        return new ArrayList<>();
+    }
+
+    protected CompositedIconBuilder getAdditionalIconBuilder(S additionalButtonObject, DisplayType additionalButtonDisplayType){
+        return null;
+    }
+
+    protected DisplayType getNewObjectButtonDisplayType(){
+        return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", createStringResource("MainObjectListPanel.newObject").getString());
+    }
+
+    protected DisplayType getNewObjectAdditionalButtonDisplayType(S buttonObject){
+        return null;
+    }
+
+    protected WebMarkupContainer initSearch(String headerId) {
+        SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+                MultivalueContainerListPanel.this.searchPerformed(query, target);
+            }
+        };
+        searchPanel.add(new VisibleBehaviour(() -> isSearchEnabled()));
+        return searchPanel;
+    }
+
+    protected boolean isSearchEnabled(){
+        return true;
+    }
+
+    private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+        Table table = getItemTable();
+        table.setCurrentPage(null);
+        target.add((Component) table);
+        target.add(getPageBase().getFeedbackPanel());
+
+    }
+
+    private ObjectQuery getQuery() {
+        Search search = searchModel.getObject();
+        ObjectQuery query = search.createObjectQuery(getPageBase().getPrismContext());
+        return query;
+    }
+
+    private MultivalueContainerListDataProvider<C> getDataProvider() {
+        return (MultivalueContainerListDataProvider<C>) getItemTable().getDataTable().getDataProvider();
+    }
+
+
+    protected IModel<String> createStyleClassModelForNewObjectIcon() {
         return new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-            	return "btn btn-success btn-sm";
+                return "btn btn-success btn-sm";
             }
         };
     }
-	
-	protected abstract List<PrismContainerValueWrapper<C>> postSearch(List<PrismContainerValueWrapper<C>> items);
 
-	private ObjectQuery createProviderQuery() {
-		ObjectQuery searchQuery = isSearchEnabled() ? getQuery() : null;
+    protected abstract List<PrismContainerValueWrapper<C>> postSearch(List<PrismContainerValueWrapper<C>> items);
 
-		ObjectQuery customQuery = createQuery();
+    private ObjectQuery createProviderQuery() {
+        ObjectQuery searchQuery = isSearchEnabled() ? getQuery() : null;
 
-		if (searchQuery != null && searchQuery.getFilter() != null) {
-			if (customQuery != null && customQuery.getFilter() != null) {
-				return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createAnd(customQuery.getFilter(), searchQuery.getFilter()));
-			}
-			return searchQuery;
+        ObjectQuery customQuery = createQuery();
 
-		}
-		return customQuery;
-	}
+        if (searchQuery != null && searchQuery.getFilter() != null) {
+            if (customQuery != null && customQuery.getFilter() != null) {
+                return getPrismContext().queryFactory().createQuery(getPrismContext().queryFactory().createAnd(customQuery.getFilter(), searchQuery.getFilter()));
+            }
+            return searchQuery;
 
-	protected abstract ObjectQuery createQuery();
+        }
+        return customQuery;
+    }
 
-	protected abstract List<IColumn<PrismContainerValueWrapper<C>, String>> createColumns();
-	
-	protected void newItemPerformed(AjaxRequestTarget target){}
-	
-	protected void newItemPerformed(AjaxRequestTarget target, S influencingObject){}
+    protected abstract ObjectQuery createQuery();
 
-	public BoxedTablePanel<PrismContainerValueWrapper<C>> getItemTable() {
-		return (BoxedTablePanel<PrismContainerValueWrapper<C>>) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));
-	}
+    protected abstract List<IColumn<PrismContainerValueWrapper<C>, String>> createColumns();
 
-	public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
-		ajaxRequestTarget.add(getItemContainer().addOrReplace(initItemTable()));
-	}
+    protected void newItemPerformed(AjaxRequestTarget target){}
 
-	public WebMarkupContainer getItemContainer() {
-		return (WebMarkupContainer) get(ID_ITEMS);
-	}
-	
-	public PrismObject getFocusObject(){
-		AssignmentHolderTypeMainPanel mainPanel = findParent(AssignmentHolderTypeMainPanel.class);
-		if (mainPanel != null) {
-			return mainPanel.getObjectWrapper().getObject();
-		}
-		return null;
-	}
-	
-	public List<PrismContainerValueWrapper<C>> getSelectedItems() {
-		BoxedTablePanel<PrismContainerValueWrapper<C>> itemsTable = getItemTable();
-		MultivalueContainerListDataProvider<C> itemsProvider = (MultivalueContainerListDataProvider<C>) itemsTable.getDataTable()
-				.getDataProvider();
-		return itemsProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
-	}
-	
-	public void reloadSavePreviewButtons(AjaxRequestTarget target){
-		FocusMainPanel mainPanel = findParent(FocusMainPanel.class);
-		if (mainPanel != null) {
-			mainPanel.reloadSavePreviewButtons(target);
-		}
-	}
-	
-	public List<PrismContainerValueWrapper<C>> getPerformedSelectedItems(IModel<PrismContainerValueWrapper<C>> rowModel) {
-		List<PrismContainerValueWrapper<C>> performedItems = new ArrayList<PrismContainerValueWrapper<C>>();
-		List<PrismContainerValueWrapper<C>> listItems = getSelectedItems();
-		if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {
-			if(rowModel == null) {
-				performedItems.addAll(listItems);
-				listItems.forEach(itemConfigurationTypeContainerValueWrapper -> {
-					itemConfigurationTypeContainerValueWrapper.setSelected(false);
-				});
-			} else {
-				performedItems.add(rowModel.getObject());
-				rowModel.getObject().setSelected(false);
-			}
-		}
-		return performedItems;
-	}
-	
-	//TODO generalize for properites
-	public PrismContainerValueWrapper<C> createNewItemContainerValueWrapper(
-			PrismContainerValue<C> newItem,
-			PrismContainerWrapper<C> model, AjaxRequestTarget target) {
+    protected void newItemPerformed(AjaxRequestTarget target, S influencingObject){}
 
-		return WebPrismUtil.createNewValueWrapper(model, newItem, getPageBase(), target);
-		
-	}
-	
-	public ColumnMenuAction<PrismContainerValueWrapper<C>> createDeleteColumnAction() {
-		return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
-			private static final long serialVersionUID = 1L;
+    public BoxedTablePanel<PrismContainerValueWrapper<C>> getItemTable() {
+        return (BoxedTablePanel<PrismContainerValueWrapper<C>>) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));
+    }
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				if (getRowModel() == null) {
-					deleteItemPerformed(target, getSelectedItems());
-				} else {
-					List<PrismContainerValueWrapper<C>> toDelete = new ArrayList<>();
-					toDelete.add(getRowModel().getObject());
-					deleteItemPerformed(target, toDelete);
-				}
-			}
-		};
-	}
+    public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
+        ajaxRequestTarget.add(getItemContainer().addOrReplace(initItemTable()));
+    }
 
-	public ColumnMenuAction<PrismContainerValueWrapper<C>> createEditColumnAction() {
-		return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
-			private static final long serialVersionUID = 1L;
+    public WebMarkupContainer getItemContainer() {
+        return (WebMarkupContainer) get(ID_ITEMS);
+    }
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				itemPerformedForDefaultAction(target, getRowModel(), getSelectedItems());
-			}
-		};
-	}
-	
-	protected abstract void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel, List<PrismContainerValueWrapper<C>> listItems);
-	
-	protected void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete) {
-		if (toDelete == null || toDelete.isEmpty()){
-			warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
-			target.add(getPageBase().getFeedbackPanel());
-			return;
-		}
-		toDelete.forEach(value -> {
-			if (value.getStatus() == ValueStatus.ADDED) {
-				PrismContainerWrapper<C> wrapper = getModelObject();
-				wrapper.getValues().remove(value);
-			} else {
-				value.setStatus(ValueStatus.DELETED);
-			}
-			value.setSelected(false);
-		});
-		refreshTable(target);
-		reloadSavePreviewButtons(target);
-	}
-	
-	public List<InlineMenuItem> getDefaultMenuActions() {
-		List<InlineMenuItem> menuItems = new ArrayList<>();
-		menuItems.add(new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
-			private static final long serialVersionUID = 1L;
+    public PrismObject getFocusObject(){
+        AssignmentHolderTypeMainPanel mainPanel = findParent(AssignmentHolderTypeMainPanel.class);
+        if (mainPanel != null) {
+            return mainPanel.getObjectWrapper().getObject();
+        }
+        return null;
+    }
 
-			@Override
-			public String getButtonIconCssClass() {
-				return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
-			}
+    public List<PrismContainerValueWrapper<C>> getSelectedItems() {
+        BoxedTablePanel<PrismContainerValueWrapper<C>> itemsTable = getItemTable();
+        MultivalueContainerListDataProvider<C> itemsProvider = (MultivalueContainerListDataProvider<C>) itemsTable.getDataTable()
+                .getDataProvider();
+        return itemsProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
+    }
 
-			@Override
-			public InlineMenuItemAction initAction() {
-				return createDeleteColumnAction();
-			}
-		});
+    public void reloadSavePreviewButtons(AjaxRequestTarget target){
+        FocusMainPanel mainPanel = findParent(FocusMainPanel.class);
+        if (mainPanel != null) {
+            mainPanel.reloadSavePreviewButtons(target);
+        }
+    }
 
-		menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
-			private static final long serialVersionUID = 1L;
+    public List<PrismContainerValueWrapper<C>> getPerformedSelectedItems(IModel<PrismContainerValueWrapper<C>> rowModel) {
+        List<PrismContainerValueWrapper<C>> performedItems = new ArrayList<PrismContainerValueWrapper<C>>();
+        List<PrismContainerValueWrapper<C>> listItems = getSelectedItems();
+        if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {
+            if(rowModel == null) {
+                performedItems.addAll(listItems);
+                listItems.forEach(itemConfigurationTypeContainerValueWrapper -> {
+                    itemConfigurationTypeContainerValueWrapper.setSelected(false);
+                });
+            } else {
+                performedItems.add(rowModel.getObject());
+                rowModel.getObject().setSelected(false);
+            }
+        }
+        return performedItems;
+    }
 
-			@Override
-			public String getButtonIconCssClass() {
-				return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
-			}
+    //TODO generalize for properites
+    public PrismContainerValueWrapper<C> createNewItemContainerValueWrapper(
+            PrismContainerValue<C> newItem,
+            PrismContainerWrapper<C> model, AjaxRequestTarget target) {
 
-			@Override
-			public InlineMenuItemAction initAction() {
-				return createEditColumnAction();
-			}
-		});
-		return menuItems;
-	}
+        return WebPrismUtil.createNewValueWrapper(model, newItem, getPageBase(), target);
+
+    }
+
+    public ColumnMenuAction<PrismContainerValueWrapper<C>> createDeleteColumnAction() {
+        return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                if (getRowModel() == null) {
+                    deleteItemPerformed(target, getSelectedItems());
+                } else {
+                    List<PrismContainerValueWrapper<C>> toDelete = new ArrayList<>();
+                    toDelete.add(getRowModel().getObject());
+                    deleteItemPerformed(target, toDelete);
+                }
+            }
+        };
+    }
+
+    public ColumnMenuAction<PrismContainerValueWrapper<C>> createEditColumnAction() {
+        return new ColumnMenuAction<PrismContainerValueWrapper<C>>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                itemPerformedForDefaultAction(target, getRowModel(), getSelectedItems());
+            }
+        };
+    }
+
+    protected abstract void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel, List<PrismContainerValueWrapper<C>> listItems);
+
+    protected void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete) {
+        if (toDelete == null || toDelete.isEmpty()){
+            warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+        toDelete.forEach(value -> {
+            if (value.getStatus() == ValueStatus.ADDED) {
+                PrismContainerWrapper<C> wrapper = getModelObject();
+                wrapper.getValues().remove(value);
+            } else {
+                value.setStatus(ValueStatus.DELETED);
+            }
+            value.setSelected(false);
+        });
+        refreshTable(target);
+        reloadSavePreviewButtons(target);
+    }
+
+    public List<InlineMenuItem> getDefaultMenuActions() {
+        List<InlineMenuItem> menuItems = new ArrayList<>();
+        menuItems.add(new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getButtonIconCssClass() {
+                return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return createDeleteColumnAction();
+            }
+        });
+
+        menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getButtonIconCssClass() {
+                return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+            }
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return createEditColumnAction();
+            }
+        });
+        return menuItems;
+    }
 }

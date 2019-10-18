@@ -7,6 +7,6 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="9af8fcad-05e2-46c0-9e0c-31c037931a32">
-	<name>mr3.3</name>
+      oid="9af8fcad-05e2-46c0-9e0c-31c037931a32">
+    <name>mr3.3</name>
 </role>

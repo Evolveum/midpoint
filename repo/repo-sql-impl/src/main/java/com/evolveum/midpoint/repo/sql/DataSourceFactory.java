@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -87,11 +87,11 @@ public class DataSourceFactory {
         config.setMaximumPoolSize(configuration.getMaxPoolSize());
 
         if (configuration.getMaxLifetime() != null) {
-        	config.setMaxLifetime(configuration.getMaxLifetime());
-        } 
-        
+            config.setMaxLifetime(configuration.getMaxLifetime());
+        }
+
         if (configuration.getIdleTimeout() != null) {
-        	config.setIdleTimeout(configuration.getIdleTimeout());
+            config.setIdleTimeout(configuration.getIdleTimeout());
         }
 
         config.setIsolateInternalQueries(true);
