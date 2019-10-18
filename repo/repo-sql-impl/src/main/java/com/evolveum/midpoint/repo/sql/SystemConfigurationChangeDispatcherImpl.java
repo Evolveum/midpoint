@@ -20,7 +20,6 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -51,7 +50,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
-    private static final Collection<SystemConfigurationChangeListener> listeners = new HashSet<>();
+    private static final Collection<SystemConfigurationChangeListener> LISTENERS = new HashSet<>();
 
     private String lastVersionApplied = null;
 
@@ -109,7 +108,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
     }
 
     private void notifyListeners(SystemConfigurationType configuration) {
-        for (SystemConfigurationChangeListener listener : listeners) {
+        for (SystemConfigurationChangeListener listener : LISTENERS) {
             try {
                 listener.update(configuration);
             } catch (Throwable t) {
@@ -212,8 +211,8 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 
     @Override
     public synchronized void registerListener(SystemConfigurationChangeListener listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
+        if (!LISTENERS.contains(listener)) {
+            LISTENERS.add(listener);
         } else {
             LOGGER.warn("Attempt to register already-registered listener: {}", listener);
         }
@@ -221,8 +220,8 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 
     @Override
     public synchronized void unregisterListener(SystemConfigurationChangeListener listener) {
-        if (listeners.contains(listener)) {
-            listeners.remove(listener);
+        if (LISTENERS.contains(listener)) {
+            LISTENERS.remove(listener);
         } else {
             LOGGER.warn("Attempt to unregister a listener that was not registered: {}", listener);
         }

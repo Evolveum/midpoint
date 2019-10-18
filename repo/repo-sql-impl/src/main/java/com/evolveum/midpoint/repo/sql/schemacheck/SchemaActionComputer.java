@@ -56,7 +56,7 @@ class SchemaActionComputer {
     @Autowired private BaseHelper baseHelper;
 
     @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
-    private static Set<Pair<String, String>> AUTOMATICALLY_UPGRADEABLE = new HashSet<>(
+    private static final Set<Pair<String, String>> AUTOMATICALLY_UPGRADEABLE = new HashSet<>(
             Arrays.asList(new ImmutablePair<>("3.8", "3.9"))
     );
 

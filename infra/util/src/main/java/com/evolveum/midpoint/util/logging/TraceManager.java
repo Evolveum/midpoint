@@ -20,7 +20,7 @@ public class TraceManager {
 
     private static final String PERFORMANCE_ADVISOR = "PERFORMANCE_ADVISOR";
 
-    private static Logger LOGGER = org.slf4j.LoggerFactory.getLogger(TraceManager.class);
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(TraceManager.class);
 
     public static Trace getTrace(Class clazz) {
         Logger logger = org.slf4j.LoggerFactory.getLogger(clazz);

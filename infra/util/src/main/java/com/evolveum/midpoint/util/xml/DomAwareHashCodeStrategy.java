@@ -24,7 +24,7 @@ import org.w3c.dom.Element;
 
 public class DomAwareHashCodeStrategy extends JAXBHashCodeStrategy {
 
-    public static HashCodeStrategy INSTANCE = new DomAwareHashCodeStrategy();
+    public static final HashCodeStrategy INSTANCE = new DomAwareHashCodeStrategy();
 
     @Override
     protected int hashCodeInternal(ObjectLocator locator, int hashCode, Object value) {

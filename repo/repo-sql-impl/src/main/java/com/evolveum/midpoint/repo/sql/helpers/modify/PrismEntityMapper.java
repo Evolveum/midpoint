@@ -37,29 +37,29 @@ import java.util.Map;
 @Component
 public class PrismEntityMapper {
 
-    private static final Map<Key, Mapper> mappers = new HashMap<>();
+    private static final Map<Key, Mapper> MAPPERS = new HashMap<>();
 
     static {
-        mappers.put(new Key(Enum.class, SchemaEnum.class), new EnumMapper());
-        mappers.put(new Key(PolyString.class, RPolyString.class), new PolyStringMapper());
-        mappers.put(new Key(ActivationType.class, RActivation.class), new ActivationMapper());
-        mappers.put(new Key(Referencable.class, REmbeddedReference.class), new EmbeddedObjectReferenceMapper());
-        mappers.put(new Key(OperationalStateType.class, ROperationalState.class), new OperationalStateMapper());
-        mappers.put(new Key(AutoassignSpecificationType.class, RAutoassignSpecification.class), new AutoassignSpecificationMapper());
-        mappers.put(new Key(QName.class, String.class), new QNameMapper());
+        MAPPERS.put(new Key(Enum.class, SchemaEnum.class), new EnumMapper());
+        MAPPERS.put(new Key(PolyString.class, RPolyString.class), new PolyStringMapper());
+        MAPPERS.put(new Key(ActivationType.class, RActivation.class), new ActivationMapper());
+        MAPPERS.put(new Key(Referencable.class, REmbeddedReference.class), new EmbeddedObjectReferenceMapper());
+        MAPPERS.put(new Key(OperationalStateType.class, ROperationalState.class), new OperationalStateMapper());
+        MAPPERS.put(new Key(AutoassignSpecificationType.class, RAutoassignSpecification.class), new AutoassignSpecificationMapper());
+        MAPPERS.put(new Key(QName.class, String.class), new QNameMapper());
 
-        mappers.put(new Key(Referencable.class, RObjectReference.class), new ObjectReferenceMapper());
-        mappers.put(new Key(Referencable.class, RAssignmentReference.class), new AssignmentReferenceMapper());
-        mappers.put(new Key(Referencable.class, RCaseWorkItemReference.class), new CaseWorkItemReferenceMapper());
-        mappers.put(new Key(AssignmentType.class, RAssignment.class), new AssignmentMapper());
-        mappers.put(new Key(TriggerType.class, RTrigger.class), new TriggerMapper());
-        mappers.put(new Key(OperationExecutionType.class, ROperationExecution.class), new OperationExecutionMapper());
-        mappers.put(new Key(CaseWorkItemType.class, RCaseWorkItem.class), new CaseWorkItemMapper());
+        MAPPERS.put(new Key(Referencable.class, RObjectReference.class), new ObjectReferenceMapper());
+        MAPPERS.put(new Key(Referencable.class, RAssignmentReference.class), new AssignmentReferenceMapper());
+        MAPPERS.put(new Key(Referencable.class, RCaseWorkItemReference.class), new CaseWorkItemReferenceMapper());
+        MAPPERS.put(new Key(AssignmentType.class, RAssignment.class), new AssignmentMapper());
+        MAPPERS.put(new Key(TriggerType.class, RTrigger.class), new TriggerMapper());
+        MAPPERS.put(new Key(OperationExecutionType.class, ROperationExecution.class), new OperationExecutionMapper());
+        MAPPERS.put(new Key(CaseWorkItemType.class, RCaseWorkItem.class), new CaseWorkItemMapper());
 
-        mappers.put(new Key(OperationResultType.class, OperationResult.class), new OperationResultMapper());
-        mappers.put(new Key(MetadataType.class, Metadata.class), new MetadataMapper());
+        MAPPERS.put(new Key(OperationResultType.class, OperationResult.class), new OperationResultMapper());
+        MAPPERS.put(new Key(MetadataType.class, Metadata.class), new MetadataMapper());
 
-        mappers.put(new Key(byte[].class, RFocusPhoto.class), new RFocusPhotoMapper());
+        MAPPERS.put(new Key(byte[].class, RFocusPhoto.class), new RFocusPhotoMapper());
     }
 
     @Autowired private RepositoryService repositoryService;
@@ -71,12 +71,12 @@ public class PrismEntityMapper {
     public boolean supports(Class inputType, Class outputType) {
         Key key = buildKey(inputType, outputType);
 
-        return mappers.containsKey(key);
+        return MAPPERS.containsKey(key);
     }
 
     public <I, O> Mapper<I, O> getMapper(Class<I> inputType, Class<O> outputType) {
         Key key = buildKey(inputType, outputType);
-        Mapper<I, O> mapper = mappers.get(key);
+        Mapper<I, O> mapper = MAPPERS.get(key);
         if (mapper == null) {
             throw new SystemException("Can't map '" + inputType + "' to '" + outputType + "'");
         }
@@ -104,7 +104,7 @@ public class PrismEntityMapper {
                 baseHelper.getConfiguration()));
 
         Key key = buildKey(input.getClass(), outputType);
-        Mapper<I, O> mapper = mappers.get(key);
+        Mapper<I, O> mapper = MAPPERS.get(key);
         if (mapper == null) {
             throw new SystemException("Can't map '" + input.getClass() + "' to '" + outputType + "'");
         }

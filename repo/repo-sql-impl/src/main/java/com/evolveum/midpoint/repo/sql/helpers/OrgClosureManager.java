@@ -75,7 +75,7 @@ public class OrgClosureManager {
     @Autowired
     private BaseHelper baseHelper;
 
-    private static boolean DUMP_TABLES = false;
+    private static final boolean DUMP_TABLES = false;
     private static final boolean COUNT_CLOSURE_RECORDS = false;
     private static final String CLOSURE_TABLE_NAME = "m_org_closure";
     private static final String TEMP_DELTA_TABLE_NAME_FOR_ORACLE = "m_org_closure_temp_delta";

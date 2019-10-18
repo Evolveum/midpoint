@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class LoggerAuditServiceImpl implements AuditService {
 
     private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    private static Logger AUDIT_LOGGER = org.slf4j.LoggerFactory.getLogger(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
+    private static final Logger AUDIT_LOGGER = org.slf4j.LoggerFactory.getLogger(LoggingConfigurationManager.AUDIT_LOGGER_NAME);
 
     private static final Trace LOGGER = TraceManager.getTrace(LoggerAuditServiceImpl.class);
 

@@ -353,8 +353,8 @@ public class CertificationCaseHelper {
                 throw new IllegalStateException("No certification case found for campaign " + campaignOid + ", ID " + caseId);
             }
             // TODO really use options of 'null' ?
-            AccessCertificationCaseType _case = updateLoadedCertificationCase(cases.get(0), campaignsCache, null, session, operationResult);
-            casePcv = _case.asPrismContainerValue();
+            AccessCertificationCaseType acase = updateLoadedCertificationCase(cases.get(0), campaignsCache, null, session, operationResult);
+            casePcv = acase.asPrismContainerValue();
             casesCache.put(caseKey, casePcv);
         }
         @SuppressWarnings({"raw", "unchecked"})

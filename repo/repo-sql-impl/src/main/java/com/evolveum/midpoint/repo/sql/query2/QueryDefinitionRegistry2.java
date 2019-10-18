@@ -42,7 +42,7 @@ import java.util.Map;
 public class QueryDefinitionRegistry2 implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(QueryDefinitionRegistry2.class);
-    private static final Map<QName, JpaEntityDefinition> definitions;
+    private static final Map<QName, JpaEntityDefinition> DEFINITIONS;
 
     private static QueryDefinitionRegistry2 registry;
 
@@ -120,7 +120,7 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
                 definition.accept(sortingVisitor);
             }
 
-            definitions = Collections.unmodifiableMap(map);
+            DEFINITIONS = Collections.unmodifiableMap(map);
         } catch (Throwable t) {
             LOGGER.error("Couldn't initialize query definition registry: {}", t.getMessage(), t);
             throw t;
@@ -150,7 +150,7 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
     public String debugDump(int indent) {
         StringBuilder builder = new StringBuilder();
         DebugUtil.indentDebugDump(builder, indent);
-        Collection<JpaEntityDefinition> defCollection = definitions.values();
+        Collection<JpaEntityDefinition> defCollection = DEFINITIONS.values();
         for (JpaEntityDefinition definition : defCollection) {
             builder.append(definition.debugDump(indent)).append('\n');
         }
@@ -161,7 +161,7 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
     public JpaEntityDefinition findEntityDefinition(QName typeName) {
         Validate.notNull(typeName, "Type name must not be null.");
 
-        JpaEntityDefinition def = QNameUtil.getKey(definitions, typeName);
+        JpaEntityDefinition def = QNameUtil.getKey(DEFINITIONS, typeName);
         if (def == null) {
             throw new IllegalStateException("Type " + typeName + " couldn't be found in type registry");
         }
@@ -205,7 +205,7 @@ public class QueryDefinitionRegistry2 implements DebugDumpable {
     private List<JpaEntityDefinition> getDirectChildrenOf(JpaEntityDefinition parentDefinition) {
         Class parentClass = parentDefinition.getJpaClass();
         List<JpaEntityDefinition> retval = new ArrayList<>();
-        for (JpaEntityDefinition definition : definitions.values()) {
+        for (JpaEntityDefinition definition : DEFINITIONS.values()) {
             if (parentClass.equals(definition.getJpaClass().getSuperclass())) {
                 retval.add(definition);
             }

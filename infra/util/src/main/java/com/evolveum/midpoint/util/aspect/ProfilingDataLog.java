@@ -28,7 +28,7 @@ import java.util.Date;
 //@Deprecated
 public class ProfilingDataLog {
 
-    private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
 
     private String className;
     private String methodName;

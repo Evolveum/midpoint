@@ -24,10 +24,10 @@ public class MidPoint {
 
     private static EnvironmentConfiguration environment;
 
-    public static long TIMEOUT_DEFAULT_2_S = 2000;
-    public static long TIMEOUT_MEDIUM_6_S = 6000;
-    public static long TIMEOUT_LONG_1_M = 60000;
-    public static long TIMEOUT_EXTRA_LONG_1_M = 120000;
+    public static final long TIMEOUT_DEFAULT_2_S = 2000;
+    public static final long TIMEOUT_MEDIUM_6_S = 6000;
+    public static final long TIMEOUT_LONG_1_M = 60000;
+    public static final long TIMEOUT_EXTRA_LONG_1_M = 120000;
 
     private static final String SCHRODINGER_PROPERTIES = "../../testing/schrodingertest/src/test/resources/configuration/schrodinger.properties";
 

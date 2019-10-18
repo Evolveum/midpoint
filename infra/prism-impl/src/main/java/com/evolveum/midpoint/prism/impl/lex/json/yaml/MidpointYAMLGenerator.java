@@ -89,13 +89,14 @@ public class MidpointYAMLGenerator extends YAMLGenerator {
         if (offset > 0 || (offset+len) != data.length) {
             data = Arrays.copyOfRange(data, offset, offset+len);
         }
-        _writeScalarBinaryPatched(b64variant, data);
+        writeScalarBinaryPatched(b64variant, data);
     }
 
     private final static ImplicitTuple EXPLICIT_TAGS = new ImplicitTuple(false, false);
     private final static Character STYLE_LITERAL = '|';
     private final static Character STYLE_BASE64 = STYLE_LITERAL;
-    private void _writeScalarBinaryPatched(Base64Variant b64variant, byte[] data) throws IOException
+
+    private void writeScalarBinaryPatched(Base64Variant b64variant, byte[] data) throws IOException
     {
         String encoded = b64variant.encode(data);
         _emitter.emit(new ScalarEvent(null, TAG_BINARY, EXPLICIT_TAGS, encoded,

@@ -98,7 +98,7 @@ public class IntegrationTestTools {
     public static final QName RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME = new QName(NS_RESOURCE_DUMMY_CONFIGURATION ,"uselessString");
 
     // public and not final - to allow changing it in tests
-    public static Trace LOGGER = TraceManager.getTrace(IntegrationTestTools.class);
+    public static final Trace LOGGER = TraceManager.getTrace(IntegrationTestTools.class);
 
     private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
     private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";

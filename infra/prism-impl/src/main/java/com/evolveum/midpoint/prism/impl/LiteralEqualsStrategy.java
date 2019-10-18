@@ -29,7 +29,7 @@ import javax.xml.namespace.QName;
  */
 public class LiteralEqualsStrategy extends JAXBEqualsStrategy {
 
-    public static EqualsStrategy INSTANCE = new LiteralEqualsStrategy();
+    public static final EqualsStrategy INSTANCE = new LiteralEqualsStrategy();
 
     @Override
     protected boolean equalsInternal(ObjectLocator leftLocator,

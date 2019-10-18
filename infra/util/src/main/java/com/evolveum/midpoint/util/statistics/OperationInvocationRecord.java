@@ -47,7 +47,7 @@ public class OperationInvocationRecord {
         shortenedClassName = getClassName(fullClassName);
         subsystem = getSubsystem(fullClassName);
         this.methodName = methodName;
-        Level localLevelOverride = OperationExecutionLogger.threadLocalLevelOverride.get();
+        Level localLevelOverride = OperationExecutionLogger.THREAD_LOCAL_LEVEL_OVERRIDE.get();
         if (OperationExecutionLogger.globalLevelOverride == null && localLevelOverride == null) {
             debugEnabled = OperationExecutionLogger.LOGGER_PROFILING.isDebugEnabled();
             traceEnabled = OperationExecutionLogger.LOGGER_PROFILING.isTraceEnabled();

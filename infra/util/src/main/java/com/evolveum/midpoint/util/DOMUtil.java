@@ -139,11 +139,11 @@ public class DOMUtil {
     // To generate random namespace prefixes
     private static Random rnd = new Random();
 
-    private static final ThreadLocal<DocumentBuilder> documentBuilderThreadLocal;
-    private static final ThreadLocal<Transformer> transformerThreadLocal;
+    private static final ThreadLocal<DocumentBuilder> DOCUMENT_BUILDER_THREAD_LOCAL;
+    private static final ThreadLocal<Transformer> TRANSFORMER_THREAD_LOCAL;
 
     static {
-        documentBuilderThreadLocal = ThreadLocal.withInitial(() -> {
+        DOCUMENT_BUILDER_THREAD_LOCAL = ThreadLocal.withInitial(() -> {
             try {
                 // Use the line below to force built-in JAXP implementation (not recommended)
                 //System.setProperty(DocumentBuilderFactory.class.getName(), "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
@@ -169,7 +169,7 @@ public class DOMUtil {
             }
         });
 
-        transformerThreadLocal = ThreadLocal.withInitial(() -> {
+        TRANSFORMER_THREAD_LOCAL = ThreadLocal.withInitial(() -> {
             try {
                 TransformerFactory transformerFactory = setupTransformerFactory();
 
@@ -213,7 +213,7 @@ public class DOMUtil {
     }
 
     public static void serializeDOMToFile(org.w3c.dom.Node node, File file) throws TransformerFactoryConfigurationError, TransformerException {
-        Transformer transformer = transformerThreadLocal.get();
+        Transformer transformer = TRANSFORMER_THREAD_LOCAL.get();
         Result output = new StreamResult(file);
         Source input = new DOMSource(node);
         transformer.transform(input, output);
@@ -227,17 +227,17 @@ public class DOMUtil {
     }
 
     public static Document getDocument() {
-        return documentBuilderThreadLocal.get().newDocument();
+        return DOCUMENT_BUILDER_THREAD_LOCAL.get().newDocument();
     }
 
     public static Document getDocument(QName rootElementName) {
-        Document document = documentBuilderThreadLocal.get().newDocument();
+        Document document = DOCUMENT_BUILDER_THREAD_LOCAL.get().newDocument();
         document.appendChild(createElement(document, rootElementName));
         return document;
     }
 
     public static DocumentBuilder createDocumentBuilder() {
-        return documentBuilderThreadLocal.get();
+        return DOCUMENT_BUILDER_THREAD_LOCAL.get();
     }
 
     public static Document parseDocument(String doc) {
@@ -255,7 +255,7 @@ public class DOMUtil {
 
     public static Document parseFile(File file) {
         try {
-            return documentBuilderThreadLocal.get().parse(file);
+            return DOCUMENT_BUILDER_THREAD_LOCAL.get().parse(file);
         } catch (SAXException | IOException ex) {
             throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
         }
@@ -263,7 +263,7 @@ public class DOMUtil {
 
     public static Document parse(InputStream inputStream) throws IOException {
         try {
-            return documentBuilderThreadLocal.get().parse(inputStream);
+            return DOCUMENT_BUILDER_THREAD_LOCAL.get().parse(inputStream);
         } catch (SAXException ex) {
             throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
         }
@@ -286,7 +286,7 @@ public class DOMUtil {
         StringWriter writer = new StringWriter();
         DOMSource source = new DOMSource(node);
         try {
-            Transformer trans = transformerThreadLocal.get();
+            Transformer trans = TRANSFORMER_THREAD_LOCAL.get();
             trans.setOutputProperty(OutputKeys.INDENT, (indent ? "yes" : "no"));
             // Note: serialized XML does not contain xml declaration
             trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, (omitXmlDeclaration ? "yes" : "no"));

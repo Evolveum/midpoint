@@ -277,7 +277,7 @@ public class LogfileTestTailer {
      * Log all levels in all subsystems.
      */
     public void log() {
-        for (ProfilingDataManager.Subsystem subsystem: ProfilingDataManager.subsystems) {
+        for (ProfilingDataManager.Subsystem subsystem: ProfilingDataManager.SUBSYSTEMS) {
             logAllLevels(LOGGER, subsystem.name());
         }
         logAllLevels(LOGGER, null);

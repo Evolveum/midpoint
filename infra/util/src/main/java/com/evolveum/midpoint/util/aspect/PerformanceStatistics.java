@@ -23,10 +23,10 @@ import java.lang.management.*;
 public class PerformanceStatistics {
 
     /* LOGGER */
-    private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
 
     /* CONSTANTS */
-    private int MB = 1024*1024;
+    private static final int MB = 1024*1024;
 
     /* Performance attributes */
 

@@ -22,7 +22,7 @@ public class OperationExecutionLogger {
     static final String MDC_SUBSYSTEM_KEY = "subsystem";
 
     static Level globalLevelOverride = null;
-    static final ThreadLocal<Level> threadLocalLevelOverride = new ThreadLocal<>();
+    static final ThreadLocal<Level> THREAD_LOCAL_LEVEL_OVERRIDE = new ThreadLocal<>();
 
     static boolean isProfilingActive = false;       // TODO decide what to do with this one
 
@@ -36,11 +36,11 @@ public class OperationExecutionLogger {
     }
 
     public static Level getLocalOperationInvocationLevelOverride() {
-        return threadLocalLevelOverride.get();
+        return THREAD_LOCAL_LEVEL_OVERRIDE.get();
     }
 
     public static void setLocalOperationInvocationLevelOverride(Level value) {
-        threadLocalLevelOverride.set(value);
+        THREAD_LOCAL_LEVEL_OVERRIDE.set(value);
     }
 
     /**

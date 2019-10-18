@@ -50,12 +50,11 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
  */
 public class ReportTypeUtil {
 
-    public static String FILENAMEPARAMETER = "fname";
+    public static final String FILENAMEPARAMETER = "fname";
     public static final String HEADER_USERAGENT = "mp-cluster-peer-client";
-    public static String URLENCODING = "UTF-8";
+    public static final String URLENCODING = "UTF-8";
 
     public static final String REPORT_LANGUAGE = "midPoint";
-
 
     public static final String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
     public static final String PARAMETER_REPORT_OID = "midpointReportOid";
@@ -65,25 +64,24 @@ public class ReportTypeUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportTypeUtil.class);
 
-
      public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
-            try     {
-            byte[] reportTemplate;
+         try {
+             byte[] reportTemplate;
 
-            if(Base64.isBase64(template)) {
-                reportTemplate = Base64.decodeBase64(template);
-            } else {
-                reportTemplate = template;
-            }
+             if (Base64.isBase64(template)) {
+                 reportTemplate = Base64.decodeBase64(template);
+             } else {
+                 reportTemplate = template;
+             }
 
              InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
              JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
 //             LOGGER.trace("load jasper design : {}", jasperDesign);
              return jasperDesign;
-            } catch (JRException ex){
-                throw new SchemaException(ex.getMessage(), ex.getCause());
-            }
-        }
+         } catch (JRException ex) {
+             throw new SchemaException(ex.getMessage(), ex.getCause());
+         }
+     }
 
     public static PrismSchema parseReportConfigurationSchema(PrismObject<ReportType> report, PrismContext context)
             throws SchemaException {

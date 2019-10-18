@@ -43,7 +43,7 @@ public class PolicyRuleTypeUtil {
     private static final char JOIN_AND = '*';
     private static final char JOIN_OR = '|';
 
-    private static Map<String, String> CONSTRAINT_NAMES = new HashMap<>();
+    private static final Map<String, String> CONSTRAINT_NAMES = new HashMap<>();
 
     private static final String SYMBOL_MIN = "min";
     private static final String SYMBOL_MAX = "max";

@@ -265,8 +265,8 @@ public class BaseHelper {
 
         return "40001".equals(sqlException.getSQLState())           // serialization failure in PostgreSQL - http://www.postgresql.org/docs/9.1/static/transaction-iso.html - and probably also in other systems
                 || "40P01".equals(sqlException.getSQLState())           // deadlock in PostgreSQL
-                || mySqlCompatible && messageContains(sqlException.getMessage(), mySqlSerializationErrors)
-                || h2 && messageContains(sqlException.getMessage(), h2SerializationErrors)
+                || mySqlCompatible && messageContains(sqlException.getMessage(), MY_SQL_SERIALIZATION_ERRORS)
+                || h2 && messageContains(sqlException.getMessage(), H_2_SERIALIZATION_ERRORS)
                 || h2 && sqlException.getErrorCode() == 50200           // table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code
                 || h2 && sqlException.getErrorCode() == 40001           // DEADLOCK_1 in H2
                 || oracle && sqlException.getErrorCode() == 8177        // ORA-08177: can't serialize access for this transaction in Oracle
@@ -287,7 +287,7 @@ public class BaseHelper {
         return false;
     }
 
-    private static final String[] mySqlSerializationErrors = {
+    private static final String[] MY_SQL_SERIALIZATION_ERRORS = {
             // strange exception occurring in MySQL when doing multithreaded org closure maintenance
             // alternatively we might check for error code = 1030, sql state = HY000
             // but that would cover all cases of "Got error XYZ from storage engine"
@@ -297,17 +297,17 @@ public class BaseHelper {
             "Lock wait timeout exceeded"
     };
 
-    private static final String[] h2SerializationErrors = {
+    private static final String[] H_2_SERIALIZATION_ERRORS = {
             // this is some recent H2 weirdness (MID-3969)
             "Referential integrity constraint violation: \"FK_AUDIT_ITEM: PUBLIC.M_AUDIT_ITEM FOREIGN KEY(RECORD_ID) REFERENCES PUBLIC.M_AUDIT_EVENT(ID)"
     };
 
-    private static final Pattern[] okPatterns = new Pattern[] {
+    private static final Pattern[] OK_PATTERNS = new Pattern[] {
             Pattern.compile(".*Duplicate entry '.*' for key 'iExtItemDefinition'.*"),               // MySQL
             Pattern.compile(".*ORA-00001:.*\\.IEXTITEMDEFINITION\\).*")                             // Oracle
     };
 
-    private static final String[] okStrings = new String[] {
+    private static final String[] OK_STRINGS = new String[] {
         "Unique index or primary key violation: \"IEXTITEMDEFINITION",              // H2
         "Violation of UNIQUE KEY constraint 'iExtItemDefinition'",                  // SQL Server
         "duplicate key value violates unique constraint \"iextitemdefinition\"",    // PostgreSQL
@@ -371,12 +371,12 @@ public class BaseHelper {
             } else {
                 msg2 = "";
             }
-            for (String okString : okStrings) {
+            for (String okString : OK_STRINGS) {
                 if (msg1.contains(okString) || msg2.contains(okString)) {
                     return true;
                 }
             }
-            for (Pattern okPattern : okPatterns) {
+            for (Pattern okPattern : OK_PATTERNS) {
                 if (okPattern.matcher(msg1).matches() || okPattern.matcher(msg2).matches()) {
                     return true;
                 }

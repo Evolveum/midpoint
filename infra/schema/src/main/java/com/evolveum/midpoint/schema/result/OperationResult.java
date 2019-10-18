@@ -84,10 +84,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     @NotNull private static final OperationResultHandlingStrategyType DEFAULT_HANDLING_STRATEGY = new OperationResultHandlingStrategyType();
     @NotNull private volatile static List<OperationResultHandlingStrategyType> handlingStrategies = emptyList();
     @NotNull private static OperationResultHandlingStrategyType globalHandlingStrategy = DEFAULT_HANDLING_STRATEGY;
-    private static final ThreadLocal<OperationResultHandlingStrategyType> localHandlingStrategy =
+    private static final ThreadLocal<OperationResultHandlingStrategyType> LOCAL_HANDLING_STRATEGY =
             new ThreadLocal<>();
 
-    private static final AtomicInteger logSequenceCounter = new AtomicInteger(0);
+    private static final AtomicInteger LOG_SEQUENCE_COUNTER = new AtomicInteger(0);
 
     public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
     public static final String CONTEXT_PROGRESS = "progress";
@@ -113,7 +113,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     public static final String RETURN_COMMENT = "comment";
     public static final String DEFAULT = "";
 
-    private static long TOKEN_COUNT = 1000000000000000000L;
+    private static long tokenCount = 1000000000000000000L;
     private String operation;
     private OperationResultStatus status;
 
@@ -287,7 +287,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     private void appendLoggedEvents(LoggingEventSink loggingEventSink) {
         if (!loggingEventSink.getEvents().isEmpty()) {
             LogSegmentType segment = new LogSegmentType();
-            segment.setSequenceNumber(logSequenceCounter.getAndIncrement());
+            segment.setSequenceNumber(LOG_SEQUENCE_COUNTER.getAndIncrement());
             for (LoggedEvent event : loggingEventSink.getEvents()) {
                 segment.getEntry().add(event.getText());
             }
@@ -1400,7 +1400,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
      */
     public long getToken() {
         if (token == 0) {
-            token = TOKEN_COUNT++;
+            token = tokenCount++;
         }
         return token;
     }
@@ -2246,7 +2246,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     @NotNull
     private static OperationResultHandlingStrategyType getCurrentHandlingStrategy() {
-        OperationResultHandlingStrategyType local = localHandlingStrategy.get();
+        OperationResultHandlingStrategyType local = LOCAL_HANDLING_STRATEGY.get();
         if (local != null) {
             return local;
         } else {
@@ -2313,7 +2313,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
             }
         }
         LOGGER.trace("Selected handling strategy: {}", selected);
-        localHandlingStrategy.set(selected);
+        LOCAL_HANDLING_STRATEGY.set(selected);
     }
 
     @Override

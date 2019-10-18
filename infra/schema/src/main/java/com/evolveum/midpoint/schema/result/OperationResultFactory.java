@@ -23,12 +23,11 @@ import org.w3c.dom.Element;
  */
 public abstract class OperationResultFactory {
 
-    private static long TOKEN_NUMBER = 0;
+    private static long tokenNumber = 0;
 
     private static synchronized long getNextToken() {
-        TOKEN_NUMBER++;
-
-        return TOKEN_NUMBER;
+        tokenNumber++;
+        return tokenNumber;
     }
 
     public static OperationResultType createOperationResult(String operation,

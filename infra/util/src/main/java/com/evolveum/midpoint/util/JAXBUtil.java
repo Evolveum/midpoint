@@ -34,9 +34,9 @@ public final class JAXBUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(JAXBUtil.class);
 
-    private static final Map<Package, String> packageNamespaces = new HashMap<>();
-    private static final Map<QName, Class> classQNames = new HashMap<>();
-    private static final Set<String> scannedPackages = new HashSet<>();
+    private static final Map<Package, String> PACKAGE_NAMESPACES = new HashMap<>();
+    private static final Map<QName, Class> CLASS_QNAMES = new HashMap<>();
+    private static final Set<String> SCANNED_PACKAGES = new HashSet<>();
 
     public static String getSchemaNamespace(Package pkg) {
         XmlSchema xmlSchemaAnn = pkg.getAnnotation(XmlSchema.class);
@@ -215,11 +215,11 @@ public final class JAXBUtil {
     }
 
     public static <T> Class<T> findClassForType(QName typeName, Package pkg) {
-        String namespace = packageNamespaces.get(pkg);
+        String namespace = PACKAGE_NAMESPACES.get(pkg);
         if (namespace == null) {
             XmlSchema xmlSchemaAnnotation = pkg.getAnnotation(XmlSchema.class);
             namespace = xmlSchemaAnnotation.namespace();
-            packageNamespaces.put(pkg, namespace);
+            PACKAGE_NAMESPACES.put(pkg, namespace);
         }
 
         if (!namespace.equals(typeName.getNamespaceURI())) {
@@ -227,19 +227,19 @@ public final class JAXBUtil {
                     ", but the package annotation indicates namespace " + namespace);
         }
 
-        Class clazz = classQNames.get(typeName);
+        Class clazz = CLASS_QNAMES.get(typeName);
         if (clazz != null && pkg.equals(clazz.getPackage())) {
             return clazz;
         }
 
-        if (!scannedPackages.contains(pkg.getName())) {
-            scannedPackages.add(pkg.getName());
+        if (!SCANNED_PACKAGES.contains(pkg.getName())) {
+            SCANNED_PACKAGES.add(pkg.getName());
 
             Class foundClass = null;
             for (Class c : ClassPathUtil.listClasses(pkg)) {
                 QName foundTypeQName = getTypeQName(c);
                 if (foundTypeQName != null) {
-                    classQNames.put(foundTypeQName, c);
+                    CLASS_QNAMES.put(foundTypeQName, c);
                 }
                 if (typeName.equals(foundTypeQName)) {
                     foundClass = c;

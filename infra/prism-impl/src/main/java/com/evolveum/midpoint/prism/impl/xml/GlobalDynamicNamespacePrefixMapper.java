@@ -37,7 +37,7 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
  */
 public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper implements DynamicNamespacePrefixMapper, DebugDumpable {
 
-    private static final Map<String, String> globalNamespacePrefixMap = new HashMap<>();
+    private static final Map<String, String> GLOBAL_NAMESPACE_PREFIX_MAP = new HashMap<>();
     private Map<String, String> localNamespacePrefixMap = new HashMap<>();
     private String defaultNamespace = null;
     private boolean alwaysExplicit = false;
@@ -69,7 +69,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
     @Override
     public synchronized Map<String, String> getNamespacesDeclaredByDefault() {
         Map<String, String> retval = new HashMap<>();
-        for (Map.Entry<String, String> entry : globalNamespacePrefixMap.entrySet()) {
+        for (Map.Entry<String, String> entry : GLOBAL_NAMESPACE_PREFIX_MAP.entrySet()) {
             String prefix = entry.getValue();
             if (prefixesDeclaredByDefault.contains(prefix)) {
                 retval.put(prefix, entry.getKey());
@@ -87,7 +87,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
     }
 
     private static synchronized void registerPrefixGlobal(String namespace, String prefix) {
-        globalNamespacePrefixMap.put(namespace, prefix);
+        GLOBAL_NAMESPACE_PREFIX_MAP.put(namespace, prefix);
     }
 
     @Override
@@ -159,21 +159,21 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
      *         other namespace).
      */
     public static synchronized String getPreferredPrefix(String namespace, String hintPrefix) {
-        String prefix = globalNamespacePrefixMap.get(namespace);
+        String prefix = GLOBAL_NAMESPACE_PREFIX_MAP.get(namespace);
 
         if (StringUtils.isEmpty(prefix)) {
             if (StringUtils.isEmpty(hintPrefix)) {
                 // FIXME: improve new prefix assignment
                 prefix = "gen" + (new Random()).nextInt(999);
             } else {
-                if (globalNamespacePrefixMap.containsValue(hintPrefix)) {
+                if (GLOBAL_NAMESPACE_PREFIX_MAP.containsValue(hintPrefix)) {
                     // FIXME: improve new prefix assignment
                     prefix = "gen" + (new Random()).nextInt(999);
                 } else {
                     prefix = hintPrefix;
                 }
             }
-            globalNamespacePrefixMap.put(namespace, prefix);
+            GLOBAL_NAMESPACE_PREFIX_MAP.put(namespace, prefix);
         }
 
         return prefix;
@@ -214,7 +214,7 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
         sb.append("):\n");
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("Global map:\n");
-        DebugUtil.debugDumpMapMultiLine(sb, globalNamespacePrefixMap, indent + 2);
+        DebugUtil.debugDumpMapMultiLine(sb, GLOBAL_NAMESPACE_PREFIX_MAP, indent + 2);
         sb.append("\n");
         DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("Local map:\n");

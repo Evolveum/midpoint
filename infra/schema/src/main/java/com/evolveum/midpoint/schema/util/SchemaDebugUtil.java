@@ -67,7 +67,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  */
 public class SchemaDebugUtil {
 
-    private static int SHOW_LIST_MEMBERS = 3;
+    private static final int SHOW_LIST_MEMBERS = 3;
 
     public static String debugDump(Collection<? extends DebugDumpable> dumpables) {
         return debugDump(dumpables,0);

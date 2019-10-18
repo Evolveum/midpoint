@@ -67,9 +67,9 @@ public class CertCampaignTypeUtil {
 
     @SuppressWarnings("unused")
     public static AccessCertificationCaseType findCase(AccessCertificationCampaignType campaign, long caseId) {
-        for (AccessCertificationCaseType _case : campaign.getCase()) {
-            if (_case.asPrismContainerValue().getId() != null && _case.asPrismContainerValue().getId() == caseId) {
-                return _case;
+        for (AccessCertificationCaseType acase : campaign.getCase()) {
+            if (acase.asPrismContainerValue().getId() != null && acase.asPrismContainerValue().getId() == caseId) {
+                return acase;
             }
         }
         return null;

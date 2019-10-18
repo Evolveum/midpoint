@@ -95,21 +95,21 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
     private List<TrustManager> trustManagers;
 
-    private static final KeyStore keyStore;
+    private static final KeyStore KEY_STORE;
 
-    private static final Map<String, SecretKey> aliasToSecretKeyHashMap = new HashMap<>();
-    private static final Map<String, SecretKey> digestToSecretKeyHashMap = new HashMap<>();
-    private static final Map<String,String> xmlsecToJceAlgorithmMap = new HashMap<>();
+    private static final Map<String, SecretKey> ALIAS_TO_SECRET_KEY_HASH_MAP = new HashMap<>();
+    private static final Map<String, SecretKey> DIGEST_TO_SECRET_KEY_HASH_MAP = new HashMap<>();
+    private static final Map<String,String> XMLSEC_TO_JCE_ALGORITHM_MAP = new HashMap<>();
 
     static {
         try {
-            keyStore = KeyStore.getInstance("jceks");
+            KEY_STORE = KeyStore.getInstance("jceks");
         } catch (KeyStoreException ex) {
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        xmlsecToJceAlgorithmMap.put(XMLSEC_ENCRYPTION_ALGORITHM_AES128_CBC, "AES/CBC/ISO10126Padding");
-        xmlsecToJceAlgorithmMap.put(XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC, "AES/CBC/ISO10126Padding");
+        XMLSEC_TO_JCE_ALGORITHM_MAP.put(XMLSEC_ENCRYPTION_ALGORITHM_AES128_CBC, "AES/CBC/ISO10126Padding");
+        XMLSEC_TO_JCE_ALGORITHM_MAP.put(XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC, "AES/CBC/ISO10126Padding");
     }
 
     public KeyStoreBasedProtectorImpl() {
@@ -166,8 +166,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
                     + "'");
             }
             // Load keystore
-            keyStore.load(stream, getKeyStorePassword().toCharArray());
-            Enumeration<String> aliases = keyStore.aliases();
+            KEY_STORE.load(stream, getKeyStorePassword().toCharArray());
+            Enumeration<String> aliases = KEY_STORE.aliases();
             Set<String> keyEntryAliasesInKeyStore = new HashSet<>();
 
             MessageDigest sha1;
@@ -180,34 +180,34 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 try {
-                    if (!keyStore.isKeyEntry(alias)) {
+                    if (!KEY_STORE.isKeyEntry(alias)) {
                         LOGGER.trace("Alias {} is not a key entry and shall be skipped", alias);
                         continue;
                     }
                     keyEntryAliasesInKeyStore.add(alias);
-                    Key key = keyStore.getKey(alias, KEY_PASSWORD);
+                    Key key = KEY_STORE.getKey(alias, KEY_PASSWORD);
                     if (!(key instanceof SecretKey)) {
                         continue;
                     }
                     final SecretKey secretKey = (SecretKey) key;
                     LOGGER.trace("Found secret key for alias {}", alias);
-                    aliasToSecretKeyHashMap.put(alias, secretKey);
+                    ALIAS_TO_SECRET_KEY_HASH_MAP.put(alias, secretKey);
 
                     final String digest = Base64.encodeBase64String(sha1.digest(key.getEncoded()));
                     LOGGER.trace("Calculated digest {} for key alias {}", digest, key);
-                    digestToSecretKeyHashMap.put(digest, secretKey);
+                    DIGEST_TO_SECRET_KEY_HASH_MAP.put(digest, secretKey);
 
                 } catch (UnrecoverableKeyException ex) {
                     LOGGER.trace("Couldn't recover key {} from keystore, reason: {}", new Object[]{alias, ex.getMessage()});
                 }
             }
-            LOGGER.trace("Found {} aliases in keystore identified as secret keys", aliasToSecretKeyHashMap.size());
+            LOGGER.trace("Found {} aliases in keystore identified as secret keys", ALIAS_TO_SECRET_KEY_HASH_MAP.size());
             stream.close();
 
             // Initialize trust manager list
 
             TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            tmFactory.init(keyStore);
+            tmFactory.init(KEY_STORE);
             trustManagers = new ArrayList<>();
             for (TrustManager trustManager : tmFactory.getTrustManagers()) {
                 trustManagers.add(trustManager);
@@ -389,7 +389,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     }
 
     private Cipher getCipher(int cipherMode, String algorithmUri) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, InvalidAlgorithmParameterException {
-        String jceAlgorithm = xmlsecToJceAlgorithmMap.get(algorithmUri);
+        String jceAlgorithm = XMLSEC_TO_JCE_ALGORITHM_MAP.get(algorithmUri);
         Cipher cipher;
         if (requestedJceProviderName == null) {
             cipher = Cipher.getInstance(jceAlgorithm);
@@ -417,7 +417,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     @Deprecated
     @Override
     public String getSecretKeyDigest(SecretKey key) throws EncryptionException {
-        for (Map.Entry<String, SecretKey> entry : digestToSecretKeyHashMap.entrySet()) {
+        for (Map.Entry<String, SecretKey> entry : DIGEST_TO_SECRET_KEY_HASH_MAP.entrySet()) {
             if (entry.getValue().equals(key)) {
                 return entry.getKey();
             }
@@ -434,7 +434,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
     @Override
     public KeyStore getKeyStore() {
-        return keyStore;
+        return KEY_STORE;
     }
 
     /**
@@ -468,8 +468,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             throw new EncryptionException("Key alias must be specified and cannot be blank.");
         }
 
-        if (aliasToSecretKeyHashMap.containsKey(alias)) {
-            return aliasToSecretKeyHashMap.get(alias);
+        if (ALIAS_TO_SECRET_KEY_HASH_MAP.containsKey(alias)) {
+            return ALIAS_TO_SECRET_KEY_HASH_MAP.get(alias);
         }
         throw new EncryptionException("No key mapped to alias " + alias
             + " could be found in the keystore. Keys by aliases must be recomputed during initialization");
@@ -480,8 +480,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             throw new EncryptionException("Key digest must be specified and cannot be blank.");
         }
 
-        if (digestToSecretKeyHashMap.containsKey(digest)) {
-            return digestToSecretKeyHashMap.get(digest);
+        if (DIGEST_TO_SECRET_KEY_HASH_MAP.containsKey(digest)) {
+            return DIGEST_TO_SECRET_KEY_HASH_MAP.get(digest);
         }
         throw new EncryptionException("No key mapped to key digest " + digest
             + " could be found in the keystore. Keys digests must be recomputed during initialization");

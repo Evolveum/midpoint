@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefinitionImpl<T> implements RefinedAttributeDefinition<T> {
     private static final long serialVersionUID = 1L;
 
-    private static LayerType DEFAULT_LAYER = LayerType.MODEL;
+    private static final LayerType DEFAULT_LAYER = LayerType.MODEL;
 
     private String displayName;
     private String description;

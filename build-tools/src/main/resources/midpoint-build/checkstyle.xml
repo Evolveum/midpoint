@@ -23,22 +23,21 @@
 
     <!-- Checks for whitespace. We indent by spaces, not tabs. -->
     <module name="FileTabCharacter"/>
-    <!-- TODO: enable this later
-    <module name="NewlineAtEndOfFile"/> -->
+    <module name="NewlineAtEndOfFile"/>
 
     <module name="TreeWalker">
 
-        <!-- TODO: enable this later
         <module name="ConstantName"/>
-        <module name="LocalFinalVariableName"/>
+        <module name="LocalFinalVariableName">
+            <property name="format" value="^[a-zA-Z0-9_]+$"/>
+        </module>
         <module name="LocalVariableName"/>
         <module name="MemberName"/>
         <module name="MethodName"/>
         <module name="PackageName"/>
-        <module name="ParameterName"/>
         <module name="StaticVariableName"/>
         <module name="TypeName"/>
-        <module name="RedundantImport"/>-->
+        <module name="RedundantImport"/>
 
         <!-- TODO: enable this later
         <module name="RedundantModifier"/>

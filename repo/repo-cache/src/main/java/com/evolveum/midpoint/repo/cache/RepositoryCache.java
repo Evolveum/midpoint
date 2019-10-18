@@ -84,9 +84,9 @@ public class RepositoryCache implements RepositoryService, Cacheable {
     private static final String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + "executeQueryDiagnostics";
     private static final String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + "addDiagnosticInformation";
 
-    private static final ConcurrentHashMap<Thread, LocalObjectCache> localObjectCacheInstance = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Thread, LocalVersionCache> localVersionCacheInstance = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Thread, LocalQueryCache> localQueryCacheInstance = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Thread, LocalObjectCache> LOCAL_OBJECT_CACHE_INSTANCE = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Thread, LocalVersionCache> LOCAL_VERSION_CACHE_INSTANCE = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Thread, LocalQueryCache> LOCAL_QUERY_CACHE_INSTANCE = new ConcurrentHashMap<>();
 
     @Autowired private PrismContext prismContext;
     @Autowired private RepositoryService repositoryService;
@@ -98,7 +98,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
     @Autowired private GlobalVersionCache globalVersionCache;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
-    private static List<Class<?>> TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE = Arrays.asList(
+    private static final List<Class<?>> TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE = Arrays.asList(
             SystemConfigurationType.class,
             FunctionLibraryType.class);
 
@@ -112,24 +112,24 @@ public class RepositoryCache implements RepositoryService, Cacheable {
     }
 
     private static LocalObjectCache getLocalObjectCache() {
-        return localObjectCacheInstance.get(Thread.currentThread());
+        return LOCAL_OBJECT_CACHE_INSTANCE.get(Thread.currentThread());
     }
 
     private static LocalVersionCache getLocalVersionCache() {
-        return localVersionCacheInstance.get(Thread.currentThread());
+        return LOCAL_VERSION_CACHE_INSTANCE.get(Thread.currentThread());
     }
 
     private static LocalQueryCache getLocalQueryCache() {
-        return localQueryCacheInstance.get(Thread.currentThread());
+        return LOCAL_QUERY_CACHE_INSTANCE.get(Thread.currentThread());
     }
 
     public static void init() {
     }
 
     public static void destroy() {
-        LocalObjectCache.destroy(localObjectCacheInstance, LOGGER);
-        LocalVersionCache.destroy(localVersionCacheInstance, LOGGER);
-        LocalQueryCache.destroy(localQueryCacheInstance, LOGGER);
+        LocalObjectCache.destroy(LOCAL_OBJECT_CACHE_INSTANCE, LOGGER);
+        LocalVersionCache.destroy(LOCAL_VERSION_CACHE_INSTANCE, LOGGER);
+        LocalQueryCache.destroy(LOCAL_QUERY_CACHE_INSTANCE, LOGGER);
     }
 
     public static void enter(CacheConfigurationManager mgr) {
@@ -139,21 +139,21 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         CacheConfiguration versionCacheConfig = mgr.getConfiguration(LOCAL_REPO_VERSION_CACHE);
         CacheConfiguration queryCacheConfig = mgr.getConfiguration(LOCAL_REPO_QUERY_CACHE);
 
-        LocalObjectCache.enter(localObjectCacheInstance, LocalObjectCache.class, objectCacheConfig, LOGGER);
-        LocalVersionCache.enter(localVersionCacheInstance, LocalVersionCache.class, versionCacheConfig, LOGGER);
-        LocalQueryCache.enter(localQueryCacheInstance, LocalQueryCache.class, queryCacheConfig, LOGGER);
+        LocalObjectCache.enter(LOCAL_OBJECT_CACHE_INSTANCE, LocalObjectCache.class, objectCacheConfig, LOGGER);
+        LocalVersionCache.enter(LOCAL_VERSION_CACHE_INSTANCE, LocalVersionCache.class, versionCacheConfig, LOGGER);
+        LocalQueryCache.enter(LOCAL_QUERY_CACHE_INSTANCE, LocalQueryCache.class, queryCacheConfig, LOGGER);
     }
 
     public static void exit() {
-        LocalObjectCache.exit(localObjectCacheInstance, LOGGER);
-        LocalVersionCache.exit(localVersionCacheInstance, LOGGER);
-        LocalQueryCache.exit(localQueryCacheInstance, LOGGER);
+        LocalObjectCache.exit(LOCAL_OBJECT_CACHE_INSTANCE, LOGGER);
+        LocalVersionCache.exit(LOCAL_VERSION_CACHE_INSTANCE, LOGGER);
+        LocalQueryCache.exit(LOCAL_QUERY_CACHE_INSTANCE, LOGGER);
     }
 
     public static boolean exists() {
-        return LocalObjectCache.exists(localObjectCacheInstance) ||
-                LocalVersionCache.exists(localVersionCacheInstance) ||
-                LocalQueryCache.exists(localQueryCacheInstance);
+        return LocalObjectCache.exists(LOCAL_OBJECT_CACHE_INSTANCE) ||
+                LocalVersionCache.exists(LOCAL_VERSION_CACHE_INSTANCE) ||
+                LocalQueryCache.exists(LOCAL_QUERY_CACHE_INSTANCE);
     }
 
     @SuppressWarnings("unused")
@@ -167,9 +167,9 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 
     public static String debugDump() {
         // TODO
-        return LocalObjectCache.debugDump(localObjectCacheInstance) + "\n" +
-                LocalVersionCache.debugDump(localVersionCacheInstance) + "\n" +
-                LocalQueryCache.debugDump(localQueryCacheInstance);
+        return LocalObjectCache.debugDump(LOCAL_OBJECT_CACHE_INSTANCE) + "\n" +
+                LocalVersionCache.debugDump(LOCAL_VERSION_CACHE_INSTANCE) + "\n" +
+                LocalQueryCache.debugDump(LOCAL_QUERY_CACHE_INSTANCE);
     }
 
     @Override
@@ -1980,13 +1980,13 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         List<SingleCacheStateInformationType> rv = new ArrayList<>();
         rv.add(new SingleCacheStateInformationType(prismContext)
                         .name(LocalObjectCache.class.getName())
-                        .size(LocalObjectCache.getTotalSize(localObjectCacheInstance)));
+                        .size(LocalObjectCache.getTotalSize(LOCAL_OBJECT_CACHE_INSTANCE)));
         rv.add(new SingleCacheStateInformationType(prismContext)
                         .name(LocalQueryCache.class.getName())
-                        .size(LocalQueryCache.getTotalSize(localQueryCacheInstance)));
+                        .size(LocalQueryCache.getTotalSize(LOCAL_QUERY_CACHE_INSTANCE)));
         rv.add(new SingleCacheStateInformationType(prismContext)
                         .name(LocalVersionCache.class.getName())
-                        .size(LocalVersionCache.getTotalSize(localVersionCacheInstance)));
+                        .size(LocalVersionCache.getTotalSize(LOCAL_VERSION_CACHE_INSTANCE)));
         rv.addAll(globalObjectCache.getStateInformation());
         rv.addAll(globalVersionCache.getStateInformation());
         rv.addAll(globalQueryCache.getStateInformation());

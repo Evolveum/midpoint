@@ -22,7 +22,7 @@ import com.evolveum.midpoint.util.DOMUtil;
  */
 public class DomAwareEqualsStrategy extends JAXBEqualsStrategy {
 
-    public static DomAwareEqualsStrategy INSTANCE = new DomAwareEqualsStrategy();
+    public static final DomAwareEqualsStrategy INSTANCE = new DomAwareEqualsStrategy();
 
     private static final boolean ENABLE_BRUTAL_DEBUGGING = false;       // keep false to avoid unnecessary code execution
     private boolean traceAll = false;

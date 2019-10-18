@@ -38,7 +38,7 @@ import java.util.jar.JarFile;
  */
 public class ClassPathUtil {
 
-    public static Trace LOGGER = TraceManager.getTrace(ClassPathUtil.class);
+    public static final Trace LOGGER = TraceManager.getTrace(ClassPathUtil.class);
 
     public static Set<Class> listClasses(Package pkg) {
         return listClasses(pkg.getName());

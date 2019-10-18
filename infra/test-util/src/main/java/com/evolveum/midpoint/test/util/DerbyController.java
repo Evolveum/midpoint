@@ -30,15 +30,15 @@ public class DerbyController {
 
     public static final int DEFAULT_LISTEN_PORT = 11527;
 
-    public static String COLUMN_LOGIN = "login";
-    public static String COLUMN_PASSWORD = "password";
-    public static String COLUMN_FULL_NAME = "full_name";
-    public static String COLUMN_CHANGELOG = "changelog";
+    public static final String COLUMN_LOGIN = "login";
+    public static final String COLUMN_PASSWORD = "password";
+    public static final String COLUMN_FULL_NAME = "full_name";
+    public static final String COLUMN_CHANGELOG = "changelog";
 
     private NetworkServerControl server;
     private String listenHostname;
     private InetAddress listenAddress;
-    private int listentPort;
+    private int listenPort;
     private String jdbcUrl;
     private String dbName;
     private String username = "midpoint";
@@ -49,14 +49,14 @@ public class DerbyController {
     public DerbyController() {
         super();
         listenHostname = "localhost";
-        this.listentPort = DEFAULT_LISTEN_PORT;
+        this.listenPort = DEFAULT_LISTEN_PORT;
         dbName = "target/derbyMidPointTest";
     }
 
     public DerbyController(String dbName, String listenHostname, int listentPort) {
         super();
         this.listenHostname = listenHostname;
-        this.listentPort = listentPort;
+        this.listenPort = listentPort;
         this.dbName = dbName;
     }
 
@@ -64,8 +64,8 @@ public class DerbyController {
         return listenHostname;
     }
 
-    public int getListentPort() {
-        return listentPort;
+    public int getListenPort() {
+        return listenPort;
     }
 
     public String getDbName() {
@@ -108,10 +108,10 @@ public class DerbyController {
     }
 
     public void start() throws Exception {
-        LOGGER.info("Starting Derby embedded network server "+listenHostname+":"+listentPort+", database "+dbName);
+        LOGGER.info("Starting Derby embedded network server "+listenHostname+":"+ listenPort +", database "+dbName);
         listenAddress = InetAddress.getByName(listenHostname);
         jdbcUrl = "jdbc:derby:"+dbName+";create=true;user="+username+";password="+password;
-        server = new NetworkServerControl(listenAddress,listentPort);
+        server = new NetworkServerControl(listenAddress, listenPort);
         System.setProperty("derby.stream.error.file", "target/derby.log");
         server.start(null);
     }

@@ -72,9 +72,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class OpenDJController extends AbstractResourceController {
 
-    private String DATA_TEMPLATE_DIR = "test-data";
-    private String SERVER_ROOT = "target/test-data/opendj";
-    private String LDAP_SUFFIX = "dc=example,dc=com";
+    private String dataTemplateDir = "test-data";
+    private String serverRootDirectoryName = "target/test-data/opendj";
+    private String ldapSuffix = "dc=example,dc=com";
 
     public static final String DEFAULT_TEMPLATE_NAME = "opendj.template";
     public static final String RI_TEMPLATE_NAME = "opendj.template.ri";
@@ -83,7 +83,7 @@ public class OpenDJController extends AbstractResourceController {
     public static final String RESOURCE_OPENDJ_PRIMARY_IDENTIFIER_LOCAL_NAME = "entryUUID";
     public static final String RESOURCE_OPENDJ_SECONDARY_IDENTIFIER_LOCAL_NAME = "dn";
 
-    protected File serverRoot = new File(SERVER_ROOT);
+    protected File serverRoot = new File(serverRootDirectoryName);
     protected File configFile = null;
     protected File templateRoot;
 
@@ -96,7 +96,7 @@ public class OpenDJController extends AbstractResourceController {
     }
 
     public OpenDJController(String serverRoot) {
-        SERVER_ROOT = serverRoot;
+        serverRootDirectoryName = serverRoot;
         this.serverRoot = new File(serverRoot);
         init();
     }
@@ -180,12 +180,12 @@ public class OpenDJController extends AbstractResourceController {
     }
 
     public String getSuffix() {
-        return LDAP_SUFFIX;
+        return ldapSuffix;
     }
 
 
     public String getSuffixPeople() {
-        return "ou=People,"+LDAP_SUFFIX;
+        return "ou=People,"+ ldapSuffix;
     }
 
     public String getAccountDn(String username) {
@@ -231,8 +231,8 @@ public class OpenDJController extends AbstractResourceController {
             dst.mkdirs();
         }
 
-        templateRoot = new File(DATA_TEMPLATE_DIR, templateName);
-        String templateRootPath = DATA_TEMPLATE_DIR + "/" + templateName;        // templateRoot.getPath does not work on Windows, as it puts "\" into the path name (leading to problems with getSystemResource)
+        templateRoot = new File(dataTemplateDir, templateName);
+        String templateRootPath = dataTemplateDir + "/" + templateName;        // templateRoot.getPath does not work on Windows, as it puts "\" into the path name (leading to problems with getSystemResource)
 
         // Determing if we need to extract from JAR or directory
         if (templateRoot.isDirectory()) {
@@ -929,8 +929,7 @@ public class OpenDJController extends AbstractResourceController {
     }
 
     public String dumpEntries() throws DirectoryException {
-        InternalSearchOperation op = getInternalConnection().processSearch(
-                LDAP_SUFFIX, SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
+        InternalSearchOperation op = getInternalConnection().processSearch(ldapSuffix, SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
                 100, false, "(objectclass=*)", getSearchAttributes());
 
         StringBuilder sb = new StringBuilder();
@@ -944,8 +943,8 @@ public class OpenDJController extends AbstractResourceController {
 
     public String dumpTree() throws DirectoryException {
         StringBuilder sb = new StringBuilder();
-        sb.append(LDAP_SUFFIX).append("\n");
-        dumpTreeLevel(sb, LDAP_SUFFIX, 1);
+        sb.append(ldapSuffix).append("\n");
+        dumpTreeLevel(sb, ldapSuffix, 1);
         return sb.toString();
     }
 

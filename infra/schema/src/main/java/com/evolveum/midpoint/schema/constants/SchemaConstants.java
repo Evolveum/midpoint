@@ -28,7 +28,7 @@ public abstract class SchemaConstants {
     public static final String NS_MIDPOINT_PUBLIC = "http://midpoint.evolveum.com/xml/ns/public";
     public static final String NS_MIDPOINT_TEST = "http://midpoint.evolveum.com/xml/ns/test";
 
-    public static final Map<String, String> prefixNsMap = new HashMap<>();
+    public static final Map<String, String> PREFIX_NS_MAP = new HashMap<>();
 
     // NAMESPACES
 
@@ -546,8 +546,8 @@ public abstract class SchemaConstants {
 
     // Misc
 
-    public static String BUNDLE_NAME = "schema";
-    public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/" + BUNDLE_NAME;     // Do not load this bundle explicitly, see MID-4800
+    public static final String BUNDLE_NAME = "schema";
+    public static final String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/" + BUNDLE_NAME;     // Do not load this bundle explicitly, see MID-4800
     public static final QName APPROVAL_LEVEL_OUTCOME_TYPE_COMPLEX_TYPE = new QName(SchemaConstants.NS_C, ApprovalLevelOutcomeType.class.getSimpleName());
 
     // registration

@@ -50,7 +50,7 @@ public class DerbyControllerTest {
 
         // Try to connect over the "network" (localhost)
         Class.forName("org.apache.derby.jdbc.ClientDriver").newInstance();
-        String networkJdbcUrl = "jdbc:derby://"+controller.getListenHostname()+":"+controller.getListentPort()+"/"+controller.getDbName();
+        String networkJdbcUrl = "jdbc:derby://"+controller.getListenHostname()+":"+controller.getListenPort()+"/"+controller.getDbName();
         Properties props = new Properties();
         props.setProperty("user",controller.getUsername());
         props.setProperty("password",controller.getPassword());

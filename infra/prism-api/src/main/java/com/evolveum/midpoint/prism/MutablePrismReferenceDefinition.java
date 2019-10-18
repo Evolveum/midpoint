@@ -7,10 +7,6 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.MutableItemDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-
 import javax.xml.namespace.QName;
 
 /**

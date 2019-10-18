@@ -31,47 +31,47 @@ public final class ClassMapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClassMapper.class);
 
-    private static final Map<ObjectTypes, RObjectType> types = new HashMap<>();
-    private static final MultiValuedMap<ObjectTypes, RObjectType> descendants = new HashSetValuedHashMap<>();
+    private static final Map<ObjectTypes, RObjectType> TYPES = new HashMap<>();
+    private static final MultiValuedMap<ObjectTypes, RObjectType> DESCENDANTS = new HashSetValuedHashMap<>();
 
     private ClassMapper() {
     }
 
     static {
-        types.put(ObjectTypes.CONNECTOR, RObjectType.CONNECTOR);
-        types.put(ObjectTypes.CONNECTOR_HOST, RObjectType.CONNECTOR_HOST);
-        types.put(ObjectTypes.GENERIC_OBJECT, RObjectType.GENERIC_OBJECT);
-        types.put(ObjectTypes.OBJECT, RObjectType.OBJECT);
-        types.put(ObjectTypes.PASSWORD_POLICY, RObjectType.VALUE_POLICY);
-        types.put(ObjectTypes.RESOURCE, RObjectType.RESOURCE);
-        types.put(ObjectTypes.SHADOW, RObjectType.SHADOW);
-        types.put(ObjectTypes.ROLE, RObjectType.ROLE);
-        types.put(ObjectTypes.SYSTEM_CONFIGURATION, RObjectType.SYSTEM_CONFIGURATION);
-        types.put(ObjectTypes.TASK, RObjectType.TASK);
-        types.put(ObjectTypes.USER, RObjectType.USER);
-        types.put(ObjectTypes.REPORT, RObjectType.REPORT);
-        types.put(ObjectTypes.REPORT_OUTPUT, RObjectType.REPORT_OUTPUT);
-        types.put(ObjectTypes.OBJECT_TEMPLATE, RObjectType.OBJECT_TEMPLATE);
-        types.put(ObjectTypes.NODE, RObjectType.NODE);
-        types.put(ObjectTypes.ORG, RObjectType.ORG);
-        types.put(ObjectTypes.ABSTRACT_ROLE, RObjectType.ABSTRACT_ROLE);
-        types.put(ObjectTypes.FOCUS_TYPE, RObjectType.FOCUS);
-        types.put(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, RObjectType.ASSIGNMENT_HOLDER);
-        types.put(ObjectTypes.SECURITY_POLICY, RObjectType.SECURITY_POLICY);
-        types.put(ObjectTypes.LOOKUP_TABLE, RObjectType.LOOKUP_TABLE);
-        types.put(ObjectTypes.ACCESS_CERTIFICATION_DEFINITION, RObjectType.ACCESS_CERTIFICATION_DEFINITION);
-        types.put(ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN, RObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
-        types.put(ObjectTypes.SEQUENCE, RObjectType.SEQUENCE);
-        types.put(ObjectTypes.SERVICE, RObjectType.SERVICE);
-        types.put(ObjectTypes.FORM, RObjectType.FORM);
-        types.put(ObjectTypes.CASE, RObjectType.CASE);
-        types.put(ObjectTypes.FUNCTION_LIBRARY, RObjectType.FUNCTION_LIBRARY);
-        types.put(ObjectTypes.OBJECT_COLLECTION, RObjectType.OBJECT_COLLECTION);
-        types.put(ObjectTypes.ARCHETYPE, RObjectType.ARCHETYPE);
-        types.put(ObjectTypes.DASHBOARD, RObjectType.DASHBOARD);
+        TYPES.put(ObjectTypes.CONNECTOR, RObjectType.CONNECTOR);
+        TYPES.put(ObjectTypes.CONNECTOR_HOST, RObjectType.CONNECTOR_HOST);
+        TYPES.put(ObjectTypes.GENERIC_OBJECT, RObjectType.GENERIC_OBJECT);
+        TYPES.put(ObjectTypes.OBJECT, RObjectType.OBJECT);
+        TYPES.put(ObjectTypes.PASSWORD_POLICY, RObjectType.VALUE_POLICY);
+        TYPES.put(ObjectTypes.RESOURCE, RObjectType.RESOURCE);
+        TYPES.put(ObjectTypes.SHADOW, RObjectType.SHADOW);
+        TYPES.put(ObjectTypes.ROLE, RObjectType.ROLE);
+        TYPES.put(ObjectTypes.SYSTEM_CONFIGURATION, RObjectType.SYSTEM_CONFIGURATION);
+        TYPES.put(ObjectTypes.TASK, RObjectType.TASK);
+        TYPES.put(ObjectTypes.USER, RObjectType.USER);
+        TYPES.put(ObjectTypes.REPORT, RObjectType.REPORT);
+        TYPES.put(ObjectTypes.REPORT_OUTPUT, RObjectType.REPORT_OUTPUT);
+        TYPES.put(ObjectTypes.OBJECT_TEMPLATE, RObjectType.OBJECT_TEMPLATE);
+        TYPES.put(ObjectTypes.NODE, RObjectType.NODE);
+        TYPES.put(ObjectTypes.ORG, RObjectType.ORG);
+        TYPES.put(ObjectTypes.ABSTRACT_ROLE, RObjectType.ABSTRACT_ROLE);
+        TYPES.put(ObjectTypes.FOCUS_TYPE, RObjectType.FOCUS);
+        TYPES.put(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, RObjectType.ASSIGNMENT_HOLDER);
+        TYPES.put(ObjectTypes.SECURITY_POLICY, RObjectType.SECURITY_POLICY);
+        TYPES.put(ObjectTypes.LOOKUP_TABLE, RObjectType.LOOKUP_TABLE);
+        TYPES.put(ObjectTypes.ACCESS_CERTIFICATION_DEFINITION, RObjectType.ACCESS_CERTIFICATION_DEFINITION);
+        TYPES.put(ObjectTypes.ACCESS_CERTIFICATION_CAMPAIGN, RObjectType.ACCESS_CERTIFICATION_CAMPAIGN);
+        TYPES.put(ObjectTypes.SEQUENCE, RObjectType.SEQUENCE);
+        TYPES.put(ObjectTypes.SERVICE, RObjectType.SERVICE);
+        TYPES.put(ObjectTypes.FORM, RObjectType.FORM);
+        TYPES.put(ObjectTypes.CASE, RObjectType.CASE);
+        TYPES.put(ObjectTypes.FUNCTION_LIBRARY, RObjectType.FUNCTION_LIBRARY);
+        TYPES.put(ObjectTypes.OBJECT_COLLECTION, RObjectType.OBJECT_COLLECTION);
+        TYPES.put(ObjectTypes.ARCHETYPE, RObjectType.ARCHETYPE);
+        TYPES.put(ObjectTypes.DASHBOARD, RObjectType.DASHBOARD);
 
         for (ObjectTypes type : ObjectTypes.values()) {
-            if (!types.containsKey(type)) {
+            if (!TYPES.containsKey(type)) {
                 String message = "Not all object types are mapped by sql repo impl. Found '" + type + "' unmapped.";
                 System.err.println(message);
                 LOGGER.error(message);
@@ -87,10 +87,10 @@ public final class ClassMapper {
     }
 
     private static void computeDescendants() {
-        descendants.clear();
+        DESCENDANTS.clear();
         for (RObjectType rType : RObjectType.values()) {
             for (RObjectType ancestor : getAncestors(rType)) {
-                descendants.put(ObjectTypes.getObjectType(ancestor.getJaxbClass()), rType);
+                DESCENDANTS.put(ObjectTypes.getObjectType(ancestor.getJaxbClass()), rType);
             }
         }
     }
@@ -118,7 +118,7 @@ public final class ClassMapper {
         Validate.notNull(clazz, "Class must not be null.");
 
         ObjectTypes type = ObjectTypes.getObjectType(clazz);
-        Class<? extends RObject> hqlType = types.get(type).getClazz();
+        Class<? extends RObject> hqlType = TYPES.get(type).getClazz();
         if (hqlType == null) {
             throw new IllegalStateException("Couldn't find DB type for '" + clazz + "'.");
         }
@@ -137,7 +137,7 @@ public final class ClassMapper {
             return null;
         }
 
-        for (Map.Entry<ObjectTypes, RObjectType> entry : types.entrySet()) {
+        for (Map.Entry<ObjectTypes, RObjectType> entry : TYPES.entrySet()) {
             if (QNameUtil.match(entry.getKey().getTypeQName(), qname)) {
                 return entry.getValue();
             }
@@ -159,7 +159,7 @@ public final class ClassMapper {
         if (hqlName == null) {
             return null;
         }
-        for (RObjectType entry : types.values()) {
+        for (RObjectType entry : TYPES.values()) {
             if (entry.getClazz().getSimpleName().equals(hqlName)) {
                 return entry.getClazz();
             }
@@ -171,7 +171,7 @@ public final class ClassMapper {
         if (type == null) {
             return null;
         }
-        for (Map.Entry<ObjectTypes, RObjectType> entry : types.entrySet()) {
+        for (Map.Entry<ObjectTypes, RObjectType> entry : TYPES.entrySet()) {
             if (entry.getValue().equals(type)) {
                 return entry.getKey();
             }
@@ -184,7 +184,7 @@ public final class ClassMapper {
         if (type == null) {
             return null;
         }
-        for (Map.Entry<ObjectTypes, RObjectType> entry : types.entrySet()) {
+        for (Map.Entry<ObjectTypes, RObjectType> entry : TYPES.entrySet()) {
             if (entry.getValue().getClazz().equals(type)) {
                 return entry.getKey();
             }
@@ -199,10 +199,10 @@ public final class ClassMapper {
     }
 
     public static Collection<RObjectType> getKnownTypes() {
-        return types.values();
+        return TYPES.values();
     }
 
     public static Collection<RObjectType> getDescendantsForQName(QName typeName) {
-        return descendants.get(ObjectTypes.getObjectTypeFromTypeQName(typeName));
+        return DESCENDANTS.get(ObjectTypes.getObjectTypeFromTypeQName(typeName));
     }
 }

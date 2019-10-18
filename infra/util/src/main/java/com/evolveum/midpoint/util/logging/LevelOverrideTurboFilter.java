@@ -21,11 +21,11 @@ import org.slf4j.Marker;
  */
 public class LevelOverrideTurboFilter extends TurboFilter {
 
-    private static final ThreadLocal<LoggingLevelOverrideConfiguration> configurationThreadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<LoggingLevelOverrideConfiguration> CONFIGURATION_THREAD_LOCAL = new ThreadLocal<>();
 
     @Override
     public FilterReply decide(Marker marker, Logger logger, Level level, String format, Object[] params, Throwable t) {
-        LoggingLevelOverrideConfiguration configuration = configurationThreadLocal.get();
+        LoggingLevelOverrideConfiguration configuration = CONFIGURATION_THREAD_LOCAL.get();
         if (configuration != null) {
             for (LoggingLevelOverrideConfiguration.Entry entry : configuration.getEntries()) {
                 if (entry.getLevel() == null) {
@@ -52,14 +52,14 @@ public class LevelOverrideTurboFilter extends TurboFilter {
     // In the future we might have active multiple overriding sources (e.g. tracing + per-task-logging)
     // But for now the source is only one.
     public static boolean isActive() {
-        return configurationThreadLocal.get() != null;
+        return CONFIGURATION_THREAD_LOCAL.get() != null;
     }
 
     public static void overrideLogging(LoggingLevelOverrideConfiguration configuration) {
-        configurationThreadLocal.set(configuration);
+        CONFIGURATION_THREAD_LOCAL.set(configuration);
     }
 
     public static void cancelLoggingOverride() {
-        configurationThreadLocal.remove();
+        CONFIGURATION_THREAD_LOCAL.remove();
     }
 }

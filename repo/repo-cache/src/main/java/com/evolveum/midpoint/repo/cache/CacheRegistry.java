@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 @Component
 public class CacheRegistry implements CacheListener {
 
-    private static transient Trace LOGGER = TraceManager.getTrace(CacheListener.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(CacheListener.class);
 
     private List<Cacheable> cacheableServices = new ArrayList<>();
 

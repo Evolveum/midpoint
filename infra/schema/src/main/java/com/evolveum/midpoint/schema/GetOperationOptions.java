@@ -1037,7 +1037,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     @SafeVarargs
     public static Collection<SelectorOptions<GetOperationOptions>> merge(PrismContext prismContext,
             Collection<SelectorOptions<GetOperationOptions>>... parts) {
-        UniformItemPath EMPTY_PATH = prismContext.emptyPath();
+        final UniformItemPath EMPTY_PATH = prismContext.emptyPath();
         Collection<SelectorOptions<GetOperationOptions>> merged = new ArrayList<>();
         for (Collection<SelectorOptions<GetOperationOptions>> part : parts) {
             for (SelectorOptions<GetOperationOptions> increment : CollectionUtils.emptyIfNull(part)) {

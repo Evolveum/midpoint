@@ -23,32 +23,32 @@ public class LoggingUtils {
     /**
      * Standard way of logging exception: message is presented at ERROR level, stack trace on DEBUG.
      */
-    public static void logException(Trace LOGGER, String message, Throwable ex, Object... objects) {
+    public static void logException(final Trace LOGGER, String message, Throwable ex, Object... objects) {
         logExceptionInternal(Level.ERROR, Level.DEBUG, LOGGER, message, ex, objects);
     }
 
     /**
      * When logging unexpected exception, we always want to see the stack trace (so everything is logged on ERROR level)
      */
-    public static void logUnexpectedException(Trace LOGGER, String message, Throwable ex, Object... objects) {
+    public static void logUnexpectedException(final Trace LOGGER, String message, Throwable ex, Object... objects) {
         logExceptionInternal(Level.ERROR, Level.ERROR, LOGGER, message, ex, objects);
     }
 
     /**
      * Non-critical exceptions (warnings, with details as debug)
      */
-    public static void logExceptionAsWarning(Trace LOGGER, String message, Throwable ex, Object... objects) {
+    public static void logExceptionAsWarning(final Trace LOGGER, String message, Throwable ex, Object... objects) {
         logExceptionInternal(Level.WARN, Level.DEBUG, LOGGER, message, ex, objects);
     }
 
     /**
      * Exceptions that shouldn't be even visible on INFO level.
      */
-    public static void logExceptionOnDebugLevel(Trace LOGGER, String message, Throwable ex, Object... objects) {
+    public static void logExceptionOnDebugLevel(final Trace LOGGER, String message, Throwable ex, Object... objects) {
         logExceptionInternal(Level.DEBUG, Level.TRACE, LOGGER, message, ex, objects);
     }
 
-    private static void logExceptionInternal(Level first, Level second, Trace LOGGER, String message, Throwable ex, Object... objects) {
+    private static void logExceptionInternal(Level first, Level second, final Trace LOGGER, String message, Throwable ex, Object... objects) {
         Validate.notNull(LOGGER, "Logger can't be null.");
         Validate.notNull(ex, "Exception can't be null.");
 
