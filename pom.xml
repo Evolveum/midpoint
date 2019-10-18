@@ -2,30 +2,30 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<name>midPoint Project</name>
-	<groupId>com.evolveum.midpoint</groupId>
-	<artifactId>midpoint</artifactId>
-	<version>4.0.1-SNAPSHOT</version>
-	<packaging>pom</packaging>
-	<description>Utility module to compile all of the maven based midPoint projects.</description>
-	<organization>
-		<name>evolveum</name>
-		<url>http://www.evolveum.com</url>
-	</organization>
-	<licenses>
-		<license>
-			<name>Apache License v2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>midPoint Project</name>
+    <groupId>com.evolveum.midpoint</groupId>
+    <artifactId>midpoint</artifactId>
+    <version>4.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <description>Utility module to compile all of the maven based midPoint projects.</description>
+    <organization>
+        <name>evolveum</name>
+        <url>http://www.evolveum.com</url>
+    </organization>
+    <licenses>
+        <license>
+            <name>Apache License v2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <distributionManagement>
         <repository>
@@ -40,202 +40,202 @@
         </snapshotRepository>
     </distributionManagement>
 
-	<issueManagement>
-		<system>Atlassian JIRA</system>
-		<url>https://jira.evolveum.com/browse/MID</url>
-	</issueManagement>
+    <issueManagement>
+        <system>Atlassian JIRA</system>
+        <url>https://jira.evolveum.com/browse/MID</url>
+    </issueManagement>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
         <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
         <url>https://github.com/Evolveum/midpoint.git</url>
     </scm>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
-				<configuration>
-					<source>${project.source.version}</source>
-					<target>${project.source.version}</target>
-				</configuration>
-			</plugin>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <source>${project.source.version}</source>
+                    <target>${project.source.version}</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>com.rimerosolutions.maven.plugins</groupId>
                 <artifactId>wrapper-maven-plugin</artifactId>
                 <version>0.0.4</version>
             </plugin>
-			
-			<plugin>
+
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>2.0.1.RELEASE</version>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
-		</plugins>
-		
-		
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-plugin-plugin</artifactId>
-					<version>3.6.0</version>		<!-- 3.2 does not work because of some internal error; 3.4+ probably because of some misconfiguration -->
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-deploy-plugin</artifactId>
-					<version>2.8.2</version>
-				</plugin>
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.maven.plugins</groupId>
-										<artifactId>maven-dependency-plugin</artifactId>
-										<versionRange>[3.1.1,)</versionRange>
-										<goals>
-											<goal>copy-dependencies</goal>
-											<goal>unpack</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<execute />
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.cxf</groupId>
-										<artifactId>cxf-codegen-plugin</artifactId>
-										<versionRange>[3.3.1,)</versionRange>
-										<goals>
-											<goal>wsdl2java</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<execute />
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>com.lukegb.mojo</groupId>
-										<artifactId>gitdescribe-maven-plugin</artifactId>
-										<versionRange>[3.0,)</versionRange>
-										<goals>
-											<goal>gitdescribe</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<execute />
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
-	<repositories>
-		<repository>
-			<id>evolveum</id>
-			<name>Evolveum Public Releases</name>
-			<url>https://nexus.evolveum.com/nexus/content/groups/public/</url>
-		</repository>
-		<repository>
-			<id>evolveum-snapshots</id>
-			<name>Evolveum Snapshots</name>
-			<url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
-		</repository>
-	</repositories>
-	<properties>
-		<!-- Build system options - more options in build-system/pom.xml -->
-		<clover.version>3.1.11</clover.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
-	<modules>
-		<module>build-tools</module>
-		<module>build-system</module>
-		<module>tools</module>
-		<module>infra</module>
-		<module>repo</module>
-		<module>provisioning</module>
-		<module>model</module>
-		<module>custom</module>
-		<module>gui</module>
-		<module>icf-connectors</module>
-		<module>testing</module>
-	</modules>
-	<profiles>
-		<profile>
-			<id>clover</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>com.atlassian.maven.plugins</groupId>
-						<artifactId>maven-clover2-plugin</artifactId>
-						<version>3.1.1</version>
-						<configuration>
-							<targetPercentage>0%</targetPercentage>
-							<includesTestSourceRoots>true</includesTestSourceRoots>
-							<jdk>${project.source.version}</jdk>
-							<generateXml>true</generateXml>
-							<generateHistorical>true</generateHistorical>
-							<multiproject>true</multiproject>
-							<excludes>
-								<exclude>**/MidpointAspect.java</exclude>
-							</excludes>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
+        </plugins>
 
-		</profile>
-		
-		<profile>
-			<id>dist</id>
-			<activation>
-      				<property>
-        				<name>!skipDist</name>
-      				</property>
-    			</activation>
-			<modules>
-				<module>dist</module>
-			</modules>
-		</profile>
-		<profile>
-			<id>jdk-11</id>
-			<properties>
-				<project.source.version>11</project.source.version>
-			</properties>
-			<activation>
-				<jdk>11</jdk>
-			</activation>
-		</profile>
-		<profile>
-			<id>jdk-8</id>
-			<properties>
-				<project.source.version>1.8</project.source.version>
-			</properties>
-			<activation>
-				<jdk>1.8</jdk>
-			</activation>
-		</profile>
-		<!-- TODO experimental PROFILE, remove after merge to master  -->
-	<!--	<profile>
-		<id>schrodinger</id>
-		    <build>
-		   <plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>3.6.0</version>        <!-- 3.2 does not work because of some internal error; 3.4+ probably because of some misconfiguration -->
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>2.8.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-dependency-plugin</artifactId>
+                                        <versionRange>[3.1.1,)</versionRange>
+                                        <goals>
+                                            <goal>copy-dependencies</goal>
+                                            <goal>unpack</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <execute />
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.cxf</groupId>
+                                        <artifactId>cxf-codegen-plugin</artifactId>
+                                        <versionRange>[3.3.1,)</versionRange>
+                                        <goals>
+                                            <goal>wsdl2java</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <execute />
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>com.lukegb.mojo</groupId>
+                                        <artifactId>gitdescribe-maven-plugin</artifactId>
+                                        <versionRange>[3.0,)</versionRange>
+                                        <goals>
+                                            <goal>gitdescribe</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <execute />
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+    <repositories>
+        <repository>
+            <id>evolveum</id>
+            <name>Evolveum Public Releases</name>
+            <url>https://nexus.evolveum.com/nexus/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>evolveum-snapshots</id>
+            <name>Evolveum Snapshots</name>
+            <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
+    <properties>
+        <!-- Build system options - more options in build-system/pom.xml -->
+        <clover.version>3.1.11</clover.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <modules>
+        <module>build-tools</module>
+        <module>build-system</module>
+        <module>tools</module>
+        <module>infra</module>
+        <module>repo</module>
+        <module>provisioning</module>
+        <module>model</module>
+        <module>custom</module>
+        <module>gui</module>
+        <module>icf-connectors</module>
+        <module>testing</module>
+    </modules>
+    <profiles>
+        <profile>
+            <id>clover</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.atlassian.maven.plugins</groupId>
+                        <artifactId>maven-clover2-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <configuration>
+                            <targetPercentage>0%</targetPercentage>
+                            <includesTestSourceRoots>true</includesTestSourceRoots>
+                            <jdk>${project.source.version}</jdk>
+                            <generateXml>true</generateXml>
+                            <generateHistorical>true</generateHistorical>
+                            <multiproject>true</multiproject>
+                            <excludes>
+                                <exclude>**/MidpointAspect.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+
+        </profile>
+
+        <profile>
+            <id>dist</id>
+            <activation>
+                      <property>
+                        <name>!skipDist</name>
+                      </property>
+                </activation>
+            <modules>
+                <module>dist</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>jdk-11</id>
+            <properties>
+                <project.source.version>11</project.source.version>
+            </properties>
+            <activation>
+                <jdk>11</jdk>
+            </activation>
+        </profile>
+        <profile>
+            <id>jdk-8</id>
+            <properties>
+                <project.source.version>1.8</project.source.version>
+            </properties>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+        </profile>
+        <!-- TODO experimental PROFILE, remove after merge to master  -->
+    <!--    <profile>
+        <id>schrodinger</id>
+            <build>
+           <plugins>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -266,17 +266,17 @@
                     <executable>mvn</executable>
                     <arguments>
                         <argument>-amd</argument>
-						<argument>-pl</argument>
+                        <argument>-pl</argument>
                         <argument>midpoint/gui</argument>
                         <argument>-am</argument>
-						<argument>spring-boot:run</argument>
+                        <argument>spring-boot:run</argument>
                     </arguments>
                 </configuration>
             </execution>
                 </executions>
             </plugin>
         </plugins>
-		  </build>
-		</profile>-->
-	</profiles> 
+          </build>
+        </profile>-->
+    </profiles>
 </project>

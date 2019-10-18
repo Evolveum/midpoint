@@ -17,24 +17,18 @@
         <property name="fileNamePattern" value="module\-info\.java$"/>
     </module>
 
-    <!-- Checks whether files end with a new line.                        -->
-    <!-- See https://checkstyle.org/config_misc.html#NewlineAtEndOfFile -->
-    <module name="NewlineAtEndOfFile"/>
-
     <!-- Checks that property files contain the same keys.         -->
     <!-- See https://checkstyle.org/config_misc.html#Translation -->
     <module name="Translation"/>
 
-
-    <!-- Checks for whitespace                               -->
-    <!-- See https://checkstyle.org/config_whitespace.html -->
+    <!-- Checks for whitespace. We indent by spaces, not tabs. -->
     <module name="FileTabCharacter"/>
-
+    <!-- TODO: enable this later
+    <module name="NewlineAtEndOfFile"/> -->
 
     <module name="TreeWalker">
 
-        <!-- Checks for Naming Conventions.                  -->
-        <!-- See https://checkstyle.org/config_naming.html -->
+        <!-- TODO: enable this later
         <module name="ConstantName"/>
         <module name="LocalFinalVariableName"/>
         <module name="LocalVariableName"/>
@@ -44,42 +38,28 @@
         <module name="ParameterName"/>
         <module name="StaticVariableName"/>
         <module name="TypeName"/>
+        <module name="RedundantImport"/>-->
 
-        <!-- Checks for imports                              -->
-        <!-- See https://checkstyle.org/config_import.html -->
-        <module name="RedundantImport"/>
-<!--        <module name="UnusedImports">
-            <property name="processJavadoc" value="false"/>
-        </module> -->
-
-        <!-- Modifier Checks                                    -->
-        <!-- See https://checkstyle.org/config_modifiers.html -->
+        <!-- TODO: enable this later
         <module name="RedundantModifier"/>
-
-        <!-- Checks for blocks. You know, those {}'s         -->
-        <!-- See https://checkstyle.org/config_blocks.html -->
         <module name="AvoidNestedBlocks"/>
         <module name="EmptyBlock"/>
         <module name="NeedBraces"/>
-
-        <!-- Checks for common coding problems               -->
-        <!-- See https://checkstyle.org/config_coding.html -->
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
         <module name="MultipleVariableDeclarations"/>
         <module name="SimplifyBooleanExpression"/>
         <module name="SimplifyBooleanReturn"/>
-
-        <!-- Checks for class design                         -->
-        <!-- See https://checkstyle.org/config_design.html -->
-        <module name="DesignForExtension"/>
         <module name="FinalClass"/>
         <module name="InterfaceIsType"/>
-
-        <!-- Miscellaneous other checks.                   -->
-        <!-- See https://checkstyle.org/config_misc.html -->
         <module name="ArrayTypeStyle"/>
-        <module name="UpperEll"/>
+        <module name="UpperEll"/> -->
+
+
+        <!--    TODO: enable those MUCH later
+        <module name="UnusedImports">
+            <property name="processJavadoc" value="false"/>
+        </module> -->
 
     </module>
 
