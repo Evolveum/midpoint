@@ -14,6 +14,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationPartType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.InformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -41,11 +42,13 @@ public class InformationPanel extends BasePanel<InformationType> {
             @Override
             public LocalizableMessageType getObject() {
                 InformationType info = getModelObject();
-                return info != null ? getLocalizableMessageOrDefault(info.getLocalizableTitle(), info.getTitle()) : null;
+                if (info == null || info.getTitle() == null && info.getLocalizableTitle() == null){
+                    return new SingleLocalizableMessageType().fallbackMessage("ApprovalStageDefinitionType.additionalInformation");
+                }
+                return getLocalizableMessageOrDefault(info.getLocalizableTitle(), info.getTitle());
             }
         }, this));
-        titleLabel.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getLocalizableTitle() != null
-                && getModelObject().getTitle() != null));
+        titleLabel.add(new VisibleBehaviour(() -> getModelObject() != null));
         add(titleLabel);
 
         ListView<InformationPartType> list = new ListView<InformationPartType>(ID_PARTS,
