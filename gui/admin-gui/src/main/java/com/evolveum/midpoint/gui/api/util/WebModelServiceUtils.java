@@ -104,6 +104,9 @@ public class WebModelServiceUtils {
         if (ref.getTargetName() != null) {
             return ref.getTargetName().getOrig();
         }
+        if (StringUtils.isEmpty(ref.getOid()) || ref.getType() == null){
+            return null;
+        }
         PrismObject<ObjectType> object = resolveReferenceNoFetch(ref, page, task, result);
         if (object == null) {
             return ref.getOid();
