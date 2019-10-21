@@ -81,19 +81,19 @@ public class DoubleButtonPanel<T> extends BasePanel<T>{
     }
 
     public String getFirstCssSizeClass(){
-        return DoubleButtonColumn.BUTTON_SIZE_CLASS.DEFAULT.toString();
+        return DoubleButtonColumn.ButtonSizeClass.DEFAULT.toString();
     }
 
     public String getSecondCssSizeClass(){
-        return DoubleButtonColumn.BUTTON_SIZE_CLASS.DEFAULT.toString();
+        return DoubleButtonColumn.ButtonSizeClass.DEFAULT.toString();
     }
 
     public String getFirstCssColorClass(){
-        return DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString();
+        return DoubleButtonColumn.ButtonColorClass.DEFAULT.toString();
     }
 
     public String getSecondCssColorClass(){
-        return DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString();
+        return DoubleButtonColumn.ButtonColorClass.DEFAULT.toString();
     }
 
     public String getFirstCaption(){

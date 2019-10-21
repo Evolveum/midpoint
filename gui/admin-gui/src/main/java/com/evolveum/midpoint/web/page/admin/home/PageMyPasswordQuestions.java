@@ -76,7 +76,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
     private static final String DOT_CLASS = PageMyPasswordQuestions.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
     private static final String OPERATION_LOAD_QUESTION_POLICY = DOT_CLASS + "LOAD Question Policy";
-    private String ID_PASSWORD_QUESTIONS_PANEL = "pwdQuestionsPanel";
+    private static final String ID_PASSWORD_QUESTIONS_PANEL = "pwdQuestionsPanel";
     private static final String OPERATION_SAVE_QUESTIONS="Save Security Questions";
 
     private static final String ID_MAIN_FORM = "mainForm";

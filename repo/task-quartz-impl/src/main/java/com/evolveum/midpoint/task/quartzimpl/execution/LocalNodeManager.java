@@ -77,12 +77,12 @@ public class LocalNodeManager {
 
             createQuartzDbSchema(configuration);
 
-            String MY_DS = "myDS";
+            final String MY_DS = "myDS";
             quartzProperties.put("org.quartz.jobStore.dataSource", MY_DS);
             if (configuration.isUseRepositoryConnectionProvider()) {
                 DataSourceFactory dataSourceFactory = (DataSourceFactory) taskManager.getBeanFactory().getBean("dataSourceFactory");
                 int index = (int) (Math.random() * Integer.MAX_VALUE);
-                RepositoryConnectionProvider.dataSources.put(index, dataSourceFactory.getDataSource());
+                RepositoryConnectionProvider.DATA_SOURCES.put(index, dataSourceFactory.getDataSource());
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".connectionProvider.class", RepositoryConnectionProvider.class.getName());
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".dataSourceIndex", String.valueOf(index));
             } else if (configuration.getDataSource() != null) {

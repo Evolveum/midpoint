@@ -60,7 +60,7 @@ public class ChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangeProcessor.class);
 
-    private static String OP_PROCESS_SYNCHRONIZATION = ChangeProcessor.class.getName() + ".processSynchronization";
+    private static final String OP_PROCESS_SYNCHRONIZATION = ChangeProcessor.class.getName() + ".processSynchronization";
 
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired private ShadowManager shadowManager;

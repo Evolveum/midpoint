@@ -16,7 +16,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class LogExpressionFunctions {
 
-    public static String EXPRESSION_LOGGER_NAME = "com.evolveum.midpoint.expression";
+    public static final String EXPRESSION_LOGGER_NAME = "com.evolveum.midpoint.expression";
 
     public static final Trace LOGGER = TraceManager.getTrace(EXPRESSION_LOGGER_NAME);
 

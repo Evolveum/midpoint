@@ -100,9 +100,9 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     private static final TaskBinding DEFAULT_BINDING_TYPE = TaskBinding.TIGHT;
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
 
-    private final Object QUARTZ_ACCESS = new Object();
-    private final Object PRISM_ACCESS = new Object();
-    private final Object HANDLER_URI_STACK = new Object();
+    private final Object quartzAccess = new Object();
+    private final Object prismAccess = new Object();
+    private final Object handlerUriStack = new Object();
 
     @NotNull protected final Statistics statistics;
 
@@ -197,7 +197,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     //region Result handling
     private void createOrUpdateTaskResult(String operationName, boolean create) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             OperationResultType resultInPrism = taskPrism.asObjectable().getResult();
             if (resultInPrism == null && create) {
                 if (operationName == null) {
@@ -214,7 +214,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     private void updateTaskPrismResult(PrismObject<TaskType> target) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             if (taskResult != null) {
                 target.asObjectable().setResult(taskResult.createOperationResultType());
                 target.asObjectable().setResultStatus(taskResult.getStatus().createStatusType());
@@ -277,7 +277,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     @NotNull
     @Override
     public PrismObject<TaskType> getClonedTaskObject() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             PrismObject<TaskType> rv = taskPrism.clone();
             updateTaskPrismResult(rv);
             return rv;
@@ -315,7 +315,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     @Override
     public void modify(ItemDelta<?, ?> delta) throws SchemaException {
         addPendingModification(delta);
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             delta.applyTo(taskPrism);
         }
     }
@@ -392,7 +392,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     //region Quartz integration
     void synchronizeWithQuartz(OperationResult parentResult) {
-        synchronized (QUARTZ_ACCESS) {
+        synchronized (quartzAccess) {
             taskManager.synchronizeTaskWithQuartz(this, parentResult);
             setRecreateQuartzTrigger(false);
         }
@@ -408,7 +408,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     private void synchronizeWithQuartzIfNeeded(Collection<ItemDelta<?, ?>> deltas, OperationResult parentResult) {
-        synchronized (QUARTZ_ACCESS) {
+        synchronized (quartzAccess) {
             if (isRecreateQuartzTrigger()) {
                 synchronizeWithQuartz(parentResult);
             } else {
@@ -451,7 +451,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     private <X> X getProperty(ItemName name) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             PrismProperty<X> property = taskPrism.findProperty(name);
             return property != null ? property.getRealValue() : null;
         }
@@ -470,7 +470,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     private <X> void setPropertyTransient(ItemName name, X value) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             try {
                 taskPrism.setPropertyRealValue(name, value);
             } catch (SchemaException e) {
@@ -480,7 +480,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     private <X extends Containerable> void setContainerTransient(ItemName name, X value) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             try {
                 taskPrism.setContainerRealValue(name, value);
             } catch (SchemaException e) {
@@ -511,7 +511,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     private PrismReferenceValue getReferenceValue(ItemName name) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             PrismReference reference = taskPrism.findReference(name);
             return reference != null ? reference.getValue() : null;
         }
@@ -527,7 +527,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     private void setReferenceTransient(ItemName name, ObjectReferenceType value) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             try {
                 taskPrism.findOrCreateReference(name).replace(value != null ? value.clone().asReferenceValue() : null);
             } catch (SchemaException e) {
@@ -646,7 +646,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public void setResultTransient(OperationResult result) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             taskResult = result;
             taskPrism.asObjectable().setResult(result != null ? result.createOperationResultType() : null);
             taskPrism.asObjectable().setResultStatus(result != null ? result.getStatus().createStatusType() : null);
@@ -674,7 +674,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     public OperationResultStatusType getResultStatus() {
         if (taskResult == null) {
             // TODO is it OK to fall back to task prism here?
-            synchronized (PRISM_ACCESS) {
+            synchronized (prismAccess) {
                 return taskPrism.asObjectable().getResultStatus();
             }
         } else {
@@ -711,20 +711,20 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public UriStack getOtherHandlersUriStack() {
-        synchronized (HANDLER_URI_STACK) {
+        synchronized (handlerUriStack) {
             return getProperty(TaskType.F_OTHER_HANDLERS_URI_STACK);
         }
     }
 
     public void setOtherHandlersUriStack(UriStack value) {
-        synchronized (HANDLER_URI_STACK) {
+        synchronized (handlerUriStack) {
             setProperty(TaskType.F_OTHER_HANDLERS_URI_STACK, value);
             checkHandlerUriConsistency();
         }
     }
 
     private UriStackEntry popFromOtherHandlersUriStack() {
-        synchronized (HANDLER_URI_STACK) {
+        synchronized (handlerUriStack) {
             checkHandlerUriConsistency();
             UriStack stack = getOtherHandlersUriStack();
             if (stack == null || stack.getUriStackEntry().isEmpty())
@@ -759,7 +759,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     public void pushHandlerUri(String uri, ScheduleType schedule, TaskBinding binding, Collection<ItemDelta<?, ?>> extensionDeltas) {
         Validate.notNull(uri);
 
-        synchronized (HANDLER_URI_STACK) {
+        synchronized (handlerUriStack) {
             if (binding == null) {
                 binding = bindingFromSchedule(schedule);
             }
@@ -834,7 +834,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public void finishHandler(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        synchronized (HANDLER_URI_STACK) {
+        synchronized (handlerUriStack) {
             // let us drop the current handler URI and nominate the top of the other
             // handlers stack as the current one
 
@@ -918,7 +918,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     int getHandlersCount() {
-        synchronized (HANDLER_URI_STACK) {
+        synchronized (handlerUriStack) {
             checkHandlerUriConsistency();
             int main = getHandlerUri() != null ? 1 : 0;
             UriStack otherHandlersUriStack = getOtherHandlersUriStack();
@@ -969,14 +969,14 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public String getOid() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return taskPrism.getOid();
         }
     }
 
     @Override
     public synchronized void setOid(String oid) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             taskPrism.setOid(oid);
         }
     }
@@ -1179,7 +1179,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public TaskExecutionConstraintsType getExecutionConstraints() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return taskPrism.asObjectable().getExecutionConstraints();
         }
     }
@@ -1191,7 +1191,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public String getGroup() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             TaskExecutionConstraintsType executionConstraints = getExecutionConstraints();
             return executionConstraints != null ? executionConstraints.getGroup() : null;
         }
@@ -1200,7 +1200,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     @NotNull
     @Override
     public Collection<String> getGroups() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return new HashSet<>(getGroupsWithLimits().keySet());
         }
     }
@@ -1208,7 +1208,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     @NotNull
     @Override
     public Map<String, Integer> getGroupsWithLimits() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             TaskExecutionConstraintsType executionConstraints = getExecutionConstraints();
             if (executionConstraints == null) {
                 return emptyMap();
@@ -1316,7 +1316,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
             throw new IllegalStateException("setOwner method can be called only on transient tasks!");
         }
 
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             PrismReference ownerRef;
             try {
                 ownerRef = taskPrism.findOrCreateReference(TaskType.F_OWNER_REF);
@@ -1334,7 +1334,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         }
         try {
             PrismObject<UserType> owner = repositoryService.getObject(UserType.class, ownerRef.getOid(), null, result);
-            synchronized (PRISM_ACCESS) {
+            synchronized (prismAccess) {
                 ownerRef.setObject(owner);
             }
         } catch (ObjectNotFoundException e) {
@@ -1430,7 +1430,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
         try {
             PrismObject<T> object = repositoryService.getObject(type, objectRef.getOid(), null, result);
-            synchronized (PRISM_ACCESS) {
+            synchronized (prismAccess) {
                 objectRef.asReferenceValue().setObject(object);
                 result.recordSuccess();
                 return object.clone();
@@ -1446,7 +1446,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public void setObjectTransient(PrismObject object) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             if (object == null) {
                 PrismReference objectRef = taskPrism.findReference(TaskType.F_OBJECT_REF);
                 if (objectRef != null) {
@@ -1471,7 +1471,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public PolyStringType getName() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             // not using getProperty because of PolyString vs PolyStringType dichotomy
             return taskPrism.asObjectable().getName();
         }
@@ -1494,7 +1494,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     public void setNameTransient(PolyStringType name) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             taskPrism.asObjectable().setName(name);
         }
     }
@@ -1536,7 +1536,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
      */
     @Override
     public PolicyRuleType getPolicyRule() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return cloneIfRunning(taskPrism.asObjectable().getPolicyRule());
         }
     }
@@ -1569,7 +1569,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public List<String> getDependents() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return taskPrism.asObjectable().getDependent();
         }
     }
@@ -1602,7 +1602,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     public void addDependentTransient(String name) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             taskPrism.asObjectable().getDependent().add(name);
         }
     }
@@ -1619,7 +1619,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     public void deleteDependentTransient(String name) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             taskPrism.asObjectable().getDependent().remove(name);
         }
     }
@@ -1635,7 +1635,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
      */
 
     public void addTriggerTransient(TriggerType trigger) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             taskPrism.asObjectable().getTrigger().add(trigger);
         }
     }
@@ -1659,7 +1659,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public PrismContainer<? extends ExtensionType> getExtensionOrClone() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             //noinspection unchecked
             return cloneIfRunning((PrismContainer<ExtensionType>) taskPrism.getExtension());
         }
@@ -1668,7 +1668,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     @NotNull
     @Override
     public PrismContainer<? extends ExtensionType> getOrCreateExtension() throws SchemaException {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             //noinspection unchecked
             return cloneIfRunning((PrismContainer<ExtensionType>) taskPrism.getOrCreateExtension());
         }
@@ -1683,14 +1683,14 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public boolean hasExtension() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return taskPrism.getExtension() != null && !taskPrism.getExtension().isEmpty();
         }
     }
 
     @Override
     public <T> PrismProperty<T> getExtensionPropertyOrClone(ItemName name) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return cloneIfRunning(getExtensionPropertyUnsynchronized(name));
         }
     }
@@ -1704,7 +1704,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     // todo should return clone for running task?
     @Override
     public <T> T getExtensionPropertyRealValue(ItemName propertyName) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             PrismProperty<T> property = getExtensionPropertyUnsynchronized(propertyName);
             return property != null && !property.isEmpty() ? property.getRealValue() : null;
         }
@@ -1712,7 +1712,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public <T extends Containerable> T getExtensionContainerRealValueOrClone(ItemName name) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             Item<?, ?> item = getExtensionItemUnsynchronized(name);
             if (item == null || item.getValues().isEmpty()) {
                 return null;
@@ -1724,7 +1724,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItemOrClone(ItemName name) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return cloneIfRunning(getExtensionItemUnsynchronized(name));
         }
     }
@@ -1937,20 +1937,20 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     // todo thread safety
     @Override
     public LensContextType getModelOperationContext() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return taskPrism.asObjectable().getModelOperationContext();
         }
     }
 
     @Override
     public void setModelOperationContext(LensContextType value) throws SchemaException {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             addPendingModification(setModelOperationContextAndPrepareDelta(value));
         }
     }
 
     public void setModelOperationContextTransient(LensContextType value) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             taskPrism.asObjectable().setModelOperationContext(value);
         }
     }
@@ -2141,7 +2141,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         sb.append(TaskQuartzImpl.class.getName());
         sb.append(")\n");
         DebugUtil.debugDumpLabelLn(sb, "prism", indent + 1);
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             sb.append(taskPrism.debugDump(indent + 2));
         }
         sb.append("\n");
@@ -2157,14 +2157,14 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public int hashCode() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return taskPrism.hashCode();
         }
     }
 
     @Override
     public boolean equals(Object obj) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             if (this == obj)
                 return true;
             if (obj == null)
@@ -2353,7 +2353,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     // todo thread safety (creating a clone?)
     @Override
     public TaskWorkManagementType getWorkManagement() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return taskPrism.asObjectable().getWorkManagement();
         }
     }
@@ -2361,14 +2361,14 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     // todo thread safety (creating a clone?)
     @Override
     public TaskWorkStateType getWorkState() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return taskPrism.asObjectable().getWorkState();
         }
     }
 
     @Override
     public TaskKindType getKind() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             TaskWorkManagementType workManagement = getWorkManagement();
             return workManagement != null ? workManagement.getTaskKind() : null;
         }
@@ -2396,7 +2396,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public boolean isPartitionedMaster() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             TaskWorkManagementType workManagement = getWorkManagement();
             return workManagement != null && workManagement.getTaskKind() == TaskKindType.PARTITIONED_MASTER;
         }
@@ -2404,7 +2404,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public String getExecutionGroup() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             TaskExecutionConstraintsType executionConstraints = getExecutionConstraints();
             return executionConstraints != null ? executionConstraints.getGroup() : null;
         }
@@ -2554,7 +2554,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
     @Override
     public String getVersion() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return taskPrism.getVersion();
         }
     }
@@ -2562,7 +2562,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     // todo thread-safety
     @Override
     public Collection<? extends TriggerType> getTriggers() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return taskPrism.asObjectable().getTrigger();
         }
     }
@@ -2570,28 +2570,28 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     // todo thread-safety
     @Override
     public Collection<? extends AssignmentType> getAssignments() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return taskPrism.asObjectable().getAssignment();
         }
     }
 
     @Override
     public ObjectReferenceType getOwnerRef() {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             return cloneIfRunning(taskPrism.asObjectable().getOwnerRef());
         }
     }
 
     @Override
     public void applyModificationsTransient(Collection<ItemDelta<?, ?>> modifications) throws SchemaException {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             ItemDeltaCollectionsUtil.applyTo(modifications, taskPrism);
         }
     }
 
     @Override
     public void addSubtask(TaskType subtaskBean) {
-        synchronized (PRISM_ACCESS) {
+        synchronized (prismAccess) {
             taskPrism.asObjectable().getSubtaskRef().add(ObjectTypeUtil.createObjectRefWithFullObject(subtaskBean, getPrismContext()));
         }
     }

@@ -57,7 +57,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -447,12 +446,12 @@ public class PageCertCampaigns extends PageAdminCertification {
 
             @Override
             public String getButtonCssColorClass() {
-                return DoubleButtonColumn.BUTTON_COLOR_CLASS.PRIMARY.toString();
+                return DoubleButtonColumn.ButtonColorClass.PRIMARY.toString();
             }
 
             @Override
             public String getButtonCssSizeClass() {
-                return DoubleButtonColumn.BUTTON_SIZE_CLASS.SMALL.toString();
+                return DoubleButtonColumn.ButtonSizeClass.SMALL.toString();
             }
 
             @Override

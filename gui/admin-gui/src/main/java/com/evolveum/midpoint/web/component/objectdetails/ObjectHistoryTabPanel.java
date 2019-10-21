@@ -101,7 +101,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                                     case 0:
                                         btn = buildDefaultButton(componentId, new Model<>("fa fa-circle-o"),
                                                 createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectDataTitle"),
-                                                new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO),
+                                                new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.INFO),
                                                 target ->
                                                         currentStateButtonClicked(target, getReconstructedObject(getObjectWrapper().getOid(),
                                                                 model.getObject().getEventIdentifier(), getObjectWrapper().getCompileTimeClass()),
@@ -110,7 +110,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                                     case 1:
                                         btn = buildDefaultButton(componentId, new Model<>(GuiStyleConstants.CLASS_FILE_TEXT),
                                                 createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectXmlTitle"),
-                                                new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS),
+                                                new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.SUCCESS),
                                                 target ->
                                                         viewObjectXmlButtonClicked(getObjectWrapper().getOid(),
                                                                 model.getObject().getEventIdentifier(),

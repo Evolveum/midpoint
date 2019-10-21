@@ -18,7 +18,7 @@ public class ReconciliationReportDto implements Serializable {
 
     public static final String F_NAME = "name";
     public static final String F_RESOURCE_OID = "resourceOid";
-    public static final String F_RESOURCE_NAME_ = "resourceName";
+    public static final String F_RESOURCE_NAME = "resourceName";
     public static final String F_DESCRIPTION = "description";
     public static final String F_EXPORT_TYPE = "exportType";
 

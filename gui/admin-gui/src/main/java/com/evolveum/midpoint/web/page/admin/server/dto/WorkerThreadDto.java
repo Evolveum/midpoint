@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
-
 import java.io.Serializable;
 
 /**

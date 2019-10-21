@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.MenuMultiButtonPanel;
@@ -19,7 +18,6 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -187,7 +185,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 //    }
 
     public String getButtonSizeCssClass() {
-        return DoubleButtonColumn.BUTTON_SIZE_CLASS.EXTRA_SMALL.toString();
+        return DoubleButtonColumn.ButtonSizeClass.EXTRA_SMALL.toString();
     }
 
     private String getButtonCssClass() {

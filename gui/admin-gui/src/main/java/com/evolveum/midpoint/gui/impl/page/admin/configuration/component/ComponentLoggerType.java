@@ -17,29 +17,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType
  * */
 public final class ComponentLoggerType {
 
-    public static final Map<String, LoggingComponentType> componentMap = new HashMap<>();
+    public static final Map<String, LoggingComponentType> COMPONENT_MAP = new HashMap<>();
 
     static {
-        componentMap.put("com.evolveum.midpoint", LoggingComponentType.ALL);
-        componentMap.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
-        componentMap.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
-        componentMap.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
-        componentMap.put("com.evolveum.midpoint.web", LoggingComponentType.WEB);
-        componentMap.put("com.evolveum.midpoint.gui", LoggingComponentType.GUI);
-        componentMap.put("com.evolveum.midpoint.task", LoggingComponentType.TASKMANAGER);
-        componentMap.put("com.evolveum.midpoint.model.sync",
+        COMPONENT_MAP.put("com.evolveum.midpoint", LoggingComponentType.ALL);
+        COMPONENT_MAP.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
+        COMPONENT_MAP.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
+        COMPONENT_MAP.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
+        COMPONENT_MAP.put("com.evolveum.midpoint.web", LoggingComponentType.WEB);
+        COMPONENT_MAP.put("com.evolveum.midpoint.gui", LoggingComponentType.GUI);
+        COMPONENT_MAP.put("com.evolveum.midpoint.task", LoggingComponentType.TASKMANAGER);
+        COMPONENT_MAP.put("com.evolveum.midpoint.model.sync",
                 LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);
-        componentMap.put("com.evolveum.midpoint.wf", LoggingComponentType.WORKFLOWS);
-        componentMap.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
-        componentMap.put("com.evolveum.midpoint.certification", LoggingComponentType.ACCESS_CERTIFICATION);
-        componentMap.put("com.evolveum.midpoint.security", LoggingComponentType.SECURITY);
+        COMPONENT_MAP.put("com.evolveum.midpoint.wf", LoggingComponentType.WORKFLOWS);
+        COMPONENT_MAP.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
+        COMPONENT_MAP.put("com.evolveum.midpoint.certification", LoggingComponentType.ACCESS_CERTIFICATION);
+        COMPONENT_MAP.put("com.evolveum.midpoint.security", LoggingComponentType.SECURITY);
     }
 
     public static String getPackageByValue(LoggingComponentType value) {
         if (value == null) {
             return null;
         }
-        for (Entry<String, LoggingComponentType> entry : componentMap.entrySet()) {
+        for (Entry<String, LoggingComponentType> entry : COMPONENT_MAP.entrySet()) {
             if (value.equals(entry.getValue())) {
                 return entry.getKey();
             }

@@ -68,8 +68,8 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
             ObjectPaging paging = createPaging(first, count);
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
             List<AccessCertificationCaseType> caseList = searchCases(campaignOid, paging, resolveNames, getPage().getPrismContext(), task, result);
-            for (AccessCertificationCaseType _case : caseList) {
-                getAvailableData().add(new CertCaseDto(_case, getPage(), task, result));
+            for (AccessCertificationCaseType acase : caseList) {
+                getAvailableData().add(new CertCaseDto(acase, getPage(), task, result));
             }
         } catch (Exception ex) {
             result.recordFatalError(getPage().createStringResource("CertCaseDtoProvider.message.internalIterator.fatalError").getString(), ex);

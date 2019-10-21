@@ -41,9 +41,8 @@ public class PageOrgTree extends PageAdmin {
     private static final String DOT_CLASS = PageOrgTree.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
 
-    private String ID_TABS = "tabs";
-
-    private String ID_ORG_PANEL = "orgPanel";
+    private static final String ID_TABS = "tabs";
+    private static final String ID_ORG_PANEL = "orgPanel";
 
 
     public PageOrgTree() {

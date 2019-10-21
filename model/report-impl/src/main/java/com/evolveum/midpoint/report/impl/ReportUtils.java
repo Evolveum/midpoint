@@ -84,8 +84,8 @@ import org.apache.commons.lang.WordUtils;
  */
 public class ReportUtils {
 
-    private static String MIDPOINT_HOME = System.getProperty("midpoint.home");
-    private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
+    private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
+    private static final String EXPORT_DIR = MIDPOINT_HOME + "export/";
 
     private static final Trace LOGGER = TraceManager
             .getTrace(ReportUtils.class);

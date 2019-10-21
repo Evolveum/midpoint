@@ -52,7 +52,7 @@ public class ScriptExpressionFactory implements Cacheable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionFactory.class);
 
-    public static String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
+    public static final String DEFAULT_LANGUAGE = "http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy";
 
     private Map<String,ScriptEvaluator> evaluatorMap = new HashMap<>();
     private ObjectResolver objectResolver;

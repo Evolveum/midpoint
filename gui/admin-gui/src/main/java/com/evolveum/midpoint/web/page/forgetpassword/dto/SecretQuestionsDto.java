@@ -11,14 +11,10 @@ import java.util.List;
 
 public class SecretQuestionsDto implements Serializable {
 
-
         public static final String F_ACCOUNTS = "accounts";
-        public static final String F_ = "password";
+        public static final String F_PASSWORD = "password";
 
         private List<QuestionDTO> secretQuestions;
-
-
-
 
         public  List<QuestionDTO> getSecretQuestions() {
 
@@ -28,6 +24,5 @@ public class SecretQuestionsDto implements Serializable {
         public void addToList(QuestionDTO question){
             secretQuestions.add(question);
         }
-
 
 }

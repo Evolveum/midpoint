@@ -45,7 +45,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
     private static final String ID_TABLE = "table";
 
     private static final String DOT_CLASS = InternalsLoggedInUsersPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_PRINCIPALS_REMOte_NODES = DOT_CLASS + "loadPrincipalsFromRemoteNodes";
+    private static final String OPERATION_LOAD_PRINCIPALS_REMOTE_NODES = DOT_CLASS + "loadPrincipalsFromRemoteNodes";
 
     public InternalsLoggedInUsersPanel(String id) {
         super(id);
@@ -112,7 +112,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
     }
 
     private List<UserSessionManagementType> loadLoggedIUsersFromAllNodes() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_PRINCIPALS_REMOte_NODES);
+        OperationResult result = new OperationResult(OPERATION_LOAD_PRINCIPALS_REMOTE_NODES);
 
         List<UserSessionManagementType> loggedUsers = getPageBase().getModelInteractionService().getLoggedInUsers();
 

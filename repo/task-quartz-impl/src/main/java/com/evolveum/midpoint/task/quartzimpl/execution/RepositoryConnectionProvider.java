@@ -23,7 +23,7 @@ public class RepositoryConnectionProvider implements ConnectionProvider {
     /**
      * Maybe too cautious; we could probably go forward with a single-valued static dataSource property here.
      */
-    static final Map<Integer, DataSource> dataSources = new ConcurrentHashMap<>();
+    static final Map<Integer, DataSource> DATA_SOURCES = new ConcurrentHashMap<>();
 
     private int dataSourceIndex;
 
@@ -39,7 +39,7 @@ public class RepositoryConnectionProvider implements ConnectionProvider {
 
     @Override
     public Connection getConnection() throws SQLException {
-        DataSource dataSource = dataSources.get(dataSourceIndex);
+        DataSource dataSource = DATA_SOURCES.get(dataSourceIndex);
         if (dataSource == null) {
             throw new IllegalStateException("no data source with index " + dataSourceIndex);
         }
@@ -48,7 +48,7 @@ public class RepositoryConnectionProvider implements ConnectionProvider {
 
     @Override
     public void shutdown() {
-        dataSources.remove(dataSourceIndex);
+        DATA_SOURCES.remove(dataSourceIndex);
         // connection pool will be closed on repository shutdown
     }
 

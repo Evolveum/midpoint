@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EvaluationOrderImpl implements EvaluationOrder {
 
-    public static EvaluationOrder UNDEFINED = new UndefinedEvaluationOrderImpl();
+    public static final EvaluationOrder UNDEFINED = new UndefinedEvaluationOrderImpl();
 
     @NotNull private final HashMap<QName, Integer> orderMap;        // see checkConsistence
     @NotNull private final RelationRegistry relationRegistry;

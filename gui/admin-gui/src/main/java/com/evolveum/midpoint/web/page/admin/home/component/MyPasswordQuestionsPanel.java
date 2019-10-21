@@ -38,7 +38,7 @@ public class MyPasswordQuestionsPanel extends InputPanel {
     public void initLayout() {
         // final Label question = new Label (F_QUESTION, mod.getPwdQuestion());
         final Label question = new Label(F_QUESTION, new PropertyModel<PasswordQuestionsDto>(mod,
-                PasswordQuestionsDto.F_MY_QUESTIONS__QUESTIONITSELF));
+                PasswordQuestionsDto.F_MY_QUESTIONS_QUESTIONITSELF));
         question.setOutputMarkupId(true);
         add(question);
 

@@ -9,7 +9,6 @@ package com.evolveum.icf.dummy.connector;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
-import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
@@ -18,55 +17,23 @@ import org.identityconnectors.framework.common.exceptions.OperationTimeoutExcept
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
-import static com.evolveum.icf.dummy.connector.Utils.*;
-
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import org.identityconnectors.common.logging.Log;
-import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.common.security.GuardedString.Accessor;
-import org.identityconnectors.framework.common.objects.filter.AndFilter;
-import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
-import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
-import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
-import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
-import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
-import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
-import org.identityconnectors.framework.common.objects.filter.FilterVisitor;
-import org.identityconnectors.framework.common.objects.filter.GreaterThanFilter;
-import org.identityconnectors.framework.common.objects.filter.GreaterThanOrEqualFilter;
-import org.identityconnectors.framework.common.objects.filter.LessThanFilter;
-import org.identityconnectors.framework.common.objects.filter.LessThanOrEqualFilter;
-import org.identityconnectors.framework.common.objects.filter.NotFilter;
-import org.identityconnectors.framework.common.objects.filter.OrFilter;
-import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
-import org.identityconnectors.framework.spi.Configuration;
-import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.ConnectorClass;
 import org.identityconnectors.framework.spi.PoolableConnector;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
-import com.evolveum.icf.dummy.resource.DummyDelta;
-import com.evolveum.icf.dummy.resource.DummyDeltaType;
 import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.icf.dummy.resource.DummyObject;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyOrg;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
@@ -82,14 +49,14 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateAttributeValuesOp {
 
     // We want to see if the ICF framework logging works properly
-    private static final Log log = Log.getLog(DummyConnectorLegacyUpdate.class);
+    private static final Log LOG = Log.getLog(DummyConnectorLegacyUpdate.class);
 
     /**
      * {@inheritDoc}
      */
     @Override
     public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
-        log.info("update::begin");
+        LOG.info("update::begin");
         validate(objectClass);
         validate(uid);
 
@@ -302,23 +269,23 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
             }
 
         } catch (ConnectException e) {
-            log.info("update::exception "+e);
+            LOG.info("update::exception "+e);
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
-            log.info("update::exception "+e);
+            LOG.info("update::exception "+e);
             throw new ConnectorIOException(e.getMessage(), e);
         } catch (SchemaViolationException e) {
-            log.info("update::exception "+e);
+            LOG.info("update::exception "+e);
             throw new InvalidAttributeValueException(e.getMessage(), e);
         } catch (ConflictException e) {
-            log.info("update::exception "+e);
+            LOG.info("update::exception "+e);
             throw new AlreadyExistsException(e);
         } catch (InterruptedException e) {
-            log.info("update::exception "+e);
+            LOG.info("update::exception "+e);
             throw new OperationTimeoutException(e);
         }
 
-        log.info("update::end");
+        LOG.info("update::end");
         return uid;
     }
 
@@ -368,7 +335,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
                         String name = attr.getName();
                         try {
                             account.addAttributeValues(name, attr.getValue());
-                            log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
+                            LOG.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
                                     name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -413,7 +380,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
                         }
                         try {
                             group.addAttributeValues(name, values);
-                            log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
+                            LOG.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
                                     name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -450,7 +417,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
                         String name = attr.getName();
                         try {
                             priv.addAttributeValues(name, attr.getValue());
-                            log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
+                            LOG.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
                                     name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -487,7 +454,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
                         String name = attr.getName();
                         try {
                             org.addAttributeValues(name, attr.getValue());
-                            log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
+                            LOG.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
                                     name, attr.getValue(), org, org.getAttributeValues(name, Object.class));
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -502,19 +469,19 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
             }
 
         } catch (ConnectException e) {
-            log.info("addAttributeValues::exception "+e);
+            LOG.info("addAttributeValues::exception "+e);
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
-            log.info("addAttributeValues::exception "+e);
+            LOG.info("addAttributeValues::exception "+e);
             throw new ConnectorIOException(e.getMessage(), e);
         } catch (SchemaViolationException e) {
-            log.info("addAttributeValues::exception "+e);
+            LOG.info("addAttributeValues::exception "+e);
             throw new InvalidAttributeValueException(e.getMessage(), e);
         } catch (ConflictException e) {
-            log.info("addAttributeValues::exception "+e);
+            LOG.info("addAttributeValues::exception "+e);
             throw new AlreadyExistsException(e);
         } catch (InterruptedException e) {
-            log.info("addAttributeValues::exception "+e);
+            LOG.info("addAttributeValues::exception "+e);
             throw new OperationTimeoutException(e);
         }
 
@@ -560,7 +527,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
                         String name = attr.getName();
                         try {
                             account.removeAttributeValues(name, attr.getValue());
-                            log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
+                            LOG.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
                                     name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -602,7 +569,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
                         }
                         try {
                             group.removeAttributeValues(name, values);
-                            log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
+                            LOG.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
                                     name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -636,7 +603,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
                         String name = attr.getName();
                         try {
                             priv.removeAttributeValues(name, attr.getValue());
-                            log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
+                            LOG.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
                                     name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -670,7 +637,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
                         String name = attr.getName();
                         try {
                             org.removeAttributeValues(name, attr.getValue());
-                            log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
+                            LOG.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
                                     name, attr.getValue(), org, org.getAttributeValues(name, Object.class));
                         } catch (SchemaViolationException e) {
                             // Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -685,19 +652,19 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
             }
 
         } catch (ConnectException e) {
-            log.info("removeAttributeValues::exception "+e);
+            LOG.info("removeAttributeValues::exception "+e);
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
-            log.info("removeAttributeValues::exception "+e);
+            LOG.info("removeAttributeValues::exception "+e);
             throw new ConnectorIOException(e.getMessage(), e);
         } catch (SchemaViolationException e) {
-            log.info("removeAttributeValues::exception "+e);
+            LOG.info("removeAttributeValues::exception "+e);
             throw new InvalidAttributeValueException(e.getMessage(), e);
         } catch (ConflictException e) {
-            log.info("removeAttributeValues::exception "+e);
+            LOG.info("removeAttributeValues::exception "+e);
             throw new AlreadyExistsException(e);
         } catch (InterruptedException e) {
-            log.info("removeAttributeValues::exception "+e);
+            LOG.info("removeAttributeValues::exception "+e);
             throw new OperationTimeoutException(e);
         }
 
@@ -709,7 +676,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
         super.extendSchema(builder);
 
         if (configuration.getSupportRunAs()) {
-            log.ok("Adding runAs options to schema");
+            LOG.ok("Adding runAs options to schema");
             builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithUser(), UpdateAttributeValuesOp.class);
             builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithPassword(), UpdateAttributeValuesOp.class);
         }

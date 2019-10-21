@@ -217,7 +217,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     // (see shutdown() method)
     private static final long WAIT_ON_SHUTDOWN = 2000;
 
-    private List<String> PURGE_SUCCESSFUL_RESULT_FOR = Collections.singletonList(TaskCategory.WORKFLOW);
+    private static final List<String> PURGE_SUCCESSFUL_RESULT_FOR = Collections.singletonList(TaskCategory.WORKFLOW);
 
     //region Initialization and shutdown
     // ********************* INITIALIZATION AND SHUTDOWN *********************

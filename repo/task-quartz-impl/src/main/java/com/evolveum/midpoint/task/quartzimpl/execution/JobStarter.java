@@ -25,7 +25,7 @@ public class JobStarter implements Job {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(JobStarter.class);
 
-    private final String REDIRECT_FLAG = "redirected";
+    private static final String REDIRECT_FLAG = "redirected";
     public static final String TASK_OID = "oid";
 
     private static final int WAIT_MINIMUM = 1000;

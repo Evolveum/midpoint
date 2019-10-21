@@ -32,10 +32,10 @@ import java.util.Map;
  */
 public abstract class MultifunctionalButton<S extends Serializable> extends BasePanel<S> {
 
-    private static String ID_MAIN_BUTTON = "mainButton";
-    private static String ID_BUTTON = "additionalButton";
+    private static final String ID_MAIN_BUTTON = "mainButton";
+    private static final String ID_BUTTON = "additionalButton";
 
-    private static String DEFAULT_BUTTON_STYLE = "btn btn-default btn-sm buttons-panel-marging";
+    private static final String DEFAULT_BUTTON_STYLE = "btn btn-default btn-sm buttons-panel-marging";
 
     public MultifunctionalButton(String id){
         super(id);

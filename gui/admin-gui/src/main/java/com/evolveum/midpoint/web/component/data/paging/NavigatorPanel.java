@@ -28,7 +28,7 @@ import org.apache.wicket.model.IModel;
  */
 public class NavigatorPanel extends Panel {
 
-    private int PAGING_SIZE = 5;
+    private static final int PAGING_SIZE = 5;
 
     private static final String ID_PREVIOUS = "previous";
     private static final String ID_PREVIOUS_LINK = "previousLink";

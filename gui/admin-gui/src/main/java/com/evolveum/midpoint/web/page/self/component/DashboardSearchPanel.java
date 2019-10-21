@@ -14,7 +14,6 @@ import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -42,13 +41,13 @@ public class DashboardSearchPanel extends BasePanel<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DashboardSearchPanel.class);
 
-    private final String ID_SEARCH_INPUT = "searchInput";
-    private final String ID_SEARCH_BUTTON = "searchButton";
-    private final String ID_SEARCH_TYPE_ITEM = "searchTypeItem";
-    private final String ID_SEARCH_TYPES = "searchTypes";
-    private final String ID_SEARCH_FORM = "searchForm";
+    private static final String ID_SEARCH_INPUT = "searchInput";
+    private static final String ID_SEARCH_BUTTON = "searchButton";
+    private static final String ID_SEARCH_TYPE_ITEM = "searchTypeItem";
+    private static final String ID_SEARCH_TYPES = "searchTypes";
+    private static final String ID_SEARCH_FORM = "searchForm";
 
-    private static Map<SearchType, IModel<String>> SEARCH_TYPES = new HashMap<>();
+    private final Map<SearchType, IModel<String>> searchTypes = new HashMap<>();
 
     private SearchType selectedSearchType = SearchType.USERS;
 
@@ -74,19 +73,19 @@ public class DashboardSearchPanel extends BasePanel<T> {
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_USERS_URL)) {
-            SEARCH_TYPES.put(SearchType.USERS, createStringResource("PageDashboard.search.users"));
+            searchTypes.put(SearchType.USERS, createStringResource("PageDashboard.search.users"));
         }
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_URL)) {
-            SEARCH_TYPES.put(SearchType.RESOURCES, createStringResource("PageDashboard.search.resources"));
+            searchTypes.put(SearchType.RESOURCES, createStringResource("PageDashboard.search.resources"));
         }
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_TASKS_URL)) {
-            SEARCH_TYPES.put(SearchType.TASKS, createStringResource("PageDashboard.search.tasks"));
+            searchTypes.put(SearchType.TASKS, createStringResource("PageDashboard.search.tasks"));
         }
 
         TextField<String> searchInput = new TextField<>(ID_SEARCH_INPUT, Model.of(""));
-        searchInput.add(new VisibleBehaviour(() -> !SEARCH_TYPES.isEmpty()));
+        searchInput.add(new VisibleBehaviour(() -> !searchTypes.isEmpty()));
         searchInput.setOutputMarkupId(true);
         searchInput.setOutputMarkupPlaceholderTag(true);
         searchForm.add(searchInput);
@@ -96,7 +95,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
             private static final long serialVersionUID = 1L;
 
             public IModel<?> getBody() {
-                return SEARCH_TYPES.get(selectedSearchType);
+                return searchTypes.get(selectedSearchType);
             };
 
             @Override
@@ -110,7 +109,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
         searchForm.setDefaultButton(searchButton);
 
         ListView<SearchType> li = new ListView<SearchType>(ID_SEARCH_TYPES,
-                new ListModel<SearchType>(new ArrayList<>(SEARCH_TYPES.keySet()))) {
+                new ListModel<SearchType>(new ArrayList<>(searchTypes.keySet()))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -122,7 +121,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
 
                     @Override
                     public IModel<String> getBody() {
-                        return SEARCH_TYPES.get(item.getModelObject());
+                        return searchTypes.get(item.getModelObject());
                     }
 
                     @Override

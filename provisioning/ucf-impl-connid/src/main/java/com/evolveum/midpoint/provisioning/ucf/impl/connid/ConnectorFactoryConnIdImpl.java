@@ -146,7 +146,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER = "enableCaseInsensitiveFilter";
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER = "enableAttributesToGetSearchResultsHandler";
 
-    static final Map<String, Collection<Class<? extends APIOperation>>> apiOpMap = new HashMap<>();
+    static final Map<String, Collection<Class<? extends APIOperation>>> API_OP_MAP = new HashMap<>();
 
     private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.ICF_FRAMEWORK_URI + "/bundle/";
     private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
@@ -888,22 +888,22 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     }
 
     static Collection<Class<? extends APIOperation>> resolveApiOpClass(String opName) {
-        return apiOpMap.get(opName);
+        return API_OP_MAP.get(opName);
     }
 
     static {
-        apiOpMap.put("create", Arrays.asList(CreateApiOp.class));
-        apiOpMap.put("get", Arrays.asList(GetApiOp.class));
-        apiOpMap.put("update", Arrays.asList(UpdateApiOp.class, UpdateDeltaApiOp.class));
-        apiOpMap.put("delete", Arrays.asList(DeleteApiOp.class));
-        apiOpMap.put("test", Arrays.asList(TestApiOp.class));
-        apiOpMap.put("scriptOnConnector", Arrays.asList(ScriptOnConnectorApiOp.class));
-        apiOpMap.put("scriptOnResource", Arrays.asList(ScriptOnResourceApiOp.class));
-        apiOpMap.put("authentication", Arrays.asList(AuthenticationApiOp.class));
-        apiOpMap.put("search", Arrays.asList(SearchApiOp.class));
-        apiOpMap.put("validate", Arrays.asList(ValidateApiOp.class));
-        apiOpMap.put("sync", Arrays.asList(SyncApiOp.class));
-        apiOpMap.put("schema", Arrays.asList(SchemaApiOp.class));
+        API_OP_MAP.put("create", Arrays.asList(CreateApiOp.class));
+        API_OP_MAP.put("get", Arrays.asList(GetApiOp.class));
+        API_OP_MAP.put("update", Arrays.asList(UpdateApiOp.class, UpdateDeltaApiOp.class));
+        API_OP_MAP.put("delete", Arrays.asList(DeleteApiOp.class));
+        API_OP_MAP.put("test", Arrays.asList(TestApiOp.class));
+        API_OP_MAP.put("scriptOnConnector", Arrays.asList(ScriptOnConnectorApiOp.class));
+        API_OP_MAP.put("scriptOnResource", Arrays.asList(ScriptOnResourceApiOp.class));
+        API_OP_MAP.put("authentication", Arrays.asList(AuthenticationApiOp.class));
+        API_OP_MAP.put("search", Arrays.asList(SearchApiOp.class));
+        API_OP_MAP.put("validate", Arrays.asList(ValidateApiOp.class));
+        API_OP_MAP.put("sync", Arrays.asList(SyncApiOp.class));
+        API_OP_MAP.put("schema", Arrays.asList(SchemaApiOp.class));
     }
 
     @Override

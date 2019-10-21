@@ -37,7 +37,7 @@ public class OperationRequestCaseTabPanel extends AbstractObjectTabPanel<CaseTyp
     private static final Trace LOGGER = TraceManager.getTrace(OperationRequestCaseTabPanel.class);
     private static final String OPERATION_PREPARE_DELTA_VISUALIZATION = DOT_CLASS + "prepareDeltaVisualization";
 
-    private static String ID_OPERATIONAL_REQUEST_CASE_PANEL = "operationRequestCasePanel";
+    private static final String ID_OPERATIONAL_REQUEST_CASE_PANEL = "operationRequestCasePanel";
     private IModel<SceneDto> sceneModel;
 
     public OperationRequestCaseTabPanel(String id, Form<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {

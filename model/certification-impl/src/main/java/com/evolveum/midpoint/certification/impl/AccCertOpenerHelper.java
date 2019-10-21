@@ -297,26 +297,26 @@ public class AccCertOpenerHelper {
 
         assert norm(campaign.getIteration()) == 1;
 
-        for (AccessCertificationCaseType _case : caseList) {
+        for (AccessCertificationCaseType acase : caseList) {
             ContainerDelta<AccessCertificationCaseType> caseDelta = prismContext.deltaFactory().container().createDelta(F_CASE,
                     AccessCertificationCampaignType.class);
-            _case.setIteration(1);
-            _case.setStageNumber(1);
-            _case.setCurrentStageCreateTimestamp(stage.getStartTimestamp());
-            _case.setCurrentStageDeadline(stage.getDeadline());
+            acase.setIteration(1);
+            acase.setStageNumber(1);
+            acase.setCurrentStageCreateTimestamp(stage.getStartTimestamp());
+            acase.setCurrentStageDeadline(stage.getDeadline());
 
-            List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(_case, campaign, reviewerSpec, task, result);
-            _case.getWorkItem().addAll(createWorkItems(reviewers, 1, 1, _case));
+            List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(acase, campaign, reviewerSpec, task, result);
+            acase.getWorkItem().addAll(createWorkItems(reviewers, 1, 1, acase));
 
-            openingContext.workItemsCreated += _case.getWorkItem().size();
+            openingContext.workItemsCreated += acase.getWorkItem().size();
             openingContext.casesEnteringStage++;
 
-            AccessCertificationResponseType currentStageOutcome = computationHelper.computeOutcomeForStage(_case, campaign, 1);
-            _case.setCurrentStageOutcome(toUri(currentStageOutcome));
-            _case.setOutcome(toUri(computationHelper.computeOverallOutcome(_case, campaign, 1, currentStageOutcome)));
+            AccessCertificationResponseType currentStageOutcome = computationHelper.computeOutcomeForStage(acase, campaign, 1);
+            acase.setCurrentStageOutcome(toUri(currentStageOutcome));
+            acase.setOutcome(toUri(computationHelper.computeOverallOutcome(acase, campaign, 1, currentStageOutcome)));
 
             @SuppressWarnings({ "raw", "unchecked" })
-            PrismContainerValue<AccessCertificationCaseType> caseCVal = _case.asPrismContainerValue();
+            PrismContainerValue<AccessCertificationCaseType> caseCVal = acase.asPrismContainerValue();
             caseDelta.addValueToAdd(caseCVal);
             LOGGER.trace("Adding certification case:\n{}", caseCVal.debugDumpLazily());
             modifications.add(caseDelta);

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.ButtonColorClass;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -360,7 +360,7 @@ public class PageCertDecisions extends PageAdminCertification {
                             btn.add(new EnableBehaviour(() -> !decisionEquals(model, availableResponses.getResponseValues().get(index))));
                         } else {
                             btn = buildDefaultButton(componentId, null, new Model(availableResponses.getTitle(index)),
-                                    new Model<>("btn btn-sm " + BUTTON_COLOR_CLASS.DANGER), null);
+                                    new Model<>("btn btn-sm " + ButtonColorClass.DANGER), null);
                             btn.setEnabled(false);
                             btn.add(new VisibleBehaviour(() -> !availableResponses.isAvailable(model.getObject().getResponse())));
                         }
@@ -430,9 +430,9 @@ public class PageCertDecisions extends PageAdminCertification {
 
     private String getDecisionButtonColor(IModel<CertWorkItemDto> model, AccessCertificationResponseType response) {
         if (decisionEquals(model, response)) {
-            return BUTTON_COLOR_CLASS.PRIMARY.toString();
+            return ButtonColorClass.PRIMARY.toString();
         } else {
-            return BUTTON_COLOR_CLASS.DEFAULT.toString();
+            return ButtonColorClass.DEFAULT.toString();
         }
     }
 

@@ -52,7 +52,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
     private static final String OPERATION_LOAD_ASSIGNABLE_ITEMS = DOT_CLASS + "loadAssignableOrgs";
 
-    private String ID_TABS = "tabs";
+    private static final String ID_TABS = "tabs";
     private List<PrismObject<OrgType>> roots;
 
     public AbstractOrgTabPanel(String id, PageBase pageBase) {

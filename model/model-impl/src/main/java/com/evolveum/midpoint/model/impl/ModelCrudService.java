@@ -52,10 +52,10 @@ import java.util.List;
 @Component
 public class ModelCrudService {
 
-    private String CLASS_NAME_WITH_DOT = ModelCrudService.class.getName() + ".";
-    private String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
-    private String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
-    private String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
+    private static final String CLASS_NAME_WITH_DOT = ModelCrudService.class.getName() + ".";
+    private static final String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
+    private static final String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
+    private static final String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelCrudService.class);
 

@@ -17,7 +17,7 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
  */
 public class DummyConfiguration extends AbstractConfiguration {
 
-    private static final Log log = Log.getLog(DummyConfiguration.class);
+    private static final Log LOG = Log.getLog(DummyConfiguration.class);
 
     private String instanceId;
     private String fakeName;
@@ -47,11 +47,11 @@ public class DummyConfiguration extends AbstractConfiguration {
      */
     @Override
     public void validate() {
-        log.info("begin");
+        LOG.info("begin");
 
         //TODO: validate configuration
 
-        log.info("end");
+        LOG.info("end");
     }
 
 

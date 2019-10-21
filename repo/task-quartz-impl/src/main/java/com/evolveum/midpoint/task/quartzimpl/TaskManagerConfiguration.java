@@ -407,12 +407,12 @@ public class TaskManagerConfiguration {
         }
     }
 
-    private static final Map<Database, String> schemas = new HashMap<>();
-    private static final Map<Database, String> delegates = new HashMap<>();
+    private static final Map<Database, String> SCHEMAS = new HashMap<>();
+    private static final Map<Database, String> DELEGATES = new HashMap<>();
 
     private static void addDbInfo(Database database, String schema, String delegate) {
-        schemas.put(database, schema);
-        delegates.put(database, delegate);
+        SCHEMAS.put(database, schema);
+        DELEGATES.put(database, delegate);
     }
 
     static {
@@ -430,8 +430,8 @@ public class TaskManagerConfiguration {
 
         database = sqlConfig != null ? sqlConfig.getDatabase() : null;
 
-        String defaultSqlSchemaFile = schemas.get(database);
-        String defaultDriverDelegate = delegates.get(database);
+        String defaultSqlSchemaFile = SCHEMAS.get(database);
+        String defaultDriverDelegate = DELEGATES.get(database);
 
         sqlSchemaFile = c.getString(SQL_SCHEMA_FILE_CONFIG_ENTRY, defaultSqlSchemaFile);
         jdbcDriverDelegateClass = c.getString(JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY, defaultDriverDelegate);
@@ -510,7 +510,7 @@ public class TaskManagerConfiguration {
         if (StringUtils.isEmpty(jdbcDriverDelegateClass)) {
             throw new TaskManagerConfigurationException("JDBC driver delegate class must be specified (either explicitly or "
                     + "through specifying a database type). It seems that the currently specified database ("
-                    + database + ") is not among supported ones (" + delegates.keySet() + "). "
+                    + database + ") is not among supported ones (" + DELEGATES.keySet() + "). "
                     + "Please check your repository configuration or specify driver delegate explicitly.");
         }
         notEmpty(sqlSchemaFile, "SQL schema file must be specified (either explicitly or through one of supported Hibernate dialects).");

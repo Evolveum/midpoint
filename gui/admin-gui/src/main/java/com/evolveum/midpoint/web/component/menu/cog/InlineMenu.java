@@ -34,11 +34,11 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 @Deprecated
 public class InlineMenu extends BasePanel<List<InlineMenuItem>> {
 
-    private static String ID_MENU_ITEM_CONTAINER= "menuItemContainer";
-    private static String ID_MENU_ITEM_BUTTON = "menuItemButton";
-    private static String ID_MENU_ITEM = "menuItem";
-    private static String ID_MENU_ITEM_BODY = "menuItemBody";
-    private static String ID_MENU_ITEM_ICON = "menuItemIcon";
+    private static final String ID_MENU_ITEM_CONTAINER= "menuItemContainer";
+    private static final String ID_MENU_ITEM_BUTTON = "menuItemButton";
+    private static final String ID_MENU_ITEM = "menuItem";
+    private static final String ID_MENU_ITEM_BODY = "menuItemBody";
+    private static final String ID_MENU_ITEM_ICON = "menuItemIcon";
 
     private boolean hideByDefault;
 

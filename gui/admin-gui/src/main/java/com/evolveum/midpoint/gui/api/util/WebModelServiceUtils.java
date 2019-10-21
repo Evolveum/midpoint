@@ -90,6 +90,7 @@ public class WebModelServiceUtils {
     private static final String OPERATION_ASSUME_POWER_OF_ATTORNEY = DOT_CLASS + "assumePowerOfAttorney";
     private static final String OPERATION_DROP_POWER_OF_ATTORNEY = DOT_CLASS + "dropPowerOfAttorney";
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
+    private static final String OPERATION_LOAD_FLOW_POLICY = DOT_CLASS + "loadFlowPolicy";
 
     public static String resolveReferenceName(ObjectReferenceType ref, PageBase page) {
         Task task = page.createSimpleTask(WebModelServiceUtils.class.getName() + ".resolveReferenceName");
@@ -778,7 +779,6 @@ public class WebModelServiceUtils {
         MidPointPrincipal midpointPrincipal = SecurityUtils.getPrincipalUser();
         if (midpointPrincipal != null) {
             UserType user = midpointPrincipal.getUser();
-            String OPERATION_LOAD_FLOW_POLICY = WebModelServiceUtils.class.getName() + ".loadFlowPolicy";
             Task task = taskManager.createTaskInstance(OPERATION_LOAD_FLOW_POLICY);
             OperationResult parentResult = new OperationResult(OPERATION_LOAD_FLOW_POLICY);
             RegistrationsPolicyType registrationPolicyType;

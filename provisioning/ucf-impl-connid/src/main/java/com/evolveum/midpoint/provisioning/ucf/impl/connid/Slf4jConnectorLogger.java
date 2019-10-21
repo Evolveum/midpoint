@@ -28,7 +28,7 @@ public class Slf4jConnectorLogger implements LogSpi {
 
     @Override
     public void log(Class<?> clazz, String method, Level level, String message, Throwable ex) {
-        Trace LOGGER = TraceManager.getTrace(clazz);
+        final Trace LOGGER = TraceManager.getTrace(clazz);
         //Mark all messages from ICF as ICF
         Marker m = MarkerFactory.getMarker("ICF");
 

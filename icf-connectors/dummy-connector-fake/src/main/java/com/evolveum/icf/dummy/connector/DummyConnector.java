@@ -30,7 +30,7 @@ configurationClass = DummyConfiguration.class)
 public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<String>, SyncOp, TestOp, UpdateAttributeValuesOp {
 
-    private static final Log log = Log.getLog(DummyConnector.class);
+    private static final Log LOG = Log.getLog(DummyConnector.class);
 
     private static final String FAKE_ATTR_NAME = "fakeAttr";
 
@@ -80,7 +80,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
-        log.info("create::begin");
+        LOG.info("create::begin");
         throw new UnsupportedOperationException("Create is not supported in this shamefull fake");
     }
 
@@ -88,7 +88,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
-        log.info("update::begin");
+        LOG.info("update::begin");
         throw new UnsupportedOperationException("Update is not supported in this shamefull fake");
     }
 
@@ -96,7 +96,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Uid addAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
-        log.info("addAttributeValues::begin");
+        LOG.info("addAttributeValues::begin");
         throw new UnsupportedOperationException("Add attribute values is not supported in this shamefull fake");
     }
 
@@ -104,7 +104,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Uid removeAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToRemove, OperationOptions options) {
-        log.info("removeAttributeValues::begin");
+        LOG.info("removeAttributeValues::begin");
         throw new UnsupportedOperationException("Remove attribute values is not supported in this shamefull fake");
     }
 
@@ -112,7 +112,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
-        log.info("delete::begin");
+        LOG.info("delete::begin");
         throw new UnsupportedOperationException("Delete attribute values is not supported in this shamefull fake");
     }
 
@@ -120,7 +120,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Schema schema() {
-        log.info("schema::begin");
+        LOG.info("schema::begin");
 
         SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
 
@@ -142,7 +142,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         // __NAME__ will be added by default
         builder.defineObjectClass(objClassBuilder.build());
 
-        log.info("schema::end");
+        LOG.info("schema::end");
         return builder.build();
     }
 
@@ -150,9 +150,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Uid authenticate(final ObjectClass objectClass, final String userName, final GuardedString password, final OperationOptions options) {
-        log.info("authenticate::begin");
+        LOG.info("authenticate::begin");
         Uid uid = null; //TODO: implement
-        log.info("authenticate::end");
+        LOG.info("authenticate::end");
         return uid;
     }
 
@@ -160,9 +160,9 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Uid resolveUsername(final ObjectClass objectClass, final String userName, final OperationOptions options) {
-        log.info("resolveUsername::begin");
+        LOG.info("resolveUsername::begin");
         Uid uid = null; //TODO: implement
-        log.info("resolveUsername::end");
+        LOG.info("resolveUsername::end");
         return uid;
     }
 
@@ -194,17 +194,17 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public void executeQuery(ObjectClass objectClass, String query, ResultsHandler handler, OperationOptions options) {
-        log.info("executeQuery::begin");
+        LOG.info("executeQuery::begin");
         // Lets be stupid and just return everything. That means our single account. ICF will filter it.
         handler.handle(getFooConnectorObject());
-        log.info("executeQuery::end");
+        LOG.info("executeQuery::end");
     }
 
     /**
      * {@inheritDoc}
      */
     public void sync(ObjectClass objectClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
-        log.info("sync::begin");
+        LOG.info("sync::begin");
         throw new UnsupportedOperationException("Sync is not supported in this shamefull fake");
     }
 
@@ -212,7 +212,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public SyncToken getLatestSyncToken(ObjectClass objectClass) {
-        log.info("getLatestSyncToken::begin");
+        LOG.info("getLatestSyncToken::begin");
 
         throw new UnsupportedOperationException("Sync is not supported in this shamefull fake");
     }
@@ -221,13 +221,13 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public void test() {
-        log.info("test::begin");
-        log.info("Validating configuration.");
+        LOG.info("test::begin");
+        LOG.info("Validating configuration.");
         configuration.validate();
         //TODO: implement
 
-        log.info("Test configuration was successful.");
-        log.info("test::end");
+        LOG.info("Test configuration was successful.");
+        LOG.info("test::end");
     }
 
     private ConnectorObject getFooConnectorObject() {

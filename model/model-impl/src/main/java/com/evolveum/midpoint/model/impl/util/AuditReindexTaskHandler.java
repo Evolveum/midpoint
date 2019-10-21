@@ -39,7 +39,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
 
     public static final String HANDLER_URI = ModelPublicConstants.AUDIT_REINDEX_TASK_HANDLER_URI;
 
-    private static final String taskName = "AuditReindex";
+    private static final String TASK_NAME = "AuditReindex";
 
     private int maxResults = 20;
     private int firstResult = 0;
@@ -83,7 +83,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
         };
 
         try {
-            LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
+            LOGGER.trace("{}: expecting {} objects to be processed", TASK_NAME, expectedTotal);
 
             coordinatorTask.setProgress(0L);
             coordinatorTask.setExpectedTotal(expectedTotal);
@@ -139,7 +139,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
         runResult.setProgress((long) resultHandler.getProgress());
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
-        String finishMessage = "Finished " + taskName + " (" + coordinatorTask + "). ";
+        String finishMessage = "Finished " + TASK_NAME + " (" + coordinatorTask + "). ";
         String statistics = "Processed " + resultHandler.getProgress() + " objects";
 
         opResult.createSubresult(OperationConstants.AUDIT_REINDEX + ".statistics")
@@ -147,7 +147,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
 
         LOGGER.info(finishMessage + statistics);
 
-        LOGGER.trace("{} run finished (task {}, run result {})", taskName, coordinatorTask, runResult);
+        LOGGER.trace("{} run finished (task {}, run result {})", TASK_NAME, coordinatorTask, runResult);
 
         return runResult;
 
@@ -171,7 +171,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
     // TODO: copied from abstract search iterative handler
     private TaskRunResult logErrorAndSetResult(TaskRunResult runResult, AuditResultHandler resultHandler,
             String message, Throwable e, OperationResultStatus opStatus, TaskRunResultStatus status) {
-        LOGGER.error("{}: {}: {}", taskName, message, e.getMessage(), e);
+        LOGGER.error("{}: {}: {}", TASK_NAME, message, e.getMessage(), e);
         runResult.getOperationResult().recordStatus(opStatus, message + ": " + e.getMessage(), e);
         runResult.setRunResultStatus(status);
         runResult.setProgress((long) resultHandler.getProgress());

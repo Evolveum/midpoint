@@ -43,7 +43,6 @@ import com.evolveum.midpoint.repo.api.RepositoryAware;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -76,7 +75,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
     @Autowired private UcfExpressionEvaluator ucfExpressionEvaluator;
     @Autowired private Tracer tracer;
 
-    private final Object CONNECTOR_DISCOVERY = new Object();
+    private final Object connectorDiscovery = new Object();
 
     private Map<String,ConnectorStruct> connectorMap;
 
@@ -90,7 +89,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
     }
 
     private void discoverConnectorsIfNeeded() {
-        synchronized (CONNECTOR_DISCOVERY) {
+        synchronized (connectorDiscovery) {
             if (connectorMap == null) {
                 connectorMap = new HashMap<>();
                 ClassPathScanningCandidateComponentProvider scanner =

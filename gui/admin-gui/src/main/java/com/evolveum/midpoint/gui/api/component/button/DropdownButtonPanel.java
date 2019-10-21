@@ -42,8 +42,8 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
     private static final String ID_LABEL = "label";
 
     private static final String ID_DROPDOWN_MENU = "dropDownMenu";
-    private static String ID_MENU_ITEM = "menuItem";
-    private static String ID_MENU_ITEM_BODY = "menuItemBody";
+    private static final String ID_MENU_ITEM = "menuItem";
+    private static final String ID_MENU_ITEM_BODY = "menuItemBody";
 
 
     public DropdownButtonPanel(String id, DropdownButtonDto model) {

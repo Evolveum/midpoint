@@ -72,15 +72,15 @@ public class AccCertCaseOperationsHelper {
     void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response,
             String comment, Task task, OperationResult result) throws SecurityViolationException, ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException {
-        AccessCertificationCaseType _case = queryHelper.getCase(campaignOid, caseId, task, result);
-        if (_case == null) {
+        AccessCertificationCaseType acase = queryHelper.getCase(campaignOid, caseId, task, result);
+        if (acase == null) {
             throw new ObjectNotFoundException("Case " + caseId + " was not found in campaign " + campaignOid);
         }
-        AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(_case);
+        AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(acase);
         if (campaign == null) {
-            throw new IllegalStateException("No owning campaign present in case " + _case);
+            throw new IllegalStateException("No owning campaign present in case " + acase);
         }
-        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(_case, workItemId);
+        AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(acase, workItemId);
         if (workItem == null) {
             throw new ObjectNotFoundException("Work item " + workItemId + " was not found in campaign " + toShortString(campaign) + ", case " + caseId);
         }
@@ -98,8 +98,8 @@ public class AccCertCaseOperationsHelper {
                 .asItemDeltas();
         ItemDeltaCollectionsUtil.applyTo(deltaList, campaign.asPrismContainerValue()); // to have data for outcome computation
 
-        AccessCertificationResponseType newCurrentOutcome = computationHelper.computeOutcomeForStage(_case, campaign, campaign.getStageNumber());
-        AccessCertificationResponseType newOverallOutcome = computationHelper.computeOverallOutcome(_case, campaign, campaign.getStageNumber(), newCurrentOutcome);
+        AccessCertificationResponseType newCurrentOutcome = computationHelper.computeOutcomeForStage(acase, campaign, campaign.getStageNumber());
+        AccessCertificationResponseType newOverallOutcome = computationHelper.computeOverallOutcome(acase, campaign, campaign.getStageNumber(), newCurrentOutcome);
         deltaList.addAll(prismContext.deltaFor(AccessCertificationCampaignType.class)
                 .item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(toUri(newCurrentOutcome))
                 .item(F_CASE, caseId, F_OUTCOME).replace(toUri(newOverallOutcome))

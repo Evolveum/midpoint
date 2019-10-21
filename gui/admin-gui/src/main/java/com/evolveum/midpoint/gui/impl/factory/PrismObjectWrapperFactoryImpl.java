@@ -60,8 +60,8 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     private static final String DOT_CLASS = PrismObjectWrapperFactoryImpl.class.getName() + ".";
     private static final String OPERATION_DETERMINE_VIRTUAL_CONTAINERS = DOT_CLASS + "determineVirtualContainers";
 
-    private QName VIRTUAL_CONTAINER_COMPLEX_TYPE = new QName("VirtualContainerType");
-    private QName VIRTUAL_CONTAINER = new QName("virtualContainer");
+    private static final QName VIRTUAL_CONTAINER_COMPLEX_TYPE = new QName("VirtualContainerType");
+    private static final QName VIRTUAL_CONTAINER = new QName("virtualContainer");
 
     @Autowired private GuiComponentRegistry registry;
     @Autowired protected ModelInteractionService modelInteractionService;

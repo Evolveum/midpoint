@@ -420,18 +420,18 @@ public class PageAuditLogDetails extends PageBase {
                         rv.addAll(record.getReference());
                         rv.sort((a, b) -> {
                             // explicitly enumerated are shown first; others are sorted by display name
-                            int index_a = EXTENSION_ITEMS_ORDER.indexOf(a.getName());
-                            int index_b = EXTENSION_ITEMS_ORDER.indexOf(b.getName());
-                            if (index_a != -1 && index_b != -1) {
-                                return Integer.compare(index_a, index_b);
-                            } else if (index_a != -1) {
+                            int indexA = EXTENSION_ITEMS_ORDER.indexOf(a.getName());
+                            int indexB = EXTENSION_ITEMS_ORDER.indexOf(b.getName());
+                            if (indexA != -1 && indexB != -1) {
+                                return Integer.compare(indexA, indexB);
+                            } else if (indexA != -1) {
                                 return -1;
-                            } else if (index_b != -1) {
+                            } else if (indexB != -1) {
                                 return 1;
                             }
-                            String name_a = getDisplayName(a.getName());
-                            String name_b = getDisplayName(b.getName());
-                            return String.CASE_INSENSITIVE_ORDER.compare(name_a, name_b);
+                            String nameA = getDisplayName(a.getName());
+                            String nameB = getDisplayName(b.getName());
+                            return String.CASE_INSENSITIVE_ORDER.compare(nameA, nameB);
                         });
                         return rv;
                     }

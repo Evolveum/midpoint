@@ -40,7 +40,7 @@ public class MappingTypeDto implements Serializable {
     public static final String F_EXPRESSION_POLICY_REF = "expressionPolicyRef";
     public static final String F_CONDITION_POLICY_REF = "conditionPolicyRef";
 
-    private static MappingStrengthType DEFAULT_MAPPING_STRENGTH = MappingStrengthType.NORMAL;
+    private static final MappingStrengthType DEFAULT_MAPPING_STRENGTH = MappingStrengthType.NORMAL;
 
     private MappingType mappingObject;
     private MappingType oldMappingObject;

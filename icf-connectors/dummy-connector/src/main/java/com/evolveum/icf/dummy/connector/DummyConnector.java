@@ -9,68 +9,38 @@ package com.evolveum.icf.dummy.connector;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
-import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
-import org.identityconnectors.framework.common.exceptions.InvalidPasswordException;
 import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
-import static com.evolveum.icf.dummy.connector.Utils.*;
-
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.common.security.GuardedString.Accessor;
-import org.identityconnectors.framework.common.objects.filter.AndFilter;
-import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
-import org.identityconnectors.framework.common.objects.filter.ContainsAllValuesFilter;
-import org.identityconnectors.framework.common.objects.filter.ContainsFilter;
-import org.identityconnectors.framework.common.objects.filter.EndsWithFilter;
-import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.Filter;
-import org.identityconnectors.framework.common.objects.filter.FilterTranslator;
-import org.identityconnectors.framework.common.objects.filter.FilterVisitor;
-import org.identityconnectors.framework.common.objects.filter.GreaterThanFilter;
-import org.identityconnectors.framework.common.objects.filter.GreaterThanOrEqualFilter;
-import org.identityconnectors.framework.common.objects.filter.LessThanFilter;
-import org.identityconnectors.framework.common.objects.filter.LessThanOrEqualFilter;
-import org.identityconnectors.framework.common.objects.filter.NotFilter;
-import org.identityconnectors.framework.common.objects.filter.OrFilter;
-import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
-import org.identityconnectors.framework.spi.Configuration;
-import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.ConnectorClass;
 import org.identityconnectors.framework.spi.InstanceNameAware;
 import org.identityconnectors.framework.spi.PoolableConnector;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
-import com.evolveum.icf.dummy.resource.DummyDelta;
-import com.evolveum.icf.dummy.resource.DummyDeltaType;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObject;
-import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyOrg;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
@@ -86,7 +56,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateDeltaOp, InstanceNameAware {
 
     // We want to see if the ICF framework logging works properly
-    private static final Log log = Log.getLog(DummyConnector.class);
+    private static final Log LOG = Log.getLog(DummyConnector.class);
 
     private String instanceName;
 
@@ -97,7 +67,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 
     @Override
     public Set<AttributeDelta> updateDelta(final ObjectClass objectClass, final Uid uid, final Set<AttributeDelta> modifications, final OperationOptions options) {
-        log.info("updateDelta::begin {0}", instanceName);
+        LOG.info("updateDelta::begin {0}", instanceName);
         validate(objectClass);
         validate(uid);
 
@@ -320,26 +290,26 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
             }
 
         } catch (ConnectException e) {
-            log.info("update::exception "+e);
+            LOG.info("update::exception "+e);
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (IllegalArgumentException e) {
-            log.info("update::exception "+e);
+            LOG.info("update::exception "+e);
             throw new ConnectorException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
-            log.info("update::exception "+e);
+            LOG.info("update::exception "+e);
             throw new ConnectorIOException(e.getMessage(), e);
         } catch (SchemaViolationException e) {
-            log.info("update::exception "+e);
+            LOG.info("update::exception "+e);
             throw new InvalidAttributeValueException(e.getMessage(), e);
         } catch (ConflictException e) {
-            log.info("update::exception "+e);
+            LOG.info("update::exception "+e);
             throw new AlreadyExistsException(e);
         } catch (InterruptedException e) {
-            log.info("update::exception "+e);
+            LOG.info("update::exception "+e);
             throw new OperationTimeoutException(e);
         }
 
-        log.info("update::end {0}", instanceName);
+        LOG.info("update::end {0}", instanceName);
         return sideEffectChanges;
     }
 
@@ -508,7 +478,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
         super.addAdditionalCommonAttributes(builder, dummyObject);
         String connectorInstanceNameAttribute = getConfiguration().getConnectorInstanceNameAttribute();
         if (connectorInstanceNameAttribute != null) {
-            log.info("Putting connectorInstance name into {0}: {1}", connectorInstanceNameAttribute, instanceName);
+            LOG.info("Putting connectorInstance name into {0}: {1}", connectorInstanceNameAttribute, instanceName);
             builder.addAttribute(connectorInstanceNameAttribute, instanceName);
         }
     }
@@ -518,7 +488,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
         super.extendSchema(builder);
 
         if (configuration.getSupportRunAs()) {
-            log.ok("Adding runAs options to schema");
+            LOG.ok("Adding runAs options to schema");
             builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithUser(), UpdateDeltaOp.class);
             builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithPassword(), UpdateDeltaOp.class);
         }

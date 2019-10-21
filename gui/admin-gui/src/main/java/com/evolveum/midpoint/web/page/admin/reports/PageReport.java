@@ -58,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
                 description = "PageReport.auth.report.description")})
 public class PageReport extends PageAdmin {
 
-    private static Trace LOGGER = TraceManager.getTrace(PageReport.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageReport.class);
 
     private static final String DOT_CLASS = PageReport.class.getName() + ".";
     private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadReport";

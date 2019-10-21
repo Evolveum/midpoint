@@ -34,8 +34,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import javax.security.sasl.AuthenticationException;
-
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.GuardedString.Accessor;
@@ -58,7 +56,6 @@ import org.identityconnectors.framework.common.objects.filter.OrFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
-import org.identityconnectors.framework.spi.ConnectorClass;
 import org.identityconnectors.framework.spi.PoolableConnector;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
 
@@ -93,9 +90,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp {
 
     // We want to see if the ICF framework logging works properly
-    private static final Log log = Log.getLog(AbstractDummyConnector.class);
+    private static final Log LOG = Log.getLog(AbstractDummyConnector.class);
     // We also want to see if the libraries that use JUL are logging properly
-    private static final java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(AbstractDummyConnector.class.getName());
+    private static final java.util.logging.Logger JUL_LOGGER = java.util.logging.Logger.getLogger(AbstractDummyConnector.class.getName());
 
     // Marker used in logging tests
     public static final String LOG_MARKER = "_M_A_R_K_E_R_";
@@ -186,7 +183,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
             staticVal = this.toString();
         }
 
-        log.info("Connected connector #{0} to dummy resource instance {1} ({2} connections open)", instanceNumber, resource, resource.getConnectionCount());
+        LOG.info("Connected connector #{0} to dummy resource instance {1} ({2} connections open)", instanceNumber, resource, resource.getConnectionCount());
     }
 
     private static synchronized int getNextInstanceNumber() {
@@ -202,7 +199,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
     public void dispose() {
         connected = false;
         resource.disconnect();
-        log.info("Disconnected connector #{0} from dummy resource instance {1} ({2} connections still open)", instanceNumber, resource, resource.getConnectionCount());
+        LOG.info("Disconnected connector #{0} from dummy resource instance {1} ({2} connections still open)", instanceNumber, resource, resource.getConnectionCount());
     }
 
     @Override
@@ -227,7 +224,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
      * {@inheritDoc}
      */
     public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
-        log.info("create::begin attributes {0}", createAttributes);
+        LOG.info("create::begin attributes {0}", createAttributes);
         validate(objectClass);
 
         DummyObject newObject;
@@ -237,7 +234,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
                 // Convert attributes to account
                 DummyAccount newAccount = convertToAccount(createAttributes);
 
-                log.ok("Adding dummy account:\n{0}", newAccount.debugDump());
+                LOG.ok("Adding dummy account:\n{0}", newAccount.debugDump());
 
                 resource.addAccount(newAccount);
                 newObject = newAccount;
@@ -245,7 +242,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
             } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
                 DummyGroup newGroup = convertToGroup(createAttributes);
 
-                log.ok("Adding dummy group:\n{0}", newGroup.debugDump());
+                LOG.ok("Adding dummy group:\n{0}", newGroup.debugDump());
 
                 resource.addGroup(newGroup);
                 newObject = newGroup;
@@ -253,7 +250,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
             } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
                 DummyPrivilege newPriv = convertToPriv(createAttributes);
 
-                log.ok("Adding dummy privilege:\n{0}", newPriv.debugDump());
+                LOG.ok("Adding dummy privilege:\n{0}", newPriv.debugDump());
 
                 resource.addPrivilege(newPriv);
                 newObject = newPriv;
@@ -261,7 +258,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
             } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
                 DummyOrg newOrg = convertToOrg(createAttributes);
 
-                log.ok("Adding dummy org:\n{0}", newOrg.debugDump());
+                LOG.ok("Adding dummy org:\n{0}", newOrg.debugDump());
 
                 resource.addOrg(newOrg);
                 newObject = newOrg;
@@ -298,7 +295,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         }
         Uid uid = new Uid(id);
 
-        log.info("create::end");
+        LOG.info("create::end");
         return uid;
     }
 
@@ -307,7 +304,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
      * {@inheritDoc}
      */
     public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
-        log.info("delete::begin");
+        LOG.info("delete::begin");
         validate(objectClass);
         validate(uid);
 
@@ -358,41 +355,41 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
             // The framework should deal with it ... somehow
             throw new UnknownUidException(e.getMessage(),e);
         } catch (ConnectException e) {
-            log.info("delete::exception "+e);
+            LOG.info("delete::exception "+e);
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (IllegalArgumentException e) {
-            log.info("delete::exception "+e);
+            LOG.info("delete::exception "+e);
             throw new ConnectorException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
-            log.info("delete::exception "+e);
+            LOG.info("delete::exception "+e);
             throw new ConnectorIOException(e.getMessage(), e);
         } catch (SchemaViolationException e) {
-            log.info("delete::exception "+e);
+            LOG.info("delete::exception "+e);
             throw new InvalidAttributeValueException(e.getMessage(), e);
         } catch (ConflictException e) {
-            log.info("delete::exception "+e);
+            LOG.info("delete::exception "+e);
             throw new AlreadyExistsException(e);
         } catch (InterruptedException e) {
-            log.info("delete::exception "+e);
+            LOG.info("delete::exception "+e);
             throw new OperationTimeoutException(e);
         }
 
-        log.info("delete::end");
+        LOG.info("delete::end");
     }
 
     /**
      * {@inheritDoc}
      */
     public Schema schema() {
-        log.info("schema::begin");
+        LOG.info("schema::begin");
 
         if (!configuration.getSupportSchema()) {
-            log.info("schema::unsupported operation");
+            LOG.info("schema::unsupported operation");
             throw new UnsupportedOperationException();
         }
 
         SchemaBuilder builder = new SchemaBuilder(this.getClass());
-        log.ok("Building schema for {0}", this.getClass());
+        LOG.ok("Building schema for {0}", this.getClass());
 
         try {
 
@@ -423,7 +420,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 
         extendSchema(builder);
 
-        log.info("schema::end");
+        LOG.info("schema::end");
         return builder.build();
     }
 
@@ -566,9 +563,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
      * {@inheritDoc}
      */
     public Uid authenticate(final ObjectClass objectClass, final String userName, final GuardedString password, final OperationOptions options) {
-        log.info("authenticate::begin");
+        LOG.info("authenticate::begin");
         Uid uid = null;
-        log.info("authenticate::end");
+        LOG.info("authenticate::end");
         return uid;
     }
 
@@ -576,9 +573,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
      * {@inheritDoc}
      */
     public Uid resolveUsername(final ObjectClass objectClass, final String userName, final OperationOptions options) {
-        log.info("resolveUsername::begin");
+        LOG.info("resolveUsername::begin");
         Uid uid = null;
-        log.info("resolveUsername::end");
+        LOG.info("resolveUsername::end");
         return uid;
     }
 
@@ -608,10 +605,10 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
      * {@inheritDoc}
      */
     public FilterTranslator<Filter> createFilterTranslator(ObjectClass objectClass, OperationOptions options) {
-        log.info("createFilterTranslator::begin");
+        LOG.info("createFilterTranslator::begin");
         validate(objectClass);
 
-        log.info("createFilterTranslator::end");
+        LOG.info("createFilterTranslator::end");
         return new DummyFilterTranslator() {
         };
     }
@@ -620,13 +617,13 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
      * {@inheritDoc}
      */
     public void executeQuery(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options) {
-        log.info("executeQuery({0},{1},{2},{3})", objectClass, query, handler, options);
+        LOG.info("executeQuery({0},{1},{2},{3})", objectClass, query, handler, options);
         validate(objectClass);
         validate(query);
         notNull(handler, "Results handled object can't be null.");
 
         Collection<String> attributesToGet = getAttrsToGet(options);
-        log.ok("attributesToGet={0}", attributesToGet);
+        LOG.ok("attributesToGet={0}", attributesToGet);
 
         if (configuration.getRequiredBaseContextOrgName() != null && shouldRequireBaseContext(objectClass, query, options)) {
             if (options == null || options.getContainer() == null) {
@@ -670,32 +667,32 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
             }
 
         } catch (ConnectException e) {
-            log.info("executeQuery::exception "+e);
+            LOG.info("executeQuery::exception "+e);
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (IllegalArgumentException e) {
-            log.info("executeQuery::exception "+e);
+            LOG.info("executeQuery::exception "+e);
             throw new ConnectorException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
-            log.info("executeQuery::exception "+e);
+            LOG.info("executeQuery::exception "+e);
             throw new ConnectorIOException(e.getMessage(), e);
         } catch (SchemaViolationException e) {
-            log.info("executeQuery::exception "+e);
+            LOG.info("executeQuery::exception "+e);
             throw new InvalidAttributeValueException(e.getMessage(), e);
         } catch (ConflictException e) {
-            log.info("executeQuery::exception "+e);
+            LOG.info("executeQuery::exception "+e);
             throw new AlreadyExistsException(e);
         } catch (InterruptedException e) {
-            log.info("executeQuery::exception "+e);
+            LOG.info("executeQuery::exception "+e);
             throw new OperationTimeoutException(e);
         }
 
-        log.info("executeQuery::end");
+        LOG.info("executeQuery::end");
     }
 
     private <T extends DummyObject> void search(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options,
             Lister<T> lister, Getter<T> nameGetter, Getter<T> idGetter, Converter<T> converter, Consumer<T> recorder) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         Collection<String> attributesToGet = getAttrsToGet(options);
-        log.ok("attributesToGet={0}", attributesToGet);
+        LOG.ok("attributesToGet={0}", attributesToGet);
 
         if (isEqualsFilter(query, Name.NAME) && resource.isEnforceUniqueName()) {
             Attribute nameAttribute = ((EqualsFilter)query).getAttribute();
@@ -780,7 +777,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         }
         List<T> list = new ArrayList<>(allObjects);
         list.sort((o1,o2) -> compare(o1, o2, sortKeys));
-        log.ok("Objects sorted by {0}: {1}", Arrays.toString(sortKeys), list);
+        LOG.ok("Objects sorted by {0}: {1}", Arrays.toString(sortKeys), list);
         return list;
     }
 
@@ -852,9 +849,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         }
         co = filterOutAttributesToGet(co, object, attributesToGet, options.getReturnDefaultAttributes());
         resource.searchHandlerSync();
-        log.info("HANDLE:START: {0}", object.getName());
+        LOG.info("HANDLE:START: {0}", object.getName());
         boolean ret = handler.handle(co);
-        log.info("HANDLE:END: {0}", object.getName());
+        LOG.info("HANDLE:END: {0}", object.getName());
         return ret;
     }
 
@@ -1009,7 +1006,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
      * {@inheritDoc}
      */
     public void sync(ObjectClass objectClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
-        log.info("sync::begin");
+        LOG.info("sync::begin");
         validate(objectClass);
 
         Collection<String> attributesToGet = getAttrsToGet(options);
@@ -1024,12 +1021,12 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
                     // take all changes
                 } else if (objectClass.is(ObjectClass.ACCOUNT_NAME)) {
                     if (deltaObjectClass != DummyAccount.class) {
-                        log.ok("Skipping delta {0} because of objectclass mismatch", delta);
+                        LOG.ok("Skipping delta {0} because of objectclass mismatch", delta);
                         continue;
                     }
                 } else if (objectClass.is(ObjectClass.GROUP_NAME)) {
                     if (deltaObjectClass != DummyGroup.class) {
-                        log.ok("Skipping delta {0} because of objectclass mismatch", delta);
+                        LOG.ok("Skipping delta {0} because of objectclass mismatch", delta);
                         continue;
                     }
                 }
@@ -1063,7 +1060,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
                         if (account == null) {
                             // We have delta for object that does not exist any more. It was probably deleted in the meantime.
                             // Just skip the delta.
-                            log.warn("We have delta for account '"+delta.getObjectId()+"' but such account does not exist, skipping delta");
+                            LOG.warn("We have delta for account '"+delta.getObjectId()+"' but such account does not exist, skipping delta");
                             continue;
                         }
                         ConnectorObject cobject = convertToConnectorObject(account, attributesToGet);
@@ -1113,33 +1110,33 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
                 deltaBuilder.setUid(uid);
 
                 SyncDelta syncDelta = deltaBuilder.build();
-                log.info("sync::handle {0}",syncDelta);
+                LOG.info("sync::handle {0}",syncDelta);
                 if (!handler.handle(syncDelta)) {
                     break;
                 }
             }
 
         } catch (ConnectException e) {
-            log.info("sync::exception "+e);
+            LOG.info("sync::exception "+e);
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (IllegalArgumentException e) {
-            log.info("sync::exception "+e);
+            LOG.info("sync::exception "+e);
             throw new ConnectorException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
-            log.info("sync::exception "+e);
+            LOG.info("sync::exception "+e);
             throw new ConnectorIOException(e.getMessage(), e);
         } catch (SchemaViolationException e) {
-            log.info("sync::exception "+e);
+            LOG.info("sync::exception "+e);
             throw new InvalidAttributeValueException(e.getMessage(), e);
         } catch (ConflictException e) {
-            log.info("sync::exception "+e);
+            LOG.info("sync::exception "+e);
             throw new AlreadyExistsException(e);
         } catch (InterruptedException e) {
-            log.info("sync::exception "+e);
+            LOG.info("sync::exception "+e);
             throw new OperationTimeoutException(e);
         }
 
-        log.info("sync::end");
+        LOG.info("sync::end");
     }
 
     private Collection<String> getAttrsToGet(OperationOptions options) {
@@ -1157,10 +1154,10 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
      * {@inheritDoc}
      */
     public SyncToken getLatestSyncToken(ObjectClass objectClass) {
-        log.info("getLatestSyncToken::begin");
+        LOG.info("getLatestSyncToken::begin");
         validate(objectClass);
         int latestSyncToken = resource.getLatestSyncToken();
-        log.info("getLatestSyncToken::end, returning token {0}.", latestSyncToken);
+        LOG.info("getLatestSyncToken::end, returning token {0}.", latestSyncToken);
         return new SyncToken(latestSyncToken);
     }
 
@@ -1168,33 +1165,33 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
      * {@inheritDoc}
      */
     public void test() {
-        log.info("test::begin");
+        LOG.info("test::begin");
 
         if (!connected) {
             throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
         }
 
-        log.info("Validating configuration.");
+        LOG.info("Validating configuration.");
         configuration.validate();
 
         // Produce log messages on all levels. The tests may check if they are really logged.
-        log.error(LOG_MARKER + " DummyConnectorIcfError");
-        log.info(LOG_MARKER + " DummyConnectorIcfInfo");
-        log.warn(LOG_MARKER + " DummyConnectorIcfWarn");
-        log.ok(LOG_MARKER + " DummyConnectorIcfOk");
+        LOG.error(LOG_MARKER + " DummyConnectorIcfError");
+        LOG.info(LOG_MARKER + " DummyConnectorIcfInfo");
+        LOG.warn(LOG_MARKER + " DummyConnectorIcfWarn");
+        LOG.ok(LOG_MARKER + " DummyConnectorIcfOk");
 
-        log.info("Dummy Connector JUL logger as seen by the connector: " + julLogger + "; classloader " + julLogger.getClass().getClassLoader());
+        LOG.info("Dummy Connector JUL logger as seen by the connector: " + JUL_LOGGER + "; classloader " + JUL_LOGGER.getClass().getClassLoader());
 
         // Same thing using JUL
-        julLogger.severe(LOG_MARKER + " DummyConnectorJULsevere");
-        julLogger.warning(LOG_MARKER + " DummyConnectorJULwarning");
-        julLogger.info(LOG_MARKER + " DummyConnectorJULinfo");
-        julLogger.fine(LOG_MARKER + " DummyConnectorJULfine");
-        julLogger.finer(LOG_MARKER + " DummyConnectorJULfiner");
-        julLogger.finest(LOG_MARKER + " DummyConnectorJULfinest");
+        JUL_LOGGER.severe(LOG_MARKER + " DummyConnectorJULsevere");
+        JUL_LOGGER.warning(LOG_MARKER + " DummyConnectorJULwarning");
+        JUL_LOGGER.info(LOG_MARKER + " DummyConnectorJULinfo");
+        JUL_LOGGER.fine(LOG_MARKER + " DummyConnectorJULfine");
+        JUL_LOGGER.finer(LOG_MARKER + " DummyConnectorJULfiner");
+        JUL_LOGGER.finest(LOG_MARKER + " DummyConnectorJULfinest");
 
-        log.info("Test configuration was successful.");
-        log.info("test::end");
+        LOG.info("Test configuration was successful.");
+        LOG.info("test::end");
     }
 
    private ConnectorObjectBuilder createConnectorObjectBuilderCommon(DummyObject dummyObject,
@@ -1286,7 +1283,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
     protected void addAdditionalCommonAttributes(ConnectorObjectBuilder builder, DummyObject dummyObject) {
         String connectorInstanceNumberAttribute = getConfiguration().getConnectorInstanceNumberAttribute();
         if (connectorInstanceNumberAttribute != null) {
-            log.info("Putting connector instance number into {0}: {1}", connectorInstanceNumberAttribute, getInstanceNumber());
+            LOG.info("Putting connector instance number into {0}: {1}", connectorInstanceNumberAttribute, getInstanceNumber());
             builder.addAttribute(connectorInstanceNumberAttribute, getInstanceNumber());
         }
     }
@@ -1318,19 +1315,19 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         try {
             objectClass = resource.getAccountObjectClass();
         } catch (ConnectException e) {
-            log.error(e, e.getMessage());
+            LOG.error(e, e.getMessage());
             throw new ConnectionFailedException(e.getMessage(), e);
         } catch (IllegalArgumentException e) {
-            log.error(e, e.getMessage());
+            LOG.error(e, e.getMessage());
             throw new ConnectorException(e.getMessage(), e);
         } catch (FileNotFoundException e) {
-            log.error(e, e.getMessage());
+            LOG.error(e, e.getMessage());
             throw new ConnectorIOException(e.getMessage(), e);
         } catch (ConflictException e) {
-            log.error(e, e.getMessage());
+            LOG.error(e, e.getMessage());
             throw new AlreadyExistsException(e);
         } catch (InterruptedException e) {
-            log.error(e, e.getMessage());
+            LOG.error(e, e.getMessage());
             throw new OperationTimeoutException(e);
         }
 
@@ -1384,12 +1381,12 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
     }
 
     private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
-        log.ok("Create attributes: {0}", createAttributes);
+        LOG.ok("Create attributes: {0}", createAttributes);
         String userName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
         if (configuration.getUpCaseName()) {
             userName = StringUtils.upperCase(userName);
         }
-        log.ok("Username {0}", userName);
+        LOG.ok("Username {0}", userName);
         final DummyAccount newAccount = new DummyAccount(userName);
 
         Boolean enabled = null;

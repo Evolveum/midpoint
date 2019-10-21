@@ -27,7 +27,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import org.apache.wicket.model.IModel;
 
 /**
  * @author Viliam Repan (lazyman)

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionRetu
  */
 public class ScriptExpressionEvaluationContext {
 
-    private static final ThreadLocal<ScriptExpressionEvaluationContext> threadLocalContext = new ThreadLocal<>();
+    private static final ThreadLocal<ScriptExpressionEvaluationContext> THREAD_LOCAL_CONTEXT = new ThreadLocal<>();
 
     private ScriptExpressionEvaluatorType expressionType;
     private ExpressionVariables variables;
@@ -161,19 +161,19 @@ public class ScriptExpressionEvaluationContext {
     }
 
     public static ThreadLocal<ScriptExpressionEvaluationContext> getThreadlocalcontext() {
-        return threadLocalContext;
+        return THREAD_LOCAL_CONTEXT;
     }
 
     public void setupThreadLocal() {
-        threadLocalContext.set(this);
+        THREAD_LOCAL_CONTEXT.set(this);
     }
 
     public void cleanupThreadLocal() {
-        threadLocalContext.set(null);
+        THREAD_LOCAL_CONTEXT.set(null);
     }
 
     public static ScriptExpressionEvaluationContext getThreadLocal() {
-        return threadLocalContext.get();
+        return THREAD_LOCAL_CONTEXT.get();
     }
 
     public ScriptEvaluationTraceType getTrace() {

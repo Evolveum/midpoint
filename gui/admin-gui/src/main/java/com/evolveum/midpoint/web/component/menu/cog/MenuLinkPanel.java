@@ -30,8 +30,8 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
  */
 public class MenuLinkPanel extends Panel {
 
-    private static String ID_MENU_ITEM_LINK = "menuItemLink";
-    private static String ID_MENU_ITEM_LABEL = "menuItemLabel";
+    private static final String ID_MENU_ITEM_LINK = "menuItemLink";
+    private static final String ID_MENU_ITEM_LABEL = "menuItemLabel";
 
     public MenuLinkPanel(String id, IModel<InlineMenuItem> item) {
         super(id);

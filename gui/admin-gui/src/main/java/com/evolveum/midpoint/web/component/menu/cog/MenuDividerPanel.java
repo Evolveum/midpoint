@@ -16,7 +16,7 @@ import org.apache.wicket.model.IModel;
  */
 public class MenuDividerPanel extends Panel {
 
-    private static String ID_MENU_ITEM_LABEL = "menuItemLabel";
+    private static final String ID_MENU_ITEM_LABEL = "menuItemLabel";
 
     public MenuDividerPanel(String id, IModel<InlineMenuItem> item) {
         super(id);

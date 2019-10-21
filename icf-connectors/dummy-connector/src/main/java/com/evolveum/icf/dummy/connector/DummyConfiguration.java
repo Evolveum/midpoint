@@ -30,7 +30,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     public static final String PAGING_STRATEGY_NONE = "none";
     public static final String PAGING_STRATEGY_OFFSET = "offset";
 
-    private static final Log log = Log.getLog(DummyConfiguration.class);
+    private static final Log LOG = Log.getLog(DummyConfiguration.class);
 
     private String instanceId;
     private boolean supportSchema = true;
@@ -433,18 +433,18 @@ public class DummyConfiguration extends AbstractConfiguration {
      */
     @Override
     public void validate() {
-        log.info("begin");
+        LOG.info("begin");
 
         if (uidMode.equals(UID_MODE_NAME) && !enforceUniqueName) {
             throw new IllegalArgumentException("Cannot use name UID mode without enforceUniqueName");
         }
 
-        log.info("uselessString: {0}", uselessString);
+        LOG.info("uselessString: {0}", uselessString);
         if (requireUselessString && StringUtils.isBlank(uselessString)) {
             throw new ConfigurationException("No useless string");
         }
 
-        log.info("end");
+        LOG.info("end");
     }
 
 

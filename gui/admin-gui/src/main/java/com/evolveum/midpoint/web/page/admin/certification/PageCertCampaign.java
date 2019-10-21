@@ -28,7 +28,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.Table;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.ButtonColorClass;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignDto;
@@ -331,7 +331,7 @@ public class PageCertCampaign extends PageAdminCertification {
                                     null);
                         } else {
                             btn = buildDefaultButton(componentId, null, new Model(availableResponses.getTitle(index)),
-                                    new Model<>("btn btn-sm " + BUTTON_COLOR_CLASS.DANGER),
+                                    new Model<>("btn btn-sm " + ButtonColorClass.DANGER),
                                     null);
                             btn.add(new VisibleBehaviour(() -> !availableResponses.isAvailable(model.getObject().getOverallOutcome())));
                         }
@@ -355,9 +355,9 @@ public class PageCertCampaign extends PageAdminCertification {
 
     private String getDecisionButtonColor(IModel<CertCaseDto> model, AccessCertificationResponseType response) {
         if (decisionEquals(model, response)) {
-            return BUTTON_COLOR_CLASS.PRIMARY.toString();
+            return ButtonColorClass.PRIMARY.toString();
         } else {
-            return BUTTON_COLOR_CLASS.DEFAULT.toString();
+            return ButtonColorClass.DEFAULT.toString();
         }
     }
 

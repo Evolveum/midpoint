@@ -55,9 +55,9 @@ public class Visualizer {
     @Autowired
     private Resolver resolver;
 
-    private static final Map<Class<?>, List<ItemPath>> descriptiveItems = new HashMap<>();
+    private static final Map<Class<?>, List<ItemPath>> DESCRIPTIVE_ITEMS = new HashMap<>();
     static {
-        descriptiveItems.put(AssignmentType.class, Arrays.asList(
+        DESCRIPTIVE_ITEMS.put(AssignmentType.class, Arrays.asList(
                 AssignmentType.F_TARGET_REF,
                 AssignmentType.F_CONSTRUCTION.append(ConstructionType.F_RESOURCE_REF),
                 AssignmentType.F_CONSTRUCTION.append(ConstructionType.F_KIND),
@@ -65,7 +65,7 @@ public class Visualizer {
                 AssignmentType.F_TENANT_REF,
                 AssignmentType.F_ORG_REF,
                 AssignmentType.F_DESCRIPTION));
-        descriptiveItems.put(ShadowType.class, Arrays.asList(
+        DESCRIPTIVE_ITEMS.put(ShadowType.class, Arrays.asList(
                 ShadowType.F_RESOURCE_REF,
                 ShadowType.F_KIND,
                 ShadowType.F_INTENT));
@@ -549,7 +549,7 @@ public class Visualizer {
             return;
         }
         Class<?> clazz = sourceValue.getContainer().getCompileTimeClass();
-        List<ItemPath> itemPathsToShow = descriptiveItems.get(clazz);
+        List<ItemPath> itemPathsToShow = DESCRIPTIVE_ITEMS.get(clazz);
         if (itemPathsToShow == null) {
             return;
         }

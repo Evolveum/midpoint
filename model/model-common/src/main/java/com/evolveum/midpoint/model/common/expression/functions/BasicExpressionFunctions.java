@@ -76,7 +76,7 @@ import static java.util.Collections.emptyList;
 public class BasicExpressionFunctions {
 
     public static final String NAME_SEPARATOR = " ";
-    private final Charset UTF8_CHARSET = StandardCharsets.UTF_8;
+    private static final Charset UTF8_CHARSET = StandardCharsets.UTF_8;
 
     public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctions.class);
 
@@ -86,9 +86,9 @@ public class BasicExpressionFunctions {
      */
     public static final XMLGregorianCalendar LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(1, 1, 1, 0, 0, 0);
 
-    private static String STRING_PATTERN_WHITESPACE = "\\s+";
-    private static String STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT = "^(\\S+\\.)$";
-    private static Pattern PATTERN_NICK_NAME = Pattern.compile("^([^\"]*)\"([^\"]+)\"([^\"]*)$");
+    private static final String STRING_PATTERN_WHITESPACE = "\\s+";
+    private static final String STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT = "^(\\S+\\.)$";
+    private static final Pattern PATTERN_NICK_NAME = Pattern.compile("^([^\"]*)\"([^\"]+)\"([^\"]*)$");
 
     private final PrismContext prismContext;
     private final Protector protector;

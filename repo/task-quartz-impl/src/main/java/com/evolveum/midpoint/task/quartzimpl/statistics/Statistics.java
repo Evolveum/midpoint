@@ -64,7 +64,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
      */
     private WorkBucketManagementPerformanceInformationType workBucketManagementPerformanceInformation;
 
-    private final Object BUCKET_INFORMATION_LOCK = new Object();
+    private static final Object BUCKET_INFORMATION_LOCK = new Object();
 
     /**
      * Most current version of repository performance information. Original (live) form of this information is accessible only

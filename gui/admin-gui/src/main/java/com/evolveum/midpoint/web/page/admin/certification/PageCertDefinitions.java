@@ -164,18 +164,18 @@ public class PageCertDefinitions extends PageAdminWorkItems {
                         switch (index) {
                             case 0:
                                 btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.createCampaign"),
-                                        new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.PRIMARY),
+                                        new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.PRIMARY),
                                         target -> createCampaignPerformed(target, model.getObject().getValue()));
                                 btn.add(new EnableBehaviour(() -> !Boolean.TRUE.equals(model.getObject().getValue().isAdHoc())));
                                 break;
                             case 1:
                                 btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.showCampaigns"),
-                                        new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT),
+                                        new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.DEFAULT),
                                         target -> showCampaignsPerformed(target, model.getObject().getValue()));
                                 break;
                             case 2:
                                 btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.deleteDefinition"),
-                                        new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER),
+                                        new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.DANGER),
                                         target -> deleteConfirmation(target, model.getObject().getValue()));
                                 break;
                         }

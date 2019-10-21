@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 
 public class CustomFunctions {
 
-    private Trace LOGGER = TraceManager.getTrace(CustomFunctions.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CustomFunctions.class);
 
     private ExpressionFactory expressionFactory;
     private FunctionLibraryType library;

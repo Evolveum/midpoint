@@ -18,7 +18,7 @@ public class SelfTestData {
      * Long text with national characters. This is used to test whether the database can store a long text
      * and that it maintains national characters.
      */
-    public static String POLICIJA =
+    public static final String POLICIJA =
             "Pólicíja, pólicíja, Sálašáry, práva Jova. Z césty príva, z césty práva, sýmpatika, korpora. " +
             "Populáry, Karpatula. Juvá svorno policána. Kerléš na strach, policíja. Bumtarára, bumtarára, bum. " +
             "Pōlicĭja, pōlicĭja, Sãlaŝåry, pràva Jova. Z céßty prïva, z cèßty pråva, sŷmpatika, korpora. " +

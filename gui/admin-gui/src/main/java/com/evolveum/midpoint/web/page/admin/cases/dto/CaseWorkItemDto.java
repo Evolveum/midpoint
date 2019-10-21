@@ -44,13 +44,13 @@ public class CaseWorkItemDto extends Selectable {
 
     @NotNull private final CaseWorkItemType workItem;
 
-    private CaseType _case;
+    private CaseType acase;
     private String objectName;
 
     public CaseWorkItemDto(@NotNull CaseWorkItemType workItem) {
-        this._case = CaseWorkItemUtil.getCase(workItem);
+        this.acase = CaseWorkItemUtil.getCase(workItem);
         this.workItem = workItem;
-        this.objectName = getName(this._case.getObjectRef());
+        this.objectName = getName(this.acase.getObjectRef());
     }
 
     // ugly hack (for now) - we extract the name from serialization metadata
@@ -71,15 +71,15 @@ public class CaseWorkItemDto extends Selectable {
     }
 
     public QName getObjectType() {
-        return _case.getObjectRef().getType();
+        return acase.getObjectRef().getType();
     }
 
     public Long getCaseId() {
-        return _case.asPrismContainerValue().getId();
+        return acase.asPrismContainerValue().getId();
     }
 
     public CaseType getCase() {
-        return _case;
+        return acase;
     }
 
     public String getOutcome() {
@@ -140,7 +140,7 @@ public class CaseWorkItemDto extends Selectable {
     }
 
     public String getDescription() {
-        return _case.getDescription();
+        return acase.getDescription();
     }
 
     public XMLGregorianCalendar getCloseTimestamp() {
@@ -148,7 +148,7 @@ public class CaseWorkItemDto extends Selectable {
     }
 
     public XMLGregorianCalendar getOpenTimestamp() {
-        return _case.getMetadata().getCreateTimestamp();
+        return acase.getMetadata().getCreateTimestamp();
     }
 
     public XMLGregorianCalendar getDeadline() {
@@ -156,6 +156,6 @@ public class CaseWorkItemDto extends Selectable {
     }
 
     public String getState() {
-        return _case.getState();
+        return acase.getState();
     }
 }

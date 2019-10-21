@@ -41,8 +41,8 @@ public class ConnIdNameMapper {
     private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
     private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
 
-    private static final Map<String,QName> specialAttributeMapIcf = new HashMap<>();
-    private static final Map<QName,String> specialAttributeMapMp = new HashMap<>();
+    private static final Map<String,QName> SPECIAL_ATTRIBUTE_MAP_ICF = new HashMap<>();
+    private static final Map<QName,String> SPECIAL_ATTRIBUTE_MAP_MP = new HashMap<>();
 
     private ResourceSchema resourceSchema = null;
     // Used when there is no schema (schemaless resource)
@@ -83,8 +83,8 @@ public class ConnIdNameMapper {
     }
 
     private static void addSpecialAttributeMapping(String icfName, QName qname) {
-        specialAttributeMapIcf.put(icfName, qname);
-        specialAttributeMapMp.put(qname, icfName);
+        SPECIAL_ATTRIBUTE_MAP_ICF.put(icfName, qname);
+        SPECIAL_ATTRIBUTE_MAP_MP.put(qname, icfName);
     }
 
     private static void addOperationalAttributeMapping(
@@ -107,14 +107,14 @@ public class ConnIdNameMapper {
     }
 
     public QName convertAttributeNameToQName(String icfAttrName, ObjectClassComplexTypeDefinition ocDef) {
-        if (specialAttributeMapIcf.containsKey(icfAttrName)) {
+        if (SPECIAL_ATTRIBUTE_MAP_ICF.containsKey(icfAttrName)) {
             for (ResourceAttributeDefinition attributeDefinition: ocDef.getAttributeDefinitions()) {
                 if (icfAttrName.equals(attributeDefinition.getFrameworkAttributeName())) {
                     return attributeDefinition.getItemName();
                 }
             }
             // fallback, compatibility
-            return specialAttributeMapIcf.get(icfAttrName);
+            return SPECIAL_ATTRIBUTE_MAP_ICF.get(icfAttrName);
         }
         QName attrXsdName = new QName(resourceSchemaNamespace, QNameUtil.escapeElementName(icfAttrName),
                 MidPointConstants.PREFIX_NS_RI);
@@ -122,12 +122,12 @@ public class ConnIdNameMapper {
     }
 
     public QName convertAttributeNameToQName(String icfAttrName, ResourceAttributeDefinition attrDef) {
-        if (specialAttributeMapIcf.containsKey(icfAttrName)) {
+        if (SPECIAL_ATTRIBUTE_MAP_ICF.containsKey(icfAttrName)) {
             if (icfAttrName.equals(attrDef.getFrameworkAttributeName())) {
                 return attrDef.getItemName();
             }
             // fallback, compatibility
-            return specialAttributeMapIcf.get(icfAttrName);
+            return SPECIAL_ATTRIBUTE_MAP_ICF.get(icfAttrName);
         }
         return attrDef.getItemName();
     }
@@ -175,8 +175,8 @@ public class ConnIdNameMapper {
         }
 
         QName attrQName = attrDef.getItemName();
-        if (specialAttributeMapMp.containsKey(attrQName)) {
-            return specialAttributeMapMp.get(attrQName);
+        if (SPECIAL_ATTRIBUTE_MAP_MP.containsKey(attrQName)) {
+            return SPECIAL_ATTRIBUTE_MAP_MP.get(attrQName);
         }
 
         if (!attrQName.getNamespaceURI().equals(resourceSchemaNamespace)) {

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2010-2013 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
 import java.io.Serializable;
@@ -5,21 +11,11 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 
-//import com.evolveum.midpoint.prism.PrismContainer;
-
-/*
- * Copyright (c) 2010-2013 Evolveum and contributors
- *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
- */
-
-
 public class PasswordQuestionsDto implements Serializable{
 
-    public static final String F_MY_QUESTIONS_ANSWERS="questionAnswers";
-    public static final String F_MY_QUESTIONS_ANSWER="passwAnswer";
-    public static final String F_MY_QUESTIONS__QUESTIONITSELF="passwQuestion";
+    public static final String F_MY_QUESTIONS_ANSWERS = "questionAnswers";
+    public static final String F_MY_QUESTIONS_ANSWER = "passwAnswer";
+    public static final String F_MY_QUESTIONS_QUESTIONITSELF = "passwQuestion";
 
     private String passwQuestion;
     private String passwAnswer;

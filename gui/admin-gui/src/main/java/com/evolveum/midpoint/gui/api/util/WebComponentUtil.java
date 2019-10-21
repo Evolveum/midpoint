@@ -111,7 +111,6 @@ import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -254,22 +253,22 @@ public final class WebComponentUtil {
 
     }
 
-    private static final Map<String, LoggingComponentType> componentMap = new HashMap<>();
+    private static final Map<String, LoggingComponentType> COMPONENT_MAP = new HashMap<>();
 
     static {
-        componentMap.put("com.evolveum.midpoint", LoggingComponentType.ALL);
-        componentMap.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
-        componentMap.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
-        componentMap.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
-        componentMap.put("com.evolveum.midpoint.web", LoggingComponentType.WEB);
-        componentMap.put("com.evolveum.midpoint.gui", LoggingComponentType.GUI);
-        componentMap.put("com.evolveum.midpoint.task", LoggingComponentType.TASKMANAGER);
-        componentMap.put("com.evolveum.midpoint.model.sync",
+        COMPONENT_MAP.put("com.evolveum.midpoint", LoggingComponentType.ALL);
+        COMPONENT_MAP.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
+        COMPONENT_MAP.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
+        COMPONENT_MAP.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
+        COMPONENT_MAP.put("com.evolveum.midpoint.web", LoggingComponentType.WEB);
+        COMPONENT_MAP.put("com.evolveum.midpoint.gui", LoggingComponentType.GUI);
+        COMPONENT_MAP.put("com.evolveum.midpoint.task", LoggingComponentType.TASKMANAGER);
+        COMPONENT_MAP.put("com.evolveum.midpoint.model.sync",
                 LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);
-        componentMap.put("com.evolveum.midpoint.wf", LoggingComponentType.WORKFLOWS);
-        componentMap.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
-        componentMap.put("com.evolveum.midpoint.certification", LoggingComponentType.ACCESS_CERTIFICATION);
-        componentMap.put("com.evolveum.midpoint.security", LoggingComponentType.SECURITY);
+        COMPONENT_MAP.put("com.evolveum.midpoint.wf", LoggingComponentType.WORKFLOWS);
+        COMPONENT_MAP.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
+        COMPONENT_MAP.put("com.evolveum.midpoint.certification", LoggingComponentType.ACCESS_CERTIFICATION);
+        COMPONENT_MAP.put("com.evolveum.midpoint.security", LoggingComponentType.SECURITY);
     }
 
     public enum AssignmentOrder{
