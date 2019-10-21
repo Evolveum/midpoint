@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -76,7 +77,8 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
             protected List<ITab> createTabs(final PageAdminObjectDetails<CaseType> parentPage) {
                 List<ITab> tabs = super.createTabs(parentPage);
 
-                if (matchCaseType(SystemObjectsType.ARCHETYPE_APPROVAL_CASE)) {
+                if (matchCaseType(SystemObjectsType.ARCHETYPE_APPROVAL_CASE)
+                        && CaseTypeUtil.approvalSchemaExists(getObject() != null ? getObject().asObjectable() : null)) {
                     tabs.add(0,
                             new PanelTab(parentPage.createStringResource("PageCase.approvalTab"),
                                     getTabVisibility(ComponentConstants.UI_CASE_TAB_APPROVAL_URL, true, parentPage)) {

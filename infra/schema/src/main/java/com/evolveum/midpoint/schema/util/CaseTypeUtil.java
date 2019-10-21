@@ -93,5 +93,10 @@ public class CaseTypeUtil {
             }
         }
         return rv;
+	}
+
+	public static boolean approvalSchemaExists(CaseType aCase){
+        return aCase != null && aCase.getApprovalContext() != null && aCase.getApprovalContext().getApprovalSchema() != null
+                && !aCase.getApprovalContext().getApprovalSchema().asPrismContainerValue().isEmpty();
     }
 }
