@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.xml;
@@ -27,24 +27,24 @@ public interface DynamicNamespacePrefixMapper extends DebugDumpable {
 
     void registerPrefix(String namespace, String prefix, boolean defaultNamespace);
 
-	void registerPrefixLocal(String namespace, String prefix);
+    void registerPrefixLocal(String namespace, String prefix);
 
-	String getPrefix(String namespace);
+    String getPrefix(String namespace);
 
-	QName setQNamePrefix(QName qname);
+    QName setQNamePrefix(QName qname);
 
-	/**
-	 * Makes sure that there is explicit prefix and not a default namespace prefix.
-	 */
-	QName setQNamePrefixExplicit(QName qname);
+    /**
+     * Makes sure that there is explicit prefix and not a default namespace prefix.
+     */
+    QName setQNamePrefixExplicit(QName qname);
 
-	DynamicNamespacePrefixMapper clone();
+    DynamicNamespacePrefixMapper clone();
 
-	// Follwing two methods are kind of a hack to force JAXB to always use prefixes.
-	// This works around the JAXB bug with default namespaces
-	boolean isAlwaysExplicit();
+    // Follwing two methods are kind of a hack to force JAXB to always use prefixes.
+    // This works around the JAXB bug with default namespaces
+    boolean isAlwaysExplicit();
 
-	void setAlwaysExplicit(boolean alwaysExplicit);
+    void setAlwaysExplicit(boolean alwaysExplicit);
 
     // Specifies that this prefix should be declared by default (at top of XML files)
     void addDeclaredByDefault(String prefix);

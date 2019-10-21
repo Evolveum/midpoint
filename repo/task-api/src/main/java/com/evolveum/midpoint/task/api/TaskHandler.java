@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.api;
@@ -22,20 +22,20 @@ import java.util.List;
 public interface TaskHandler {
 
 
-	default TaskRunResult run(RunningTask task) {
-		return run(task, null);
-	}
-	
-	@Experimental
-	TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition);
+    default TaskRunResult run(RunningTask task) {
+        return run(task, null);
+    }
 
-	default Long heartbeat(Task task) {
-		return null;
-	}
+    @Experimental
+    TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition);
 
-	// TODO: fix signature
-	default void refreshStatus(Task task) {
-	}
+    default Long heartbeat(Task task) {
+        return null;
+    }
+
+    // TODO: fix signature
+    default void refreshStatus(Task task) {
+    }
 
     /**
      * Returns a category name for a given task. In most cases, the name would be independent of concrete task.
@@ -44,19 +44,19 @@ public interface TaskHandler {
      *             to all tasks
      * @return a user-understandable name, like "LiveSync" or "Workflow"
      */
-	String getCategoryName(Task task);
+    String getCategoryName(Task task);
 
     /**
      * Returns names of task categories provided by this handler. Usually it will be one-item list.
      * @return a list of category names; may be null - in that case the category info is given by getCategoryName(null)
      */
-	default List<String> getCategoryNames() {
-		return null;
-	}
+    default List<String> getCategoryNames() {
+        return null;
+    }
 
-	@NotNull
-	default StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-		return new StatisticsCollectionStrategy();
-	}
+    @NotNull
+    default StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        return new StatisticsCollectionStrategy();
+    }
 
 }

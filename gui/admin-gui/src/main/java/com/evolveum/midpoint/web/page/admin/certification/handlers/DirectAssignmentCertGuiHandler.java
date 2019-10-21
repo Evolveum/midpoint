@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -37,11 +37,11 @@ public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
     public String getCaseInfoButtonTitle(IModel<? extends CertCaseOrWorkItemDto> rowModel, PageBase page) {
 
         CertCaseOrWorkItemDto dto = rowModel.getObject();
-        AccessCertificationCaseType _case = dto.getCertCase();
-        if (!(_case instanceof AccessCertificationAssignmentCaseType)) {
+        AccessCertificationCaseType acase = dto.getCertCase();
+        if (!(acase instanceof AccessCertificationAssignmentCaseType)) {
             return null;            // should not occur, TODO treat gracefully
         }
-        AccessCertificationAssignmentCaseType assignmentCase = (AccessCertificationAssignmentCaseType) _case;
+        AccessCertificationAssignmentCaseType assignmentCase = (AccessCertificationAssignmentCaseType) acase;
         AssignmentType assignment = assignmentCase.getAssignment();
 
         List<String> infoList = new ArrayList<>();
@@ -52,9 +52,9 @@ public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
         } else {
             assignmentOrInducement = page.createStringResource("PageCert.message.textAssignment").getString();
         }
-        String targetType = getLocalizedTypeName(_case.getTargetRef().getType(), page);
+        String targetType = getLocalizedTypeName(acase.getTargetRef().getType(), page);
         String targetName = dto.getTargetName();
-        String objectType = getLocalizedTypeName(_case.getObjectRef().getType(), page);
+        String objectType = getLocalizedTypeName(acase.getObjectRef().getType(), page);
         String objectName = dto.getObjectName();
 
         infoList.add(page.createStringResource("PageCert.message.assignment",
@@ -78,8 +78,8 @@ public class DirectAssignmentCertGuiHandler implements CertGuiHandler {
                         assignment.getConstruction().getIntent()).getString());
             }
         }
-        if (_case.getTargetRef().getRelation() != null) {
-            infoList.add(page.createStringResource("PageCert.message.textRelation", _case.getTargetRef().getRelation().getLocalPart()).getString());
+        if (acase.getTargetRef().getRelation() != null) {
+            infoList.add(page.createStringResource("PageCert.message.textRelation", acase.getTargetRef().getRelation().getLocalPart()).getString());
         }
         Task task = page.createSimpleTask("dummy");
         if (assignment.getOrgRef()  != null) {

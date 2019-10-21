@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -26,33 +26,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
  */
 @Component
 public class AssignmentWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<AssignmentType> {
-	
-	@Autowired private GuiComponentRegistry registry;
 
-	@Override
-	public boolean match(ItemDefinition<?> def) {
-		return def instanceof PrismContainerDefinition && def.isMultiValue();
-	}
+    @Autowired private GuiComponentRegistry registry;
 
-	@Override
-	public void register() {
-		registry.addToRegistry(this);
-	}
+    @Override
+    public boolean match(ItemDefinition<?> def) {
+        return def instanceof PrismContainerDefinition && def.isMultiValue();
+    }
 
-	@Override
-	public int getOrder() {
-		return 1000;
-	}
-	
-	@Override
-	protected PrismContainerValue<AssignmentType> createNewValue(PrismContainer<AssignmentType> item) {
-		throw new UnsupportedOperationException("New assignment value should not be created while creating wrappers.");
-	}
+    @Override
+    public void register() {
+        registry.addToRegistry(this);
+    }
 
-	
-	@Override
-	protected boolean shouldCreateEmptyValue(PrismContainer<AssignmentType> item, WrapperContext context) {
-		return false;
-	}
-	
+    @Override
+    public int getOrder() {
+        return 1000;
+    }
+
+    @Override
+    protected PrismContainerValue<AssignmentType> createNewValue(PrismContainer<AssignmentType> item) {
+        throw new UnsupportedOperationException("New assignment value should not be created while creating wrappers.");
+    }
+
+
+    @Override
+    protected boolean shouldCreateEmptyValue(PrismContainer<AssignmentType> item, WrapperContext context) {
+        return false;
+    }
+
 }

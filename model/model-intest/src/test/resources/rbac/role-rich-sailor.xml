@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="e62d69a5-ffa8-46ef-9625-4c9a10966627"
@@ -10,42 +10,42 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Rich Sailor</name>
     <inducement id="1111">
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
-    		<kind>account</kind>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
+            <kind>account</kind>
             <attribute>
                 <ref>ri:drink</ref>
                 <outbound>
-                	<expression>
-						<value>grog</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>grog</value>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:wealth</ref>
                 <outbound>
-                	<expression>
-						<value>1000000</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>1000000</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
-    
+
     <inducement>
-    	<focusMappings>
-    		<mapping>
-    			<expression>
-    				<value>CC-TITANIC</value>
-    			</expression>
-    			<target>
-    				<path>costCenter</path>
-    			</target>
-    		</mapping>
-    	</focusMappings>
+        <focusMappings>
+            <mapping>
+                <expression>
+                    <value>CC-TITANIC</value>
+                </expression>
+                <target>
+                    <path>costCenter</path>
+                </target>
+            </mapping>
+        </focusMappings>
     </inducement>
     <idempotence>conservative</idempotence>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#sail</action>
+        <action>http://midpoint.evolveum.com/xml/ns/test/authorization#sail</action>
     </authorization>
 </role>

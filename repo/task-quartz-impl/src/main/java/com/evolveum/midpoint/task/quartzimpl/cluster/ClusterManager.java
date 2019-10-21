@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl.cluster;
@@ -44,20 +44,20 @@ public class ClusterManager {
     private ClusterManagerThread clusterManagerThread;
 
     private static boolean updateNodeExecutionLimitations = true;           // turned off when testing
-    
+
     public ClusterManager(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
         this.nodeRegistrar = new NodeRegistrar(taskManager, this);
     }
 
-	public static void setUpdateNodeExecutionLimitations(boolean value) {
-		updateNodeExecutionLimitations = value;
-	}
+    public static void setUpdateNodeExecutionLimitations(boolean value) {
+        updateNodeExecutionLimitations = value;
+    }
 
-	/**
+    /**
      * Verifies cluster consistency (currently checks whether there is no other node with the same ID,
-	 * and whether clustered/non-clustered nodes are OK).
-	 *
+     * and whether clustered/non-clustered nodes are OK).
+     *
      * @return Current node record from repository, if everything is OK. Otherwise returns null.
      */
     @Nullable
@@ -122,7 +122,7 @@ public class ClusterManager {
 
                     // these checks are separate in order to prevent a failure in one method blocking execution of others
                     try {
-                        NodeType node = checkClusterConfiguration(result);         				     // if error, the scheduler will be stopped
+                        NodeType node = checkClusterConfiguration(result);                              // if error, the scheduler will be stopped
                         if (updateNodeExecutionLimitations) {
                             taskManager.getExecutionManager().setLocalExecutionLimitations(node);    // we want to set limitations ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
                         }
@@ -217,7 +217,7 @@ public class ClusterManager {
     public PrismObject<NodeType> getNodeById(String nodeIdentifier, OperationResult result) throws ObjectNotFoundException {
         try {
 //            QueryType q = QueryUtil.createNameQuery(nodeIdentifier);        // TODO change to query-by-node-id
-        	ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, taskManager.getPrismContext(), nodeIdentifier);
+            ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, taskManager.getPrismContext(), nodeIdentifier);
             List<PrismObject<NodeType>> nodes = taskManager.getRepositoryService().searchObjects(NodeType.class, q, null, result);
             if (nodes.isEmpty()) {
 //                result.recordFatalError("A node with identifier " + nodeIdentifier + " does not exist.");

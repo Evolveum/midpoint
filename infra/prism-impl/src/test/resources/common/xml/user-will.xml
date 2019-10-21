@@ -2,68 +2,68 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <user oid="c0c010c0-d34d-b33f-f00d-111111113333"
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
-		xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-		xmlns:adhoc="http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd"
-		xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
-    
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:adhoc="http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
+
     <name>will</name>
-    
+
     <extension>
-    
-    	<ext:stringType>FOObar</ext:stringType>
-    	<ext:stringType>BARbar</ext:stringType>
-    
-		<ext:singleStringType>foobar</ext:singleStringType>
-		
-		<ext:doubleType>3.1415926535</ext:doubleType>
-		
-		<ext:intType>42</ext:intType>
-		
-		<ext:integerType>19134702400093278081449423917</ext:integerType>
-		
-		<ext:longType>299792458</ext:longType>
-		
-		<ext:dateType>1975-05-30T22:30:00Z</ext:dateType>
-		
-		<ext:durationType>P17Y3M2D</ext:durationType>
-		
-		<ext:locations>
-			<ext:location>
-				<ext:key>sk</ext:key>
-				<ext:value>Slovakia</ext:value>
-			</ext:location>
-			<ext:location>
-				<ext:key>hr</ext:key>
-				<ext:value>Croatia</ext:value>
-			</ext:location>
-		</ext:locations>
-		
-		<ext:ignoredType>this is just a fiction</ext:ignoredType>
-		
-		<ext:indexedString>alpha</ext:indexedString>
-		<ext:indexedString>bravo</ext:indexedString>
-    
-    	<!-- Dynamic string type -->
-		<ext:bar xsi:type="xsd:string">BAR</ext:bar>
-		
-		<!-- Dynamic int type -->
-		<ext:num xsi:type="xsd:int">42</ext:num>
-		
-		<!-- Dynamic multivalued string type -->
-		<ext:multi xsi:type="xsd:string">raz</ext:multi>
-		<ext:multi xsi:type="xsd:string">dva</ext:multi>
-		<ext:multi xsi:type="xsd:string">tri</ext:multi>
-		
-	</extension>
-	
+
+        <ext:stringType>FOObar</ext:stringType>
+        <ext:stringType>BARbar</ext:stringType>
+
+        <ext:singleStringType>foobar</ext:singleStringType>
+
+        <ext:doubleType>3.1415926535</ext:doubleType>
+
+        <ext:intType>42</ext:intType>
+
+        <ext:integerType>19134702400093278081449423917</ext:integerType>
+
+        <ext:longType>299792458</ext:longType>
+
+        <ext:dateType>1975-05-30T22:30:00Z</ext:dateType>
+
+        <ext:durationType>P17Y3M2D</ext:durationType>
+
+        <ext:locations>
+            <ext:location>
+                <ext:key>sk</ext:key>
+                <ext:value>Slovakia</ext:value>
+            </ext:location>
+            <ext:location>
+                <ext:key>hr</ext:key>
+                <ext:value>Croatia</ext:value>
+            </ext:location>
+        </ext:locations>
+
+        <ext:ignoredType>this is just a fiction</ext:ignoredType>
+
+        <ext:indexedString>alpha</ext:indexedString>
+        <ext:indexedString>bravo</ext:indexedString>
+
+        <!-- Dynamic string type -->
+        <ext:bar xsi:type="xsd:string">BAR</ext:bar>
+
+        <!-- Dynamic int type -->
+        <ext:num xsi:type="xsd:int">42</ext:num>
+
+        <!-- Dynamic multivalued string type -->
+        <ext:multi xsi:type="xsd:string">raz</ext:multi>
+        <ext:multi xsi:type="xsd:string">dva</ext:multi>
+        <ext:multi xsi:type="xsd:string">tri</ext:multi>
+
+    </extension>
+
     <fullName>Will Turner</fullName>
     <givenName>William</givenName>
     <familyName>Turner</familyName>

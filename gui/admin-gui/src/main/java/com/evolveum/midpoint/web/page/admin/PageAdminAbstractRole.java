@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,45 +19,45 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends PageAdminFocus<T> {
-	private static final long serialVersionUID = 1L;
-	
-	public PageAdminAbstractRole() {
-		super();
-	}
+    private static final long serialVersionUID = 1L;
 
-	public PageAdminAbstractRole(PageParameters parameters) {
-		super(parameters);
-	}
+    public PageAdminAbstractRole() {
+        super();
+    }
 
-	public PageAdminAbstractRole(final PrismObject<T> abstractRole) {
-		super(abstractRole);
-	}
-	
-	public PageAdminAbstractRole(final PrismObject<T> userToEdit, boolean isNewObject) {
-		super(userToEdit, isNewObject);
-	}
-	
-	
-	public PageAdminAbstractRole(final PrismObject<T> abstractRole, boolean isNewObject, boolean isReadonly) {
-		super(abstractRole, isNewObject, isReadonly);
-	}
+    public PageAdminAbstractRole(PageParameters parameters) {
+        super(parameters);
+    }
 
-	@Override
-	protected void prepareObjectDeltaForModify(ObjectDelta<T> focusDelta) throws SchemaException {
-		super.prepareObjectDeltaForModify(focusDelta);
+    public PageAdminAbstractRole(final PrismObject<T> abstractRole) {
+        super(abstractRole);
+    }
 
-		PrismObject<T> abstractRole = getObjectWrapper().getObject();
-		PrismContainerDefinition<AssignmentType> def = abstractRole.getDefinition()
-				.findContainerDefinition(AbstractRoleType.F_INDUCEMENT);
-	}
+    public PageAdminAbstractRole(final PrismObject<T> userToEdit, boolean isNewObject) {
+        super(userToEdit, isNewObject);
+    }
 
-	@Override
-	protected void prepareObjectForAdd(PrismObject<T> focus) throws SchemaException {
-		super.prepareObjectForAdd(focus);
-	}
 
-	@Override
-	protected void initializeModel(final PrismObject<T> objectToEdit, boolean isNewObject, boolean isReadonly) {
-		super.initializeModel(objectToEdit, isNewObject, isReadonly);
-	}
+    public PageAdminAbstractRole(final PrismObject<T> abstractRole, boolean isNewObject, boolean isReadonly) {
+        super(abstractRole, isNewObject, isReadonly);
+    }
+
+    @Override
+    protected void prepareObjectDeltaForModify(ObjectDelta<T> focusDelta) throws SchemaException {
+        super.prepareObjectDeltaForModify(focusDelta);
+
+        PrismObject<T> abstractRole = getObjectWrapper().getObject();
+        PrismContainerDefinition<AssignmentType> def = abstractRole.getDefinition()
+                .findContainerDefinition(AbstractRoleType.F_INDUCEMENT);
+    }
+
+    @Override
+    protected void prepareObjectForAdd(PrismObject<T> focus) throws SchemaException {
+        super.prepareObjectForAdd(focus);
+    }
+
+    @Override
+    protected void initializeModel(final PrismObject<T> objectToEdit, boolean isNewObject, boolean isReadonly) {
+        super.initializeModel(objectToEdit, isNewObject, isReadonly);
+    }
 }

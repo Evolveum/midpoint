@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="6bff06a9-51b7-4a19-9e77-ee0701c5bfe2"
@@ -10,43 +10,43 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Prize: Gold (enforced)</name>
     <assignment>
-    	<policyRule>
-    		<name>prize exclusion: gold-silver</name>
-    		<policyConstraints>
-		    	<exclusion>
-			    	<targetRef oid="0c3b2e44-9387-4c7b-8262-a20fdea434ea" type="RoleType"/> <!-- Silver -->
-		    	</exclusion>
-		    </policyConstraints>
-		    <policyActions>
-				<enforcement/>
-		    </policyActions>
-    	</policyRule>
+        <policyRule>
+            <name>prize exclusion: gold-silver</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="0c3b2e44-9387-4c7b-8262-a20fdea434ea" type="RoleType"/> <!-- Silver -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
     </assignment>
     <assignment>
-    	<policyRule>
-    		<name>prize exclusion: gold-bronze</name>
-    		<policyConstraints>
-		    	<exclusion>
-			    	<targetRef oid="702dc3c9-9755-4880-b132-cf82d5845dd9" type="RoleType"/> <!-- Bronze -->
-		    	</exclusion>
-		    </policyConstraints>
-		    <policyActions>
-				<enforcement/>
-		    </policyActions>
-    	</policyRule>
+        <policyRule>
+            <name>prize exclusion: gold-bronze</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="702dc3c9-9755-4880-b132-cf82d5845dd9" type="RoleType"/> <!-- Bronze -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
     </assignment>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:ship</ref>
                 <outbound>
-                	<expression>
-						<value>Gold</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>Gold</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 </role>

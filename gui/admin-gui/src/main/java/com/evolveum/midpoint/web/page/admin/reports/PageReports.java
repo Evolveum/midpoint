@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -185,7 +185,7 @@ public class PageReports extends PageAdmin {
         return menu;
 
     }
-    
+
     private void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
         OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
         Task task = createSimpleTask(OPERATION_RUN_REPORT);
@@ -201,26 +201,26 @@ public class PageReports extends PageAdmin {
         target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM)));
         hideMainPopup(target);
 
-	}
+    }
 
     protected void runReportPerformed(AjaxRequestTarget target, ReportType report) {
 
-    	if(report.getReportEngine() != null && report.getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
-    		runConfirmPerformed(target, report, null);
-    		return;
-    	}
-    	
-    	RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report) {
+        if(report.getReportEngine() != null && report.getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
+            runConfirmPerformed(target, report, null);
+            return;
+        }
 
-    		private static final long serialVersionUID = 1L;
+        RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report) {
 
-			protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
-    	        PageReports.this.runConfirmPerformed(target, reportType, reportParam);
-    	        hideMainPopup(target);
+            private static final long serialVersionUID = 1L;
 
-    		};
-    	};
-    	showMainPopup(runReportPopupPanel, target);
+            protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
+                PageReports.this.runConfirmPerformed(target, reportType, reportParam);
+                hideMainPopup(target);
+
+            };
+        };
+        showMainPopup(runReportPopupPanel, target);
 
     }
 

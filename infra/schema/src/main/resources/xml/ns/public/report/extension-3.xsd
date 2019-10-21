@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -20,14 +20,14 @@
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-    
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+
     <xsd:element name="reportParam" type="c:ReportParameterType">
         <xsd:annotation>
             <xsd:appinfo>
-            	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
@@ -36,8 +36,8 @@
         <xsd:annotation>
             <xsd:documentation>OID of created Report Output object. TODO consider replacing with object reference.</xsd:documentation>
             <xsd:appinfo>
-            	<a:minOccurs>0</a:minOccurs>
-            	<a:maxOccurs>1</a:maxOccurs>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

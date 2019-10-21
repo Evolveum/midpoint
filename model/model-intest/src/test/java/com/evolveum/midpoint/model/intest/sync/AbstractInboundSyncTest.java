@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.sync;
@@ -46,61 +46,61 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIntegrationTest {
 
-	public static final File TEST_DIR = new File("src/test/resources/sync");
+    public static final File TEST_DIR = new File("src/test/resources/sync");
 
-	protected static final File TASK_LIVE_SYNC_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-livesync.xml");
-	protected static final String TASK_LIVE_SYNC_DUMMY_EMERALD_OID = "10000000-0000-0000-5555-55550000e404";
+    protected static final File TASK_LIVE_SYNC_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-livesync.xml");
+    protected static final String TASK_LIVE_SYNC_DUMMY_EMERALD_OID = "10000000-0000-0000-5555-55550000e404";
 
-	protected static final File TASK_RECON_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-recon.xml");
-	protected static final String TASK_RECON_DUMMY_EMERALD_OID = "10000000-0000-0000-5656-56560000e404";
+    protected static final File TASK_RECON_DUMMY_EMERALD_FILE = new File(TEST_DIR, "task-dummy-emerald-recon.xml");
+    protected static final String TASK_RECON_DUMMY_EMERALD_OID = "10000000-0000-0000-5656-56560000e404";
 
-	protected static final String ACCOUNT_WALLY_DUMMY_USERNAME = "wally";
-	protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
-	protected static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
-	protected static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
+    protected static final String ACCOUNT_WALLY_DUMMY_USERNAME = "wally";
+    protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
+    protected static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
+    protected static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
 
-	protected static final String ACCOUNT_POSIXUSER_DUMMY_USERNAME = "posixuser";
-	
-	protected static String userWallyOid;
+    protected static final String ACCOUNT_POSIXUSER_DUMMY_USERNAME = "posixuser";
 
-	protected boolean allwaysCheckTimestamp = false;
-	protected long timeBeforeSync;
+    protected static String userWallyOid;
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    protected boolean allwaysCheckTimestamp = false;
+    protected long timeBeforeSync;
 
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-	}
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-	protected File getResourceDummyEmeraldFile() {
-		return RESOURCE_DUMMY_EMERALD_FILE;
-	}
+    }
 
-	protected abstract void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException;
+    protected File getResourceDummyEmeraldFile() {
+        return RESOURCE_DUMMY_EMERALD_FILE;
+    }
 
-	protected abstract String getSyncTaskOid(PrismObject<ResourceType> resource);
+    protected abstract void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException;
 
-	protected int getWaitTimeout() {
-		return DEFAULT_TASK_WAIT_TIMEOUT;
-	}
+    protected abstract String getSyncTaskOid(PrismObject<ResourceType> resource);
 
-	protected int getNumberOfExtraDummyUsers() {
-		return 0;
-	}
+    protected int getWaitTimeout() {
+        return DEFAULT_TASK_WAIT_TIMEOUT;
+    }
+
+    protected int getNumberOfExtraDummyUsers() {
+        return 0;
+    }
 
 
-	@Test
+    @Test
     public void test100ImportLiveSyncTaskDummyEmerald() throws Exception {
-		final String TEST_NAME = "test100ImportLiveSyncTaskDummyEmerald";
+        final String TEST_NAME = "test100ImportLiveSyncTaskDummyEmerald";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-		/// WHEN
+        /// WHEN
         TestUtil.displayWhen(TEST_NAME);
         importSyncTask(resourceDummyEmerald);
 
@@ -108,11 +108,11 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         TestUtil.displayThen(TEST_NAME);
 
         waitForSyncTaskStart(resourceDummyEmerald);
-	}
+    }
 
-	@Test
+    @Test
     public void test110AddDummyEmeraldAccountMancomb() throws Exception {
-		final String TEST_NAME = "test110AddDummyEmeraldAccountMancomb";
+        final String TEST_NAME = "test110AddDummyEmeraldAccountMancomb";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -125,20 +125,20 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         assertUsers(6);
 
         DummyAccount account = new DummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-		account.setEnabled(true);
-		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
-		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
-		long loot = ACCOUNT_MANCOMB_VALID_FROM_DATE.getTime();
-		account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, loot);
-		String gossip = XmlTypeConverter.createXMLGregorianCalendar(ACCOUNT_MANCOMB_VALID_TO_DATE).toXMLFormat();
-		account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, gossip);
+        account.setEnabled(true);
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
+        long loot = ACCOUNT_MANCOMB_VALID_FROM_DATE.getTime();
+        account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, loot);
+        String gossip = XmlTypeConverter.createXMLGregorianCalendar(ACCOUNT_MANCOMB_VALID_TO_DATE).toXMLFormat();
+        account.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, gossip);
 
-		/// WHEN
+        /// WHEN
         TestUtil.displayWhen(TEST_NAME);
 
         display("Adding dummy account", account.debugDump());
 
-		dummyResourceEmerald.addAccount(account);
+        dummyResourceEmerald.addAccount(account);
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
@@ -149,7 +149,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         display("Account mancomb", accountMancomb);
         assertNotNull("No mancomb account shadow", accountMancomb);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_EMERALD_OID,
-        		accountMancomb.asObjectable().getResourceRef().getOid());
+                accountMancomb.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED);
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
@@ -166,11 +166,11 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         // notifications
         notificationManager.setDisabled(true);
-	}
+    }
 
-	@Test
+    @Test
     public void test120ModifyDummyEmeraldAccountMancombSeepbad() throws Exception {
-		final String TEST_NAME = "test120ModifyDummyEmeraldAccountMancombSeepbad";
+        final String TEST_NAME = "test120ModifyDummyEmeraldAccountMancombSeepbad";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -184,7 +184,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-		/// WHEN
+        /// WHEN
         TestUtil.displayWhen(TEST_NAME);
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepbad");
@@ -200,10 +200,10 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         display("Account mancomb", accountAfter);
         assertNotNull("No mancomb account shadow", accountAfter);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_EMERALD_OID,
-        		accountAfter.asObjectable().getResourceRef().getOid());
+                accountAfter.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountAfter, SynchronizationSituationType.LINKED);
         assertDummyAccountAttribute(RESOURCE_DUMMY_EMERALD_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepbad");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepbad");
 
         PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userAfter);
@@ -221,11 +221,11 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         // notifications
         notificationManager.setDisabled(true);
-	}
+    }
 
-	@Test
+    @Test
     public void test122ModifyDummyEmeraldAccountMancombSeepNULL() throws Exception {
-		final String TEST_NAME = "test122ModifyDummyEmeraldAccountMancombSeepNULL";
+        final String TEST_NAME = "test122ModifyDummyEmeraldAccountMancombSeepNULL";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -239,7 +239,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-		/// WHEN
+        /// WHEN
         TestUtil.displayWhen(TEST_NAME);
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb SeepNULL");
@@ -255,10 +255,10 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         display("Account mancomb", accountAfter);
         assertNotNull("No mancomb account shadow", accountAfter);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_EMERALD_OID,
-        		accountAfter.asObjectable().getResourceRef().getOid());
+                accountAfter.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountAfter, SynchronizationSituationType.LINKED);
         assertDummyAccountAttribute(RESOURCE_DUMMY_EMERALD_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb SeepNULL");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb SeepNULL");
 
         PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userAfter);
@@ -276,11 +276,11 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         // notifications
         notificationManager.setDisabled(true);
-	}
+    }
 
-	@Test
+    @Test
     public void test124ModifyDummyEmeraldAccountMancombSeepevil() throws Exception {
-		final String TEST_NAME = "test124ModifyDummyEmeraldAccountMancombSeepevil";
+        final String TEST_NAME = "test124ModifyDummyEmeraldAccountMancombSeepevil";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -294,7 +294,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-		/// WHEN
+        /// WHEN
         TestUtil.displayWhen(TEST_NAME);
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepevil");
@@ -310,10 +310,10 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         display("Account mancomb", accountAfter);
         assertNotNull("No mancomb account shadow", accountAfter);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_EMERALD_OID,
-        		accountAfter.asObjectable().getResourceRef().getOid());
+                accountAfter.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountAfter, SynchronizationSituationType.LINKED);
         assertDummyAccountAttribute(RESOURCE_DUMMY_EMERALD_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepevil");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepevil");
 
         PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userAfter);
@@ -331,11 +331,11 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         // notifications
         notificationManager.setDisabled(true);
-	}
+    }
 
-	@Test
+    @Test
     public void test126ModifyDummyEmeraldAccountMancombTitlePirate() throws Exception {
-		final String TEST_NAME = "test126ModifyDummyEmeraldAccountMancombTitlePirate";
+        final String TEST_NAME = "test126ModifyDummyEmeraldAccountMancombTitlePirate";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -349,7 +349,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-		/// WHEN
+        /// WHEN
         TestUtil.displayWhen(TEST_NAME);
 
         account.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
@@ -365,10 +365,10 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         display("Account mancomb", accountAfter);
         assertNotNull("No mancomb account shadow", accountAfter);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_EMERALD_OID,
-        		accountAfter.asObjectable().getResourceRef().getOid());
+                accountAfter.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountAfter, SynchronizationSituationType.LINKED);
         assertDummyAccountAttribute(RESOURCE_DUMMY_EMERALD_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 
         PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userAfter);
@@ -387,11 +387,11 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         // notifications
         notificationManager.setDisabled(true);
-	}
+    }
 
-	@Test
+    @Test
     public void test127ModifyDummyEmeraldAccountMancombTitlePirateNull() throws Exception {
-		final String TEST_NAME = "test127ModifyDummyEmeraldAccountMancombTitlePirateNull";
+        final String TEST_NAME = "test127ModifyDummyEmeraldAccountMancombTitlePirateNull";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -405,7 +405,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-		/// WHEN
+        /// WHEN
         TestUtil.displayWhen(TEST_NAME);
 
         account.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
@@ -421,10 +421,10 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         display("Account mancomb", accountAfter);
         assertNotNull("No mancomb account shadow", accountAfter);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_EMERALD_OID,
-        		accountAfter.asObjectable().getResourceRef().getOid());
+                accountAfter.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountAfter, SynchronizationSituationType.LINKED);
         assertDummyAccountAttribute(RESOURCE_DUMMY_EMERALD_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
 
         PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userAfter);
@@ -443,11 +443,11 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         // notifications
         notificationManager.setDisabled(true);
-	}
+    }
 
-	@Test
+    @Test
     public void test129ModifyDummyEmeraldAccountMancombSeepgood() throws Exception {
-		final String TEST_NAME = "test129ModifyDummyEmeraldAccountMancombSeepgood";
+        final String TEST_NAME = "test129ModifyDummyEmeraldAccountMancombSeepgood";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -461,7 +461,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
-		/// WHEN
+        /// WHEN
         TestUtil.displayWhen(TEST_NAME);
 
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
@@ -477,10 +477,10 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         display("Account mancomb", accountAfter);
         assertNotNull("No mancomb account shadow", accountAfter);
         assertEquals("Wrong resourceRef in mancomb account", RESOURCE_DUMMY_EMERALD_OID,
-        		accountAfter.asObjectable().getResourceRef().getOid());
+                accountAfter.asObjectable().getResourceRef().getOid());
         assertShadowOperationalData(accountAfter, SynchronizationSituationType.LINKED);
         assertDummyAccountAttribute(RESOURCE_DUMMY_EMERALD_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Mancomb Seepgood");
 
         PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userAfter);
@@ -498,150 +498,150 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 
         // notifications
         notificationManager.setDisabled(true);
-	}
+    }
 
 
-	@Test
-	public void test180NoChange() throws Exception {
-		// default = no op
-		// (method is here to be executed before test199)
-	}
+    @Test
+    public void test180NoChange() throws Exception {
+        // default = no op
+        // (method is here to be executed before test199)
+    }
 
-	@Test
+    @Test
     public abstract void test199DeleteDummyEmeraldAccountMancomb() throws Exception;
 
-	@Test
-	public void test300AddDummyEmeraldAccountPosixUser() throws Exception {
-		final String TEST_NAME = "test300AddDummyEmeraldAccountPosixUser";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+    @Test
+    public void test300AddDummyEmeraldAccountPosixUser() throws Exception {
+        final String TEST_NAME = "test300AddDummyEmeraldAccountPosixUser";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
-		rememberTimeBeforeSync();
-		prepareNotifications();
+        // GIVEN
+        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
+        prepareNotifications();
 
-		// Preconditions
-		assertUsers(7);
+        // Preconditions
+        assertUsers(7);
 
-		DummyAccount account = new DummyAccount(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
-		account.setEnabled(true);
-		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Posix User");
-		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
-		account.addAuxiliaryObjectClassName(DummyResourceContoller.DUMMY_POSIX_ACCOUNT_OBJECT_CLASS_NAME);
-		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, Collections.<Object>singleton(1001));
-		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_GID_NUMBER, Collections.<Object>singleton(10001));
+        DummyAccount account = new DummyAccount(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
+        account.setEnabled(true);
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Posix User");
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
+        account.addAuxiliaryObjectClassName(DummyResourceContoller.DUMMY_POSIX_ACCOUNT_OBJECT_CLASS_NAME);
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, Collections.<Object>singleton(1001));
+        account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_GID_NUMBER, Collections.<Object>singleton(10001));
 
-		/// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+        /// WHEN
+        TestUtil.displayWhen(TEST_NAME);
 
-		display("Adding dummy account", account.debugDump());
+        display("Adding dummy account", account.debugDump());
 
-		dummyResourceEmerald.addAccount(account);
+        dummyResourceEmerald.addAccount(account);
 
-		waitForSyncTaskNextRun(resourceDummyEmerald);
+        waitForSyncTaskNextRun(resourceDummyEmerald);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
 
-		PrismObject<ShadowType> accountPosixUser = findAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME, resourceDummyEmerald);
-		display("Account posixuser", accountPosixUser);
-		assertNotNull("No posixuser account shadow", accountPosixUser);
-		assertEquals("Wrong resourceRef in posixuser account", RESOURCE_DUMMY_EMERALD_OID,
-				accountPosixUser.asObjectable().getResourceRef().getOid());
-		assertShadowOperationalData(accountPosixUser, SynchronizationSituationType.LINKED);
+        PrismObject<ShadowType> accountPosixUser = findAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME, resourceDummyEmerald);
+        display("Account posixuser", accountPosixUser);
+        assertNotNull("No posixuser account shadow", accountPosixUser);
+        assertEquals("Wrong resourceRef in posixuser account", RESOURCE_DUMMY_EMERALD_OID,
+                accountPosixUser.asObjectable().getResourceRef().getOid());
+        assertShadowOperationalData(accountPosixUser, SynchronizationSituationType.LINKED);
 
-		PrismObject<UserType> userPosixUser = findUserByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
-		display("User posixuser", userPosixUser);
-		assertNotNull("User posixuser was not created", userPosixUser);
-		assertLinks(userPosixUser, 1);
-		assertAdministrativeStatusEnabled(userPosixUser);
-		assertLinked(userPosixUser, accountPosixUser);
+        PrismObject<UserType> userPosixUser = findUserByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
+        display("User posixuser", userPosixUser);
+        assertNotNull("User posixuser was not created", userPosixUser);
+        assertLinks(userPosixUser, 1);
+        assertAdministrativeStatusEnabled(userPosixUser);
+        assertLinked(userPosixUser, accountPosixUser);
 
-		assertUsers(8);
+        assertUsers(8);
 
-		// notifications
-		notificationManager.setDisabled(true);
+        // notifications
+        notificationManager.setDisabled(true);
 
-		// TODO create and test inbounds for uid and gid numbers; also other attributes
-		// (Actually I'm not sure it will work, as even now the auxiliary object class is
-		// removed right during the livesync. This has to be solved somehow...)
-	}
+        // TODO create and test inbounds for uid and gid numbers; also other attributes
+        // (Actually I'm not sure it will work, as even now the auxiliary object class is
+        // removed right during the livesync. This has to be solved somehow...)
+    }
 
-	@Test
-	public void test310ModifyDummyEmeraldAccountPosixUserUidNumber() throws Exception {
-		final String TEST_NAME = "test310ModifyDummyEmeraldAccountPosixUserUidNumber";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+    @Test
+    public void test310ModifyDummyEmeraldAccountPosixUserUidNumber() throws Exception {
+        final String TEST_NAME = "test310ModifyDummyEmeraldAccountPosixUserUidNumber";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
-		rememberTimeBeforeSync();
-		prepareNotifications();
+        // GIVEN
+        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        rememberTimeBeforeSync();
+        prepareNotifications();
 
-		// Preconditions
-		assertUsers(8);
+        // Preconditions
+        assertUsers(8);
 
-		DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
+        DummyAccount account = dummyResourceEmerald.getAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
 
-		/// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+        /// WHEN
+        TestUtil.displayWhen(TEST_NAME);
 
-		account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, 1002);
+        account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_POSIX_UID_NUMBER, 1002);
 
-		display("Modified dummy account", account.debugDump());
+        display("Modified dummy account", account.debugDump());
 
-		waitForSyncTaskNextRun(resourceDummyEmerald);
+        waitForSyncTaskNextRun(resourceDummyEmerald);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
 
-		PrismObject<ShadowType> accountAfter = findAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME, resourceDummyEmerald);
-		display("Account posixuser", accountAfter);
-		assertNotNull("No posixuser account shadow", accountAfter);
-		assertEquals("Wrong resourceRef in posixuser account", RESOURCE_DUMMY_EMERALD_OID,
-				accountAfter.asObjectable().getResourceRef().getOid());
-		assertShadowOperationalData(accountAfter, SynchronizationSituationType.LINKED);
+        PrismObject<ShadowType> accountAfter = findAccountByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME, resourceDummyEmerald);
+        display("Account posixuser", accountAfter);
+        assertNotNull("No posixuser account shadow", accountAfter);
+        assertEquals("Wrong resourceRef in posixuser account", RESOURCE_DUMMY_EMERALD_OID,
+                accountAfter.asObjectable().getResourceRef().getOid());
+        assertShadowOperationalData(accountAfter, SynchronizationSituationType.LINKED);
 
-		PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
-		display("User posixuser", userAfter);
-		assertNotNull("User posixuser was not created", userAfter);
-		assertLinks(userAfter, 1);
-		assertAdministrativeStatusEnabled(userAfter);
+        PrismObject<UserType> userAfter = findUserByUsername(ACCOUNT_POSIXUSER_DUMMY_USERNAME);
+        display("User posixuser", userAfter);
+        assertNotNull("User posixuser was not created", userAfter);
+        assertLinks(userAfter, 1);
+        assertAdministrativeStatusEnabled(userAfter);
 
-		assertLinked(userAfter, accountAfter);
+        assertLinked(userAfter, accountAfter);
 
-		assertUsers(8);
+        assertUsers(8);
 
-		// notifications
-		notificationManager.setDisabled(true);
+        // notifications
+        notificationManager.setDisabled(true);
 
-		// TODO create and test inbounds for uid and gid numbers; also other attributes
-	}
-
-
-	protected void waitForSyncTaskStart(PrismObject<ResourceType> resource) throws Exception {
-		waitForTaskStart(getSyncTaskOid(resource), false, getWaitTimeout());
-	}
-
-	protected void waitForSyncTaskNextRun(PrismObject<ResourceType> resource) throws Exception {
-		waitForTaskNextRunAssertSuccess(getSyncTaskOid(resource), false, getWaitTimeout());
-	}
+        // TODO create and test inbounds for uid and gid numbers; also other attributes
+    }
 
 
-	protected void rememberTimeBeforeSync() {
-		timeBeforeSync = System.currentTimeMillis();
-	}
+    protected void waitForSyncTaskStart(PrismObject<ResourceType> resource) throws Exception {
+        waitForTaskStart(getSyncTaskOid(resource), false, getWaitTimeout());
+    }
 
-	protected void assertShadowOperationalData(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation) {
-		ShadowType shadowType = shadow.asObjectable();
-		SynchronizationSituationType actualSituation = shadowType.getSynchronizationSituation();
-		assertEquals("Wrong situation in shadow "+shadow, expectedSituation, actualSituation);
-		XMLGregorianCalendar actualTimestampCal = shadowType.getSynchronizationTimestamp();
-		assert actualTimestampCal != null : "No synchronization timestamp in shadow "+shadow;
-		long actualTimestamp = XmlTypeConverter.toMillis(actualTimestampCal);
-		assert actualTimestamp >= timeBeforeSync : "Synchronization timestamp was not updated in shadow "+shadow;
-		// TODO: assert sync description
-	}
+    protected void waitForSyncTaskNextRun(PrismObject<ResourceType> resource) throws Exception {
+        waitForTaskNextRunAssertSuccess(getSyncTaskOid(resource), false, getWaitTimeout());
+    }
+
+
+    protected void rememberTimeBeforeSync() {
+        timeBeforeSync = System.currentTimeMillis();
+    }
+
+    protected void assertShadowOperationalData(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation) {
+        ShadowType shadowType = shadow.asObjectable();
+        SynchronizationSituationType actualSituation = shadowType.getSynchronizationSituation();
+        assertEquals("Wrong situation in shadow "+shadow, expectedSituation, actualSituation);
+        XMLGregorianCalendar actualTimestampCal = shadowType.getSynchronizationTimestamp();
+        assert actualTimestampCal != null : "No synchronization timestamp in shadow "+shadow;
+        long actualTimestamp = XmlTypeConverter.toMillis(actualTimestampCal);
+        assert actualTimestamp >= timeBeforeSync : "Synchronization timestamp was not updated in shadow "+shadow;
+        // TODO: assert sync description
+    }
 
 }

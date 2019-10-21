@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.component;
@@ -33,165 +33,165 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
  */
 
 public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Containerable, S extends Serializable>
-										extends MultivalueContainerListPanel<C, S> {
+                                        extends MultivalueContainerListPanel<C, S> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final String ID_ITEMS_DETAILS = "itemsDetails";
-	public static final String ID_ITEM_DETAILS = "itemDetails";
+    public static final String ID_ITEMS_DETAILS = "itemsDetails";
+    public static final String ID_ITEM_DETAILS = "itemDetails";
 
-	public static final String ID_DETAILS = "details";
+    public static final String ID_DETAILS = "details";
 
-	private final static String ID_BUTTONS_PANEL = "buttonsPanel";
-	private final static String ID_DONE_BUTTON = "doneButton";
-	private final static String ID_CANCEL_BUTTON = "cancelButton";
+    private final static String ID_BUTTONS_PANEL = "buttonsPanel";
+    private final static String ID_DONE_BUTTON = "doneButton";
+    private final static String ID_CANCEL_BUTTON = "cancelButton";
 
-	private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanelWithDetailsPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanelWithDetailsPanel.class);
 
-	private List<PrismContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
-	private boolean itemDetailsVisible;
-	
-	public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<PrismContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
-		super(id, model, tableId, pageStorage);
-	}
-	
-	public MultivalueContainerListPanelWithDetailsPanel(String id, PrismContainerDefinition<C> def, TableId tableId, PageStorage pageStorage) {
-		super(id, def, tableId, pageStorage);
-	}
-	
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		initDetailsPanel();
-	}
+    private List<PrismContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
+    private boolean itemDetailsVisible;
 
-	public void setItemDetailsVisible(boolean itemDetailsVisible) {
-		this.itemDetailsVisible = itemDetailsVisible;
-	}
+    public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<PrismContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
+        super(id, model, tableId, pageStorage);
+    }
 
-	protected void initDetailsPanel() {
-		WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
-		details.setOutputMarkupId(true);
-		details.add(new VisibleEnableBehaviour() {
+    public MultivalueContainerListPanelWithDetailsPanel(String id, PrismContainerDefinition<C> def, TableId tableId, PageStorage pageStorage) {
+        super(id, def, tableId, pageStorage);
+    }
 
-			private static final long serialVersionUID = 1L;
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initDetailsPanel();
+    }
 
-			@Override
-			public boolean isVisible() {
-				return itemDetailsVisible;
-			}
-		});
+    public void setItemDetailsVisible(boolean itemDetailsVisible) {
+        this.itemDetailsVisible = itemDetailsVisible;
+    }
 
-		add(details);
-		
-		ListView<PrismContainerValueWrapper<C>> itemDetailsView = new ListView<PrismContainerValueWrapper<C>>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEMS_DETAILS,
-				new IModel<List<PrismContainerValueWrapper<C>>>() {
-					private static final long serialVersionUID = 1L;
+    protected void initDetailsPanel() {
+        WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
+        details.setOutputMarkupId(true);
+        details.add(new VisibleEnableBehaviour() {
 
-					@Override
-					public List<PrismContainerValueWrapper<C>> getObject() {
-						return detailsPanelItemsList;
-					}
-				}) {
+            private static final long serialVersionUID = 1L;
 
-			private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible() {
+                return itemDetailsVisible;
+            }
+        });
 
-			@Override
-			protected void populateItem(ListItem<PrismContainerValueWrapper<C>> item) {
-				MultivalueContainerDetailsPanel<C> detailsPanel = getMultivalueContainerDetailsPanel(item);
-				item.add(detailsPanel);
-				detailsPanel.setOutputMarkupId(true);
+        add(details);
 
-			}
-			
+        ListView<PrismContainerValueWrapper<C>> itemDetailsView = new ListView<PrismContainerValueWrapper<C>>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEMS_DETAILS,
+                new IModel<List<PrismContainerValueWrapper<C>>>() {
+                    private static final long serialVersionUID = 1L;
 
-		};
+                    @Override
+                    public List<PrismContainerValueWrapper<C>> getObject() {
+                        return detailsPanelItemsList;
+                    }
+                }) {
 
-		itemDetailsView.setOutputMarkupId(true);
-		details.add(itemDetailsView);
+            private static final long serialVersionUID = 1L;
 
-		WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_PANEL);
-		buttonsContainer.add(new VisibleBehaviour(() -> isButtonPanelVisible()));
-		details.add(buttonsContainer);
+            @Override
+            protected void populateItem(ListItem<PrismContainerValueWrapper<C>> item) {
+                MultivalueContainerDetailsPanel<C> detailsPanel = getMultivalueContainerDetailsPanel(item);
+                item.add(detailsPanel);
+                detailsPanel.setOutputMarkupId(true);
 
-		AjaxButton doneButton = new AjaxButton(ID_DONE_BUTTON,
-				createStringResource("MultivalueContainerListPanel.doneButton")) {
-			private static final long serialVersionUID = 1L;
+            }
 
-			@Override
-			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-				itemDetailsVisible = false;
-				refreshTable(ajaxRequestTarget);
-				ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
-			}
-		};
-		buttonsContainer.add(doneButton);
 
-		AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
-				createStringResource("MultivalueContainerListPanel.cancelButton")) {
-			private static final long serialVersionUID = 1L;
+        };
 
-			@Override
-			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-				itemDetailsVisible = false;
-				cancelItemDetailsPerformed(ajaxRequestTarget);
-				ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
-				ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
-			}
-		};
-		buttonsContainer.add(cancelButton);
-	}
-	
-	protected abstract MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item);
+        itemDetailsView.setOutputMarkupId(true);
+        details.add(itemDetailsView);
 
-	public void itemDetailsPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel) {
-		itemPerformedForDefaultAction(target, rowModel, null);
-	}
+        WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_PANEL);
+        buttonsContainer.add(new VisibleBehaviour(() -> isButtonPanelVisible()));
+        details.add(buttonsContainer);
 
-	public void itemDetailsPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> listItems) {
-		itemPerformedForDefaultAction(target, null, listItems);
-	}
+        AjaxButton doneButton = new AjaxButton(ID_DONE_BUTTON,
+                createStringResource("MultivalueContainerListPanel.doneButton")) {
+            private static final long serialVersionUID = 1L;
 
-	protected void cancelItemDetailsPerformed(AjaxRequestTarget target){
-	}
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                itemDetailsVisible = false;
+                refreshTable(ajaxRequestTarget);
+                ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
+            }
+        };
+        buttonsContainer.add(doneButton);
 
-	protected boolean isButtonPanelVisible(){
-		return true;
-	}
+        AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
+                createStringResource("MultivalueContainerListPanel.cancelButton")) {
+            private static final long serialVersionUID = 1L;
 
-	@Override
-	public void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
-			List<PrismContainerValueWrapper<C>> listItems) {
-		
-		if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {
-			setItemDetailsVisible(true);
-			detailsPanelItemsList.clear();
-			if(rowModel == null) {
-				detailsPanelItemsList.addAll(listItems);
-				listItems.forEach(itemConfigurationTypeContainerValueWrapper -> {
-					itemConfigurationTypeContainerValueWrapper.setSelected(false);
-				});
-			} else {
-				detailsPanelItemsList.add(rowModel.getObject());
-				rowModel.getObject().setSelected(false);
-			}
-			target.add(MultivalueContainerListPanelWithDetailsPanel.this);
-		} else {
-			warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
-			target.add(getPageBase().getFeedbackPanel());
-		}
-	}
-	
-	@Override
-	public boolean isListPanelVisible() {
-		return !itemDetailsVisible;
-	}
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                itemDetailsVisible = false;
+                cancelItemDetailsPerformed(ajaxRequestTarget);
+                ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
+                ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
+            }
+        };
+        buttonsContainer.add(cancelButton);
+    }
 
-	protected WebMarkupContainer getDetailsPanelContainer(){
-		return (WebMarkupContainer) get(ID_DETAILS);
-	}
+    protected abstract MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item);
 
-	protected List<PrismContainerValueWrapper<C>> getDetailsPanelItemsList(){
-		return detailsPanelItemsList;
-	}
+    public void itemDetailsPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel) {
+        itemPerformedForDefaultAction(target, rowModel, null);
+    }
+
+    public void itemDetailsPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> listItems) {
+        itemPerformedForDefaultAction(target, null, listItems);
+    }
+
+    protected void cancelItemDetailsPerformed(AjaxRequestTarget target){
+    }
+
+    protected boolean isButtonPanelVisible(){
+        return true;
+    }
+
+    @Override
+    public void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
+            List<PrismContainerValueWrapper<C>> listItems) {
+
+        if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {
+            setItemDetailsVisible(true);
+            detailsPanelItemsList.clear();
+            if(rowModel == null) {
+                detailsPanelItemsList.addAll(listItems);
+                listItems.forEach(itemConfigurationTypeContainerValueWrapper -> {
+                    itemConfigurationTypeContainerValueWrapper.setSelected(false);
+                });
+            } else {
+                detailsPanelItemsList.add(rowModel.getObject());
+                rowModel.getObject().setSelected(false);
+            }
+            target.add(MultivalueContainerListPanelWithDetailsPanel.this);
+        } else {
+            warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
+            target.add(getPageBase().getFeedbackPanel());
+        }
+    }
+
+    @Override
+    public boolean isListPanelVisible() {
+        return !itemDetailsVisible;
+    }
+
+    protected WebMarkupContainer getDetailsPanelContainer(){
+        return (WebMarkupContainer) get(ID_DETAILS);
+    }
+
+    protected List<PrismContainerValueWrapper<C>> getDetailsPanelItemsList(){
+        return detailsPanelItemsList;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -33,19 +33,19 @@ import java.io.StringWriter;
 
 public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
 
-	public JsonLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
-		super(schemaRegistry);
-	}
+    public JsonLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
+        super(schemaRegistry);
+    }
 
-	@Override
-	public boolean canRead(@NotNull File file) throws IOException {
-		return file.getName().endsWith(".json");
-	}
+    @Override
+    public boolean canRead(@NotNull File file) throws IOException {
+        return file.getName().endsWith(".json");
+    }
 
-	@Override
-	public boolean canRead(@NotNull String dataString) {
-		return dataString.startsWith("{");
-	}
+    @Override
+    public boolean canRead(@NotNull String dataString) {
+        return dataString.startsWith("{");
+    }
 
     @Override
     protected com.fasterxml.jackson.core.JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException {
@@ -57,56 +57,56 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
         }
     }
 
-	public JsonGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
-		return createJsonGenerator(out);
-	}
-	private JsonGenerator createJsonGenerator(StringWriter out) throws SchemaException{
-		try {
-			JsonFactory factory = new JsonFactory();
-			JsonGenerator generator = factory.createGenerator(out);
-			generator.setPrettyPrinter(new DefaultPrettyPrinter());
-			generator.setCodec(configureMapperForSerialization());
+    public JsonGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
+        return createJsonGenerator(out);
+    }
+    private JsonGenerator createJsonGenerator(StringWriter out) throws SchemaException{
+        try {
+            JsonFactory factory = new JsonFactory();
+            JsonGenerator generator = factory.createGenerator(out);
+            generator.setPrettyPrinter(new DefaultPrettyPrinter());
+            generator.setCodec(configureMapperForSerialization());
 
-			return generator;
-		} catch (IOException ex){
-			throw new SchemaException("Schema error during serializing to JSON.", ex);
-		}
+            return generator;
+        } catch (IOException ex){
+            throw new SchemaException("Schema error during serializing to JSON.", ex);
+        }
 
-	}
+    }
 
-	private ObjectMapper configureMapperForSerialization(){
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-		mapper.setSerializationInclusion(Include.NON_NULL);
-		mapper.registerModule(createSerializerModule());
-		mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-		return mapper;
-	}
+    private ObjectMapper configureMapperForSerialization(){
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+        mapper.setSerializationInclusion(Include.NON_NULL);
+        mapper.registerModule(createSerializerModule());
+        mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+        return mapper;
+    }
 
-	private Module createSerializerModule(){
-		SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa"));
-		module.addSerializer(QName.class, new QNameSerializer());
-		module.addSerializer(PolyString.class, new PolyStringSerializer());
-		module.addSerializer(ItemPath.class, new ItemPathSerializer());
-		module.addSerializer(ItemPathType.class, new ItemPathTypeSerializer());
-		module.addSerializer(XMLGregorianCalendar.class, new XmlGregorianCalendarSerializer());
-//		module.addSerializer(Element.class, new DomElementJsonSerializer());
-//		module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
-		return module;
-	}
+    private Module createSerializerModule(){
+        SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa"));
+        module.addSerializer(QName.class, new QNameSerializer());
+        module.addSerializer(PolyString.class, new PolyStringSerializer());
+        module.addSerializer(ItemPath.class, new ItemPathSerializer());
+        module.addSerializer(ItemPathType.class, new ItemPathTypeSerializer());
+        module.addSerializer(XMLGregorianCalendar.class, new XmlGregorianCalendarSerializer());
+//        module.addSerializer(Element.class, new DomElementJsonSerializer());
+//        module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
+        return module;
+    }
 
-	@Override
-	protected QName tagToTypeName(Object tid, AbstractJsonLexicalProcessor.JsonParsingContext ctx) {
-		return null;
-	}
+    @Override
+    protected QName tagToTypeName(Object tid, AbstractJsonLexicalProcessor.JsonParsingContext ctx) {
+        return null;
+    }
 
-	@Override
-	protected boolean supportsInlineTypes() {
-		return false;
-	}
+    @Override
+    protected boolean supportsInlineTypes() {
+        return false;
+    }
 
-	@Override
-	protected void writeInlineType(QName typeName, JsonSerializationContext ctx) throws IOException {
-		throw new IllegalStateException("JSON cannot write type information using tags.");
-	}
+    @Override
+    protected void writeInlineType(QName typeName, JsonSerializationContext ctx) throws IOException {
+        throw new IllegalStateException("JSON cannot write type information using tags.");
+    }
 }

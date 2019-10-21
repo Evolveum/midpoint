@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  *
  * This file is inspired and uses minor parts of the maven-dependency-plugin by Brian Fox.
@@ -47,7 +47,7 @@ public class ArtifactItem {
     /**
      * @parameter
      */
-    private String catalog;				// intentionally no default
+    private String catalog;                // intentionally no default
 
     private Artifact artifact;
 
@@ -55,77 +55,77 @@ public class ArtifactItem {
 
     private Catalog resolveCatalog;
 
-	public String getGroupId() {
-		return groupId;
-	}
+    public String getGroupId() {
+        return groupId;
+    }
 
-	public void setGroupId(String groupId) {
-		this.groupId = groupId;
-	}
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
 
-	public String getArtifactId() {
-		return artifactId;
-	}
+    public String getArtifactId() {
+        return artifactId;
+    }
 
-	public void setArtifactId(String artifactId) {
-		this.artifactId = artifactId;
-	}
+    public void setArtifactId(String artifactId) {
+        this.artifactId = artifactId;
+    }
 
-	public String getVersion() {
-		return version;
-	}
+    public String getVersion() {
+        return version;
+    }
 
-	public void setVersion(String version) {
-		this.version = version;
-	}
+    public void setVersion(String version) {
+        this.version = version;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public String getClassifier() {
-		return classifier;
-	}
+    public String getClassifier() {
+        return classifier;
+    }
 
-	public void setClassifier(String classifier) {
-		this.classifier = classifier;
-	}
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
+    }
 
-	public String getCatalog() {
-		return catalog;
-	}
+    public String getCatalog() {
+        return catalog;
+    }
 
-	public void setCatalog(String catalog) {
-		this.catalog = catalog;
-	}
+    public void setCatalog(String catalog) {
+        this.catalog = catalog;
+    }
 
-	public Artifact getArtifact() {
-		return artifact;
-	}
+    public Artifact getArtifact() {
+        return artifact;
+    }
 
-	public void setArtifact(Artifact artifact) {
-		this.artifact = artifact;
-	}
+    public void setArtifact(Artifact artifact) {
+        this.artifact = artifact;
+    }
 
-	public File getWorkDir() {
-		return workDir;
-	}
+    public File getWorkDir() {
+        return workDir;
+    }
 
-	public void setWorkDir(File workDir) {
-		this.workDir = workDir;
-	}
+    public void setWorkDir(File workDir) {
+        this.workDir = workDir;
+    }
 
-	public Catalog getResolveCatalog() {
-		return resolveCatalog;
-	}
+    public Catalog getResolveCatalog() {
+        return resolveCatalog;
+    }
 
-	public void setResolveCatalog(Catalog resolveCatalog) {
-		this.resolveCatalog = resolveCatalog;
-	}
+    public void setResolveCatalog(Catalog resolveCatalog) {
+        this.resolveCatalog = resolveCatalog;
+    }
 
 
 }

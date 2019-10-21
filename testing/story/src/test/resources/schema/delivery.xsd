@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <xsd:schema elementFormDefault="qualified"
@@ -13,8 +13,8 @@
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-	<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
-	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
     <!-- role extension for rules -->
 
@@ -26,67 +26,67 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="attribute1" type="t:ItemPathType" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="attribute2" type="t:ItemPathType" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="attribute3" type="t:ItemPathType" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
-			<xsd:element name="value1" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:indexed>false</a:indexed>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="value2" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:indexed>false</a:indexed>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="value3" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:indexed>false</a:indexed>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="remediatorRef" type="c:ObjectReferenceType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:indexed>false</a:indexed>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="roleRef" type="c:ObjectReferenceType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:indexed>false</a:indexed>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
+            <xsd:element name="value1" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value2" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="value3" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="remediatorRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="roleRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
-	<!-- user extension -->
+    <!-- user extension -->
 
-	<xsd:complexType name="UserExtensionType">
+    <xsd:complexType name="UserExtensionType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:extension ref="c:UserType"/>
@@ -94,11 +94,11 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="tpu" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>true</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>

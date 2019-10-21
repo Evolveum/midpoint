@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -18,77 +18,77 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
-								  
-	<name>Embedded Test OpenDJ</name>
-	<!-- NOTE: The connector OID will get dynamically replaced in the integration tests -->
-	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
-	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
-					   
-		<icfc:configurationProperties>
-			<icfcldap:port>10389</icfcldap:port>
-			<icfcldap:host>localhost</icfcldap:host>
-			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
-			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
-			<icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
-			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
-			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
- 			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
-		</icfc:configurationProperties>
-		
-		<icfc:connectorPoolConfiguration>
-			<icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
-			<icfc:minIdle>1</icfc:minIdle>
-			<icfc:maxIdle>10</icfc:maxIdle>
-			<icfc:maxObjects>10</icfc:maxObjects>
-			<icfc:maxWait>150000</icfc:maxWait>
-		</icfc:connectorPoolConfiguration>
-		
-		<icfc:producerBufferSize>100</icfc:producerBufferSize>
-		
-		<icfc:timeouts>
-				<icfc:create>-1</icfc:create>
-				<icfc:get>-1</icfc:get>
-				<icfc:update>-1</icfc:update>
-				<icfc:delete>-1</icfc:delete>
-				<icfc:test>-1</icfc:test>
-				<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
-				<icfc:scriptOnResource>-1</icfc:scriptOnResource>
-				<icfc:authentication>-1</icfc:authentication>
-				<icfc:search>-1</icfc:search>
-				<icfc:validate>-1</icfc:validate>
-				<icfc:sync>-1</icfc:sync>
-				<icfc:schema>-1</icfc:schema>
-			</icfc:timeouts>
-			
-			<icfc:resultsHandlerConfiguration>
-				<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
-			</icfc:resultsHandlerConfiguration>
+          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
+                              http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 
-	</connectorConfiguration>
-	
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
-	
-	<schema>
-		<!-- Storing schema here and don't letting midpoint to generate it. Some tests work without running resource,
-			generating a schema would fail. -->
-	  <cachingMetadata>
+    <name>Embedded Test OpenDJ</name>
+    <!-- NOTE: The connector OID will get dynamically replaced in the integration tests -->
+    <connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+
+        <icfc:configurationProperties>
+            <icfcldap:port>10389</icfcldap:port>
+            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+            <icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+            <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+            <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+            <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+             <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+        </icfc:configurationProperties>
+
+        <icfc:connectorPoolConfiguration>
+            <icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
+            <icfc:minIdle>1</icfc:minIdle>
+            <icfc:maxIdle>10</icfc:maxIdle>
+            <icfc:maxObjects>10</icfc:maxObjects>
+            <icfc:maxWait>150000</icfc:maxWait>
+        </icfc:connectorPoolConfiguration>
+
+        <icfc:producerBufferSize>100</icfc:producerBufferSize>
+
+        <icfc:timeouts>
+                <icfc:create>-1</icfc:create>
+                <icfc:get>-1</icfc:get>
+                <icfc:update>-1</icfc:update>
+                <icfc:delete>-1</icfc:delete>
+                <icfc:test>-1</icfc:test>
+                <icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
+                <icfc:scriptOnResource>-1</icfc:scriptOnResource>
+                <icfc:authentication>-1</icfc:authentication>
+                <icfc:search>-1</icfc:search>
+                <icfc:validate>-1</icfc:validate>
+                <icfc:sync>-1</icfc:sync>
+                <icfc:schema>-1</icfc:schema>
+            </icfc:timeouts>
+
+            <icfc:resultsHandlerConfiguration>
+                <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            </icfc:resultsHandlerConfiguration>
+
+    </connectorConfiguration>
+
+    <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
+
+    <schema>
+        <!-- Storing schema here and don't letting midpoint to generate it. Some tests work without running resource,
+            generating a schema would fail. -->
+      <cachingMetadata>
          <retrievalTimestamp>2012-03-20T13:02:29.275+01:00</retrievalTimestamp>
          <serialNumber>1798eed6def9f54c-3d4bce63faa79272</serialNumber>
       </cachingMetadata>
-	  <definition>
-		<xsd:schema elementFormDefault="qualified"
-			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
-			
-			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
-			<xsd:complexType name="groupOfUniqueNames">
+      <definition>
+        <xsd:schema elementFormDefault="qualified"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
+
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+            <xsd:complexType name="groupOfUniqueNames">
                <xsd:annotation>
                   <xsd:appinfo>
                      <ra:resourceObject/>
@@ -253,7 +253,7 @@
                   </xsd:element>
                </xsd:sequence>
             </xsd:complexType>
-			<xsd:complexType name="inetOrgPerson">
+            <xsd:complexType name="inetOrgPerson">
                <xsd:annotation>
                   <xsd:appinfo>
                      <ra:resourceObject/>
@@ -889,83 +889,83 @@
                   </xsd:element>
                </xsd:sequence>
             </xsd:complexType>
-		</xsd:schema>
-	  </definition>
-	</schema>
-	
-	<schemaHandling>
-        
-    	<objectType>
-    		<kind>account</kind>
+        </xsd:schema>
+      </definition>
+    </schema>
+
+    <schemaHandling>
+
+        <objectType>
+            <kind>account</kind>
             <intent>default</intent>
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>ri:dn</valueAttribute>
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>ri:dn</valueAttribute>
             </association>
         </objectType>
-        
+
         <objectType>
-        	<kind>entitlement</kind>
+            <kind>entitlement</kind>
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:groupOfUniqueNames</objectClass>
         </objectType>
-                
-	</schemaHandling>
-	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-		<cachingMetadata>
-	         <retrievalTimestamp>2012-03-20T13:02:29.275+01:00</retrievalTimestamp>
-	         <serialNumber>1798eed6def9f54c-3d4bce63faa79272</serialNumber>
-      	</cachingMetadata>
-		<native>
-	      <cap:credentials>
-	         <cap:password/>
-	      </cap:credentials>
-	      <cap:liveSync/>
-	      <cap:testConnection/>
-	      <cap:script>
-	         <cap:host>
-	            <cap:type>connector</cap:type>
-	         </cap:host>
-	      </cap:script>
-	       <cap:create/>
-	        <cap:read/>
-	        <cap:update>
-	        	<cap:delta>true</cap:delta>
-	        </cap:update>
-	        <cap:delete/>
+
+    </schemaHandling>
+
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+        <cachingMetadata>
+             <retrievalTimestamp>2012-03-20T13:02:29.275+01:00</retrievalTimestamp>
+             <serialNumber>1798eed6def9f54c-3d4bce63faa79272</serialNumber>
+          </cachingMetadata>
+        <native>
+          <cap:credentials>
+             <cap:password/>
+          </cap:credentials>
+          <cap:liveSync/>
+          <cap:testConnection/>
+          <cap:script>
+             <cap:host>
+                <cap:type>connector</cap:type>
+             </cap:host>
+          </cap:script>
+           <cap:create/>
+            <cap:read/>
+            <cap:update>
+                <cap:delta>true</cap:delta>
+            </cap:update>
+            <cap:delete/>
       </native>
-		<configured>
-			<cap:activation>
-				<cap:status>
-					<cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-					<cap:enableValue/>
-					<cap:disableValue>true</cap:disableValue>
-				</cap:status>
-			</cap:activation>
-			<!-- 
-			<cap:credentials>
-				<cap:password/>
-			</cap:credentials>
-			<cap:liveSync/>
-			<cap:testConnection/>
-			-->
-			<cap:create/>
-	        <cap:read/>
-	        <cap:update>
-	        	<cap:delta>true</cap:delta>
-	        </cap:update>
-	        <cap:delete/>
-		</configured>
-	</capabilities>
-		
+        <configured>
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+                    <cap:enableValue/>
+                    <cap:disableValue>true</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+            <!--
+            <cap:credentials>
+                <cap:password/>
+            </cap:credentials>
+            <cap:liveSync/>
+            <cap:testConnection/>
+            -->
+            <cap:create/>
+            <cap:read/>
+            <cap:update>
+                <cap:delta>true</cap:delta>
+            </cap:update>
+            <cap:delete/>
+        </configured>
+    </capabilities>
+
 </resource>

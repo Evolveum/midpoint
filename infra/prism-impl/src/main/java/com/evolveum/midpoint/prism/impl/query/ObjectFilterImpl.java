@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -14,25 +14,25 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ObjectFilterImpl implements ObjectFilter {
 
-	transient protected PrismContext prismContext;
+    transient protected PrismContext prismContext;
 
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-	@Override
-	public void revive(PrismContext prismContext) throws SchemaException {
-		this.prismContext = prismContext;
-	}
-	
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
+    @Override
+    public void revive(PrismContext prismContext) throws SchemaException {
+        this.prismContext = prismContext;
+    }
 
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
 
-	@Override
-	public abstract ObjectFilterImpl clone();
+    public void setPrismContext(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
+
+    @Override
+    public abstract ObjectFilterImpl clone();
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -32,7 +32,7 @@ import java.util.*;
 public class PropertyArrayList<T> extends AbstractList<T> implements Serializable, PrismList {
 
     private PrismProperty property;
-	private PrismContainerValue<?> parent;
+    private PrismContainerValue<?> parent;
 
     public PropertyArrayList(@NotNull PrismProperty property, @NotNull PrismContainerValue<?> parent) {
         this.property = property;
@@ -47,7 +47,7 @@ public class PropertyArrayList<T> extends AbstractList<T> implements Serializabl
     @Override
     public T get(int index) {
         //todo fix PropertyValue set generics in Property, Property class should be generifiable
-    	Object propertyRealValue = getPropertyValue(index).getValue();
+        Object propertyRealValue = getPropertyValue(index).getValue();
         return (T) JaxbTypeConverter.mapPropertyRealValueToJaxb(propertyRealValue);
     }
 
@@ -59,16 +59,16 @@ public class PropertyArrayList<T> extends AbstractList<T> implements Serializabl
             return false;
         }
 
-		try {
-        	if (property.getParent() == null) {
-				parent.add(property);
-			}
-		} catch (SchemaException e) {
-			throw new SystemException(e.getMessage(), e);
-		}
+        try {
+            if (property.getParent() == null) {
+                parent.add(property);
+            }
+        } catch (SchemaException e) {
+            throw new SystemException(e.getMessage(), e);
+        }
 
-		for (T jaxbObject : ts) {
-        	Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(jaxbObject);
+        for (T jaxbObject : ts) {
+            Object propertyRealValue = JaxbTypeConverter.mapJaxbToPropertyRealValue(jaxbObject);
             property.addValue(new PrismPropertyValueImpl(propertyRealValue, null, null));
         }
 

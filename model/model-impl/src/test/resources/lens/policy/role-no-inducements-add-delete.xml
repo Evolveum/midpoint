@@ -1,14 +1,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="5168372e-4060-43c1-bbce-19c6d4bdfaf5"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>No inducements add or delete</name>
-	<inducement id="1">
-		<targetRef type="RoleType" oid="00000000-0000-0000-0000-000000000004" />
-	</inducement>
-	<roleType>no-inducements-add-delete</roleType>
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>No inducements add or delete</name>
+    <inducement id="1">
+        <targetRef type="RoleType" oid="00000000-0000-0000-0000-000000000004" />
+    </inducement>
+    <roleType>no-inducements-add-delete</roleType>
 </role>

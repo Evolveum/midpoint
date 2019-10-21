@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.security;
@@ -40,93 +40,93 @@ import com.evolveum.midpoint.task.api.TaskManager;
  */
 public class MidpointRestAuthenticationHandler implements ContainerRequestFilter, ContainerResponseFilter {
 
-	private static final Trace LOGGER = TraceManager.getTrace(MidpointRestAuthenticationHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MidpointRestAuthenticationHandler.class);
 
-	@Autowired private MidpointRestPasswordAuthenticator passwordAuthenticator;
+    @Autowired private MidpointRestPasswordAuthenticator passwordAuthenticator;
 
-	@Autowired private MidpointRestSecurityQuestionsAuthenticator securityQuestionAuthenticator;
+    @Autowired private MidpointRestSecurityQuestionsAuthenticator securityQuestionAuthenticator;
 
-	@Autowired 
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repository;
-	
-	@Autowired private NodeAuthenticationEvaluator nodeAuthenticator;
-	@Autowired private TaskManager taskManager;
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService repository;
 
-	@Override
-	public void filter(ContainerRequestContext request, ContainerResponseContext response) throws IOException {
-		// nothing to do
-		
-	}
+    @Autowired private NodeAuthenticationEvaluator nodeAuthenticator;
+    @Autowired private TaskManager taskManager;
 
-	@Override
-	public void filter(ContainerRequestContext requestCtx) throws IOException {
-		Message m = JAXRSUtils.getCurrentMessage();
+    @Override
+    public void filter(ContainerRequestContext request, ContainerResponseContext response) throws IOException {
+        // nothing to do
 
-		AuthorizationPolicy policy = (AuthorizationPolicy) m.get(AuthorizationPolicy.class);
-		if (policy != null) {
-			passwordAuthenticator.handleRequest(policy, m, requestCtx);
-			return;
-		}
+    }
 
-		String authorization = requestCtx.getHeaderString("Authorization");
+    @Override
+    public void filter(ContainerRequestContext requestCtx) throws IOException {
+        Message m = JAXRSUtils.getCurrentMessage();
 
-		if (StringUtils.isBlank(authorization)){
-			RestServiceUtil.createAbortMessage(requestCtx);
-			return;
-		}
+        AuthorizationPolicy policy = (AuthorizationPolicy) m.get(AuthorizationPolicy.class);
+        if (policy != null) {
+            passwordAuthenticator.handleRequest(policy, m, requestCtx);
+            return;
+        }
 
-		String[] parts = authorization.split(" ");
-		String authenticationType = parts[0];
+        String authorization = requestCtx.getHeaderString("Authorization");
 
-		if (parts.length == 1 && RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod().equals(authenticationType)) {
-			RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
-			return;
-		}
+        if (StringUtils.isBlank(authorization)){
+            RestServiceUtil.createAbortMessage(requestCtx);
+            return;
+        }
 
-		if (parts.length != 2) {
-			RestServiceUtil.createAbortMessage(requestCtx);
-			return;
-		}
-			
-		String base64Credentials = parts[1];
-		
-		if (RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod().equals(authenticationType)) {
-			try {
-				String decodedCredentials = new String(Base64Utility.decode(base64Credentials));
-				policy = new AuthorizationPolicy();
-				policy.setAuthorizationType(RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod());
-				policy.setAuthorization(decodedCredentials);
-				securityQuestionAuthenticator.handleRequest(policy, m, requestCtx);
-			} catch (Base64Exception e) {
-				RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
-			}
-		} else if (RestAuthenticationMethod.CLUSTER.getMethod().equals(authenticationType)) {
-			HttpConnectionInformation connectionInfo = SecurityUtil.getCurrentConnectionInformation();
-			String remoteAddress = connectionInfo != null ? connectionInfo.getRemoteHostAddress() : null;
-			String decodedCredentials;
-			try {
-				decodedCredentials = new String(Base64Utility.decode(base64Credentials));
-			} catch (Base64Exception e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decode base64-encoded credentials", e);
-				RestServiceUtil.createAbortMessage(requestCtx);
-				return;
-			}
-			if (!nodeAuthenticator.authenticate(null, remoteAddress, decodedCredentials, "?")) {
-				RestServiceUtil.createAbortMessage(requestCtx);
-				return;
-			}
-			Task task = taskManager.createTaskInstance();
-			m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
-		}
-	}
+        String[] parts = authorization.split(" ");
+        String authenticationType = parts[0];
+
+        if (parts.length == 1 && RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod().equals(authenticationType)) {
+            RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
+            return;
+        }
+
+        if (parts.length != 2) {
+            RestServiceUtil.createAbortMessage(requestCtx);
+            return;
+        }
+
+        String base64Credentials = parts[1];
+
+        if (RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod().equals(authenticationType)) {
+            try {
+                String decodedCredentials = new String(Base64Utility.decode(base64Credentials));
+                policy = new AuthorizationPolicy();
+                policy.setAuthorizationType(RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod());
+                policy.setAuthorization(decodedCredentials);
+                securityQuestionAuthenticator.handleRequest(policy, m, requestCtx);
+            } catch (Base64Exception e) {
+                RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, "{\"user\" : \"username\"}");
+            }
+        } else if (RestAuthenticationMethod.CLUSTER.getMethod().equals(authenticationType)) {
+            HttpConnectionInformation connectionInfo = SecurityUtil.getCurrentConnectionInformation();
+            String remoteAddress = connectionInfo != null ? connectionInfo.getRemoteHostAddress() : null;
+            String decodedCredentials;
+            try {
+                decodedCredentials = new String(Base64Utility.decode(base64Credentials));
+            } catch (Base64Exception e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decode base64-encoded credentials", e);
+                RestServiceUtil.createAbortMessage(requestCtx);
+                return;
+            }
+            if (!nodeAuthenticator.authenticate(null, remoteAddress, decodedCredentials, "?")) {
+                RestServiceUtil.createAbortMessage(requestCtx);
+                return;
+            }
+            Task task = taskManager.createTaskInstance();
+            m.put(RestServiceUtil.MESSAGE_PROPERTY_TASK_NAME, task);
+        }
+    }
 
 
 
-//	protected void createAbortMessage(ContainerRequestContext requestCtx){
-//		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
-//				.header("WWW-Authenticate", AuthenticationType.BASIC.getAuthenticationType() + " realm=\"midpoint\", " + AuthenticationType.SECURITY_QUESTIONS.getAuthenticationType()).build());
-//	}
+//    protected void createAbortMessage(ContainerRequestContext requestCtx){
+//        requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
+//                .header("WWW-Authenticate", AuthenticationType.BASIC.getAuthenticationType() + " realm=\"midpoint\", " + AuthenticationType.SECURITY_QUESTIONS.getAuthenticationType()).build());
+//    }
 //
 
 }

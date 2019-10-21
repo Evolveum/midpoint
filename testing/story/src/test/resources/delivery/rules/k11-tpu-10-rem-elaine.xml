@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
-	  oid="4d512b66-3afd-4a8b-aca8-43a1a8ac948f">
-	<name>k11-tpu-10-rem-elaine</name>
-	<extension>
-		<ext:attribute1>extension/tpu</ext:attribute1>
-		<ext:value1>10</ext:value1>
-		<ext:remediatorRef oid="771d00e6-792a-4296-8b4e-c4f59f712e0f" type="UserType"/> <!-- elaine -->
-	</extension>
-	<assignment>
-		<targetRef oid="72d69ea9-dc0a-4769-b0a4-282f40226de2" type="RoleType"/> <!-- k11 -->
-	</assignment>
+      xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/delivery/ext"
+      oid="4d512b66-3afd-4a8b-aca8-43a1a8ac948f">
+    <name>k11-tpu-10-rem-elaine</name>
+    <extension>
+        <ext:attribute1>extension/tpu</ext:attribute1>
+        <ext:value1>10</ext:value1>
+        <ext:remediatorRef oid="771d00e6-792a-4296-8b4e-c4f59f712e0f" type="UserType"/> <!-- elaine -->
+    </extension>
+    <assignment>
+        <targetRef oid="72d69ea9-dc0a-4769-b0a4-282f40226de2" type="RoleType"/> <!-- k11 -->
+    </assignment>
 </role>

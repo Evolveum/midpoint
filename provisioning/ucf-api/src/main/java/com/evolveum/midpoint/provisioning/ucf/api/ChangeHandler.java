@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -30,31 +30,31 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface ChangeHandler {
 
-	/**
-	 * Called when given change has to be processed.
-	 *
-	 * @param change The change.
-	 * @return false if the processing of changes has to be stopped
-	 */
-	boolean handleChange(Change change, OperationResult result);
+    /**
+     * Called when given change has to be processed.
+     *
+     * @param change The change.
+     * @return false if the processing of changes has to be stopped
+     */
+    boolean handleChange(Change change, OperationResult result);
 
-	/**
-	 * Called when given change cannot be prepared for processing (or created altogether).
-	 *
-	 * @param token The token, if determinable.
-	 * @param change The change, if determinable.
-	 * @param exception Exception encountered.
-	 * @param result Context of the operation.
-	 * @return false if the processing of changes has to be stopped (this is the usual case)
-	 */
-	boolean handleError(@Nullable PrismProperty<?> token, @Nullable Change change, @NotNull Throwable exception,
-			@NotNull OperationResult result);
+    /**
+     * Called when given change cannot be prepared for processing (or created altogether).
+     *
+     * @param token The token, if determinable.
+     * @param change The change, if determinable.
+     * @param exception Exception encountered.
+     * @param result Context of the operation.
+     * @return false if the processing of changes has to be stopped (this is the usual case)
+     */
+    boolean handleError(@Nullable PrismProperty<?> token, @Nullable Change change, @NotNull Throwable exception,
+            @NotNull OperationResult result);
 
-	/**
-	 * Called when all changes from the resource were fetched. This is meant to let the caller know that
-	 * it can update the token in the task (if token values are not known to be "precise".)
-	 *
-	 * Note that finalToken value might or might not be present; depending on the connector implementation.
-	 */
-	void handleAllChangesFetched(PrismProperty<?> finalToken, OperationResult result);
+    /**
+     * Called when all changes from the resource were fetched. This is meant to let the caller know that
+     * it can update the token in the task (if token values are not known to be "precise".)
+     *
+     * Note that finalToken value might or might not be present; depending on the connector implementation.
+     */
+    void handleAllChangesFetched(PrismProperty<?> finalToken, OperationResult result);
 }

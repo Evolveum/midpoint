@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="830060c0-87f4-11e7-9a48-57789b5d92c7"
@@ -12,50 +12,50 @@
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>Strange User Template</name>
     <description>User template for strange tests</description>
- 
+
     <item>
-    	<ref>fullName</ref>
-    	<mapping>
-	    	<strength>weak</strength>
-	    	<source>
-	    		<path>$user/givenName</path>
-	    	</source>
-	    	<source>
-	    		<path>$user/familyName</path>
-	    	</source>
-	    	<expression>
-				<script>
-					<code>
-						givenName + ' ' + familyName
-					</code>
-	         	</script>
-			</expression>
-	    </mapping>    	
-    </item>   
-    
-    <item>
-    	<ref>costCenter</ref>
-	    <mapping>
-	    	<name>usertemplate-costcenter</name>
-	    	<authoritative>true</authoritative>
-	    	<strength>strong</strength>
-	    	<source>
-	    		<path>costCenter</path>
-	    	</source>
-	    	<expression>
-	            <script>
-	            	<code>
-	            		import com.evolveum.midpoint.util.exception.PolicyViolationException
-	            		import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-	            		
-	            		if (costCenter == 'broke') {
-	            			// MID-2650
-	            			throw new PolicyViolationException(LocalizableMessageBuilder.buildFallbackMessage("We do not serve your kind here"))
-	            		}
-	            	</code>
-	            </script>    	
-	    	</expression>
-	    </mapping> 	
+        <ref>fullName</ref>
+        <mapping>
+            <strength>weak</strength>
+            <source>
+                <path>$user/givenName</path>
+            </source>
+            <source>
+                <path>$user/familyName</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        givenName + ' ' + familyName
+                    </code>
+                 </script>
+            </expression>
+        </mapping>
     </item>
-    
+
+    <item>
+        <ref>costCenter</ref>
+        <mapping>
+            <name>usertemplate-costcenter</name>
+            <authoritative>true</authoritative>
+            <strength>strong</strength>
+            <source>
+                <path>costCenter</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.util.exception.PolicyViolationException
+                        import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+
+                        if (costCenter == 'broke') {
+                            // MID-2650
+                            throw new PolicyViolationException(LocalizableMessageBuilder.buildFallbackMessage("We do not serve your kind here"))
+                        }
+                    </code>
+                </script>
+            </expression>
+        </mapping>
+    </item>
+
 </objectTemplate>

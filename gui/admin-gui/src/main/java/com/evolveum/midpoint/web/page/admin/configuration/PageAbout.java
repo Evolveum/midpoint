@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -259,7 +259,7 @@ public class PageAbout extends PageAdminConfiguration {
         };
         add(testRepositoryCheckOrgClosure);
 
-		AjaxButton reindexRepositoryObjects = new AjaxButton(ID_REINDEX_REPOSITORY_OBJECTS,
+        AjaxButton reindexRepositoryObjects = new AjaxButton(ID_REINDEX_REPOSITORY_OBJECTS,
                 createStringResource("PageAbout.button.reindexRepositoryObjects")) {
 
             @Override
@@ -299,13 +299,13 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(clearCssJsCache);
-        
+
         AjaxButton factoryDefault = new AjaxButton(ID_FACTORY_DEFAULT,
                 createStringResource("PageAbout.button.factoryDefault")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-            	showMainPopup(getDeleteAllObjectsConfirmationPanel(), target);
+                showMainPopup(getDeleteAllObjectsConfirmationPanel(), target);
             }
         };
         add(factoryDefault);
@@ -394,20 +394,20 @@ public class PageAbout extends PageAdminConfiguration {
     private void reindexRepositoryObjectsPerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_SUBMIT_REINDEX);
         try {
-			TaskManager taskManager = getTaskManager();
-			Task task = taskManager.createTaskInstance();
-			MidPointPrincipal user = SecurityUtils.getPrincipalUser();
-			if (user == null) {
-				throw new RestartResponseException(PageLogin.class);
-			} else {
-				task.setOwner(user.getUser().asPrismObject());
-			}
-			authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
-			task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-			task.setHandlerUri(ModelPublicConstants.REINDEX_TASK_HANDLER_URI);
-			task.setName("Reindex repository objects");
-			taskManager.switchToBackground(task, result);
-			result.setBackgroundTaskOid(task.getOid());
+            TaskManager taskManager = getTaskManager();
+            Task task = taskManager.createTaskInstance();
+            MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+            if (user == null) {
+                throw new RestartResponseException(PageLogin.class);
+            } else {
+                task.setOwner(user.getUser().asPrismObject());
+            }
+            authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+            task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+            task.setHandlerUri(ModelPublicConstants.REINDEX_TASK_HANDLER_URI);
+            task.setName("Reindex repository objects");
+            taskManager.switchToBackground(task, result);
+            result.setBackgroundTaskOid(task.getOid());
         } catch (SecurityViolationException | SchemaException|RuntimeException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError(e);
         } finally {
@@ -425,97 +425,97 @@ public class PageAbout extends PageAdminConfiguration {
 
         target.add(getFeedbackPanel());
     }
-    
+
     private Popupable getDeleteAllObjectsConfirmationPanel() {
-		return new ConfirmationPanel(getMainPopupBodyId(), createStringResource("PageAbout.message.deleteAllObjects")) {
-			private static final long serialVersionUID = 1L;
+        return new ConfirmationPanel(getMainPopupBodyId(), createStringResource("PageAbout.message.deleteAllObjects")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				resetStateToInitialConfig(target);
-			}
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                resetStateToInitialConfig(target);
+            }
 
-		};
-	}
-    
+        };
+    }
+
     private void resetStateToInitialConfig(AjaxRequestTarget target) {
-    	OperationResult result = new OperationResult(OPERATION_DELETE_ALL_OBJECTS);
-		String taskOid = null;
-		String taskName = "Delete all objects";
+        OperationResult result = new OperationResult(OPERATION_DELETE_ALL_OBJECTS);
+        String taskOid = null;
+        String taskName = "Delete all objects";
 
-	    QueryFactory factory = getPrismContext().queryFactory();
+        QueryFactory factory = getPrismContext().queryFactory();
 
-	    TypeFilter nodeFilter = factory.createType(NodeType.COMPLEX_TYPE, factory.createAll());
-		final ObjectFilter taskFilter = getPrismContext().queryFor(TaskType.class)
+        TypeFilter nodeFilter = factory.createType(NodeType.COMPLEX_TYPE, factory.createAll());
+        final ObjectFilter taskFilter = getPrismContext().queryFor(TaskType.class)
                 .item(TaskType.F_NAME).eq(taskName).buildFilter();
-		NotFilter notNodeFilter = factory.createNot(nodeFilter);
-		NotFilter notTaskFilter = factory.createNot(taskFilter);
-		
-		try {
-			QName type = ObjectType.COMPLEX_TYPE;
-			taskOid = deleteObjectsAsync(type, factory.createQuery(
-					factory.createAnd(notTaskFilter, notNodeFilter)), true,
-					taskName, result);
-			
-		} catch (Exception ex) {
-			result.recomputeStatus();
-			result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.allObject.fatalError"), ex);
+        NotFilter notNodeFilter = factory.createNot(nodeFilter);
+        NotFilter notTaskFilter = factory.createNot(taskFilter);
 
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete all objects", ex);
-		}
-		
-		final String taskOidToRemoving = taskOid;
-		
-		try {
-			while(!getTaskManager().getTask(taskOid, result).isClosed()) {TimeUnit.SECONDS.sleep(5);}
-			
-			runPrivileged(new Producer<Object>() {
+        try {
+            QName type = ObjectType.COMPLEX_TYPE;
+            taskOid = deleteObjectsAsync(type, factory.createQuery(
+                    factory.createAnd(notTaskFilter, notNodeFilter)), true,
+                    taskName, result);
 
-				private static final long serialVersionUID = 1L;
-				
-				@Override
-				public Object run() {
-					Task task = createAnonymousTask(OPERATION_DELETE_TASK);
-					OperationResult result = new OperationResult(OPERATION_DELETE_TASK);
-					ObjectDelta<TaskType> delta = getPrismContext().deltaFactory().object()
-							.createDeleteDelta(TaskType.class, taskOidToRemoving);
-					Collection<ObjectDelta<? extends ObjectType>> deltaCollection = new ArrayList<ObjectDelta<? extends ObjectType>>() {{add(delta);}};
-					try {
-						getModelService().executeChanges(deltaCollection, null, task, result);
-					} catch (Exception ex) {
-						result.recomputeStatus();
-						result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.task.fatalError"), ex);
-			
-						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete task", ex);
-					} 
-					result.computeStatus();
-					return null;
-				}
+        } catch (Exception ex) {
+            result.recomputeStatus();
+            result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.allObject.fatalError"), ex);
 
-			});
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete all objects", ex);
+        }
 
-			InitialDataImport initialDataImport = new InitialDataImport();
-			initialDataImport.setModel(getModelService());
-			initialDataImport.setTaskManager(getTaskManager());
-			initialDataImport.setPrismContext(getPrismContext());
-			initialDataImport.setConfiguration(getMidpointConfiguration());
-			initialDataImport.init();
+        final String taskOidToRemoving = taskOid;
 
-			// TODO consider if we need to go clusterwide here
-			getCacheDispatcher().dispatchInvalidation(null, null, true, null);
-			
-			getModelService().shutdown();
-			
-			getModelService().postInit(result);
-			
+        try {
+            while(!getTaskManager().getTask(taskOid, result).isClosed()) {TimeUnit.SECONDS.sleep(5);}
 
-		} catch (Exception ex) {
-			result.recomputeStatus();
-			result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.import.fatalError"), ex);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import initial objects", ex);
+            runPrivileged(new Producer<Object>() {
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public Object run() {
+                    Task task = createAnonymousTask(OPERATION_DELETE_TASK);
+                    OperationResult result = new OperationResult(OPERATION_DELETE_TASK);
+                    ObjectDelta<TaskType> delta = getPrismContext().deltaFactory().object()
+                            .createDeleteDelta(TaskType.class, taskOidToRemoving);
+                    Collection<ObjectDelta<? extends ObjectType>> deltaCollection = new ArrayList<ObjectDelta<? extends ObjectType>>() {{add(delta);}};
+                    try {
+                        getModelService().executeChanges(deltaCollection, null, task, result);
+                    } catch (Exception ex) {
+                        result.recomputeStatus();
+                        result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.task.fatalError"), ex);
+
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete task", ex);
+                    }
+                    result.computeStatus();
+                    return null;
+                }
+
+            });
+
+            InitialDataImport initialDataImport = new InitialDataImport();
+            initialDataImport.setModel(getModelService());
+            initialDataImport.setTaskManager(getTaskManager());
+            initialDataImport.setPrismContext(getPrismContext());
+            initialDataImport.setConfiguration(getMidpointConfiguration());
+            initialDataImport.init();
+
+            // TODO consider if we need to go clusterwide here
+            getCacheDispatcher().dispatchInvalidation(null, null, true, null);
+
+            getModelService().shutdown();
+
+            getModelService().postInit(result);
+
+
+        } catch (Exception ex) {
+            result.recomputeStatus();
+            result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.import.fatalError"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import initial objects", ex);
         }
         showResult(result);
-		target.add(getFeedbackPanel());
+        target.add(getFeedbackPanel());
     }
 
     /**

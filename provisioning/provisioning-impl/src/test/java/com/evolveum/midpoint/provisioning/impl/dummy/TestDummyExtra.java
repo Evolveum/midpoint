@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2015-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
@@ -56,222 +56,222 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 @DirtiesContext
 public class TestDummyExtra extends TestDummy {
 
-	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-extra");
-	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
+    public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-extra");
+    public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
-	private static final String DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME = "mate";
+    private static final String DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME = "mate";
 
-	protected static final QName ASSOCIATION_CREW_NAME = new QName(RESOURCE_DUMMY_NS, "crew");
+    protected static final QName ASSOCIATION_CREW_NAME = new QName(RESOURCE_DUMMY_NS, "crew");
 
-	@Override
-	protected File getResourceDummyFile() {
-		return RESOURCE_DUMMY_FILE;
-	}
+    @Override
+    protected File getResourceDummyFile() {
+        return RESOURCE_DUMMY_FILE;
+    }
 
-	@Override
-	protected void extraDummyResourceInit() throws Exception {
-		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
-		dummyResourceCtl.addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, String.class, false, true);
-	}
+    @Override
+    protected void extraDummyResourceInit() throws Exception {
+        DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
+        dummyResourceCtl.addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, String.class, false, true);
+    }
 
-	@Override
-	protected int getExpectedRefinedSchemaDefinitions() {
-		return super.getExpectedRefinedSchemaDefinitions() + 1;
-	}
+    @Override
+    protected int getExpectedRefinedSchemaDefinitions() {
+        return super.getExpectedRefinedSchemaDefinitions() + 1;
+    }
 
-	@Override
-	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
-		// schema is extended, displayOrders are changed
-		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 20);
+    @Override
+    protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
+        // schema is extended, displayOrders are changed
+        dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 20);
 
-		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-		RefinedObjectClassDefinition accountRDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+        RefinedObjectClassDefinition accountRDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 
-		Collection<RefinedAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
-		assertEquals("Wrong number of association defs", 3, associationDefinitions.size());
-		RefinedAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
-		assertNotNull("No definitin for crew assocation", crewAssociationDef);
-	}
+        Collection<RefinedAssociationDefinition> associationDefinitions = accountRDef.getAssociationDefinitions();
+        assertEquals("Wrong number of association defs", 3, associationDefinitions.size());
+        RefinedAssociationDefinition crewAssociationDef = accountRDef.findAssociationDefinition(ASSOCIATION_CREW_NAME);
+        assertNotNull("No definitin for crew assocation", crewAssociationDef);
+    }
 
-	@Override
-	protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {
-		PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
-		assertNotNull("password native capability not present", passwordCapabilityType);
-		Boolean readable = passwordCapabilityType.isReadable();
-		assertNotNull("No 'readable' inducation in password capability", readable);
-		assertTrue("Password not 'readable' in password capability", readable);
-	}
+    @Override
+    protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {
+        PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
+        assertNotNull("password native capability not present", passwordCapabilityType);
+        Boolean readable = passwordCapabilityType.isReadable();
+        assertNotNull("No 'readable' inducation in password capability", readable);
+        assertTrue("Password not 'readable' in password capability", readable);
+    }
 
-	@Test
-	public void test400AddAccountElizabeth() throws Exception {
-		final String TEST_NAME = "test400AddAccountElizabeth";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		syncServiceMock.reset();
+    @Test
+    public void test400AddAccountElizabeth() throws Exception {
+        final String TEST_NAME = "test400AddAccountElizabeth";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
 
-		PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ELIZABETH_FILE);
-		account.checkConsistence();
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ELIZABETH_FILE);
+        account.checkConsistence();
 
-		display("Adding shadow", account);
+        display("Adding shadow", account);
 
-		XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+        // WHEN
+        displayWhen(TEST_NAME);
+        String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 
-		assertEquals(ACCOUNT_ELIZABETH_OID, addedObjectOid);
+        assertEquals(ACCOUNT_ELIZABETH_OID, addedObjectOid);
 
-		account.checkConsistence();
+        account.checkConsistence();
 
-		syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertNotifySuccessOnly();
 
-		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_ELIZABETH_OID, null, task, result);
+        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
+                ACCOUNT_ELIZABETH_OID, null, task, result);
 
-		XMLGregorianCalendar tsAfterRead = clock.currentTimeXMLGregorianCalendar();
+        XMLGregorianCalendar tsAfterRead = clock.currentTimeXMLGregorianCalendar();
 
-		display("Account will from provisioning", accountProvisioning);
+        display("Account will from provisioning", accountProvisioning);
 
-		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
-		assertNotNull("No dummy account", dummyAccount);
-		assertTrue("The account is not enabled", dummyAccount.isEnabled());
+        DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
+        assertNotNull("No dummy account", dummyAccount);
+        assertTrue("The account is not enabled", dummyAccount.isEnabled());
 
-		checkUniqueness(accountProvisioning);
-		assertSteadyResource();
-	}
+        checkUniqueness(accountProvisioning);
+        assertSteadyResource();
+    }
 
-	/**
-	 * MID-2668
-	 */
-	@Test
-	public void test410AssociateCrewWillElizabeth() throws Exception {
-		final String TEST_NAME = "test410AssociateCrewWillElizabeth";
-		TestUtil.displayTestTitle(TEST_NAME);
+    /**
+     * MID-2668
+     */
+    @Test
+    public void test410AssociateCrewWillElizabeth() throws Exception {
+        final String TEST_NAME = "test410AssociateCrewWillElizabeth";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		syncServiceMock.reset();
+        syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
-				ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
-		display("ObjectDelta", delta);
-		delta.checkConsistence();
+        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
+                ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
+        display("ObjectDelta", delta);
+        delta.checkConsistence();
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new OperationProvisioningScriptsType(), null, task, result);
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+                new OperationProvisioningScriptsType(), null, task, result);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		display("modifyObject result", result);
-		TestUtil.assertSuccess(result);
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        display("modifyObject result", result);
+        TestUtil.assertSuccess(result);
 
-		syncServiceMock.assertNotifySuccessOnly();
-		delta.checkConsistence();
+        syncServiceMock.assertNotifySuccessOnly();
+        delta.checkConsistence();
 
-		DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
-		display("Dummy account will", dummyAccountWill);
-		assertNotNull("No dummy account will", dummyAccountWill);
-		assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
-		assertDummyAttributeValues(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, ACCOUNT_ELIZABETH_USERNAME);
+        DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
+        display("Dummy account will", dummyAccountWill);
+        assertNotNull("No dummy account will", dummyAccountWill);
+        assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
+        assertDummyAttributeValues(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME, ACCOUNT_ELIZABETH_USERNAME);
 
-		PrismObject<ShadowType> accountWillProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, task, result);
-		display("Account will from provisioning", accountWillProvisioning);
-		assertAssociation(accountWillProvisioning, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
+        PrismObject<ShadowType> accountWillProvisioning = provisioningService.getObject(ShadowType.class,
+                ACCOUNT_WILL_OID, null, task, result);
+        display("Account will from provisioning", accountWillProvisioning);
+        assertAssociation(accountWillProvisioning, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
 
-		assertSteadyResource();
-	}
+        assertSteadyResource();
+    }
 
-	/**
-	 * MID-2668
-	 */
-	@Test
-	public void test419DisassociateCrewWillElizabeth() throws Exception {
-		final String TEST_NAME = "test419DisassociateCrewWillElizabeth";
-		TestUtil.displayTestTitle(TEST_NAME);
+    /**
+     * MID-2668
+     */
+    @Test
+    public void test419DisassociateCrewWillElizabeth() throws Exception {
+        final String TEST_NAME = "test419DisassociateCrewWillElizabeth";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		syncServiceMock.reset();
+        syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
-				ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
-		display("ObjectDelta", delta);
-		delta.checkConsistence();
+        ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
+                ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
+        display("ObjectDelta", delta);
+        delta.checkConsistence();
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new OperationProvisioningScriptsType(), null, task, result);
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+                new OperationProvisioningScriptsType(), null, task, result);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		display("modifyObject result", result);
-		TestUtil.assertSuccess(result);
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        display("modifyObject result", result);
+        TestUtil.assertSuccess(result);
 
-		syncServiceMock.assertNotifySuccessOnly();
-		delta.checkConsistence();
+        syncServiceMock.assertNotifySuccessOnly();
+        delta.checkConsistence();
 
-		DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
-		display("Dummy account will", dummyAccountWill);
-		assertNotNull("No dummy account will", dummyAccountWill);
-		assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
-		assertNoDummyAttribute(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME);
+        DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
+        display("Dummy account will", dummyAccountWill);
+        assertNotNull("No dummy account will", dummyAccountWill);
+        assertTrue("The account will is not enabled", dummyAccountWill.isEnabled());
+        assertNoDummyAttribute(dummyAccountWill, DUMMY_ACCOUNT_ATTRIBUTE_MATE_NAME);
 
-		PrismObject<ShadowType> accountWillProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, task, result);
-		display("Account will from provisioning", accountWillProvisioning);
-		assertNoAssociation(accountWillProvisioning, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
+        PrismObject<ShadowType> accountWillProvisioning = provisioningService.getObject(ShadowType.class,
+                ACCOUNT_WILL_OID, null, task, result);
+        display("Account will from provisioning", accountWillProvisioning);
+        assertNoAssociation(accountWillProvisioning, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
 
-		assertSteadyResource();
-	}
+        assertSteadyResource();
+    }
 
-	// TODO: disassociate
+    // TODO: disassociate
 
-	@Test
-	public void test499DeleteAccountElizabeth() throws Exception {
-		final String TEST_NAME = "test499DeleteAccountElizabeth";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		syncServiceMock.reset();
+    @Test
+    public void test499DeleteAccountElizabeth() throws Exception {
+        final String TEST_NAME = "test499DeleteAccountElizabeth";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
+        // WHEN
+        displayWhen(TEST_NAME);
+        provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		syncServiceMock.assertNotifySuccessOnly();
-		assertNoRepoObject(ShadowType.class, ACCOUNT_ELIZABETH_OID);
+        syncServiceMock.assertNotifySuccessOnly();
+        assertNoRepoObject(ShadowType.class, ACCOUNT_ELIZABETH_OID);
 
-		assertNoDummyAccount(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
+        assertNoDummyAccount(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
 
-		assertSteadyResource();
-	}
+        assertSteadyResource();
+    }
 
-	@Override
-	protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
-		super.checkAccountWill(shadow, result, startTs, endTs);
-		assertPassword(shadow.asObjectable(), accountWillCurrentPassword);
-	}
+    @Override
+    protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
+        super.checkAccountWill(shadow, result, startTs, endTs);
+        assertPassword(shadow.asObjectable(), accountWillCurrentPassword);
+    }
 
 }

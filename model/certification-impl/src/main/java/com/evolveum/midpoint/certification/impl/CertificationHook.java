@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.certification.impl;
@@ -44,66 +44,66 @@ import java.util.stream.Collectors;
 @Component
 public class CertificationHook implements ChangeHook {
 
-	private static final Trace LOGGER = TraceManager.getTrace(CertificationHook.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CertificationHook.class);
 
-	private static final String HOOK_URI = SchemaConstants.NS_MODEL + "/certification-hook-3";
+    private static final String HOOK_URI = SchemaConstants.NS_MODEL + "/certification-hook-3";
 
-	@Autowired private HookRegistry hookRegistry;
-	@Autowired private CertificationManagerImpl certificationManager;
+    @Autowired private HookRegistry hookRegistry;
+    @Autowired private CertificationManagerImpl certificationManager;
 
-	@PostConstruct
+    @PostConstruct
     public void init() {
         hookRegistry.registerChangeHook(HOOK_URI, this);
         LOGGER.trace("CertificationHook registered.");
     }
 
-	@Override
-	public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
-			@NotNull OperationResult result) {
-		if (context.getState() != ModelState.FINAL) {
+    @Override
+    public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
+            @NotNull OperationResult result) {
+        if (context.getState() != ModelState.FINAL) {
             return HookOperationMode.FOREGROUND;
         }
-		LensElementContext<O> focusContext = (LensElementContext<O>) context.getFocusContext();
-		if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-			return HookOperationMode.FOREGROUND;
-		}
-		List<CertificationPolicyActionType> actions = new ArrayList<>();
-		actions.addAll(getFocusCertificationActions(context));
-		actions.addAll(getAssignmentCertificationActions(context));
-		try {
-			certificationManager.startAdHocCertifications(focusContext.getObjectAny(), actions, task, result);
-		} catch (CommonException e) {
-			throw new SystemException("Couldn't start ad-hoc campaign(s): " + e.getMessage(), e);
-		}
-		return HookOperationMode.FOREGROUND;
-	}
+        LensElementContext<O> focusContext = (LensElementContext<O>) context.getFocusContext();
+        if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+            return HookOperationMode.FOREGROUND;
+        }
+        List<CertificationPolicyActionType> actions = new ArrayList<>();
+        actions.addAll(getFocusCertificationActions(context));
+        actions.addAll(getAssignmentCertificationActions(context));
+        try {
+            certificationManager.startAdHocCertifications(focusContext.getObjectAny(), actions, task, result);
+        } catch (CommonException e) {
+            throw new SystemException("Couldn't start ad-hoc campaign(s): " + e.getMessage(), e);
+        }
+        return HookOperationMode.FOREGROUND;
+    }
 
-	private Collection<CertificationPolicyActionType> getFocusCertificationActions(ModelContext<?> context) {
-		return getCertificationActions(context.getFocusContext().getPolicyRules());
-	}
+    private Collection<CertificationPolicyActionType> getFocusCertificationActions(ModelContext<?> context) {
+        return getCertificationActions(context.getFocusContext().getPolicyRules());
+    }
 
-	private Collection<CertificationPolicyActionType> getAssignmentCertificationActions(ModelContext<?> context) {
-		DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-		if (evaluatedAssignmentTriple == null) {
-			return Collections.emptyList();
-		} else {
-			return evaluatedAssignmentTriple.stream()
-					.flatMap(ea -> getCertificationActions(ea.getAllTargetsPolicyRules()).stream())
-					.collect(Collectors.toList());
-		}
-	}
+    private Collection<CertificationPolicyActionType> getAssignmentCertificationActions(ModelContext<?> context) {
+        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+        if (evaluatedAssignmentTriple == null) {
+            return Collections.emptyList();
+        } else {
+            return evaluatedAssignmentTriple.stream()
+                    .flatMap(ea -> getCertificationActions(ea.getAllTargetsPolicyRules()).stream())
+                    .collect(Collectors.toList());
+        }
+    }
 
-	private Collection<CertificationPolicyActionType> getCertificationActions(Collection<EvaluatedPolicyRule> policyRules) {
-		return policyRules.stream()
-				.filter(r -> r.isTriggered() && r.containsEnabledAction(CertificationPolicyActionType.class))
-				.map(r -> r.getEnabledAction(CertificationPolicyActionType.class))
-				.collect(Collectors.toList());
-	}
+    private Collection<CertificationPolicyActionType> getCertificationActions(Collection<EvaluatedPolicyRule> policyRules) {
+        return policyRules.stream()
+                .filter(r -> r.isTriggered() && r.containsEnabledAction(CertificationPolicyActionType.class))
+                .map(r -> r.getEnabledAction(CertificationPolicyActionType.class))
+                .collect(Collectors.toList());
+    }
 
-	@Override
-	public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task,
-			@NotNull OperationResult result) {
-		// Nothing to do
-	}
+    @Override
+    public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task,
+            @NotNull OperationResult result) {
+        // Nothing to do
+    }
 
 }

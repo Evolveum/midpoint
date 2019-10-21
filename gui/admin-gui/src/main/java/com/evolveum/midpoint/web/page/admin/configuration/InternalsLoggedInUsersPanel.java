@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.configuration;
@@ -45,7 +45,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
     private static final String ID_TABLE = "table";
 
     private static final String DOT_CLASS = InternalsLoggedInUsersPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_PRINCIPALS_REMOte_NODES = DOT_CLASS + "loadPrincipalsFromRemoteNodes";
+    private static final String OPERATION_LOAD_PRINCIPALS_REMOTE_NODES = DOT_CLASS + "loadPrincipalsFromRemoteNodes";
 
     public InternalsLoggedInUsersPanel(String id) {
         super(id);
@@ -112,7 +112,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
     }
 
     private List<UserSessionManagementType> loadLoggedIUsersFromAllNodes() {
-        OperationResult result = new OperationResult(OPERATION_LOAD_PRINCIPALS_REMOte_NODES);
+        OperationResult result = new OperationResult(OPERATION_LOAD_PRINCIPALS_REMOTE_NODES);
 
         List<UserSessionManagementType> loggedUsers = getPageBase().getModelInteractionService().getLoggedInUsers();
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,8 +20,8 @@ public class InfraInitialSetup {
     private static final Trace LOGGER = TraceManager.getTrace(InfraInitialSetup.class);
 
     public void init() {
-    	PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-    	// Make sure that JUL is loaded in the main classloader
-    	java.util.logging.Logger logger = java.util.logging.Logger.getLogger(InfraInitialSetup.class.getName());
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        // Make sure that JUL is loaded in the main classloader
+        java.util.logging.Logger logger = java.util.logging.Logger.getLogger(InfraInitialSetup.class.getName());
     }
 }

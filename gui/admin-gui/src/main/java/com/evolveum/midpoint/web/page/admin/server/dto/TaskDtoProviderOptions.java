@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,7 +28,7 @@ public class TaskDtoProviderOptions implements Serializable {
     private boolean getTaskParent = true;
     private boolean retrieveSiblings = true;
     private boolean retrieveOperationResult = true;
-	private boolean createHandlerDto = true;
+    private boolean createHandlerDto = true;
 
     public static TaskDtoProviderOptions minimalOptions() {
         TaskDtoProviderOptions options = new TaskDtoProviderOptions();
@@ -39,9 +39,9 @@ public class TaskDtoProviderOptions implements Serializable {
         options.setRetrieveModelContext(false);
         options.setRetrieveWorkflowContext(false);
         options.setGetTaskParent(false);
-		options.setRetrieveSiblings(false);
-		options.setRetrieveOperationResult(false);
-		options.setCreateHandlerDto(false);
+        options.setRetrieveSiblings(false);
+        options.setRetrieveOperationResult(false);
+        options.setCreateHandlerDto(false);
         return options;
     }
 
@@ -89,15 +89,15 @@ public class TaskDtoProviderOptions implements Serializable {
         this.retrieveModelContext = retrieveModelContext;
     }
 
-	public boolean isRetrieveWorkflowContext() {
-		return retrieveWorkflowContext;
-	}
+    public boolean isRetrieveWorkflowContext() {
+        return retrieveWorkflowContext;
+    }
 
-	public void setRetrieveWorkflowContext(boolean retrieveWorkflowContext) {
-		this.retrieveWorkflowContext = retrieveWorkflowContext;
-	}
+    public void setRetrieveWorkflowContext(boolean retrieveWorkflowContext) {
+        this.retrieveWorkflowContext = retrieveWorkflowContext;
+    }
 
-	public boolean isGetTaskParent() {
+    public boolean isGetTaskParent() {
         return getTaskParent;
     }
 
@@ -105,27 +105,27 @@ public class TaskDtoProviderOptions implements Serializable {
         this.getTaskParent = getTaskParent;
     }
 
-	public boolean isRetrieveSiblings() {
-		return retrieveSiblings;
-	}
+    public boolean isRetrieveSiblings() {
+        return retrieveSiblings;
+    }
 
-	public void setRetrieveSiblings(boolean retrieveSiblings) {
-		this.retrieveSiblings = retrieveSiblings;
-	}
+    public void setRetrieveSiblings(boolean retrieveSiblings) {
+        this.retrieveSiblings = retrieveSiblings;
+    }
 
-	public boolean isRetrieveOperationResult() {
-		return retrieveOperationResult;
-	}
+    public boolean isRetrieveOperationResult() {
+        return retrieveOperationResult;
+    }
 
-	public void setRetrieveOperationResult(boolean retrieveOperationResult) {
-		this.retrieveOperationResult = retrieveOperationResult;
-	}
+    public void setRetrieveOperationResult(boolean retrieveOperationResult) {
+        this.retrieveOperationResult = retrieveOperationResult;
+    }
 
-	public boolean isCreateHandlerDto() {
-		return createHandlerDto;
-	}
+    public boolean isCreateHandlerDto() {
+        return createHandlerDto;
+    }
 
-	public void setCreateHandlerDto(boolean createHandlerDto) {
-		this.createHandlerDto = createHandlerDto;
-	}
+    public void setCreateHandlerDto(boolean createHandlerDto) {
+        this.createHandlerDto = createHandlerDto;
+    }
 }

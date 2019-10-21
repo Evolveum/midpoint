@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,35 +22,35 @@ import java.util.Collection;
  */
 public class ObjectPolicyRuleEvaluationContext<AH extends AssignmentHolderType> extends PolicyRuleEvaluationContext<AH> {
 
-	ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx,
-			LensContext<AH> context, Task task) {
-		this(policyRule, globalCtx, context, task, ObjectState.AFTER);
-	}
+    ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx,
+            LensContext<AH> context, Task task) {
+        this(policyRule, globalCtx, context, task, ObjectState.AFTER);
+    }
 
-	private ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx,
-			LensContext<AH> context, Task task,
-			ObjectState state) {
-		super(policyRule, context, task, globalCtx, state);
-	}
+    private ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx,
+            LensContext<AH> context, Task task,
+            ObjectState state) {
+        super(policyRule, context, task, globalCtx, state);
+    }
 
-	@Override
-	public PolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state) {
-		return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, lensContext, task, state);
-	}
+    @Override
+    public PolicyRuleEvaluationContext<AH> cloneWithStateConstraints(ObjectState state) {
+        return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, lensContext, task, state);
+    }
 
-	@Override
-	public void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-		focusContext.triggerRule(policyRule, triggers);
-	}
+    @Override
+    public void triggerRule(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        focusContext.triggerRule(policyRule, triggers);
+    }
 
-	@Override
-	public String getShortDescription() {
-		return ObjectTypeUtil.toShortString(focusContext.getObjectAny()) + " / " + state;
-	}
+    @Override
+    public String getShortDescription() {
+        return ObjectTypeUtil.toShortString(focusContext.getObjectAny()) + " / " + state;
+    }
 
-	@SuppressWarnings({ "CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod" })
-	@Override
-	public ObjectPolicyRuleEvaluationContext<AH> clone() {
-		return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, lensContext, task);
-	}
+    @SuppressWarnings({ "CloneDoesntDeclareCloneNotSupportedException", "MethodDoesntCallSuperMethod" })
+    @Override
+    public ObjectPolicyRuleEvaluationContext<AH> clone() {
+        return new ObjectPolicyRuleEvaluationContext<>(policyRule, globalCtx, lensContext, task);
+    }
 }

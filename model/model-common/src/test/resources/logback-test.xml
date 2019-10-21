@@ -2,37 +2,37 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <configuration>
-	<appender name="X" class="ch.qos.logback.core.FileAppender">
-		<file>./target/test.log</file>
-		<encoder>
-			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
-		</encoder>
-	</appender>
+    <appender name="X" class="ch.qos.logback.core.FileAppender">
+        <file>./target/test.log</file>
+        <encoder>
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+        </encoder>
+    </appender>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
-	<logger name="com.evolveum.midpoint.schema" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.repo.expression" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.common.expression" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.common.mapping" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model" level="TRACE" />
-	<!-- Projector "TRACE" is just too much info ... -->
-	<logger name="com.evolveum.midpoint.model.lens.projector" level="TRACE" />
-	<!-- ... and expression trace as well -->
-	<logger name="com.evolveum.midpoint.model.common.expression.Expression" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.common.expression.functions" level="TRACE" />
-	<logger name="com.evolveum.midpoint.common.monitor" level="TRACE" />
-	<logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="TRACE" />
-	<logger name="com.evolveum.midpoint.test" level="TRACE" />
-	<logger name="PROFILING" level="TRACE" />
-	<root level="INFO">
-		<appender-ref ref="X" />
-	</root>
+    <logger name="com.evolveum.midpoint.schema" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.repo.expression" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.common.expression" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.common.mapping" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model" level="TRACE" />
+    <!-- Projector "TRACE" is just too much info ... -->
+    <logger name="com.evolveum.midpoint.model.lens.projector" level="TRACE" />
+    <!-- ... and expression trace as well -->
+    <logger name="com.evolveum.midpoint.model.common.expression.Expression" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.common.expression.functions" level="TRACE" />
+    <logger name="com.evolveum.midpoint.common.monitor" level="TRACE" />
+    <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.repo" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="TRACE" />
+    <logger name="com.evolveum.midpoint.test" level="TRACE" />
+    <logger name="PROFILING" level="TRACE" />
+    <root level="INFO">
+        <appender-ref ref="X" />
+    </root>
 </configuration>
 

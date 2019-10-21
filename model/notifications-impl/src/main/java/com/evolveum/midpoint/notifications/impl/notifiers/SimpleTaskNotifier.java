@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -53,8 +53,8 @@ public class SimpleTaskNotifier extends GeneralNotifier {
 
     @Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-		final TaskEvent taskEvent = (TaskEvent) event;
-		final String taskName = PolyString.getOrig(taskEvent.getTask().getName());
+        final TaskEvent taskEvent = (TaskEvent) event;
+        final String taskName = PolyString.getOrig(taskEvent.getTask().getName());
 
         if (event.isAdd()) {
             return "Task '" + taskName + "' start notification";
@@ -67,34 +67,34 @@ public class SimpleTaskNotifier extends GeneralNotifier {
 
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task opTask, OperationResult opResult) throws SchemaException {
-		final TaskEvent taskEvent = (TaskEvent) event;
-		final Task task = taskEvent.getTask();
-		final String taskName = PolyString.getOrig(task.getName());
+        final TaskEvent taskEvent = (TaskEvent) event;
+        final Task task = taskEvent.getTask();
+        final String taskName = PolyString.getOrig(task.getName());
 
         StringBuilder body = new StringBuilder();
 
         body.append("Notification about task-related operation.\n\n");
-		body.append("Task: ").append(taskName).append("\n");
-		body.append("Handler: ").append(task.getHandlerUri()).append("\n\n");
-		if (taskEvent.getTaskRunResult() != null) {
-			body.append("Run result status: ").append(taskEvent.getTaskRunResult().getRunResultStatus()).append("\n");
-		}
-		body.append("Status: ").append(taskEvent.getOperationResultStatus()).append("\n");
-		String message = taskEvent.getMessage();
-		if (StringUtils.isNotBlank(message)) {
-			body.append("Message: ").append(message).append("\n");
-		}
-		body.append("Progress: ").append(taskEvent.getProgress()).append("\n");
-		body.append("\n");
+        body.append("Task: ").append(taskName).append("\n");
+        body.append("Handler: ").append(task.getHandlerUri()).append("\n\n");
+        if (taskEvent.getTaskRunResult() != null) {
+            body.append("Run result status: ").append(taskEvent.getTaskRunResult().getRunResultStatus()).append("\n");
+        }
+        body.append("Status: ").append(taskEvent.getOperationResultStatus()).append("\n");
+        String message = taskEvent.getMessage();
+        if (StringUtils.isNotBlank(message)) {
+            body.append("Message: ").append(message).append("\n");
+        }
+        body.append("Progress: ").append(taskEvent.getProgress()).append("\n");
+        body.append("\n");
         body.append("Notification created on: ").append(new Date()).append("\n\n");
 
-		if (task.getOwner() != null) {
-			UserType owner = task.getOwner().asObjectable();
-			body.append("Task owner: ");
-			body.append(owner.getFullName()).append(" (").append(owner.getName()).append(")");
-			body.append("\n");
-		}
-		body.append("Channel: ").append(event.getChannel()).append("\n\n");
+        if (task.getOwner() != null) {
+            UserType owner = task.getOwner().asObjectable();
+            body.append("Task owner: ");
+            body.append(owner.getFullName()).append(" (").append(owner.getName()).append(")");
+            body.append("\n");
+        }
+        body.append("Channel: ").append(event.getChannel()).append("\n\n");
 
         return body.toString();
     }

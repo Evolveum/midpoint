@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.util;
@@ -52,57 +52,57 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  */
 public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectType, H extends AbstractSearchIterativeResultHandler<O>> extends AbstractSearchIterativeTaskHandler<O,H> {
 
-	// WARNING! This task handler is efficiently singleton!
-	// It is a spring bean and it is supposed to handle all search task instances
-	// Therefore it must not have task-specific fields. It can only contain fields specific to
-	// all tasks of a specified type
-	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
+    // WARNING! This task handler is efficiently singleton!
+    // It is a spring bean and it is supposed to handle all search task instances
+    // Therefore it must not have task-specific fields. It can only contain fields specific to
+    // all tasks of a specified type
+    // If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
 
-	@Autowired protected ModelObjectResolver modelObjectResolver;
-	@Autowired protected SecurityEnforcer securityEnforcer;
-	@Autowired protected ExpressionFactory expressionFactory;
-	@Autowired protected SystemObjectCache systemObjectCache;
+    @Autowired protected ModelObjectResolver modelObjectResolver;
+    @Autowired protected SecurityEnforcer securityEnforcer;
+    @Autowired protected ExpressionFactory expressionFactory;
+    @Autowired protected SystemObjectCache systemObjectCache;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeModelTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeModelTaskHandler.class);
 
-	protected AbstractSearchIterativeModelTaskHandler(String taskName, String taskOperationPrefix) {
-		super(taskName, taskOperationPrefix);
-	}
+    protected AbstractSearchIterativeModelTaskHandler(String taskName, String taskOperationPrefix) {
+        super(taskName, taskOperationPrefix);
+    }
 
-	@Override
-	protected ObjectQuery preProcessQuery(ObjectQuery query, Task coordinatorTask, OperationResult opResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		// TODO consider which variables should go here (there's no focus, shadow, resource - only configuration)
-		if (ExpressionUtil.hasExpressions(query.getFilter())) {
-			PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(opResult);
-			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, null, null,
-					configuration != null ? configuration.asObjectable() : null, prismContext);
-			try {
-				ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(coordinatorTask, opResult);
-				ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
-				query = ExpressionUtil.evaluateQueryExpressions(query, variables, getExpressionProfile(), expressionFactory,
-						prismContext, "evaluate query expressions", coordinatorTask, opResult);
-			} finally {
-				ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-			}
-		}
-		
-		return query;
-	}
+    @Override
+    protected ObjectQuery preProcessQuery(ObjectQuery query, Task coordinatorTask, OperationResult opResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        // TODO consider which variables should go here (there's no focus, shadow, resource - only configuration)
+        if (ExpressionUtil.hasExpressions(query.getFilter())) {
+            PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(opResult);
+            ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, null, null,
+                    configuration != null ? configuration.asObjectable() : null, prismContext);
+            try {
+                ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(coordinatorTask, opResult);
+                ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
+                query = ExpressionUtil.evaluateQueryExpressions(query, variables, getExpressionProfile(), expressionFactory,
+                        prismContext, "evaluate query expressions", coordinatorTask, opResult);
+            } finally {
+                ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+            }
+        }
 
-	@Override
-	protected <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> queryOptions, Task coordinatorTask, OperationResult opResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		return modelObjectResolver.countObjects(type, query, queryOptions, coordinatorTask, opResult);
-	}
-	
-	@Override
-	protected <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> searchOptions, ResultHandler<O> resultHandler, Task coordinatorTask, OperationResult opResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		modelObjectResolver.searchIterative(type, query, searchOptions, resultHandler, coordinatorTask, opResult);
-	}
-	
+        return query;
+    }
+
+    @Override
+    protected <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> queryOptions, Task coordinatorTask, OperationResult opResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        return modelObjectResolver.countObjects(type, query, queryOptions, coordinatorTask, opResult);
+    }
+
+    @Override
+    protected <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> searchOptions, ResultHandler<O> resultHandler, Task coordinatorTask, OperationResult opResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        modelObjectResolver.searchIterative(type, query, searchOptions, resultHandler, coordinatorTask, opResult);
+    }
+
     protected <T extends ObjectType> T resolveObjectRef(Class<T> type, TaskRunResult runResult, Task task, OperationResult opResult) {
-    	String typeName = type.getSimpleName();
-    	String objectOid = task.getObjectOid();
+        String typeName = type.getSimpleName();
+        String objectOid = task.getObjectOid();
         if (objectOid == null) {
             LOGGER.error("Import: No {} OID specified in the task", typeName);
             opResult.recordFatalError("No "+typeName+" OID specified in the task");
@@ -113,7 +113,7 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
         T objectType;
         try {
 
-        	objectType = modelObjectResolver.getObject(type, objectOid, null, task, opResult);
+            objectType = modelObjectResolver.getObject(type, objectOid, null, task, opResult);
 
         } catch (ObjectNotFoundException ex) {
             LOGGER.error("Import: {} {} not found: {}", typeName, objectOid, ex.getMessage(), ex);
@@ -136,26 +136,26 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
         } catch (CommunicationException ex) {
-        	LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
+            LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
             opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
             return null;
-		} catch (ConfigurationException ex) {
-			LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
+        } catch (ConfigurationException ex) {
+            LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
             opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
-		} catch (SecurityViolationException ex) {
-			LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
+        } catch (SecurityViolationException ex) {
+            LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
             opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
-		} catch (ExpressionEvaluationException ex) {
-			LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
+        } catch (ExpressionEvaluationException ex) {
+            LOGGER.error("Import: Error getting {} {}: {}", typeName, objectOid, ex.getMessage(), ex);
             opResult.recordFatalError("Error getting "+typeName+" " + objectOid+": "+ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
-		}
+        }
 
         if (objectType == null) {
             LOGGER.error("Import: No "+typeName+" specified");
@@ -168,14 +168,14 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
     }
 
     protected ModelExecuteOptions getExecuteOptionsFromTask(Task task) {
-		PrismProperty<ModelExecuteOptionsType> property = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-		return property != null ? ModelExecuteOptions.fromModelExecutionOptionsType(property.getRealValue()) : null;
-	}
+        PrismProperty<ModelExecuteOptionsType> property = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+        return property != null ? ModelExecuteOptions.fromModelExecutionOptionsType(property.getRealValue()) : null;
+    }
 
-	@Override
-	protected void checkRawAuthorization(Task task, OperationResult result)
-			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-			ConfigurationException, ExpressionEvaluationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result);
-	}
+    @Override
+    protected void checkRawAuthorization(Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result);
+    }
 }

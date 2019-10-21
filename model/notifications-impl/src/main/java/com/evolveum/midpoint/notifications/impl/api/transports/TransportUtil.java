@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -47,120 +47,120 @@ public class TransportUtil {
         fw.close();
     }
 
-	public static <T extends NotificationTransportConfigurationType> T getTransportConfiguration(String transportName, String baseTransportName,
-			Function<NotificationConfigurationType, List<T>> getter, RepositoryService cacheRepositoryService,
-			OperationResult result) {
+    public static <T extends NotificationTransportConfigurationType> T getTransportConfiguration(String transportName, String baseTransportName,
+            Function<NotificationConfigurationType, List<T>> getter, RepositoryService cacheRepositoryService,
+            OperationResult result) {
 
-		SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, result);
-		if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
-			return null;
-		}
+        SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, result);
+        if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
+            return null;
+        }
 
-		String transportConfigName = transportName.length() > baseTransportName.length() ? transportName.substring(baseTransportName.length() + 1) : null;      // after e.g. "sms:" or "file:"
-		for (T namedConfiguration: getter.apply(systemConfiguration.getNotificationConfiguration())) {
-			if ((transportConfigName == null && namedConfiguration.getName() == null) || (transportConfigName != null && transportConfigName.equals(namedConfiguration.getName()))) {
-				return namedConfiguration;
-			}
-		}
-		return null;
-	}
+        String transportConfigName = transportName.length() > baseTransportName.length() ? transportName.substring(baseTransportName.length() + 1) : null;      // after e.g. "sms:" or "file:"
+        for (T namedConfiguration: getter.apply(systemConfiguration.getNotificationConfiguration())) {
+            if ((transportConfigName == null && namedConfiguration.getName() == null) || (transportConfigName != null && transportConfigName.equals(namedConfiguration.getName()))) {
+                return namedConfiguration;
+            }
+        }
+        return null;
+    }
 
-	public static void appendToFile(String fileName, String messageText, Trace logger, OperationResult result) {
-		try {
-			TransportUtil.appendToFile(fileName, messageText);
-			result.recordSuccess();
-		} catch (Throwable t) {
-			LoggingUtils.logUnexpectedException(logger, "Couldn't write the notification to a file {}", t, fileName);
-			result.recordPartialError("Couldn't write the notification to a file " + fileName, t);
-		}
-	}
+    public static void appendToFile(String fileName, String messageText, Trace logger, OperationResult result) {
+        try {
+            TransportUtil.appendToFile(fileName, messageText);
+            result.recordSuccess();
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(logger, "Couldn't write the notification to a file {}", t, fileName);
+            result.recordPartialError("Couldn't write the notification to a file " + fileName, t);
+        }
+    }
 
-	public static void logToFile(String fileName, String messageText, Trace logger) {
-		try {
-			TransportUtil.appendToFile(fileName, messageText);
-		} catch (Throwable t) {
-			LoggingUtils.logUnexpectedException(logger, "Couldn't write the notification to a file {}", t, fileName);
-		}
-	}
+    public static void logToFile(String fileName, String messageText, Trace logger) {
+        try {
+            TransportUtil.appendToFile(fileName, messageText);
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(logger, "Couldn't write the notification to a file {}", t, fileName);
+        }
+    }
 
-	public static String formatToFileOld(Message message) {
-		return "============================================ " + "\n" +new Date() + "\n" + message.toString() + "\n\n";
-	}
+    public static String formatToFileOld(Message message) {
+        return "============================================ " + "\n" +new Date() + "\n" + message.toString() + "\n\n";
+    }
 
-	public static String formatToFileNew(Message message, String transport) {
-		return "================ " + new Date() + " ======= [" + transport + "]\n" + message.debugDump() + "\n\n";
-	}
-	
-	public static boolean isRecipientAllowed(String recipient, NotificationTransportConfigurationType transportConfigurationType,
-			Task task, OperationResult result, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile, Trace logger) {
-		if (optionsForFilteringRecipient(transportConfigurationType) > 1) {
-			throw new IllegalArgumentException("Couln't use more as one choise from 'blackList', 'whiteList' and 'recipientFilterExpression'");
-		}
-		ExpressionType filter = transportConfigurationType.getRecipientFilterExpression();
-		if (filter != null) {
-			ExpressionVariables variables = new ExpressionVariables();
-			variables.put("recipientAddress", recipient, String.class);
-			try {
-				PrismPropertyValue<Boolean> allowedRecipient = ExpressionUtil.evaluateCondition(variables, filter, expressionProfile,
-						expressionFactory, "Recipient filter", task, result);
-				if(allowedRecipient == null) {
-					throw new IllegalArgumentException("Return value from expresion for filtering recipient is null");
-				}
-				return allowedRecipient.getValue();
-			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-					| ConfigurationException | SecurityViolationException e) {
-				LoggingUtils.logUnexpectedException(logger, "Couldn't execute filter for recipient", e);
-			}
-		}
-		List<String> whiteList = transportConfigurationType.getWhiteList();
-		if (!whiteList.isEmpty()) {
-			for (String allowedRecipient : whiteList) {
-				String regexAllowedRecipient = allowedRecipient.replace("*", ".{0,}");
-				if (recipient.matches(regexAllowedRecipient)) {
-					return true;
-				}
-			}
-			return false;
-		}
-		
-		List<String> blackList = transportConfigurationType.getBlackList();
-		for (String forbiddenRecipient : blackList) {
-			String regexForbiddenRecipient = forbiddenRecipient.replace("*", ".{0,}");
-			if (recipient.matches(regexForbiddenRecipient)) {
-				return false;
-			}
-		}
-		
-		return true;
-	}
+    public static String formatToFileNew(Message message, String transport) {
+        return "================ " + new Date() + " ======= [" + transport + "]\n" + message.debugDump() + "\n\n";
+    }
 
-	public static int optionsForFilteringRecipient(
-			NotificationTransportConfigurationType transportConfigurationType) {
-		int choises = 0;
-		if (transportConfigurationType.getRecipientFilterExpression() != null) {
-			choises++;
-		}
-		if (!transportConfigurationType.getBlackList().isEmpty()) {
-			choises++;
-		}
-		if (!transportConfigurationType.getWhiteList().isEmpty()) {
-			choises++;
-		}
-		return choises;
-	}
-	
-	public static void validateRecipient(List<String> allowedRecipient, List<String> forbiddenRecipient, List<String> recipients,
-    		NotificationTransportConfigurationType transportConfigurationType, Task task, OperationResult result, ExpressionFactory expressionFactory,
-    		ExpressionProfile expressionProfile, Trace logger) {
-    	for (String recipient : recipients) {
-    		if (TransportUtil.isRecipientAllowed(recipient, transportConfigurationType, task, result, expressionFactory, expressionProfile, logger)) {
-    			logger.debug("Recipient " + recipient + "is allowed");
-    			allowedRecipient.add(recipient);
-			} else {
-				logger.debug("Recipient " + recipient + "is forbidden");
-				forbiddenRecipient.add(recipient);
-			}
-    	}
-		
-	}
+    public static boolean isRecipientAllowed(String recipient, NotificationTransportConfigurationType transportConfigurationType,
+            Task task, OperationResult result, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile, Trace logger) {
+        if (optionsForFilteringRecipient(transportConfigurationType) > 1) {
+            throw new IllegalArgumentException("Couln't use more as one choise from 'blackList', 'whiteList' and 'recipientFilterExpression'");
+        }
+        ExpressionType filter = transportConfigurationType.getRecipientFilterExpression();
+        if (filter != null) {
+            ExpressionVariables variables = new ExpressionVariables();
+            variables.put("recipientAddress", recipient, String.class);
+            try {
+                PrismPropertyValue<Boolean> allowedRecipient = ExpressionUtil.evaluateCondition(variables, filter, expressionProfile,
+                        expressionFactory, "Recipient filter", task, result);
+                if(allowedRecipient == null) {
+                    throw new IllegalArgumentException("Return value from expresion for filtering recipient is null");
+                }
+                return allowedRecipient.getValue();
+            } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+                    | ConfigurationException | SecurityViolationException e) {
+                LoggingUtils.logUnexpectedException(logger, "Couldn't execute filter for recipient", e);
+            }
+        }
+        List<String> whiteList = transportConfigurationType.getWhiteList();
+        if (!whiteList.isEmpty()) {
+            for (String allowedRecipient : whiteList) {
+                String regexAllowedRecipient = allowedRecipient.replace("*", ".{0,}");
+                if (recipient.matches(regexAllowedRecipient)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        List<String> blackList = transportConfigurationType.getBlackList();
+        for (String forbiddenRecipient : blackList) {
+            String regexForbiddenRecipient = forbiddenRecipient.replace("*", ".{0,}");
+            if (recipient.matches(regexForbiddenRecipient)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static int optionsForFilteringRecipient(
+            NotificationTransportConfigurationType transportConfigurationType) {
+        int choises = 0;
+        if (transportConfigurationType.getRecipientFilterExpression() != null) {
+            choises++;
+        }
+        if (!transportConfigurationType.getBlackList().isEmpty()) {
+            choises++;
+        }
+        if (!transportConfigurationType.getWhiteList().isEmpty()) {
+            choises++;
+        }
+        return choises;
+    }
+
+    public static void validateRecipient(List<String> allowedRecipient, List<String> forbiddenRecipient, List<String> recipients,
+            NotificationTransportConfigurationType transportConfigurationType, Task task, OperationResult result, ExpressionFactory expressionFactory,
+            ExpressionProfile expressionProfile, Trace logger) {
+        for (String recipient : recipients) {
+            if (TransportUtil.isRecipientAllowed(recipient, transportConfigurationType, task, result, expressionFactory, expressionProfile, logger)) {
+                logger.debug("Recipient " + recipient + "is allowed");
+                allowedRecipient.add(recipient);
+            } else {
+                logger.debug("Recipient " + recipient + "is forbidden");
+                forbiddenRecipient.add(recipient);
+            }
+        }
+
+    }
 }

@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
   <!-- MID-2860 -->
@@ -14,22 +14,22 @@
     <name>Antinihilist</name>
     <description>Role that fears non-existece. It will die if there is attempt to assign it for non-existent account.</description>
     <inducement>
-    	<construction >
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction >
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-                		<script>
-                			<code>
-                				assert midpoint.isProjectionExists()
-                				return 'Antinihilist'
-                			</code>
-                		</script>
-					</expression>
-				</outbound>
+                    <expression>
+                        <script>
+                            <code>
+                                assert midpoint.isProjectionExists()
+                                return 'Antinihilist'
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 </role>

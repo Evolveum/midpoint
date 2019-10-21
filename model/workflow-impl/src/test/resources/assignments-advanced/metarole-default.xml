@@ -1,36 +1,36 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	  oid="00000001-d34d-b33f-f00d-M00000000001">
-	<name>Metarole 1 'default'</name>
-	<description>Treats assignments and modifications in the default way (but with specific approver/owner relations)</description>
-	<inducement>
-		<policyRule>
-			<policyConstraints>
-				<assignment>
-					<operation>add</operation>		<!-- applies to all "add assignment" operations of this metarole-bearer as the target -->
-					<relation>q:any</relation>
-				</assignment>
-			</policyConstraints>
-			<policyActions>
-				<approval>
-					<compositionStrategy>
-						<order>1</order>
-					</compositionStrategy>
-					<approvalSchema>
-						<stage>
-							<approverRelation>special-approver</approverRelation>
-							<outcomeIfNoApprovers>skip</outcomeIfNoApprovers>		<!-- so e.g. for role4b no approval process is started -->
-						</stage>
-					</approvalSchema>
-				</approval>
-			</policyActions>
-		</policyRule>
-	</inducement>
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      oid="00000001-d34d-b33f-f00d-M00000000001">
+    <name>Metarole 1 'default'</name>
+    <description>Treats assignments and modifications in the default way (but with specific approver/owner relations)</description>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>        <!-- applies to all "add assignment" operations of this metarole-bearer as the target -->
+                    <relation>q:any</relation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>1</order>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <stage>
+                            <approverRelation>special-approver</approverRelation>
+                            <outcomeIfNoApprovers>skip</outcomeIfNoApprovers>        <!-- so e.g. for role4b no approval process is started -->
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
 </role>

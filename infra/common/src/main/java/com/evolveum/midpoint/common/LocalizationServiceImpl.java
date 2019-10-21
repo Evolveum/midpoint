@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -44,7 +44,7 @@ public class LocalizationServiceImpl implements LocalizationService {
     private static final Trace LOG = TraceManager.getTrace(LocalizationServiceImpl.class);
 
     private List<MessageSource> sources = new ArrayList<>();
-    
+
     private Locale overrideLocale = null; // for tests
 
     public void init() {
@@ -69,14 +69,14 @@ public class LocalizationServiceImpl implements LocalizationService {
     }
 
     public Locale getOverrideLocale() {
-		return overrideLocale;
-	}
+        return overrideLocale;
+    }
 
-	public void setOverrideLocale(Locale overrideLocale) {
-		this.overrideLocale = overrideLocale;
-	}
+    public void setOverrideLocale(Locale overrideLocale) {
+        this.overrideLocale = overrideLocale;
+    }
 
-	@Override
+    @Override
     public String translate(String key, Object[] params, Locale locale) {
         return translate(key, params, locale, null);
     }
@@ -189,9 +189,9 @@ public class LocalizationServiceImpl implements LocalizationService {
                 LocalizableMessage msg = (LocalizableMessage) param;
                 param = translate(msg, locale);
             } else if (param instanceof PolyStringTranslationType) {
-            	param = translate((PolyStringTranslationType)param, locale);
+                param = translate((PolyStringTranslationType)param, locale);
             } else if (param instanceof PolyStringTranslationArgumentType) {
-            	param = translate((PolyStringTranslationArgumentType)param, locale);
+                param = translate((PolyStringTranslationArgumentType)param, locale);
             }
 
             translated[i] = param;
@@ -217,58 +217,58 @@ public class LocalizationServiceImpl implements LocalizationService {
         return e;
     }
 
-	@Override
-	public String translate(PolyString polyString, Locale locale, boolean allowOrig) {
-		if (polyString == null) {
-			return null;
-		}
-		if (polyString.getLang() != null) {
-			String value = polyString.getLang().get(locale.getLanguage());
-			if (value != null) {
-				return value;
-			}
-		}
-		if (polyString.getTranslation() != null) {
-			return translate(polyString.getTranslation(), locale);
-		}
-		if (allowOrig) {
+    @Override
+    public String translate(PolyString polyString, Locale locale, boolean allowOrig) {
+        if (polyString == null) {
+            return null;
+        }
+        if (polyString.getLang() != null) {
+            String value = polyString.getLang().get(locale.getLanguage());
+            if (value != null) {
+                return value;
+            }
+        }
+        if (polyString.getTranslation() != null) {
+            return translate(polyString.getTranslation(), locale);
+        }
+        if (allowOrig) {
             return polyString.getOrig();
         } else {
-		    return null;
+            return null;
         }
-	}
+    }
 
-	private String translate(PolyStringTranslationType polyStringTranslation, Locale locale) {
-		String key = polyStringTranslation.getKey();
-		if (StringUtils.isEmpty(key)) {
-			return key;
-		}
-		List<PolyStringTranslationArgumentType> arguments = polyStringTranslation.getArgument();
-		if (arguments == null) {
-			return translate(key, null, locale, polyStringTranslation.getFallback());
-		} else {
-			return translate(key, arguments.toArray(), locale, polyStringTranslation.getFallback());
-		}
-	}
-	
-	private String translate(PolyStringTranslationArgumentType polyStringTranslationArgument, Locale locale) {
-		String value = polyStringTranslationArgument.getValue();
-		if (value != null) {
-			return value;
-		}
-		PolyStringTranslationType translation = polyStringTranslationArgument.getTranslation();
-		if (translation != null) {
-			return translate(translation, locale);
-		}
-		return null; 
-	}
+    private String translate(PolyStringTranslationType polyStringTranslation, Locale locale) {
+        String key = polyStringTranslation.getKey();
+        if (StringUtils.isEmpty(key)) {
+            return key;
+        }
+        List<PolyStringTranslationArgumentType> arguments = polyStringTranslation.getArgument();
+        if (arguments == null) {
+            return translate(key, null, locale, polyStringTranslation.getFallback());
+        } else {
+            return translate(key, arguments.toArray(), locale, polyStringTranslation.getFallback());
+        }
+    }
 
-	@Override
-	public Locale getDefaultLocale() {
-		if (overrideLocale == null) {
-			return Locale.getDefault();
-		} else {
-			return overrideLocale;
-		}
-	}
+    private String translate(PolyStringTranslationArgumentType polyStringTranslationArgument, Locale locale) {
+        String value = polyStringTranslationArgument.getValue();
+        if (value != null) {
+            return value;
+        }
+        PolyStringTranslationType translation = polyStringTranslationArgument.getTranslation();
+        if (translation != null) {
+            return translate(translation, locale);
+        }
+        return null;
+    }
+
+    @Override
+    public Locale getDefaultLocale() {
+        if (overrideLocale == null) {
+            return Locale.getDefault();
+        } else {
+            return overrideLocale;
+        }
+    }
 }

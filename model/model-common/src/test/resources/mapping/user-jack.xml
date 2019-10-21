@@ -2,15 +2,15 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
- 
-<user oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20" 
+
+<user oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"  
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
         xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>jack</name>
@@ -19,30 +19,30 @@
         <t:norm>jack sparrow</t:norm>
     </fullName>
     <givenName>
-    	<t:orig>Jack</t:orig>
+        <t:orig>Jack</t:orig>
         <t:norm>jack</t:norm>
     </givenName>
     <familyName>
         <t:orig>Sparrow</t:orig>
         <t:norm>sparrow</t:norm>
-	</familyName>
+    </familyName>
     <honorificPrefix>
-    	<t:orig>Cpt.</t:orig>
+        <t:orig>Cpt.</t:orig>
         <t:norm>cpt</t:norm>
     </honorificPrefix>
     <emailAddress></emailAddress>
     <employeeType>PIRATE</employeeType>
     <organizationalUnit>
-    	<t:orig>Brethren of the Coast</t:orig>
-    	<t:norm>brethren of the coast</t:norm>
+        <t:orig>Brethren of the Coast</t:orig>
+        <t:norm>brethren of the coast</t:norm>
     </organizationalUnit>
     <organizationalUnit>
-    	<t:orig>Davie Jones' Locker</t:orig>
-    	<t:norm>davie jones locker</t:norm>
+        <t:orig>Davie Jones' Locker</t:orig>
+        <t:norm>davie jones locker</t:norm>
     </organizationalUnit>
     <locality>
-    	<t:orig>Black Pearl</t:orig>
-    	<t:norm>black pearl</t:norm>
+        <t:orig>Black Pearl</t:orig>
+        <t:norm>black pearl</t:norm>
     </locality>
     <credentials>
         <password>
@@ -55,11 +55,11 @@
         <administrativeStatus>enabled</administrativeStatus>
         <disableTimestamp>2013-05-30T09:30:00Z</disableTimestamp>
     </activation>
-    
+
     <assignment id="111">
-    	<construction>
-			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>    		
-    	</construction>
+        <construction>
+            <resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>
+        </construction>
     </assignment>
-    
+
 </user>

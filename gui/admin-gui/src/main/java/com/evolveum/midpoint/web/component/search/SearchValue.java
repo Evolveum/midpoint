@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,8 +23,8 @@ import java.util.Arrays;
 public class SearchValue<T extends Serializable> implements DisplayableValue<T>, Serializable {
 
     private static final long serialVersionUID = 1L;
-    
-	public static final String F_VALUE = "value";
+
+    public static final String F_VALUE = "value";
     public static final String F_LABEL = "label";
 
     private T value;
@@ -74,11 +74,11 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
             return valueToShow;
         }
         if (label == null){
-        	if (displayName != null) {
-        		return displayName;
-        	} else if (value != null){
+            if (displayName != null) {
+                return displayName;
+            } else if (value != null){
                 return value.toString();
-        	}
+            }
         }
 
         return label;
@@ -99,12 +99,12 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
     }
 
     public String getDisplayName() {
-		return displayName;
-	}
+        return displayName;
+    }
 
     public void setDisplayName(String displayName) {
-		this.displayName = displayName;
-	}
+        this.displayName = displayName;
+    }
 
     @Override
     public String toString() {

@@ -2,24 +2,24 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- Account that is in old format. Incomplete. Used in migration tests. -->
 
 <shadow oid="3689fda4-5c4c-11e9-b144-43a245ea74a9"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
-	<name>relic</name>
-	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<kind>account</kind>
-	<!-- No primaryIdentifierValue here -->
-	<attributes>
-		<icfs:uid>relic</icfs:uid>
-		<icfs:name>relic</icfs:name>
-	</attributes>
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
+    <name>relic</name>
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <!-- No primaryIdentifierValue here -->
+    <attributes>
+        <icfs:uid>relic</icfs:uid>
+        <icfs:name>relic</icfs:name>
+    </attributes>
 </shadow>

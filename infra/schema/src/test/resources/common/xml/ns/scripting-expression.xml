@@ -2,40 +2,40 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-	<s:sequence>
-		<s:search>
-			<s:type>RoleType</s:type>
-			<s:searchFilter>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<q:value>AAAAA</q:value>
-				</q:equal>
-			</s:searchFilter>
-		</s:search>
-		<s:action>
-			<s:type>log</s:type>
-		</s:action>
-	</s:sequence>
-	<s:sequence>
-		<s:action>
-			<s:type>delete</s:type>
-		</s:action>
-		<s:action>
-			<s:type>assign</s:type>
-			<s:parameter>
-				<s:name>role</s:name>
-				<c:value>rome555c-7797-11e2-94a6-001e8c717e5b</c:value>
-			</s:parameter>
-		</s:action>
-		<s:search>
-			<s:type>UserType</s:type>
-		</s:search>
-	</s:sequence>
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <s:sequence>
+        <s:search>
+            <s:type>RoleType</s:type>
+            <s:searchFilter>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <q:value>AAAAA</q:value>
+                </q:equal>
+            </s:searchFilter>
+        </s:search>
+        <s:action>
+            <s:type>log</s:type>
+        </s:action>
+    </s:sequence>
+    <s:sequence>
+        <s:action>
+            <s:type>delete</s:type>
+        </s:action>
+        <s:action>
+            <s:type>assign</s:type>
+            <s:parameter>
+                <s:name>role</s:name>
+                <c:value>rome555c-7797-11e2-94a6-001e8c717e5b</c:value>
+            </s:parameter>
+        </s:action>
+        <s:search>
+            <s:type>UserType</s:type>
+        </s:search>
+    </s:sequence>
 </s:pipeline>

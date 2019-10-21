@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2016 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="0a736ff6-9ca8-11e4-b820-001e8c717e5b"
@@ -12,31 +12,31 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Joker</name>
         <inducement>
-    	<construction>
-    		<!-- Resource Upcase -->
-    		<resourceRef oid="10000000-0000-0000-0000-000000001204" type="ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <!-- Resource Upcase -->
+            <resourceRef oid="10000000-0000-0000-0000-000000001204" type="ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-						<value>JoKeR</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>JoKeR</value>
+                    </expression>
+                </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<outbound>
-            		<strength>strong</strength>
-                	<expression>
-						<value>
-							<!-- group joker -->
-							<shadowRef oid="bc2a1d98-9ca4-11e4-a600-001e8c717e5b" type="ShadowType"/>
-						</value>
-					</expression>
-				</outbound>
+                <ref>ri:group</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>
+                            <!-- group joker -->
+                            <shadowRef oid="bc2a1d98-9ca4-11e4-a600-001e8c717e5b" type="ShadowType"/>
+                        </value>
+                    </expression>
+                </outbound>
             </association>
-    	</construction>
+        </construction>
     </inducement>
 
 </role>

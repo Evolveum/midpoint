@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -16,86 +16,86 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Metarole: Org Struct</name>
-    
+
     <inducement>
-    	<construction>
-    		<!-- OpenDJ resource -->
-    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-    		<kind>entitlement</kind>
+        <construction>
+            <!-- OpenDJ resource -->
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+            <kind>entitlement</kind>
             <intent>group-org-local</intent>
-    	</construction>
+        </construction>
     </inducement>
-    
+
     <inducement>
-    	<construction>
-    		<!-- OpenDJ resource -->
-    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-    		<kind>entitlement</kind>
+        <construction>
+            <!-- OpenDJ resource -->
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+            <kind>entitlement</kind>
             <intent>group-org-global</intent>
-    	
-    	<association>
-				<ref>ri:ldapGroup</ref>
-				<outbound>
-					<source>
-						<path>name</path>
-					</source>
-					<source>
-						<path>parentOrgRef</path>
-					</source>
-					<strength>strong</strength>
-					<expression>
-						<associationTargetSearch>
-							<filter>
-								<q:equal>
-									<q:path>
-											declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-	                                        declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
-											attributes/ri:dn
-									</q:path>
-									<expression>
-										<script>
-											<code>
-	import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
-	
-	log.info("ZXZXZXZX Metarole, parent association in AD for organization name = {}", name)
-	
-	
-		upstreamOrgOid = parentOrgRef?.getOid() // take first parent
-	
-		if (upstreamOrgOid) {
-			org = midpoint.getObject(OrgType, upstreamOrgOid)
-			
-			if (org != null &amp;&amp; org.getParentOrgRef() != null) {
-				log.info("ZXZXZXZXZXZX this org = {}, parent org oid = {}, will search in AD samAccountName={}, updated to={}", name, upstreamOrgOid, org.getName().toString())
-				return "cn=" + org?.getName()?.toString() + ",ou=groups,dc=example,dc=com"
-			}
-			log.info("ZXZXZX upstreamOrgOid is null or empty!!! for name = {}, thisOrg={}", name, focus)
-		} else {
-			log.info("ZXZXZX upstreamOrgOid is null or empty!!! for name = {}, thisOrg={}", name, focus)
-		}
-	
-											</code>
-										</script>
-									</expression>
-								</q:equal>
-							</filter>
-							<searchStrategy>onResourceIfNeeded</searchStrategy>
-						</associationTargetSearch>
-					</expression>
-					<condition>
-				<script>
-					<code>
-						parentOrgRef != null
-					</code>
-				</script>
-			
-		</condition>
-				</outbound>
-				
-			</association>
-		</construction>
+
+        <association>
+                <ref>ri:ldapGroup</ref>
+                <outbound>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <source>
+                        <path>parentOrgRef</path>
+                    </source>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>
+                                            declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+                                            declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
+                                            attributes/ri:dn
+                                    </q:path>
+                                    <expression>
+                                        <script>
+                                            <code>
+    import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType
+
+    log.info("ZXZXZXZX Metarole, parent association in AD for organization name = {}", name)
+
+
+        upstreamOrgOid = parentOrgRef?.getOid() // take first parent
+
+        if (upstreamOrgOid) {
+            org = midpoint.getObject(OrgType, upstreamOrgOid)
+
+            if (org != null &amp;&amp; org.getParentOrgRef() != null) {
+                log.info("ZXZXZXZXZXZX this org = {}, parent org oid = {}, will search in AD samAccountName={}, updated to={}", name, upstreamOrgOid, org.getName().toString())
+                return "cn=" + org?.getName()?.toString() + ",ou=groups,dc=example,dc=com"
+            }
+            log.info("ZXZXZX upstreamOrgOid is null or empty!!! for name = {}, thisOrg={}", name, focus)
+        } else {
+            log.info("ZXZXZX upstreamOrgOid is null or empty!!! for name = {}, thisOrg={}", name, focus)
+        }
+
+                                            </code>
+                                        </script>
+                                    </expression>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                    <condition>
+                <script>
+                    <code>
+                        parentOrgRef != null
+                    </code>
+                </script>
+
+        </condition>
+                </outbound>
+
+            </association>
+        </construction>
     </inducement>
-    
-  
-    
+
+
+
 </role>

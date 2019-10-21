@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -15,11 +15,11 @@ import com.evolveum.midpoint.task.api.Task;
  */
 public interface ChangeListener {
 
-	/**
-	 * Called when the connector learns about a resource change.
-	 * @param change The change.
+    /**
+     * Called when the connector learns about a resource change.
+     * @param change The change.
      * @return true if the change was successfully processed and can be acknowledged on the resource;
-	 * false (or a runtime exception) should be returned otherwise
-	 */
-	boolean onChange(Change change, Task task, OperationResult result);
+     * false (or a runtime exception) should be returned otherwise
+     */
+    boolean onChange(Change change, Task task, OperationResult result);
 }

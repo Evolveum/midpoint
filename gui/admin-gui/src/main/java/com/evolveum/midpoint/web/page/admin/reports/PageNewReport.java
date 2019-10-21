@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -82,10 +82,10 @@ public class PageNewReport extends PageAdmin {
     private Model<String> xmlEditorModel;
 
     public PageNewReport() {
-    	xmlEditorModel = new Model<>(null);
+        xmlEditorModel = new Model<>(null);
 
-    	initLayout();
-	}
+        initLayout();
+    }
 
     private void initLayout() {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);

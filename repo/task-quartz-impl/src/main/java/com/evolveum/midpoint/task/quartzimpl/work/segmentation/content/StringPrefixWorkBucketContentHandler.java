@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -31,46 +31,46 @@ import static java.util.Collections.emptyList;
 @Component
 public class StringPrefixWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 
-	@PostConstruct
-	public void register() {
-		registry.registerHandler(StringPrefixWorkBucketContentType.class, this);
-	}
+    @PostConstruct
+    public void register() {
+        registry.registerHandler(StringPrefixWorkBucketContentType.class, this);
+    }
 
-	@SuppressWarnings("Duplicates")
-	@NotNull
-	@Override
-	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
-			Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
+    @SuppressWarnings("Duplicates")
+    @NotNull
+    @Override
+    public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
+            Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
 
-		StringPrefixWorkBucketContentType content = (StringPrefixWorkBucketContentType) bucket.getContent();
+        StringPrefixWorkBucketContentType content = (StringPrefixWorkBucketContentType) bucket.getContent();
 
-		if (content == null || content.getPrefix().isEmpty()) {
-			return emptyList();
-		}
-		if (configuration == null) {
-			throw new IllegalStateException("No buckets configuration but having defined bucket content: " + content);
-		}
-		if (configuration.getDiscriminator() == null) {
-			throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
-		}
-		ItemPath discriminator = configuration.getDiscriminator().getItemPath();
-		ItemDefinition<?> discriminatorDefinition = itemDefinitionProvider != null ? itemDefinitionProvider.apply(discriminator) : null;
+        if (content == null || content.getPrefix().isEmpty()) {
+            return emptyList();
+        }
+        if (configuration == null) {
+            throw new IllegalStateException("No buckets configuration but having defined bucket content: " + content);
+        }
+        if (configuration.getDiscriminator() == null) {
+            throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
+        }
+        ItemPath discriminator = configuration.getDiscriminator().getItemPath();
+        ItemDefinition<?> discriminatorDefinition = itemDefinitionProvider != null ? itemDefinitionProvider.apply(discriminator) : null;
 
-		QName matchingRuleName = configuration.getMatchingRule() != null
-				? QNameUtil.uriToQName(configuration.getMatchingRule(), PrismConstants.NS_MATCHING_RULE)
-				: null;
+        QName matchingRuleName = configuration.getMatchingRule() != null
+                ? QNameUtil.uriToQName(configuration.getMatchingRule(), PrismConstants.NS_MATCHING_RULE)
+                : null;
 
-		List<ObjectFilter> prefixFilters = new ArrayList<>();
-		for (String prefix : content.getPrefix()) {
-			prefixFilters.add(prismContext.queryFor(type)
-					.item(discriminator, discriminatorDefinition).startsWith(prefix).matching(matchingRuleName)
-					.buildFilter());
-		}
-		assert !prefixFilters.isEmpty();
-		if (prefixFilters.size() > 1) {
-			return Collections.singletonList(prismContext.queryFactory().createOr(prefixFilters));
-		} else {
-			return prefixFilters;
-		}
-	}
+        List<ObjectFilter> prefixFilters = new ArrayList<>();
+        for (String prefix : content.getPrefix()) {
+            prefixFilters.add(prismContext.queryFor(type)
+                    .item(discriminator, discriminatorDefinition).startsWith(prefix).matching(matchingRuleName)
+                    .buildFilter());
+        }
+        assert !prefixFilters.isEmpty();
+        if (prefixFilters.size() > 1) {
+            return Collections.singletonList(prismContext.queryFactory().createOr(prefixFilters));
+        } else {
+            return prefixFilters;
+        }
+    }
 }

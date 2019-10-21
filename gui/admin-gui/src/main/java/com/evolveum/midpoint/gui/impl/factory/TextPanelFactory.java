@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -30,39 +30,39 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 @Component
 public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	
-	@Autowired transient GuiComponentRegistry registry;
+    private static final long serialVersionUID = 1L;
 
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
-	@Override
-	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		QName type = wrapper.getTypeName();
-		return DOMUtil.XSD_STRING.equals(type) || DOMUtil.XSD_DURATION.equals(type) || DOMUtil.XSD_LONG.equals(type)
-				|| DOMUtil.XSD_ANYURI.equals(type) || DOMUtil.XSD_INT.equals(type);
-	}
+    @Autowired transient GuiComponentRegistry registry;
 
-	@Override
-	protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
-		LookupTableType lookupTable = panelCtx.getPredefinedValues();
-		if (lookupTable == null) {
-			return new TextPanel<>(panelCtx.getComponentId(),
-					panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false);
-		}
-		
-		return new AutoCompleteTextPanel<T>(panelCtx.getComponentId(),
-				panelCtx.getRealValueModel(), panelCtx.getTypeClass(), panelCtx.hasValueEnumerationRef(), lookupTable) {
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
+    @Override
+    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+        QName type = wrapper.getTypeName();
+        return DOMUtil.XSD_STRING.equals(type) || DOMUtil.XSD_DURATION.equals(type) || DOMUtil.XSD_LONG.equals(type)
+                || DOMUtil.XSD_ANYURI.equals(type) || DOMUtil.XSD_INT.equals(type);
+    }
 
-			private static final long serialVersionUID = 1L;
+    @Override
+    protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
+        LookupTableType lookupTable = panelCtx.getPredefinedValues();
+        if (lookupTable == null) {
+            return new TextPanel<>(panelCtx.getComponentId(),
+                    panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false);
+        }
 
-			@Override
-			public Iterator<T> getIterator(String input) {
-				return (Iterator<T>) prepareAutoCompleteList(input, lookupTable, panelCtx.getPageBase().getLocalizationService()).iterator();
-			}
-		};
-	}
+        return new AutoCompleteTextPanel<T>(panelCtx.getComponentId(),
+                panelCtx.getRealValueModel(), panelCtx.getTypeClass(), panelCtx.hasValueEnumerationRef(), lookupTable) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Iterator<T> getIterator(String input) {
+                return (Iterator<T>) prepareAutoCompleteList(input, lookupTable, panelCtx.getPageBase().getLocalizationService()).iterator();
+            }
+        };
+    }
 
 }

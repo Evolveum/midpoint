@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -35,25 +35,25 @@ public class SynchronizationActionTypeDto implements Serializable{
         ACTION_DISABLE_ACCOUNT("http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableAccount", true);
 
         protected String action;
-		protected boolean deprecated;
+        protected boolean deprecated;
 
-		HandlerUriActions(String action) {
-			this(action, false);
-		}
+        HandlerUriActions(String action) {
+            this(action, false);
+        }
 
         HandlerUriActions(String action, boolean deprecated) {
             this.action = action;
-			this.deprecated = deprecated;
+            this.deprecated = deprecated;
         }
 
         public String getAction() {
             return action;
         }
 
-		public boolean isDeprecated() {			// implemented for future use (currently the deprecation flag is implemented via GUI properties)
-			return deprecated;
-		}
-	}
+        public boolean isDeprecated() {            // implemented for future use (currently the deprecation flag is implemented via GUI properties)
+            return deprecated;
+        }
+    }
 
     public static final String F_ACTION_OBJECT = "actionObject";
     public static final String F_HANDLER_URI = "handlerUri";
@@ -61,33 +61,33 @@ public class SynchronizationActionTypeDto implements Serializable{
     private SynchronizationActionType actionObject;
     private HandlerUriActions handlerUri;
 
-	public SynchronizationActionTypeDto(SynchronizationActionType action) {
-		if (action != null) {
-			actionObject = action;
-		} else {
-			actionObject = new SynchronizationActionType();
-		}
+    public SynchronizationActionTypeDto(SynchronizationActionType action) {
+        if (action != null) {
+            actionObject = action;
+        } else {
+            actionObject = new SynchronizationActionType();
+        }
 
-		HandlerUriActions[] actions = HandlerUriActions.values();
-		if (actionObject.getHandlerUri() != null) {
-			for (HandlerUriActions uriAction : actions) {
-				if (uriAction.getAction().equals(actionObject.getHandlerUri())) {
-					handlerUri = uriAction;
-					break;
-				}
-			}
-		}
-	}
+        HandlerUriActions[] actions = HandlerUriActions.values();
+        if (actionObject.getHandlerUri() != null) {
+            for (HandlerUriActions uriAction : actions) {
+                if (uriAction.getAction().equals(actionObject.getHandlerUri())) {
+                    handlerUri = uriAction;
+                    break;
+                }
+            }
+        }
+    }
 
-	public SynchronizationActionType prepareDtoToSave() {
-		if (actionObject == null) {
-			actionObject = new SynchronizationActionType();
-		}
-		if (handlerUri != null) {
-			actionObject.setHandlerUri(handlerUri.action);
-		}
-		return actionObject;
-	}
+    public SynchronizationActionType prepareDtoToSave() {
+        if (actionObject == null) {
+            actionObject = new SynchronizationActionType();
+        }
+        if (handlerUri != null) {
+            actionObject.setHandlerUri(handlerUri.action);
+        }
+        return actionObject;
+    }
 
     public SynchronizationActionType getActionObject() {
         return actionObject;

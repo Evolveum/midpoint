@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
@@ -28,145 +28,145 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class JasperReportDto implements Serializable{
 
-	private static final long serialVersionUID = 1L;
-	private String query;
-	private List<JasperReportParameterDto> parameters;
-	private List<JasperReportFieldDto> fields;
-	private String detail;
-	private JasperDesign design;
+    private static final long serialVersionUID = 1L;
+    private String query;
+    private List<JasperReportParameterDto> parameters;
+    private List<JasperReportFieldDto> fields;
+    private String detail;
+    private JasperDesign design;
 
-	private byte[] jasperReportXml;
+    private byte[] jasperReportXml;
 
-	public JasperReportDto(byte[] jasperReportxml, boolean onlyForPromptingParams) {
-		this.jasperReportXml = jasperReportxml;
-		String st = new String(jasperReportxml);
-		initFileds(onlyForPromptingParams);
-	}
+    public JasperReportDto(byte[] jasperReportxml, boolean onlyForPromptingParams) {
+        this.jasperReportXml = jasperReportxml;
+        String st = new String(jasperReportxml);
+        initFileds(onlyForPromptingParams);
+    }
 
-	public JasperReportDto(byte[] jasperReportxml) {
-		this(jasperReportxml, false);
-	}
+    public JasperReportDto(byte[] jasperReportxml) {
+        this(jasperReportxml, false);
+    }
 
-	private void initFileds(boolean onlyForPromptingParams){
-		if (jasperReportXml == null){
-			return;
-		}
+    private void initFileds(boolean onlyForPromptingParams){
+        if (jasperReportXml == null){
+            return;
+        }
 
-		try {
-			design = ReportTypeUtil.loadJasperDesign(jasperReportXml);
-			query = design.getQuery().getText();
+        try {
+            design = ReportTypeUtil.loadJasperDesign(jasperReportXml);
+            query = design.getQuery().getText();
 
-			fields = new ArrayList<>();
-			for (JRField field : design.getFieldsList()){
-				fields.add(new JasperReportFieldDto(field.getName(), field.getValueClass(), field.getValueClassName()));
-			}
+            fields = new ArrayList<>();
+            for (JRField field : design.getFieldsList()){
+                fields.add(new JasperReportFieldDto(field.getName(), field.getValueClass(), field.getValueClassName()));
+            }
 
-			for (JasperReportFieldDto field : fields){
-				design.removeField(field.getName());
-			}
+            for (JasperReportFieldDto field : fields){
+                design.removeField(field.getName());
+            }
 
-			parameters = new ArrayList<>();
-			for (JRParameter parameter : design.getParametersList()){
-				if (parameter.isSystemDefined()){
-					continue;
-				}
-				if (onlyForPromptingParams && !parameter.isForPrompting()){
-					continue;
+            parameters = new ArrayList<>();
+            for (JRParameter parameter : design.getParametersList()){
+                if (parameter.isSystemDefined()){
+                    continue;
+                }
+                if (onlyForPromptingParams && !parameter.isForPrompting()){
+                    continue;
 
-				}
-				JasperReportParameterDto p = new JasperReportParameterDto(parameter);
-				parameters.add(p);
-			}
+                }
+                JasperReportParameterDto p = new JasperReportParameterDto(parameter);
+                parameters.add(p);
+            }
 
-			for (JasperReportParameterDto param : parameters){
-				design.removeParameter(param.getName());
-			}
+            for (JasperReportParameterDto param : parameters){
+                design.removeParameter(param.getName());
+            }
 
-			detail = new String(Base64.isBase64(jasperReportXml) ? Base64.decodeBase64(jasperReportXml) :jasperReportXml);
-
-
-		} catch (SchemaException e) {
-			// TODO Auto-generated catch block
-			throw new IllegalArgumentException(e);
-		}
+            detail = new String(Base64.isBase64(jasperReportXml) ? Base64.decodeBase64(jasperReportXml) :jasperReportXml);
 
 
-	}
-
-	public List<JasperReportParameterDto> getParameters() {
-		if (parameters == null){
-			parameters = new ArrayList<>();
-		}
-		return parameters;
-	}
-
-	public List<JasperReportFieldDto> getFields() {
-		if (fields == null){
-			fields = new ArrayList<>();
-		}
-		return fields;
-	}
+        } catch (SchemaException e) {
+            // TODO Auto-generated catch block
+            throw new IllegalArgumentException(e);
+        }
 
 
-	public String getQuery() {
-		return query;
-	}
+    }
 
-	public byte[] getTemplate(){
-		try{
-//			design.remadgetFields().
-			design.getFieldsList().clear();
-			design.getParametersList().clear();
+    public List<JasperReportParameterDto> getParameters() {
+        if (parameters == null){
+            parameters = new ArrayList<>();
+        }
+        return parameters;
+    }
+
+    public List<JasperReportFieldDto> getFields() {
+        if (fields == null){
+            fields = new ArrayList<>();
+        }
+        return fields;
+    }
+
+
+    public String getQuery() {
+        return query;
+    }
+
+    public byte[] getTemplate(){
+        try{
+//            design.remadgetFields().
+            design.getFieldsList().clear();
+            design.getParametersList().clear();
             design.getFieldsMap().clear();
             design.getParametersMap().clear();
             for (JasperReportFieldDto field : fields) {
-				if (field.isEmpty()){
-					continue;
-				}
-				JRDesignField f = new JRDesignField();
-				f.setValueClassName(field.getTypeAsString());
-				f.setValueClass(Class.forName(field.getTypeAsString()));
-				f.setName(field.getName());
-				design.addField(f);
-			}
+                if (field.isEmpty()){
+                    continue;
+                }
+                JRDesignField f = new JRDesignField();
+                f.setValueClassName(field.getTypeAsString());
+                f.setValueClass(Class.forName(field.getTypeAsString()));
+                f.setName(field.getName());
+                design.addField(f);
+            }
 
-			for (JasperReportParameterDto param : parameters) {
-				if (param.isEmpty()) {
-					continue;
-				}
-				JRDesignParameter p = new JRDesignParameter();
-				p.setValueClassName(param.getTypeAsString());
-				p.setValueClass(Class.forName(param.getTypeAsString()));
-				p.setName(param.getName());
-				p.setForPrompting(param.isForPrompting());
-				p.setDescription(param.getDescription());
-				p.setNestedTypeName(param.getNestedTypeAsString());
-				p.setNestedType(param.getNestedType());
-				p.getPropertiesMap().setBaseProperties(param.getJRProperties());
-				//			p.getPropertiesMap().setProperty(propName, value);
-				design.addParameter(p);
-			}
+            for (JasperReportParameterDto param : parameters) {
+                if (param.isEmpty()) {
+                    continue;
+                }
+                JRDesignParameter p = new JRDesignParameter();
+                p.setValueClassName(param.getTypeAsString());
+                p.setValueClass(Class.forName(param.getTypeAsString()));
+                p.setName(param.getName());
+                p.setForPrompting(param.isForPrompting());
+                p.setDescription(param.getDescription());
+                p.setNestedTypeName(param.getNestedTypeAsString());
+                p.setNestedType(param.getNestedType());
+                p.getPropertiesMap().setBaseProperties(param.getJRProperties());
+                //            p.getPropertiesMap().setProperty(propName, value);
+                design.addParameter(p);
+            }
 
-			JasperDesign oldDesign = ReportTypeUtil.loadJasperDesign(jasperReportXml);
-			oldDesign.getParametersList().clear();
-			oldDesign.getParametersList().addAll(design.getParametersList());
+            JasperDesign oldDesign = ReportTypeUtil.loadJasperDesign(jasperReportXml);
+            oldDesign.getParametersList().clear();
+            oldDesign.getParametersList().addAll(design.getParametersList());
 
-			oldDesign.getFieldsList().clear();
-			oldDesign.getFieldsList().addAll(design.getFieldsList());
+            oldDesign.getFieldsList().clear();
+            oldDesign.getFieldsList().addAll(design.getFieldsList());
 
-			JRDesignQuery q = new JRDesignQuery();
-			q.setLanguage("mql");
-			q.setText(query);
-			oldDesign.setQuery(q);
+            JRDesignQuery q = new JRDesignQuery();
+            q.setLanguage("mql");
+            q.setText(query);
+            oldDesign.setQuery(q);
 
-			String reportAsString = JRXmlWriter.writeReport(oldDesign, "UTF-8");
-			return reportAsString.getBytes("UTF-8");
+            String reportAsString = JRXmlWriter.writeReport(oldDesign, "UTF-8");
+            return reportAsString.getBytes("UTF-8");
 
-		} catch (JRException | ClassNotFoundException | SchemaException | UnsupportedEncodingException ex) {
-			throw new IllegalStateException(ex.getMessage(), ex.getCause());
-		}
+        } catch (JRException | ClassNotFoundException | SchemaException | UnsupportedEncodingException ex) {
+            throw new IllegalStateException(ex.getMessage(), ex.getCause());
+        }
 
-	}
+    }
 
 
 }

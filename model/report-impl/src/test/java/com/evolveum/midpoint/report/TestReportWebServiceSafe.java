@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report;
@@ -51,10 +51,10 @@ import com.evolveum.midpoint.xml.ns._public.report.report_3.RemoteReportParamete
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestReportWebServiceSafe extends TestReportWebService {
-	
-	@Override
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_SAFE_FILE;
-	}
-	
+
+    @Override
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_SAFE_FILE;
+    }
+
 }

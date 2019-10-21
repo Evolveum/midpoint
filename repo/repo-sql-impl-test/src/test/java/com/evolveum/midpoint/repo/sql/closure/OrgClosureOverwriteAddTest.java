@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,7 +28,7 @@ import static org.testng.AssertJUnit.assertFalse;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class OrgClosureOverwriteAddTest extends AbstractOrgClosureTest {
 
-	private static final Trace LOGGER = TraceManager.getTrace(OrgClosureOverwriteAddTest.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OrgClosureOverwriteAddTest.class);
 
     private static final int[] ORG_CHILDREN_IN_LEVEL  = { 1, 1  };
     private static final int[] USER_CHILDREN_IN_LEVEL = null;
@@ -61,8 +61,8 @@ public class OrgClosureOverwriteAddTest extends AbstractOrgClosureTest {
         LOGGER.info("+++ adding object with 'overwrite' option +++");
         repositoryService.addObject(childOrg, RepoAddOptions.createOverwrite(), opResult);
 
-	    orgGraph.removeEdge(childOid, parentOid);
-	    checkOrgGraph();
+        orgGraph.removeEdge(childOid, parentOid);
+        checkOrgGraph();
         boolean problem = checkClosureMatrix();
         assertFalse("Closure problem was detected", problem);
     }

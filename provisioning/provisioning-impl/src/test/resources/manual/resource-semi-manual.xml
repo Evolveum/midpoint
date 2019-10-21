@@ -2,12 +2,12 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <resource oid="8a8e19de-1a14-11e7-965f-6f995b457a8b"
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin/ManualConnector"
@@ -15,63 +15,63 @@
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-								  
-	<name>Semi-Manual Resource</name>
-	
-	<connectorRef oid="will-be-supplied-by-the-test-code"/>
-	<connectorConfiguration>
-		<conf:defaultAssignee>administrator</conf:defaultAssignee>
-	</connectorConfiguration>
-	
-	<additionalConnector>
-		<name>csv</name>
-		<connectorRef oid="will-be-supplied-by-the-test-code"/>
-		<connectorConfiguration>
-			<icfc:configurationProperties>
-				<csvconf:filePath>target/semi-manual.csv</csvconf:filePath>
-				<csvconf:encoding>utf-8</csvconf:encoding>
-				<csvconf:fieldDelimiter>,</csvconf:fieldDelimiter>
-				<csvconf:multivalueDelimiter>;</csvconf:multivalueDelimiter>
-				<csvconf:uniqueAttribute>username</csvconf:uniqueAttribute>
-				<csvconf:passwordAttribute>password</csvconf:passwordAttribute>
-			</icfc:configurationProperties>
-		</connectorConfiguration>
-		<capabilities>
-			<configured>
-				<cap:liveSync>
-					<cap:enabled>false</cap:enabled>
-				</cap:liveSync>
-				<cap:create>
-					<cap:enabled>false</cap:enabled>
-				</cap:create>
-				<cap:update>
-					<cap:enabled>false</cap:enabled>
-				</cap:update>
-				<cap:delete>
-					<cap:enabled>false</cap:enabled>
-				</cap:delete>
-				<cap:script>
-				    <cap:enabled>false</cap:enabled>
-				</cap:script>
-				<cap:activation>
-					<cap:status>
-						<cap:attribute>ri:disabled</cap:attribute>
-						<cap:enableValue>false</cap:enableValue>
-						<cap:disableValue>true</cap:disableValue>
-					</cap:status>
-				</cap:activation>				
-			</configured>
-		</capabilities>
-	</additionalConnector>
-	
-	<!-- Schema definition comes from the CSV file -->
 
-	<!-- No schemaHandling -->
-	
-	<consistency>
-		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
-		<pendingOperationRetentionPeriod>PT20M</pendingOperationRetentionPeriod>
-		<reshreshOnRead>true</reshreshOnRead>
-	</consistency>
-	
+    <name>Semi-Manual Resource</name>
+
+    <connectorRef oid="will-be-supplied-by-the-test-code"/>
+    <connectorConfiguration>
+        <conf:defaultAssignee>administrator</conf:defaultAssignee>
+    </connectorConfiguration>
+
+    <additionalConnector>
+        <name>csv</name>
+        <connectorRef oid="will-be-supplied-by-the-test-code"/>
+        <connectorConfiguration>
+            <icfc:configurationProperties>
+                <csvconf:filePath>target/semi-manual.csv</csvconf:filePath>
+                <csvconf:encoding>utf-8</csvconf:encoding>
+                <csvconf:fieldDelimiter>,</csvconf:fieldDelimiter>
+                <csvconf:multivalueDelimiter>;</csvconf:multivalueDelimiter>
+                <csvconf:uniqueAttribute>username</csvconf:uniqueAttribute>
+                <csvconf:passwordAttribute>password</csvconf:passwordAttribute>
+            </icfc:configurationProperties>
+        </connectorConfiguration>
+        <capabilities>
+            <configured>
+                <cap:liveSync>
+                    <cap:enabled>false</cap:enabled>
+                </cap:liveSync>
+                <cap:create>
+                    <cap:enabled>false</cap:enabled>
+                </cap:create>
+                <cap:update>
+                    <cap:enabled>false</cap:enabled>
+                </cap:update>
+                <cap:delete>
+                    <cap:enabled>false</cap:enabled>
+                </cap:delete>
+                <cap:script>
+                    <cap:enabled>false</cap:enabled>
+                </cap:script>
+                <cap:activation>
+                    <cap:status>
+                        <cap:attribute>ri:disabled</cap:attribute>
+                        <cap:enableValue>false</cap:enableValue>
+                        <cap:disableValue>true</cap:disableValue>
+                    </cap:status>
+                </cap:activation>
+            </configured>
+        </capabilities>
+    </additionalConnector>
+
+    <!-- Schema definition comes from the CSV file -->
+
+    <!-- No schemaHandling -->
+
+    <consistency>
+        <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+        <pendingOperationRetentionPeriod>PT20M</pendingOperationRetentionPeriod>
+        <reshreshOnRead>true</reshreshOnRead>
+    </consistency>
+
 </resource>

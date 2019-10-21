@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.resources;
@@ -39,11 +39,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 public class ResourceContentRepositoryPanel extends ResourceContentPanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ResourceContentRepositoryPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceContentRepositoryPanel.class);
 
-	private static final String DOT_CLASS = ResourceContentRepositoryPanel.class.getName() + ".";
+    private static final String DOT_CLASS = ResourceContentRepositoryPanel.class.getName() + ".";
     private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
 
 
@@ -56,125 +56,125 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
     private static final String ID_NOTHING = "nothing";
 
       private LoadableModel<Integer> totalModel;
-	    private LoadableModel<Integer> deletedModel;
-	    private LoadableModel<Integer> unmatchedModel;
-	    private LoadableModel<Integer> disputedModel;
-	    private LoadableModel<Integer> linkedModel;
-	    private LoadableModel<Integer> unlinkedModel;
-	    private LoadableModel<Integer> nothingModel;
+        private LoadableModel<Integer> deletedModel;
+        private LoadableModel<Integer> unmatchedModel;
+        private LoadableModel<Integer> disputedModel;
+        private LoadableModel<Integer> linkedModel;
+        private LoadableModel<Integer> unlinkedModel;
+        private LoadableModel<Integer> nothingModel;
 
 
-	public ResourceContentRepositoryPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
-			QName objectClass, ShadowKindType kind, String intent, String searchMode, PageBase pageBase) {
-		super(id, resourceModel, objectClass, kind, intent, searchMode, pageBase);
+    public ResourceContentRepositoryPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
+            QName objectClass, ShadowKindType kind, String intent, String searchMode, PageBase pageBase) {
+        super(id, resourceModel, objectClass, kind, intent, searchMode, pageBase);
 
 
-	}
+    }
 
-	 protected void initShadowStatistics(WebMarkupContainer totals) {
+     protected void initShadowStatistics(WebMarkupContainer totals) {
 
-		 totals.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+         totals.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return createQuery() != null;
-			}
-		 });
+            @Override
+            public boolean isVisible() {
+                return createQuery() != null;
+            }
+         });
 
-	        totalModel = createTotalModel();
-	        deletedModel = createTotalsModel(SynchronizationSituationType.DELETED);
-	        unmatchedModel = createTotalsModel(SynchronizationSituationType.UNMATCHED);
-	        disputedModel = createTotalsModel(SynchronizationSituationType.DISPUTED);
-	        linkedModel = createTotalsModel(SynchronizationSituationType.LINKED);
-	        unlinkedModel = createTotalsModel(SynchronizationSituationType.UNLINKED);
-	        nothingModel = createTotalsModel(null);
+            totalModel = createTotalModel();
+            deletedModel = createTotalsModel(SynchronizationSituationType.DELETED);
+            unmatchedModel = createTotalsModel(SynchronizationSituationType.UNMATCHED);
+            disputedModel = createTotalsModel(SynchronizationSituationType.DISPUTED);
+            linkedModel = createTotalsModel(SynchronizationSituationType.LINKED);
+            unlinkedModel = createTotalsModel(SynchronizationSituationType.UNLINKED);
+            nothingModel = createTotalsModel(null);
 
-	        totals.add(new Label(ID_TOTAL, totalModel));
-	        totals.add(new Label(ID_DELETED, deletedModel));
-	        totals.add(new Label(ID_UNMATCHED, unmatchedModel));
-	        totals.add(new Label(ID_DISPUTED, disputedModel));
-	        totals.add(new Label(ID_LINKED, linkedModel));
-	        totals.add(new Label(ID_UNLINKED, unlinkedModel));
-	        totals.add(new Label(ID_NOTHING, nothingModel));
+            totals.add(new Label(ID_TOTAL, totalModel));
+            totals.add(new Label(ID_DELETED, deletedModel));
+            totals.add(new Label(ID_UNMATCHED, unmatchedModel));
+            totals.add(new Label(ID_DISPUTED, disputedModel));
+            totals.add(new Label(ID_LINKED, linkedModel));
+            totals.add(new Label(ID_UNLINKED, unlinkedModel));
+            totals.add(new Label(ID_NOTHING, nothingModel));
 
-	    }
+        }
 
-	    private LoadableModel<Integer> createTotalModel() {
-	        return new LoadableModel<Integer>(false) {
-	        	private static final long serialVersionUID = 1L;
-	            @Override
-	            protected Integer load() {
-	                int total = 0;
+        private LoadableModel<Integer> createTotalModel() {
+            return new LoadableModel<Integer>(false) {
+                private static final long serialVersionUID = 1L;
+                @Override
+                protected Integer load() {
+                    int total = 0;
 
-	                total += deletedModel.getObject();
-	                total += unmatchedModel.getObject();
-	                total += disputedModel.getObject();
-	                total += linkedModel.getObject();
-	                total += unlinkedModel.getObject();
-	                total += nothingModel.getObject();
+                    total += deletedModel.getObject();
+                    total += unmatchedModel.getObject();
+                    total += disputedModel.getObject();
+                    total += linkedModel.getObject();
+                    total += unlinkedModel.getObject();
+                    total += nothingModel.getObject();
 
-	                return total;
-	            }
-	        };
-	    }
+                    return total;
+                }
+            };
+        }
 
-	 private LoadableModel<Integer> createTotalsModel(final SynchronizationSituationType situation) {
-	        return new LoadableModel<Integer>(false) {
-	        	private static final long serialVersionUID = 1L;
-	            @Override
-	            protected Integer load() {
-		            PrismContext prismContext = getPageBase().getPrismContext();
-		            ObjectFilter resourceFilter =  prismContext.queryFor(ShadowType.class)
-	                        .item(ShadowType.F_RESOURCE_REF).ref(ResourceContentRepositoryPanel.this.getResourceModel().getObject().getOid())
-	                        .buildFilter();
+     private LoadableModel<Integer> createTotalsModel(final SynchronizationSituationType situation) {
+            return new LoadableModel<Integer>(false) {
+                private static final long serialVersionUID = 1L;
+                @Override
+                protected Integer load() {
+                    PrismContext prismContext = getPageBase().getPrismContext();
+                    ObjectFilter resourceFilter =  prismContext.queryFor(ShadowType.class)
+                            .item(ShadowType.F_RESOURCE_REF).ref(ResourceContentRepositoryPanel.this.getResourceModel().getObject().getOid())
+                            .buildFilter();
 
-	                if (resourceFilter == null) {
-	                    return 0;
-	                }
+                    if (resourceFilter == null) {
+                        return 0;
+                    }
 
-	                ObjectFilter filter = createQuery().getFilter();
-	                if (filter == null) {
-	                	return 0;
-	                }
-	                Collection<SelectorOptions<GetOperationOptions>> options =
-	                        SelectorOptions.createCollection(GetOperationOptions.createRaw());
-	                Task task = getPageBase().createSimpleTask(OPERATION_GET_TOTALS);
-	                OperationResult result = new OperationResult(OPERATION_GET_TOTALS);
-	                try {
-	                    ObjectFilter situationFilter = prismContext.queryFor(ShadowType.class)
-	                            .item(ShadowType.F_SYNCHRONIZATION_SITUATION).eq(situation)
-	                            .buildFilter();
-	                    ObjectQuery query = prismContext.queryFactory().createQuery(
-			                    prismContext.queryFactory().createAnd(filter, situationFilter));
-	                    return getPageBase().getModelService().countObjects(ShadowType.class, query, options, task, result);
-	                } catch (CommonException|RuntimeException ex) {
-	                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count shadows", ex);
-	                }
+                    ObjectFilter filter = createQuery().getFilter();
+                    if (filter == null) {
+                        return 0;
+                    }
+                    Collection<SelectorOptions<GetOperationOptions>> options =
+                            SelectorOptions.createCollection(GetOperationOptions.createRaw());
+                    Task task = getPageBase().createSimpleTask(OPERATION_GET_TOTALS);
+                    OperationResult result = new OperationResult(OPERATION_GET_TOTALS);
+                    try {
+                        ObjectFilter situationFilter = prismContext.queryFor(ShadowType.class)
+                                .item(ShadowType.F_SYNCHRONIZATION_SITUATION).eq(situation)
+                                .buildFilter();
+                        ObjectQuery query = prismContext.queryFactory().createQuery(
+                                prismContext.queryFactory().createAnd(filter, situationFilter));
+                        return getPageBase().getModelService().countObjects(ShadowType.class, query, options, task, result);
+                    } catch (CommonException|RuntimeException ex) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count shadows", ex);
+                    }
 
-	                return 0;
-	            }
-	        };
-	    }
+                    return 0;
+                }
+            };
+        }
 
-	@Override
-	protected GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder) {
-		return builder.root().noFetch();
-	}
+    @Override
+    protected GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder) {
+        return builder.root().noFetch();
+    }
 
-	@Override
-	protected boolean isUseObjectCounting() {
-		return true;
-	}
+    @Override
+    protected boolean isUseObjectCounting() {
+        return true;
+    }
 
-	@Override
-	protected Search createSearch() {
-		return SearchFactory.createSearch(ShadowType.class, getPageBase());
-	}
+    @Override
+    protected Search createSearch() {
+        return SearchFactory.createSearch(ShadowType.class, getPageBase());
+    }
 
-	@Override
-	protected ModelExecuteOptions createModelOptions() {
-		return ModelExecuteOptions.createRaw();
-	}
+    @Override
+    protected ModelExecuteOptions createModelOptions() {
+        return ModelExecuteOptions.createRaw();
+    }
 
 }

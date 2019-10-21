@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -38,28 +38,28 @@ public class SynchronizationInformationPanel extends BasePanel<SynchronizationIn
 
     public SynchronizationInformationPanel(String id, IModel<SynchronizationInformationDto> model, boolean useAfter) {
         super(id, model);
-		initLayout(useAfter);
+        initLayout(useAfter);
     }
 
     protected void initLayout(final boolean useAfter) {
 
-		WebMarkupContainer titleBefore = new WebMarkupContainer(ID_TITLE_BEFORE);
-		titleBefore.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return !useAfter;
-			}
-		});
-		add(titleBefore);
+        WebMarkupContainer titleBefore = new WebMarkupContainer(ID_TITLE_BEFORE);
+        titleBefore.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return !useAfter;
+            }
+        });
+        add(titleBefore);
 
-		WebMarkupContainer titleAfter = new WebMarkupContainer(ID_TITLE_AFTER);
-		titleAfter.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return useAfter;
-			}
-		});
-		add(titleAfter);
+        WebMarkupContainer titleAfter = new WebMarkupContainer(ID_TITLE_AFTER);
+        titleAfter.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return useAfter;
+            }
+        });
+        add(titleAfter);
 
         Label aProtected = new Label(ID_PROTECTED, new PropertyModel<>(getModel(), SynchronizationInformationDto.F_COUNT_PROTECTED));
         add(aProtected);

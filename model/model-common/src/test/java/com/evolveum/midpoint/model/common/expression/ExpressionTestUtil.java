@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression;
@@ -41,75 +41,75 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
  *
  */
 public class ExpressionTestUtil {
-	
-	public static final String CONST_FOO_NAME = "foo";
-	public static final String CONST_FOO_VALUE = "foobar";
 
-	public static Protector createInitializedProtector(PrismContext prismContext) {
-		return KeyStoreBasedProtectorBuilder.create(prismContext)
-				.keyStorePath(MidPointTestConstants.KEYSTORE_PATH)
+    public static final String CONST_FOO_NAME = "foo";
+    public static final String CONST_FOO_VALUE = "foobar";
+
+    public static Protector createInitializedProtector(PrismContext prismContext) {
+        return KeyStoreBasedProtectorBuilder.create(prismContext)
+                .keyStorePath(MidPointTestConstants.KEYSTORE_PATH)
                 .keyStorePassword(MidPointTestConstants.KEYSTORE_PASSWORD)
-				.initialize();
-	}
+                .initialize();
+    }
 
-	public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, Protector protector,
-			PrismContext prismContext, Clock clock, SecurityContextManager securityContextManager, RepositoryService repositoryService) {
-    	ExpressionFactory expressionFactory = new ExpressionFactory(securityContextManager, prismContext, LocalizationTestUtil.getLocalizationService());
-    	expressionFactory.setObjectResolver(resolver);
+    public static ExpressionFactory createInitializedExpressionFactory(ObjectResolver resolver, Protector protector,
+            PrismContext prismContext, Clock clock, SecurityContextManager securityContextManager, RepositoryService repositoryService) {
+        ExpressionFactory expressionFactory = new ExpressionFactory(securityContextManager, prismContext, LocalizationTestUtil.getLocalizationService());
+        expressionFactory.setObjectResolver(resolver);
 
-    	// NOTE: we need to register the evaluator factories to expressionFactory manually here
-    	// this is not spring-wired test. PostConstruct methods are not invoked here
-    	
-    	// asIs
-    	AsIsExpressionEvaluatorFactory asIsFactory = new AsIsExpressionEvaluatorFactory(prismContext, protector);
-    	expressionFactory.registerEvaluatorFactory(asIsFactory);
-    	expressionFactory.setDefaultEvaluatorFactory(asIsFactory);
+        // NOTE: we need to register the evaluator factories to expressionFactory manually here
+        // this is not spring-wired test. PostConstruct methods are not invoked here
 
-    	// value
-    	LiteralExpressionEvaluatorFactory valueFactory = new LiteralExpressionEvaluatorFactory(prismContext);
-    	expressionFactory.registerEvaluatorFactory(valueFactory);
+        // asIs
+        AsIsExpressionEvaluatorFactory asIsFactory = new AsIsExpressionEvaluatorFactory(prismContext, protector);
+        expressionFactory.registerEvaluatorFactory(asIsFactory);
+        expressionFactory.setDefaultEvaluatorFactory(asIsFactory);
 
-		// const
-    	ConstantsManager constManager = new ConstantsManager(createConfiguration());
-    	ConstExpressionEvaluatorFactory constFactory = new ConstExpressionEvaluatorFactory(protector, constManager, prismContext);
-    	expressionFactory.registerEvaluatorFactory(constFactory);
+        // value
+        LiteralExpressionEvaluatorFactory valueFactory = new LiteralExpressionEvaluatorFactory(prismContext);
+        expressionFactory.registerEvaluatorFactory(valueFactory);
 
-    	// path
-    	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(expressionFactory, prismContext, protector, null);
-    	pathFactory.setObjectResolver(resolver);
-    	expressionFactory.registerEvaluatorFactory(pathFactory);
+        // const
+        ConstantsManager constManager = new ConstantsManager(createConfiguration());
+        ConstExpressionEvaluatorFactory constFactory = new ConstExpressionEvaluatorFactory(protector, constManager, prismContext);
+        expressionFactory.registerEvaluatorFactory(constFactory);
 
-    	// generate
-    	ValuePolicyProcessor valuePolicyGenerator = new ValuePolicyProcessor();
-    	valuePolicyGenerator.setExpressionFactory(expressionFactory);
-    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(expressionFactory, protector, valuePolicyGenerator, prismContext, null);
-    	generateFactory.setObjectResolver(resolver);
-    	expressionFactory.registerEvaluatorFactory(generateFactory);
+        // path
+        PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(expressionFactory, prismContext, protector, null);
+        pathFactory.setObjectResolver(resolver);
+        expressionFactory.registerEvaluatorFactory(pathFactory);
 
-    	// script
-    	Collection<FunctionLibrary> functions = new ArrayList<>();
+        // generate
+        ValuePolicyProcessor valuePolicyGenerator = new ValuePolicyProcessor();
+        valuePolicyGenerator.setExpressionFactory(expressionFactory);
+        GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(expressionFactory, protector, valuePolicyGenerator, prismContext, null);
+        generateFactory.setObjectResolver(resolver);
+        expressionFactory.registerEvaluatorFactory(generateFactory);
+
+        // script
+        Collection<FunctionLibrary> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
         functions.add(FunctionLibraryUtil.createLogFunctionLibrary(prismContext));
         ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(prismContext, protector, repositoryService);
         scriptExpressionFactory.setObjectResolver(resolver);
         scriptExpressionFactory.setFunctions(functions);
-        
+
         GroovyScriptEvaluator groovyEvaluator = new GroovyScriptEvaluator(prismContext, protector, LocalizationTestUtil.getLocalizationService());
         scriptExpressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
-        
+
         Jsr223ScriptEvaluator jsEvaluator = new Jsr223ScriptEvaluator("ECMAScript", prismContext, protector, LocalizationTestUtil.getLocalizationService());
         scriptExpressionFactory.registerEvaluator(jsEvaluator.getLanguageUrl(), jsEvaluator);
 
-    	ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityContextManager, prismContext);
+        ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityContextManager, prismContext);
         expressionFactory.registerEvaluatorFactory(scriptExpressionEvaluatorFactory);
-        
-        return expressionFactory;
-	}
 
-	private static Configuration createConfiguration() {
-    	BaseConfiguration config = new BaseConfiguration();
-    	config.addProperty(CONST_FOO_NAME, CONST_FOO_VALUE);
-		return config;
-	}
+        return expressionFactory;
+    }
+
+    private static Configuration createConfiguration() {
+        BaseConfiguration config = new BaseConfiguration();
+        config.addProperty(CONST_FOO_NAME, CONST_FOO_VALUE);
+        return config;
+    }
 
 }

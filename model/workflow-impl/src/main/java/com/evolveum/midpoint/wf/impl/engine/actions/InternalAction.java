@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class InternalAction extends Action {
 
-	InternalAction(@NotNull EngineInvocationContext ctx) {
-		super(ctx);
-	}
+    InternalAction(@NotNull EngineInvocationContext ctx) {
+        super(ctx);
+    }
 }

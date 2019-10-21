@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -41,115 +41,115 @@ import javax.xml.namespace.QName;
     "argument"
 })
 public class PolyStringTranslationType implements Serializable, Cloneable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "PolyStringTranslationType");
+    public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "PolyStringTranslationType");
 
-	@XmlElement(required = true)
+    @XmlElement(required = true)
     protected String key;
     protected String fallback;
     protected PolyStringTranslationType fallbackTranslation;
     protected final List<PolyStringTranslationArgumentType> argument = new ArrayList<>();
 
-	public String getKey() {
-		return key;
-	}
+    public String getKey() {
+        return key;
+    }
 
-	public void setKey(String key) {
-		this.key = key;
-	}
+    public void setKey(String key) {
+        this.key = key;
+    }
 
-	public PolyStringTranslationType key(String key) {
-		setKey(key);
-		return this;
-	}
+    public PolyStringTranslationType key(String key) {
+        setKey(key);
+        return this;
+    }
 
-	public String getFallback() {
-		return fallback;
-	}
+    public String getFallback() {
+        return fallback;
+    }
 
-	public void setFallback(String fallback) {
-		this.fallback = fallback;
-	}
+    public void setFallback(String fallback) {
+        this.fallback = fallback;
+    }
 
-	public PolyStringTranslationType fallback(String fallback) {
-		setFallback(fallback);
-		return this;
-	}
-	
-	public PolyStringTranslationType getFallbackTranslation() {
-		return fallbackTranslation;
-	}
+    public PolyStringTranslationType fallback(String fallback) {
+        setFallback(fallback);
+        return this;
+    }
 
-	public void setFallbackTranslation(PolyStringTranslationType fallbackTranslation) {
-		this.fallbackTranslation = fallbackTranslation;
-	}
+    public PolyStringTranslationType getFallbackTranslation() {
+        return fallbackTranslation;
+    }
 
-	public PolyStringTranslationType fallbackTranslation(PolyStringTranslationType fallbackTranslation) {
-		setFallbackTranslation(fallbackTranslation);
-		return this;
-	}
+    public void setFallbackTranslation(PolyStringTranslationType fallbackTranslation) {
+        this.fallbackTranslation = fallbackTranslation;
+    }
 
-	public List<PolyStringTranslationArgumentType> getArgument() {
-		return argument;
-	}
+    public PolyStringTranslationType fallbackTranslation(PolyStringTranslationType fallbackTranslation) {
+        setFallbackTranslation(fallbackTranslation);
+        return this;
+    }
+
+    public List<PolyStringTranslationArgumentType> getArgument() {
+        return argument;
+    }
 
     @Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((argument == null) ? 0 : argument.hashCode());
-		result = prime * result + ((fallback == null) ? 0 : fallback.hashCode());
-		result = prime * result + ((fallbackTranslation == null) ? 0 : fallbackTranslation.hashCode());
-		result = prime * result + ((key == null) ? 0 : key.hashCode());
-		return result;
-	}
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((argument == null) ? 0 : argument.hashCode());
+        result = prime * result + ((fallback == null) ? 0 : fallback.hashCode());
+        result = prime * result + ((fallbackTranslation == null) ? 0 : fallbackTranslation.hashCode());
+        result = prime * result + ((key == null) ? 0 : key.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PolyStringTranslationType other = (PolyStringTranslationType) obj;
-		if (argument == null) {
-			if (other.argument != null)
-				return false;
-		} else if (!argument.equals(other.argument))
-			return false;
-		if (fallback == null) {
-			if (other.fallback != null)
-				return false;
-		} else if (!fallback.equals(other.fallback))
-			return false;
-		if (fallbackTranslation == null) {
-			if (other.fallbackTranslation != null)
-				return false;
-		} else if (!fallbackTranslation.equals(other.fallbackTranslation))
-			return false;
-		if (key == null) {
-			if (other.key != null)
-				return false;
-		} else if (!key.equals(other.key))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        PolyStringTranslationType other = (PolyStringTranslationType) obj;
+        if (argument == null) {
+            if (other.argument != null)
+                return false;
+        } else if (!argument.equals(other.argument))
+            return false;
+        if (fallback == null) {
+            if (other.fallback != null)
+                return false;
+        } else if (!fallback.equals(other.fallback))
+            return false;
+        if (fallbackTranslation == null) {
+            if (other.fallbackTranslation != null)
+                return false;
+        } else if (!fallbackTranslation.equals(other.fallbackTranslation))
+            return false;
+        if (key == null) {
+            if (other.key != null)
+                return false;
+        } else if (!key.equals(other.key))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "PolyStringTranslationType(key=" + key + ", fallback=" + fallback + ", fallbackTranslation="
-				+ fallbackTranslation + ", argument=" + argument + ")";
-	}
+    @Override
+    public String toString() {
+        return "PolyStringTranslationType(key=" + key + ", fallback=" + fallback + ", fallbackTranslation="
+                + fallbackTranslation + ", argument=" + argument + ")";
+    }
 
-	@Override
+    @Override
     public PolyStringTranslationType clone() {
         PolyStringTranslationType cloned = new PolyStringTranslationType();
         cloned.setKey(getKey());
         cloned.setFallback(getFallback());
         if (getFallbackTranslation() != null) {
-        	cloned.setFallbackTranslation(getFallbackTranslation().clone());
+            cloned.setFallbackTranslation(getFallbackTranslation().clone());
         }
         for (PolyStringTranslationArgumentType argument : getArgument()) {
             cloned.getArgument().add(argument.clone());
@@ -159,30 +159,30 @@ public class PolyStringTranslationType implements Serializable, Cloneable {
 
     // TODO move to appropriate place
     @NotNull
-	public static PolyStringTranslationType fromLocalizableMessage(@NotNull SingleLocalizableMessage message) {
-		PolyStringTranslationType rv = new PolyStringTranslationType();
-		rv.setKey(message.getKey());
-		rv.setFallback(message.getFallbackMessage());
-	    LocalizableMessage fallbackLocalizableMessage = message.getFallbackLocalizableMessage();
-	    if (fallbackLocalizableMessage != null) {
-	    	if (fallbackLocalizableMessage instanceof SingleLocalizableMessage) {
-			    rv.setFallbackTranslation(fromLocalizableMessage((SingleLocalizableMessage) fallbackLocalizableMessage));
-		    } else {
-	    		throw new UnsupportedOperationException("Fallback messages other than SingleLocalizableMessage are not supported in PolyString: " + fallbackLocalizableMessage);
-		    }
-	    }
-	    if (message.getArgs() != null) {
-		    for (Object arg : message.getArgs()) {
-			    if (arg instanceof SingleLocalizableMessage) {
-			    	rv.getArgument().add(new PolyStringTranslationArgumentType(fromLocalizableMessage((SingleLocalizableMessage) arg)));
-			    } else if (arg instanceof LocalizableMessage) {
-			    	throw new UnsupportedOperationException("LocalizableMessages arguments other than SingleLocalizableMessage are not supported in PolyString: " + arg);
-			    } else {
-			    	// even null values go here; as arguments in this class cannot be null
-			    	rv.getArgument().add(new PolyStringTranslationArgumentType(String.valueOf(arg)));
-			    }
-		    }
-	    }
-		return rv;
-	}
+    public static PolyStringTranslationType fromLocalizableMessage(@NotNull SingleLocalizableMessage message) {
+        PolyStringTranslationType rv = new PolyStringTranslationType();
+        rv.setKey(message.getKey());
+        rv.setFallback(message.getFallbackMessage());
+        LocalizableMessage fallbackLocalizableMessage = message.getFallbackLocalizableMessage();
+        if (fallbackLocalizableMessage != null) {
+            if (fallbackLocalizableMessage instanceof SingleLocalizableMessage) {
+                rv.setFallbackTranslation(fromLocalizableMessage((SingleLocalizableMessage) fallbackLocalizableMessage));
+            } else {
+                throw new UnsupportedOperationException("Fallback messages other than SingleLocalizableMessage are not supported in PolyString: " + fallbackLocalizableMessage);
+            }
+        }
+        if (message.getArgs() != null) {
+            for (Object arg : message.getArgs()) {
+                if (arg instanceof SingleLocalizableMessage) {
+                    rv.getArgument().add(new PolyStringTranslationArgumentType(fromLocalizableMessage((SingleLocalizableMessage) arg)));
+                } else if (arg instanceof LocalizableMessage) {
+                    throw new UnsupportedOperationException("LocalizableMessages arguments other than SingleLocalizableMessage are not supported in PolyString: " + arg);
+                } else {
+                    // even null values go here; as arguments in this class cannot be null
+                    rv.getArgument().add(new PolyStringTranslationArgumentType(String.valueOf(arg)));
+                }
+            }
+        }
+        return rv;
+    }
 }

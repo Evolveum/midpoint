@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -182,42 +182,42 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
         return this;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((description == null) ? 0 : description.hashCode());
-		result = prime * result + ((filter == null) ? 0 : filter.hashCode());
-		result = prime * result + ((paging == null) ? 0 : paging.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((description == null) ? 0 : description.hashCode());
+        result = prime * result + ((filter == null) ? 0 : filter.hashCode());
+        result = prime * result + ((paging == null) ? 0 : paging.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		QueryType other = (QueryType) obj;
-		if (description == null) {
-			if (other.description != null)
-				return false;
-		} else if (!description.equals(other.description))
-			return false;
-		if (filter == null) {
-			if (other.filter != null)
-				return false;
-		} else if (!filter.equals(other.filter))
-			return false;
-		if (paging == null) {
-			if (other.paging != null)
-				return false;
-		} else if (!paging.equals(other.paging))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        QueryType other = (QueryType) obj;
+        if (description == null) {
+            if (other.description != null)
+                return false;
+        } else if (!description.equals(other.description))
+            return false;
+        if (filter == null) {
+            if (other.filter != null)
+                return false;
+        } else if (!filter.equals(other.filter))
+            return false;
+        if (paging == null) {
+            if (other.paging != null)
+                return false;
+        } else if (!paging.equals(other.paging))
+            return false;
+        return true;
+    }
 
     /**
      * Creates and returns a deep copy of a given object.
@@ -613,29 +613,29 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
         }
     }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("QueryType");
-		if (description != null) {
-			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "description", description, indent + 1);
-		}
-		if (filter != null) {
-			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "filter", filter, indent + 1);
-		}
-		if (paging != null) {
-			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "paging", paging.toString(), indent + 1);
-		}
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("QueryType");
+        if (description != null) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "description", description, indent + 1);
+        }
+        if (filter != null) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "filter", filter, indent + 1);
+        }
+        if (paging != null) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "paging", paging.toString(), indent + 1);
+        }
+        return sb.toString();
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
@@ -73,14 +73,14 @@ public class AddCapabilityDialog extends ModalWindow {
             existingCapabilityClasses.add(cap.getCapability().getClass());
         }
 
-		List<CapabilityDto<CapabilityType>> rv = new ArrayList<>();
-		for (Capability supportedCapability : Capability.values()) {
+        List<CapabilityDto<CapabilityType>> rv = new ArrayList<>();
+        for (Capability supportedCapability : Capability.values()) {
             if (!existingCapabilityClasses.contains(supportedCapability.getClazz())) {
-                rv.add(new CapabilityDto<>(CapabilityStep.fillDefaults(supportedCapability.newInstance()), false));		// 'among natives' doesn't matter here
+                rv.add(new CapabilityDto<>(CapabilityStep.fillDefaults(supportedCapability.newInstance()), false));        // 'among natives' doesn't matter here
             }
         }
 
-		return rv;
+        return rv;
     }
 
     private ListDataProvider<CapabilityDto<CapabilityType>> createProvider() {
@@ -100,7 +100,7 @@ public class AddCapabilityDialog extends ModalWindow {
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return PageBase.createStringResourceStatic(this, resourceKey, objects);
+        return PageBase.createStringResourceStatic(this, resourceKey, objects);
     }
 
     private void initLayout(WebMarkupContainer container){
@@ -149,7 +149,7 @@ public class AddCapabilityDialog extends ModalWindow {
         model.setObject(loadModel(selected));
     }
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public TablePanel<CapabilityDto<CapabilityType>> getTable() {
         return (TablePanel<CapabilityDto<CapabilityType>>) get(getContentId()+":"+ID_TABLE);
     }

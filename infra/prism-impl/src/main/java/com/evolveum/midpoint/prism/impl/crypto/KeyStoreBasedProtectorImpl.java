@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.crypto;
@@ -73,9 +73,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     private static final String ALGORITH_PBKDF2_WITH_HMAC_SHA512_URI = QNameUtil.qNameToUri(ALGORITH_PBKDF2_WITH_HMAC_SHA512_QNAME);
 
     private static final String KEY_DIGEST_TYPE = "SHA1";
-    
+
     private static final String DEFAULT_ENCRYPTION_ALGORITHM = XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC;
-    
+
     private static final char[] KEY_PASSWORD = "midpoint".toCharArray();
 
     private static final String DEFAULT_DIGEST_ALGORITHM = ALGORITH_PBKDF2_WITH_HMAC_SHA512_URI;
@@ -95,27 +95,27 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
     private List<TrustManager> trustManagers;
 
-    private static final KeyStore keyStore;
+    private static final KeyStore KEY_STORE;
 
-    private static final Map<String, SecretKey> aliasToSecretKeyHashMap = new HashMap<>();
-    private static final Map<String, SecretKey> digestToSecretKeyHashMap = new HashMap<>();
-    private static final Map<String,String> xmlsecToJceAlgorithmMap = new HashMap<>();
+    private static final Map<String, SecretKey> ALIAS_TO_SECRET_KEY_HASH_MAP = new HashMap<>();
+    private static final Map<String, SecretKey> DIGEST_TO_SECRET_KEY_HASH_MAP = new HashMap<>();
+    private static final Map<String,String> XMLSEC_TO_JCE_ALGORITHM_MAP = new HashMap<>();
 
     static {
         try {
-            keyStore = KeyStore.getInstance("jceks");
+            KEY_STORE = KeyStore.getInstance("jceks");
         } catch (KeyStoreException ex) {
             throw new SystemException(ex.getMessage(), ex);
         }
-        
-        xmlsecToJceAlgorithmMap.put(XMLSEC_ENCRYPTION_ALGORITHM_AES128_CBC, "AES/CBC/ISO10126Padding");
-        xmlsecToJceAlgorithmMap.put(XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC, "AES/CBC/ISO10126Padding");
+
+        XMLSEC_TO_JCE_ALGORITHM_MAP.put(XMLSEC_ENCRYPTION_ALGORITHM_AES128_CBC, "AES/CBC/ISO10126Padding");
+        XMLSEC_TO_JCE_ALGORITHM_MAP.put(XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC, "AES/CBC/ISO10126Padding");
     }
 
-	public KeyStoreBasedProtectorImpl() {
-	}
+    public KeyStoreBasedProtectorImpl() {
+    }
 
-	public KeyStoreBasedProtectorImpl(KeyStoreBasedProtectorBuilder builder) {
+    public KeyStoreBasedProtectorImpl(KeyStoreBasedProtectorBuilder builder) {
         setKeyStorePath(builder.getKeyStorePath());
         setKeyStorePassword(builder.getKeyStorePassword());
         if (builder.getEncryptionKeyAlias() != null) {
@@ -166,8 +166,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
                     + "'");
             }
             // Load keystore
-            keyStore.load(stream, getKeyStorePassword().toCharArray());
-            Enumeration<String> aliases = keyStore.aliases();
+            KEY_STORE.load(stream, getKeyStorePassword().toCharArray());
+            Enumeration<String> aliases = KEY_STORE.aliases();
             Set<String> keyEntryAliasesInKeyStore = new HashSet<>();
 
             MessageDigest sha1;
@@ -180,34 +180,34 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 try {
-                    if (!keyStore.isKeyEntry(alias)) {
+                    if (!KEY_STORE.isKeyEntry(alias)) {
                         LOGGER.trace("Alias {} is not a key entry and shall be skipped", alias);
                         continue;
                     }
                     keyEntryAliasesInKeyStore.add(alias);
-                    Key key = keyStore.getKey(alias, KEY_PASSWORD);
+                    Key key = KEY_STORE.getKey(alias, KEY_PASSWORD);
                     if (!(key instanceof SecretKey)) {
                         continue;
                     }
                     final SecretKey secretKey = (SecretKey) key;
                     LOGGER.trace("Found secret key for alias {}", alias);
-                    aliasToSecretKeyHashMap.put(alias, secretKey);
+                    ALIAS_TO_SECRET_KEY_HASH_MAP.put(alias, secretKey);
 
                     final String digest = Base64.encodeBase64String(sha1.digest(key.getEncoded()));
                     LOGGER.trace("Calculated digest {} for key alias {}", digest, key);
-                    digestToSecretKeyHashMap.put(digest, secretKey);
+                    DIGEST_TO_SECRET_KEY_HASH_MAP.put(digest, secretKey);
 
                 } catch (UnrecoverableKeyException ex) {
                     LOGGER.trace("Couldn't recover key {} from keystore, reason: {}", new Object[]{alias, ex.getMessage()});
                 }
             }
-            LOGGER.trace("Found {} aliases in keystore identified as secret keys", aliasToSecretKeyHashMap.size());
+            LOGGER.trace("Found {} aliases in keystore identified as secret keys", ALIAS_TO_SECRET_KEY_HASH_MAP.size());
             stream.close();
 
             // Initialize trust manager list
 
             TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            tmFactory.init(keyStore);
+            tmFactory.init(KEY_STORE);
             trustManagers = new ArrayList<>();
             for (TrustManager trustManager : tmFactory.getTrustManagers()) {
                 trustManagers.add(trustManager);
@@ -389,7 +389,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     }
 
     private Cipher getCipher(int cipherMode, String algorithmUri) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, InvalidAlgorithmParameterException {
-    	String jceAlgorithm = xmlsecToJceAlgorithmMap.get(algorithmUri);
+        String jceAlgorithm = XMLSEC_TO_JCE_ALGORITHM_MAP.get(algorithmUri);
         Cipher cipher;
         if (requestedJceProviderName == null) {
             cipher = Cipher.getInstance(jceAlgorithm);
@@ -417,7 +417,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     @Deprecated
     @Override
     public String getSecretKeyDigest(SecretKey key) throws EncryptionException {
-        for (Map.Entry<String, SecretKey> entry : digestToSecretKeyHashMap.entrySet()) {
+        for (Map.Entry<String, SecretKey> entry : DIGEST_TO_SECRET_KEY_HASH_MAP.entrySet()) {
             if (entry.getValue().equals(key)) {
                 return entry.getKey();
             }
@@ -434,7 +434,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
     @Override
     public KeyStore getKeyStore() {
-        return keyStore;
+        return KEY_STORE;
     }
 
     /**
@@ -467,9 +467,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         if (alias == null || alias.isEmpty()) {
             throw new EncryptionException("Key alias must be specified and cannot be blank.");
         }
-        
-        if (aliasToSecretKeyHashMap.containsKey(alias)) {
-            return aliasToSecretKeyHashMap.get(alias);
+
+        if (ALIAS_TO_SECRET_KEY_HASH_MAP.containsKey(alias)) {
+            return ALIAS_TO_SECRET_KEY_HASH_MAP.get(alias);
         }
         throw new EncryptionException("No key mapped to alias " + alias
             + " could be found in the keystore. Keys by aliases must be recomputed during initialization");
@@ -480,8 +480,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             throw new EncryptionException("Key digest must be specified and cannot be blank.");
         }
 
-        if (digestToSecretKeyHashMap.containsKey(digest)) {
-            return digestToSecretKeyHashMap.get(digest);
+        if (DIGEST_TO_SECRET_KEY_HASH_MAP.containsKey(digest)) {
+            return DIGEST_TO_SECRET_KEY_HASH_MAP.get(digest);
         }
         throw new EncryptionException("No key mapped to key digest " + digest
             + " could be found in the keystore. Keys digests must be recomputed during initialization");
@@ -595,9 +595,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             return compareEncryptedCleartext(a, b);
         }
     }
-    
+
     private boolean compareEncryptedCleartext(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
-    	String aClear = decryptString(a);
+        String aClear = decryptString(a);
         String bClear = decryptString(b);
         if (aClear == null && bClear == null) {
             return true;
@@ -653,69 +653,69 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
         return Arrays.equals(digestValue, hashBytes);
     }
-    
+
     @Override
-	public boolean areEquivalent(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException {
-    	if (a == b) {
+    public boolean areEquivalent(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException {
+        if (a == b) {
             return true;
         }
         if (a == null || b == null) {
             return false;
         }
         if (a.isHashed()) {
-        	if (b.isHashed()) {
-        		return areEquivalentHashed(a, b);
-        	} else {
-        		return false;
-        	}
+            if (b.isHashed()) {
+                return areEquivalentHashed(a, b);
+            } else {
+                return false;
+            }
         }
         if (a.isEncrypted()) {
-        	if (b.isEncrypted()) {
-        		return areEquivalentEncrypted(a, b);
-        	} else {
-        		return false;
-        	}
+            if (b.isEncrypted()) {
+                return areEquivalentEncrypted(a, b);
+            } else {
+                return false;
+            }
         }
         return Objects.equals(a.getClearValue(), a.getClearValue());
-	}
+    }
 
-	private boolean areEquivalentHashed(ProtectedStringType a, ProtectedStringType b) {
-		// We cannot compare two hashes in any other way.
-		return Objects.equals(a.getHashedDataType(), b.getHashedDataType());
-	}
-	
-	private boolean areEquivalentEncrypted(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
-		EncryptedDataType ae = a.getEncryptedDataType();
-		EncryptedDataType be = b.getEncryptedDataType();
-		if (!Objects.equals(ae.getEncryptionMethod(), be.getEncryptionMethod())) {
-			return false;
-		}
-		if (!Objects.equals(ae.getKeyInfo(), be.getKeyInfo())) {
-			return false;
-		}
-		
-		if (Objects.equals(ae.getCipherData(), be.getCipherData())) {
-			return true;
-		}
-		
-		try {
-			
-			return compareEncryptedCleartext(a, b);
-			
-		} catch (EncryptionException e) {
-			// We cannot decrypt one of the values. Therefore we do not really know whether they are
-			// the same or different. Re-throwing the exception here would stop all action. And,
-			// strictly speaking, that would be the right thing to do. But as this method is used
-			// in a low-level prism code, re-throwing this exception may stop all operations that
-			// could lead to fixing the error. Therefore just log the error, but otherwise pretend
-			// that the values are not equivalent. That is still OK with the interface contract.
-			LOGGER.warn("Cannot decrypt a value for comparison: "+e.getMessage(), e);
-			return false;
-		}
-	}
+    private boolean areEquivalentHashed(ProtectedStringType a, ProtectedStringType b) {
+        // We cannot compare two hashes in any other way.
+        return Objects.equals(a.getHashedDataType(), b.getHashedDataType());
+    }
+
+    private boolean areEquivalentEncrypted(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
+        EncryptedDataType ae = a.getEncryptedDataType();
+        EncryptedDataType be = b.getEncryptedDataType();
+        if (!Objects.equals(ae.getEncryptionMethod(), be.getEncryptionMethod())) {
+            return false;
+        }
+        if (!Objects.equals(ae.getKeyInfo(), be.getKeyInfo())) {
+            return false;
+        }
+
+        if (Objects.equals(ae.getCipherData(), be.getCipherData())) {
+            return true;
+        }
+
+        try {
+
+            return compareEncryptedCleartext(a, b);
+
+        } catch (EncryptionException e) {
+            // We cannot decrypt one of the values. Therefore we do not really know whether they are
+            // the same or different. Re-throwing the exception here would stop all action. And,
+            // strictly speaking, that would be the right thing to do. But as this method is used
+            // in a low-level prism code, re-throwing this exception may stop all operations that
+            // could lead to fixing the error. Therefore just log the error, but otherwise pretend
+            // that the values are not equivalent. That is still OK with the interface contract.
+            LOGGER.warn("Cannot decrypt a value for comparison: "+e.getMessage(), e);
+            return false;
+        }
+    }
 
 
-	@Override
+    @Override
     public boolean isEncryptedByCurrentKey(@NotNull EncryptedDataType data) throws EncryptionException {
         String encryptedUsingKeyName = data.getKeyInfo().getKeyName();
         if (encryptedUsingKeyName == null) {

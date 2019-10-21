@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
 
-	@NotNull private final ItemPath fullPath;
+    @NotNull private final ItemPath fullPath;
     private ItemDefinition definition;
     private ObjectFilter filter;
 
@@ -39,7 +39,7 @@ public class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
 
     @NotNull
     @Override
-	public ItemPath getFullPath() {
+    public ItemPath getFullPath() {
         return fullPath;
     }
 
@@ -51,11 +51,11 @@ public class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
         return filter;
     }
 
-	public void setFilter(ObjectFilter filter) {
-		this.filter = filter;
-	}
+    public void setFilter(ObjectFilter filter) {
+        this.filter = filter;
+    }
 
-	public static <C extends Containerable> ExistsFilter createExists(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
+    public static <C extends Containerable> ExistsFilter createExists(ItemPath itemPath, PrismContainerDefinition<C> containerDef,
                                                                       ObjectFilter filter) throws SchemaException {
         ItemDefinition itemDefinition = FilterImplUtil.findItemDefinition(itemPath, containerDef);
         return new ExistsFilterImpl(itemPath, itemDefinition, filter);
@@ -68,49 +68,49 @@ public class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
     }
 
     @SuppressWarnings("CloneDoesntCallSuperClone")
-	@Override
+    @Override
     public ExistsFilterImpl clone() {
         ObjectFilter f = filter != null ? filter.clone() : null;
         return new ExistsFilterImpl(fullPath, definition, f);
     }
 
-	public ExistsFilter cloneEmpty() {
-		return new ExistsFilterImpl(fullPath, definition, null);
-	}
-
-	@Override
-    public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		Item itemToFind = value.findItem(fullPath);
-		if (itemToFind == null || itemToFind.getValues().isEmpty()) {
-			return false;
-		}
-		if (!(itemToFind instanceof PrismContainer)) {
-			throw new SchemaException("Couldn't use exists query to search for items other than containers: " + itemToFind);
-		}
-		if (filter == null) {
-			return true;
-		}
-		for (PrismContainerValue<?> pcv : ((PrismContainer<?>) itemToFind).getValues()) {
-			if (filter.match(pcv, matchingRuleRegistry)) {
-				return true;
-			}
-		}
-		return false;
-	}
+    public ExistsFilter cloneEmpty() {
+        return new ExistsFilterImpl(fullPath, definition, null);
+    }
 
     @Override
-	public void checkConsistence(boolean requireDefinitions) {
-		if (fullPath.isEmpty()) {
-			throw new IllegalArgumentException("Null or empty path in "+this);
-		}
+    public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+        Item itemToFind = value.findItem(fullPath);
+        if (itemToFind == null || itemToFind.getValues().isEmpty()) {
+            return false;
+        }
+        if (!(itemToFind instanceof PrismContainer)) {
+            throw new SchemaException("Couldn't use exists query to search for items other than containers: " + itemToFind);
+        }
+        if (filter == null) {
+            return true;
+        }
+        for (PrismContainerValue<?> pcv : ((PrismContainer<?>) itemToFind).getValues()) {
+            if (filter.match(pcv, matchingRuleRegistry)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void checkConsistence(boolean requireDefinitions) {
+        if (fullPath.isEmpty()) {
+            throw new IllegalArgumentException("Null or empty path in "+this);
+        }
         if (requireDefinitions && definition == null) {
             throw new IllegalArgumentException("Null definition in "+this);
         }
-		// null subfilter is legal. It means "ALL".
-		if (filter != null) {
-			filter.checkConsistence(requireDefinitions);
-		}
-	}
+        // null subfilter is legal. It means "ALL".
+        if (filter != null) {
+            filter.checkConsistence(requireDefinitions);
+        }
+    }
 
     @Override
     public String debugDump() {
@@ -138,15 +138,15 @@ public class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
         return sb.toString();
     }
 
-	@Override
+    @Override
     public String toString() {
-    	StringBuilder sb = new StringBuilder();
-		sb.append("EXISTS(");
-		sb.append(PrettyPrinter.prettyPrint(fullPath));
-		sb.append(",");
-		sb.append(filter);
-		sb.append(")");
-		return sb.toString();
+        StringBuilder sb = new StringBuilder();
+        sb.append("EXISTS(");
+        sb.append(PrettyPrinter.prettyPrint(fullPath));
+        sb.append(",");
+        sb.append(filter);
+        sb.append(")");
+        return sb.toString();
     }
 
     @Override
@@ -157,29 +157,29 @@ public class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
         }
     }
 
-	@Override
-	public boolean equals(Object o, boolean exact) {
-		if (this == o)
-			return true;
-		if (o == null || getClass() != o.getClass())
-			return false;
+    @Override
+    public boolean equals(Object o, boolean exact) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
-		ExistsFilterImpl that = (ExistsFilterImpl) o;
+        ExistsFilterImpl that = (ExistsFilterImpl) o;
 
-		if (!fullPath.equals(that.fullPath, exact))
-			return false;
-		if (exact) {
-			if (definition != null ? !definition.equals(that.definition) : that.definition != null)
-				return false;
-		}
-		return filter != null ? filter.equals(that.filter, exact) : that.filter == null;
-	}
+        if (!fullPath.equals(that.fullPath, exact))
+            return false;
+        if (exact) {
+            if (definition != null ? !definition.equals(that.definition) : that.definition != null)
+                return false;
+        }
+        return filter != null ? filter.equals(that.filter, exact) : that.filter == null;
+    }
 
-	@Override
-	public int hashCode() {
-		int result = 1;
-		result = 31 * result + (definition != null ? definition.hashCode() : 0);
-		result = 31 * result + (filter != null ? filter.hashCode() : 0);
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = 1;
+        result = 31 * result + (definition != null ? definition.hashCode() : 0);
+        result = 31 * result + (filter != null ? filter.hashCode() : 0);
+        return result;
+    }
 }

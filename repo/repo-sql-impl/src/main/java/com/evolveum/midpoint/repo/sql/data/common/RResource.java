@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -149,7 +149,7 @@ public class RResource extends RObject<ResourceType> {
             if (jaxb.getBusiness() != null) {
                 ResourceBusinessConfigurationType business = jaxb.getBusiness();
                 repo.getApproverRef().addAll(RUtil.safeListReferenceToSet(business.getApproverRef(),
-		                repo, RReferenceOwner.RESOURCE_BUSINESS_CONFIGURATON_APPROVER, repositoryContext.relationRegistry));
+                        repo, RReferenceOwner.RESOURCE_BUSINESS_CONFIGURATON_APPROVER, repositoryContext.relationRegistry));
                 repo.setAdministrativeState(RUtil.getRepoEnumValue(business.getAdministrativeState(),
                         RResourceAdministrativeState.class));
             }

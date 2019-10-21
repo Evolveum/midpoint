@@ -2,320 +2,320 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-		  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-		  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-		  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-		  oid="f2dd9222-6aff-4099-b5a2-04ae6b3a00b7">
-	<name>source</name>
-	<connectorRef relation="org:default" type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>c:connectorType</q:path>
-					<q:value>org.identityconnectors.databasetable.DatabaseTableConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>c:connectorVersion</q:path>
-					<q:value>1.4.3.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-							xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ConnectorConfigurationType">
-		<icfc:configurationProperties
-				xmlns:gen390="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
-				xsi:type="icfc:ConfigurationPropertiesType">
-			<gen390:host>localhost</gen390:host>
-			<gen390:port>3306</gen390:port>
-			<gen390:user>midpoint</gen390:user>
-			<gen390:password>midpoint</gen390:password>
-			<gen390:database>import_source</gen390:database>
-			<gen390:table>people</gen390:table>
-			<gen390:keyColumn>THE_NAME</gen390:keyColumn>
-			<gen390:jdbcDriver>oracle.jdbc.driver.OracleDriver</gen390:jdbcDriver>
-			<gen390:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d?useUnicode=true&amp;characterEncoding=UTF-8&amp;characterSetResults=UTF-8&amp;clobCharacterEncoding=UTF-8&amp;serverTimezone=UTC&amp;useSSL=false</gen390:jdbcUrlTemplate>
-			<gen390:enableEmptyString>false</gen390:enableEmptyString>
-			<gen390:rethrowAllSQLExceptions>true</gen390:rethrowAllSQLExceptions>
-			<gen390:nativeTimestamps>true</gen390:nativeTimestamps>
-			<gen390:allNative>true</gen390:allNative>
-			<gen390:changeLogColumn>CREATE_TIMESTAMP</gen390:changeLogColumn>
-		</icfc:configurationProperties>
-	</connectorConfiguration>
-	<schemaHandling>
-		<objectType>
-			<kind>account</kind>
-			<intent>default</intent>
-			
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<c:ref>icfs:name</c:ref>
-				<inbound>
-					<target>
-						<c:path>name</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:GIVEN_NAME</c:ref>
-				<inbound>
-					<target>
-						<c:path>givenName</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:FAMILY_NAME</c:ref>
-				<inbound>
-					<target>
-						<c:path>familyName</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:EMAIL_ADDRESS</c:ref>
-				<inbound>
-					<target>
-						<c:path>emailAddress</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:EMPLOYEE_NUMBER</c:ref>
-				<inbound>
-					<target>
-						<c:path>employeeNumber</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:ACTIVATION_TIMESTAMP</c:ref>
-				<inbound>
-					<expression>
-						<script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-								xsi:type="c:ScriptExpressionEvaluatorType">
-							<code>
-								if(!basic.isEmpty(input))
-								{
-								//2014-08-29 06:25:03.0
-								return basic.parseDateTime("yyyy-MM-dd HH:mm:ss.S", input)
-								}
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="f2dd9222-6aff-4099-b5a2-04ae6b3a00b7">
+    <name>source</name>
+    <connectorRef relation="org:default" type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>c:connectorType</q:path>
+                    <q:value>org.identityconnectors.databasetable.DatabaseTableConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>c:connectorVersion</q:path>
+                    <q:value>1.4.3.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+                            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ConnectorConfigurationType">
+        <icfc:configurationProperties
+                xmlns:gen390="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
+                xsi:type="icfc:ConfigurationPropertiesType">
+            <gen390:host>localhost</gen390:host>
+            <gen390:port>3306</gen390:port>
+            <gen390:user>midpoint</gen390:user>
+            <gen390:password>midpoint</gen390:password>
+            <gen390:database>import_source</gen390:database>
+            <gen390:table>people</gen390:table>
+            <gen390:keyColumn>THE_NAME</gen390:keyColumn>
+            <gen390:jdbcDriver>oracle.jdbc.driver.OracleDriver</gen390:jdbcDriver>
+            <gen390:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d?useUnicode=true&amp;characterEncoding=UTF-8&amp;characterSetResults=UTF-8&amp;clobCharacterEncoding=UTF-8&amp;serverTimezone=UTC&amp;useSSL=false</gen390:jdbcUrlTemplate>
+            <gen390:enableEmptyString>false</gen390:enableEmptyString>
+            <gen390:rethrowAllSQLExceptions>true</gen390:rethrowAllSQLExceptions>
+            <gen390:nativeTimestamps>true</gen390:nativeTimestamps>
+            <gen390:allNative>true</gen390:allNative>
+            <gen390:changeLogColumn>CREATE_TIMESTAMP</gen390:changeLogColumn>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
 
-								return null
-							</code>
-						</script>
-					</expression>
-					<target>
-						<c:path>extension/impActivationTimestamp</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:ADMINISTRATOR_DESCRIPTION</c:ref>
-				<inbound>
-					<target>
-						<c:path>extension/impAdministratorDescription</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:DEPARTMENT_NUMBER</c:ref>
-				<inbound>
-					<target>
-						<c:path>extension/impDepartmentNumber</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:GID_NUMBER</c:ref>
-				<inbound>
-					<expression>
-						<script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-								xsi:type="c:ScriptExpressionEvaluatorType">
-							<code>
-								if(!basic.isEmpty(input))
-								{
-									return input.intValue()
-								}
-								return null
-							</code>
-						</script>
-					</expression>
-					<target>
-						<c:path>extension/impGidNumber</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:LIFE_CYCLE_STAGE</c:ref>
-				<inbound>
-					<target>
-						<c:path>extension/impLifeCycleStage</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:EMAIL_ALIAS</c:ref>
-				<inbound>
-					<expression>
-						<script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-								xsi:type="c:ScriptExpressionEvaluatorType">
-							<relativityMode>absolute</relativityMode>
-							<code>
-								import java.util.Arrays
-								import org.apache.commons.lang.StringUtils
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <c:ref>icfs:name</c:ref>
+                <inbound>
+                    <target>
+                        <c:path>name</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:GIVEN_NAME</c:ref>
+                <inbound>
+                    <target>
+                        <c:path>givenName</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:FAMILY_NAME</c:ref>
+                <inbound>
+                    <target>
+                        <c:path>familyName</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:EMAIL_ADDRESS</c:ref>
+                <inbound>
+                    <target>
+                        <c:path>emailAddress</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:EMPLOYEE_NUMBER</c:ref>
+                <inbound>
+                    <target>
+                        <c:path>employeeNumber</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:ACTIVATION_TIMESTAMP</c:ref>
+                <inbound>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                if(!basic.isEmpty(input))
+                                {
+                                //2014-08-29 06:25:03.0
+                                return basic.parseDateTime("yyyy-MM-dd HH:mm:ss.S", input)
+                                }
 
-								retVal = []
-								if(!basic.isEmpty(input))
-								{
-								retVal = Arrays.asList(StringUtils.split(input, '|'))
-								}
+                                return null
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <c:path>extension/impActivationTimestamp</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:ADMINISTRATOR_DESCRIPTION</c:ref>
+                <inbound>
+                    <target>
+                        <c:path>extension/impAdministratorDescription</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:DEPARTMENT_NUMBER</c:ref>
+                <inbound>
+                    <target>
+                        <c:path>extension/impDepartmentNumber</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:GID_NUMBER</c:ref>
+                <inbound>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                if(!basic.isEmpty(input))
+                                {
+                                    return input.intValue()
+                                }
+                                return null
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <c:path>extension/impGidNumber</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:LIFE_CYCLE_STAGE</c:ref>
+                <inbound>
+                    <target>
+                        <c:path>extension/impLifeCycleStage</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:EMAIL_ALIAS</c:ref>
+                <inbound>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                xsi:type="c:ScriptExpressionEvaluatorType">
+                            <relativityMode>absolute</relativityMode>
+                            <code>
+                                import java.util.Arrays
+                                import org.apache.commons.lang.StringUtils
 
-								return retVal
-							</code>
-						</script>
-					</expression>
-					<target>
-						<c:path>extension/impEmailAlias</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:ROLE_CODE</c:ref>
-				<inbound>
-					<expression>
-						<script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-								xsi:type="c:ScriptExpressionEvaluatorType">
-							<relativityMode>absolute</relativityMode>
-							<code>
-								import java.util.Arrays
-								import org.apache.commons.lang.StringUtils
+                                retVal = []
+                                if(!basic.isEmpty(input))
+                                {
+                                retVal = Arrays.asList(StringUtils.split(input, '|'))
+                                }
 
-								retVal = []
-								if(!basic.isEmpty(input))
-								{
-								retVal = Arrays.asList(StringUtils.split(input, '|'))
-								}
+                                return retVal
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <c:path>extension/impEmailAlias</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:ROLE_CODE</c:ref>
+                <inbound>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                xsi:type="c:ScriptExpressionEvaluatorType">
+                            <relativityMode>absolute</relativityMode>
+                            <code>
+                                import java.util.Arrays
+                                import org.apache.commons.lang.StringUtils
 
-								return retVal
-							</code>
-						</script>
-					</expression>
-					<target>
-						<c:path>extension/impRoleCode</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:SERVICE</c:ref>
-				<inbound>
-					<expression>
-						<script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-								xsi:type="c:ScriptExpressionEvaluatorType">
-							<relativityMode>absolute</relativityMode>
-							<code>
-								import java.util.Arrays
-								import org.apache.commons.lang.StringUtils
+                                retVal = []
+                                if(!basic.isEmpty(input))
+                                {
+                                retVal = Arrays.asList(StringUtils.split(input, '|'))
+                                }
 
-								retVal = []
-								if(!basic.isEmpty(input))
-								{
-								retVal = Arrays.asList(StringUtils.split(input, '|'))
-								}
+                                return retVal
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <c:path>extension/impRoleCode</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:SERVICE</c:ref>
+                <inbound>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                xsi:type="c:ScriptExpressionEvaluatorType">
+                            <relativityMode>absolute</relativityMode>
+                            <code>
+                                import java.util.Arrays
+                                import org.apache.commons.lang.StringUtils
 
-								return retVal
-							</code>
-						</script>
-					</expression>
-					<target>
-						<c:path>extension/impService</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:STUDENT_FACULTY_CODE</c:ref>
-				<inbound>
-					<target>
-						<c:path>extension/impStudentFacultyCode</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:UID_NUMBER</c:ref>
-				<inbound>
-					<expression>
-						<script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-								xsi:type="c:ScriptExpressionEvaluatorType">
-							<code>
-								if(!basic.isEmpty(input))
-								{
-								return input.intValue()
-								}
+                                retVal = []
+                                if(!basic.isEmpty(input))
+                                {
+                                retVal = Arrays.asList(StringUtils.split(input, '|'))
+                                }
 
-								return null
+                                return retVal
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <c:path>extension/impService</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:STUDENT_FACULTY_CODE</c:ref>
+                <inbound>
+                    <target>
+                        <c:path>extension/impStudentFacultyCode</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:UID_NUMBER</c:ref>
+                <inbound>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                if(!basic.isEmpty(input))
+                                {
+                                return input.intValue()
+                                }
 
-							</code>
-						</script>
-					</expression>
-					<target>
-						<c:path>extension/impUidNumber</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<c:ref>ri:ADMINISTRATIVE_STATUS</c:ref>
-				<inbound>
-					<target>
-						<c:path>activation/administrativeStatus</c:path>
-					</target>
-				</inbound>
-			</attribute>
-			<credentials>
-				<password xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourcePasswordDefinitionType">
-					<inbound>
-						<expression>
-							<generate xsi:type="c:GenerateExpressionEvaluatorType"/>
-						</expression>
-					</inbound>
-				</password>
-			</credentials>
-		</objectType>
-	</schemaHandling>
-	<synchronization>
-		<objectSynchronization>
-			<kind>account</kind>
-			<intent>default</intent>
-			<focusType>c:UserType</focusType>
-			<enabled>true</enabled>
-			<correlation>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<expression>
-						<path>$account/attributes/icfs:THE_NAME</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-				<situation>unmatched</situation>
-				<synchronize>true</synchronize>
-				<objectTemplateRef oid="e84d7b5a-4634-4b75-a17c-df0b8b49b593" type="c:ObjectTemplateType"/>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>linked</situation>
-				<synchronize>true</synchronize>
-				<objectTemplateRef oid="e84d7b5a-4634-4b75-a17c-df0b8b49b593" type="c:ObjectTemplateType"/>
-			</reaction>
-		</objectSynchronization>
-	</synchronization>
+                                return null
+
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <c:path>extension/impUidNumber</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <c:ref>ri:ADMINISTRATIVE_STATUS</c:ref>
+                <inbound>
+                    <target>
+                        <c:path>activation/administrativeStatus</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <credentials>
+                <password xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourcePasswordDefinitionType">
+                    <inbound>
+                        <expression>
+                            <generate xsi:type="c:GenerateExpressionEvaluatorType"/>
+                        </expression>
+                    </inbound>
+                </password>
+            </credentials>
+        </objectType>
+    </schemaHandling>
+    <synchronization>
+        <objectSynchronization>
+            <kind>account</kind>
+            <intent>default</intent>
+            <focusType>c:UserType</focusType>
+            <enabled>true</enabled>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <path>$account/attributes/icfs:THE_NAME</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <objectTemplateRef oid="e84d7b5a-4634-4b75-a17c-df0b8b49b593" type="c:ObjectTemplateType"/>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+                <objectTemplateRef oid="e84d7b5a-4634-4b75-a17c-df0b8b49b593" type="c:ObjectTemplateType"/>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
 </resource>

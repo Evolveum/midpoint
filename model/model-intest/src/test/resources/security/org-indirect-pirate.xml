@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -13,10 +13,10 @@
      oid="59024142-5830-11e7-80e6-ffbee06efb45">
    <name>Indirect pirate</name>
    <inducement>
-    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
-    	<orderConstraint>
-			<orderMax>unbounded</orderMax>
-		</orderConstraint>
-    	<focusType>UserType</focusType> <!-- MID-3650 -->
+        <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
+        <orderConstraint>
+            <orderMax>unbounded</orderMax>
+        </orderConstraint>
+        <focusType>UserType</focusType> <!-- MID-3650 -->
     </inducement>
 </org>

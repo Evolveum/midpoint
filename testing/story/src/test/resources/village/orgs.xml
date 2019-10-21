@@ -2,62 +2,62 @@
 <!--
   ~ Copyright (c) 2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
- 
+
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
 
-	<!-- Functional organizational structure -->
+    <!-- Functional organizational structure -->
 
-	<org oid="00000000-8888-6666-0000-100000000001">
-		<name>TOP</name>
-		<assignment>
-			<targetRef oid="74aac2c8-ca0f-11e3-bb29-001e8c717e5b"/>
-		</assignment>
-		<displayName>Top</displayName>
-		<identifier>0000</identifier>
-		<orgType>functional</orgType>
-	</org>
+    <org oid="00000000-8888-6666-0000-100000000001">
+        <name>TOP</name>
+        <assignment>
+            <targetRef oid="74aac2c8-ca0f-11e3-bb29-001e8c717e5b"/>
+        </assignment>
+        <displayName>Top</displayName>
+        <identifier>0000</identifier>
+        <orgType>functional</orgType>
+    </org>
 
-	<org oid="00000000-8888-6666-0000-100000000002">
-		<name>Gov</name>
-		<description>Defending the scum since the ancient times.</description>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
-				<assignment>
-			<targetRef oid="74aac2c8-ca0f-11e3-bb29-001e8c717e5b"/>
-		</assignment>
-		<displayName>Government</displayName>
-		<identifier>G</identifier>
-		<orgType>functional</orgType>
-	</org>
+    <org oid="00000000-8888-6666-0000-100000000002">
+        <name>Gov</name>
+        <description>Defending the scum since the ancient times.</description>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
+                <assignment>
+            <targetRef oid="74aac2c8-ca0f-11e3-bb29-001e8c717e5b"/>
+        </assignment>
+        <displayName>Government</displayName>
+        <identifier>G</identifier>
+        <orgType>functional</orgType>
+    </org>
 
-	<org oid="00000000-8888-6666-0000-100000000003">
-		<name>Exec</name>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
-				<assignment>
-			<targetRef oid="74aac2c8-ca0f-11e3-bb29-001e8c717e5b"/>
-		</assignment>
-		<displayName>Executive</displayName>
-		<identifier>E</identifier>
-		<orgType>functional</orgType>
-	</org>
-	
-	<org oid="00000000-8888-6666-0000-100000000004">
-		<name>Infra</name>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
-				<assignment>
-			<targetRef oid="74aac2c8-ca0f-11e3-bb29-001e8c717e5b"/>
-		</assignment>
-		<displayName>Infrastructure</displayName>
-		<identifier>I</identifier>
-		<orgType>functional</orgType>
-	</org>
-	
-	<org oid="00000000-8888-6666-0000-200000000000">
-		<name>Projects</name>
-		<displayName>Projects</displayName>
-	</org>
-	
+    <org oid="00000000-8888-6666-0000-100000000003">
+        <name>Exec</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
+                <assignment>
+            <targetRef oid="74aac2c8-ca0f-11e3-bb29-001e8c717e5b"/>
+        </assignment>
+        <displayName>Executive</displayName>
+        <identifier>E</identifier>
+        <orgType>functional</orgType>
+    </org>
+
+    <org oid="00000000-8888-6666-0000-100000000004">
+        <name>Infra</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
+                <assignment>
+            <targetRef oid="74aac2c8-ca0f-11e3-bb29-001e8c717e5b"/>
+        </assignment>
+        <displayName>Infrastructure</displayName>
+        <identifier>I</identifier>
+        <orgType>functional</orgType>
+    </org>
+
+    <org oid="00000000-8888-6666-0000-200000000000">
+        <name>Projects</name>
+        <displayName>Projects</displayName>
+    </org>
+
 </objects>

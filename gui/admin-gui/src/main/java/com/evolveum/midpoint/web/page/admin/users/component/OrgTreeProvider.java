@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -39,9 +39,9 @@ import java.util.*;
  */
 public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<OrgType>, String> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(OrgTreeProvider.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OrgTreeProvider.class);
 
     private static final String DOT_CLASS = OrgTreeProvider.class.getName() + ".";
     private static final String LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
@@ -67,11 +67,11 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
     }
 
     public Map<String, TreeSelectableBean<OrgType>> getAvailableData() {
-		if (availableData == null){
-			availableData = new HashMap<>();
-		}
-    	return availableData;
-	}
+        if (availableData == null){
+            availableData = new HashMap<>();
+        }
+        return availableData;
+    }
 
     private PageBase getPageBase() {
         return WebComponentUtil.getPageBase(component);
@@ -225,10 +225,10 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
         //todo relation [lazyman]
         OrgType org = unit.asObjectable();
         if (parent != null) {
-        	org.getParentOrgRef().clear();
-        	ObjectReferenceType parentOrgRef = new ObjectReferenceType();
-        	parentOrgRef.asReferenceValue().setObject(parent.getValue().asPrismObject());
-			org.getParentOrgRef().add(parentOrgRef);
+            org.getParentOrgRef().clear();
+            ObjectReferenceType parentOrgRef = new ObjectReferenceType();
+            parentOrgRef.asReferenceValue().setObject(parent.getValue().asPrismObject());
+            org.getParentOrgRef().add(parentOrgRef);
         }
         TreeSelectableBean<OrgType> orgDto = new TreeSelectableBean<>(org);
         orgDto.getMenuItems().addAll(createInlineMenuItems(orgDto));
@@ -236,14 +236,14 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
     }
 
     protected List<InlineMenuItem> createInlineMenuItems(TreeSelectableBean<OrgType> org){
-    	return null;
+        return null;
     }
 
     @Override
     public Iterator<TreeSelectableBean<OrgType>> getRoots() {
         OperationResult result = null;
         if (root == null) {
-        	Task task = getPageBase().createSimpleTask(LOAD_ORG_UNIT);
+            Task task = getPageBase().createSimpleTask(LOAD_ORG_UNIT);
             result = task.getResult();
             LOGGER.debug("Getting roots for: " + rootOid.getObject());
 
@@ -266,7 +266,7 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
         if (root != null) {
             list.add(root);
             if (!getAvailableData().containsKey(root.getValue().getOid())){
-            	getAvailableData().put(root.getValue().getOid(), root);
+                getAvailableData().put(root.getValue().getOid(), root);
             }
 
         }
@@ -285,12 +285,12 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
 
     public List<OrgType> getSelectedObjects(){
         List<OrgType> selectedOrgs = new ArrayList<>();
-    	for (TreeSelectableBean<OrgType> selected : getAvailableData().values()){
-    		if (selected.isSelected() && selected.getValue() != null) {
-    			selectedOrgs.add(selected.getValue());
-    		}
-    	}
-    	return selectedOrgs;
+        for (TreeSelectableBean<OrgType> selected : getAvailableData().values()){
+            if (selected.isSelected() && selected.getValue() != null) {
+                selectedOrgs.add(selected.getValue());
+            }
+        }
+        return selectedOrgs;
     }
 
     public long getOffset() {

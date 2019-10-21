@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -115,18 +115,18 @@ public class InitialDataImport extends DataImport{
         } catch (ObjectNotFoundException ex) {
             importObject = true;
         } catch (Exception ex) {
-        	if (!importObject){
-	            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get object with oid {} from model", ex,
-	                    object.getOid());
-	            result.recordWarning("Couldn't get object with oid '" + object.getOid() + "' from model",
-	                    ex);
-        	}
+            if (!importObject){
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get object with oid {} from model", ex,
+                        object.getOid());
+                result.recordWarning("Couldn't get object with oid '" + object.getOid() + "' from model",
+                        ex);
+            }
         }
 
         if (!importObject) {
             return null;
         }
-        
+
         preImportUpdate(object);
 
         ObjectDelta delta = DeltaFactory.Object.createAddDelta(object);
@@ -146,10 +146,10 @@ public class InitialDataImport extends DataImport{
         }
     }
 
-	private File getResource(String name) {
+    private File getResource(String name) {
         URI path;
         try {
-        	LOGGER.trace("getResource: name = {}", name);
+            LOGGER.trace("getResource: name = {}", name);
             path = InitialDataImport.class.getClassLoader().getResource(name).toURI();
             LOGGER.trace("getResource: path = {}", path);
             //String updatedPath = path.toString().replace("zip:/", "jar:/");
@@ -266,7 +266,7 @@ public class InitialDataImport extends DataImport{
 
     protected File[] getInitialImportObjects() {
         URL path = InitialDataImport.class.getClassLoader().getResource("initial-objects");
-    	String resourceType = path.getProtocol();
+        String resourceType = path.getProtocol();
 
         File folder = null;
 
@@ -290,9 +290,9 @@ public class InitialDataImport extends DataImport{
             throw new RuntimeException("Failed get URI for the source code bundled with initial objects", ex);
         }
 
-    	if ("file".equals(resourceType)) {
-	        folder = getResource("initial-objects");
-    	}
+        if ("file".equals(resourceType)) {
+            folder = getResource("initial-objects");
+        }
 
         File[] files = folder.listFiles(pathname -> {
             if (pathname.isDirectory()) {

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -67,50 +67,50 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
  * @author lazyman
  */
 @PageDescriptor(
-		urls = {
-				@Url(mountUrl = "/admin/resources", matchUrlForSecurity = "/admin/resources")
-		},
-		action = {
-				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
-						label = "PageAdminResources.auth.resourcesAll.label",
-						description = "PageAdminResources.auth.resourcesAll.description"),
-				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
-						label = "PageResources.auth.resources.label",
-						description = "PageResources.auth.resources.description"),
-				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL,
-						label = "PageResources.auth.resources.view.label",
-						description = "PageResources.auth.resources.view.description")
-		})
+        urls = {
+                @Url(mountUrl = "/admin/resources", matchUrlForSecurity = "/admin/resources")
+        },
+        action = {
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
+                        label = "PageAdminResources.auth.resourcesAll.label",
+                        description = "PageAdminResources.auth.resourcesAll.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
+                        label = "PageResources.auth.resources.label",
+                        description = "PageResources.auth.resources.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL,
+                        label = "PageResources.auth.resources.view.label",
+                        description = "PageResources.auth.resources.view.description")
+        })
 public class PageResources extends PageAdminObjectList<ResourceType> {
 
-	private static final long serialVersionUID = 1L;
-	private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);
-	private static final String DOT_CLASS = PageResources.class.getName() + ".";
-	private static final String OPERATION_TEST_RESOURCE = DOT_CLASS + "testResource";
-	private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
-	private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
+    private static final long serialVersionUID = 1L;
+    private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);
+    private static final String DOT_CLASS = PageResources.class.getName() + ".";
+    private static final String OPERATION_TEST_RESOURCE = DOT_CLASS + "testResource";
+    private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
+    private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
 
-	private static final String ID_MAIN_FORM = "mainForm";
-	private static final String ID_TABLE = "table";
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_TABLE = "table";
 
-	private ResourceType singleDelete;
+    private ResourceType singleDelete;
 
-	public PageResources() {
-		this("");
-	}
+    public PageResources() {
+        this("");
+    }
 
-	public PageResources(String searchText) {
-		super();
-		if (StringUtils.isNotEmpty(searchText)){
+    public PageResources(String searchText) {
+        super();
+        if (StringUtils.isNotEmpty(searchText)){
             initSearch(searchText);
         }
-	}
+    }
 
-	protected void initLayout(){
-		super.initLayout();
-		getObjectListPanel().setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);
+    protected void initLayout(){
+        super.initLayout();
+        getObjectListPanel().setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);
 
-	}
+    }
 
     private void initSearch(String text){
         PageStorage storage = getSessionStorage().getPageStorageMap().get(SessionStorage.KEY_RESOURCES);
@@ -118,9 +118,9 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
             storage = getSessionStorage().initPageStorage(SessionStorage.KEY_RESOURCES);
         }
         Search search = SearchFactory.createSearch(ResourceType.class, this);
-		if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
-			search.setFullText(text);
-		} else if (search.getItems() != null && search.getItems().size() > 0){
+        if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
+            search.setFullText(text);
+        } else if (search.getItems() != null && search.getItems().size() > 0){
             SearchItem searchItem = search.getItems().get(0);
             searchItem.getValues().add(new SearchValue<>(text));
         }
@@ -128,250 +128,250 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
         getSessionStorage().getPageStorageMap().put(SessionStorage.KEY_RESOURCES, storage);
     }
 
-	@Override
-	protected List<InlineMenuItem> createRowActions() {
-		return PageResources.this.createRowMenuItems();
-	}
+    @Override
+    protected List<InlineMenuItem> createRowActions() {
+        return PageResources.this.createRowMenuItems();
+    }
 
-	@Override
-	protected List<IColumn<SelectableBean<ResourceType>, String>> initColumns() {
-		return PageResources.this.initResourceColumns();
-	}
+    @Override
+    protected List<IColumn<SelectableBean<ResourceType>, String>> initColumns() {
+        return PageResources.this.initResourceColumns();
+    }
 
-	@Override
-	protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType object) {
-		PageResources.this.resourceDetailsPerformed(target, object.getOid());
+    @Override
+    protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType object) {
+        PageResources.this.resourceDetailsPerformed(target, object.getOid());
 
-	}
+    }
 
-	@Override
-	protected Class<ResourceType> getType(){
-    	return ResourceType.class;
-	}
+    @Override
+    protected Class<ResourceType> getType(){
+        return ResourceType.class;
+    }
 
-	@Override
-	protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions() {
-		return getOperationOptionsBuilder()
-				.noFetch()
-				.item(ResourceType.F_CONNECTOR_REF).resolve()
-				.build();
-	}
+    @Override
+    protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions() {
+        return getOperationOptionsBuilder()
+                .noFetch()
+                .item(ResourceType.F_CONNECTOR_REF).resolve()
+                .build();
+    }
 
-	@Override
-	protected UserProfileStorage.TableId getTableId() {
-		return UserProfileStorage.TableId.TABLE_RESOURCES;
-	}
+    @Override
+    protected UserProfileStorage.TableId getTableId() {
+        return UserProfileStorage.TableId.TABLE_RESOURCES;
+    }
 
-	private List<InlineMenuItem> createRowMenuItems() {
+    private List<InlineMenuItem> createRowMenuItems() {
 
-		List<InlineMenuItem> menuItems = new ArrayList<>();
+        List<InlineMenuItem> menuItems = new ArrayList<>();
 
-		menuItems.add(new ButtonInlineMenuItem(createStringResource("PageResources.inlineMenuItem.test")) {
-			private static final long serialVersionUID = 1L;
+        menuItems.add(new ButtonInlineMenuItem(createStringResource("PageResources.inlineMenuItem.test")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
-					private static final long serialVersionUID = 1L;
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<ResourceType> rowDto = getRowModel().getObject();
-						testResourcePerformed(target, rowDto.getValue());
-					}
-				};
-			}
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                        testResourcePerformed(target, rowDto.getValue());
+                    }
+                };
+            }
 
-			@Override
-			public boolean isHeaderMenuItem(){
-				return false;
-			}
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
+            }
 
-			@Override
+            @Override
             public String getButtonIconCssClass() {
-				return GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM;
-			}
-		});
+                return GuiStyleConstants.CLASS_TEST_CONNECTION_MENU_ITEM;
+            }
+        });
 
-		menuItems.add(new ButtonInlineMenuItem(createStringResource("pageResources.button.editAsXml")) {
-			private static final long serialVersionUID = 1L;
+        menuItems.add(new ButtonInlineMenuItem(createStringResource("pageResources.button.editAsXml")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
-					private static final long serialVersionUID = 1L;
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<ResourceType> rowDto = getRowModel().getObject();
-						editAsXmlPerformed(rowDto.getValue());
-					}
-				};
-			}
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                        editAsXmlPerformed(rowDto.getValue());
+                    }
+                };
+            }
 
-			@Override
-			public boolean isHeaderMenuItem(){
-				return false;
-			}
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
+            }
 
-			@Override
+            @Override
             public String getButtonIconCssClass() {
-				return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
-			}
-		});
+                return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+            }
+        });
 
-		menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.editResource")) {
-			private static final long serialVersionUID = 1L;
+        menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.editResource")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
-					private static final long serialVersionUID = 1L;
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<ResourceType> rowDto = getRowModel().getObject();
-						editResourcePerformed(rowDto.getValue());
-					}
-				};
-			}
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                        editResourcePerformed(rowDto.getValue());
+                    }
+                };
+            }
 
-			@Override
-			public boolean isHeaderMenuItem(){
-				return false;
-			}
-		});
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
+            }
+        });
 
-		menuItems.add(new InlineMenuItem(createStringResource("pageResource.button.refreshSchema")) {
-			private static final long serialVersionUID = 1L;
+        menuItems.add(new InlineMenuItem(createStringResource("pageResource.button.refreshSchema")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
-					private static final long serialVersionUID = 1L;
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<ResourceType> rowDto = getRowModel().getObject();
-						refreshSchemaPerformed(rowDto.getValue(), target);
-					}
-				};
-			}
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                        refreshSchemaPerformed(rowDto.getValue(), target);
+                    }
+                };
+            }
 
-			@Override
-			public boolean isHeaderMenuItem(){
-				return false;
-			}
-		});
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
+            }
+        });
 
-		menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.delete")) {
-			private static final long serialVersionUID = 1L;
+        menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.delete")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
-					private static final long serialVersionUID = 1L;
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null) {
-							deleteResourcePerformed(target, null);
-						} else {
-							SelectableBean<ResourceType> rowDto = getRowModel().getObject();
-							deleteResourcePerformed(target, rowDto.getValue());
-						}
-					}
-				};
-			}
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null) {
+                            deleteResourcePerformed(target, null);
+                        } else {
+                            SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                            deleteResourcePerformed(target, rowDto.getValue());
+                        }
+                    }
+                };
+            }
 
-			@Override
+            @Override
             public String getButtonIconCssClass() {
-				return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
-			}
-		});
+                return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+            }
+        });
 
-		menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.deleteSyncToken")) {
-			private static final long serialVersionUID = 1L;
+        menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.deleteSyncToken")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
-					private static final long serialVersionUID = 1L;
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						SelectableBean<ResourceType> rowDto = getRowModel().getObject();
-						deleteResourceSyncTokenPerformed(target, rowDto.getValue());
-					}
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+                        deleteResourceSyncTokenPerformed(target, rowDto.getValue());
+                    }
 
-				};
-			}
+                };
+            }
 
-			@Override
-			public boolean isHeaderMenuItem(){
-				return false;
-			}
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
+            }
 
-		});
+        });
 
-		return menuItems;
-	}
+        return menuItems;
+    }
 
-	private List<IColumn<SelectableBean<ResourceType>, String>> initResourceColumns() {
-		List<IColumn<SelectableBean<ResourceType>, String>> columns = new ArrayList<>();
+    private List<IColumn<SelectableBean<ResourceType>, String>> initResourceColumns() {
+        List<IColumn<SelectableBean<ResourceType>, String>> columns = new ArrayList<>();
 
-		columns.add(new PropertyColumn(createStringResource("pageResources.connectorType"),
-				SelectableBean.F_VALUE + ".connectorRef.objectable.connectorType"));
-		columns.add(new PropertyColumn(createStringResource("pageResources.version"),
-				SelectableBean.F_VALUE + ".connectorRef.objectable.connectorVersion"));
+        columns.add(new PropertyColumn(createStringResource("pageResources.connectorType"),
+                SelectableBean.F_VALUE + ".connectorRef.objectable.connectorType"));
+        columns.add(new PropertyColumn(createStringResource("pageResources.version"),
+                SelectableBean.F_VALUE + ".connectorRef.objectable.connectorVersion"));
 
-		return columns;
-	}
+        return columns;
+    }
 
-	private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
+    private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
         clearSessionStorageForResourcePage();
 
         PageParameters parameters = new PageParameters();
-		parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-		navigateToNext(PageResource.class, parameters);
-	}
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+        navigateToNext(PageResource.class, parameters);
+    }
 
-	private List<ResourceType> isAnyResourceSelected(AjaxRequestTarget target, ResourceType single) {
-		List<ResourceType> selected = null;
-		if (single != null) {
-			selected = new ArrayList<>(1);
-			selected.add(single);
-			return selected;
-		}
-		selected = getResourceTable().getSelectedObjects();
-		return selected;
+    private List<ResourceType> isAnyResourceSelected(AjaxRequestTarget target, ResourceType single) {
+        List<ResourceType> selected = null;
+        if (single != null) {
+            selected = new ArrayList<>(1);
+            selected.add(single);
+            return selected;
+        }
+        selected = getResourceTable().getSelectedObjects();
+        return selected;
 
-	}
+    }
 
-	private void refreshSchemaPerformed(ResourceType resource, AjaxRequestTarget target) {
-		ConfirmationPanel dialog = new ConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
-				createStringResource("pageResources.message.refreshResourceSchemaConfirm")){
-			@Override
-			public void yesPerformed(AjaxRequestTarget target) {
-				WebComponentUtil.refreshResourceSchema(resource.asPrismObject(), OPERATION_REFRESH_SCHEMA, target, PageResources.this);
-			}
-		};
-		((PageBase)getPage()).showMainPopup(dialog, target);
-	}
+    private void refreshSchemaPerformed(ResourceType resource, AjaxRequestTarget target) {
+        ConfirmationPanel dialog = new ConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
+                createStringResource("pageResources.message.refreshResourceSchemaConfirm")){
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                WebComponentUtil.refreshResourceSchema(resource.asPrismObject(), OPERATION_REFRESH_SCHEMA, target, PageResources.this);
+            }
+        };
+        ((PageBase)getPage()).showMainPopup(dialog, target);
+    }
 
-	private void deleteResourcePerformed(AjaxRequestTarget target, ResourceType single) {
-		List<ResourceType> selected = isAnyResourceSelected(target, single);
-		if (selected.size() < 1) {
-			warn(createStringResource("pageResources.message.noResourceSelected").getString());
-			target.add(getFeedbackPanel());
-			return;
-		}
+    private void deleteResourcePerformed(AjaxRequestTarget target, ResourceType single) {
+        List<ResourceType> selected = isAnyResourceSelected(target, single);
+        if (selected.size() < 1) {
+            warn(createStringResource("pageResources.message.noResourceSelected").getString());
+            target.add(getFeedbackPanel());
+            return;
+        }
 
-		singleDelete = single;
+        singleDelete = single;
 
-		if (selected.isEmpty()) {
-			return;
-		}
+        if (selected.isEmpty()) {
+            return;
+        }
 
         ConfirmationPanel dialog = new ConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
                 createDeleteConfirmString("pageResources.message.deleteResourceConfirm",
@@ -384,129 +384,129 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
         ((PageBase)getPage()).showMainPopup(dialog, target);
     }
 
-	private MainObjectListPanel<ResourceType, CompiledObjectCollectionView> getResourceTable() {
-		return (MainObjectListPanel<ResourceType, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
-	}
+    private MainObjectListPanel<ResourceType, CompiledObjectCollectionView> getResourceTable() {
+        return (MainObjectListPanel<ResourceType, CompiledObjectCollectionView>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    }
 
-	/**
-	 * @param oneDeleteKey
-	 *            message if deleting one item
-	 * @param moreDeleteKey
-	 *            message if deleting more items
-	 * @param resources
-	 *            if true selecting resources if false selecting from hosts
-	 */
-	private IModel<String> createDeleteConfirmString(final String oneDeleteKey, final String moreDeleteKey,
-			final boolean resources) {
-		return new IModel<String>() {
+    /**
+     * @param oneDeleteKey
+     *            message if deleting one item
+     * @param moreDeleteKey
+     *            message if deleting more items
+     * @param resources
+     *            if true selecting resources if false selecting from hosts
+     */
+    private IModel<String> createDeleteConfirmString(final String oneDeleteKey, final String moreDeleteKey,
+            final boolean resources) {
+        return new IModel<String>() {
 
-			@Override
-			public String getObject() {
-				List selected = new ArrayList();
-					if (singleDelete != null) {
-						selected.add(singleDelete);
-					} else {
-						selected = getResourceTable().getSelectedObjects();
-					}
+            @Override
+            public String getObject() {
+                List selected = new ArrayList();
+                    if (singleDelete != null) {
+                        selected.add(singleDelete);
+                    } else {
+                        selected = getResourceTable().getSelectedObjects();
+                    }
 
-				switch (selected.size()) {
-					case 1:
-						Object first = selected.get(0);
-						String name = WebComponentUtil.getName(((ResourceType) first));
-						return createStringResource(oneDeleteKey, name).getString();
-					default:
-						return createStringResource(moreDeleteKey, selected.size()).getString();
-				}
-			}
-		};
-	}
+                switch (selected.size()) {
+                    case 1:
+                        Object first = selected.get(0);
+                        String name = WebComponentUtil.getName(((ResourceType) first));
+                        return createStringResource(oneDeleteKey, name).getString();
+                    default:
+                        return createStringResource(moreDeleteKey, selected.size()).getString();
+                }
+            }
+        };
+    }
 
-	private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
-		List<ResourceType> selected = new ArrayList<>();
+    private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
+        List<ResourceType> selected = new ArrayList<>();
 
-		if (singleDelete != null) {
-			selected.add(singleDelete);
-		} else {
-			selected = getResourceTable().getSelectedObjects();
-		}
+        if (singleDelete != null) {
+            selected.add(singleDelete);
+        } else {
+            selected = getResourceTable().getSelectedObjects();
+        }
 
-		OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);
-		for (ResourceType resource : selected) {
-			try {
-				Task task = createSimpleTask(OPERATION_DELETE_RESOURCES);
+        OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);
+        for (ResourceType resource : selected) {
+            try {
+                Task task = createSimpleTask(OPERATION_DELETE_RESOURCES);
 
-				ObjectDelta<ResourceType> delta = getPrismContext().deltaFactory().object().createDeleteDelta(ResourceType.class,
-						resource.getOid());
-				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
-						result);
-			} catch (Exception ex) {
-				result.recordPartialError(createStringResource("PageResources.message.deleteResourceConfirmedPerformed.partialError").getString(), ex);
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete resource", ex);
-			}
-		}
+                ObjectDelta<ResourceType> delta = getPrismContext().deltaFactory().object().createDeleteDelta(ResourceType.class,
+                        resource.getOid());
+                getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task,
+                        result);
+            } catch (Exception ex) {
+                result.recordPartialError(createStringResource("PageResources.message.deleteResourceConfirmedPerformed.partialError").getString(), ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete resource", ex);
+            }
+        }
 
-		result.recomputeStatus();
-		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageResources.message.deleteResourceConfirmedPerformed.success").getString());
-		}
+        result.recomputeStatus();
+        if (result.isSuccess()) {
+            result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("PageResources.message.deleteResourceConfirmedPerformed.success").getString());
+        }
 
-		getResourceTable().clearCache();
+        getResourceTable().clearCache();
 
-		showResult(result);
-		target.add(getFeedbackPanel(), (Component) getResourceTable());
-	}
+        showResult(result);
+        target.add(getFeedbackPanel(), (Component) getResourceTable());
+    }
 
-	private void testResourcePerformed(AjaxRequestTarget target, ResourceType resourceType) {
+    private void testResourcePerformed(AjaxRequestTarget target, ResourceType resourceType) {
 
-		OperationResult result = new OperationResult(OPERATION_TEST_RESOURCE);
+        OperationResult result = new OperationResult(OPERATION_TEST_RESOURCE);
 
-		if (StringUtils.isEmpty(resourceType.getOid())) {
-			result.recordFatalError(createStringResource("PageResources.message.testResourcePerformed.partialError").getString());
-		}
+        if (StringUtils.isEmpty(resourceType.getOid())) {
+            result.recordFatalError(createStringResource("PageResources.message.testResourcePerformed.partialError").getString());
+        }
 
-		Task task = createSimpleTask(OPERATION_TEST_RESOURCE);
-		try {
-			result = getModelService().testResource(resourceType.getOid(), task);
-			// todo de-duplicate code (see the same operation in PageResource)
-			// this provides some additional tests, namely a test for schema
-			// handling section
-			getModelService().getObject(ResourceType.class, resourceType.getOid(), null, task, result);
-		} catch (Exception ex) {
-			result.recordFatalError(createStringResource("PageResources.message.testResourcePerformed.fatalError").getString(), ex);
-		}
+        Task task = createSimpleTask(OPERATION_TEST_RESOURCE);
+        try {
+            result = getModelService().testResource(resourceType.getOid(), task);
+            // todo de-duplicate code (see the same operation in PageResource)
+            // this provides some additional tests, namely a test for schema
+            // handling section
+            getModelService().getObject(ResourceType.class, resourceType.getOid(), null, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(createStringResource("PageResources.message.testResourcePerformed.fatalError").getString(), ex);
+        }
 
-		// a bit of hack: result of TestConnection contains a result of
-		// getObject as a subresult
-		// so in case of TestConnection succeeding we recompute the result to
-		// show any (potential) getObject problems
-		if (result.isSuccess()) {
-			result.recomputeStatus();
-		}
+        // a bit of hack: result of TestConnection contains a result of
+        // getObject as a subresult
+        // so in case of TestConnection succeeding we recompute the result to
+        // show any (potential) getObject problems
+        if (result.isSuccess()) {
+            result.recomputeStatus();
+        }
 
-		// if (!result.isSuccess()) {
-		showResult(result);
-		target.add(getFeedbackPanel());
-		// }
-		target.add(getResourceTable());
-	}
+        // if (!result.isSuccess()) {
+        showResult(result);
+        target.add(getFeedbackPanel());
+        // }
+        target.add(getResourceTable());
+    }
 
 
-	private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, ResourceType resourceType) {
-		WebComponentUtil.deleteSyncTokenPerformed(target, resourceType, PageResources.this);
-	}
+    private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, ResourceType resourceType) {
+        WebComponentUtil.deleteSyncTokenPerformed(target, resourceType, PageResources.this);
+    }
 
-	private void editResourcePerformed(ResourceType resourceType) {
-		PageParameters parameters = new PageParameters();
-		parameters.add(OnePageParameterEncoder.PARAMETER, resourceType.getOid());
-		navigateToNext(new PageResourceWizard(parameters));
-	}
+    private void editResourcePerformed(ResourceType resourceType) {
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, resourceType.getOid());
+        navigateToNext(new PageResourceWizard(parameters));
+    }
 
-	private void editAsXmlPerformed(ResourceType resourceType) {
-		PageParameters parameters = new PageParameters();
-		parameters.add(PageDebugView.PARAM_OBJECT_ID, resourceType.getOid());
-		parameters.add(PageDebugView.PARAM_OBJECT_TYPE, ResourceType.class.getSimpleName());
-		navigateToNext(PageDebugView.class, parameters);
-	}
+    private void editAsXmlPerformed(ResourceType resourceType) {
+        PageParameters parameters = new PageParameters();
+        parameters.add(PageDebugView.PARAM_OBJECT_ID, resourceType.getOid());
+        parameters.add(PageDebugView.PARAM_OBJECT_TYPE, ResourceType.class.getSimpleName());
+        navigateToNext(PageDebugView.class, parameters);
+    }
 
     private void clearSessionStorageForResourcePage() {
         ((PageBase) getPage()).getSessionStorage().clearResourceContentStorage();

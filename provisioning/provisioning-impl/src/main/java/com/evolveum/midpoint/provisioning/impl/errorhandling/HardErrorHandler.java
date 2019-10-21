@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -50,67 +50,67 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
- * Handler for "hard" errors - error that cannot be handled in any smart way. 
+ * Handler for "hard" errors - error that cannot be handled in any smart way.
  * @author semancik
  *
  */
 public abstract class HardErrorHandler extends ErrorHandler {
 
-	private static final String OPERATION_HANDLE_GET_ERROR = HardErrorHandler.class.getName() + ".handleGetError";
-	private static final String OPERATION_HANDLE_ADD_ERROR = HardErrorHandler.class.getName() + ".handleAddError";
-	private static final String OPERATION_HANDLE_MODIFY_ERROR = HardErrorHandler.class.getName() + ".handleModifyError";
-	private static final String OPERATION_HANDLE_DELETE_ERROR = HardErrorHandler.class.getName() + ".handleDeleteError";
-	
-	private static final Trace LOGGER = TraceManager.getTrace(HardErrorHandler.class);
-	
-	@Override
-	public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
-			PrismObject<ShadowType> repositoryShadow, GetOperationOptions rootOptions, Exception cause,
-			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException,
-			CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-			ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-		
-		throwException(cause, null, parentResult);
-		return null; // not reached
-	}
+    private static final String OPERATION_HANDLE_GET_ERROR = HardErrorHandler.class.getName() + ".handleGetError";
+    private static final String OPERATION_HANDLE_ADD_ERROR = HardErrorHandler.class.getName() + ".handleAddError";
+    private static final String OPERATION_HANDLE_MODIFY_ERROR = HardErrorHandler.class.getName() + ".handleModifyError";
+    private static final String OPERATION_HANDLE_DELETE_ERROR = HardErrorHandler.class.getName() + ".handleDeleteError";
 
-	@Override
-	public OperationResultStatus handleAddError(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
-			ProvisioningOperationOptions options,
-			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-			Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
-			throws SchemaException, GenericFrameworkException, CommunicationException,
-			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-		
-		throwException(cause, opState, parentResult);
-		return OperationResultStatus.FATAL_ERROR; // not reached
-	}
+    private static final Trace LOGGER = TraceManager.getTrace(HardErrorHandler.class);
 
-	@Override
-	public OperationResultStatus handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-			Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options,
-			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-			Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
-			throws SchemaException, GenericFrameworkException, CommunicationException,
-			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+    @Override
+    public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
+            PrismObject<ShadowType> repositoryShadow, GetOperationOptions rootOptions, Exception cause,
+            Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException,
+            CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-		throwException(cause, opState, parentResult);
-		return OperationResultStatus.FATAL_ERROR; // not reached
-	}
+        throwException(cause, null, parentResult);
+        return null; // not reached
+    }
 
-	@Override
-	public OperationResultStatus handleDeleteError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-			ProvisioningOperationOptions options,
-			ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
-			OperationResult failedOperationResult, Task task, OperationResult parentResult)
-			throws SchemaException, GenericFrameworkException, CommunicationException,
-			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+    @Override
+    public OperationResultStatus handleAddError(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
+            ProvisioningOperationOptions options,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+            Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
+            throws SchemaException, GenericFrameworkException, CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-		throwException(cause, opState, parentResult);
-		return OperationResultStatus.FATAL_ERROR; // not reached
-	}	
+        throwException(cause, opState, parentResult);
+        return OperationResultStatus.FATAL_ERROR; // not reached
+    }
+
+    @Override
+    public OperationResultStatus handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+            Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+            Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
+            throws SchemaException, GenericFrameworkException, CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+
+        throwException(cause, opState, parentResult);
+        return OperationResultStatus.FATAL_ERROR; // not reached
+    }
+
+    @Override
+    public OperationResultStatus handleDeleteError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+            ProvisioningOperationOptions options,
+            ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
+            OperationResult failedOperationResult, Task task, OperationResult parentResult)
+            throws SchemaException, GenericFrameworkException, CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+
+        throwException(cause, opState, parentResult);
+        return OperationResultStatus.FATAL_ERROR; // not reached
+    }
 
 }

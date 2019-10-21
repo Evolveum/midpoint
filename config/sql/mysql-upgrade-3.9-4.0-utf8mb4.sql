@@ -24,7 +24,7 @@ CREATE INDEX iDashboardNameOrig
   ON m_dashboard (name_orig);
 ALTER TABLE m_dashboard
   ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
-  
+
 ALTER TABLE m_dashboard
   ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object (oid);
 
@@ -95,7 +95,7 @@ UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
 -- 2019-06-25 09:00
 
 CREATE TABLE m_audit_resource (
-  resourceOid 	  VARCHAR(255) CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  resourceOid       VARCHAR(255) CHARSET utf8 COLLATE utf8_bin NOT NULL,
   record_id       BIGINT       NOT NULL,
   PRIMARY KEY (record_id, resourceOid)
 ) DEFAULT CHARACTER SET utf8mb4

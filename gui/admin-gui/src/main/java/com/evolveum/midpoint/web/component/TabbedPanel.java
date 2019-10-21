@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -45,9 +45,9 @@ public class TabbedPanel<T extends ITab> extends Panel {
     public static final String RIGHT_SIDE_TAB_ITEM_ID = "rightSideTabItem";
     public static final String RIGHT_SIDE_TAB_ID = "rightSideTab";
 
-	protected static final String ID_TITLE = "title";
-	protected static final String ID_COUNT = "count";
-	protected static final String ID_LINK = "link";
+    protected static final String ID_TITLE = "title";
+    protected static final String ID_COUNT = "count";
+    protected static final String ID_LINK = "link";
 
     private final IModel<List<T>> tabs;
     /**
@@ -60,9 +60,9 @@ public class TabbedPanel<T extends ITab> extends Panel {
         this(id, tabs, null);
     }
 
-	public TabbedPanel(final String id, final List<T> tabs, @Nullable RightSideItemProvider rightSideItemProvider) {
-		this(id, tabs, null, rightSideItemProvider);
-	}
+    public TabbedPanel(final String id, final List<T> tabs, @Nullable RightSideItemProvider rightSideItemProvider) {
+        this(id, tabs, null, rightSideItemProvider);
+    }
 
     public TabbedPanel(final String id, final List<T> tabs, IModel<Integer> model, @Nullable RightSideItemProvider rightSideItemProvider) {
         this(id, new Model((Serializable) tabs), model, rightSideItemProvider);
@@ -161,14 +161,14 @@ public class TabbedPanel<T extends ITab> extends Panel {
 
         tabsContainer.add(loop);
 
-		WebMarkupContainer rightSideTabItem = new WebMarkupContainer(RIGHT_SIDE_TAB_ITEM_ID);
-		Component rightSideTabPanel = rightSideItemProvider != null ? rightSideItemProvider.createRightSideItem(RIGHT_SIDE_TAB_ID) : null;
-		if (rightSideTabPanel != null) {
-			rightSideTabItem.add(rightSideTabPanel);
-		} else {
-			rightSideTabItem.setVisible(false);
-		}
-		tabsContainer.add(rightSideTabItem);
+        WebMarkupContainer rightSideTabItem = new WebMarkupContainer(RIGHT_SIDE_TAB_ITEM_ID);
+        Component rightSideTabPanel = rightSideItemProvider != null ? rightSideItemProvider.createRightSideItem(RIGHT_SIDE_TAB_ID) : null;
+        if (rightSideTabPanel != null) {
+            rightSideTabItem.add(rightSideTabPanel);
+        } else {
+            rightSideTabItem.setVisible(false);
+        }
+        tabsContainer.add(rightSideTabItem);
 
         add(newPanel());
     }
@@ -323,13 +323,13 @@ public class TabbedPanel<T extends ITab> extends Panel {
      * <pre>
      * protected WebMarkupContainer newLink(String linkId, final int index)
      * {
-     * 	return new Link(linkId)
+     *     return new Link(linkId)
      *    {
-     * 		private static final long serialVersionUID = 1L;
+     *         private static final long serialVersionUID = 1L;
      *
-     * 		public void onClick()
+     *         public void onClick()
      *        {
-     * 			setSelectedTab(index);
+     *             setSelectedTab(index);
      *        }
      *    };
      * }
@@ -499,12 +499,12 @@ public class TabbedPanel<T extends ITab> extends Panel {
      */
     protected void onTabChange(int index) {}
 
-	@FunctionalInterface
+    @FunctionalInterface
     public interface RightSideItemProvider extends Serializable {
-		Component createRightSideItem(String id);
-	}
+        Component createRightSideItem(String id);
+    }
 
-	public void reloadCountLabels(AjaxRequestTarget target){
+    public void reloadCountLabels(AjaxRequestTarget target){
         Loop tabbedPanel = ((Loop)get(ID_TABS_CONTAINER).get(ID_TABS));
         int tabsCount = tabbedPanel.getIterations();
         for (int i = 0; i < tabsCount; i++){

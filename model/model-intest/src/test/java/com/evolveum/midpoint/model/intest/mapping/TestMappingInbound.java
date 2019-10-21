@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.mapping;
@@ -62,7 +62,7 @@ public class TestMappingInbound extends AbstractMappingTest {
     protected static final String RESOURCE_DUMMY_TEA_GREEN_NAME = "tea-green";
 
     protected static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
-    
+
     protected static final String ACCOUNT_LEELOO_USERNAME = "leeloo";
     protected static final String ACCOUNT_LEELOO_FULL_NAME_MULTIPASS = "Leeloo Dallas Multipass";
     protected static final String ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI = "Leeloominaï Lekatariba Lamina-Tchaï Ekbat De Sebat";
@@ -70,29 +70,29 @@ public class TestMappingInbound extends AbstractMappingTest {
 
     protected static final File TASK_LIVE_SYNC_DUMMY_TEA_GREEN_FILE = new File(TEST_DIR, "task-dumy-tea-green-livesync.xml");
     protected static final String TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID = "10000000-0000-0000-5555-55550000c404";
-    
-	private static final String LOCKER_BIG_SECRET = "BIG secret";
-	
-	private ProtectedStringType mancombLocker;
-	private String userLeelooOid;
+
+    private static final String LOCKER_BIG_SECRET = "BIG secret";
+
+    private ProtectedStringType mancombLocker;
+    private String userLeelooOid;
 
     @Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
-		initDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME, RESOURCE_DUMMY_TEA_GREEN_FILE, RESOURCE_DUMMY_TEA_GREEN_OID,
-				controller -> {
-					controller.extendSchemaPirate();
-					controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
-							DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME, String.class, false, false)
-						.setSensitive(true);
-					controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
-							DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, String.class, false, false);
-					controller.setSyncStyle(DummySyncStyle.SMART);
-				},
-				initTask, initResult);		
-	}
+        initDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME, RESOURCE_DUMMY_TEA_GREEN_FILE, RESOURCE_DUMMY_TEA_GREEN_OID,
+                controller -> {
+                    controller.extendSchemaPirate();
+                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                            DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME, String.class, false, false)
+                        .setSensitive(true);
+                    controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                            DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, String.class, false, false);
+                    controller.setSyncStyle(DummySyncStyle.SMART);
+                },
+                initTask, initResult);
+    }
 
     @Test
     public void test010SanitySchema() throws Exception {
@@ -112,16 +112,16 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         ResourceType resourceType = getDummyResourceType(RESOURCE_DUMMY_TEA_GREEN_NAME);
         ResourceSchema returnedSchema = RefinedResourceSchemaImpl.getResourceSchema(resourceType, prismContext);
-		display("Parsed resource schema (tea-green)", returnedSchema);
-		ObjectClassComplexTypeDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN_NAME)
-				.assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
-						DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 2); // MID-5197
-		
-		ResourceAttributeDefinition<ProtectedStringType> lockerDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
-		assertNotNull("No locker attribute definition", lockerDef);
-		assertEquals("Wrong locker attribute definition type", ProtectedStringType.COMPLEX_TYPE, lockerDef.getTypeName());
+        display("Parsed resource schema (tea-green)", returnedSchema);
+        ObjectClassComplexTypeDefinition accountDef = getDummyResourceController(RESOURCE_DUMMY_TEA_GREEN_NAME)
+                .assertDummyResourceSchemaSanityExtended(returnedSchema, resourceType, false,
+                        DummyResourceContoller.PIRATE_SCHEMA_NUMBER_OF_DEFINITIONS + 2); // MID-5197
+
+        ResourceAttributeDefinition<ProtectedStringType> lockerDef = accountDef.findAttributeDefinition(DUMMY_ACCOUNT_ATTRIBUTE_LOCKER_NAME);
+        assertNotNull("No locker attribute definition", lockerDef);
+        assertEquals("Wrong locker attribute definition type", ProtectedStringType.COMPLEX_TYPE, lockerDef.getTypeName());
     }
-    
+
     @Test
     public void test100ImportLiveSyncTaskDummyTeaGreen() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyTeaGreen";
@@ -177,19 +177,19 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED, null);
 
         mancombLocker = assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
-        	.links()
-        		.single()
-        			.assertOid(accountMancomb.getOid())
-        			.end()
-        		.end()
-    		.assertAdministrativeStatus(ActivationStatusType.ENABLED)
-    		.extension()
-    			.property(PIRACY_LOCKER)
-    				.singleValue()
-    					.protectedString()
-    						.assertIsEncrypted()
-    						.assertCompareCleartext(LOCKER_BIG_SECRET)
-    						.getProtectedString();
+            .links()
+                .single()
+                    .assertOid(accountMancomb.getOid())
+                    .end()
+                .end()
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .extension()
+                .property(PIRACY_LOCKER)
+                    .singleValue()
+                        .protectedString()
+                            .assertIsEncrypted()
+                            .assertCompareCleartext(LOCKER_BIG_SECRET)
+                            .getProtectedString();
 
 //        assertUsers(6);
 
@@ -232,23 +232,23 @@ public class TestMappingInbound extends AbstractMappingTest {
         assertShadowOperationalData(accountMancomb, SynchronizationSituationType.LINKED, null);
 
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
-	    	.links()
-	    		.single()
-	    			.assertOid(accountMancomb.getOid())
-	    			.end()
-	    		.end()
-			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
-			.extension()
-				.property(PIRACY_LOCKER)
-					.singleValue()
-						.protectedString()
-							.assertIsEncrypted()
-							.assertCompareCleartext(LOCKER_BIG_SECRET)
-							// Make sure that this is exactly the same content of protected string
-							// including all the randomized things (IV). If it is the same,
-							// there is a good chance we haven't had any phantom changes
-							// MID-5197
-							.assertEquals(mancombLocker);
+            .links()
+                .single()
+                    .assertOid(accountMancomb.getOid())
+                    .end()
+                .end()
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .extension()
+                .property(PIRACY_LOCKER)
+                    .singleValue()
+                        .protectedString()
+                            .assertIsEncrypted()
+                            .assertCompareCleartext(LOCKER_BIG_SECRET)
+                            // Make sure that this is exactly the same content of protected string
+                            // including all the randomized things (IV). If it is the same,
+                            // there is a good chance we haven't had any phantom changes
+                            // MID-5197
+                            .assertEquals(mancombLocker);
 
 //        assertUsers(6);
 
@@ -279,23 +279,23 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         // THEN
         displayThen(TEST_NAME);
-        
+
         assertNoDummyAccount(RESOURCE_DUMMY_TEA_GREEN_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        
+
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
-        	.assertFullName("Mancomb Seepgood")
-        	.links()
-        		.single()
-        			.resolveTarget()
-        				.assertTombstone()
-        				.assertSynchronizationSituation(SynchronizationSituationType.DELETED);
-        
+            .assertFullName("Mancomb Seepgood")
+            .links()
+                .single()
+                    .resolveTarget()
+                        .assertTombstone()
+                        .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
+
 //        assertUsers(7 + getNumberOfExtraDummyUsers());
 
         // notifications
         notificationManager.setDisabled(true);
     }
-    
+
     // Remove livesync task so it won't get into the way for next tests
     @Test
     public void test399DeleteDummyTeaGreenAccountMancomb() throws Exception {
@@ -312,7 +312,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         // THEN
         displayThen(TEST_NAME);
-        
+
         assertNoObject(TaskType.class, TASK_LIVE_SYNC_DUMMY_TEA_GREEN_OID);
     }
 
@@ -338,7 +338,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayWhen(TEST_NAME);
 
         modelService.importFromResource(RESOURCE_DUMMY_TEA_GREEN_OID, new QName(MidPointConstants.NS_RI, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
-        
+
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
         waitForTaskFinish(task, true);
@@ -347,14 +347,14 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayThen(TEST_NAME);
 
         userLeelooOid = assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-        	.assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
-        	.links()
-        		.single()
-        			.end()
-        		.end()
-    		.assertAdministrativeStatus(ActivationStatusType.ENABLED)
-        	.getOid();
-        
+            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
+            .links()
+                .single()
+                    .end()
+                .end()
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+            .getOid();
+
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
@@ -365,7 +365,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class); // link
         dummyAuditService.assertExecutionSuccess();
     }
-    
+
     /**
      * Nothing has changed in the account. Expect no changes in user.
      * MID-5314
@@ -389,17 +389,17 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayThen(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-	    	.assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
-	    	.links()
-	    		.single()
-	    			.end()
-	    		.end()
-			.assertAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
+            .links()
+                .single()
+                    .end()
+                .end()
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(0);
     }
-    
+
     /**
      * Nothing has changed in the account. Expect no changes in user.
      * MID-5314
@@ -423,13 +423,13 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayThen(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-	    	.assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
-	    	.links()
-	    		.single()
-	    			.end()
-	    		.end()
-			.assertAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_MULTIPASS)
+            .links()
+                .single()
+                    .end()
+                .end()
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
@@ -437,7 +437,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.assertExecutionDeltas(0);
         dummyAuditService.assertExecutionSuccess();
     }
-    
+
     /**
      * Changed Leeloo's full name. Reconcile should reflect that to user.
      * MID-5314
@@ -450,10 +450,10 @@ public class TestMappingInbound extends AbstractMappingTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
         account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI);
-        
+
         dummyAuditService.clear();
 
         /// WHEN
@@ -465,13 +465,13 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayThen(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-	    	.assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
-	    	.links()
-	    		.single()
-	    			.end()
-	    		.end()
-			.assertAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
+            .links()
+                .single()
+                    .end()
+                .end()
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
@@ -480,7 +480,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
     }
-    
+
     /**
      * Nothing has changed in the account. Expect no changes in user.
      * MID-5314
@@ -504,17 +504,17 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayThen(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-	    	.assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
-	    	.links()
-	    		.single()
-	    			.end()
-	    		.end()
-			.assertAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
+            .links()
+                .single()
+                    .end()
+                .end()
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(0);
     }
-    
+
     /**
      * Nothing has changed in the account. Expect no changes in user.
      * MID-5314
@@ -538,13 +538,13 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayThen(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-	    	.assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
-	    	.links()
-	    		.single()
-	    			.end()
-	    		.end()
-			.assertAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
+            .links()
+                .single()
+                    .end()
+                .end()
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
@@ -552,7 +552,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.assertExecutionDeltas(0);
         dummyAuditService.assertExecutionSuccess();
     }
-    
+
     /**
      * Changed Leeloo's full name. Reconcile should reflect that to user.
      * MID-5314
@@ -565,10 +565,10 @@ public class TestMappingInbound extends AbstractMappingTest {
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         DummyAccount account = getDummyResource(RESOURCE_DUMMY_TEA_GREEN_NAME).getAccountByUsername(ACCOUNT_LEELOO_USERNAME);
         account.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_PROOF_NAME, ACCOUNT_LEELOO_PROOF_STRANGE);
-        
+
         dummyAuditService.clear();
 
         /// WHEN
@@ -580,14 +580,14 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayThen(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-	    	.assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
-	    	.assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
-	    	.links()
-	    		.single()
-	    			.end()
-	    		.end()
-			.assertAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
+            .assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
+            .links()
+                .single()
+                    .end()
+                .end()
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
@@ -596,7 +596,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertExecutionSuccess();
     }
-    
+
     /**
      * Nothing has changed in the account. Expect no changes in user.
      * MID-5314
@@ -620,14 +620,14 @@ public class TestMappingInbound extends AbstractMappingTest {
         displayThen(TEST_NAME);
 
         assertUserAfterByUsername(ACCOUNT_LEELOO_USERNAME)
-	        .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
-	    	.assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
-	    	.links()
-	    		.single()
-	    			.end()
-	    		.end()
-			.assertAdministrativeStatus(ActivationStatusType.ENABLED);
-        
+            .assertFullName(ACCOUNT_LEELOO_FULL_NAME_LEELOOMINAI)
+            .assertDescription(ACCOUNT_LEELOO_PROOF_STRANGE)
+            .links()
+                .single()
+                    .end()
+                .end()
+            .assertAdministrativeStatus(ActivationStatusType.ENABLED);
+
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();

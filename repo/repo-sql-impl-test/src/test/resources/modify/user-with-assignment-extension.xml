@@ -3,15 +3,15 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>user-with-assignment-extension</name>
-	<assignment id="1">
-		<extension>
-			<p:weapon xmlns:p="http://example.com/p">gun</p:weapon>
-		</extension>
-		<targetRef oid="o1" type="RoleType"/>
-	</assignment>
+    <name>user-with-assignment-extension</name>
+    <assignment id="1">
+        <extension>
+            <p:weapon xmlns:p="http://example.com/p">gun</p:weapon>
+        </extension>
+        <targetRef oid="o1" type="RoleType"/>
+    </assignment>
 </user>

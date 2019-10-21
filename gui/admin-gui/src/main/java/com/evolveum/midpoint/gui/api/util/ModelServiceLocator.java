@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.util;
@@ -47,53 +47,53 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface ModelServiceLocator {
 
-	ModelService getModelService();
+    ModelService getModelService();
 
-	ModelInteractionService getModelInteractionService();
-	
-	DashboardService getDashboardService();
-	
-	LocalizationService getLocalizationService();
+    ModelInteractionService getModelInteractionService();
 
-	Task createSimpleTask(String operationName);
+    DashboardService getDashboardService();
 
-	/**
-	 * Returns a task, that is used to retrieve and render the entire content
-	 * of the page. A single task is created to render the whole page, so
-	 * the summary result can be collected in the task result.
-	 */
-	Task getPageTask();
+    LocalizationService getLocalizationService();
 
-	PrismContext getPrismContext();
+    Task createSimpleTask(String operationName);
 
-	SecurityEnforcer getSecurityEnforcer();
-	
-	SecurityContextManager getSecurityContextManager();
+    /**
+     * Returns a task, that is used to retrieve and render the entire content
+     * of the page. A single task is created to render the whole page, so
+     * the summary result can be collected in the task result.
+     */
+    Task getPageTask();
 
-	ExpressionFactory getExpressionFactory();
+    PrismContext getPrismContext();
 
-	/**
-	 * Returns currently applicable user profile, compiled for efficient use in the user interface.
-	 * applicable to currently logged-in user.
-	 * Strictly speaking, this can be retrieved from modelInteractionService.
-	 * But having a separate function for that allows to get rid of
-	 * task and result parameters. And more importantly: this allows to
-	 * cache adminGuiConfig in the page (in case many components need it).
-	 */
-	@NotNull
-	CompiledUserProfile getCompiledUserProfile();
+    SecurityEnforcer getSecurityEnforcer();
 
-	default ObjectResolver getModelObjectResolver() {
-		return null;
-	}
-	
-	Locale getLocale();
-	
-	GuiComponentRegistry getRegistry();
+    SecurityContextManager getSecurityContextManager();
 
-	<O extends ObjectType> PrismObjectWrapperFactory<O> findObjectWrapperFactory(PrismObjectDefinition<O> objectDef);
+    ExpressionFactory getExpressionFactory();
 
-	<I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException;
+    /**
+     * Returns currently applicable user profile, compiled for efficient use in the user interface.
+     * applicable to currently logged-in user.
+     * Strictly speaking, this can be retrieved from modelInteractionService.
+     * But having a separate function for that allows to get rid of
+     * task and result parameters. And more importantly: this allows to
+     * cache adminGuiConfig in the page (in case many components need it).
+     */
+    @NotNull
+    CompiledUserProfile getCompiledUserProfile();
 
-	<IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException;
+    default ObjectResolver getModelObjectResolver() {
+        return null;
+    }
+
+    Locale getLocale();
+
+    GuiComponentRegistry getRegistry();
+
+    <O extends ObjectType> PrismObjectWrapperFactory<O> findObjectWrapperFactory(PrismObjectDefinition<O> objectDef);
+
+    <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException;
+
+    <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException;
 }

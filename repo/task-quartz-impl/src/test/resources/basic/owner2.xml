@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <i:user oid="c0c010c0-d34d-b33f-f00d-111111111112"
@@ -14,7 +14,7 @@
     <i:givenName>Jack2</i:givenName>
     <i:familyName>Sparrow2</i:familyName>
     <i:honorificPrefix>Cpt.</i:honorificPrefix>
-    
+
     <i:honorificSuffix>PhD.</i:honorificSuffix>
     <i:emailAddress>jack.sparrow2@evolveum.com</i:emailAddress>
     <i:telephoneNumber>555-1234</i:telephoneNumber>
@@ -25,8 +25,8 @@
 
 <!--     <i:credentials> -->
 <!--         <i:password> -->
-<!--         	<i:protectedString> -->
-<!--             	<i:clearValue>deadmentellnotales</i:clearValue> -->
+<!--             <i:protectedString> -->
+<!--                 <i:clearValue>deadmentellnotales</i:clearValue> -->
 <!--             </i:protectedString> -->
 <!--         </i:password> -->
 <!--     </i:credentials> -->

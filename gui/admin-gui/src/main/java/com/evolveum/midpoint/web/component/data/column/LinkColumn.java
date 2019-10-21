@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,9 +19,9 @@ import org.apache.wicket.model.PropertyModel;
  * @author lazyman
  */
 public class LinkColumn<T> extends AbstractColumn<T, String> implements IExportableColumn<T, String>  {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private String propertyExpression;
+    private String propertyExpression;
 
     public LinkColumn(IModel<String> displayModel) {
         super(displayModel);
@@ -47,9 +47,9 @@ public class LinkColumn<T> extends AbstractColumn<T, String> implements IExporta
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, final IModel<T> rowModel) {
 
-    	IModel model = createLinkModel(rowModel);
+        IModel model = createLinkModel(rowModel);
         cellItem.add(new LinkPanel(componentId, model) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {

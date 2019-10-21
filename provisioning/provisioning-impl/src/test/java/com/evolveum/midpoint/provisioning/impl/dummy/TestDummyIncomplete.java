@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2015-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
@@ -41,44 +41,44 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @DirtiesContext
 public class TestDummyIncomplete extends TestDummy {
 
-	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-incomplete");
-	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
+    public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-incomplete");
+    public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
-	@Override
-	protected File getResourceDummyFile() {
-		return RESOURCE_DUMMY_FILE;
-	}
+    @Override
+    protected File getResourceDummyFile() {
+        return RESOURCE_DUMMY_FILE;
+    }
 
-	@Override
-	protected int getExpectedRefinedSchemaDefinitions() {
-		return super.getExpectedRefinedSchemaDefinitions() + 1;
-	}
+    @Override
+    protected int getExpectedRefinedSchemaDefinitions() {
+        return super.getExpectedRefinedSchemaDefinitions() + 1;
+    }
 
-	@Override
-	protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {
-		PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
-		assertNotNull("password native capability not present", passwordCapabilityType);
-		Boolean readable = passwordCapabilityType.isReadable();
-		assertNotNull("No 'readable' inducation in password capability", readable);
-		assertTrue("Password not 'readable' in password capability", readable);
-	}
+    @Override
+    protected void assertNativeCredentialsCapability(CredentialsCapabilityType capCred) {
+        PasswordCapabilityType passwordCapabilityType = capCred.getPassword();
+        assertNotNull("password native capability not present", passwordCapabilityType);
+        Boolean readable = passwordCapabilityType.isReadable();
+        assertNotNull("No 'readable' inducation in password capability", readable);
+        assertTrue("Password not 'readable' in password capability", readable);
+    }
 
-	@Override
-	protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
-		super.checkAccountWill(shadow, result, startTs, endTs);
-		CredentialsType credentials = shadow.asObjectable().getCredentials();
-		assertNotNull("No credentials in "+shadow, credentials);
-		PasswordType password = credentials.getPassword();
-		assertNotNull("No password in "+shadow, password);
-		PrismContainerValue<PasswordType> passwordContainerValue = password.asPrismContainerValue();
-		PrismProperty<ProtectedStringType> valueProperty = passwordContainerValue.findProperty(PasswordType.F_VALUE);
-		assertTrue("Unexpected password value in "+shadow+": "+valueProperty, valueProperty.getValues().isEmpty());
-		assertTrue("No incompleteness in password value in "+shadow+": "+valueProperty, valueProperty.isIncomplete());
-	}
+    @Override
+    protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
+        super.checkAccountWill(shadow, result, startTs, endTs);
+        CredentialsType credentials = shadow.asObjectable().getCredentials();
+        assertNotNull("No credentials in "+shadow, credentials);
+        PasswordType password = credentials.getPassword();
+        assertNotNull("No password in "+shadow, password);
+        PrismContainerValue<PasswordType> passwordContainerValue = password.asPrismContainerValue();
+        PrismProperty<ProtectedStringType> valueProperty = passwordContainerValue.findProperty(PasswordType.F_VALUE);
+        assertTrue("Unexpected password value in "+shadow+": "+valueProperty, valueProperty.getValues().isEmpty());
+        assertTrue("No incompleteness in password value in "+shadow+": "+valueProperty, valueProperty.isIncomplete());
+    }
 
-	@Test
-	public void testFakeToEnableDebug() {
+    @Test
+    public void testFakeToEnableDebug() {
 
-	}
+    }
 
 }

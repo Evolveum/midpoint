@@ -2,36 +2,36 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <form xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20">
-	<name>form1</name>
-	<formDefinition>
-		<display>
-			<label>some label</label>
-			<tooltip>some tooltip</tooltip>
-		</display>
-		<formItems>
-			<formField>
-				<name>FamilyName</name>
-			</formField>
-			<formFieldGroup>
-				<name>Address</name>
-				<formItems>
-					<formField>
-						<name>City</name>
-					</formField>
-					<formField>
-						<name>Country</name>
-					</formField>
-				</formItems>
-			</formFieldGroup>
-			<formField>
-				<name>Email</name>
-			</formField>
-		</formItems>
-	</formDefinition>
+    oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20">
+    <name>form1</name>
+    <formDefinition>
+        <display>
+            <label>some label</label>
+            <tooltip>some tooltip</tooltip>
+        </display>
+        <formItems>
+            <formField>
+                <name>FamilyName</name>
+            </formField>
+            <formFieldGroup>
+                <name>Address</name>
+                <formItems>
+                    <formField>
+                        <name>City</name>
+                    </formField>
+                    <formField>
+                        <name>Country</name>
+                    </formField>
+                </formItems>
+            </formFieldGroup>
+            <formField>
+                <name>Email</name>
+            </formField>
+        </formItems>
+    </formDefinition>
 </form>

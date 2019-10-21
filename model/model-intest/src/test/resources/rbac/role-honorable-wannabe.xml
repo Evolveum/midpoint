@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="12345678-d34d-b33f-f00d-555555557704"
@@ -12,24 +12,24 @@
     <name>Honorable Wannabe</name>
     <description>Included from Wannabe role</description>
     <inducement id="1111">
-    	<construction id="60004" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction id="60004" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:quote</ref>
                 <outbound>
-                	<source>
-                		<path>$user/name</path>
-                	</source>
-                	<expression>
-                		<script>
-                			<code>
-                				'Whatever. -- ' + name
-                			</code>
-                		</script>
-					</expression>
-				</outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                'Whatever. -- ' + name
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 </role>

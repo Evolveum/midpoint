@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web;
@@ -31,47 +31,47 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiIntegrationTest {
 
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedGuiIntegrationTest.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedGuiIntegrationTest.class);
 
-//	protected final static String PIRACY_NS = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
-//	protected final static ItemName PIRACY_WEAPON = new ItemName(PIRACY_NS, "weapon");
+//    protected final static String PIRACY_NS = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+//    protected final static ItemName PIRACY_WEAPON = new ItemName(PIRACY_NS, "weapon");
 
 
-	protected DummyResource dummyResource;
-	protected DummyResourceContoller dummyResourceCtl;
-	protected ResourceType resourceDummyType;
-	protected PrismObject<ResourceType> resourceDummy;
+    protected DummyResource dummyResource;
+    protected DummyResourceContoller dummyResourceCtl;
+    protected ResourceType resourceDummyType;
+    protected PrismObject<ResourceType> resourceDummy;
 
-	protected PrismObject<UserType> userAdministrator;
-	protected String accountJackOid;
+    protected PrismObject<UserType> userAdministrator;
+    protected String accountJackOid;
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		LOGGER.trace("initSystem");
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        LOGGER.trace("initSystem");
+        super.initSystem(initTask, initResult);
 
-		modelService.postInit(initResult);
-		userAdministrator = repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, initResult);
-		login(userAdministrator);
+        modelService.postInit(initResult);
+        userAdministrator = repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, initResult);
+        login(userAdministrator);
 
-		dummyResourceCtl = DummyResourceContoller.create(null);
-		dummyResourceCtl.extendSchemaPirate();
-		dummyResource = dummyResourceCtl.getDummyResource();
-		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
-		resourceDummyType = resourceDummy.asObjectable();
-		dummyResourceCtl.setResource(resourceDummy);
- 
-		repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
-		repoAddObjectFromFile(USER_EMPTY_FILE, true, initResult);
+        dummyResourceCtl = DummyResourceContoller.create(null);
+        dummyResourceCtl.extendSchemaPirate();
+        dummyResource = dummyResourceCtl.getDummyResource();
+        resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
+        resourceDummyType = resourceDummy.asObjectable();
+        dummyResourceCtl.setResource(resourceDummy);
 
-		importObjectFromFile(ROLE_MAPMAKER_FILE);	
-		
-		repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILE, OrgType.class, initResult);
-	}
+        repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
+        repoAddObjectFromFile(USER_EMPTY_FILE, true, initResult);
 
-	@Test
-	public void test000PreparationAndSanity() throws Exception {
-		final String TEST_NAME = "test000PreparationAndSanity";
+        importObjectFromFile(ROLE_MAPMAKER_FILE);
+
+        repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILE, OrgType.class, initResult);
+    }
+
+    @Test
+    public void test000PreparationAndSanity() throws Exception {
+        final String TEST_NAME = "test000PreparationAndSanity";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -82,19 +82,19 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		display(result);
-		TestUtil.assertSuccess(result);
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        display(result);
+        TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertUserJack(userJack);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack);
         accountJackOid = getSingleLinkOid(userJack);
 
-	}
+    }
 
 }

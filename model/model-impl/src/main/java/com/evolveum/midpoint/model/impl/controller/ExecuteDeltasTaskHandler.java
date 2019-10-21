@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -46,56 +46,56 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
 
     @Autowired private TaskManager taskManager;
     @Autowired private PrismContext prismContext;
-	@Autowired private ModelService modelService;
+    @Autowired private ModelService modelService;
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
-		TaskRunResult runResult = new TaskRunResult();
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
+        TaskRunResult runResult = new TaskRunResult();
 
-		Collection<ObjectDeltaType> deltas;
-		PrismProperty<ObjectDeltaType> deltasProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
-		if (deltasProperty == null || deltasProperty.isEmpty()) {
-			PrismProperty<ObjectDeltaType> deltaProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
-			if (deltaProperty == null || deltaProperty.isEmpty()) {
-				throw new IllegalArgumentException("No deltas to execute");
-			} else {
-				deltas = deltaProperty.getRealValues();
-			}
-		} else {
-			deltas = deltasProperty.getRealValues();
-		}
-		PrismProperty<ModelExecuteOptionsType> optionsProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
-		ModelExecuteOptions options = optionsProperty != null ?
-				ModelExecuteOptions.fromModelExecutionOptionsType(optionsProperty.getRealValue()) : null;
+        Collection<ObjectDeltaType> deltas;
+        PrismProperty<ObjectDeltaType> deltasProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
+        if (deltasProperty == null || deltasProperty.isEmpty()) {
+            PrismProperty<ObjectDeltaType> deltaProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+            if (deltaProperty == null || deltaProperty.isEmpty()) {
+                throw new IllegalArgumentException("No deltas to execute");
+            } else {
+                deltas = deltaProperty.getRealValues();
+            }
+        } else {
+            deltas = deltasProperty.getRealValues();
+        }
+        PrismProperty<ModelExecuteOptionsType> optionsProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+        ModelExecuteOptions options = optionsProperty != null ?
+                ModelExecuteOptions.fromModelExecutionOptionsType(optionsProperty.getRealValue()) : null;
 
-		try {
-			Collection<ObjectDelta<?>> objectDeltas = new ArrayList<>();
-			for (ObjectDeltaType deltaBean : deltas) {
-				objectDeltas.add(DeltaConvertor.createObjectDelta(deltaBean, prismContext));
-			}
-			//noinspection unchecked
-			modelService.executeChanges((Collection) objectDeltas, options, task, result);
-			result.computeStatusIfUnknown();
-			runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-		} catch (CommonException | RuntimeException e) {
-			String message = "An exception occurred when executing changes, in task " + task;
-			LoggingUtils.logUnexpectedException(LOGGER, message, e);
-			result.recordFatalError(message, e);
-			runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
-		}
+        try {
+            Collection<ObjectDelta<?>> objectDeltas = new ArrayList<>();
+            for (ObjectDeltaType deltaBean : deltas) {
+                objectDeltas.add(DeltaConvertor.createObjectDelta(deltaBean, prismContext));
+            }
+            //noinspection unchecked
+            modelService.executeChanges((Collection) objectDeltas, options, task, result);
+            result.computeStatusIfUnknown();
+            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
+        } catch (CommonException | RuntimeException e) {
+            String message = "An exception occurred when executing changes, in task " + task;
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
+            result.recordFatalError(message, e);
+            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR);
+        }
         task.getResult().recomputeStatus();
-		runResult.setOperationResult(task.getResult());
-		return runResult;
-	}
+        runResult.setOperationResult(task.getResult());
+        return runResult;
+    }
 
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
     }
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI, this);
+    }
 }

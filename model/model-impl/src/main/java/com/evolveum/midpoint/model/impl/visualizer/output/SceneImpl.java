@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,244 +27,244 @@ import java.util.List;
  */
 public class SceneImpl implements Scene, DebugDumpable {
 
-	private NameImpl name;
-	private ChangeType changeType;
-	private final List<SceneImpl> partialScenes = new ArrayList<>();
-	private final List<SceneItemImpl> items = new ArrayList<>();
-	private final SceneImpl owner;
-	private boolean operational;
-	private ItemPath sourceRelPath;
-	private ItemPath sourceAbsPath;
-	private PrismContainerValue<?> sourceValue;
-	private PrismContainerDefinition<?> sourceDefinition;
-	private ObjectDelta<?> sourceDelta;
+    private NameImpl name;
+    private ChangeType changeType;
+    private final List<SceneImpl> partialScenes = new ArrayList<>();
+    private final List<SceneItemImpl> items = new ArrayList<>();
+    private final SceneImpl owner;
+    private boolean operational;
+    private ItemPath sourceRelPath;
+    private ItemPath sourceAbsPath;
+    private PrismContainerValue<?> sourceValue;
+    private PrismContainerDefinition<?> sourceDefinition;
+    private ObjectDelta<?> sourceDelta;
 
-	public SceneImpl(SceneImpl owner) {
-		this.owner = owner;
-	}
+    public SceneImpl(SceneImpl owner) {
+        this.owner = owner;
+    }
 
-	@Override
-	public NameImpl getName() {
-		return name;
-	}
+    @Override
+    public NameImpl getName() {
+        return name;
+    }
 
-	public void setName(NameImpl name) {
-		this.name = name;
-	}
+    public void setName(NameImpl name) {
+        this.name = name;
+    }
 
-	@Override
-	public ChangeType getChangeType() {
-		return changeType;
-	}
+    @Override
+    public ChangeType getChangeType() {
+        return changeType;
+    }
 
-	public void setChangeType(ChangeType changeType) {
-		this.changeType = changeType;
-	}
+    public void setChangeType(ChangeType changeType) {
+        this.changeType = changeType;
+    }
 
-	@NotNull
-	@Override
-	public List<? extends SceneImpl> getPartialScenes() {
-		return partialScenes;
-	}
+    @NotNull
+    @Override
+    public List<? extends SceneImpl> getPartialScenes() {
+        return partialScenes;
+    }
 
-	public void addPartialScene(SceneImpl subscene) {
-		partialScenes.add(subscene);
-	}
+    public void addPartialScene(SceneImpl subscene) {
+        partialScenes.add(subscene);
+    }
 
-	@NotNull
-	@Override
-	public List<? extends SceneItemImpl> getItems() {
-		return items;
-	}
+    @NotNull
+    @Override
+    public List<? extends SceneItemImpl> getItems() {
+        return items;
+    }
 
-	public void addItem(SceneItemImpl item) {
-		items.add(item);
-	}
+    public void addItem(SceneItemImpl item) {
+        items.add(item);
+    }
 
-	@Override
-	public SceneImpl getOwner() {
-		return owner;
-	}
+    @Override
+    public SceneImpl getOwner() {
+        return owner;
+    }
 
-	@Override
-	public boolean isOperational() {
-		return operational;
-	}
+    @Override
+    public boolean isOperational() {
+        return operational;
+    }
 
-	public void setOperational(boolean operational) {
-		this.operational = operational;
-	}
+    public void setOperational(boolean operational) {
+        this.operational = operational;
+    }
 
-	public ItemPath getSourceRelPath() {
-		return sourceRelPath;
-	}
+    public ItemPath getSourceRelPath() {
+        return sourceRelPath;
+    }
 
-	public void setSourceRelPath(ItemPath sourceRelPath) {
-		this.sourceRelPath = sourceRelPath;
-	}
+    public void setSourceRelPath(ItemPath sourceRelPath) {
+        this.sourceRelPath = sourceRelPath;
+    }
 
-	@Override
-	public ItemPath getSourceAbsPath() {
-		return sourceAbsPath;
-	}
+    @Override
+    public ItemPath getSourceAbsPath() {
+        return sourceAbsPath;
+    }
 
-	public void setSourceAbsPath(ItemPath sourceAbsPath) {
-		this.sourceAbsPath = sourceAbsPath;
-	}
+    public void setSourceAbsPath(ItemPath sourceAbsPath) {
+        this.sourceAbsPath = sourceAbsPath;
+    }
 
-	@Override
-	public PrismContainerValue<?> getSourceValue() {
-		return sourceValue;
-	}
+    @Override
+    public PrismContainerValue<?> getSourceValue() {
+        return sourceValue;
+    }
 
-	public void setSourceValue(PrismContainerValue<?> sourceValue) {
-		this.sourceValue = sourceValue;
-	}
+    public void setSourceValue(PrismContainerValue<?> sourceValue) {
+        this.sourceValue = sourceValue;
+    }
 
-	@Override
-	public PrismContainerDefinition<?> getSourceDefinition() {
-		return sourceDefinition;
-	}
+    @Override
+    public PrismContainerDefinition<?> getSourceDefinition() {
+        return sourceDefinition;
+    }
 
-	public void setSourceDefinition(PrismContainerDefinition<?> sourceDefinition) {
-		this.sourceDefinition = sourceDefinition;
-	}
+    public void setSourceDefinition(PrismContainerDefinition<?> sourceDefinition) {
+        this.sourceDefinition = sourceDefinition;
+    }
 
-	@Override
-	public ObjectDelta<?> getSourceDelta() {
-		return sourceDelta;
-	}
+    @Override
+    public ObjectDelta<?> getSourceDelta() {
+        return sourceDelta;
+    }
 
-	public void setSourceDelta(ObjectDelta<?> sourceDelta) {
-		this.sourceDelta = sourceDelta;
-	}
+    public void setSourceDelta(ObjectDelta<?> sourceDelta) {
+        this.sourceDelta = sourceDelta;
+    }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("Scene: ");
-		if (changeType != null) {
-			sb.append(changeType).append(": ");
-		}
-		if (name != null) {
-			sb.append(name.toDebugDump());
-		} else {
-			sb.append("(unnamed)");
-		}
-		sb.append(" [rel-path: ").append(sourceRelPath).append("]");
-		sb.append(" [abs-path: ").append(sourceAbsPath).append("]");
-		if (sourceValue != null) {
-			sb.append(" VAL");
-		}
-		if (sourceDefinition != null) {
-			sb.append(" DEF(").append(sourceDefinition.getItemName().getLocalPart()).append("/").append(sourceDefinition.getDisplayName()).append(")");
-		}
-		if (sourceDelta != null) {
-			sb.append(" DELTA");
-		}
-		if (operational) {
-			sb.append(" OPER");
-		}
-		for (SceneItemImpl dataItem : items) {
-			sb.append("\n");
-			sb.append(dataItem.debugDump(indent+1));
-		}
-		for (SceneImpl dataContext : partialScenes) {
-			sb.append("\n");
-			sb.append(dataContext.debugDump(indent+1));
-		}
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("Scene: ");
+        if (changeType != null) {
+            sb.append(changeType).append(": ");
+        }
+        if (name != null) {
+            sb.append(name.toDebugDump());
+        } else {
+            sb.append("(unnamed)");
+        }
+        sb.append(" [rel-path: ").append(sourceRelPath).append("]");
+        sb.append(" [abs-path: ").append(sourceAbsPath).append("]");
+        if (sourceValue != null) {
+            sb.append(" VAL");
+        }
+        if (sourceDefinition != null) {
+            sb.append(" DEF(").append(sourceDefinition.getItemName().getLocalPart()).append("/").append(sourceDefinition.getDisplayName()).append(")");
+        }
+        if (sourceDelta != null) {
+            sb.append(" DELTA");
+        }
+        if (operational) {
+            sb.append(" OPER");
+        }
+        for (SceneItemImpl dataItem : items) {
+            sb.append("\n");
+            sb.append(dataItem.debugDump(indent+1));
+        }
+        for (SceneImpl dataContext : partialScenes) {
+            sb.append("\n");
+            sb.append(dataContext.debugDump(indent+1));
+        }
+        return sb.toString();
+    }
 
-	public String getSourceOid() {
-		if (sourceValue != null && sourceValue.getParent() instanceof PrismObject) {
-			return ((PrismObject) sourceValue.getParent()).getOid();
-		} else {
-			return null;
-		}
-	}
+    public String getSourceOid() {
+        if (sourceValue != null && sourceValue.getParent() instanceof PrismObject) {
+            return ((PrismObject) sourceValue.getParent()).getOid();
+        } else {
+            return null;
+        }
+    }
 
-	public boolean isObjectValue() {
-		return sourceValue != null && sourceValue.getParent() instanceof PrismObject;
-	}
+    public boolean isObjectValue() {
+        return sourceValue != null && sourceValue.getParent() instanceof PrismObject;
+    }
 
-	public boolean isContainerValue() {
-		return sourceValue != null && !(sourceValue.getParent() instanceof PrismObject);
-	}
+    public boolean isContainerValue() {
+        return sourceValue != null && !(sourceValue.getParent() instanceof PrismObject);
+    }
 
-	public Long getSourceContainerValueId() {
-		if (isContainerValue()) {
-			return sourceValue.getId();
-		} else {
-			return null;
-		}
-	}
+    public Long getSourceContainerValueId() {
+        if (isContainerValue()) {
+            return sourceValue.getId();
+        } else {
+            return null;
+        }
+    }
 
-	public boolean isFocusObject() {
-		return sourceDefinition != null && sourceDefinition.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(sourceDefinition.getCompileTimeClass());
-	}
+    public boolean isFocusObject() {
+        return sourceDefinition != null && sourceDefinition.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(sourceDefinition.getCompileTimeClass());
+    }
 
-	public boolean isEmpty() {
-		if (changeType != ChangeType.MODIFY) {
-			return false;		// ADD or DELETE are never 'empty'
-		}
-		for (SceneItemImpl item : getItems()) {
-			if (item.isDescriptive()) {
-				continue;
-			}
-			return false;
-		}
-		for (SceneImpl partialScene : getPartialScenes()) {
-			if (!partialScene.isEmpty()) {
-				return false;
-			}
-		}
-		return true;
-	}
+    public boolean isEmpty() {
+        if (changeType != ChangeType.MODIFY) {
+            return false;        // ADD or DELETE are never 'empty'
+        }
+        for (SceneItemImpl item : getItems()) {
+            if (item.isDescriptive()) {
+                continue;
+            }
+            return false;
+        }
+        for (SceneImpl partialScene : getPartialScenes()) {
+            if (!partialScene.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	// owner must not be tested here!
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+    // owner must not be tested here!
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-		SceneImpl scene = (SceneImpl) o;
+        SceneImpl scene = (SceneImpl) o;
 
-		if (operational != scene.operational) return false;
-		if (name != null ? !name.equals(scene.name) : scene.name != null) return false;
-		if (changeType != scene.changeType) return false;
-		if (partialScenes != null ? !partialScenes.equals(scene.partialScenes) : scene.partialScenes != null)
-			return false;
-		if (items != null ? !items.equals(scene.items) : scene.items != null) return false;
-		if (sourceRelPath != null ? !sourceRelPath.equals(scene.sourceRelPath) : scene.sourceRelPath != null)
-			return false;
-		if (sourceAbsPath != null ? !sourceAbsPath.equals(scene.sourceAbsPath) : scene.sourceAbsPath != null)
-			return false;
-		if (sourceValue != null ? !sourceValue.equals(scene.sourceValue) : scene.sourceValue != null) return false;
-		if (sourceDefinition != null ? !sourceDefinition.equals(scene.sourceDefinition) : scene.sourceDefinition != null)
-			return false;
-		return !(sourceDelta != null ? !sourceDelta.equals(scene.sourceDelta) : scene.sourceDelta != null);
+        if (operational != scene.operational) return false;
+        if (name != null ? !name.equals(scene.name) : scene.name != null) return false;
+        if (changeType != scene.changeType) return false;
+        if (partialScenes != null ? !partialScenes.equals(scene.partialScenes) : scene.partialScenes != null)
+            return false;
+        if (items != null ? !items.equals(scene.items) : scene.items != null) return false;
+        if (sourceRelPath != null ? !sourceRelPath.equals(scene.sourceRelPath) : scene.sourceRelPath != null)
+            return false;
+        if (sourceAbsPath != null ? !sourceAbsPath.equals(scene.sourceAbsPath) : scene.sourceAbsPath != null)
+            return false;
+        if (sourceValue != null ? !sourceValue.equals(scene.sourceValue) : scene.sourceValue != null) return false;
+        if (sourceDefinition != null ? !sourceDefinition.equals(scene.sourceDefinition) : scene.sourceDefinition != null)
+            return false;
+        return !(sourceDelta != null ? !sourceDelta.equals(scene.sourceDelta) : scene.sourceDelta != null);
 
-	}
+    }
 
-	@Override
-	public int hashCode() {
-		int result = name != null ? name.hashCode() : 0;
-		result = 31 * result + (changeType != null ? changeType.hashCode() : 0);
-		result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
-		result = 31 * result + (items != null ? items.hashCode() : 0);
-		result = 31 * result + (operational ? 1 : 0);
-		result = 31 * result + (sourceRelPath != null ? sourceRelPath.hashCode() : 0);
-		result = 31 * result + (sourceAbsPath != null ? sourceAbsPath.hashCode() : 0);
-		result = 31 * result + (sourceValue != null ? sourceValue.hashCode() : 0);
-		result = 31 * result + (sourceDefinition != null ? sourceDefinition.hashCode() : 0);
-		result = 31 * result + (sourceDelta != null ? sourceDelta.hashCode() : 0);
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (changeType != null ? changeType.hashCode() : 0);
+        result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
+        result = 31 * result + (items != null ? items.hashCode() : 0);
+        result = 31 * result + (operational ? 1 : 0);
+        result = 31 * result + (sourceRelPath != null ? sourceRelPath.hashCode() : 0);
+        result = 31 * result + (sourceAbsPath != null ? sourceAbsPath.hashCode() : 0);
+        result = 31 * result + (sourceValue != null ? sourceValue.hashCode() : 0);
+        result = 31 * result + (sourceDefinition != null ? sourceDefinition.hashCode() : 0);
+        result = 31 * result + (sourceDelta != null ? sourceDelta.hashCode() : 0);
+        return result;
+    }
 }

@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2016 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-00000000ae05"
@@ -9,33 +9,33 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <name>Prop Read All Modify Some User</name>    
+    <name>Prop Read All Modify Some User</name>
     <authorization>
-    	<name>read all</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>UserType</type>
-    		<filter>
-	            <q:equal>
-	               <q:path>employeeType</q:path>
-	               <q:value>CAPTAIN</q:value>
-	            </q:equal>
-	        </filter>
-    	</object>
+        <name>read all</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+            <filter>
+                <q:equal>
+                   <q:path>employeeType</q:path>
+                   <q:value>CAPTAIN</q:value>
+                </q:equal>
+            </filter>
+        </object>
     </authorization>
     <authorization>
-    	<name>modify some</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<object>
-    		<type>UserType</type>
-    		<filter>
-	            <q:equal>
-	               <q:path>employeeType</q:path>
-	               <q:value>CAPTAIN</q:value>
-	            </q:equal>
-	        </filter>
-    	</object>
-    	<item>fullName</item>
-    	<item>description</item>
+        <name>modify some</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <object>
+            <type>UserType</type>
+            <filter>
+                <q:equal>
+                   <q:path>employeeType</q:path>
+                   <q:value>CAPTAIN</q:value>
+                </q:equal>
+            </filter>
+        </object>
+        <item>fullName</item>
+        <item>description</item>
     </authorization>
 </role>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -55,7 +55,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
     private static final String OP_GET_START_INSTRUCTIONS = AddAssociationAspect.class.getName() + ".getStartInstructions";
 
-	//region ------------------------------------------------------------ Things that execute on request arrival
+    //region ------------------------------------------------------------ Things that execute on request arrival
 
     private static class Request {
         ApprovalSchemaType schema;
@@ -63,9 +63,9 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     }
 
     @NotNull
-	@Override
+    @Override
     public List<PcpStartInstruction> getStartInstructions(@NotNull ObjectTreeDeltas objectTreeDeltas,
-			@NotNull ModelInvocationContext ctx, @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+            @NotNull ModelInvocationContext ctx, @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
         OperationResult result = parentResult.subresult(OP_GET_START_INSTRUCTIONS)
                 .setMinor()
@@ -247,8 +247,8 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
             PcpStartInstruction instruction =
                     PcpStartInstruction.createItemApprovalInstruction(
-                    		getChangeProcessor(),
-		                    approvalRequest.schema, null);
+                            getChangeProcessor(),
+                            approvalRequest.schema, null);
 
             // set some common task/process attributes
             instruction.prepareCommonAttributes(this, ctx.modelContext, requester);
@@ -306,13 +306,13 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
     // creates an approval requests (e.g. by providing approval schema) for a given assignment and a target
     private Request createApprovalRequest(PcpAspectConfigurationType config, AssociationAdditionType itemToApprove, ModelContext<?> modelContext,
-			Task taskFromModel, OperationResult result) {
+            Task taskFromModel, OperationResult result) {
         Request request = new Request();
         request.addition = itemToApprove;
         request.schema = getSchemaFromConfig(config, prismContext);
         approvalSchemaHelper.prepareSchema(request.schema,
-                createRelationResolver((PrismObject<?>) null, result),		// TODO rel resolver
-				createReferenceResolver(modelContext, taskFromModel, result));
+                createRelationResolver((PrismObject<?>) null, result),        // TODO rel resolver
+                createReferenceResolver(modelContext, taskFromModel, result));
         return request;
     }
 

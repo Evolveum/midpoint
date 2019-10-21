@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,42 +26,42 @@ import java.util.List;
  */
 public interface PrismParserNoIO extends PrismParser {
 
-	@NotNull
-	PrismParserNoIO language(@Nullable String language);
-	@NotNull
-	PrismParserNoIO xml();
-	@NotNull
-	PrismParserNoIO json();
-	@NotNull
-	PrismParserNoIO yaml();
-	@NotNull
-	PrismParserNoIO context(@NotNull ParsingContext context);
-	@NotNull
-	PrismParserNoIO strict();
-	@NotNull
-	PrismParserNoIO compat();
-	@NotNull
-	PrismParserNoIO definition(ItemDefinition<?> itemDefinition);
-	@NotNull
-	PrismParserNoIO name(QName itemName);
-	@NotNull
-	PrismParserNoIO type(QName typeName);
-	@NotNull
-	PrismParserNoIO type(Class<?> typeClass);
+    @NotNull
+    PrismParserNoIO language(@Nullable String language);
+    @NotNull
+    PrismParserNoIO xml();
+    @NotNull
+    PrismParserNoIO json();
+    @NotNull
+    PrismParserNoIO yaml();
+    @NotNull
+    PrismParserNoIO context(@NotNull ParsingContext context);
+    @NotNull
+    PrismParserNoIO strict();
+    @NotNull
+    PrismParserNoIO compat();
+    @NotNull
+    PrismParserNoIO definition(ItemDefinition<?> itemDefinition);
+    @NotNull
+    PrismParserNoIO name(QName itemName);
+    @NotNull
+    PrismParserNoIO type(QName typeName);
+    @NotNull
+    PrismParserNoIO type(Class<?> typeClass);
 
-	@NotNull
-	<O extends Objectable> PrismObject<O> parse() throws SchemaException;
-	<IV extends PrismValue, ID extends ItemDefinition> Item<IV,ID> parseItem() throws SchemaException;
-	<IV extends PrismValue> IV parseItemValue() throws SchemaException;
-	<T> T parseRealValue(Class<T> clazz) throws SchemaException;
-	<T> T parseRealValue() throws SchemaException;
-	<T> JAXBElement<T> parseRealValueToJaxbElement() throws SchemaException;
-	RootXNode parseToXNode() throws SchemaException;
-	Object parseItemOrRealValue() throws SchemaException;
+    @NotNull
+    <O extends Objectable> PrismObject<O> parse() throws SchemaException;
+    <IV extends PrismValue, ID extends ItemDefinition> Item<IV,ID> parseItem() throws SchemaException;
+    <IV extends PrismValue> IV parseItemValue() throws SchemaException;
+    <T> T parseRealValue(Class<T> clazz) throws SchemaException;
+    <T> T parseRealValue() throws SchemaException;
+    <T> JAXBElement<T> parseRealValueToJaxbElement() throws SchemaException;
+    RootXNode parseToXNode() throws SchemaException;
+    Object parseItemOrRealValue() throws SchemaException;
 
-	// auxiliary methods
-	@NotNull
-	List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException;
+    // auxiliary methods
+    @NotNull
+    List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException;
 
-	void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException;
+    void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException;
 }

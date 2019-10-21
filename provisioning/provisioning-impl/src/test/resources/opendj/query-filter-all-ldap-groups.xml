@@ -2,34 +2,34 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <q:query xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:foo="http://foo.com/" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:foo="http://foo.com/" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 
-	<!-- Query filter example -->
+    <!-- Query filter example -->
 <q:filter>
-	<q:and>
-		<q:ref>
-			<q:path>i:resourceRef</q:path>
-			<q:value>
-				<c:oid>ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</c:oid>
-			</q:value>
-		</q:ref>
-		<q:equal>
-			<q:path>i:kind</q:path>
-			<q:value>entitlement</q:value>
-		</q:equal>
-		<q:equal>
-			<q:path>i:intent</q:path>
-			<q:value>ldapGroup</q:value>
-		</q:equal>
-	</q:and>
+    <q:and>
+        <q:ref>
+            <q:path>i:resourceRef</q:path>
+            <q:value>
+                <c:oid>ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</c:oid>
+            </q:value>
+        </q:ref>
+        <q:equal>
+            <q:path>i:kind</q:path>
+            <q:value>entitlement</q:value>
+        </q:equal>
+        <q:equal>
+            <q:path>i:intent</q:path>
+            <q:value>ldapGroup</q:value>
+        </q:equal>
+    </q:and>
 </q:filter>
 </q:query>

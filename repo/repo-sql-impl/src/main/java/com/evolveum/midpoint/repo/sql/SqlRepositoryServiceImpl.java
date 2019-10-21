@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -188,15 +188,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         PrismObject<T> object = null;
         try {
             // "objectLocal" is here just to provide effectively final variable for the lambda below
-		    PrismObject<T> objectLocal = executeAttempts(oid, OP_GET_OBJECT, type, "getting",
-				    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult));
+            PrismObject<T> objectLocal = executeAttempts(oid, OP_GET_OBJECT, type, "getting",
+                    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult));
             object = objectLocal;
-		    invokeConflictWatchers((w) -> w.afterGetObject(objectLocal));
+            invokeConflictWatchers((w) -> w.afterGetObject(objectLocal));
         } finally {
-        	OperationLogger.logGetObject(type, oid, options, object, subResult);
+            OperationLogger.logGetObject(type, oid, options, object, subResult);
         }
-        
-	    return object;
+
+        return object;
     }
 
     private <RV> RV executeAttempts(String oid, String operationName, Class<?> type, String operationVerb, OperationResult subResult,
@@ -276,8 +276,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         try {
             return executeAttempts(shadowOid, OP_SEARCH_SHADOW_OWNER, FocusType.class, "searching shadow owner",
-					subResult, () -> objectRetriever.searchShadowOwnerAttempt(shadowOid, options, subResult)
-			);
+                    subResult, () -> objectRetriever.searchShadowOwnerAttempt(shadowOid, options, subResult)
+            );
         } catch (ObjectNotFoundException|SchemaException e) {
             throw new AssertionError("Should not occur; exception should have been treated in searchShadowOwnerAttempt.", e);
         }
@@ -331,22 +331,22 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         ObjectFilter filter = query.getFilter();
         filter = ObjectQueryUtil.simplify(filter, prismContext);
         if (filter instanceof NoneFilter) {
-			subResult.recordSuccess();
-			return null;
-		} else {
-			query = replaceSimplifiedFilter(query, filter);
-		}
+            subResult.recordSuccess();
+            return null;
+        } else {
+            query = replaceSimplifiedFilter(query, filter);
+        }
         return query;
     }
 
     @NotNull
-	private ObjectQuery replaceSimplifiedFilter(ObjectQuery query, ObjectFilter filter) {
-		query = query.cloneEmpty();
-		query.setFilter(filter instanceof AllFilter ? null : filter);
-		return query;
-	}
+    private ObjectQuery replaceSimplifiedFilter(ObjectQuery query, ObjectFilter filter) {
+        query = query.cloneEmpty();
+        query.setFilter(filter instanceof AllFilter ? null : filter);
+        return query;
+    }
 
-	@Override
+    @Override
     public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
@@ -366,7 +366,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 (q) -> objectRetriever.searchContainersAttempt(type, q, options, result));
     }
 
-	@Override
+    @Override
     public <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         Validate.notNull(type, "Object type must not be null.");
@@ -450,37 +450,37 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         int restarts = 0;
         boolean noFetchExtensionValueInsertionForbidden = false;
         try {
-	        // TODO use executeAttempts
-	        final String operation = "adding";
+            // TODO use executeAttempts
+            final String operation = "adding";
 
-	        String proposedOid = object.getOid();
-	        while (true) {
-	            try {
+            String proposedOid = object.getOid();
+            while (true) {
+                try {
                     String createdOid = objectUpdater.addObjectAttempt(object, options, noFetchExtensionValueInsertionForbidden, subResult);
                     invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
                     return createdOid;
                 } catch (RestartOperationRequestedException ex) {
-	                // special case: we want to restart but we do not want to count these
+                    // special case: we want to restart but we do not want to count these
                     LOGGER.trace("Restarting because of {}", ex.getMessage());
                     restarts++;
                     if (restarts > RESTART_LIMIT) {
                         throw new IllegalStateException("Too many operation restarts");
                     }
                 } catch (RuntimeException ex) {
-	                attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
+                    attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);
-	            }
+                }
                 noFetchExtensionValueInsertionForbidden = true;     // todo This is a temporary measure; needs better handling.
-	        }
+            }
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
-        	OperationLogger.logAdd(object, options, subResult);
-        	subResult.computeStatusIfUnknown();
+            OperationLogger.logAdd(object, options, subResult);
+            subResult.computeStatusIfUnknown();
         }
     }
 
     public void invokeConflictWatchers(Consumer<ConflictWatcherImpl> consumer) {
-	    emptyIfNull(conflictWatchersThreadLocal.get()).forEach(consumer);
+        emptyIfNull(conflictWatchersThreadLocal.get()).forEach(consumer);
     }
 
     private void validateName(PrismObject object) throws SchemaException {
@@ -506,15 +506,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 .addParam("oid", oid)
                 .build();
         try {
-	        
-        	DeleteObjectResult rv = executeAttemptsNoSchemaException(oid, OP_DELETE_OBJECT, type, "deleting",
-	                subResult, () -> objectUpdater.deleteObjectAttempt(type, oid, subResult)
-	        );
-		    invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
-		    return rv;
-		    
+
+            DeleteObjectResult rv = executeAttemptsNoSchemaException(oid, OP_DELETE_OBJECT, type, "deleting",
+                    subResult, () -> objectUpdater.deleteObjectAttempt(type, oid, subResult)
+            );
+            invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+            return rv;
+
         } finally {
-        	OperationLogger.logDelete(type, oid, subResult);
+            OperationLogger.logDelete(type, oid, subResult);
         }
     }
 
@@ -557,11 +557,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
             RepoModifyOptions options, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-	    try {
-		    return modifyObject(type, oid, modifications, null, options, result);
-	    } catch (PreconditionViolationException e) {
-		    throw new AssertionError(e);    // with null precondition we couldn't get this exception
-	    }
+        try {
+            return modifyObject(type, oid, modifications, null, options, result);
+        } catch (PreconditionViolationException e) {
+            throw new AssertionError(e);    // with null precondition we couldn't get this exception
+        }
     }
 
     @NotNull
@@ -628,8 +628,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 try {
                     ModifyObjectResult<T> rv = objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options,
                             attempt, subResult, this, noFetchExtensionValueInsertionForbidden);
-	                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
-	                return rv;
+                    invokeConflictWatchers((w) -> w.afterModifyObject(oid));
+                    return rv;
                 } catch (RestartOperationRequestedException ex) {
                     // special case: we want to restart but we do not want to count these
                     LOGGER.trace("Restarting because of {}", ex.getMessage());
@@ -752,7 +752,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             });
             session.getTransaction().commit();
 
-			SessionFactory sessionFactory = baseHelper.getSessionFactory();
+            SessionFactory sessionFactory = baseHelper.getSessionFactory();
             if (!(sessionFactory instanceof SessionFactoryImpl)) {
                 return;
             }
@@ -760,16 +760,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             // we try to override configuration which was read from sql repo configuration with
             // real configuration from session factory
             if(sessionFactoryImpl.getDialect() != null) {
-            	for(int i =0; i<details.size(); i++) {
-            		if(details.get(i).getLabel().equals(DETAILS_HIBERNATE_DIALECT)) {
-            			details.remove(i);
-            			break;
-            		}
-            	}
-            	String dialect = sessionFactoryImpl.getDialect().getClass().getName();
+                for(int i =0; i<details.size(); i++) {
+                    if(details.get(i).getLabel().equals(DETAILS_HIBERNATE_DIALECT)) {
+                        details.remove(i);
+                        break;
+                    }
+                }
+                String dialect = sessionFactoryImpl.getDialect().getClass().getName();
                 details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, dialect));
             }
-            
+
         } catch (Throwable th) {
             //nowhere to report error (no operation result available)
             session.getTransaction().rollback();
@@ -848,7 +848,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             while (true) {
                 try {
                     String rv = objectRetriever.getVersionAttempt(type, oid, subResult);
-	                invokeConflictWatchers((w) -> w.afterGetVersion(oid, rv));
+                    invokeConflictWatchers((w) -> w.afterGetVersion(oid, rv));
                     return rv;
                 } catch (RuntimeException ex) {
                     attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
@@ -883,114 +883,114 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 subResult.recordSuccess();
                 return null;
             } else {
-				query = replaceSimplifiedFilter(query, filter);
-			}
-		}
+                query = replaceSimplifiedFilter(query, filter);
+            }
+        }
 
-		// We don't try to be smarter than our client: if he explicitly requests e.g. single transaction
-	    // against DB that does not support it, or if he requests simple paging where strictly sequential one is
-	    // indicated, we will obey (with a warning in some cases).
-	    IterationMethodType iterationMethod;
-	    IterationMethodType explicitIterationMethod = GetOperationOptions.getIterationMethod(SelectorOptions.findRootOptions(options));
+        // We don't try to be smarter than our client: if he explicitly requests e.g. single transaction
+        // against DB that does not support it, or if he requests simple paging where strictly sequential one is
+        // indicated, we will obey (with a warning in some cases).
+        IterationMethodType iterationMethod;
+        IterationMethodType explicitIterationMethod = GetOperationOptions.getIterationMethod(SelectorOptions.findRootOptions(options));
         if (explicitIterationMethod == null || explicitIterationMethod == IterationMethodType.DEFAULT) {
-	        if (getConfiguration().isIterativeSearchByPaging()) {
-		        if (strictlySequential) {
-		        	if (isCustomPagingOkWithPagedSeqIteration(query)) {
-				        iterationMethod = IterationMethodType.STRICTLY_SEQUENTIAL_PAGING;
-			        } else if (isCustomPagingOkWithFetchAllIteration(query)) {
-				        LOGGER.debug("Iterative search by paging was defined in the repository configuration, and strict sequentiality "
-						        + "was requested. However, a custom paging precludes its application. Therefore switching to "
-						        + "'fetch all' iteration method. Paging requested: " + query.getPaging());
-				        iterationMethod = IterationMethodType.FETCH_ALL;
-			        } else {
-		        		LOGGER.warn("Iterative search by paging was defined in the repository configuration, and strict sequentiality "
-						        + "was requested. However, a custom paging precludes its application and maxSize is either "
-						        + "undefined or too large (over " + getConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod()
-						        + "). Therefore switching to simple paging iteration method. Paging requested: " + query.getPaging());
-				        iterationMethod = IterationMethodType.SIMPLE_PAGING;
-			        }
-		        } else {
-		        	iterationMethod = IterationMethodType.SIMPLE_PAGING;
-		        }
-	        } else {
-		        iterationMethod = IterationMethodType.SINGLE_TRANSACTION;
-	        }
+            if (getConfiguration().isIterativeSearchByPaging()) {
+                if (strictlySequential) {
+                    if (isCustomPagingOkWithPagedSeqIteration(query)) {
+                        iterationMethod = IterationMethodType.STRICTLY_SEQUENTIAL_PAGING;
+                    } else if (isCustomPagingOkWithFetchAllIteration(query)) {
+                        LOGGER.debug("Iterative search by paging was defined in the repository configuration, and strict sequentiality "
+                                + "was requested. However, a custom paging precludes its application. Therefore switching to "
+                                + "'fetch all' iteration method. Paging requested: " + query.getPaging());
+                        iterationMethod = IterationMethodType.FETCH_ALL;
+                    } else {
+                        LOGGER.warn("Iterative search by paging was defined in the repository configuration, and strict sequentiality "
+                                + "was requested. However, a custom paging precludes its application and maxSize is either "
+                                + "undefined or too large (over " + getConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod()
+                                + "). Therefore switching to simple paging iteration method. Paging requested: " + query.getPaging());
+                        iterationMethod = IterationMethodType.SIMPLE_PAGING;
+                    }
+                } else {
+                    iterationMethod = IterationMethodType.SIMPLE_PAGING;
+                }
+            } else {
+                iterationMethod = IterationMethodType.SINGLE_TRANSACTION;
+            }
         } else {
-        	iterationMethod = explicitIterationMethod;
+            iterationMethod = explicitIterationMethod;
         }
 
         if (strictlySequential && iterationMethod == IterationMethodType.SIMPLE_PAGING) {
-        	LOGGER.warn("Using simple paging where strictly sequential one is indicated: type={}, query={}", type, query);
+            LOGGER.warn("Using simple paging where strictly sequential one is indicated: type={}, query={}", type, query);
         } else if (getConfiguration().isIterativeSearchByPaging() && explicitIterationMethod == IterationMethodType.SINGLE_TRANSACTION) {
-        	// we should introduce some 'native iteration supported' flag for the DB configuration to avoid false warnings here
-	        // based on 'iterativeSearchByPaging' setting for databases that support native iteration
-	        LOGGER.warn("Using single transaction iteration where DB indicates paging should be used: type={}, query={}", type, query);
+            // we should introduce some 'native iteration supported' flag for the DB configuration to avoid false warnings here
+            // based on 'iterativeSearchByPaging' setting for databases that support native iteration
+            LOGGER.warn("Using single transaction iteration where DB indicates paging should be used: type={}, query={}", type, query);
         }
 
-	    LOGGER.trace("Using iteration method {} for type={}, query={}", iterationMethod, type, query);
+        LOGGER.trace("Using iteration method {} for type={}, query={}", iterationMethod, type, query);
 
         SearchResultMetadata rv = null; // todo what about returning values from other search methods?
         switch (iterationMethod) {
-        	case SINGLE_TRANSACTION: rv = searchObjectsIterativeBySingleTransaction(type, query, handler, options, subResult); break;
-        	case SIMPLE_PAGING: objectRetriever.searchObjectsIterativeByPaging(type, query, handler, options, subResult); break;
-	        case STRICTLY_SEQUENTIAL_PAGING: objectRetriever.searchObjectsIterativeByPagingStrictlySequential(type, query, handler, options, subResult); break;
-	        case FETCH_ALL: objectRetriever.searchObjectsIterativeByFetchAll(type, query, handler, options, subResult); break;
-	        default: throw new AssertionError("iterationMethod: " + iterationMethod);
+            case SINGLE_TRANSACTION: rv = searchObjectsIterativeBySingleTransaction(type, query, handler, options, subResult); break;
+            case SIMPLE_PAGING: objectRetriever.searchObjectsIterativeByPaging(type, query, handler, options, subResult); break;
+            case STRICTLY_SEQUENTIAL_PAGING: objectRetriever.searchObjectsIterativeByPagingStrictlySequential(type, query, handler, options, subResult); break;
+            case FETCH_ALL: objectRetriever.searchObjectsIterativeByFetchAll(type, query, handler, options, subResult); break;
+            default: throw new AssertionError("iterationMethod: " + iterationMethod);
         }
-	    return rv;
+        return rv;
     }
 
-	private boolean isCustomPagingOkWithFetchAllIteration(ObjectQuery query) {
-		return query != null
-				&& query.getPaging() != null
-				&& query.getPaging().getMaxSize() != null
-				&& query.getPaging().getMaxSize() <= getConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod();
-	}
+    private boolean isCustomPagingOkWithFetchAllIteration(ObjectQuery query) {
+        return query != null
+                && query.getPaging() != null
+                && query.getPaging().getMaxSize() != null
+                && query.getPaging().getMaxSize() <= getConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod();
+    }
 
-	public static boolean isCustomPagingOkWithPagedSeqIteration(ObjectQuery query) {
-    	if (query == null || query.getPaging() == null) {
-    		return true;
-	    }
-		ObjectPaging paging = query.getPaging();
-    	return !paging.hasOrdering() && !paging.hasGrouping() && paging.getOffset() == null;
-	}
+    public static boolean isCustomPagingOkWithPagedSeqIteration(ObjectQuery query) {
+        if (query == null || query.getPaging() == null) {
+            return true;
+        }
+        ObjectPaging paging = query.getPaging();
+        return !paging.hasOrdering() && !paging.hasGrouping() && paging.getOffset() == null;
+    }
 
-	@Nullable
-	private <T extends ObjectType> SearchResultMetadata searchObjectsIterativeBySingleTransaction(Class<T> type,
-			ObjectQuery query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult subResult)
-			throws SchemaException {
-		/*
-		 * Here we store OIDs that were already sent to the client during previous attempts.
-		 */
-		Set<String> retrievedOids = new HashSet<>();
+    @Nullable
+    private <T extends ObjectType> SearchResultMetadata searchObjectsIterativeBySingleTransaction(Class<T> type,
+            ObjectQuery query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult subResult)
+            throws SchemaException {
+        /*
+         * Here we store OIDs that were already sent to the client during previous attempts.
+         */
+        Set<String> retrievedOids = new HashSet<>();
 
-		//        turned off until resolved 'unfinished operation' warning
-		//        SqlPerformanceMonitor pm = getPerformanceMonitor();
-		//        long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
+        //        turned off until resolved 'unfinished operation' warning
+        //        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        //        long opHandle = pm.registerOperationStart(SEARCH_OBJECTS_ITERATIVE);
 
-		final String operation = "searching iterative";
-		int attempt = 1;
-		try {
-			while (true) {
-				try {
-					objectRetriever.searchObjectsIterativeAttempt(type, query, handler, options, subResult, retrievedOids);
-					return null;
-				} catch (RuntimeException ex) {
-					attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
-					//                    pm.registerOperationNewAttempt(opHandle, attempt);
-				}
-			}
-		} finally {
-		    // temporary workaround, just to know the number of calls
+        final String operation = "searching iterative";
+        int attempt = 1;
+        try {
+            while (true) {
+                try {
+                    objectRetriever.searchObjectsIterativeAttempt(type, query, handler, options, subResult, retrievedOids);
+                    return null;
+                } catch (RuntimeException ex) {
+                    attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
+                    //                    pm.registerOperationNewAttempt(opHandle, attempt);
+                }
+            }
+        } finally {
+            // temporary workaround, just to know the number of calls
             SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
             long opHandle = pm.registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE, type);
             pm.registerOperationFinish(opHandle, attempt);
-		}
-		// TODO conflict checking (if needed)
-	}
+        }
+        // TODO conflict checking (if needed)
+    }
 
-	@Override
-	public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
+    @Override
+    public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
         Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
         Validate.notNull(lowerObjectOids, "lowerObjectOids must not be null.");
 
@@ -1022,9 +1022,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
 
-	@Override
-	public long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException {
+    @Override
+    public long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+            SchemaException {
 
         Validate.notEmpty(oid, "Oid must not null or empty.");
         Validate.notNull(parentResult, "Operation result must not be null.");
@@ -1053,12 +1053,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
         }
-	}
+    }
 
 
     @Override
-	public void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
+    public void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
         Validate.notEmpty(oid, "Oid must not null or empty.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -1092,7 +1092,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
         }
-	}
+    }
 
     @Override
     public RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result) {
@@ -1127,128 +1127,128 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-	@Override
-	public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector,
-			PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		if (objectSelector == null) {
-			logger.trace("{} null object specification", logMessagePrefix);
-			return false;
-		}
+    @Override
+    public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector,
+            PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        if (objectSelector == null) {
+            logger.trace("{} null object specification", logMessagePrefix);
+            return false;
+        }
 
-		SearchFilterType specFilterType = objectSelector.getFilter();
-		ObjectReferenceType specOrgRef = objectSelector.getOrgRef();
-		QName specTypeQName = objectSelector.getType();     // now it does not matter if it's unqualified
-		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
+        SearchFilterType specFilterType = objectSelector.getFilter();
+        ObjectReferenceType specOrgRef = objectSelector.getOrgRef();
+        QName specTypeQName = objectSelector.getType();     // now it does not matter if it's unqualified
+        PrismObjectDefinition<O> objectDefinition = object.getDefinition();
 
-		// Type
-		if (specTypeQName != null && !object.canRepresent(specTypeQName)) {
-			if (logger.isTraceEnabled()) {
-				logger.trace("{} type mismatch, expected {}, was {}", 
-						logMessagePrefix, PrettyPrinter.prettyPrint(specTypeQName), PrettyPrinter.prettyPrint(objectDefinition.getTypeName()));
-			}
-			return false;
-		}
+        // Type
+        if (specTypeQName != null && !object.canRepresent(specTypeQName)) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("{} type mismatch, expected {}, was {}",
+                        logMessagePrefix, PrettyPrinter.prettyPrint(specTypeQName), PrettyPrinter.prettyPrint(objectDefinition.getTypeName()));
+            }
+            return false;
+        }
 
-		// Subtype
-		String specSubtype = objectSelector.getSubtype();
-		if (specSubtype != null) {
-			Collection<String> actualSubtypeValues = FocusTypeUtil.determineSubTypes(object);
-			if (!actualSubtypeValues.contains(specSubtype)) {
-				logger.trace("{} subtype mismatch, expected {}, was {}", logMessagePrefix, specSubtype, actualSubtypeValues);
-				return false;
-			}
-		}
+        // Subtype
+        String specSubtype = objectSelector.getSubtype();
+        if (specSubtype != null) {
+            Collection<String> actualSubtypeValues = FocusTypeUtil.determineSubTypes(object);
+            if (!actualSubtypeValues.contains(specSubtype)) {
+                logger.trace("{} subtype mismatch, expected {}, was {}", logMessagePrefix, specSubtype, actualSubtypeValues);
+                return false;
+            }
+        }
 
-		// Filter
-		if (specFilterType != null) {
-			ObjectFilter specFilter = object.getPrismContext().getQueryConverter().createObjectFilter(object.getCompileTimeClass(), specFilterType);
-			if (filterEvaluator != null) {
-				specFilter = filterEvaluator.evaluate(specFilter);
-			}
-            ObjectTypeUtil.normalizeFilter(specFilter, relationRegistry);		//  we assume object is already normalized
+        // Filter
+        if (specFilterType != null) {
+            ObjectFilter specFilter = object.getPrismContext().getQueryConverter().createObjectFilter(object.getCompileTimeClass(), specFilterType);
+            if (filterEvaluator != null) {
+                specFilter = filterEvaluator.evaluate(specFilter);
+            }
+            ObjectTypeUtil.normalizeFilter(specFilter, relationRegistry);        //  we assume object is already normalized
             if (specFilter != null) {
-				ObjectQueryUtil.assertPropertyOnly(specFilter, logMessagePrefix + " filter is not property-only filter");
-			}
-			try {
-				if (!ObjectQuery.match(object, specFilter, matchingRuleRegistry)) {
-					logger.trace("{} object OID {}", logMessagePrefix, object.getOid());
-					return false;
-				}
-			} catch (SchemaException ex) {
-				throw new SchemaException(logMessagePrefix + "could not apply for " + object + ": "
-						+ ex.getMessage(), ex);
-			}
-		}
+                ObjectQueryUtil.assertPropertyOnly(specFilter, logMessagePrefix + " filter is not property-only filter");
+            }
+            try {
+                if (!ObjectQuery.match(object, specFilter, matchingRuleRegistry)) {
+                    logger.trace("{} object OID {}", logMessagePrefix, object.getOid());
+                    return false;
+                }
+            } catch (SchemaException ex) {
+                throw new SchemaException(logMessagePrefix + "could not apply for " + object + ": "
+                        + ex.getMessage(), ex);
+            }
+        }
 
-		// Org
-		if (specOrgRef != null) {
-			if (!isDescendant(object, specOrgRef.getOid())) {
-				logger.trace("{} object OID {} (org={})",
-						logMessagePrefix, object.getOid(), specOrgRef.getOid());
-				return false;
-			}
-		}
+        // Org
+        if (specOrgRef != null) {
+            if (!isDescendant(object, specOrgRef.getOid())) {
+                logger.trace("{} object OID {} (org={})",
+                        logMessagePrefix, object.getOid(), specOrgRef.getOid());
+                return false;
+            }
+        }
 
-		return true;
-	}
-
-	@Override
-	public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException {
-		List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
-		List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
-		for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
-			objParentOrgOids.add(objParentOrgRef.getOid());
-		}
-		return isAnySubordinate(orgOid, objParentOrgOids);
-	}
-
-	@Override
-	public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException {
-		if (object.getOid() == null) {
-			return false;
-		}
-		Collection<String> oidList = new ArrayList<>(1);
-		oidList.add(oid);
-		return isAnySubordinate(object.getOid(), oidList);
-	}
+        return true;
+    }
 
     @Override
-	public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
-		LOGGER.info("Applying full text search configuration ({} entries)",
-				fullTextSearch != null ? fullTextSearch.getIndexed().size() : 0);
-		fullTextSearchConfiguration = fullTextSearch;
-	}
+    public <O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException {
+        List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
+        List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
+        for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
+            objParentOrgOids.add(objParentOrgRef.getOid());
+        }
+        return isAnySubordinate(orgOid, objParentOrgOids);
+    }
 
     @Override
-	public FullTextSearchConfigurationType getFullTextSearchConfiguration() {
-		return fullTextSearchConfiguration;
-	}
+    public <O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException {
+        if (object.getOid() == null) {
+            return false;
+        }
+        Collection<String> oidList = new ArrayList<>(1);
+        oidList.add(oid);
+        return isAnySubordinate(object.getOid(), oidList);
+    }
 
-	@Override
-	public void postInit(OperationResult result) throws SchemaException {
+    @Override
+    public void applyFullTextSearchConfiguration(FullTextSearchConfigurationType fullTextSearch) {
+        LOGGER.info("Applying full text search configuration ({} entries)",
+                fullTextSearch != null ? fullTextSearch.getIndexed().size() : 0);
+        fullTextSearchConfiguration = fullTextSearch;
+    }
+
+    @Override
+    public FullTextSearchConfigurationType getFullTextSearchConfiguration() {
+        return fullTextSearchConfiguration;
+    }
+
+    @Override
+    public void postInit(OperationResult result) throws SchemaException {
         LOGGER.debug("Executing repository postInit method");
         systemConfigurationChangeDispatcher.dispatch(true, true, result);
-	}
-	
+    }
+
     @Override
     public ConflictWatcher createAndRegisterConflictWatcher(@NotNull String oid) {
-	    List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
-	    if (watchers == null) {
-	    	conflictWatchersThreadLocal.set(watchers = new ArrayList<>());
-	    }
-	    if (watchers.size() >= MAX_CONFLICT_WATCHERS) {
-	    	throw new IllegalStateException("Conflicts watchers leaking: reached limit of " + MAX_CONFLICT_WATCHERS + ": " + watchers);
-	    }
-	    ConflictWatcherImpl watcher = new ConflictWatcherImpl(oid);
-	    watchers.add(watcher);
-	    return watcher;
+        List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
+        if (watchers == null) {
+            conflictWatchersThreadLocal.set(watchers = new ArrayList<>());
+        }
+        if (watchers.size() >= MAX_CONFLICT_WATCHERS) {
+            throw new IllegalStateException("Conflicts watchers leaking: reached limit of " + MAX_CONFLICT_WATCHERS + ": " + watchers);
+        }
+        ConflictWatcherImpl watcher = new ConflictWatcherImpl(oid);
+        watchers.add(watcher);
+        return watcher;
     }
 
     @Override
     public void unregisterConflictWatcher(ConflictWatcher watcher) {
-    	ConflictWatcherImpl watcherImpl = (ConflictWatcherImpl) watcher;
-	    List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
-	    // change these exceptions to logged errors, eventually
+        ConflictWatcherImpl watcherImpl = (ConflictWatcherImpl) watcher;
+        List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
+        // change these exceptions to logged errors, eventually
         if (watchers == null) {
             throw new IllegalStateException("No conflict watchers registered for current thread; tried to unregister " + watcher);
         } else if (!watchers.remove(watcherImpl)) {     // expecting there's only one

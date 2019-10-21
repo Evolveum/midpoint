@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.session;
@@ -15,9 +15,9 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.ResourceConten
  * @author shood
  */
 public class ResourcesStorage implements PageStorage {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
+    /**
      * DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.resources.PageResources}
      */
     private Search resourceSearch;
@@ -69,27 +69,27 @@ public class ResourcesStorage implements PageStorage {
     }
 
     public ResourceContentSearchDto getResourceContentSearch() {
-		return resourceContentSearch;
-	}
+        return resourceContentSearch;
+    }
 
     public void setResourceContentSearch(ResourceContentSearchDto resourceContentSearch) {
-		this.resourceContentSearch = resourceContentSearch;
-	}
+        this.resourceContentSearch = resourceContentSearch;
+    }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ResourcesStorage\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "resourceSearch", resourceSearch, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "resourcePaging", resourcePaging, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "resourceContentSearch", resourceContentSearch, indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "accountContentPaging", accountContentPaging, indent+1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("ResourcesStorage\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceSearch", resourceSearch, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourcePaging", resourcePaging, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "resourceContentSearch", resourceContentSearch, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "accountContentPaging", accountContentPaging, indent+1);
+        return sb.toString();
+    }
 }

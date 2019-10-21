@@ -1,21 +1,21 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	oid="10000000-0000-0000-0000-100processor"
-	version="1">
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    oid="10000000-0000-0000-0000-100processor"
+    version="1">
         <name>INDUCEPROCESSOR</name>
         <activation>
             <effectiveStatus>enabled</effectiveStatus>
@@ -30,15 +30,15 @@
             <targetRef oid="10000000-0000-0000-0000-100000000002" relation="org:default" type="c:RoleType"/>
             <condition>
             <source>
-            	<path>description</path>
+                <path>description</path>
             </source>
             <expression>
-            	<script>
-            		<code>
-            			//log.error("TESTINDUCE does DESC equal 'NO'? result: {} ", description?.equals("NO"))
-            			!description?.equals("NO")
-            		</code>
-            	</script>
+                <script>
+                    <code>
+                        //log.error("TESTINDUCE does DESC equal 'NO'? result: {} ", description?.equals("NO"))
+                        !description?.equals("NO")
+                    </code>
+                </script>
             </expression>
             </condition>
         </inducement>
@@ -46,11 +46,11 @@
             <targetRef oid="10000000-0000-0000-0000-100000000003" relation="org:default" type="c:RoleType"/>
             <condition>
             <expression>
-            	<script>
-            		<code>
-						!assignmentEvaluator.isMemberOf('10000000-0000-0000-0000-10000000lock')
-            		</code>
-            	</script>
+                <script>
+                    <code>
+                        !assignmentEvaluator.isMemberOf('10000000-0000-0000-0000-10000000lock')
+                    </code>
+                </script>
             </expression>
             </condition>
         </inducement>

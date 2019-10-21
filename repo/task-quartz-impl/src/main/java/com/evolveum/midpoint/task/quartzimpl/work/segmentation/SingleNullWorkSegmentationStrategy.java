@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,30 +28,30 @@ import static java.util.Collections.singletonList;
  */
 public class SingleNullWorkSegmentationStrategy extends BaseWorkSegmentationStrategy {
 
-	@SuppressWarnings("unused")
-	public SingleNullWorkSegmentationStrategy(TaskWorkManagementType configuration,
-			PrismContext prismContext) {
-		super(configuration, prismContext);
-	}
+    @SuppressWarnings("unused")
+    public SingleNullWorkSegmentationStrategy(TaskWorkManagementType configuration,
+            PrismContext prismContext) {
+        super(configuration, prismContext);
+    }
 
-	@NotNull
-	@Override
-	protected List<AbstractWorkBucketContentType> createAdditionalBuckets(TaskWorkStateType workState) {
-		if (workState.getBucket().isEmpty()) {
-			return singletonList(null);
-		} else {
-			return emptyList();
-		}
-	}
+    @NotNull
+    @Override
+    protected List<AbstractWorkBucketContentType> createAdditionalBuckets(TaskWorkStateType workState) {
+        if (workState.getBucket().isEmpty()) {
+            return singletonList(null);
+        } else {
+            return emptyList();
+        }
+    }
 
-	@Override
-	protected AbstractWorkBucketContentType createAdditionalBucket(AbstractWorkBucketContentType lastBucketContent,
-			Integer lastBucketSequentialNumber) throws SchemaException {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    protected AbstractWorkBucketContentType createAdditionalBucket(AbstractWorkBucketContentType lastBucketContent,
+            Integer lastBucketSequentialNumber) throws SchemaException {
+        throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
-		return 1;
-	}
+    @Override
+    public Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
+        return 1;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -40,11 +40,11 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     public PersonalInfoPanel(String id) {
         super(id, (IModel<PersonalInfoDto>) null);
     }
-    
+
     @Override
     protected void onInitialize() {
-    	super.onInitialize();
-    	initLayout();
+        super.onInitialize();
+        initLayout();
     }
 
     @Override
@@ -53,7 +53,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             protected PersonalInfoDto load() {
                 return loadPersonalInfo();
             }
@@ -88,14 +88,14 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     protected void initLayout() {
         DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new IModel<Date>() {
 
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
             @Override
             public Date getObject() {
 
-            	if(getModel() ==  null) {
-            		return null;
-            	}
-            	PersonalInfoDto dto = getModel().getObject();
+                if(getModel() ==  null) {
+                    return null;
+                }
+                PersonalInfoDto dto = getModel().getObject();
                 return dto == null ? null : dto.getLastLoginDate();
             }
         }, WebComponentUtil.getLongDateTimeFormat(getPageBase()));
@@ -103,14 +103,14 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         add(lastLoginDate);
 
         Label lastLoginFrom = new Label(ID_LAST_LOGIN_FROM, new IModel<String>() {
-        	
-        	private static final long serialVersionUID = 1L;
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-            	if(getModel() ==  null) {
-            		return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
-            	}
+                if(getModel() ==  null) {
+                    return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
+                }
                 PersonalInfoDto dto = getModel().getObject();
 
                 return StringUtils.isNotEmpty(dto.getLastLoginFrom()) ? dto.getLastLoginFrom() :
@@ -120,14 +120,14 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         add(lastLoginFrom);
 
         DateLabelComponent lastFailDate = new DateLabelComponent(ID_LAST_FAIL_DATE, new IModel<Date>() {
-        	
-        	private static final long serialVersionUID = 1L;
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             public Date getObject() {
-            	if(getModel() ==  null) {
-            		return null;
-            	}
+                if(getModel() ==  null) {
+                    return null;
+                }
                 PersonalInfoDto dto = getModel().getObject();
                 return dto == null ? null : dto.getLastFailDate();
             }
@@ -136,14 +136,14 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         add(lastFailDate);
 
         Label lastFailFrom = new Label(ID_LAST_FAIL_FROM, new IModel<String>() {
-        	
-        	private static final long serialVersionUID = 1L;
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-            	if(getModel() ==  null) {
-            		return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
-            	}
+                if(getModel() ==  null) {
+                    return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
+                }
                 PersonalInfoDto dto = getModel().getObject();
 
                 return StringUtils.isNotEmpty(dto.getLastFailFrom()) ? dto.getLastFailFrom() :
@@ -153,14 +153,14 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         add(lastFailFrom);
 
         Label passwordExp = new Label(ID_PASSWORD_EXP, new IModel<String>() {
-        	
-        	private static final long serialVersionUID = 1L;
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
-            	if(getModel() ==  null) {
-            		return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
-            	}
+                if(getModel() ==  null) {
+                    return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
+                }
                 PersonalInfoDto dto = getModel().getObject();
 
                 return dto.getPasswordExp() != null ? WebComponentUtil.formatDate(dto.getPasswordExp()) :

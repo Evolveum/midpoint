@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism;
@@ -22,71 +22,71 @@ import org.apache.commons.lang.StringUtils;
  */
 public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T, PrismPropertyValue<T>> {
 
-	/**
-	 * @param parent
-	 * @param value
-	 * @param status
-	 */
-	public PrismPropertyValueWrapper(ItemWrapper<?, ?, ?, ?> parent, PrismPropertyValue<T> value, ValueStatus status) {
-		super(parent, value, status);
-	}
+    /**
+     * @param parent
+     * @param value
+     * @param status
+     */
+    public PrismPropertyValueWrapper(ItemWrapper<?, ?, ?, ?> parent, PrismPropertyValue<T> value, ValueStatus status) {
+        super(parent, value, status);
+    }
 
-	private static final long serialVersionUID = 1L;
-	
-	@Override
-	public void setRealValue(T realValue) {
+    private static final long serialVersionUID = 1L;
 
-		realValue = trimValueIfNeeded(realValue);
+    @Override
+    public void setRealValue(T realValue) {
 
-		getNewValue().setValue(realValue);
-		setStatus(ValueStatus.MODIFIED);
-	}
+        realValue = trimValueIfNeeded(realValue);
 
-	private T trimValueIfNeeded(T realValue) {
-		if (ValueStatus.ADDED == getStatus() || ValueStatus.MODIFIED == getStatus()) {
-			if (realValue instanceof  String) {
-				return (T) ((String) realValue).trim();
-			}
+        getNewValue().setValue(realValue);
+        setStatus(ValueStatus.MODIFIED);
+    }
 
-			if (realValue instanceof PolyString) {
+    private T trimValueIfNeeded(T realValue) {
+        if (ValueStatus.ADDED == getStatus() || ValueStatus.MODIFIED == getStatus()) {
+            if (realValue instanceof  String) {
+                return (T) ((String) realValue).trim();
+            }
 
-				PolyString polyString = (PolyString) realValue;
-				String polyStringOrig = polyString.getOrig();
-				if (StringUtils.isEmpty(polyStringOrig)) {
-					return realValue;
-				}
+            if (realValue instanceof PolyString) {
 
-				String trimmed = polyStringOrig.trim();
-				PolyString newPolyString = new PolyString(trimmed);
-				newPolyString.setLang(polyString.getLang());
-				newPolyString.setTranslation(polyString.getTranslation());
-				return (T) newPolyString;
+                PolyString polyString = (PolyString) realValue;
+                String polyStringOrig = polyString.getOrig();
+                if (StringUtils.isEmpty(polyStringOrig)) {
+                    return realValue;
+                }
 
-			}
-		}
+                String trimmed = polyStringOrig.trim();
+                PolyString newPolyString = new PolyString(trimmed);
+                newPolyString.setLang(polyString.getLang());
+                newPolyString.setTranslation(polyString.getTranslation());
+                return (T) newPolyString;
 
-		return realValue;
-	}
-	
-	public String toShortString() {
-		if (getRealValue() == null) {
-			return null;
-		}
-		
-		if (getParent() == null) {
-			return getRealValue().toString();
-		}
-		
-		QName typeName = getParent().getTypeName();
-		if (typeName == null) {
-			return getRealValue().toString();
-		}
-		
-		if (QNameUtil.match(DOMUtil.XSD_QNAME, typeName)) {
-			return ((QName)getRealValue()).getLocalPart();
-		}
-		
-		return getRealValue().toString();
-	}
+            }
+        }
+
+        return realValue;
+    }
+
+    public String toShortString() {
+        if (getRealValue() == null) {
+            return null;
+        }
+
+        if (getParent() == null) {
+            return getRealValue().toString();
+        }
+
+        QName typeName = getParent().getTypeName();
+        if (typeName == null) {
+            return getRealValue().toString();
+        }
+
+        if (QNameUtil.match(DOMUtil.XSD_QNAME, typeName)) {
+            return ((QName)getRealValue()).getLocalPart();
+        }
+
+        return getRealValue().toString();
+    }
 
 }

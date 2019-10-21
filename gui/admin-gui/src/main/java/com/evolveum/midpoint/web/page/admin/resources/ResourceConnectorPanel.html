@@ -18,122 +18,122 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-	<div class="row" wicket:id="connectorList">
-		<div class="col-md-12">
-			<div class="container-fluid prism-object">
-	    		<div class="row prism-header">
-					<span class="prism-title"><wicket:message key="PageResource.tab.connector.connectorLabel">Connector</wicket:message></span>
-				</div>
-	    		<div class="row">
-	        		<div class="container-fluid prism-container">
-						<div class="prism-properties">
+    <div class="row" wicket:id="connectorList">
+        <div class="col-md-12">
+            <div class="container-fluid prism-object">
+                <div class="row prism-header">
+                    <span class="prism-title"><wicket:message key="PageResource.tab.connector.connectorLabel">Connector</wicket:message></span>
+                </div>
+                <div class="row">
+                    <div class="container-fluid prism-container">
+                        <div class="prism-properties">
 
-	        				<div class="row prism-property">
-    							<div class="col-xs-2 prism-property-label">
-        							<span><wicket:message key="ConnectorOperationalStatus.connectorName">Connector name</wicket:message></span>
-								</div>
-    							<div class="col-md-10 prism-property-value">
-    								<span wicket:id="connectorName"/>
-    							</div>
-    						</div>
+                            <div class="row prism-property">
+                                <div class="col-xs-2 prism-property-label">
+                                    <span><wicket:message key="ConnectorOperationalStatus.connectorName">Connector name</wicket:message></span>
+                                </div>
+                                <div class="col-md-10 prism-property-value">
+                                    <span wicket:id="connectorName"/>
+                                </div>
+                            </div>
 
-	        				<div class="row prism-property">
-    							<div class="col-xs-2 prism-property-label">
-        							<span><wicket:message key="ConnectorOperationalStatus.connectorClassName">Connector class</wicket:message></span>
-								</div>
-    							<div class="col-md-10 prism-property-value">
-    								<span wicket:id="connectorClass"/>
-    							</div>
-    						</div>
-    						
-    					</div>
-    				</div>
-    			</div>
-	    		<div class="row prism-header">
-					<span class="prism-title"><wicket:message key="PageResource.tab.connector.connectorPoolLabel">Connector pool</wicket:message></span>
-				</div>
-	    		<div class="row">
-	        		<div class="container-fluid prism-container">
-						<div class="prism-properties">
+                            <div class="row prism-property">
+                                <div class="col-xs-2 prism-property-label">
+                                    <span><wicket:message key="ConnectorOperationalStatus.connectorClassName">Connector class</wicket:message></span>
+                                </div>
+                                <div class="col-md-10 prism-property-value">
+                                    <span wicket:id="connectorClass"/>
+                                </div>
+                            </div>
 
-	        				<div class="row prism-property">
-    							<div class="col-xs-2 prism-property-label">
-        							<span><wicket:message key="ConnectorOperationalStatus.poolConfigMinSize"/></span>
-								</div>
-    							<div class="col-md-10 prism-property-value">
-    								<span wicket:id="poolConfigMinSize"/>
-    							</div>
-    						</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row prism-header">
+                    <span class="prism-title"><wicket:message key="PageResource.tab.connector.connectorPoolLabel">Connector pool</wicket:message></span>
+                </div>
+                <div class="row">
+                    <div class="container-fluid prism-container">
+                        <div class="prism-properties">
 
-	        				<div class="row prism-property">
-    							<div class="col-xs-2 prism-property-label">
-        							<span><wicket:message key="ConnectorOperationalStatus.poolConfigMaxSize"/></span>
-								</div>
-    							<div class="col-md-10 prism-property-value">
-    								<span wicket:id="poolConfigMaxSize"/>
-    							</div>
-    						</div>
+                            <div class="row prism-property">
+                                <div class="col-xs-2 prism-property-label">
+                                    <span><wicket:message key="ConnectorOperationalStatus.poolConfigMinSize"/></span>
+                                </div>
+                                <div class="col-md-10 prism-property-value">
+                                    <span wicket:id="poolConfigMinSize"/>
+                                </div>
+                            </div>
 
-	        				<div class="row prism-property">
-    							<div class="col-xs-2 prism-property-label">
-        							<span><wicket:message key="ConnectorOperationalStatus.poolConfigMinIdle"/></span>
-								</div>
-    							<div class="col-md-10 prism-property-value">
-    								<span wicket:id="poolConfigMinIdle"/>
-    							</div>
-    						</div>
+                            <div class="row prism-property">
+                                <div class="col-xs-2 prism-property-label">
+                                    <span><wicket:message key="ConnectorOperationalStatus.poolConfigMaxSize"/></span>
+                                </div>
+                                <div class="col-md-10 prism-property-value">
+                                    <span wicket:id="poolConfigMaxSize"/>
+                                </div>
+                            </div>
 
-	        				<div class="row prism-property">
-    							<div class="col-xs-2 prism-property-label">
-        							<span><wicket:message key="ConnectorOperationalStatus.poolConfigMaxIdle"/></span>
-								</div>
-    							<div class="col-md-10 prism-property-value">
-    								<span wicket:id="poolConfigMaxIdle"/>
-    							</div>
-    						</div>
+                            <div class="row prism-property">
+                                <div class="col-xs-2 prism-property-label">
+                                    <span><wicket:message key="ConnectorOperationalStatus.poolConfigMinIdle"/></span>
+                                </div>
+                                <div class="col-md-10 prism-property-value">
+                                    <span wicket:id="poolConfigMinIdle"/>
+                                </div>
+                            </div>
 
-	        				<div class="row prism-property">
-    							<div class="col-xs-2 prism-property-label">
-        							<span><wicket:message key="ConnectorOperationalStatus.poolConfigWaitTimeout"/></span>
-								</div>
-    							<div class="col-md-10 prism-property-value">
-    								<span wicket:id="poolConfigWaitTimeout"/>
-    							</div>
-    						</div>
+                            <div class="row prism-property">
+                                <div class="col-xs-2 prism-property-label">
+                                    <span><wicket:message key="ConnectorOperationalStatus.poolConfigMaxIdle"/></span>
+                                </div>
+                                <div class="col-md-10 prism-property-value">
+                                    <span wicket:id="poolConfigMaxIdle"/>
+                                </div>
+                            </div>
 
-	        				<div class="row prism-property">
-    							<div class="col-xs-2 prism-property-label">
-        							<span><wicket:message key="ConnectorOperationalStatus.poolConfigMinEvictableIdleTime"/></span>
-								</div>
-    							<div class="col-md-10 prism-property-value">
-    								<span wicket:id="poolConfigMinEvictableIdleTime"/>
-    							</div>
-    						</div>
+                            <div class="row prism-property">
+                                <div class="col-xs-2 prism-property-label">
+                                    <span><wicket:message key="ConnectorOperationalStatus.poolConfigWaitTimeout"/></span>
+                                </div>
+                                <div class="col-md-10 prism-property-value">
+                                    <span wicket:id="poolConfigWaitTimeout"/>
+                                </div>
+                            </div>
 
-	        				<div class="row prism-property">
-    							<div class="col-xs-2 prism-property-label">
-        							<span><wicket:message key="ConnectorOperationalStatus.poolStatusNumIdle"/></span>
-								</div>
-    							<div class="col-md-10 prism-property-value">
-    								<span wicket:id="poolStatusNumIdle"/>
-    							</div>
-    						</div>
+                            <div class="row prism-property">
+                                <div class="col-xs-2 prism-property-label">
+                                    <span><wicket:message key="ConnectorOperationalStatus.poolConfigMinEvictableIdleTime"/></span>
+                                </div>
+                                <div class="col-md-10 prism-property-value">
+                                    <span wicket:id="poolConfigMinEvictableIdleTime"/>
+                                </div>
+                            </div>
 
-	        				<div class="row prism-property">
-    							<div class="col-xs-2 prism-property-label">
-        							<span><wicket:message key="ConnectorOperationalStatus.poolStatusNumActive"/></span>
-								</div>
-    							<div class="col-md-10 prism-property-value">
-    								<span wicket:id="poolStatusNumActive"/>
-    							</div>
-    						</div>
+                            <div class="row prism-property">
+                                <div class="col-xs-2 prism-property-label">
+                                    <span><wicket:message key="ConnectorOperationalStatus.poolStatusNumIdle"/></span>
+                                </div>
+                                <div class="col-md-10 prism-property-value">
+                                    <span wicket:id="poolStatusNumIdle"/>
+                                </div>
+                            </div>
 
-    					</div>
-    				</div>
-    			</div>
-    		</div>
-    	</div>
+                            <div class="row prism-property">
+                                <div class="col-xs-2 prism-property-label">
+                                    <span><wicket:message key="ConnectorOperationalStatus.poolStatusNumActive"/></span>
+                                </div>
+                                <div class="col-md-10 prism-property-value">
+                                    <span wicket:id="poolStatusNumActive"/>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    
+
 </wicket:panel>
 </html>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -56,296 +56,296 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManual extends AbstractDirectManualResourceTest {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestSemiManual.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestSemiManual.class);
 
-	protected static final String ATTR_DISABLED = "disabled";
-	protected static final QName ATTR_DISABLED_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DISABLED);
+    protected static final String ATTR_DISABLED = "disabled";
+    protected static final QName ATTR_DISABLED_QNAME = new QName(MidPointConstants.NS_RI, ATTR_DISABLED);
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-	}
-	
-	@Override
-	protected BackingStore createBackingStore() {
-		return new CsvBackingStore();
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+    }
 
-	@Override
-	protected String getResourceOid() {
-		return RESOURCE_SEMI_MANUAL_OID;
-	}
+    @Override
+    protected BackingStore createBackingStore() {
+        return new CsvBackingStore();
+    }
 
-	@Override
-	protected File getResourceFile() {
-		return RESOURCE_SEMI_MANUAL_FILE;
-	}
+    @Override
+    protected String getResourceOid() {
+        return RESOURCE_SEMI_MANUAL_OID;
+    }
 
-	@Override
-	protected String getRoleOneOid() {
-		return ROLE_ONE_SEMI_MANUAL_OID;
-	}
+    @Override
+    protected File getResourceFile() {
+        return RESOURCE_SEMI_MANUAL_FILE;
+    }
 
-	@Override
-	protected File getRoleOneFile() {
-		return ROLE_ONE_SEMI_MANUAL_FILE;
-	}
+    @Override
+    protected String getRoleOneOid() {
+        return ROLE_ONE_SEMI_MANUAL_OID;
+    }
 
-	@Override
-	protected String getRoleTwoOid() {
-		return ROLE_TWO_SEMI_MANUAL_OID;
-	}
+    @Override
+    protected File getRoleOneFile() {
+        return ROLE_ONE_SEMI_MANUAL_FILE;
+    }
 
-	@Override
-	protected File getRoleTwoFile() {
-		return ROLE_TWO_SEMI_MANUAL_FILE;
-	}
+    @Override
+    protected String getRoleTwoOid() {
+        return ROLE_TWO_SEMI_MANUAL_OID;
+    }
 
-	@Override
-	protected boolean hasMultivalueInterests() {
-		return false;
-	}
+    @Override
+    protected File getRoleTwoFile() {
+        return ROLE_TWO_SEMI_MANUAL_FILE;
+    }
 
-	@Override
-	protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
-		AssertJUnit.assertNull("Resource schema sneaked in before test connection", resourceXsdSchemaElementBefore);
-	}
+    @Override
+    protected boolean hasMultivalueInterests() {
+        return false;
+    }
 
-	@Override
-	protected int getNumberOfAccountAttributeDefinitions() {
-		return 5;
-	}
+    @Override
+    protected void assertResourceSchemaBeforeTest(Element resourceXsdSchemaElementBefore) {
+        AssertJUnit.assertNull("Resource schema sneaked in before test connection", resourceXsdSchemaElementBefore);
+    }
 
-	/**
-	 * Trying to assign an account that already exists in the backing store.
-	 * But midPoint does not know about it.
-	 * MID-4002
-	 */
-	@Test
-	public void test700AssignAccountJackExisting() throws Exception {
-		final String TEST_NAME = "test700AssignAccountJack";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+    @Override
+    protected int getNumberOfAccountAttributeDefinitions() {
+        return 5;
+    }
 
-		if (accountJackOid != null) {
-			PrismObject<ShadowType> shadowRepoBefore = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-			display("Repo shadow before", shadowRepoBefore);
-			assertPendingOperationDeltas(shadowRepoBefore, 0);
-		}
+    /**
+     * Trying to assign an account that already exists in the backing store.
+     * But midPoint does not know about it.
+     * MID-4002
+     */
+    @Test
+    public void test700AssignAccountJackExisting() throws Exception {
+        final String TEST_NAME = "test700AssignAccountJack";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		backingStoreAddJack();
+        if (accountJackOid != null) {
+            PrismObject<ShadowType> shadowRepoBefore = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+            display("Repo shadow before", shadowRepoBefore);
+            assertPendingOperationDeltas(shadowRepoBefore, 0);
+        }
 
-		clock.overrideDuration("PT5M");
+        backingStoreAddJack();
 
-		accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
+        clock.overrideDuration("PT5M");
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		assignAccountToUser(USER_JACK_OID, getResourceOid(), null, task, result);
+        accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
-		// THEN
-		displayThen(TEST_NAME);
-		display("result", result);
-		assertSuccess(result, 2);
-		assertNull("Unexpected ticket in result", result.getAsynchronousOperationReference());
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignAccountToUser(USER_JACK_OID, getResourceOid(), null, task, result);
 
-		accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+        // THEN
+        displayThen(TEST_NAME);
+        display("result", result);
+        assertSuccess(result, 2);
+        assertNull("Unexpected ticket in result", result.getAsynchronousOperationReference());
 
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		accountJackOid = getSingleLinkOid(userAfter);
+        accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertPendingOperationDeltas(shadowRepo, 0);
-		assertShadowExists(shadowRepo, true);
-		assertNoShadowPassword(shadowRepo);
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        accountJackOid = getSingleLinkOid(userAfter);
 
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountJackOid, null, task, result);
+        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        display("Repo shadow", shadowRepo);
+        assertPendingOperationDeltas(shadowRepo, 0);
+        assertShadowExists(shadowRepo, true);
+        assertNoShadowPassword(shadowRepo);
 
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_JACK_USERNAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_JACK_USERNAME);
-		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_JACK_FULL_NAME);
-		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
-		assertShadowExists(shadowModel, true);
+        PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
+                accountJackOid, null, task, result);
 
-		assertPendingOperationDeltas(shadowModel, 0);
-	}
+        display("Model shadow", shadowModel);
+        ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
+        assertShadowName(shadowModel, USER_JACK_USERNAME);
+        assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+        assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_JACK_USERNAME);
+        assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_JACK_FULL_NAME);
+        assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
+        assertShadowExists(shadowModel, true);
 
-	/**
-	 * MID-4002
-	 */
-	@Test
-	public void test710UnassignAccountJack() throws Exception {
-		final String TEST_NAME = "test710UnassignAccountJack";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        assertPendingOperationDeltas(shadowModel, 0);
+    }
 
-		clock.overrideDuration("PT5M");
+    /**
+     * MID-4002
+     */
+    @Test
+    public void test710UnassignAccountJack() throws Exception {
+        final String TEST_NAME = "test710UnassignAccountJack";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
+        clock.overrideDuration("PT5M");
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		unassignAccountFromUser(USER_JACK_OID, getResourceOid(), null, task, result);
+        accountJackReqestTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
-		// THEN
-		displayThen(TEST_NAME);
-		display("result", result);
-		jackLastCaseOid = assertInProgress(result);
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignAccountFromUser(USER_JACK_OID, getResourceOid(), null, task, result);
 
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		accountJackOid = getSingleLinkOid(userAfter);
+        // THEN
+        displayThen(TEST_NAME);
+        display("result", result);
+        jackLastCaseOid = assertInProgress(result);
 
-		accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        accountJackOid = getSingleLinkOid(userAfter);
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-		display("Repo shadow", shadowRepo);
+        accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-		assertPendingOperationDeltas(shadowRepo, 1);
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, OperationResultStatusType.IN_PROGRESS);
-		assertPendingOperation(shadowRepo, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
+        PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
+        display("Repo shadow", shadowRepo);
 
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountJackOid, null, task, result);
+        assertPendingOperationDeltas(shadowRepo, 1);
+        PendingOperationType pendingOperation = findPendingOperation(shadowRepo, OperationResultStatusType.IN_PROGRESS);
+        assertPendingOperation(shadowRepo, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
+        assertNotNull("No ID in pending operation", pendingOperation.getId());
 
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_JACK_USERNAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertShadowPassword(shadowModel);
+        PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
+                accountJackOid, null, task, result);
 
-		assertPendingOperationDeltas(shadowModel, 1);
-		pendingOperation = findPendingOperation(shadowModel, OperationResultStatusType.IN_PROGRESS);
-		assertPendingOperation(shadowModel, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
+        display("Model shadow", shadowModel);
+        ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
+        assertShadowName(shadowModel, USER_JACK_USERNAME);
+        assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+        assertShadowPassword(shadowModel);
 
-		assertUnassignedFuture(assertModelShadowFuture(accountJackOid), true);
+        assertPendingOperationDeltas(shadowModel, 1);
+        pendingOperation = findPendingOperation(shadowModel, OperationResultStatusType.IN_PROGRESS);
+        assertPendingOperation(shadowModel, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
 
-		assertCaseState(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-	}
+        assertUnassignedFuture(assertModelShadowFuture(accountJackOid), true);
 
-	/**
-	 * MID-4002
-	 */
-	@Test
-	public void test712CloseCaseAndRecomputeJack() throws Exception {
-		final String TEST_NAME = "test712CloseCaseAndRecomputeJack";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        assertCaseState(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+    }
 
-		backingStoreDeleteJack();
+    /**
+     * MID-4002
+     */
+    @Test
+    public void test712CloseCaseAndRecomputeJack() throws Exception {
+        final String TEST_NAME = "test712CloseCaseAndRecomputeJack";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		closeCase(jackLastCaseOid);
+        backingStoreDeleteJack();
 
-		accountJackCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
+        closeCase(jackLastCaseOid);
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		// We need reconcile and not recompute here. We need to fetch the updated case status.
-		reconcileUser(USER_JACK_OID, task, result);
+        accountJackCompletionTimestampStart = clock.currentTimeXMLGregorianCalendar();
 
-		// THEN
-		displayThen(TEST_NAME);
-		display("result", result);
-		assertSuccess(result);
+        // WHEN
+        displayWhen(TEST_NAME);
+        // We need reconcile and not recompute here. We need to fetch the updated case status.
+        reconcileUser(USER_JACK_OID, task, result);
 
-		accountJackCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+        // THEN
+        displayThen(TEST_NAME);
+        display("result", result);
+        assertSuccess(result);
 
-		ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountJackOid)
-			.pendingOperations()
-				.singleOperation()
-					.assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
-					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-					.assertResultStatus(OperationResultStatusType.SUCCESS)
-					.assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
-				.end()
-			.end();
-		assertUnassignedShadow(shadowRepoAsserter, true, null);
+        accountJackCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-		ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountJackOid)
-			.assertName(USER_JACK_USERNAME)
-			.assertKind(ShadowKindType.ACCOUNT)
-			.pendingOperations()
-				.singleOperation()
-					.assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
-					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-					.assertResultStatus(OperationResultStatusType.SUCCESS)
-					.assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
-				.end()
-			.end();
-		assertUnassignedShadow(shadowModelAsserter, true, ActivationStatusType.DISABLED);
+        ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountJackOid)
+            .pendingOperations()
+                .singleOperation()
+                    .assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                    .assertResultStatus(OperationResultStatusType.SUCCESS)
+                    .assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
+                .end()
+            .end();
+        assertUnassignedShadow(shadowRepoAsserter, true, null);
 
-		assertUnassignedFuture(assertModelShadowFuture(accountJackOid), false);
+        ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountJackOid)
+            .assertName(USER_JACK_USERNAME)
+            .assertKind(ShadowKindType.ACCOUNT)
+            .pendingOperations()
+                .singleOperation()
+                    .assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                    .assertResultStatus(OperationResultStatusType.SUCCESS)
+                    .assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
+                .end()
+            .end();
+        assertUnassignedShadow(shadowModelAsserter, true, ActivationStatusType.DISABLED);
 
-		assertCaseState(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-	}
+        assertUnassignedFuture(assertModelShadowFuture(accountJackOid), false);
 
-	/**
-	 * MID-4002
-	 */
-	@Test
-	public void test717RecomputeJackAfter130min() throws Exception {
-		final String TEST_NAME = "test717RecomputeJackAfter130min";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        assertCaseState(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+    }
 
-		clock.overrideDuration("PT130M");
+    /**
+     * MID-4002
+     */
+    @Test
+    public void test717RecomputeJackAfter130min() throws Exception {
+        final String TEST_NAME = "test717RecomputeJackAfter130min";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		// We need reconcile and not recompute here. We need to fetch the updated case status.
-		reconcileUser(USER_JACK_OID, task, result);
+        clock.overrideDuration("PT130M");
 
-		// THEN
-		displayThen(TEST_NAME);
-		display("result", result);
-		assertSuccess(result);
+        // WHEN
+        displayWhen(TEST_NAME);
+        // We need reconcile and not recompute here. We need to fetch the updated case status.
+        reconcileUser(USER_JACK_OID, task, result);
 
-		UserAsserter<Void> userAfterAsserter = assertUserAfter(USER_JACK_OID);
-		userAfterAsserter.displayWithProjections();
-		assertDeprovisionedTimedOutUser(userAfterAsserter, accountJackOid);
+        // THEN
+        displayThen(TEST_NAME);
+        display("result", result);
+        assertSuccess(result);
 
-		assertCaseState(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
-	}
+        UserAsserter<Void> userAfterAsserter = assertUserAfter(USER_JACK_OID);
+        userAfterAsserter.displayWithProjections();
+        assertDeprovisionedTimedOutUser(userAfterAsserter, accountJackOid);
 
-	/**
-	 * Put everything in a clean state so we can start over.
-	 */
-	@Test
-	public void test719CleanUp() throws Exception {
-		final String TEST_NAME = "test719CleanUp";
-		displayTestTitle(TEST_NAME);
+        assertCaseState(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+    }
 
-		cleanupUser(TEST_NAME, USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
-	}
+    /**
+     * Put everything in a clean state so we can start over.
+     */
+    @Test
+    public void test719CleanUp() throws Exception {
+        final String TEST_NAME = "test719CleanUp";
+        displayTestTitle(TEST_NAME);
 
-	@Override
-	protected void assertShadowPassword(PrismObject<ShadowType> shadow) {
-		// CSV password is readable
-		PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
-		assertNotNull("No password value property in "+shadow+": "+passValProp, passValProp);
-	}
-	
-	@Override
-	protected void assertUnassignedShadow(ShadowAsserter<?> shadowModelAsserter, boolean backingStoreUpdated, ActivationStatusType expectAlternativeActivationStatus) {
-		if (backingStoreUpdated) {
-			shadowModelAsserter.assertTombstone();
-		} else {
-			shadowModelAsserter.assertCorpse();
-		}
-	}
+        cleanupUser(TEST_NAME, USER_JACK_OID, USER_JACK_USERNAME, accountJackOid);
+    }
+
+    @Override
+    protected void assertShadowPassword(PrismObject<ShadowType> shadow) {
+        // CSV password is readable
+        PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+        assertNotNull("No password value property in "+shadow+": "+passValProp, passValProp);
+    }
+
+    @Override
+    protected void assertUnassignedShadow(ShadowAsserter<?> shadowModelAsserter, boolean backingStoreUpdated, ActivationStatusType expectAlternativeActivationStatus) {
+        if (backingStoreUpdated) {
+            shadowModelAsserter.assertTombstone();
+        } else {
+            shadowModelAsserter.assertCorpse();
+        }
+    }
 }

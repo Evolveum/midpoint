@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -36,9 +36,9 @@ public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T
 
 //        InlineMenu inlineMenu = new com.evolveum.midpoint.web.component.menu.cog.InlineMenu(componentId,
 //                createMenuModel(rowModel));
-    	DropdownButtonDto model = new DropdownButtonDto(null, null, null, createMenuModel(rowModel).getObject());
+        DropdownButtonDto model = new DropdownButtonDto(null, null, null, createMenuModel(rowModel).getObject());
         DropdownButtonPanel inlineMenu = new DropdownButtonPanel(componentId, model) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected String getSpecialButtonClass() {

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2015-2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.objectdetails;
@@ -68,236 +68,236 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends FocusMainPanel<R> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMainPanel.class);
-	
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMainPanel.class);
+
     private static final String DOT_CLASS = AbstractRoleMainPanel.class.getName();
     private static final String OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM = DOT_CLASS + "canSearchRoleMembershipItem";
-	private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
+    private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     private static final String ID_SHOPPING_CART_BUTTONS_PANEL = "shoppingCartButtonsPanel";
     private static final String ID_ADD_TO_CART_BUTTON = "addToCartButton";
 
-	public AbstractRoleMainPanel(String id, LoadableModel<PrismObjectWrapper<R>> objectModel,
-			LoadableModel<List<ShadowWrapper>> projectionModel,
-			PageAdminFocus<R> parentPage) {
-		super(id, objectModel, projectionModel, parentPage);
-	}
+    public AbstractRoleMainPanel(String id, LoadableModel<PrismObjectWrapper<R>> objectModel,
+            LoadableModel<List<ShadowWrapper>> projectionModel,
+            PageAdminFocus<R> parentPage) {
+        super(id, objectModel, projectionModel, parentPage);
+    }
 
-	@Override
-	protected void initLayoutButtons(PageAdminObjectDetails<R> parentPage) {
-		super.initLayoutButtons(parentPage);
-		initShoppingCartPanel(parentPage);
-	}
+    @Override
+    protected void initLayoutButtons(PageAdminObjectDetails<R> parentPage) {
+        super.initLayoutButtons(parentPage);
+        initShoppingCartPanel(parentPage);
+    }
 
-	private void initShoppingCartPanel(PageAdminObjectDetails<R> parentPage){
-		RoleCatalogStorage storage = parentPage.getSessionStorage().getRoleCatalog();
+    private void initShoppingCartPanel(PageAdminObjectDetails<R> parentPage){
+        RoleCatalogStorage storage = parentPage.getSessionStorage().getRoleCatalog();
 
-		WebMarkupContainer shoppingCartButtonsPanel = new WebMarkupContainer(ID_SHOPPING_CART_BUTTONS_PANEL);
-		shoppingCartButtonsPanel.setOutputMarkupId(true);
-		shoppingCartButtonsPanel.add(new VisibleEnableBehaviour(){
-			private static final long serialVersionUID = 1L;
+        WebMarkupContainer shoppingCartButtonsPanel = new WebMarkupContainer(ID_SHOPPING_CART_BUTTONS_PANEL);
+        shoppingCartButtonsPanel.setOutputMarkupId(true);
+        shoppingCartButtonsPanel.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible(){
-				//show panel only in case if user came to object details from
-				// Role Catalog page
-				return PageAssignmentShoppingCart.class.equals(WebComponentUtil.getPreviousPageClass(parentPage));
-			}
-		});
-		getMainForm().add(shoppingCartButtonsPanel);
+            @Override
+            public boolean isVisible(){
+                //show panel only in case if user came to object details from
+                // Role Catalog page
+                return PageAssignmentShoppingCart.class.equals(WebComponentUtil.getPreviousPageClass(parentPage));
+            }
+        });
+        getMainForm().add(shoppingCartButtonsPanel);
 
-		AjaxButton addToCartButton = new AjaxButton(ID_ADD_TO_CART_BUTTON, parentPage
-				.createStringResource("PageAssignmentDetails.addToCartButton")) {
-			private static final long serialVersionUID = 1L;
+        AjaxButton addToCartButton = new AjaxButton(ID_ADD_TO_CART_BUTTON, parentPage
+                .createStringResource("PageAssignmentDetails.addToCartButton")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-				attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
-			}
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+            }
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(getObject().asObjectable(), UserDtoStatus.ADD, parentPage);
-				storage.getAssignmentShoppingCart().add(dto);
-				parentPage.redirectBack();
-			}
-		};
-		addToCartButton.add(AttributeAppender.append("class", new LoadableModel<String>() {
-			@Override
-			protected String load() {
-				return addToCartButton.isEnabled() ? "btn btn-success" : "btn btn-success disabled";
-			}
-		}));
-		addToCartButton.setOutputMarkupId(true);
-		addToCartButton.add(new VisibleEnableBehaviour(){
-			private static final long serialVersionUID = 1L;
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(getObject().asObjectable(), UserDtoStatus.ADD, parentPage);
+                storage.getAssignmentShoppingCart().add(dto);
+                parentPage.redirectBack();
+            }
+        };
+        addToCartButton.add(AttributeAppender.append("class", new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return addToCartButton.isEnabled() ? "btn btn-success" : "btn btn-success disabled";
+            }
+        }));
+        addToCartButton.setOutputMarkupId(true);
+        addToCartButton.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isEnabled(){
-				int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
-												parentPage);
-								AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(AbstractRoleMainPanel.this.getObject().asObjectable(),
-												UserDtoStatus.ADD, parentPage);
-								return !AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, parentPage)
-												&& (storage.isMultiUserRequest() || dto.isAssignable());			}
-		});
-		addToCartButton.add(AttributeAppender.append("title",
-				AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(parentPage)));
-		shoppingCartButtonsPanel.add(addToCartButton);
-	}
+            @Override
+            public boolean isEnabled(){
+                int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+                                                parentPage);
+                                AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(AbstractRoleMainPanel.this.getObject().asObjectable(),
+                                                UserDtoStatus.ADD, parentPage);
+                                return !AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, parentPage)
+                                                && (storage.isMultiUserRequest() || dto.isAssignable());            }
+        });
+        addToCartButton.add(AttributeAppender.append("title",
+                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(parentPage)));
+        shoppingCartButtonsPanel.add(addToCartButton);
+    }
 
-	@Override
-	protected List<ITab> createTabs(final PageAdminObjectDetails<R> parentPage) {
-		List<ITab> tabs = super.createTabs(parentPage);
+    @Override
+    protected List<ITab> createTabs(final PageAdminObjectDetails<R> parentPage) {
+        List<ITab> tabs = super.createTabs(parentPage);
 
-		tabs.add(
-				new PanelTab(parentPage.createStringResource("pageAdminFocus.applicablePolicies"),
-						getTabVisibility( ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL, false, parentPage)) {
+        tabs.add(
+                new PanelTab(parentPage.createStringResource("pageAdminFocus.applicablePolicies"),
+                        getTabVisibility( ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL, false, parentPage)) {
 
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public WebMarkupContainer createPanel(String panelId) {
-						return new FocusApplicablePoliciesTabPanel<>(panelId, getMainForm(), getObjectModel());
-					}
-				});
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new FocusApplicablePoliciesTabPanel<>(panelId, getMainForm(), getObjectModel());
+                    }
+                });
 
-		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"),
-				getTabVisibility( ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL, false, parentPage)) {
+        tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"),
+                getTabVisibility( ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL, false, parentPage)) {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
-						PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
-					private static final long serialVersionUID = 1L;
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
+                        PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					protected boolean isInducement(){
-						return true;
-					}
-				};
-				return panel;
-//				return new AbstractRoleInducementPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
-			}
+                    @Override
+                    protected boolean isInducement(){
+                        return true;
+                    }
+                };
+                return panel;
+//                return new AbstractRoleInducementPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+            }
 
-			@Override
-			public String getCount(){
-				return getInducementsCount();
-			}
+            @Override
+            public String getCount(){
+                return getInducementsCount();
+            }
 
-		});
+        });
 
-		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"),
-				getTabVisibility( ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, parentPage)) {
+        tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"),
+                getTabVisibility( ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, parentPage)) {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return createMemberPanel(panelId);
-			}
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return createMemberPanel(panelId);
+            }
 
-			@Override
-			public boolean isVisible() {
-				return super.isVisible() &&
-						getObjectWrapper().getStatus() != ItemStatus.ADDED &&
-						isAllowedToReadRoleMembership(getObjectWrapper().getOid(), parentPage);
-			}
-		});
-		
-		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.governance"),
-				getTabVisibility( ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, parentPage)) {
+            @Override
+            public boolean isVisible() {
+                return super.isVisible() &&
+                        getObjectWrapper().getStatus() != ItemStatus.ADDED &&
+                        isAllowedToReadRoleMembership(getObjectWrapper().getOid(), parentPage);
+            }
+        });
 
-			private static final long serialVersionUID = 1L;
+        tabs.add(new PanelTab(parentPage.createStringResource("pageRole.governance"),
+                getTabVisibility( ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, parentPage)) {
 
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return createGovernancePanel(panelId);
-			}
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return super.isVisible() && getObjectWrapper().getStatus() != ItemStatus.ADDED;
-			}
-		});
-		
-		return tabs;
-	}
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return createGovernancePanel(panelId);
+            }
 
-	
-	public AbstractRoleMemberPanel<R> createMemberPanel(String panelId) {
-		
-		return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable())) {
-			
-			private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible() {
+                return super.isVisible() && getObjectWrapper().getStatus() != ItemStatus.ADDED;
+            }
+        });
 
-			@Override
-			protected AvailableRelationDto getSupportedRelations() {
-				return getSupportedMembersTabRelations();
-			}
-			
-		};
-	}
+        return tabs;
+    }
 
-	
-	public AbstractRoleMemberPanel<R> createGovernancePanel(String panelId) {
-		
-		return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable())) {
-			
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			protected AvailableRelationDto getSupportedRelations() {
-				AvailableRelationDto avariableRelations = getSupportedGovernanceTabRelations();
-				avariableRelations.setDefaultRelation(getDefaultGovernanceRelation());
-				return avariableRelations;
-			}
-			
-			@Override
-			protected Map<String, String> getAuthorizations(QName complexType) {
-				return getGovernanceTabAuthorizations();
-			}
-		
-		};
-	}
+    public AbstractRoleMemberPanel<R> createMemberPanel(String panelId) {
 
-	protected AvailableRelationDto getSupportedMembersTabRelations(){
-		List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
-		List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
-		governance.forEach(r -> relations.remove(r));
-		return new AvailableRelationDto(relations);
-	}
+        return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable())) {
 
-	protected AvailableRelationDto getSupportedGovernanceTabRelations(){
-		return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage()));
-	}
-	
-	protected QName getDefaultGovernanceRelation(){
-		return WebComponentUtil.getCategoryDefaultRelation(AreaCategoryType.GOVERNANCE);
-	}
+            private static final long serialVersionUID = 1L;
 
-	protected Map<String, String> getGovernanceTabAuthorizations(){
-		return GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS;
-	}
-	
-	private boolean isAllowedToReadRoleMembership(String abstractRoleOid, PageBase parentPage){
-		return isAllowedToReadRoleMembershipItemForType(abstractRoleOid, UserType.class, parentPage)
-				|| isAllowedToReadRoleMembershipItemForType(abstractRoleOid, RoleType.class, parentPage)
-				|| isAllowedToReadRoleMembershipItemForType(abstractRoleOid, OrgType.class, parentPage)
-				|| isAllowedToReadRoleMembershipItemForType(abstractRoleOid, ServiceType.class, parentPage);
-	}
+            @Override
+            protected AvailableRelationDto getSupportedRelations() {
+                return getSupportedMembersTabRelations();
+            }
 
-	private <F extends FocusType> boolean isAllowedToReadRoleMembershipItemForType(String abstractRoleOid, Class<F> type, PageBase parentPage){
-		ObjectQuery query = parentPage.getPrismContext().queryFor(type)
-				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(abstractRoleOid).build();
-		Task task = parentPage.createSimpleTask(OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM);
-		OperationResult result = task.getResult();
-		boolean isAllowed = false;
-		try {
-			isAllowed = parentPage.getModelInteractionService()
+        };
+    }
+
+
+    public AbstractRoleMemberPanel<R> createGovernancePanel(String panelId) {
+
+        return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable())) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected AvailableRelationDto getSupportedRelations() {
+                AvailableRelationDto avariableRelations = getSupportedGovernanceTabRelations();
+                avariableRelations.setDefaultRelation(getDefaultGovernanceRelation());
+                return avariableRelations;
+            }
+
+            @Override
+            protected Map<String, String> getAuthorizations(QName complexType) {
+                return getGovernanceTabAuthorizations();
+            }
+
+        };
+    }
+
+    protected AvailableRelationDto getSupportedMembersTabRelations(){
+        List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
+        List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
+        governance.forEach(r -> relations.remove(r));
+        return new AvailableRelationDto(relations);
+    }
+
+    protected AvailableRelationDto getSupportedGovernanceTabRelations(){
+        return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage()));
+    }
+
+    protected QName getDefaultGovernanceRelation(){
+        return WebComponentUtil.getCategoryDefaultRelation(AreaCategoryType.GOVERNANCE);
+    }
+
+    protected Map<String, String> getGovernanceTabAuthorizations(){
+        return GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS;
+    }
+
+    private boolean isAllowedToReadRoleMembership(String abstractRoleOid, PageBase parentPage){
+        return isAllowedToReadRoleMembershipItemForType(abstractRoleOid, UserType.class, parentPage)
+                || isAllowedToReadRoleMembershipItemForType(abstractRoleOid, RoleType.class, parentPage)
+                || isAllowedToReadRoleMembershipItemForType(abstractRoleOid, OrgType.class, parentPage)
+                || isAllowedToReadRoleMembershipItemForType(abstractRoleOid, ServiceType.class, parentPage);
+    }
+
+    private <F extends FocusType> boolean isAllowedToReadRoleMembershipItemForType(String abstractRoleOid, Class<F> type, PageBase parentPage){
+        ObjectQuery query = parentPage.getPrismContext().queryFor(type)
+                .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(abstractRoleOid).build();
+        Task task = parentPage.createSimpleTask(OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM);
+        OperationResult result = task.getResult();
+        boolean isAllowed = false;
+        try {
+            isAllowed = parentPage.getModelInteractionService()
                     .canSearch(type, null, null, false, query, task, result);
         } catch (Exception ex){
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check if user is allowed to search for roleMembershipRef item", ex);
@@ -305,26 +305,26 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         return isAllowed;
     }
 
-	private String getInducementsCount(){
-			PrismObject<R> focus = getObjectModel().getObject().getObject();
-			List<AssignmentType> inducements = focus.asObjectable().getInducement();
-			if (inducements == null){
-				return "";
-			}
-			return Integer.toString(inducements.size());
-	}
+    private String getInducementsCount(){
+            PrismObject<R> focus = getObjectModel().getObject().getObject();
+            List<AssignmentType> inducements = focus.asObjectable().getInducement();
+            if (inducements == null){
+                return "";
+            }
+            return Integer.toString(inducements.size());
+    }
 
 
-	//TODO what? why? when?
-	@Override
-	protected boolean areSavePreviewButtonsEnabled(){
-		PrismObjectWrapper<R> focusWrapper = getObjectModel().getObject();
-		PrismContainerWrapper<AssignmentType> assignmentsWrapper;
-		try {
-			assignmentsWrapper = focusWrapper.findContainer(AbstractRoleType.F_INDUCEMENT);
-		} catch (SchemaException e) {
-			return false;
-		}
-		return super.areSavePreviewButtonsEnabled()  || isAssignmentsModelChanged(assignmentsWrapper);
-	}
+    //TODO what? why? when?
+    @Override
+    protected boolean areSavePreviewButtonsEnabled(){
+        PrismObjectWrapper<R> focusWrapper = getObjectModel().getObject();
+        PrismContainerWrapper<AssignmentType> assignmentsWrapper;
+        try {
+            assignmentsWrapper = focusWrapper.findContainer(AbstractRoleType.F_INDUCEMENT);
+        } catch (SchemaException e) {
+            return false;
+        }
+        return super.areSavePreviewButtonsEnabled()  || isAssignmentsModelChanged(assignmentsWrapper);
+    }
 }

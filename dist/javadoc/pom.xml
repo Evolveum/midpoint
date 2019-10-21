@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -39,7 +39,7 @@
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
     <dependencies>
-   		<dependency>
+           <dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
             <version>4.0.1-SNAPSHOT</version>
@@ -56,34 +56,34 @@
             <artifactId>tomcat-annotations-api</artifactId>
             <scope>provided</scope>
         </dependency>
-   		<dependency>
+           <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
             <version>4.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
                 <executions>
                     <execution>
-                    	<!-- Default (main) jar is empty. We do not want to build it. -->
-                    	<id>default-jar</id>
-                    	<phase>none</phase>
+                        <!-- Default (main) jar is empty. We do not want to build it. -->
+                        <id>default-jar</id>
+                        <phase>none</phase>
                     </execution>
                     <execution>
-                    	<!-- Test jar is empty. We do not want to build it. -->
-                    	<id>test-jar</id>
-                    	<phase>none</phase>
-                    	<configuration>
-                    		<skipIfEmpty>true</skipIfEmpty>
-                    	</configuration>
+                        <!-- Test jar is empty. We do not want to build it. -->
+                        <id>test-jar</id>
+                        <phase>none</phase>
+                        <configuration>
+                            <skipIfEmpty>true</skipIfEmpty>
+                        </configuration>
                     </execution>
                 </executions>
-			</plugin>
+            </plugin>
             <plugin>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
@@ -95,7 +95,7 @@
                     <isOffline>true</isOffline>
                     <doctitle>midPoint Aggregate JavaDoc</doctitle>
                     <windowtitle>midPoint Aggregate JavaDoc</windowtitle>
- 				    <doclint>none</doclint>
+                     <doclint>none</doclint>
                     <quiet>true</quiet>
                     <debug>false</debug>
                 </configuration>
@@ -109,58 +109,58 @@
                     </execution>
                 </executions>
             </plugin>
-			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-enforcer-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <profiles>
-    	<profile>
-			<id>java8</id>
-			<activation>
-		      <jdk>(,1.8]</jdk>
-		    </activation>
-			<build>
-				<plugins>
- 					<plugin>
- 					  <groupId>org.apache.maven.plugins</groupId>
- 					  <artifactId>maven-javadoc-plugin</artifactId>
- 					  <executions>
- 				        <execution>
- 				            <id>javadoc-jar</id>
- 				            <phase>none</phase>
- 				            <goals>
- 				                <goal>jar</goal>
- 				            </goals>
- 				            <configuration>
- 		                        <skip>true</skip>
- 				            </configuration>
- 				        </execution>
- 				    </executions>
- 				</plugin>
-				</plugins>
-			</build>
-		</profile>
+        <profile>
+            <id>java8</id>
+            <activation>
+              <jdk>(,1.8]</jdk>
+            </activation>
+            <build>
+                <plugins>
+                     <plugin>
+                       <groupId>org.apache.maven.plugins</groupId>
+                       <artifactId>maven-javadoc-plugin</artifactId>
+                       <executions>
+                         <execution>
+                             <id>javadoc-jar</id>
+                             <phase>none</phase>
+                             <goals>
+                                 <goal>jar</goal>
+                             </goals>
+                             <configuration>
+                                 <skip>true</skip>
+                             </configuration>
+                         </execution>
+                     </executions>
+                 </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>

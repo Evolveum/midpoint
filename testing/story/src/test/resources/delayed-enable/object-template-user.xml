@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="ef638872-cc69-11e8-8ee2-333f3bf7747f"
@@ -13,123 +13,123 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
     <name>User Template: employee</name>
-    
-	<item>
-		<ref>extension/hrStatusChangeTimestamp</ref>
-		<description>
-			We do not have any change timestamp from the source (HR). Therefore we have to create our own.
-		</description>
-		<mapping>
-	    	<name>usertemplate-hrStatusChangeTimestamp</name>
-	    	<strength>strong</strength>
-	    	<trace>true</trace>
-	    	<source>
-	    		<path>extension/hrStatus</path>
-	    	</source>
-	    	<expression>
-	    		<trace>true</trace>
-	            <script>
-	            	<trace>true</trace>
-	            	<!-- Normal mappings should be invoked only if the source are changed. But midPoint is not yet completely
-	            	     optimized for this. E.g. see  MID-3941.
-	            	     Therefore in practice we may need to make sure that the HR status has really changed
-	            	     before setting new timestamp. This is quite a dark magic for now. But it works. -->
-	            	<code>
-						import com.evolveum.midpoint.prism.path.ItemPath
 
-						currentTimestamp = focus?.asPrismObject()?.findExtensionItem("hrStatusChangeTimestamp")
-						if (currentTimestamp == null) {
-							// No timestamp at all, e.g. the case of adding new object
-							return basic.currentDateTime()
-						}
+    <item>
+        <ref>extension/hrStatusChangeTimestamp</ref>
+        <description>
+            We do not have any change timestamp from the source (HR). Therefore we have to create our own.
+        </description>
+        <mapping>
+            <name>usertemplate-hrStatusChangeTimestamp</name>
+            <strength>strong</strength>
+            <trace>true</trace>
+            <source>
+                <path>extension/hrStatus</path>
+            </source>
+            <expression>
+                <trace>true</trace>
+                <script>
+                    <trace>true</trace>
+                    <!-- Normal mappings should be invoked only if the source are changed. But midPoint is not yet completely
+                         optimized for this. E.g. see  MID-3941.
+                         Therefore in practice we may need to make sure that the HR status has really changed
+                         before setting new timestamp. This is quite a dark magic for now. But it works. -->
+                    <code>
+                        import com.evolveum.midpoint.prism.path.ItemPath
 
-						// Let's check whether the hrStatus is really changed
-						hrStatusDelta = midpoint.focusContext?.delta?.findPropertyDelta(ItemPath.create("extension","hrStatus"))
+                        currentTimestamp = focus?.asPrismObject()?.findExtensionItem("hrStatusChangeTimestamp")
+                        if (currentTimestamp == null) {
+                            // No timestamp at all, e.g. the case of adding new object
+                            return basic.currentDateTime()
+                        }
 
-						if (hrStatusDelta == null) {
-							// No hrStatus delta. Therefore this is phantom invocation of this mapping. hrStatus is not really changing.
-							return currentTimestamp
-						} else {
-							// Let's check whether we are not changing hrStatusChangeTimestamp already. We do not want create different value in such case.
-							// Creating different value will mean that there will be too many triggers. And we may run into risk of creating new
-							// triggers indefinitely if we are not careful here.
-							timestampSecondaryDelta = midpoint.focusContext?.secondaryDelta?.findPropertyDelta(ItemPath.create("extension","hrStatusChangeTimestamp"))
-							if (timestampSecondaryDelta == null) {
-							// This is the "core" case: we really are changing hrStatus, and we do not have new timestamp
-							
-							// Pretend that output for old value is null.
-							// Otherwise the script can produce the same value for old and new inputs if those two exections were done
-							// during the same millisecond. That midPoint will interpret that as "unchanged" and it will not update the timestamp.
-								if (!midpoint.isEvaluateNew()) {
-									return null;
-								}
-								
-								return basic.currentDateTime()
+                        // Let's check whether the hrStatus is really changed
+                        hrStatusDelta = midpoint.focusContext?.delta?.findPropertyDelta(ItemPath.create("extension","hrStatus"))
 
-							} else {
-								// We have already changed the timestamp. Therefore just return the value that we have created a moment ago.
-								return currentTimestamp
-							}
-						}
-					</code>
-	            </script>
-	    	</expression>
-	    </mapping>
-	</item>
+                        if (hrStatusDelta == null) {
+                            // No hrStatus delta. Therefore this is phantom invocation of this mapping. hrStatus is not really changing.
+                            return currentTimestamp
+                        } else {
+                            // Let's check whether we are not changing hrStatusChangeTimestamp already. We do not want create different value in such case.
+                            // Creating different value will mean that there will be too many triggers. And we may run into risk of creating new
+                            // triggers indefinitely if we are not careful here.
+                            timestampSecondaryDelta = midpoint.focusContext?.secondaryDelta?.findPropertyDelta(ItemPath.create("extension","hrStatusChangeTimestamp"))
+                            if (timestampSecondaryDelta == null) {
+                            // This is the "core" case: we really are changing hrStatus, and we do not have new timestamp
 
-	<item>
-		<ref>activation/administrativeStatus</ref>
-		<mapping>
-	    	<name>usertemplate-activation-status-weak</name>
-	    	<description>
-	    		Used to set initial (default) value. We want to create users in midPoitn as disabled regardless of their hrStatus.
-	    	</description>
-	    	<strength>weak</strength>
-	    	<expression>
-	            <value>disabled</value>
-	    	</expression>
-	    </mapping>
-		<mapping>
-	    	<name>usertemplate-activation</name>
-	    	<trace>true</trace>
-	    	<description>
-	    		This is the real heart of the configuration. This mapping will force administrativeStatus value in accord with
-	    		hrStatus. But it is delayed by one day (based on hrStatusChangeTimestamp timestamp).
-	    	</description>
-	    	<strength>strong</strength>
-	    	<source>
-	    		<path>extension/hrStatus</path>
-	    	</source>
-	    	<source>
-	    		<path>extension/hrStatusChangeTimestamp</path>
-	    	</source>
-			<timeFrom>
-				<referenceTime>
-					<path>extension/hrStatusChangeTimestamp</path>
-				</referenceTime>
-				<offset>P1D</offset>
-			</timeFrom>
-	    	<expression>
-	            <script>
-	            	<code>
-	            		import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
-	            		import com.evolveum.midpoint.util.exception.SchemaException
-	            		
-	            		switch (hrStatus) {
-	            			case "enabled":
-	            				return ActivationStatusType.ENABLED
-	            			case "disabled":
-	            				return ActivationStatusType.DISABLED
-	            			case null:
-	            				// also applied for "old" value when adding new object 
-	            				return ActivationStatusType.ENABLED
-	            			default:
-	            				throw new SchemaException("Wrong HR status: "+hrStatus)
-	            		}
-	            	</code>
-	            </script>
-	    	</expression>
-	    </mapping>
-	</item>
-    
+                            // Pretend that output for old value is null.
+                            // Otherwise the script can produce the same value for old and new inputs if those two exections were done
+                            // during the same millisecond. That midPoint will interpret that as "unchanged" and it will not update the timestamp.
+                                if (!midpoint.isEvaluateNew()) {
+                                    return null;
+                                }
+
+                                return basic.currentDateTime()
+
+                            } else {
+                                // We have already changed the timestamp. Therefore just return the value that we have created a moment ago.
+                                return currentTimestamp
+                            }
+                        }
+                    </code>
+                </script>
+            </expression>
+        </mapping>
+    </item>
+
+    <item>
+        <ref>activation/administrativeStatus</ref>
+        <mapping>
+            <name>usertemplate-activation-status-weak</name>
+            <description>
+                Used to set initial (default) value. We want to create users in midPoitn as disabled regardless of their hrStatus.
+            </description>
+            <strength>weak</strength>
+            <expression>
+                <value>disabled</value>
+            </expression>
+        </mapping>
+        <mapping>
+            <name>usertemplate-activation</name>
+            <trace>true</trace>
+            <description>
+                This is the real heart of the configuration. This mapping will force administrativeStatus value in accord with
+                hrStatus. But it is delayed by one day (based on hrStatusChangeTimestamp timestamp).
+            </description>
+            <strength>strong</strength>
+            <source>
+                <path>extension/hrStatus</path>
+            </source>
+            <source>
+                <path>extension/hrStatusChangeTimestamp</path>
+            </source>
+            <timeFrom>
+                <referenceTime>
+                    <path>extension/hrStatusChangeTimestamp</path>
+                </referenceTime>
+                <offset>P1D</offset>
+            </timeFrom>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+                        import com.evolveum.midpoint.util.exception.SchemaException
+
+                        switch (hrStatus) {
+                            case "enabled":
+                                return ActivationStatusType.ENABLED
+                            case "disabled":
+                                return ActivationStatusType.DISABLED
+                            case null:
+                                // also applied for "old" value when adding new object
+                                return ActivationStatusType.ENABLED
+                            default:
+                                throw new SchemaException("Wrong HR status: "+hrStatus)
+                        }
+                    </code>
+                </script>
+            </expression>
+        </mapping>
+    </item>
+
 </objectTemplate>

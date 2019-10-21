@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -89,11 +89,11 @@ public class SimpleSmsTransport implements Transport {
 
     @Autowired protected PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
-	@Autowired private NotificationManager notificationManager;
-	@Autowired
-	@Qualifier("cacheRepositoryService")
-	private transient RepositoryService cacheRepositoryService;
-	@Autowired protected Protector protector;
+    @Autowired private NotificationManager notificationManager;
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private transient RepositoryService cacheRepositoryService;
+    @Autowired protected Protector protector;
 
     @PostConstruct
     public void init() {
@@ -119,7 +119,7 @@ public class SimpleSmsTransport implements Transport {
         SmsConfigurationType found = null;
         for (SmsConfigurationType smsConfigurationType: systemConfiguration.getNotificationConfiguration().getSms()) {
             if (StringUtils.isEmpty(smsConfigName) && smsConfigurationType.getName() == null
-		            || StringUtils.isNotEmpty(smsConfigName) && smsConfigName.equals(smsConfigurationType.getName())) {
+                    || StringUtils.isNotEmpty(smsConfigName) && smsConfigName.equals(smsConfigurationType.getName())) {
                 found = smsConfigurationType;
                 break;
             }
@@ -139,27 +139,27 @@ public class SimpleSmsTransport implements Transport {
         }
         String file = smsConfigurationType.getRedirectToFile();
         int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(smsConfigurationType);
-        
+
         List<String> allowedRecipientTo = new ArrayList<String>();
-    	List<String> forbiddenRecipientTo = new ArrayList<String>();
-    	
+        List<String> forbiddenRecipientTo = new ArrayList<String>();
+
         if (optionsForFilteringRecipient != 0) {
-        	TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), smsConfigurationType, task, result,
-        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
-        	
-        	if (file != null) {
-        		if (!forbiddenRecipientTo.isEmpty()) {
-        			message.setTo(forbiddenRecipientTo);
-        			writeToFile(message, file, null, emptyList(), null, result);
-        		}
-            	message.setTo(allowedRecipientTo);
+            TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), smsConfigurationType, task, result,
+                    expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+
+            if (file != null) {
+                if (!forbiddenRecipientTo.isEmpty()) {
+                    message.setTo(forbiddenRecipientTo);
+                    writeToFile(message, file, null, emptyList(), null, result);
+                }
+                message.setTo(allowedRecipientTo);
             }
-        	
+
         } else if (file != null) {
-        	writeToFile(message, file, null, emptyList(), null, result);
-           	return;
+            writeToFile(message, file, null, emptyList(), null, result);
+               return;
         }
-        
+
         if (smsConfigurationType.getGateway().isEmpty()) {
             String msg = "SMS gateway(s) are not defined, notification to " + message.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
@@ -169,26 +169,26 @@ public class SimpleSmsTransport implements Transport {
 
         String from;
         if (message.getFrom() != null) {
-        	from = message.getFrom();
+            from = message.getFrom();
         } else if (smsConfigurationType.getDefaultFrom() != null) {
-        	from = smsConfigurationType.getDefaultFrom();
+            from = smsConfigurationType.getDefaultFrom();
         } else {
-        	from = "";
+            from = "";
         }
 
         if (message.getTo().isEmpty()) {
-        	if(optionsForFilteringRecipient != 0) {
-        		String msg = "After recipient validation there is no recipient to send the notification to.";
-        		LOGGER.debug(msg) ;
+            if(optionsForFilteringRecipient != 0) {
+                String msg = "After recipient validation there is no recipient to send the notification to.";
+                LOGGER.debug(msg) ;
                 result.recordSuccess();
-        	} else {
-        		String msg = "There is no recipient to send the notification to.";
-        		LOGGER.warn(msg) ;
+            } else {
+                String msg = "There is no recipient to send the notification to.";
+                LOGGER.warn(msg) ;
                 result.recordWarning(msg);
-        	}
+            }
             return;
         }
-        
+
         List<String> to = message.getTo();
         assert to.size() > 0;
 
@@ -196,70 +196,70 @@ public class SimpleSmsTransport implements Transport {
             OperationResult resultForGateway = result.createSubresult(DOT_CLASS + "send.forGateway");
             resultForGateway.addContext("gateway name", smsGatewayConfigurationType.getName());
             try {
-	            ExpressionVariables variables = getDefaultVariables(from, to, message);
-            	HttpMethodType method = defaultIfNull(smsGatewayConfigurationType.getMethod(), HttpMethodType.GET);
-	            ExpressionType urlExpression = defaultIfNull(smsGatewayConfigurationType.getUrlExpression(), null);
-	            String url = evaluateExpressionChecked(urlExpression, variables, "sms gateway request url", task, result);
-	            String proxyHost = smsGatewayConfigurationType.getProxyHost();
+                ExpressionVariables variables = getDefaultVariables(from, to, message);
+                HttpMethodType method = defaultIfNull(smsGatewayConfigurationType.getMethod(), HttpMethodType.GET);
+                ExpressionType urlExpression = defaultIfNull(smsGatewayConfigurationType.getUrlExpression(), null);
+                String url = evaluateExpressionChecked(urlExpression, variables, "sms gateway request url", task, result);
+                String proxyHost = smsGatewayConfigurationType.getProxyHost();
                 String proxyPort = smsGatewayConfigurationType.getProxyPort();
-	            LOGGER.debug("Sending SMS to URL {} via proxy host {} and port {} (method {})", url, proxyHost, proxyPort, method);
+                LOGGER.debug("Sending SMS to URL {} via proxy host {} and port {} (method {})", url, proxyHost, proxyPort, method);
                 if (url == null) {
-                	throw new IllegalArgumentException("No URL specified");
+                    throw new IllegalArgumentException("No URL specified");
                 }
-	            List<String> headersList = evaluateExpressionsChecked(smsGatewayConfigurationType.getHeadersExpression(), variables,
-			            "sms gateway request headers", task, result);
-	            LOGGER.debug("Using request headers:\n{}", headersList);
+                List<String> headersList = evaluateExpressionsChecked(smsGatewayConfigurationType.getHeadersExpression(), variables,
+                        "sms gateway request headers", task, result);
+                LOGGER.debug("Using request headers:\n{}", headersList);
 
-	            String encoding = defaultIfNull(smsGatewayConfigurationType.getBodyEncoding(), StandardCharsets.ISO_8859_1.name());
+                String encoding = defaultIfNull(smsGatewayConfigurationType.getBodyEncoding(), StandardCharsets.ISO_8859_1.name());
                 String body = evaluateExpressionChecked(smsGatewayConfigurationType.getBodyExpression(), variables,
-		                "sms gateway request body", task, result);
-	            LOGGER.debug("Using request body text (encoding: {}):\n{}", encoding, body);
+                        "sms gateway request body", task, result);
+                LOGGER.debug("Using request body text (encoding: {}):\n{}", encoding, body);
 
-	            if (smsGatewayConfigurationType.getLogToFile() != null) {
-	            	TransportUtil.logToFile(smsGatewayConfigurationType.getLogToFile(), formatToFile(message, url, headersList, body), LOGGER);
-	            }
+                if (smsGatewayConfigurationType.getLogToFile() != null) {
+                    TransportUtil.logToFile(smsGatewayConfigurationType.getLogToFile(), formatToFile(message, url, headersList, body), LOGGER);
+                }
                 if (smsGatewayConfigurationType.getRedirectToFile() != null) {
                     writeToFile(message, smsGatewayConfigurationType.getRedirectToFile(), url, headersList, body, resultForGateway);
                     result.computeStatus();
                     return;
                 } else {
-	                HttpClientBuilder builder = HttpClientBuilder.create();
-	                String username = smsGatewayConfigurationType.getUsername();
-	                ProtectedStringType password = smsGatewayConfigurationType.getPassword();
-	                CredentialsProvider provider = new BasicCredentialsProvider();
-	                if (username != null) {
-		                String plainPassword = password != null ? protector.decryptString(password) : null;
-		                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, plainPassword);
-		                provider.setCredentials(AuthScope.ANY, credentials);
-		                builder = builder.setDefaultCredentialsProvider(provider);
-	                }
-	                String proxyUsername = smsGatewayConfigurationType.getProxyUsername();
-	                ProtectedStringType proxyPassword = smsGatewayConfigurationType.getProxyPassword();
-	                if(StringUtils.isNotBlank(proxyHost)) {
-		                HttpHost proxy;
-		                if(StringUtils.isNotBlank(proxyPort) && isInteger(proxyPort)){
-		                	int port = Integer.parseInt(proxyPort);
-		                	proxy = new HttpHost(proxyHost, port);
-		                } else {
-		                	proxy = new HttpHost(proxyHost);
-		                }
-		                if(StringUtils.isNotBlank(proxyUsername)) {
-		                	String plainProxyPassword = proxyPassword != null ? protector.decryptString(proxyPassword) : null;
-			                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(proxyUsername, plainProxyPassword);
-			                provider.setCredentials(new AuthScope(proxy), credentials);
-		                }
-		                builder = builder.setDefaultCredentialsProvider(provider);
-		                builder = builder.setProxy(proxy);
-	                }
-	                
-	                HttpClient client = builder.build();
-	                HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(client);
+                    HttpClientBuilder builder = HttpClientBuilder.create();
+                    String username = smsGatewayConfigurationType.getUsername();
+                    ProtectedStringType password = smsGatewayConfigurationType.getPassword();
+                    CredentialsProvider provider = new BasicCredentialsProvider();
+                    if (username != null) {
+                        String plainPassword = password != null ? protector.decryptString(password) : null;
+                        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, plainPassword);
+                        provider.setCredentials(AuthScope.ANY, credentials);
+                        builder = builder.setDefaultCredentialsProvider(provider);
+                    }
+                    String proxyUsername = smsGatewayConfigurationType.getProxyUsername();
+                    ProtectedStringType proxyPassword = smsGatewayConfigurationType.getProxyPassword();
+                    if(StringUtils.isNotBlank(proxyHost)) {
+                        HttpHost proxy;
+                        if(StringUtils.isNotBlank(proxyPort) && isInteger(proxyPort)){
+                            int port = Integer.parseInt(proxyPort);
+                            proxy = new HttpHost(proxyHost, port);
+                        } else {
+                            proxy = new HttpHost(proxyHost);
+                        }
+                        if(StringUtils.isNotBlank(proxyUsername)) {
+                            String plainProxyPassword = proxyPassword != null ? protector.decryptString(proxyPassword) : null;
+                            UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(proxyUsername, plainProxyPassword);
+                            provider.setCredentials(new AuthScope(proxy), credentials);
+                        }
+                        builder = builder.setDefaultCredentialsProvider(provider);
+                        builder = builder.setProxy(proxy);
+                    }
+
+                    HttpClient client = builder.build();
+                    HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(client);
                     ClientHttpRequest request = requestFactory.createRequest(new URI(url), HttpUtil.toHttpMethod(method));
-	                setHeaders(request, headersList);
-	                if (body != null) {
-		                request.getBody().write(body.getBytes(encoding));
-	                }
-	                ClientHttpResponse response = request.execute();
+                    setHeaders(request, headersList);
+                    if (body != null) {
+                        request.getBody().write(body.getBytes(encoding));
+                    }
+                    ClientHttpResponse response = request.execute();
                     LOGGER.debug("Result: " + response.getStatusCode() + "/" + response.getStatusText());
                     if (response.getStatusCode().series() != HttpStatus.Series.SUCCESSFUL) {
                         throw new SystemException("SMS gateway communication failed: " + response.getStatusCode() + ": " + response.getStatusText());
@@ -278,42 +278,42 @@ public class SimpleSmsTransport implements Transport {
         LOGGER.warn("No more SMS gateways to try, notification to " + message.getTo() + " will not be sent.") ;
         result.recordWarning("Notification to " + message.getTo() + " could not be sent.");
     }
-    
+
     private static boolean isInteger(String s) {
-        try { 
-            Integer.parseInt(s); 
-        } catch(NumberFormatException e) { 
-            return false; 
+        try {
+            Integer.parseInt(s);
+        } catch(NumberFormatException e) {
+            return false;
         } catch(NullPointerException e) {
             return false;
         }
         return true;
     }
 
-	private void setHeaders(ClientHttpRequest request, List<String> headersList) {
-		for (String headerAsString : headersList) {
-			if (StringUtils.isEmpty(headerAsString)) {
-				continue;
-			}
-			int i = headerAsString.indexOf(':');
-			if (i < 0) {
-				throw new IllegalArgumentException("Illegal header specification (expected was 'name: value' pair): " + headerAsString);
-			}
-			String headerName = headerAsString.substring(0, i);
-			int headerValueIndex;
-			if (i+1 == headerAsString.length() || headerAsString.charAt(i+1) != ' ') {
-				// let's be nice and treat well the wrong case (there's no space after ':')
-				headerValueIndex = i+1;
-			} else {
-				// correct case: ':' followed by space
-				headerValueIndex = i+2;
-			}
-			String headerValue = headerAsString.substring(headerValueIndex);
-			request.getHeaders().add(headerName, headerValue);
-		}
-	}
+    private void setHeaders(ClientHttpRequest request, List<String> headersList) {
+        for (String headerAsString : headersList) {
+            if (StringUtils.isEmpty(headerAsString)) {
+                continue;
+            }
+            int i = headerAsString.indexOf(':');
+            if (i < 0) {
+                throw new IllegalArgumentException("Illegal header specification (expected was 'name: value' pair): " + headerAsString);
+            }
+            String headerName = headerAsString.substring(0, i);
+            int headerValueIndex;
+            if (i+1 == headerAsString.length() || headerAsString.charAt(i+1) != ' ') {
+                // let's be nice and treat well the wrong case (there's no space after ':')
+                headerValueIndex = i+1;
+            } else {
+                // correct case: ':' followed by space
+                headerValueIndex = i+2;
+            }
+            String headerValue = headerAsString.substring(headerValueIndex);
+            request.getHeaders().add(headerName, headerValue);
+        }
+    }
 
-	private void writeToFile(Message message, String file, String url, List<String> headers, String body, OperationResult result) {
+    private void writeToFile(Message message, String file, String url, List<String> headers, String body, OperationResult result) {
         try {
             TransportUtil.appendToFile(file, formatToFile(message, url, headers, body));
             result.recordSuccess();
@@ -325,78 +325,78 @@ public class SimpleSmsTransport implements Transport {
 
     private String formatToFile(Message mailMessage, String url, List<String> headers, String body) {
         return "================ " + new Date() + " ======= " + (url != null ? url : "")
-		        + "\nHeaders:\n" + headers
-		        + "\n\nBody:\n" + body
-		        + "\n\nFor message:\n" + mailMessage.toString() + "\n\n";
+                + "\nHeaders:\n" + headers
+                + "\n\nBody:\n" + body
+                + "\n\nFor message:\n" + mailMessage.toString() + "\n\n";
     }
 
     private String evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
-    		String shortDesc, Task task, OperationResult result) {
+            String shortDesc, Task task, OperationResult result) {
         try {
             return evaluateExpression(expressionType, expressionVariables, false, shortDesc, task, result).get(0);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-	        LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
-	        result.recordFatalError("Couldn't evaluate " + shortDesc, e);
-	        throw new SystemException(e);
+            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
+            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
+            throw new SystemException(e);
         }
     }
 
     @NotNull
     private List<String> evaluateExpressionsChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
-    		@SuppressWarnings("SameParameterValue") String shortDesc, Task task, OperationResult result) {
+            @SuppressWarnings("SameParameterValue") String shortDesc, Task task, OperationResult result) {
         try {
             return evaluateExpression(expressionType, expressionVariables, true, shortDesc, task, result);
         } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-	        LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
-	        result.recordFatalError("Couldn't evaluate " + shortDesc, e);
-	        throw new SystemException(e);
+            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
+            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
+            throw new SystemException(e);
         }
     }
 
     // A little hack: for single-value cases we always return single-item list (even if the returned value is null)
     @NotNull
     private List<String> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
-    		boolean multipleValues, String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
-		    ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	if (expressionType == null) {
-    		return multipleValues ? emptyList() : singletonList(null);
-	    }
+            boolean multipleValues, String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        if (expressionType == null) {
+            return multipleValues ? emptyList() : singletonList(null);
+        }
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         MutablePrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
         if (multipleValues) {
-        	resultDef.setMaxOccurs(-1);
+            resultDef.setMaxOccurs(-1);
         }
 
         Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression =
-		        expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+                expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder
-				.evaluateExpressionInContext(expression, params, task, result);
+                .evaluateExpressionInContext(expression, params, task, result);
 
-	    if (!multipleValues) {
-		    if (exprResult.getZeroSet().size() > 1) {
-			    throw new SystemException("Invalid number of return values (" + exprResult.getZeroSet().size() + "), expected at most 1.");
-		    } else if (exprResult.getZeroSet().isEmpty()) {
-		    	return singletonList(null);
-		    } else {
-		    	// single-valued response is treated below
-		    }
-	    }
-	    return exprResult.getZeroSet().stream().map(ppv -> ppv.getValue()).collect(Collectors.toList());
+        if (!multipleValues) {
+            if (exprResult.getZeroSet().size() > 1) {
+                throw new SystemException("Invalid number of return values (" + exprResult.getZeroSet().size() + "), expected at most 1.");
+            } else if (exprResult.getZeroSet().isEmpty()) {
+                return singletonList(null);
+            } else {
+                // single-valued response is treated below
+            }
+        }
+        return exprResult.getZeroSet().stream().map(ppv -> ppv.getValue()).collect(Collectors.toList());
     }
 
     protected ExpressionVariables getDefaultVariables(String from, List<String> to, Message message) throws UnsupportedEncodingException {
-    	ExpressionVariables variables = new ExpressionVariables();
+        ExpressionVariables variables = new ExpressionVariables();
         variables.put(ExpressionConstants.VAR_FROM, from, String.class);
         variables.put(ExpressionConstants.VAR_ENCODED_FROM, URLEncoder.encode(from, "US-ASCII"), String.class);
         variables.put(ExpressionConstants.VAR_TO, to.get(0), String.class);
         variables.put(ExpressionConstants.VAR_TO_LIST, to, List.class);
-	    List<String> encodedTo = new ArrayList<>();
-	    for (String s : to) {
-		    encodedTo.add(URLEncoder.encode(s, "US-ASCII"));
-	    }
-	    variables.put(ExpressionConstants.VAR_ENCODED_TO, encodedTo.get(0), String.class);
-	    variables.put(ExpressionConstants.VAR_ENCODED_TO_LIST, encodedTo, List.class);
+        List<String> encodedTo = new ArrayList<>();
+        for (String s : to) {
+            encodedTo.add(URLEncoder.encode(s, "US-ASCII"));
+        }
+        variables.put(ExpressionConstants.VAR_ENCODED_TO, encodedTo.get(0), String.class);
+        variables.put(ExpressionConstants.VAR_ENCODED_TO_LIST, encodedTo, List.class);
         variables.put(ExpressionConstants.VAR_MESSAGE_TEXT, message.getBody(), String.class);
         variables.put(ExpressionConstants.VAR_ENCODED_MESSAGE_TEXT, URLEncoder.encode(message.getBody(), "US-ASCII"), String.class);
         variables.put(ExpressionConstants.VAR_MESSAGE, message, Message.class);

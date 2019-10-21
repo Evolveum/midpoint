@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server;
@@ -43,104 +43,104 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  * @author semancik
  */
 public class TaskSubtasksAndThreadsTabPanel extends AbstractObjectTabPanel<TaskType> implements TaskTabPanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_WORKER_THREADS = "workerThreads";
-	private static final String ID_THREADS_CONFIGURATION_PANEL = "threadsConfigurationPanel";
+    private static final String ID_WORKER_THREADS = "workerThreads";
+    private static final String ID_THREADS_CONFIGURATION_PANEL = "threadsConfigurationPanel";
 
-	private static final String ID_WORKER_THREADS_TABLE = "workerThreadsTable";
-	private static final String ID_WORKER_THREADS_TABLE_LABEL = "workerThreadsTableLabel";
+    private static final String ID_WORKER_THREADS_TABLE = "workerThreadsTable";
+    private static final String ID_WORKER_THREADS_TABLE_LABEL = "workerThreadsTableLabel";
 
-	private static final String ID_SUBTASKS_LABEL = "subtasksLabel";
-	private static final String ID_SUBTASKS_PANEL = "subtasksPanel";
+    private static final String ID_SUBTASKS_LABEL = "subtasksLabel";
+    private static final String ID_SUBTASKS_PANEL = "subtasksPanel";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TaskSubtasksAndThreadsTabPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskSubtasksAndThreadsTabPanel.class);
 
-	private PageTaskEdit parentPage;
+    private PageTaskEdit parentPage;
 
-	public TaskSubtasksAndThreadsTabPanel(String id, Form mainForm,
-			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
-			IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
-		super(id, mainForm, taskWrapperModel);
-		this.parentPage = parentPage;
-		initLayout(taskDtoModel);
-		setOutputMarkupId(true);
-	}
+    public TaskSubtasksAndThreadsTabPanel(String id, Form mainForm,
+            LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
+            IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
+        super(id, mainForm, taskWrapperModel);
+        this.parentPage = parentPage;
+        initLayout(taskDtoModel);
+        setOutputMarkupId(true);
+    }
 
-	private void initLayout(final IModel<TaskDto> taskDtoModel) {
+    private void initLayout(final IModel<TaskDto> taskDtoModel) {
 
-		WebMarkupContainer threadsConfigurationPanel = new WebMarkupContainer(ID_THREADS_CONFIGURATION_PANEL);
-		add(threadsConfigurationPanel);
+        WebMarkupContainer threadsConfigurationPanel = new WebMarkupContainer(ID_THREADS_CONFIGURATION_PANEL);
+        add(threadsConfigurationPanel);
 
-		threadsConfigurationPanel.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return taskDtoModel.getObject().configuresWorkerThreads();
-			}
-		});
+        threadsConfigurationPanel.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return taskDtoModel.getObject().configuresWorkerThreads();
+            }
+        });
 
-		final TextField<Integer> workerThreads = new TextField<>(ID_WORKER_THREADS, new PropertyModel<Integer>(taskDtoModel, TaskDto.F_WORKER_THREADS));
-		workerThreads.setOutputMarkupId(true);
-		workerThreads.add(new VisibleEnableBehaviour(){
-			@Override
-			public boolean isEnabled() {
-				return parentPage.isEdit();
-			}
-		});
-		threadsConfigurationPanel.add(workerThreads);
+        final TextField<Integer> workerThreads = new TextField<>(ID_WORKER_THREADS, new PropertyModel<Integer>(taskDtoModel, TaskDto.F_WORKER_THREADS));
+        workerThreads.setOutputMarkupId(true);
+        workerThreads.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isEnabled() {
+                return parentPage.isEdit();
+            }
+        });
+        threadsConfigurationPanel.add(workerThreads);
 
-		VisibleEnableBehaviour hiddenWhenEditingOrNoSubtasks = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return !parentPage.isEdit() && !taskDtoModel.getObject().getSubtasks().isEmpty();
-			}
-		};
+        VisibleEnableBehaviour hiddenWhenEditingOrNoSubtasks = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return !parentPage.isEdit() && !taskDtoModel.getObject().getSubtasks().isEmpty();
+            }
+        };
 
-		Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
-		subtasksLabel.add(hiddenWhenEditingOrNoSubtasks);
-		add(subtasksLabel);
-		SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<>(taskDtoModel, TaskDto.F_SUBTASKS), parentPage.getWorkflowManager().isEnabled());
-		subtasksPanel.add(hiddenWhenEditingOrNoSubtasks);
-		add(subtasksPanel);
+        Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
+        subtasksLabel.add(hiddenWhenEditingOrNoSubtasks);
+        add(subtasksLabel);
+        SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<>(taskDtoModel, TaskDto.F_SUBTASKS), parentPage.getWorkflowManager().isEnabled());
+        subtasksPanel.add(hiddenWhenEditingOrNoSubtasks);
+        add(subtasksPanel);
 
-		VisibleEnableBehaviour hiddenWhenNoSubtasks = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				TaskDto taskDto = taskDtoModel.getObject();
-				return taskDto != null && !taskDto.getTransientSubtasks().isEmpty();
-			}
-		};
+        VisibleEnableBehaviour hiddenWhenNoSubtasks = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                TaskDto taskDto = taskDtoModel.getObject();
+                return taskDto != null && !taskDto.getTransientSubtasks().isEmpty();
+            }
+        };
 
-		Label workerThreadsTableLabel = new Label(ID_WORKER_THREADS_TABLE_LABEL, new ResourceModel("TaskStatePanel.workerThreads"));
-		workerThreadsTableLabel.add(hiddenWhenNoSubtasks);
-		add(workerThreadsTableLabel);
-		List<IColumn<WorkerThreadDto, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn(createStringResourceStatic(this, "TaskStatePanel.subtaskName"), WorkerThreadDto.F_NAME));
-		columns.add(new EnumPropertyColumn<>(createStringResourceStatic(this, "TaskStatePanel.subtaskState"), WorkerThreadDto.F_EXECUTION_STATUS));
-		columns.add(new PropertyColumn(createStringResourceStatic(this, "TaskStatePanel.subtaskObjectsProcessed"), WorkerThreadDto.F_PROGRESS));
-		ISortableDataProvider<WorkerThreadDto, String> threadsProvider = new ListDataProvider<>(this,
-				new IModel<List<WorkerThreadDto>>() {
-					@Override
-					public List<WorkerThreadDto> getObject() {
-						List<WorkerThreadDto> rv = new ArrayList<>();
-						TaskDto taskDto = taskDtoModel.getObject();
-						if (taskDto != null) {
-							for (TaskDto subtaskDto : taskDto.getTransientSubtasks()) {
-								rv.add(new WorkerThreadDto(subtaskDto));
-							}
-						}
-						return rv;
-					}
-				});
-		TablePanel<WorkerThreadDto> workerThreadsTablePanel = new TablePanel<>(ID_WORKER_THREADS_TABLE, threadsProvider , columns);
-		workerThreadsTablePanel.add(hiddenWhenNoSubtasks);
-		add(workerThreadsTablePanel);
+        Label workerThreadsTableLabel = new Label(ID_WORKER_THREADS_TABLE_LABEL, new ResourceModel("TaskStatePanel.workerThreads"));
+        workerThreadsTableLabel.add(hiddenWhenNoSubtasks);
+        add(workerThreadsTableLabel);
+        List<IColumn<WorkerThreadDto, String>> columns = new ArrayList<>();
+        columns.add(new PropertyColumn(createStringResourceStatic(this, "TaskStatePanel.subtaskName"), WorkerThreadDto.F_NAME));
+        columns.add(new EnumPropertyColumn<>(createStringResourceStatic(this, "TaskStatePanel.subtaskState"), WorkerThreadDto.F_EXECUTION_STATUS));
+        columns.add(new PropertyColumn(createStringResourceStatic(this, "TaskStatePanel.subtaskObjectsProcessed"), WorkerThreadDto.F_PROGRESS));
+        ISortableDataProvider<WorkerThreadDto, String> threadsProvider = new ListDataProvider<>(this,
+                new IModel<List<WorkerThreadDto>>() {
+                    @Override
+                    public List<WorkerThreadDto> getObject() {
+                        List<WorkerThreadDto> rv = new ArrayList<>();
+                        TaskDto taskDto = taskDtoModel.getObject();
+                        if (taskDto != null) {
+                            for (TaskDto subtaskDto : taskDto.getTransientSubtasks()) {
+                                rv.add(new WorkerThreadDto(subtaskDto));
+                            }
+                        }
+                        return rv;
+                    }
+                });
+        TablePanel<WorkerThreadDto> workerThreadsTablePanel = new TablePanel<>(ID_WORKER_THREADS_TABLE, threadsProvider , columns);
+        workerThreadsTablePanel.add(hiddenWhenNoSubtasks);
+        add(workerThreadsTablePanel);
 
-	}
+    }
 
-	@Override
-	public Collection<Component> getComponentsToUpdate() {
-		return Collections.<Component>singleton(this);
-	}
+    @Override
+    public Collection<Component> getComponentsToUpdate() {
+        return Collections.<Component>singleton(this);
+    }
 
 }

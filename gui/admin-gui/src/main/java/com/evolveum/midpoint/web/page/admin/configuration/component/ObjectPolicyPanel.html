@@ -14,22 +14,22 @@
   ~ limitations under the License.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    
+
 
         <form wicket:id="mainForm" class="form-horizontal" style="margin: 15px">
-            
+
             <div class="form-group" wicket:id="type" />
             <div class="form-group">
                 <label class="col-md-4 control-label">
                     <wicket:message key="ObjectPolicyDialog.subtype" />
                 </label>
                 <div class="col-md-8">
-	                <div class="input-group">
-	                	<input type="text" class="form-control input-sm" wicket:id="subtype">
-	                </div>
+                    <div class="input-group">
+                        <input type="text" class="form-control input-sm" wicket:id="subtype">
+                    </div>
                 </div>
             </div>
-            
+
             <div class="form-group" wicket:id="objectTemplate" />
 
             <div class="form-group" wicket:id="conflictResolutionContainer">
@@ -48,7 +48,7 @@
 
                 <wicket:container wicket:id="repeater">
                     <div class="col-md-6" wicket:id="textWrapper">
-                    	<span class="text-danger" wicket:id="feedback"/>
+                        <span class="text-danger" wicket:id="feedback"/>
                         <div class="input-group">
                             <input type="text" class="form-control input-sm" wicket:id="property">
                             <span class="input-group-addon">
@@ -56,7 +56,7 @@
                             </span>
                         </div>
                     </div>
-                    
+
 
                     <div class="col-md-2" wicket:id="buttonGroup">
                         <span class="btn-group">
@@ -73,5 +73,5 @@
                 <a class="btn btn-default btn-sm" wicket:id="cancelButton"/>
             </p>
         </form>
-    
+
 </wicket:panel>

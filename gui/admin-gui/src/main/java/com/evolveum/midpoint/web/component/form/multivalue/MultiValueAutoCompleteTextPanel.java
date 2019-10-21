@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -86,7 +86,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
         }));
         placeholderAdd.setOutputMarkupId(true);
         placeholderAdd.setOutputMarkupPlaceholderTag(true);
-		placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         placeholderContainer.add(placeholderAdd);
 
         ListView repeater = new ListView<T>(ID_REPEATER, getModel()){
@@ -170,7 +170,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item, NonEmptyModel<Boolean> readOnlyModel) {
-    	  AjaxLink<Void> add = new AjaxLink<Void>(ID_ADD) {
+          AjaxLink<Void> add = new AjaxLink<Void>(ID_ADD) {
 
               @Override
               public void onClick(AjaxRequestTarget target) {
@@ -178,7 +178,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
               }
           };
           add.add(new AttributeAppender("class", getPlusClassModifier(item)));
-  		add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+          add.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
           buttonGroup.add(add);
 
           AjaxLink<Void> remove = new AjaxLink<Void>(ID_REMOVE) {
@@ -189,7 +189,7 @@ public class MultiValueAutoCompleteTextPanel<T extends Serializable> extends Bas
               }
           };
           remove.add(new AttributeAppender("class", getMinusClassModifier()));
-  		remove.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+          remove.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
           buttonGroup.add(remove);
     }
 

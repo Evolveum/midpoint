@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
@@ -40,38 +40,38 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProportionalExpressi
 @Component
 public class ProportionalExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
-	@Autowired private ConstantsManager constantsManager;
-	@Autowired private PrismContext prismContext;
-	
-	public ProportionalExpressionEvaluatorFactory() {
-		super();
-	}
+    @Autowired private ConstantsManager constantsManager;
+    @Autowired private PrismContext prismContext;
 
-	@Override
-	public QName getElementName() {
-		return new ObjectFactory().createProportional(new ProportionalExpressionEvaluatorType()).getName();
-	}
+    public ProportionalExpressionEvaluatorFactory() {
+        super();
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
-	 */
-	@Override
-	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-																									D outputDefinition, ExpressionProfile expressionProfile, ExpressionFactory factory, 
-																									String contextDescription, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException {
+    @Override
+    public QName getElementName() {
+        return new ObjectFactory().createProportional(new ProportionalExpressionEvaluatorType()).getName();
+    }
 
-		if (evaluatorElements.size() > 1) {
-			throw new SchemaException("More than one evaluator specified in "+contextDescription);
-		}
-		JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement, com.evolveum.midpoint.prism.PrismContext)
+     */
+    @Override
+    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
+                                                                                                    D outputDefinition, ExpressionProfile expressionProfile, ExpressionFactory factory,
+                                                                                                    String contextDescription, Task task, OperationResult result)
+                    throws SchemaException, ObjectNotFoundException {
 
-		Object evaluatorElementObject = evaluatorElement.getValue();
-		 if (!(evaluatorElementObject instanceof ProportionalExpressionEvaluatorType)) {
-		        throw new IllegalArgumentException("Proportional expression cannot handle elements of type "
-		        		+ evaluatorElementObject.getClass().getName()+" in "+contextDescription);
-		}
+        if (evaluatorElements.size() > 1) {
+            throw new SchemaException("More than one evaluator specified in "+contextDescription);
+        }
+        JAXBElement<?> evaluatorElement = evaluatorElements.iterator().next();
 
-		return new ProportionalExpressionEvaluator<>((ProportionalExpressionEvaluatorType) evaluatorElementObject, outputDefinition, prismContext);
-	}
+        Object evaluatorElementObject = evaluatorElement.getValue();
+         if (!(evaluatorElementObject instanceof ProportionalExpressionEvaluatorType)) {
+                throw new IllegalArgumentException("Proportional expression cannot handle elements of type "
+                        + evaluatorElementObject.getClass().getName()+" in "+contextDescription);
+        }
+
+        return new ProportionalExpressionEvaluator<>((ProportionalExpressionEvaluatorType) evaluatorElementObject, outputDefinition, prismContext);
+    }
 }

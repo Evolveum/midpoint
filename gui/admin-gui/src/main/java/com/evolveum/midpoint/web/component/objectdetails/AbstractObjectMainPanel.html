@@ -17,24 +17,24 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-	<form wicket:id="mainForm" class="col-xs-12 form-horizontal" style="padding:0px;">
-	
-		<div wicket:id="tabPanel" class="nav-tabs-custom" />
+    <form wicket:id="mainForm" class="col-xs-12 form-horizontal" style="padding:0px;">
 
-      	<div class="options-container" wicket:id="executeOptions" />
+        <div wicket:id="tabPanel" class="nav-tabs-custom" />
 
-   	    <div class="main-button-bar">
+          <div class="options-container" wicket:id="executeOptions" />
+
+           <div class="main-button-bar">
             <span class="button-group">
                 <a class="btn btn-default" wicket:id="back"/>
             </span>
-			<a class="btn btn-info" wicket:id="previewChanges"/>
+            <a class="btn btn-info" wicket:id="previewChanges"/>
             <a class="btn btn-primary" wicket:id="save"/>
 
-			<wicket:child />
+            <wicket:child />
 
-			<a class="btn btn-default pull-right" wicket:id="editXml"/>
+            <a class="btn btn-default pull-right" wicket:id="editXml"/>
         </div>
-	</form>
+    </form>
 </wicket:panel>
 </body>
 </html>

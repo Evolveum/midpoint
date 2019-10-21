@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <objectChange xsi:type="ObjectChangeModificationType"
-	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
-	<objectModification>
-		<oid>93f3c50f-479e-4a6f-90bc-90ace2ad107d</oid>
-		    <propertyModification modificationType="replace">
-	        <xp4133:path xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xp4133="http://midpoint.evolveum.com/xml/ns/public/common/common-3">idmdn:activation</xp4133:path>
-	        <value>
-	            <administrativeStatus>enabled</administrativeStatus>
-	        </value>
-	    </propertyModification>
-	</objectModification>
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <objectModification>
+        <oid>93f3c50f-479e-4a6f-90bc-90ace2ad107d</oid>
+            <propertyModification modificationType="replace">
+            <xp4133:path xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xp4133="http://midpoint.evolveum.com/xml/ns/public/common/common-3">idmdn:activation</xp4133:path>
+            <value>
+                <administrativeStatus>enabled</administrativeStatus>
+            </value>
+        </propertyModification>
+    </objectModification>
 </objectChange>

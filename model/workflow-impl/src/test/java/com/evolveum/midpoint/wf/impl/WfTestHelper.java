@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -37,60 +37,60 @@ import static org.testng.AssertJUnit.assertNull;
 @Component
 public class WfTestHelper {
 
-	protected static final Trace LOGGER = TraceManager.getTrace(WfTestHelper.class);
+    protected static final Trace LOGGER = TraceManager.getTrace(WfTestHelper.class);
 
-	private boolean verbose = false;
+    private boolean verbose = false;
 
-	@Autowired
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repositoryService;
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
 
-	public static CaseType findAndRemoveCase0(List<CaseType> subcases) {
-	    CaseType case0 = null;
-	    for (CaseType subcase : subcases) {
-		    if (subcase.getApprovalContext() == null || subcase.getApprovalContext().getApprovalSchema() == null) {
-			    assertNull("More than one non-wf-monitoring subtask", case0);
-			    case0 = subcase;
-		    }
-	    }
-		if (case0 != null) {
-		    subcases.remove(case0);
-	    }
-	    return case0;
-	}
+    public static CaseType findAndRemoveCase0(List<CaseType> subcases) {
+        CaseType case0 = null;
+        for (CaseType subcase : subcases) {
+            if (subcase.getApprovalContext() == null || subcase.getApprovalContext().getApprovalSchema() == null) {
+                assertNull("More than one non-wf-monitoring subtask", case0);
+                case0 = subcase;
+            }
+        }
+        if (case0 != null) {
+            subcases.remove(case0);
+        }
+        return case0;
+    }
 
-	@NotNull
-	public CaseType getRootCase(OperationResult result) throws ObjectNotFoundException, SchemaException {
-	    String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
-		assertNotNull("Case OID is not set in operation result", caseOid);
-		return repositoryService.getObject(CaseType.class, caseOid, null, result).asObjectable();
-	}
+    @NotNull
+    public CaseType getRootCase(OperationResult result) throws ObjectNotFoundException, SchemaException {
+        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        assertNotNull("Case OID is not set in operation result", caseOid);
+        return repositoryService.getObject(CaseType.class, caseOid, null, result).asObjectable();
+    }
 
-	public CaseType waitForCaseClose(CaseType aCase, final int timeout) throws Exception {
-	    final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForCaseClose");
-		Holder<CaseType> currentCaseHolder = new Holder<>();
-	    Checker checker = new Checker() {
-	        @Override
-	        public boolean check() throws CommonException {
-	            CaseType currentCase = repositoryService.getObject(CaseType.class, aCase.getOid(), null, waitResult).asObjectable();
-	            currentCaseHolder.setValue(currentCase);
-	            if (verbose) AbstractIntegrationTest.display("Case", currentCase);
-	            return SchemaConstants.CASE_STATE_CLOSED.equals(currentCase.getState());
-	        }
-	        @Override
-	        public void timeout() {
-	            PrismObject<CaseType> currentCase;
-	            try {
-	                currentCase = repositoryService.getObject(CaseType.class, aCase.getOid(), null, waitResult);
-		            currentCaseHolder.setValue(currentCase.asObjectable());
-	            } catch (ObjectNotFoundException | SchemaException e) {
-	                throw new AssertionError("Couldn't retrieve case " + aCase, e);
-	            }
-	            LOGGER.debug("Timed-out case:\n{}", currentCase.debugDump());
-	            assert false : "Timeout ("+timeout+") while waiting for "+currentCase+" to finish";
-	        }
-	    };
-	    IntegrationTestTools.waitFor("Waiting for "+aCase+" finish", checker, timeout, 1000);
-	    return currentCaseHolder.getValue();
-	}
+    public CaseType waitForCaseClose(CaseType aCase, final int timeout) throws Exception {
+        final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForCaseClose");
+        Holder<CaseType> currentCaseHolder = new Holder<>();
+        Checker checker = new Checker() {
+            @Override
+            public boolean check() throws CommonException {
+                CaseType currentCase = repositoryService.getObject(CaseType.class, aCase.getOid(), null, waitResult).asObjectable();
+                currentCaseHolder.setValue(currentCase);
+                if (verbose) AbstractIntegrationTest.display("Case", currentCase);
+                return SchemaConstants.CASE_STATE_CLOSED.equals(currentCase.getState());
+            }
+            @Override
+            public void timeout() {
+                PrismObject<CaseType> currentCase;
+                try {
+                    currentCase = repositoryService.getObject(CaseType.class, aCase.getOid(), null, waitResult);
+                    currentCaseHolder.setValue(currentCase.asObjectable());
+                } catch (ObjectNotFoundException | SchemaException e) {
+                    throw new AssertionError("Couldn't retrieve case " + aCase, e);
+                }
+                LOGGER.debug("Timed-out case:\n{}", currentCase.debugDump());
+                assert false : "Timeout ("+timeout+") while waiting for "+currentCase+" to finish";
+            }
+        };
+        IntegrationTestTools.waitFor("Waiting for "+aCase+" finish", checker, timeout, 1000);
+        return currentCaseHolder.getValue();
+    }
 }

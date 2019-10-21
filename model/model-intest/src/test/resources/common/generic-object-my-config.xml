@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>   
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <c:genericObject oid="c0c010c0-d34d-b33f-f00d-999111111111" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:my="http://myself.me/schemas/whatever">

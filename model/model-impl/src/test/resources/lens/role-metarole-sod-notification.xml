@@ -2,26 +2,26 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="f8f217f2-b864-416b-bce6-90c85385e43e"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>metarole-sod-notification</name>
-	<inducement>
-		<policyRule>
-			<name>notify-exclusion-violations</name>
-			<policyConstraints>
-				<situation>
-					<situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
-				</situation>
-			</policyConstraints>
-			<policyActions>
-				<notification>
-					<name>dummy</name>
-				</notification>
-			</policyActions>
-		</policyRule>
-	</inducement>
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>metarole-sod-notification</name>
+    <inducement>
+        <policyRule>
+            <name>notify-exclusion-violations</name>
+            <policyConstraints>
+                <situation>
+                    <situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
+                </situation>
+            </policyConstraints>
+            <policyActions>
+                <notification>
+                    <name>dummy</name>
+                </notification>
+            </policyActions>
+        </policyRule>
+    </inducement>
 </role>

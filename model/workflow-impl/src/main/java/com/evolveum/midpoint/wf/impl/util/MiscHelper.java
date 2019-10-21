@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -45,128 +45,128 @@ public class MiscHelper {
 
     @Autowired private ProvisioningService provisioningService;
     @Autowired private PrismContext prismContext;
-	@Autowired private ModelInteractionService modelInteractionService;
+    @Autowired private ModelInteractionService modelInteractionService;
 
-	@Autowired
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repositoryService;
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
 
-	public PrismObject<UserType> getRequesterIfExists(CaseType aCase, OperationResult result) {
-		if (aCase == null || aCase.getRequestorRef() == null) {
-			return null;
-		}
-		ObjectReferenceType requesterRef = aCase.getRequestorRef();
-		//noinspection unchecked
-		return (PrismObject<UserType>) resolveAndStoreObjectReference(requesterRef, result);
-	}
+    public PrismObject<UserType> getRequesterIfExists(CaseType aCase, OperationResult result) {
+        if (aCase == null || aCase.getRequestorRef() == null) {
+            return null;
+        }
+        ObjectReferenceType requesterRef = aCase.getRequestorRef();
+        //noinspection unchecked
+        return (PrismObject<UserType>) resolveAndStoreObjectReference(requesterRef, result);
+    }
 
-	public TypedValue<PrismObject> resolveTypedObjectReference(ObjectReferenceType ref, OperationResult result) {
-		PrismObject resolvedObject = resolveObjectReference(ref, false, result);
-		if (resolvedObject == null) {
-			PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
-			return new TypedValue<>(null, def);
-		} else {
-			return new TypedValue<>(resolvedObject);
-		}
-	}
+    public TypedValue<PrismObject> resolveTypedObjectReference(ObjectReferenceType ref, OperationResult result) {
+        PrismObject resolvedObject = resolveObjectReference(ref, false, result);
+        if (resolvedObject == null) {
+            PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+            return new TypedValue<>(null, def);
+        } else {
+            return new TypedValue<>(resolvedObject);
+        }
+    }
 
-	public String getCompleteStageInfo(CaseType aCase) {
-		return ApprovalContextUtil.getCompleteStageInfo(aCase);
-	}
+    public String getCompleteStageInfo(CaseType aCase) {
+        return ApprovalContextUtil.getCompleteStageInfo(aCase);
+    }
 
-	public String getAnswerNice(CaseType aCase) {
-		if (CaseTypeUtil.isApprovalCase(aCase)) {
-			return ApprovalUtils.makeNiceFromUri(getOutcome(aCase));
-		} else {
-			return getOutcome(aCase);
-		}
-	}
+    public String getAnswerNice(CaseType aCase) {
+        if (CaseTypeUtil.isApprovalCase(aCase)) {
+            return ApprovalUtils.makeNiceFromUri(getOutcome(aCase));
+        } else {
+            return getOutcome(aCase);
+        }
+    }
 
-	private String getOutcome(CaseType aCase) {
-		return aCase.getApprovalContext() != null ? aCase.getOutcome() : null;
-	}
+    private String getOutcome(CaseType aCase) {
+        return aCase.getApprovalContext() != null ? aCase.getOutcome() : null;
+    }
 
-	public List<ObjectReferenceType> getAssigneesAndDeputies(CaseWorkItemType workItem, Task task, OperationResult result)
-			throws SchemaException {
-		List<ObjectReferenceType> rv = new ArrayList<>();
-		rv.addAll(workItem.getAssigneeRef());
-		rv.addAll(modelInteractionService.getDeputyAssignees(workItem, task, result));
-		return rv;
-	}
+    public List<ObjectReferenceType> getAssigneesAndDeputies(CaseWorkItemType workItem, Task task, OperationResult result)
+            throws SchemaException {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        rv.addAll(workItem.getAssigneeRef());
+        rv.addAll(modelInteractionService.getDeputyAssignees(workItem, task, result));
+        return rv;
+    }
 
-	public List<CaseType> getSubcases(CaseType rootCase, OperationResult result) throws SchemaException {
-		return getSubcases(rootCase.getOid(), result);
-	}
+    public List<CaseType> getSubcases(CaseType rootCase, OperationResult result) throws SchemaException {
+        return getSubcases(rootCase.getOid(), result);
+    }
 
-	public List<CaseType> getSubcases(String oid, OperationResult result) throws SchemaException {
-		return repositoryService.searchObjects(CaseType.class,
-				prismContext.queryFor(CaseType.class)
-					.item(CaseType.F_PARENT_REF).ref(oid)
-					.build(),
-				null,
-				result)
-				.stream()
-					.map(o -> o.asObjectable())
-					.collect(Collectors.toList());
-	}
+    public List<CaseType> getSubcases(String oid, OperationResult result) throws SchemaException {
+        return repositoryService.searchObjects(CaseType.class,
+                prismContext.queryFor(CaseType.class)
+                    .item(CaseType.F_PARENT_REF).ref(oid)
+                    .build(),
+                null,
+                result)
+                .stream()
+                    .map(o -> o.asObjectable())
+                    .collect(Collectors.toList());
+    }
 
-	public ModelContext getModelContext(CaseType aCase, Task task, OperationResult result) throws SchemaException,
-			ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-		LensContextType modelContextType = aCase.getModelContext();
-		if (modelContextType == null) {
-			return null;
-		}
-		return LensContext.fromLensContextType(modelContextType, prismContext, provisioningService, task, result);
-	}
+    public ModelContext getModelContext(CaseType aCase, Task task, OperationResult result) throws SchemaException,
+            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+        LensContextType modelContextType = aCase.getModelContext();
+        if (modelContextType == null) {
+            return null;
+        }
+        return LensContext.fromLensContextType(modelContextType, prismContext, provisioningService, task, result);
+    }
 
-	public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
-		return resolveObjectReference(ref, false, result);
-	}
+    public PrismObject resolveObjectReference(ObjectReferenceType ref, OperationResult result) {
+        return resolveObjectReference(ref, false, result);
+    }
 
-	public PrismObject resolveAndStoreObjectReference(ObjectReferenceType ref, OperationResult result) {
-		return resolveObjectReference(ref, true, result);
-	}
+    public PrismObject resolveAndStoreObjectReference(ObjectReferenceType ref, OperationResult result) {
+        return resolveObjectReference(ref, true, result);
+    }
 
-	private PrismObject resolveObjectReference(ObjectReferenceType ref, boolean storeBack, OperationResult result) {
-		if (ref == null) {
-			return null;
-		}
-		if (ref.asReferenceValue().getObject() != null) {
-			return ref.asReferenceValue().getObject();
-		}
-		try {
-			PrismObject object = repositoryService.getObject((Class) prismContext.getSchemaRegistry().getCompileTimeClass(ref.getType()), ref.getOid(), null, result);
-			if (storeBack) {
-				ref.asReferenceValue().setObject(object);
-			}
-			return object;
-		} catch (ObjectNotFoundException e) {
-			// there should be a note in result by now
-			LoggingUtils.logException(LOGGER, "Couldn't get reference {} details because it couldn't be found", e, ref);
-			return null;
-		} catch (SchemaException e) {
-			// there should be a note in result by now
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get reference {} details due to schema exception", e, ref);
-			return null;
-		}
-	}
+    private PrismObject resolveObjectReference(ObjectReferenceType ref, boolean storeBack, OperationResult result) {
+        if (ref == null) {
+            return null;
+        }
+        if (ref.asReferenceValue().getObject() != null) {
+            return ref.asReferenceValue().getObject();
+        }
+        try {
+            PrismObject object = repositoryService.getObject((Class) prismContext.getSchemaRegistry().getCompileTimeClass(ref.getType()), ref.getOid(), null, result);
+            if (storeBack) {
+                ref.asReferenceValue().setObject(object);
+            }
+            return object;
+        } catch (ObjectNotFoundException e) {
+            // there should be a note in result by now
+            LoggingUtils.logException(LOGGER, "Couldn't get reference {} details because it couldn't be found", e, ref);
+            return null;
+        } catch (SchemaException e) {
+            // there should be a note in result by now
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get reference {} details due to schema exception", e, ref);
+            return null;
+        }
+    }
 
-	public ObjectReferenceType resolveObjectReferenceName(ObjectReferenceType ref, OperationResult result) {
-		if (ref == null || ref.getTargetName() != null) {
-			return ref;
-		}
-		PrismObject<?> object;
-		if (ref.asReferenceValue().getObject() != null) {
-			object = ref.asReferenceValue().getObject();
-		} else {
-			object = resolveObjectReference(ref, result);
-			if (object == null) {
-				return ref;
-			}
-		}
-		ref = ref.clone();
-		ref.setTargetName(PolyString.toPolyStringType(object.getName()));
-		return ref;
-	}
+    public ObjectReferenceType resolveObjectReferenceName(ObjectReferenceType ref, OperationResult result) {
+        if (ref == null || ref.getTargetName() != null) {
+            return ref;
+        }
+        PrismObject<?> object;
+        if (ref.asReferenceValue().getObject() != null) {
+            object = ref.asReferenceValue().getObject();
+        } else {
+            object = resolveObjectReference(ref, result);
+            if (object == null) {
+                return ref;
+            }
+        }
+        ref = ref.clone();
+        ref.setTargetName(PolyString.toPolyStringType(object.getName()));
+        return ref;
+    }
 
 }

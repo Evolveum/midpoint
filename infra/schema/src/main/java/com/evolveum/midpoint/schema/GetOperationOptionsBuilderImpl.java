@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,374 +28,374 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
  */
 public class GetOperationOptionsBuilderImpl implements GetOperationOptionsBuilder, GetOperationOptionsBuilder.Query {
 
-	@NotNull private Set<UniformItemPath> currentPaths;
-	private RelationalValueSearchQuery relationalValueSearchQuery;
-	private Map<UniformItemPath, GetOperationOptions> options = new HashMap<>();
+    @NotNull private Set<UniformItemPath> currentPaths;
+    private RelationalValueSearchQuery relationalValueSearchQuery;
+    private Map<UniformItemPath, GetOperationOptions> options = new HashMap<>();
 
-	private PrismContext prismContext;
+    private PrismContext prismContext;
 
-	GetOperationOptionsBuilderImpl(PrismContext prismContext) {
-		this.prismContext = prismContext;
-		currentPaths = singleton(prismContext.emptyPath());
-	}
+    GetOperationOptionsBuilderImpl(PrismContext prismContext) {
+        this.prismContext = prismContext;
+        currentPaths = singleton(prismContext.emptyPath());
+    }
 
-	//region Path setting
-	@Override
-	public GetOperationOptionsBuilder root() {
-		currentPaths = singleton(prismContext.emptyPath());
-		return this;
-	}
+    //region Path setting
+    @Override
+    public GetOperationOptionsBuilder root() {
+        currentPaths = singleton(prismContext.emptyPath());
+        return this;
+    }
 
-	@Override
-	public GetOperationOptionsBuilder items(Object... items) {
-		currentPaths = new HashSet<>();
-		for (Object item : items) {
-			currentPaths.add(pathForItem(item));
-		}
-		return this;
-	}
+    @Override
+    public GetOperationOptionsBuilder items(Object... items) {
+        currentPaths = new HashSet<>();
+        for (Object item : items) {
+            currentPaths.add(pathForItem(item));
+        }
+        return this;
+    }
 
-	@Override
-	public GetOperationOptionsBuilder item(ItemPath path) {
-		currentPaths = singleton(prismContext.toUniformPath(path));
-		return this;
-	}
+    @Override
+    public GetOperationOptionsBuilder item(ItemPath path) {
+        currentPaths = singleton(prismContext.toUniformPath(path));
+        return this;
+    }
 
-	@Override
-	public GetOperationOptionsBuilder item(Object... components) {
-		currentPaths = singleton(prismContext.path(components));
-		return this;
-	}
-	//endregion
-	
-	//region Individual options except Query
-	@Override
-	public GetOperationOptionsBuilder retrieve() {
-		return retrieve(RetrieveOption.INCLUDE);
-	}
+    @Override
+    public GetOperationOptionsBuilder item(Object... components) {
+        currentPaths = singleton(prismContext.path(components));
+        return this;
+    }
+    //endregion
 
-	@Override
-	public GetOperationOptionsBuilder dontRetrieve() {
-		return retrieve(RetrieveOption.EXCLUDE);
-	}
+    //region Individual options except Query
+    @Override
+    public GetOperationOptionsBuilder retrieve() {
+        return retrieve(RetrieveOption.INCLUDE);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder retrieve(RetrieveOption value) {
-		return forPaths(opts -> opts.setRetrieve(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder dontRetrieve() {
+        return retrieve(RetrieveOption.EXCLUDE);
+    }
 
-	@Override
-	public GetOperationOptionsBuilderImpl retrieve(RelationalValueSearchQuery query) {
-		return forPaths(opts -> {
-			opts.setRetrieve(RetrieveOption.INCLUDE);
-			opts.setRelationalValueSearchQuery(query);
-		});
-	}
+    @Override
+    public GetOperationOptionsBuilder retrieve(RetrieveOption value) {
+        return forPaths(opts -> opts.setRetrieve(value));
+    }
 
-	@Override
-	public Query retrieveQuery() {
-		if (relationalValueSearchQuery != null) {
-			throw new IllegalStateException("Already constructing relational value search query");
-		}
-		relationalValueSearchQuery = new RelationalValueSearchQuery(null);
-		return retrieve(relationalValueSearchQuery);
-	}
+    @Override
+    public GetOperationOptionsBuilderImpl retrieve(RelationalValueSearchQuery query) {
+        return forPaths(opts -> {
+            opts.setRetrieve(RetrieveOption.INCLUDE);
+            opts.setRelationalValueSearchQuery(query);
+        });
+    }
 
-	@Override
-	public GetOperationOptionsBuilder resolve() {
-		return resolve(true);
-	}
+    @Override
+    public Query retrieveQuery() {
+        if (relationalValueSearchQuery != null) {
+            throw new IllegalStateException("Already constructing relational value search query");
+        }
+        relationalValueSearchQuery = new RelationalValueSearchQuery(null);
+        return retrieve(relationalValueSearchQuery);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder resolve(Boolean value) {
-		return forPaths(opts -> opts.setResolve(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder resolve() {
+        return resolve(true);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder resolveNames() {
-		return resolveNames(true);
-	}
+    @Override
+    public GetOperationOptionsBuilder resolve(Boolean value) {
+        return forPaths(opts -> opts.setResolve(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder resolveNames(Boolean value) {
-		return forPaths(opts -> opts.setResolveNames(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder resolveNames() {
+        return resolveNames(true);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder noFetch() {
-		return noFetch(true);
-	}
+    @Override
+    public GetOperationOptionsBuilder resolveNames(Boolean value) {
+        return forPaths(opts -> opts.setResolveNames(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder noFetch(Boolean value) {
-		return forPaths(opts -> opts.setNoFetch(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder noFetch() {
+        return noFetch(true);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder raw() {
-		return raw(true);
-	}
+    @Override
+    public GetOperationOptionsBuilder noFetch(Boolean value) {
+        return forPaths(opts -> opts.setNoFetch(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder raw(Boolean value) {
-		return forPaths(opts -> opts.setRaw(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder raw() {
+        return raw(true);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder tolerateRawData() {
-		return tolerateRawData(true);
-	}
+    @Override
+    public GetOperationOptionsBuilder raw(Boolean value) {
+        return forPaths(opts -> opts.setRaw(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder tolerateRawData(Boolean value) {
-		return forPaths(opts -> opts.setTolerateRawData(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder tolerateRawData() {
+        return tolerateRawData(true);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder doNotDiscovery() {
-		return doNotDiscovery(true);
-	}
+    @Override
+    public GetOperationOptionsBuilder tolerateRawData(Boolean value) {
+        return forPaths(opts -> opts.setTolerateRawData(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder doNotDiscovery(Boolean value) {
-		return forPaths(opts -> opts.setDoNotDiscovery(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder doNotDiscovery() {
+        return doNotDiscovery(true);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder allowNotFound() {
-		return allowNotFound(true);
-	}
+    @Override
+    public GetOperationOptionsBuilder doNotDiscovery(Boolean value) {
+        return forPaths(opts -> opts.setDoNotDiscovery(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder allowNotFound(Boolean value) {
-		return forPaths(opts -> opts.setAllowNotFound(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder allowNotFound() {
+        return allowNotFound(true);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder readOnly() {
-		return readOnly(true);
-	}
+    @Override
+    public GetOperationOptionsBuilder allowNotFound(Boolean value) {
+        return forPaths(opts -> opts.setAllowNotFound(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder readOnly(Boolean value) {
-		return forPaths(opts -> opts.setReadOnly(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder readOnly() {
+        return readOnly(true);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder pointInTime(PointInTimeType value) {
-		return forPaths(opts -> opts.setPointInTimeType(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder readOnly(Boolean value) {
+        return forPaths(opts -> opts.setReadOnly(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder staleness(Long value) {
-		return forPaths(opts -> opts.setStaleness(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder pointInTime(PointInTimeType value) {
+        return forPaths(opts -> opts.setPointInTimeType(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder forceRefresh() {
-		return forceRefresh(true);
-	}
+    @Override
+    public GetOperationOptionsBuilder staleness(Long value) {
+        return forPaths(opts -> opts.setStaleness(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder forceRefresh(Boolean value) {
-		return forPaths(opts -> opts.setForceRefresh(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder forceRefresh() {
+        return forceRefresh(true);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder distinct() {
-		return distinct(true);
-	}
+    @Override
+    public GetOperationOptionsBuilder forceRefresh(Boolean value) {
+        return forPaths(opts -> opts.setForceRefresh(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder distinct(Boolean value) {
-		return forPaths(opts -> opts.setDistinct(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder distinct() {
+        return distinct(true);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder attachDiagData() {
-		return attachDiagData(true);
-	}
+    @Override
+    public GetOperationOptionsBuilder distinct(Boolean value) {
+        return forPaths(opts -> opts.setDistinct(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder attachDiagData(Boolean value) {
-		return forPaths(opts -> opts.setAttachDiagData(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder attachDiagData() {
+        return attachDiagData(true);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder definitionProcessing(DefinitionProcessingOption value) {
-		return forPaths(opts -> opts.setDefinitionProcessing(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder attachDiagData(Boolean value) {
+        return forPaths(opts -> opts.setAttachDiagData(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder iterationMethod(IterationMethodType value) {
-		return forPaths(opts -> opts.setIterationMethod(value));
-	}
+    @Override
+    public GetOperationOptionsBuilder definitionProcessing(DefinitionProcessingOption value) {
+        return forPaths(opts -> opts.setDefinitionProcessing(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder executionPhase() {
-		return executionPhase(true);
-	}
+    @Override
+    public GetOperationOptionsBuilder iterationMethod(IterationMethodType value) {
+        return forPaths(opts -> opts.setIterationMethod(value));
+    }
 
-	@Override
-	public GetOperationOptionsBuilder executionPhase(Boolean value) {
-		return forPaths(opts -> opts.setExecutionPhase(value));
-	}
-	//endregion
+    @Override
+    public GetOperationOptionsBuilder executionPhase() {
+        return executionPhase(true);
+    }
 
-	//region Query
-	@Override
-	public Query asc(ItemPath path) {
-		getOrCreatePaging().addOrderingInstruction(path, OrderDirection.ASCENDING);
-		return this;
-	}
+    @Override
+    public GetOperationOptionsBuilder executionPhase(Boolean value) {
+        return forPaths(opts -> opts.setExecutionPhase(value));
+    }
+    //endregion
 
-	@Override
-	public Query asc(Object... components) {
-		return asc(ItemPath.create(components));
-	}
+    //region Query
+    @Override
+    public Query asc(ItemPath path) {
+        getOrCreatePaging().addOrderingInstruction(path, OrderDirection.ASCENDING);
+        return this;
+    }
 
-	@Override
-	public Query desc(ItemPath path) {
-		getOrCreatePaging().addOrderingInstruction(path, OrderDirection.DESCENDING);
-		return this;
-	}
+    @Override
+    public Query asc(Object... components) {
+        return asc(ItemPath.create(components));
+    }
 
-	@Override
-	public Query desc(Object... components) {
-		return desc(ItemPath.create(components));
-	}
+    @Override
+    public Query desc(ItemPath path) {
+        getOrCreatePaging().addOrderingInstruction(path, OrderDirection.DESCENDING);
+        return this;
+    }
 
-	@Override
-	public Query offset(Integer n) {
-		getOrCreatePaging().setOffset(n);
-		return this;
-	}
+    @Override
+    public Query desc(Object... components) {
+        return desc(ItemPath.create(components));
+    }
 
-	@Override
-	public Query maxSize(Integer n) {
-		getOrCreatePaging().setMaxSize(n);
-		return this;
-	}
+    @Override
+    public Query offset(Integer n) {
+        getOrCreatePaging().setOffset(n);
+        return this;
+    }
 
-	private ObjectPaging getOrCreatePaging() {
-		checkRelationalValueSearchQuery();
-		if (relationalValueSearchQuery.getPaging() == null) {
-			relationalValueSearchQuery.setPaging(prismContext.queryFactory().createPaging());
-		}
-		return relationalValueSearchQuery.getPaging();
-	}
+    @Override
+    public Query maxSize(Integer n) {
+        getOrCreatePaging().setMaxSize(n);
+        return this;
+    }
 
-	private void checkRelationalValueSearchQuery() {
-		if (relationalValueSearchQuery == null) {
-			throw new IllegalStateException("Currently not constructing relational value search query");
-		}
-	}
+    private ObjectPaging getOrCreatePaging() {
+        checkRelationalValueSearchQuery();
+        if (relationalValueSearchQuery.getPaging() == null) {
+            relationalValueSearchQuery.setPaging(prismContext.queryFactory().createPaging());
+        }
+        return relationalValueSearchQuery.getPaging();
+    }
 
-	@Override
-	public Query item(QName column) {
-		checkRelationalValueSearchQuery();
-		relationalValueSearchQuery.setColumn(column);
-		return this;
-	}
+    private void checkRelationalValueSearchQuery() {
+        if (relationalValueSearchQuery == null) {
+            throw new IllegalStateException("Currently not constructing relational value search query");
+        }
+    }
 
-	@Override
-	public Query eq(String value) {
-		return comparison(RelationalValueSearchType.EXACT, value);
-	}
+    @Override
+    public Query item(QName column) {
+        checkRelationalValueSearchQuery();
+        relationalValueSearchQuery.setColumn(column);
+        return this;
+    }
 
-	@Override
-	public Query startsWith(String value) {
-		return comparison(RelationalValueSearchType.STARTS_WITH, value);
-	}
+    @Override
+    public Query eq(String value) {
+        return comparison(RelationalValueSearchType.EXACT, value);
+    }
 
-	@Override
-	public Query contains(String value) {
-		return comparison(RelationalValueSearchType.SUBSTRING, value);
-	}
+    @Override
+    public Query startsWith(String value) {
+        return comparison(RelationalValueSearchType.STARTS_WITH, value);
+    }
 
-	private Query comparison(RelationalValueSearchType type, String value) {
-		checkRelationalValueSearchQuery();
-		relationalValueSearchQuery.setSearchType(type);
-		relationalValueSearchQuery.setSearchValue(value);
-		return this;
-	}
+    @Override
+    public Query contains(String value) {
+        return comparison(RelationalValueSearchType.SUBSTRING, value);
+    }
 
-	@Override
-	public GetOperationOptionsBuilder end() {
-		checkRelationalValueSearchQuery();
-		return this;
-	}
+    private Query comparison(RelationalValueSearchType type, String value) {
+        checkRelationalValueSearchQuery();
+        relationalValueSearchQuery.setSearchType(type);
+        relationalValueSearchQuery.setSearchValue(value);
+        return this;
+    }
 
-	//endregion
+    @Override
+    public GetOperationOptionsBuilder end() {
+        checkRelationalValueSearchQuery();
+        return this;
+    }
 
-	//region Loading from options
+    //endregion
 
-	@Override
-	public GetOperationOptionsBuilder setFrom(Collection<SelectorOptions<GetOperationOptions>> newOptions) {
-		options.clear();
-		currentPaths = singleton(prismContext.emptyPath());
-		relationalValueSearchQuery = null;
-		for (SelectorOptions<GetOperationOptions> newOption : emptyIfNull(newOptions)) {
-			if (newOption.getOptions() != null) {
-				UniformItemPath itemPath = newOption.getItemPath(prismContext.emptyPath());
-				if (options.containsKey(itemPath)) {
-					throw new IllegalStateException(
-							"Options for item path '" + itemPath + "' are defined more than once in " + newOptions);
-				} else {
-					options.put(itemPath, newOption.getOptions().clone());
-				}
-			}
-		}
-		return this;
-	}
+    //region Loading from options
 
-	@Override
-	public GetOperationOptionsBuilder mergeFrom(Collection<SelectorOptions<GetOperationOptions>> newOptions) {
-		currentPaths = singleton(prismContext.emptyPath());
-		relationalValueSearchQuery = null;
-		for (SelectorOptions<GetOperationOptions> newOption : emptyIfNull(newOptions)) {
-			if (newOption.getOptions() != null) {
-				UniformItemPath itemPath = newOption.getItemPath(prismContext.emptyPath());
-				GetOperationOptions currentOptions = options.get(itemPath);
-				if (currentOptions != null) {
-					currentOptions.merge(newOption.getOptions());
-				} else {
-					options.put(itemPath, newOption.getOptions().clone());
-				}
-			}
-		}
-		return this;
-	}
+    @Override
+    public GetOperationOptionsBuilder setFrom(Collection<SelectorOptions<GetOperationOptions>> newOptions) {
+        options.clear();
+        currentPaths = singleton(prismContext.emptyPath());
+        relationalValueSearchQuery = null;
+        for (SelectorOptions<GetOperationOptions> newOption : emptyIfNull(newOptions)) {
+            if (newOption.getOptions() != null) {
+                UniformItemPath itemPath = newOption.getItemPath(prismContext.emptyPath());
+                if (options.containsKey(itemPath)) {
+                    throw new IllegalStateException(
+                            "Options for item path '" + itemPath + "' are defined more than once in " + newOptions);
+                } else {
+                    options.put(itemPath, newOption.getOptions().clone());
+                }
+            }
+        }
+        return this;
+    }
 
-	//endregion
+    @Override
+    public GetOperationOptionsBuilder mergeFrom(Collection<SelectorOptions<GetOperationOptions>> newOptions) {
+        currentPaths = singleton(prismContext.emptyPath());
+        relationalValueSearchQuery = null;
+        for (SelectorOptions<GetOperationOptions> newOption : emptyIfNull(newOptions)) {
+            if (newOption.getOptions() != null) {
+                UniformItemPath itemPath = newOption.getItemPath(prismContext.emptyPath());
+                GetOperationOptions currentOptions = options.get(itemPath);
+                if (currentOptions != null) {
+                    currentOptions.merge(newOption.getOptions());
+                } else {
+                    options.put(itemPath, newOption.getOptions().clone());
+                }
+            }
+        }
+        return this;
+    }
 
-	//region Aux methods
-	private UniformItemPath pathForItem(Object item) {
-		if (item instanceof QName) {
-			return prismContext.path((QName) item);
-		} else if (item instanceof UniformItemPath) {
-			return ((UniformItemPath) item);
-		} else if (item instanceof ItemPath) {
-			return prismContext.toUniformPath((ItemPath) item);
-		} else {
-			throw new IllegalArgumentException("item has to be QName or ItemPath but is " + item);
-		}
-	}
+    //endregion
 
-	private GetOperationOptionsBuilderImpl forPaths(Consumer<GetOperationOptions> modifier) {
-		for (UniformItemPath path : currentPaths) {
-			GetOperationOptions optionsForPath = options.computeIfAbsent(path, (key) -> new GetOperationOptions());
-			modifier.accept(optionsForPath);
-		}
-		return this;
-	}
+    //region Aux methods
+    private UniformItemPath pathForItem(Object item) {
+        if (item instanceof QName) {
+            return prismContext.path((QName) item);
+        } else if (item instanceof UniformItemPath) {
+            return ((UniformItemPath) item);
+        } else if (item instanceof ItemPath) {
+            return prismContext.toUniformPath((ItemPath) item);
+        } else {
+            throw new IllegalArgumentException("item has to be QName or ItemPath but is " + item);
+        }
+    }
 
-	@NotNull
-	public Collection<SelectorOptions<GetOperationOptions>> build() {
-		return options.entrySet().stream()
-				.map(e -> new SelectorOptions<>(new ObjectSelector(e.getKey()), e.getValue()))
-				.collect(Collectors.toList());
-	}
-	//endregion
+    private GetOperationOptionsBuilderImpl forPaths(Consumer<GetOperationOptions> modifier) {
+        for (UniformItemPath path : currentPaths) {
+            GetOperationOptions optionsForPath = options.computeIfAbsent(path, (key) -> new GetOperationOptions());
+            modifier.accept(optionsForPath);
+        }
+        return this;
+    }
+
+    @NotNull
+    public Collection<SelectorOptions<GetOperationOptions>> build() {
+        return options.entrySet().stream()
+                .map(e -> new SelectorOptions<>(new ObjectSelector(e.getKey()), e.getValue()))
+                .collect(Collectors.toList());
+    }
+    //endregion
 
 }

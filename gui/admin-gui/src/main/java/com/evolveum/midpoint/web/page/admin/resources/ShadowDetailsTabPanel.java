@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -24,30 +24,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class ShadowDetailsTabPanel extends AbstractObjectTabPanel<ShadowType> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final transient Trace LOGGER = TraceManager.getTrace(ShadowDetailsTabPanel.class);
-	
-	private static final String ID_ACCOUNT = "account";
-	
+    private static final long serialVersionUID = 1L;
 
-	public ShadowDetailsTabPanel(String id, Form<PrismObjectWrapper<ShadowType>> mainForm,
-								 LoadableModel<PrismObjectWrapper<ShadowType>> objectWrapperModel) {
-		super(id, mainForm, objectWrapperModel);
-	}
+    private static final transient Trace LOGGER = TraceManager.getTrace(ShadowDetailsTabPanel.class);
 
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		initLayout();
-	}
-	
-	
+    private static final String ID_ACCOUNT = "account";
 
-	private void initLayout() {
-		ShadowPanel shadowPanel = new ShadowPanel(ID_ACCOUNT, (IModel) getObjectWrapperModel());
-		add(shadowPanel);
-	}
 
-	
+    public ShadowDetailsTabPanel(String id, Form<PrismObjectWrapper<ShadowType>> mainForm,
+                                 LoadableModel<PrismObjectWrapper<ShadowType>> objectWrapperModel) {
+        super(id, mainForm, objectWrapperModel);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
+
+
+
+    private void initLayout() {
+        ShadowPanel shadowPanel = new ShadowPanel(ID_ACCOUNT, (IModel) getObjectWrapperModel());
+        add(shadowPanel);
+    }
+
+
 }

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.objectdetails;
@@ -54,219 +54,219 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
  */
 public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMainPanel<F> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(FocusMainPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(FocusMainPanel.class);
 
-	private LoadableModel<List<ShadowWrapper>> projectionModel;
+    private LoadableModel<List<ShadowWrapper>> projectionModel;
 
-	public FocusMainPanel(String id, LoadableModel<PrismObjectWrapper<F>> objectModel,
-			LoadableModel<List<ShadowWrapper>> projectionModel,
-			PageAdminObjectDetails<F> parentPage) {
-		super(id, objectModel, parentPage);
-		Validate.notNull(projectionModel, "Null projection model");
-		this.projectionModel = projectionModel;
-		initLayout(parentPage);
-	}
+    public FocusMainPanel(String id, LoadableModel<PrismObjectWrapper<F>> objectModel,
+            LoadableModel<List<ShadowWrapper>> projectionModel,
+            PageAdminObjectDetails<F> parentPage) {
+        super(id, objectModel, parentPage);
+        Validate.notNull(projectionModel, "Null projection model");
+        this.projectionModel = projectionModel;
+        initLayout(parentPage);
+    }
 
-	private void initLayout(final PageAdminObjectDetails<F> parentPage) {
-		getMainForm().setMultiPart(true);
+    private void initLayout(final PageAdminObjectDetails<F> parentPage) {
+        getMainForm().setMultiPart(true);
 
-	}
+    }
 
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		StringValue oidValue = getPage().getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        StringValue oidValue = getPage().getPageParameters().get(OnePageParameterEncoder.PARAMETER);
 
-	}
+    }
 
-	private ObjectQuery createTaskQuery(String oid, PageBase page) {
-		if (oid == null) {
-			oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
-		}
-		return page.getPrismContext().queryFor(CaseType.class)
-				.item(CaseType.F_OBJECT_REF).ref(oid)
-				.and()
-				.item(CaseType.F_ARCHETYPE_REF)
-				.ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())
-				.and()
-				.not()
-				.item(CaseType.F_STATE)
-				.eq(SchemaConstants.CASE_STATE_CLOSED)
-				.desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
-				.build();
-	}
+    private ObjectQuery createTaskQuery(String oid, PageBase page) {
+        if (oid == null) {
+            oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
+        }
+        return page.getPrismContext().queryFor(CaseType.class)
+                .item(CaseType.F_OBJECT_REF).ref(oid)
+                .and()
+                .item(CaseType.F_ARCHETYPE_REF)
+                .ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())
+                .and()
+                .not()
+                .item(CaseType.F_STATE)
+                .eq(SchemaConstants.CASE_STATE_CLOSED)
+                .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                .build();
+    }
 
-	@Override
-	protected List<ITab> createTabs(final PageAdminObjectDetails<F> parentPage) {
-		List<ITab> tabs = super.createTabs(parentPage);
+    @Override
+    protected List<ITab> createTabs(final PageAdminObjectDetails<F> parentPage) {
+        List<ITab> tabs = super.createTabs(parentPage);
 
-		List<ObjectFormType> objectFormTypes = parentPage.getObjectFormTypes();
-		// default tabs are always added to component structure, visibility is decided later in
-		// visible behavior based on adminGuiConfiguration
-		addDefaultTabs(parentPage, tabs);
+        List<ObjectFormType> objectFormTypes = parentPage.getObjectFormTypes();
+        // default tabs are always added to component structure, visibility is decided later in
+        // visible behavior based on adminGuiConfiguration
+        addDefaultTabs(parentPage, tabs);
         addSpecificTabs(parentPage, tabs);
-		if (objectFormTypes == null) {
-			return tabs;
-		}
+        if (objectFormTypes == null) {
+            return tabs;
+        }
 
-		for (ObjectFormType objectFormType : objectFormTypes) {
-			final FormSpecificationType formSpecificationType = objectFormType.getFormSpecification();
-			if (formSpecificationType == null){
-				continue;
-			}
-			String title = formSpecificationType.getTitle();
-			if (title == null) {
-				title = "pageAdminFocus.extended";
-			}
+        for (ObjectFormType objectFormType : objectFormTypes) {
+            final FormSpecificationType formSpecificationType = objectFormType.getFormSpecification();
+            if (formSpecificationType == null){
+                continue;
+            }
+            String title = formSpecificationType.getTitle();
+            if (title == null) {
+                title = "pageAdminFocus.extended";
+            }
 
-			if (StringUtils.isEmpty(formSpecificationType.getPanelClass())) {
-				continue;
-			}
+            if (StringUtils.isEmpty(formSpecificationType.getPanelClass())) {
+                continue;
+            }
 
-			tabs.add(
-					new PanelTab(parentPage.createStringResource(title)) {
-						private static final long serialVersionUID = 1L;
+            tabs.add(
+                    new PanelTab(parentPage.createStringResource(title)) {
+                        private static final long serialVersionUID = 1L;
 
-						@Override
-						public WebMarkupContainer createPanel(String panelId) {
-							return createTabPanel(panelId, formSpecificationType, parentPage);
-						}
-					});
-		}
+                        @Override
+                        public WebMarkupContainer createPanel(String panelId) {
+                            return createTabPanel(panelId, formSpecificationType, parentPage);
+                        }
+                    });
+        }
 
-		return tabs;
-	}
+        return tabs;
+    }
 
-	protected WebMarkupContainer createTabPanel(String panelId, FormSpecificationType formSpecificationType,
-			PageAdminObjectDetails<F> parentPage) {
-		String panelClassName = formSpecificationType.getPanelClass();
+    protected WebMarkupContainer createTabPanel(String panelId, FormSpecificationType formSpecificationType,
+            PageAdminObjectDetails<F> parentPage) {
+        String panelClassName = formSpecificationType.getPanelClass();
 
-		Class<?> panelClass;
-		try {
-			panelClass = Class.forName(panelClassName);
-		} catch (ClassNotFoundException e) {
-			throw new SystemException("Panel class '"+panelClassName+"' as specified in admin GUI configuration was not found", e);
-		}
-		if (AbstractObjectTabPanel.class.isAssignableFrom(panelClass)) {
-			Constructor<?> constructor;
-			try {
-				constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, LoadableModel.class, PageBase.class);
-			} catch (NoSuchMethodException | SecurityException e) {
-				throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,LoadableModel,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
-			}
-			AbstractObjectTabPanel<F> tabPanel;
-			try {
-				tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
-			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
-			}
-			return tabPanel;
-		} else if (AbstractObjectTabPanel.class.isAssignableFrom(panelClass)) {
-			Constructor<?> constructor;
-			try {
-				constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, PageBase.class);
-			} catch (NoSuchMethodException | SecurityException e) {
-				throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
-			}
-			AbstractObjectTabPanel<F> tabPanel;
-			try {
-				tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
-			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
-			}
-			return tabPanel;
+        Class<?> panelClass;
+        try {
+            panelClass = Class.forName(panelClassName);
+        } catch (ClassNotFoundException e) {
+            throw new SystemException("Panel class '"+panelClassName+"' as specified in admin GUI configuration was not found", e);
+        }
+        if (AbstractObjectTabPanel.class.isAssignableFrom(panelClass)) {
+            Constructor<?> constructor;
+            try {
+                constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, LoadableModel.class, PageBase.class);
+            } catch (NoSuchMethodException | SecurityException e) {
+                throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,LoadableModel,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
+            }
+            AbstractObjectTabPanel<F> tabPanel;
+            try {
+                tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
+            } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
+            }
+            return tabPanel;
+        } else if (AbstractObjectTabPanel.class.isAssignableFrom(panelClass)) {
+            Constructor<?> constructor;
+            try {
+                constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, PageBase.class);
+            } catch (NoSuchMethodException | SecurityException e) {
+                throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
+            }
+            AbstractObjectTabPanel<F> tabPanel;
+            try {
+                tabPanel = (AbstractObjectTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(), parentPage);
+            } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
+            }
+            return tabPanel;
 
-		} else {
-			throw new UnsupportedOperationException("Tab panels that are not subclasses of AbstractObjectTabPanel or AbstractFocusTabPanel are not supported yet (got "+panelClass+")");
-		}
-	}
+        } else {
+            throw new UnsupportedOperationException("Tab panels that are not subclasses of AbstractObjectTabPanel or AbstractFocusTabPanel are not supported yet (got "+panelClass+")");
+        }
+    }
 
-	protected WebMarkupContainer createFocusDetailsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new AssignmentHolderTypeDetailsTabPanel<F>(panelId, getMainForm(), getObjectModel());
-	}
+    protected WebMarkupContainer createFocusDetailsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+        return new AssignmentHolderTypeDetailsTabPanel<F>(panelId, getMainForm(), getObjectModel());
+    }
 
-	protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new FocusProjectionsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel);
-	}
+    protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+        return new FocusProjectionsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel);
+    }
 
-	protected WebMarkupContainer createObjectHistoryTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new ObjectHistoryTabPanel<F>(panelId, getMainForm(), getObjectModel()){
-			protected void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date){
-				viewObjectHistoricalDataPerformed(target, object, date);
-			}
-		};
-	}
+    protected WebMarkupContainer createObjectHistoryTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+        return new ObjectHistoryTabPanel<F>(panelId, getMainForm(), getObjectModel()){
+            protected void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date){
+                viewObjectHistoricalDataPerformed(target, object, date);
+            }
+        };
+    }
 
-	protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<F> object, String date){
-	}
+    protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<F> object, String date){
+    }
 
-	protected IModel<PrismObject<F>> unwrapModel() {
-		return new IModel<PrismObject<F>>() {
+    protected IModel<PrismObject<F>> unwrapModel() {
+        return new IModel<PrismObject<F>>() {
 
-				@Override
-			public PrismObject<F> getObject() {
-				return getObjectWrapper().getObject();
-			}
-		};
-	}
+                @Override
+            public PrismObject<F> getObject() {
+                return getObjectWrapper().getObject();
+            }
+        };
+    }
 
-	protected void addSpecificTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
+    protected void addSpecificTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
     }
 
     private void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
 
-		tabs.add(1,
+        tabs.add(1,
                 new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections"),
-						getTabVisibility(ComponentConstants.UI_FOCUS_TAB_PROJECTIONS_URL, false, parentPage)){
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_PROJECTIONS_URL, false, parentPage)){
 
-                	private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public WebMarkupContainer createPanel(String panelId) {
-						return createFocusProjectionsTabPanel(panelId, parentPage);
-					}
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return createFocusProjectionsTabPanel(panelId, parentPage);
+                    }
 
-					@Override
-					public String getCount() {
-						return Integer.toString(projectionModel.getObject() == null ? 0 : projectionModel.getObject().size());
-					}
-				});
+                    @Override
+                    public String getCount() {
+                        return Integer.toString(projectionModel.getObject() == null ? 0 : projectionModel.getObject().size());
+                    }
+                });
 
-		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ItemStatus.ADDED){
-			tabs.add(
-					new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"),
-							getTabVisibility(ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, parentPage)){
+        if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ItemStatus.ADDED){
+            tabs.add(
+                    new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"),
+                            getTabVisibility(ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, parentPage)){
 
-						private static final long serialVersionUID = 1L;
+                        private static final long serialVersionUID = 1L;
 
-						@Override
-						public WebMarkupContainer createPanel(String panelId) {
-							return createObjectHistoryTabPanel(panelId, parentPage);
-						}
-					});
-		}
+                        @Override
+                        public WebMarkupContainer createPanel(String panelId) {
+                            return createObjectHistoryTabPanel(panelId, parentPage);
+                        }
+                    });
+        }
 
-		tabs.add(
-				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.cases"),
-						getTabVisibility(ComponentConstants.UI_FOCUS_TAB_TASKS_URL, false, parentPage)){
+        tabs.add(
+                new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.cases"),
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_TASKS_URL, false, parentPage)){
 
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public WebMarkupContainer createPanel(String panelId) {
-						return new FocusTasksTabPanel<F>(panelId, getMainForm(), getObjectModel(),
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        return new FocusTasksTabPanel<F>(panelId, getMainForm(), getObjectModel(),
                                 countUsersTasks(parentPage) > 0);
-					}
+                    }
 
-					@Override
-					public String getCount() {
-						return Integer.toString(countUsersTasks(parentPage));
-					}
-				});
+                    @Override
+                    public String getCount() {
+                        return Integer.toString(countUsersTasks(parentPage));
+                    }
+                });
 
-	}
+    }
 
     private int countUsersTasks(PageBase parentPage){
         String oid = null;
@@ -282,29 +282,29 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
     }
 
     @Override
-	@Deprecated
+    @Deprecated
     protected boolean areSavePreviewButtonsEnabled() {
-		PrismObjectWrapper<F> focusWrapper = getObjectModel().getObject();
-		PrismContainerWrapper<AssignmentType> assignmentsWrapper;
-		try {
-			assignmentsWrapper = focusWrapper.findContainer(FocusType.F_ASSIGNMENT);
-		} catch (SchemaException e) {
-			LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
-			return false;
-		}
-		return isAssignmentsModelChanged(assignmentsWrapper);
+        PrismObjectWrapper<F> focusWrapper = getObjectModel().getObject();
+        PrismContainerWrapper<AssignmentType> assignmentsWrapper;
+        try {
+            assignmentsWrapper = focusWrapper.findContainer(FocusType.F_ASSIGNMENT);
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage());
+            return false;
+        }
+        return isAssignmentsModelChanged(assignmentsWrapper);
     }
 
     protected boolean isAssignmentsModelChanged(PrismContainerWrapper<AssignmentType> assignmentsWrapper){
-		if (assignmentsWrapper != null) {
-			for (PrismContainerValueWrapper<AssignmentType> assignmentWrapper : assignmentsWrapper.getValues()) {
-				if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||
-						ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+        if (assignmentsWrapper != null) {
+            for (PrismContainerValueWrapper<AssignmentType> assignmentWrapper : assignmentsWrapper.getValues()) {
+                if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||
+                        ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
 }

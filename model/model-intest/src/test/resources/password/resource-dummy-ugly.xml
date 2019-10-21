@@ -2,76 +2,76 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <resource oid="10000000-0000-0000-0000-000000344104"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	
-	<!-- Resource with ugly (non-typical) password mapping with explicit password policy -->
-								  
-	<name>Dummy Resource Ugly</name>
-	<connectorRef type="ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>ugly</icfi:instanceId>
-		</icfc:configurationProperties>
 
-	</connectorConfiguration>
-	
-	<schemaHandling>
-		<objectType>
-			<kind>account</kind>
-			<intent>default</intent>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<outbound>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-				</outbound>
-			</attribute>
-			<credentials>
+    <!-- Resource with ugly (non-typical) password mapping with explicit password policy -->
+
+    <name>Dummy Resource Ugly</name>
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>ugly</icfi:instanceId>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <credentials>
                 <password>
                     <outbound>
-						<source>
-							<path>$user/employeeNumber</path>		<!-- something other than the default (MID-3320) -->
-						</source>
-						<expression>
-							<script>
-								<code>employeeNumber</code>
-							</script>
-						</expression>
+                        <source>
+                            <path>$user/employeeNumber</path>        <!-- something other than the default (MID-3320) -->
+                        </source>
+                        <expression>
+                            <script>
+                                <code>employeeNumber</code>
+                            </script>
+                        </expression>
                     </outbound>
                     <passwordPolicyRef oid="cfb3fa9e-027a-11e7-8e2c-dbebaacaf4ee" type="ValuePolicyType"/>
                 </password>
             </credentials>
-		</objectType>
-	</schemaHandling>
-	
+        </objectType>
+    </schemaHandling>
+
 </resource>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl;
@@ -52,278 +52,278 @@ import java.util.List;
 @Component
 public class ModelCrudService {
 
-	private String CLASS_NAME_WITH_DOT = ModelCrudService.class.getName() + ".";
-	private String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
-	private String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
-	private String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
+    private static final String CLASS_NAME_WITH_DOT = ModelCrudService.class.getName() + ".";
+    private static final String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
+    private static final String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
+    private static final String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
 
-	private static final Trace LOGGER = TraceManager.getTrace(ModelCrudService.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ModelCrudService.class);
 
-	@Autowired ModelService modelService;
-	@Autowired TaskService taskService;
-	@Autowired PrismContext prismContext;
-	@Autowired @Qualifier("cacheRepositoryService") RepositoryService repository;
-	@Autowired private CacheConfigurationManager cacheConfigurationManager;
+    @Autowired ModelService modelService;
+    @Autowired TaskService taskService;
+    @Autowired PrismContext prismContext;
+    @Autowired @Qualifier("cacheRepositoryService") RepositoryService repository;
+    @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		return modelService.getObject(clazz, oid, options, task, parentResult);
-	}
+    public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        return modelService.getObject(clazz, oid, options, task, parentResult);
+    }
 
-	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
-		return modelService.searchObjects(type, query, options, task, parentResult);
-	}
+    public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return modelService.searchObjects(type, query, options, task, parentResult);
+    }
 
-	/**
-	 * <p>
-	 * Add new object.
-	 * </p>
-	 * <p>
-	 * The OID provided in the input message may be empty. In that case the OID
-	 * will be assigned by the implementation of this method and it will be
-	 * provided as return value.
-	 * </p>
-	 * <p>
-	 * This operation should fail if such object already exists (if object with
-	 * the provided OID already exists).
-	 * </p>
-	 * <p>
-	 * The operation may fail if provided OID is in an unusable format for the
-	 * storage. Generating own OIDs and providing them to this method is not
-	 * recommended for normal operation.
-	 * </p>
-	 * <p>
-	 * Should be atomic. Should not allow creation of two objects with the same
-	 * OID (even if created in parallel).
-	 * </p>
-	 * <p>
-	 * The operation may fail if the object to be created does not conform to
-	 * the underlying schema of the storage system or the schema enforced by the
-	 * implementation.
-	 * </p>
-	 *
-	 * @param object
-	 *            object to create
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @return OID assigned to the created object
-	 * @throws ObjectAlreadyExistsException
-	 *             object with specified identifiers already exists, cannot add
-	 * @throws ObjectNotFoundException
-	 *             object required to complete the operation was not found (e.g.
-	 *             appropriate connector or resource definition)
-	 * @throws SchemaException
-	 *             error dealing with resource schema, e.g. created object does
-	 *             not conform to schema
-	 * @throws ExpressionEvaluationException
-	 * 				evaluation of expression associated with the object has failed
-	 * @throws CommunicationException
-	 * @throws ConfigurationException
-	 * @throws PolicyViolationException
-	 * 				Policy violation was detected during processing of the object
-	 * @throws IllegalArgumentException
-	 *             wrong OID format, etc.
-	 * @throws SystemException
-	 *             unknown error from underlying layers or other unexpected
-	 *             state
-	 */
-	@SuppressWarnings("JavaDoc")
-	public <T extends ObjectType> String addObject(PrismObject<T> object, ModelExecuteOptions options, Task task,
-			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
-			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-			PolicyViolationException, SecurityViolationException {
-		Validate.notNull(object, "Object must not be null.");
-		Validate.notNull(parentResult, "Result type must not be null.");
+    /**
+     * <p>
+     * Add new object.
+     * </p>
+     * <p>
+     * The OID provided in the input message may be empty. In that case the OID
+     * will be assigned by the implementation of this method and it will be
+     * provided as return value.
+     * </p>
+     * <p>
+     * This operation should fail if such object already exists (if object with
+     * the provided OID already exists).
+     * </p>
+     * <p>
+     * The operation may fail if provided OID is in an unusable format for the
+     * storage. Generating own OIDs and providing them to this method is not
+     * recommended for normal operation.
+     * </p>
+     * <p>
+     * Should be atomic. Should not allow creation of two objects with the same
+     * OID (even if created in parallel).
+     * </p>
+     * <p>
+     * The operation may fail if the object to be created does not conform to
+     * the underlying schema of the storage system or the schema enforced by the
+     * implementation.
+     * </p>
+     *
+     * @param object
+     *            object to create
+     * @param parentResult
+     *            parent OperationResult (in/out)
+     * @return OID assigned to the created object
+     * @throws ObjectAlreadyExistsException
+     *             object with specified identifiers already exists, cannot add
+     * @throws ObjectNotFoundException
+     *             object required to complete the operation was not found (e.g.
+     *             appropriate connector or resource definition)
+     * @throws SchemaException
+     *             error dealing with resource schema, e.g. created object does
+     *             not conform to schema
+     * @throws ExpressionEvaluationException
+     *                 evaluation of expression associated with the object has failed
+     * @throws CommunicationException
+     * @throws ConfigurationException
+     * @throws PolicyViolationException
+     *                 Policy violation was detected during processing of the object
+     * @throws IllegalArgumentException
+     *             wrong OID format, etc.
+     * @throws SystemException
+     *             unknown error from underlying layers or other unexpected
+     *             state
+     */
+    @SuppressWarnings("JavaDoc")
+    public <T extends ObjectType> String addObject(PrismObject<T> object, ModelExecuteOptions options, Task task,
+            OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            PolicyViolationException, SecurityViolationException {
+        Validate.notNull(object, "Object must not be null.");
+        Validate.notNull(parentResult, "Result type must not be null.");
 
-		object.checkConsistence();
+        object.checkConsistence();
 
-		T objectType = object.asObjectable();
-		prismContext.adopt(objectType);
+        T objectType = object.asObjectable();
+        prismContext.adopt(objectType);
 
-		OperationResult result = parentResult.createSubresult(ADD_OBJECT);
-		result.addParam(OperationResult.PARAM_OBJECT, object);
+        OperationResult result = parentResult.createSubresult(ADD_OBJECT);
+        result.addParam(OperationResult.PARAM_OBJECT, object);
 
-		ModelImplUtils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
+        ModelImplUtils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
 
-		String oid;
-		RepositoryCache.enter(cacheConfigurationManager);
-		try {
+        String oid;
+        RepositoryCache.enter(cacheConfigurationManager);
+        try {
 
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Entering addObject with {}", object);
-				LOGGER.trace(object.debugDump());
-			}
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Entering addObject with {}", object);
+                LOGGER.trace(object.debugDump());
+            }
 
-			if (options == null) {
-				if (StringUtils.isNotEmpty(objectType.getVersion())) {
-					options = ModelExecuteOptions.createOverwrite();
-				}
-			}
+            if (options == null) {
+                if (StringUtils.isNotEmpty(objectType.getVersion())) {
+                    options = ModelExecuteOptions.createOverwrite();
+                }
+            }
 
-			ObjectDelta<T> objectDelta = DeltaFactory.Object.createAddDelta(object);
-			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+            ObjectDelta<T> objectDelta = DeltaFactory.Object.createAddDelta(object);
+            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 
-			Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = modelService.executeChanges(deltas, options, task, result);
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = modelService.executeChanges(deltas, options, task, result);
 
-			oid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, object);
-			result.computeStatus();
-			result.cleanupResult();
+            oid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, object);
+            result.computeStatus();
+            result.cleanupResult();
 
-		} catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException | ConfigurationException | RuntimeException ex) {
-			ModelImplUtils.recordFatalError(result, ex);
-			throw ex;
-		} finally {
-			RepositoryCache.exit();
-		}
+        } catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException | ConfigurationException | RuntimeException ex) {
+            ModelImplUtils.recordFatalError(result, ex);
+            throw ex;
+        } finally {
+            RepositoryCache.exit();
+        }
 
-		return oid;
-	}
+        return oid;
+    }
 
-	/**
-	 * <p>
-	 * Deletes object with specified OID.
-	 * </p>
-	 * <p>
-	 * Must fail if object with specified OID does not exists. Should be atomic.
-	 * </p>
-	 *
-	 * @param oid
-	 *            OID of object to delete
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @throws ObjectNotFoundException
-	 *             specified object does not exist
-	 * @throws IllegalArgumentException
-	 *             wrong OID format, described change is not applicable
-	 * @throws CommunicationException
-	 *             Communication problem was detected during processing of the object
-	 * @throws ConfigurationException
-	 *             Configuration problem was detected during processing of the object
-	 * @throws PolicyViolationException
-	 * 			   Policy violation was detected during processing of the object
-	 * @throws SystemException
-	 *             unknown error from underlying layers or other unexpected
-	 *             state
-	 */
-	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, ModelExecuteOptions options, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException,
-			SecurityViolationException {
-		Validate.notNull(clazz, "Class must not be null.");
-		Validate.notEmpty(oid, "Oid must not be null or empty.");
-		Validate.notNull(parentResult, "Result type must not be null.");
+    /**
+     * <p>
+     * Deletes object with specified OID.
+     * </p>
+     * <p>
+     * Must fail if object with specified OID does not exists. Should be atomic.
+     * </p>
+     *
+     * @param oid
+     *            OID of object to delete
+     * @param parentResult
+     *            parent OperationResult (in/out)
+     * @throws ObjectNotFoundException
+     *             specified object does not exist
+     * @throws IllegalArgumentException
+     *             wrong OID format, described change is not applicable
+     * @throws CommunicationException
+     *             Communication problem was detected during processing of the object
+     * @throws ConfigurationException
+     *             Configuration problem was detected during processing of the object
+     * @throws PolicyViolationException
+     *                Policy violation was detected during processing of the object
+     * @throws SystemException
+     *             unknown error from underlying layers or other unexpected
+     *             state
+     */
+    public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, ModelExecuteOptions options, Task task,
+            OperationResult parentResult) throws ObjectNotFoundException,
+            CommunicationException, SchemaException, ConfigurationException, PolicyViolationException,
+            SecurityViolationException {
+        Validate.notNull(clazz, "Class must not be null.");
+        Validate.notEmpty(oid, "Oid must not be null or empty.");
+        Validate.notNull(parentResult, "Result type must not be null.");
 
-		OperationResult result = parentResult.createSubresult(DELETE_OBJECT);
-		result.addParam(OperationResult.PARAM_OID, oid);
+        OperationResult result = parentResult.createSubresult(DELETE_OBJECT);
+        result.addParam(OperationResult.PARAM_OID, oid);
 
-		RepositoryCache.enter(cacheConfigurationManager);
+        RepositoryCache.enter(cacheConfigurationManager);
 
-		try {
-			ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(clazz, ChangeType.DELETE);
-			objectDelta.setOid(oid);
+        try {
+            ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(clazz, ChangeType.DELETE);
+            objectDelta.setOid(oid);
 
-			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
+            LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
 
-			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			modelService.executeChanges(deltas, options, task, result);
+            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+            modelService.executeChanges(deltas, options, task, result);
 
-			result.recordSuccess();
+            result.recordSuccess();
 
-		} catch (ObjectNotFoundException | CommunicationException | RuntimeException | SecurityViolationException ex) {
-			ModelImplUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (ObjectAlreadyExistsException | ExpressionEvaluationException ex) {
-			ModelImplUtils.recordFatalError(result, ex);
-			throw new SystemException(ex.getMessage(), ex);
-		} finally {
-			RepositoryCache.exit();
-		}
-	}
+        } catch (ObjectNotFoundException | CommunicationException | RuntimeException | SecurityViolationException ex) {
+            ModelImplUtils.recordFatalError(result, ex);
+            throw ex;
+        } catch (ObjectAlreadyExistsException | ExpressionEvaluationException ex) {
+            ModelImplUtils.recordFatalError(result, ex);
+            throw new SystemException(ex.getMessage(), ex);
+        } finally {
+            RepositoryCache.exit();
+        }
+    }
 
-	/**
-	 * <p>
-	 * Modifies object using relative change description.
-	 * </p>
-	 * <p>
-	 * Must fail if user with provided OID does not exists. Must fail if any of
-	 * the described changes cannot be applied. Should be atomic.
-	 * </p>
-	 * <p>
-	 * If two or more modify operations are executed in parallel, the operations
-	 * should be merged. In case that the operations are in conflict (e.g. one
-	 * operation adding a value and the other removing the same value), the
-	 * result is not deterministic.
-	 * </p>
-	 * <p>
-	 * The operation may fail if the modified object does not conform to the
-	 * underlying schema of the storage system or the schema enforced by the
-	 * implementation.
-	 * </p>
-	 *
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @throws ObjectNotFoundException
-	 *             specified object does not exist
-	 * @throws SchemaException
-	 *             resulting object would violate the schema
-	 * @throws ExpressionEvaluationException
-	 * 				evaluation of expression associated with the object has failed
-	 * @throws CommunicationException
-	 *              Communication problem was detected during processing of the object
-	 * @throws ObjectAlreadyExistsException
-	 * 				If the account or another "secondary" object already exists and cannot be created
-	 * @throws PolicyViolationException
-	 * 				Policy violation was detected during processing of the object
-	 * @throws IllegalArgumentException
-	 *             wrong OID format, described change is not applicable
-	 * @throws SystemException
-	 *             unknown error from underlying layers or other unexpected
-	 *             state
-	 */
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
-			Collection<? extends ItemDelta> modifications, ModelExecuteOptions options, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
-			PolicyViolationException, SecurityViolationException {
+    /**
+     * <p>
+     * Modifies object using relative change description.
+     * </p>
+     * <p>
+     * Must fail if user with provided OID does not exists. Must fail if any of
+     * the described changes cannot be applied. Should be atomic.
+     * </p>
+     * <p>
+     * If two or more modify operations are executed in parallel, the operations
+     * should be merged. In case that the operations are in conflict (e.g. one
+     * operation adding a value and the other removing the same value), the
+     * result is not deterministic.
+     * </p>
+     * <p>
+     * The operation may fail if the modified object does not conform to the
+     * underlying schema of the storage system or the schema enforced by the
+     * implementation.
+     * </p>
+     *
+     * @param parentResult
+     *            parent OperationResult (in/out)
+     * @throws ObjectNotFoundException
+     *             specified object does not exist
+     * @throws SchemaException
+     *             resulting object would violate the schema
+     * @throws ExpressionEvaluationException
+     *                 evaluation of expression associated with the object has failed
+     * @throws CommunicationException
+     *              Communication problem was detected during processing of the object
+     * @throws ObjectAlreadyExistsException
+     *                 If the account or another "secondary" object already exists and cannot be created
+     * @throws PolicyViolationException
+     *                 Policy violation was detected during processing of the object
+     * @throws IllegalArgumentException
+     *             wrong OID format, described change is not applicable
+     * @throws SystemException
+     *             unknown error from underlying layers or other unexpected
+     *             state
+     */
+    public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
+            Collection<? extends ItemDelta> modifications, ModelExecuteOptions options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            PolicyViolationException, SecurityViolationException {
 
-		Validate.notNull(modifications, "Object modification must not be null.");
-		Validate.notEmpty(oid, "Change oid must not be null or empty.");
-		Validate.notNull(parentResult, "Result type must not be null.");
+        Validate.notNull(modifications, "Object modification must not be null.");
+        Validate.notEmpty(oid, "Change oid must not be null or empty.");
+        Validate.notNull(parentResult, "Result type must not be null.");
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Modifying object with oid {}", oid);
-			LOGGER.trace(DebugUtil.debugDump(modifications));
-		}
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Modifying object with oid {}", oid);
+            LOGGER.trace(DebugUtil.debugDump(modifications));
+        }
 
-		ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
-		// TODO: check definitions, but tolerate missing definitions in <attributes>
+        ItemDeltaCollectionsUtil.checkConsistence(modifications, ConsistencyCheckScope.THOROUGH);
+        // TODO: check definitions, but tolerate missing definitions in <attributes>
 
-		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
-		result.addArbitraryObjectCollectionAsParam("modifications", modifications);
+        OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
+        result.addArbitraryObjectCollectionAsParam("modifications", modifications);
 
-		RepositoryCache.enter(cacheConfigurationManager);
+        RepositoryCache.enter(cacheConfigurationManager);
 
-		try {
+        try {
 
-			ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().createModifyDelta(oid, modifications, type);
-			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			modelService.executeChanges(deltas, options, task, result);
+            ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().createModifyDelta(oid, modifications, type);
+            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+            modelService.executeChanges(deltas, options, task, result);
 
             result.computeStatus();
 
         } catch (ExpressionEvaluationException | ObjectNotFoundException ex) {
-			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (SchemaException | ConfigurationException | SecurityViolationException | RuntimeException ex) {
-			ModelImplUtils.recordFatalError(result, ex);
-			throw ex;
-		} finally {
-			RepositoryCache.exit();
-		}
-	}
+            LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
+            result.recordFatalError(ex);
+            throw ex;
+        } catch (SchemaException | ConfigurationException | SecurityViolationException | RuntimeException ex) {
+            ModelImplUtils.recordFatalError(result, ex);
+            throw ex;
+        } finally {
+            RepositoryCache.exit();
+        }
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,32 +20,32 @@ public class TextPanel<T> extends InputPanel {
     public TextPanel(String id, IModel<T> model, boolean shouldTrim) {
         this(id, model, String.class, shouldTrim);
     }
-    
+
     public TextPanel(String id, IModel<T> model) {
         this(id, model, String.class, true);
     }
 
     public TextPanel(String id, IModel<T> model, Class clazz) {
-    	this(id, model, clazz, true);
-    }    
-    
+        this(id, model, clazz, true);
+    }
+
     public TextPanel(String id, IModel<T> model, Class clazz, boolean shouldTrim) {
         super(id);
 
         final TextField<T> text = new TextField<T>(ID_INPUT, model) {
-        	
-        	@Override
-        	protected boolean shouldTrimInput() {
-        		return shouldTrim;
-        	}
 
-        	@Override
+            @Override
+            protected boolean shouldTrimInput() {
+                return shouldTrim;
+            }
+
+            @Override
             public void convertInput() {
-        	    T convertedValue = getConvertedInputValue();
-        	    if (convertedValue != null){
-        	        setConvertedInput(convertedValue);
+                T convertedValue = getConvertedInputValue();
+                if (convertedValue != null){
+                    setConvertedInput(convertedValue);
                 } else {
-        	        super.convertInput();
+                    super.convertInput();
                 }
             }
 

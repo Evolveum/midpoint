@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -17,56 +17,56 @@
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
-	<report oid="report01-0000-0000-0000-000000000000">
+    <report oid="report01-0000-0000-0000-000000000000">
         <name>report01</name>
         <description>report01descritpion</description>
     </report>
-	
-	<reportOutput oid="report01-pdf0-0000-0000-output010000">
-		<name>reportOutput01.pdf</name>
-		<!--<metadata>
-			<createTimestamp>2013-06-01T00:30:00.000+02:00</createTimestamp>
-			<creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+
+    <reportOutput oid="report01-pdf0-0000-0000-output010000">
+        <name>reportOutput01.pdf</name>
+        <!--<metadata>
+            <createTimestamp>2013-06-01T00:30:00.000+02:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         </metadata>-->
         <filePath>${midpointhome}/export/reportOutput01.pdf</filePath>
         <reportRef oid="report01-0000-0000-0000-000000000000"/>
      </reportOutput>
-	 
-	 <reportOutput oid="report01-pdf0-0000-0000-output020000">
-		<name>reportOutput02.pdf</name>
-		<!--<metadata>
-			<createTimestamp>2013-07-01T00:30:00.000+02:00</createTimestamp>
-			<creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+
+     <reportOutput oid="report01-pdf0-0000-0000-output020000">
+        <name>reportOutput02.pdf</name>
+        <!--<metadata>
+            <createTimestamp>2013-07-01T00:30:00.000+02:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         </metadata>-->
         <filePath>${midpointhome}/export/reportOutput02.pdf</filePath>
         <reportRef oid="report01-0000-0000-0000-000000000000"/>
      </reportOutput>
-	 
-	 <reportOutput oid="report01-pdf0-0000-0000-output030000">
-		<name>reportOutput03.pdf</name>
-		<!--<metadata>
-			<createTimestamp>2013-08-01T00:30:00.000+02:00</createTimestamp>
-			<creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+
+     <reportOutput oid="report01-pdf0-0000-0000-output030000">
+        <name>reportOutput03.pdf</name>
+        <!--<metadata>
+            <createTimestamp>2013-08-01T00:30:00.000+02:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         </metadata>-->
         <filePath>${midpointhome}/export/reportOutput03.pdf</filePath>
         <reportRef oid="report01-0000-0000-0000-000000000000"/>
      </reportOutput>
-	 
-	 <reportOutput oid="report01-csv0-0000-0000-output010000">
-		<name>reportOutput01.csv</name>
-		<!--<metadata>
-			<createTimestamp>2013-06-01T00:30:00.000+02:00</createTimestamp>
-			<creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+
+     <reportOutput oid="report01-csv0-0000-0000-output010000">
+        <name>reportOutput01.csv</name>
+        <!--<metadata>
+            <createTimestamp>2013-06-01T00:30:00.000+02:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         </metadata>-->
         <filePath>${midpointhome}/export/reportOutput01.csv</filePath>
         <reportRef oid="report01-0000-0000-0000-000000000000"/>
      </reportOutput>
-	 
-	 <reportOutput oid="report01-csv0-0000-0000-output020000">
-		<name>reportOutput02.csv</name>
-		<!--<metadata>
-			<createTimestamp>2013-07-01T00:30:00.000+02:00</createTimestamp>
-			<creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+
+     <reportOutput oid="report01-csv0-0000-0000-output020000">
+        <name>reportOutput02.csv</name>
+        <!--<metadata>
+            <createTimestamp>2013-07-01T00:30:00.000+02:00</createTimestamp>
+            <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         </metadata>-->
         <filePath>${midpointhome}/export/reportOutput02.csv</filePath>
         <reportRef oid="report01-0000-0000-0000-000000000000"/>

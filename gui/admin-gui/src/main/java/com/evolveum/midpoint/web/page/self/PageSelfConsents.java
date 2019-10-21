@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
@@ -35,10 +35,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 
 @PageDescriptor(
-		urls = {
-				@Url(mountUrl = "/self/consents")
-				},
-		action = {
+        urls = {
+                @Url(mountUrl = "/self/consents")
+                },
+        action = {
         @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
@@ -47,58 +47,58 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
                 description = "PageSelfCredentials.auth.consents.description")})
 public class PageSelfConsents extends PageBase{
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private LoadableModel<List<AssignmentType>> consentModel;
-	private static final String DOT_CLASS = PageSelfConsents.class.getSimpleName() + ".";
-	private static final String OPERATION_LOAD_USER =  DOT_CLASS + "loadUserSelf";
+    private LoadableModel<List<AssignmentType>> consentModel;
+    private static final String DOT_CLASS = PageSelfConsents.class.getSimpleName() + ".";
+    private static final String OPERATION_LOAD_USER =  DOT_CLASS + "loadUserSelf";
 
-	private static final String ID_CONSENTS = "consents";
+    private static final String ID_CONSENTS = "consents";
 
-	public PageSelfConsents() {
+    public PageSelfConsents() {
 
-		consentModel = new LoadableModel<List<AssignmentType>>() {
+        consentModel = new LoadableModel<List<AssignmentType>>() {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected List<AssignmentType> load() {
-				MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+            @Override
+            protected List<AssignmentType> load() {
+                MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
 
-				if (principal == null) {
-					return null;
-				}
+                if (principal == null) {
+                    return null;
+                }
 
-				Task task = createSimpleTask(OPERATION_LOAD_USER);
-				OperationResult result = task.getResult();
-				PrismObject<UserType> userSelf = WebModelServiceUtils.loadObject(UserType.class, principal.getOid(), PageSelfConsents.this, task, result);
-				PrismContainer<AssignmentType> assignmentContainer = userSelf.findContainer(UserType.F_ASSIGNMENT);
-				if (assignmentContainer == null || assignmentContainer.isEmpty()) {
-					return new ArrayList<>();
-				}
+                Task task = createSimpleTask(OPERATION_LOAD_USER);
+                OperationResult result = task.getResult();
+                PrismObject<UserType> userSelf = WebModelServiceUtils.loadObject(UserType.class, principal.getOid(), PageSelfConsents.this, task, result);
+                PrismContainer<AssignmentType> assignmentContainer = userSelf.findContainer(UserType.F_ASSIGNMENT);
+                if (assignmentContainer == null || assignmentContainer.isEmpty()) {
+                    return new ArrayList<>();
+                }
 
-				Collection<AssignmentType> assignments = assignmentContainer.getRealValues();
-				return assignments.stream()
-						.filter(a -> a.getTargetRef()!= null && QNameUtil.match(a.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT))
-						.collect(Collectors.toList());
-			}
-		};
+                Collection<AssignmentType> assignments = assignmentContainer.getRealValues();
+                return assignments.stream()
+                        .filter(a -> a.getTargetRef()!= null && QNameUtil.match(a.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT))
+                        .collect(Collectors.toList());
+            }
+        };
 
-		initLayout();
-	}
+        initLayout();
+    }
 
-	private void initLayout() {
+    private void initLayout() {
 
-		RepeatingView consents = new RepeatingView(ID_CONSENTS);
-		consents.setOutputMarkupId(true);
-		for (AssignmentType assignmentType : consentModel.getObject()) {
-			SelfConsentPanel consentPanel = new SelfConsentPanel(consents.newChildId(), Model.of(assignmentType), this);
-			consentPanel.setOutputMarkupId(true);
-			consents.add(consentPanel);
-		}
+        RepeatingView consents = new RepeatingView(ID_CONSENTS);
+        consents.setOutputMarkupId(true);
+        for (AssignmentType assignmentType : consentModel.getObject()) {
+            SelfConsentPanel consentPanel = new SelfConsentPanel(consents.newChildId(), Model.of(assignmentType), this);
+            consentPanel.setOutputMarkupId(true);
+            consents.add(consentPanel);
+        }
 
-		add(consents);
+        add(consents);
 
-	}
+    }
 
 }

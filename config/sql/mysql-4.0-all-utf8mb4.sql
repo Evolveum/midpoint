@@ -323,7 +323,7 @@ CREATE TABLE m_audit_ref_value (
   COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_audit_resource (
-  resourceOid 	  VARCHAR(255) CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  resourceOid       VARCHAR(255) CHARSET utf8 COLLATE utf8_bin NOT NULL,
   record_id       BIGINT       NOT NULL,
   PRIMARY KEY (record_id, resourceOid)
 )

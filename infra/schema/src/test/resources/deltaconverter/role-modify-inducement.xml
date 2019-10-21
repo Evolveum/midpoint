@@ -3,24 +3,24 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<oid>00000000-8888-6666-0000-100000000005</oid>
-	<itemDelta>
-		<t:modificationType>add</t:modificationType>
+    <oid>00000000-8888-6666-0000-100000000005</oid>
+    <itemDelta>
+        <t:modificationType>add</t:modificationType>
         <t:path>c:inducement[5]/c:targetRef</t:path>
-		<t:value xsiType="c:ObjectReferenceType" oid="12345678-d34d-b33f-f00d-987987987987" type="c:RoleType" >
+        <t:value xsiType="c:ObjectReferenceType" oid="12345678-d34d-b33f-f00d-987987987987" type="c:RoleType" >
         </t:value>
         <!--<t:value>-->
             <!--<c:oid>12345678-d34d-b33f-f00d-987987987987</c:oid>-->
             <!--<c:type>c:RoleType</c:type>-->
         <!--</t:value>-->
-	</itemDelta>
+    </itemDelta>
 </objectModification>

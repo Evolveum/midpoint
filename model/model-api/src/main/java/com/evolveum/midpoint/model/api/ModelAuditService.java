@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api;
@@ -28,31 +28,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface ModelAuditService {
 
-	<O extends ObjectType> PrismObject<O> reconstructObject(Class<O> type, String oid, String eventIdentifier,
-			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException;
+    <O extends ObjectType> PrismObject<O> reconstructObject(Class<O> type, String oid, String eventIdentifier,
+            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException;
 
-	void audit(AuditEventRecord record, Task task, OperationResult result)
-			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    void audit(AuditEventRecord record, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Clean up audit records that are older than specified.
      *
      * @param policy Records will be deleted base on this policy.
      */
-	void cleanupAudit(CleanupPolicyType policy, Task task, OperationResult parentResult)
-			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    void cleanupAudit(CleanupPolicyType policy, Task task, OperationResult parentResult)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
      */
     List<AuditEventRecord> listRecords(String query, Map<String, Object> params, Task task, OperationResult parentResult)
-    		throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
      */
     long countObjects(String query, Map<String, Object> params, Task task, OperationResult parentResult)
-    		throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     /**
      * Returns true if retrieval of objects from the audit trail is supported.

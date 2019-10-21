@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -37,46 +37,46 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 @Component
 public class ProfilingLoggerLevelPanelFactory implements GuiComponentFactory<PrismPropertyPanelContext<LoggingLevelType>>, Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Autowired private transient GuiComponentRegistry registry;
+    @Autowired private transient GuiComponentRegistry registry;
 
-	@Override
-	public Integer getOrder() {
-		return Integer.MAX_VALUE-1;
-	}
-	
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
-	
-	@Override
-	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return wrapper.getParent() instanceof ProfilingClassLoggerContainerValueWrapperImpl && wrapper.getItemName().equals(ClassLoggerConfigurationType.F_LEVEL);
-	}
+    @Override
+    public Integer getOrder() {
+        return Integer.MAX_VALUE-1;
+    }
 
-	@Override
-	public Panel createPanel(PrismPropertyPanelContext<LoggingLevelType> panelCtx) {
-		DropDownChoicePanel<ProfilingLevel> dropDownProfilingLevel = new DropDownChoicePanel<>(panelCtx.getComponentId(), new Model<ProfilingLevel>() {
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
 
-			private static final long serialVersionUID = 1L;
-			
-			
-			@Override
-			public ProfilingLevel getObject() {
-			return ProfilingLevel.fromLoggerLevelType(panelCtx.getRealValueModel().getObject());
-			}
-			
-			@Override
-			public void setObject(ProfilingLevel object) {
-				super.setObject(object);
-				panelCtx.getRealValueModel().setObject(ProfilingLevel.toLoggerLevelType(object));
-			}
-	
-		}, WebComponentUtil.createReadonlyModelFromEnum(ProfilingLevel.class), new EnumChoiceRenderer<>(), true);
+    @Override
+    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+        return wrapper.getParent() instanceof ProfilingClassLoggerContainerValueWrapperImpl && wrapper.getItemName().equals(ClassLoggerConfigurationType.F_LEVEL);
+    }
 
-		
-		return dropDownProfilingLevel;
-	}
+    @Override
+    public Panel createPanel(PrismPropertyPanelContext<LoggingLevelType> panelCtx) {
+        DropDownChoicePanel<ProfilingLevel> dropDownProfilingLevel = new DropDownChoicePanel<>(panelCtx.getComponentId(), new Model<ProfilingLevel>() {
+
+            private static final long serialVersionUID = 1L;
+
+
+            @Override
+            public ProfilingLevel getObject() {
+            return ProfilingLevel.fromLoggerLevelType(panelCtx.getRealValueModel().getObject());
+            }
+
+            @Override
+            public void setObject(ProfilingLevel object) {
+                super.setObject(object);
+                panelCtx.getRealValueModel().setObject(ProfilingLevel.toLoggerLevelType(object));
+            }
+
+        }, WebComponentUtil.createReadonlyModelFromEnum(ProfilingLevel.class), new EnumChoiceRenderer<>(), true);
+
+
+        return dropDownProfilingLevel;
+    }
 }

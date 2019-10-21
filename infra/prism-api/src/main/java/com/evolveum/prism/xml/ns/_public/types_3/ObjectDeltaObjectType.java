@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -81,18 +81,18 @@ public class ObjectDeltaObjectType implements Serializable, JaxbVisitable {
     }
 
     @Override
-	public void accept(JaxbVisitor visitor) {
-		visitor.visit(this);
-		if (oldObject != null) {
-			oldObject.accept(visitor);
-		}
-		if (delta != null) {
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+        if (oldObject != null) {
+            oldObject.accept(visitor);
+        }
+        if (delta != null) {
             delta.accept(visitor);
-		}
+        }
         if (newObject != null) {
             newObject.accept(visitor);
         }
-	}
+    }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ObjectDeltaObjectType clone() {

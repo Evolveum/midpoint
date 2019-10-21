@@ -1,51 +1,51 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="6bc73701-f1db-4fef-b644-8bfd7b64d97b"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-	<name>common-rules</name>
-	<inducement>
-		<policyRule>
-			<policyConstraints>
-				<situation>
-					<presentation>
-						<hidden>true</hidden>
-					</presentation>
-					<situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
-				</situation>
-			</policyConstraints>
-			<policyActions>
-				<record/>
-			</policyActions>
-		</policyRule>
-	</inducement>
-	<inducement>
-		<policyRule>
-			<policyConstraints>
-				<objectState>
-					<presentation>
-						<message>
-							<fallbackMessage>The role is in wrong state.</fallbackMessage>
-						</message>
-					</presentation>
-					<filter>
-						<q:equal>
-							<q:path>description</q:path>
-							<q:value>wrong</q:value>
-						</q:equal>
-					</filter>
-				</objectState>
-			</policyConstraints>
-			<policySituation>http://test.org/wrong</policySituation>
-			<policyActions>
-				<record/>
-			</policyActions>
-		</policyRule>
-	</inducement>
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>common-rules</name>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <situation>
+                    <presentation>
+                        <hidden>true</hidden>
+                    </presentation>
+                    <situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
+                </situation>
+            </policyConstraints>
+            <policyActions>
+                <record/>
+            </policyActions>
+        </policyRule>
+    </inducement>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <objectState>
+                    <presentation>
+                        <message>
+                            <fallbackMessage>The role is in wrong state.</fallbackMessage>
+                        </message>
+                    </presentation>
+                    <filter>
+                        <q:equal>
+                            <q:path>description</q:path>
+                            <q:value>wrong</q:value>
+                        </q:equal>
+                    </filter>
+                </objectState>
+            </policyConstraints>
+            <policySituation>http://test.org/wrong</policySituation>
+            <policyActions>
+                <record/>
+            </policyActions>
+        </policyRule>
+    </inducement>
 </role>

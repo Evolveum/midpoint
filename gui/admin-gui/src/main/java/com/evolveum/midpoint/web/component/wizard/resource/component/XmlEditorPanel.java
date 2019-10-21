@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,14 +22,14 @@ public class XmlEditorPanel extends BasePanel<String> {
     public XmlEditorPanel(String id, IModel<String> model) {
         super(id, model);
     }
-    
+
     @Override
     protected void onInitialize() {
-    	super.onInitialize();
-    	initLayout();
+        super.onInitialize();
+        initLayout();
     }
 
-    
+
     protected void initLayout() {
         AceEditor editor = new AceEditor(ID_ACE_EDITOR, getModel());
         add(editor);

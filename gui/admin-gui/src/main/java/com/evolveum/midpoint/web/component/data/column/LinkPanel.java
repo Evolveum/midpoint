@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -24,18 +24,18 @@ import org.apache.wicket.model.IModel;
  * @author lazyman
  */
 public class LinkPanel extends Panel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_LINK = "link";
+    private static final String ID_LINK = "link";
     private static final String ID_LABEL = "label";
 
     public LinkPanel(String id, IModel labelModel) {
         super(id);
 
         AjaxLink<String> link = new AjaxLink<String>(ID_LINK) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public void onClick(AjaxRequestTarget target) {
                 LinkPanel.this.onClick(target);
             }
@@ -50,21 +50,21 @@ public class LinkPanel extends Panel {
 //                return null;
 //            }
         };
-		Label label;
+        Label label;
         if(labelModel.getObject() instanceof QName) {
-        	label = new Label(ID_LABEL, new IModel<String>() {
+            label = new Label(ID_LABEL, new IModel<String>() {
 
-				@Override
-				public String getObject() {
-					return ((QName) labelModel.getObject()).getLocalPart();
-				}
-			});
+                @Override
+                public String getObject() {
+                    return ((QName) labelModel.getObject()).getLocalPart();
+                }
+            });
         } else {
-        	label = new Label(ID_LABEL, labelModel);
+            label = new Label(ID_LABEL, labelModel);
         }
         link.add(label);
         link.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isEnabled() {

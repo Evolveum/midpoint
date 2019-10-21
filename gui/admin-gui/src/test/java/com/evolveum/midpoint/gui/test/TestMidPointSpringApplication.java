@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.test;
@@ -48,7 +48,7 @@ import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
         "classpath:ctx-model.xml",
         "classpath:ctx-model-test.xml",
         "classpath:ctx-model-common.xml",
-		"classpath:ctx-init.xml",
+        "classpath:ctx-init.xml",
         "classpath:ctx-report.xml",
         "classpath*:ctx-workflow.xml",
         "classpath*:ctx-notifications.xml",
@@ -61,51 +61,51 @@ import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 @SpringBootConfiguration
 @ComponentScan(basePackages = {"com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
 public class TestMidPointSpringApplication extends AbstractSpringBootApplication {
-	
-	private static final transient Trace LOGGER = TraceManager.getTrace(TestMidPointSpringApplication.class);
-	
-	private static ConfigurableApplicationContext applicationContext = null;
-	
-	 public static void main(String[] args) {
-	    	System.out.println("ClassPath: "+ System.getProperty("java.class.path"));
-	    	
-	        System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.impl.schema.CatalogImpl");
-	        String mode = args != null && args.length > 0 ? args[0] : null;
-	        
-	        if(LOGGER.isDebugEnabled()){
-	            LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
-	                    " Application mode:" + mode + " context:" + applicationContext);
-	        }
-	        
-	        if (applicationContext != null && mode != null && "stop".equals(mode)) {
-	            System.exit(SpringApplication.exit(applicationContext, new ExitCodeGenerator() {
-	                
-	                @Override
-	                public int getExitCode() {
-	                    
-	                    return 0;
-	                }
-	            }));
-	            
-	        } else {
-	            
-	            applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
-	            
-	            if (LOGGER.isDebugEnabled()) {
-	                LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
-	                             " Application started context:" + applicationContext);
-	            }
-	            
-	        }
 
-	    }
-	
-	@Override
+    private static final transient Trace LOGGER = TraceManager.getTrace(TestMidPointSpringApplication.class);
+
+    private static ConfigurableApplicationContext applicationContext = null;
+
+     public static void main(String[] args) {
+            System.out.println("ClassPath: "+ System.getProperty("java.class.path"));
+
+            System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.impl.schema.CatalogImpl");
+            String mode = args != null && args.length > 0 ? args[0] : null;
+
+            if(LOGGER.isDebugEnabled()){
+                LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
+                        " Application mode:" + mode + " context:" + applicationContext);
+            }
+
+            if (applicationContext != null && mode != null && "stop".equals(mode)) {
+                System.exit(SpringApplication.exit(applicationContext, new ExitCodeGenerator() {
+
+                    @Override
+                    public int getExitCode() {
+
+                        return 0;
+                    }
+                }));
+
+            } else {
+
+                applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
+                                 " Application started context:" + applicationContext);
+                }
+
+            }
+
+        }
+
+    @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return configureApplication(application);
     }
-    
-	//what is this for? why static?
+
+    //what is this for? why static?
     private static SpringApplicationBuilder configureApplication(SpringApplicationBuilder application) {
         String mpHome = System.getProperty(MIDPOINT_HOME_PROPERTY);
         if (StringUtils.isEmpty(mpHome)) {
@@ -118,7 +118,7 @@ public class TestMidPointSpringApplication extends AbstractSpringBootApplication
             mpHome += "midpoint";
             System.setProperty(MIDPOINT_HOME_PROPERTY, mpHome);
         }
-        
+
         System.setProperty("spring.config.additional-location", "${midpoint.home}/");
 
         application.bannerMode(Banner.Mode.LOG);

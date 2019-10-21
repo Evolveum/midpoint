@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.resources;
@@ -47,301 +47,301 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  * @author semancik
  */
 public class ResourceContentTabPanel extends Panel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ResourceContentTabPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceContentTabPanel.class);
 
-	enum Operation {
-		REMOVE, MODIFY;
-	}
+    enum Operation {
+        REMOVE, MODIFY;
+    }
 
-	private static final String DOT_CLASS = ResourceContentTabPanel.class.getName() + ".";
+    private static final String DOT_CLASS = ResourceContentTabPanel.class.getName() + ".";
 
-	private static final String ID_INTENT = "intent";
-	private static final String ID_REAL_OBJECT_CLASS = "realObjectClass";
-	private static final String ID_OBJECT_CLASS = "objectClass";
-	private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_INTENT = "intent";
+    private static final String ID_REAL_OBJECT_CLASS = "realObjectClass";
+    private static final String ID_OBJECT_CLASS = "objectClass";
+    private static final String ID_MAIN_FORM = "mainForm";
 
-	private static final String ID_REPO_SEARCH = "repositorySearch";
-	private static final String ID_RESOURCE_SEARCH = "resourceSearch";
+    private static final String ID_REPO_SEARCH = "repositorySearch";
+    private static final String ID_RESOURCE_SEARCH = "resourceSearch";
 
-	private static final String ID_TABLE = "table";
+    private static final String ID_TABLE = "table";
 
-	private PageBase parentPage;
-	private ShadowKindType kind;
+    private PageBase parentPage;
+    private ShadowKindType kind;
 
-	private boolean useObjectClass;
-	private boolean isRepoSearch = true;
+    private boolean useObjectClass;
+    private boolean isRepoSearch = true;
 
-	private IModel<ResourceContentSearchDto> resourceContentSearch;
+    private IModel<ResourceContentSearchDto> resourceContentSearch;
 
-	public ResourceContentTabPanel(String id, final ShadowKindType kind,
-			final IModel<PrismObject<ResourceType>> model, PageBase parentPage) {
-		super(id, model);
-		this.parentPage = parentPage;
+    public ResourceContentTabPanel(String id, final ShadowKindType kind,
+            final IModel<PrismObject<ResourceType>> model, PageBase parentPage) {
+        super(id, model);
+        this.parentPage = parentPage;
 
-		this.resourceContentSearch = createContentSearchModel(kind);
+        this.resourceContentSearch = createContentSearchModel(kind);
 
-		this.kind = kind;
+        this.kind = kind;
 
-		initLayout(model, parentPage);
-	}
+        initLayout(model, parentPage);
+    }
 
-	private IModel<ResourceContentSearchDto> createContentSearchModel(final ShadowKindType kind) {
-		return new LoadableModel<ResourceContentSearchDto>(true) {
+    private IModel<ResourceContentSearchDto> createContentSearchModel(final ShadowKindType kind) {
+        return new LoadableModel<ResourceContentSearchDto>(true) {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected ResourceContentSearchDto load() {
+            @Override
+            protected ResourceContentSearchDto load() {
                 isRepoSearch  = !getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).getResourceSearch();
                 return getContentStorage(kind, isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                         SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).getContentSearch();
 
-			}
+            }
 
-		};
+        };
 
-	}
+    }
 
-	private void updateResourceContentSearch() {
-		ResourceContentSearchDto searchDto = resourceContentSearch.getObject();
-		getContentStorage(kind, isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
+    private void updateResourceContentSearch() {
+        ResourceContentSearchDto searchDto = resourceContentSearch.getObject();
+        getContentStorage(kind, isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setContentSearch(searchDto);
-	}
+    }
 
-	private ResourceContentStorage getContentStorage(ShadowKindType kind, String searchMode) {
-		return parentPage.getSessionStorage().getResourceContentStorage(kind, searchMode);
-	}
+    private ResourceContentStorage getContentStorage(ShadowKindType kind, String searchMode) {
+        return parentPage.getSessionStorage().getResourceContentStorage(kind, searchMode);
+    }
 
-	private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
-		setOutputMarkupId(true);
+    private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
+        setOutputMarkupId(true);
 
-		final Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
-		mainForm.setOutputMarkupId(true);
-		mainForm.addOrReplace(initTable(model));
-		add(mainForm);
+        final Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        mainForm.setOutputMarkupId(true);
+        mainForm.addOrReplace(initTable(model));
+        add(mainForm);
 
-		AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT,
+        AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT,
             new PropertyModel<>(resourceContentSearch, "intent"), String.class, false, null) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public Iterator<String> getIterator(String input) {
-				RefinedResourceSchema refinedSchema = null;
-				try {
-					refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject(),
-							parentPage.getPrismContext());
+            @Override
+            public Iterator<String> getIterator(String input) {
+                RefinedResourceSchema refinedSchema = null;
+                try {
+                    refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject(),
+                            parentPage.getPrismContext());
 
-				} catch (SchemaException e) {
-					return new ArrayList<String>().iterator();
-				}
-				return RefinedResourceSchemaImpl.getIntentsForKind(refinedSchema, getKind()).iterator();
+                } catch (SchemaException e) {
+                    return new ArrayList<String>().iterator();
+                }
+                return RefinedResourceSchemaImpl.getIntentsForKind(refinedSchema, getKind()).iterator();
 
-			}
+            }
 
-		};
-		intent.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-			private static final long serialVersionUID = 1L;
+        };
+        intent.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				target.add(get(ID_REAL_OBJECT_CLASS));
-				updateResourceContentSearch();
-				mainForm.addOrReplace(initTable(model));
-				target.add(mainForm);
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(get(ID_REAL_OBJECT_CLASS));
+                updateResourceContentSearch();
+                mainForm.addOrReplace(initTable(model));
+                target.add(mainForm);
 
-			}
-		});
-		intent.setOutputMarkupId(true);
-		intent.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+            }
+        });
+        intent.setOutputMarkupId(true);
+        intent.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return !isUseObjectClass();
-			}
-		});
-		add(intent);
+            @Override
+            public boolean isVisible() {
+                return !isUseObjectClass();
+            }
+        });
+        add(intent);
 
-		Label realObjectClassLabel = new Label(ID_REAL_OBJECT_CLASS, new IModel<String>() {
-			private static final long serialVersionUID = 1L;
+        Label realObjectClassLabel = new Label(ID_REAL_OBJECT_CLASS, new IModel<String>() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public String getObject() {
-				RefinedObjectClassDefinition ocDef;
-				try {
-					RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
-							.getRefinedSchema(model.getObject(), parentPage.getPrismContext());
-					if (refinedSchema == null) {
-						return "NO SCHEMA DEFINED";
-					}
-					ocDef = refinedSchema.getRefinedDefinition(getKind(), getIntent());
-					if (ocDef != null) {
-						return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
-					}
-				} catch (SchemaException e) {
-				}
+            @Override
+            public String getObject() {
+                RefinedObjectClassDefinition ocDef;
+                try {
+                    RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl
+                            .getRefinedSchema(model.getObject(), parentPage.getPrismContext());
+                    if (refinedSchema == null) {
+                        return "NO SCHEMA DEFINED";
+                    }
+                    ocDef = refinedSchema.getRefinedDefinition(getKind(), getIntent());
+                    if (ocDef != null) {
+                        return ocDef.getObjectClassDefinition().getTypeName().getLocalPart();
+                    }
+                } catch (SchemaException e) {
+                }
 
-				return "NOT FOUND";
-			}
-		});
-		realObjectClassLabel.setOutputMarkupId(true);
-		add(realObjectClassLabel);
+                return "NOT FOUND";
+            }
+        });
+        realObjectClassLabel.setOutputMarkupId(true);
+        add(realObjectClassLabel);
 
-		AutoCompleteQNamePanel objectClassPanel = new AutoCompleteQNamePanel(ID_OBJECT_CLASS,
+        AutoCompleteQNamePanel objectClassPanel = new AutoCompleteQNamePanel(ID_OBJECT_CLASS,
             new PropertyModel<>(resourceContentSearch, "objectClass")) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public Collection<QName> loadChoices() {
-				return createObjectClassChoices(model);
-			}
+            @Override
+            public Collection<QName> loadChoices() {
+                return createObjectClassChoices(model);
+            }
 
-			@Override
-			protected void onChange(AjaxRequestTarget target) {
-				LOGGER.trace("Object class panel update: {}", isUseObjectClass());
-				updateResourceContentSearch();
-				mainForm.addOrReplace(initTable(model));
-				target.add(mainForm);
-			}
+            @Override
+            protected void onChange(AjaxRequestTarget target) {
+                LOGGER.trace("Object class panel update: {}", isUseObjectClass());
+                updateResourceContentSearch();
+                mainForm.addOrReplace(initTable(model));
+                target.add(mainForm);
+            }
 
-		};
+        };
 
-		objectClassPanel.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+        objectClassPanel.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return isUseObjectClass();
-			}
-		});
-		add(objectClassPanel);
+            @Override
+            public boolean isVisible() {
+                return isUseObjectClass();
+            }
+        });
+        add(objectClassPanel);
 
-		AjaxLink<Boolean> repoSearch = new AjaxLink<Boolean>(ID_REPO_SEARCH,
+        AjaxLink<Boolean> repoSearch = new AjaxLink<Boolean>(ID_REPO_SEARCH,
             new PropertyModel<>(resourceContentSearch, "resourceSearch")) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
                 isRepoSearch = true;
                 getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).setResourceSearch(Boolean.FALSE);
                 getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setResourceSearch(Boolean.FALSE);
 
                 resourceContentSearch.getObject().setResourceSearch(Boolean.FALSE);
-				updateResourceContentSearch();
-				mainForm.addOrReplace(initRepoContent(model));
-				target.add(getParent().addOrReplace(mainForm));
-				target.add(this);
-				target.add(getParent().get(ID_RESOURCE_SEARCH)
-						.add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
-			}
+                updateResourceContentSearch();
+                mainForm.addOrReplace(initRepoContent(model));
+                target.add(getParent().addOrReplace(mainForm));
+                target.add(this);
+                target.add(getParent().get(ID_RESOURCE_SEARCH)
+                        .add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
+            }
 
-			@Override
-			protected void onBeforeRender() {
-				super.onBeforeRender();
-				if (!getModelObject().booleanValue())
-					add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
-			}
-		};
-		add(repoSearch);
+            @Override
+            protected void onBeforeRender() {
+                super.onBeforeRender();
+                if (!getModelObject().booleanValue())
+                    add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
+            }
+        };
+        add(repoSearch);
 
-		AjaxLink<Boolean> resourceSearch = new AjaxLink<Boolean>(ID_RESOURCE_SEARCH,
+        AjaxLink<Boolean> resourceSearch = new AjaxLink<Boolean>(ID_RESOURCE_SEARCH,
             new PropertyModel<>(resourceContentSearch, "resourceSearch")) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
                 isRepoSearch = false;
                 getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).setResourceSearch(Boolean.TRUE);
                 getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setResourceSearch(Boolean.TRUE);
                 updateResourceContentSearch();
                 resourceContentSearch.getObject().setResourceSearch(Boolean.TRUE);
-				mainForm.addOrReplace(initResourceContent(model));
-				target.add(getParent().addOrReplace(mainForm));
-				target.add(this.add(AttributeModifier.append("class", " active")));
-				target.add(getParent().get(ID_REPO_SEARCH)
-						.add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
-			}
+                mainForm.addOrReplace(initResourceContent(model));
+                target.add(getParent().addOrReplace(mainForm));
+                target.add(this.add(AttributeModifier.append("class", " active")));
+                target.add(getParent().get(ID_REPO_SEARCH)
+                        .add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
+            }
 
-			@Override
-			protected void onBeforeRender() {
-				super.onBeforeRender();
-				getModelObject().booleanValue();
-				if (getModelObject().booleanValue())
-					add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
-			}
-		};
-		add(resourceSearch);
+            @Override
+            protected void onBeforeRender() {
+                super.onBeforeRender();
+                getModelObject().booleanValue();
+                if (getModelObject().booleanValue())
+                    add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));
+            }
+        };
+        add(resourceSearch);
 
-	}
+    }
 
-	private List<QName> createObjectClassChoices(IModel<PrismObject<ResourceType>> model) {
-		RefinedResourceSchema refinedSchema;
-		try {
-			refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject(),
-					parentPage.getPrismContext());
-		} catch (SchemaException e) {
-			warn("Could not determine defined obejct classes for resource");
-			return new ArrayList<>();
-		}
-		Collection<ObjectClassComplexTypeDefinition> defs = refinedSchema.getObjectClassDefinitions();
-		List<QName> objectClasses = new ArrayList<>(defs.size());
-		for (ObjectClassComplexTypeDefinition def : defs) {
-			objectClasses.add(def.getTypeName());
-		}
-		return objectClasses;
-	}
+    private List<QName> createObjectClassChoices(IModel<PrismObject<ResourceType>> model) {
+        RefinedResourceSchema refinedSchema;
+        try {
+            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(model.getObject(),
+                    parentPage.getPrismContext());
+        } catch (SchemaException e) {
+            warn("Could not determine defined obejct classes for resource");
+            return new ArrayList<>();
+        }
+        Collection<ObjectClassComplexTypeDefinition> defs = refinedSchema.getObjectClassDefinitions();
+        List<QName> objectClasses = new ArrayList<>(defs.size());
+        for (ObjectClassComplexTypeDefinition def : defs) {
+            objectClasses.add(def.getTypeName());
+        }
+        return objectClasses;
+    }
 
-	private ResourceContentPanel initTable(IModel<PrismObject<ResourceType>> model) {
-		if (isResourceSearch()) {
-			return initResourceContent(model);
-		} else {
-			return initRepoContent(model);
-		}
-	}
+    private ResourceContentPanel initTable(IModel<PrismObject<ResourceType>> model) {
+        if (isResourceSearch()) {
+            return initResourceContent(model);
+        } else {
+            return initRepoContent(model);
+        }
+    }
 
-	private ResourceContentResourcePanel initResourceContent(IModel<PrismObject<ResourceType>> model) {
+    private ResourceContentResourcePanel initResourceContent(IModel<PrismObject<ResourceType>> model) {
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
-		ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, model,
-				getObjectClass(), getKind(), getIntent(), searchMode, parentPage);
-		resourceContent.setOutputMarkupId(true);
-		return resourceContent;
+        ResourceContentResourcePanel resourceContent = new ResourceContentResourcePanel(ID_TABLE, model,
+                getObjectClass(), getKind(), getIntent(), searchMode, parentPage);
+        resourceContent.setOutputMarkupId(true);
+        return resourceContent;
 
-	}
+    }
 
-	private ResourceContentRepositoryPanel initRepoContent(IModel<PrismObject<ResourceType>> model) {
+    private ResourceContentRepositoryPanel initRepoContent(IModel<PrismObject<ResourceType>> model) {
         String searchMode = isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT;
-		ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, model,
-				getObjectClass(), getKind(), getIntent(), searchMode, parentPage);
-		repositoryContent.setOutputMarkupId(true);
-		return repositoryContent;
-	}
+        ResourceContentRepositoryPanel repositoryContent = new ResourceContentRepositoryPanel(ID_TABLE, model,
+                getObjectClass(), getKind(), getIntent(), searchMode, parentPage);
+        repositoryContent.setOutputMarkupId(true);
+        return repositoryContent;
+    }
 
-	private ShadowKindType getKind() {
-		return resourceContentSearch.getObject().getKind();
-	}
+    private ShadowKindType getKind() {
+        return resourceContentSearch.getObject().getKind();
+    }
 
-	private String getIntent() {
-		return resourceContentSearch.getObject().getIntent();
-	}
+    private String getIntent() {
+        return resourceContentSearch.getObject().getIntent();
+    }
 
-	private QName getObjectClass() {
-		return resourceContentSearch.getObject().getObjectClass();
-	}
+    private QName getObjectClass() {
+        return resourceContentSearch.getObject().getObjectClass();
+    }
 
-	private boolean isResourceSearch() {
-		Boolean isResourceSearch = resourceContentSearch.getObject().isResourceSearch();
-		if (isResourceSearch == null) {
-			return false;
-		}
-		return resourceContentSearch.getObject().isResourceSearch();
-	}
+    private boolean isResourceSearch() {
+        Boolean isResourceSearch = resourceContentSearch.getObject().isResourceSearch();
+        if (isResourceSearch == null) {
+            return false;
+        }
+        return resourceContentSearch.getObject().isResourceSearch();
+    }
 
-	private boolean isUseObjectClass() {
-		return resourceContentSearch.getObject().isUseObjectClass();
-	}
+    private boolean isUseObjectClass() {
+        return resourceContentSearch.getObject().isUseObjectClass();
+    }
 
 }

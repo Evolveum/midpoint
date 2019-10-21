@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.common.refinery;
@@ -37,16 +37,16 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  */
 public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefinitionImpl<T> implements RefinedAttributeDefinition<T> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static LayerType DEFAULT_LAYER = LayerType.MODEL;
+    private static final LayerType DEFAULT_LAYER = LayerType.MODEL;
 
     private String displayName;
     private String description;
     private boolean tolerant = true;
     private boolean isExclusiveStrong = false;
-	protected Boolean secondaryIdentifierOverride = null;
-	private boolean isDisplayNameAttribute = false;
+    protected Boolean secondaryIdentifierOverride = null;
+    private boolean isDisplayNameAttribute = false;
     private List<String> intolerantValuePattern;
     private List<String> tolerantValuePattern;
     private ResourceAttributeDefinition<T> attributeDefinition;
@@ -72,59 +72,59 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     @Override
-	public boolean isTolerant() {
-		return tolerant;
-	}
-
-	public void setTolerant(boolean tolerant) {
-		this.tolerant = tolerant;
-	}
-
-	@Override
-	public Boolean isSecondaryIdentifierOverride() {
-		return secondaryIdentifierOverride;
-	}
-
-	public void setSecondaryIdentifierOverride(Boolean secondaryIdentifier) {
-		this.secondaryIdentifierOverride = secondaryIdentifier;
-	}
-
-	@Override
-    public boolean canAdd() {
-		return canAdd(DEFAULT_LAYER);
+    public boolean isTolerant() {
+        return tolerant;
     }
 
-	@Override
-	public boolean canAdd(LayerType layer) {
-		if (accessOverride.isAdd() != null) {
-			return accessOverride.isAdd();
-		}
-        return limitationsMap.get(layer).getAccess().isAdd();
-    }
-
-	@Override
-    public boolean canRead() {
-		return canRead(DEFAULT_LAYER);
+    public void setTolerant(boolean tolerant) {
+        this.tolerant = tolerant;
     }
 
     @Override
-	public boolean canRead(LayerType layer) {
-		if (accessOverride.isRead() != null) {
-			return accessOverride.isRead();
-		}
+    public Boolean isSecondaryIdentifierOverride() {
+        return secondaryIdentifierOverride;
+    }
+
+    public void setSecondaryIdentifierOverride(Boolean secondaryIdentifier) {
+        this.secondaryIdentifierOverride = secondaryIdentifier;
+    }
+
+    @Override
+    public boolean canAdd() {
+        return canAdd(DEFAULT_LAYER);
+    }
+
+    @Override
+    public boolean canAdd(LayerType layer) {
+        if (accessOverride.isAdd() != null) {
+            return accessOverride.isAdd();
+        }
+        return limitationsMap.get(layer).getAccess().isAdd();
+    }
+
+    @Override
+    public boolean canRead() {
+        return canRead(DEFAULT_LAYER);
+    }
+
+    @Override
+    public boolean canRead(LayerType layer) {
+        if (accessOverride.isRead() != null) {
+            return accessOverride.isRead();
+        }
         return limitationsMap.get(layer).getAccess().isRead();
     }
 
     @Override
     public boolean canModify() {
-    	return canModify(DEFAULT_LAYER);
+        return canModify(DEFAULT_LAYER);
     }
 
     @Override
-	public boolean canModify(LayerType layer) {
-		if (accessOverride.isModify() != null) {
-			return accessOverride.isModify();
-		}
+    public boolean canModify(LayerType layer) {
+        if (accessOverride.isModify() != null) {
+            return accessOverride.isModify();
+        }
         return limitationsMap.get(layer).getAccess().isModify();
     }
 
@@ -140,12 +140,12 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
     @Override
     public void setMinOccurs(int minOccurs) {
-    	throw new UnsupportedOperationException("Parts of refined attribute are immutable");
+        throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
 
     @Override
     public void setMaxOccurs(int maxOccurs) {
-    	throw new UnsupportedOperationException("Parts of refined attribute are immutable");
+        throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
 
     @Override
@@ -160,7 +160,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
     @Override
     public void setCanAdd(boolean create) {
-    	accessOverride.setAdd(create);
+        accessOverride.setAdd(create);
     }
 
     @Override
@@ -169,16 +169,16 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     @Override
-	public boolean isIgnored(LayerType layer) {
+    public boolean isIgnored(LayerType layer) {
         return limitationsMap.get(layer).getProcessing() == ItemProcessing.IGNORE;
     }
 
     @Override
-	public ItemProcessing getProcessing(LayerType layer) {
-		return limitationsMap.get(layer).getProcessing();
-	}
+    public ItemProcessing getProcessing(LayerType layer) {
+        return limitationsMap.get(layer).getProcessing();
+    }
 
-	@Override
+    @Override
     public void setProcessing(ItemProcessing processing) {
         throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
@@ -201,8 +201,8 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         this.displayName = displayName;
     }
 
-	@Override
-	public String getDescription() {
+    @Override
+    public String getDescription() {
         return description;
     }
 
@@ -211,7 +211,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     @Override
-	public ResourceAttributeDefinition<T> getAttributeDefinition() {
+    public ResourceAttributeDefinition<T> getAttributeDefinition() {
         return attributeDefinition;
     }
 
@@ -220,7 +220,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     @Override
-	public MappingType getOutboundMappingType() {
+    public MappingType getOutboundMappingType() {
         return outboundMappingType;
     }
 
@@ -229,12 +229,12 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     @Override
-	public boolean hasOutboundMapping() {
-    	return outboundMappingType != null;
+    public boolean hasOutboundMapping() {
+        return outboundMappingType != null;
     }
 
     @Override
-	public List<MappingType> getInboundMappingTypes() {
+    public List<MappingType> getInboundMappingTypes() {
         return inboundMappingTypes;
     }
 
@@ -243,12 +243,12 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     @NotNull
-	public ItemName getItemName() {
+    public ItemName getItemName() {
         return attributeDefinition.getItemName();
     }
 
     @NotNull
-	public QName getTypeName() {
+    public QName getTypeName() {
         return attributeDefinition.getTypeName();
     }
 
@@ -257,74 +257,74 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     public String getFrameworkAttributeName() {
-		return attributeDefinition.getFrameworkAttributeName();
-	}
+        return attributeDefinition.getFrameworkAttributeName();
+    }
 
     public Collection<? extends DisplayableValue<T>> getAllowedValues() {
         return attributeDefinition.getAllowedValues();
     }
 
     public boolean isReturnedByDefault() {
-		return attributeDefinition.isReturnedByDefault();
-	}
+        return attributeDefinition.isReturnedByDefault();
+    }
 
-	public void setReturnedByDefault(Boolean returnedByDefault) {
-		throw new UnsupportedOperationException("Cannot change returnedByDefault");
-	}
-
-	@Override
-    public int getMaxOccurs() {
-    	return getMaxOccurs(DEFAULT_LAYER);
+    public void setReturnedByDefault(Boolean returnedByDefault) {
+        throw new UnsupportedOperationException("Cannot change returnedByDefault");
     }
 
     @Override
-	public int getMaxOccurs(LayerType layer) {
-    	return limitationsMap.get(layer).getMaxOccurs();
+    public int getMaxOccurs() {
+        return getMaxOccurs(DEFAULT_LAYER);
+    }
+
+    @Override
+    public int getMaxOccurs(LayerType layer) {
+        return limitationsMap.get(layer).getMaxOccurs();
     }
 
     @Override
     public int getMinOccurs() {
-    	return getMinOccurs(DEFAULT_LAYER);
+        return getMinOccurs(DEFAULT_LAYER);
     }
 
     @Override
-	public int getMinOccurs(LayerType layer) {
-    	return limitationsMap.get(layer).getMinOccurs();
+    public int getMinOccurs(LayerType layer) {
+        return limitationsMap.get(layer).getMinOccurs();
     }
 
     @Override
-	public boolean isOptional(LayerType layer) {
-    	return limitationsMap.get(layer).getMinOccurs() == 0;
+    public boolean isOptional(LayerType layer) {
+        return limitationsMap.get(layer).getMinOccurs() == 0;
     }
 
     @Override
-	public boolean isMandatory(LayerType layer) {
-    	return limitationsMap.get(layer).getMinOccurs() > 0;
+    public boolean isMandatory(LayerType layer) {
+        return limitationsMap.get(layer).getMinOccurs() > 0;
     }
 
     @Override
-	public boolean isMultiValue(LayerType layer) {
-    	int maxOccurs = limitationsMap.get(layer).getMaxOccurs();
-    	return maxOccurs < 0 || maxOccurs > 1;
+    public boolean isMultiValue(LayerType layer) {
+        int maxOccurs = limitationsMap.get(layer).getMaxOccurs();
+        return maxOccurs < 0 || maxOccurs > 1;
     }
 
     @Override
-	public boolean isSingleValue(LayerType layer) {
-    	return limitationsMap.get(layer).getMaxOccurs() == 1;
+    public boolean isSingleValue(LayerType layer) {
+        return limitationsMap.get(layer).getMaxOccurs() == 1;
     }
 
-	@Override
-	public boolean isExlusiveStrong() {
-		return isExclusiveStrong;
-	}
+    @Override
+    public boolean isExlusiveStrong() {
+        return isExclusiveStrong;
+    }
 
     public void setExclusiveStrong(boolean isExclusiveStrong) {
-		this.isExclusiveStrong = isExclusiveStrong;
-	}
+        this.isExclusiveStrong = isExclusiveStrong;
+    }
 
-	@Override
-	public PropertyLimitations getLimitations(LayerType layer) {
-    	return limitationsMap.get(layer);
+    @Override
+    public PropertyLimitations getLimitations(LayerType layer) {
+        return limitationsMap.get(layer);
     }
 
     public String getHelp() {
@@ -332,15 +332,15 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     @Override
-	public AttributeFetchStrategyType getFetchStrategy() {
-		return fetchStrategy;
-	}
+    public AttributeFetchStrategyType getFetchStrategy() {
+        return fetchStrategy;
+    }
 
-	public void setFetchStrategy(AttributeFetchStrategyType fetchStrategy) {
-		this.fetchStrategy = fetchStrategy;
-	}
+    public void setFetchStrategy(AttributeFetchStrategyType fetchStrategy) {
+        this.fetchStrategy = fetchStrategy;
+    }
 
-	@Override
+    @Override
     public AttributeStorageStrategyType getStorageStrategy() {
         return storageStrategy;
     }
@@ -350,33 +350,33 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     public QName getMatchingRuleQName() {
-		return matchingRuleQName;
-	}
+        return matchingRuleQName;
+    }
 
-	public void setMatchingRuleQName(QName matchingRuleQName) {
-		this.matchingRuleQName = matchingRuleQName;
-	}
-
-	@Override
-	public List<String> getTolerantValuePattern(){
-		return tolerantValuePattern;
-	}
-
-	@Override
-	public List<String> getIntolerantValuePattern(){
-		return intolerantValuePattern;
-	}
+    public void setMatchingRuleQName(QName matchingRuleQName) {
+        this.matchingRuleQName = matchingRuleQName;
+    }
 
     @Override
-	public boolean isVolatilityTrigger() {
-		return isVolatilityTrigger;
-	}
+    public List<String> getTolerantValuePattern(){
+        return tolerantValuePattern;
+    }
 
-	public void setVolatilityTrigger(boolean isVolatilityTrigger) {
-		this.isVolatilityTrigger = isVolatilityTrigger;
-	}
+    @Override
+    public List<String> getIntolerantValuePattern(){
+        return intolerantValuePattern;
+    }
 
-	// schemaHandlingAttrDefType may be null if we are parsing from schema only
+    @Override
+    public boolean isVolatilityTrigger() {
+        return isVolatilityTrigger;
+    }
+
+    public void setVolatilityTrigger(boolean isVolatilityTrigger) {
+        this.isVolatilityTrigger = isVolatilityTrigger;
+    }
+
+    // schemaHandlingAttrDefType may be null if we are parsing from schema only
     static <T> RefinedAttributeDefinition<T> parse(ResourceAttributeDefinition<T> schemaAttrDef,
             ResourceAttributeDefinitionType schemaHandlingAttrDefType, ObjectClassComplexTypeDefinition objectClassDef,
             PrismContext prismContext, String contextDescription) throws SchemaException {
@@ -392,7 +392,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         }
 
         if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayOrder() != null) {
-	            rAttrDef.setDisplayOrder(schemaHandlingAttrDefType.getDisplayOrder());
+                rAttrDef.setDisplayOrder(schemaHandlingAttrDefType.getDisplayOrder());
         } else {
             if (schemaAttrDef.getDisplayOrder() != null) {
                 rAttrDef.setDisplayOrder(schemaAttrDef.getDisplayOrder());
@@ -450,7 +450,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
             rAttrDef.setReadReplaceMode(schemaHandlingAttrDefType.isReadReplaceMode());            // may be null at this point
 
             if (schemaHandlingAttrDefType.isDisplayNameAttribute() != null && schemaHandlingAttrDefType.isDisplayNameAttribute()) {
-            	rAttrDef.isDisplayNameAttribute = true;
+                rAttrDef.isDisplayNameAttribute = true;
             }
         }
 
@@ -485,102 +485,102 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
     }
 
-	private static void applyLimitationsType(PropertyLimitations limitations, PropertyLimitationsType layerLimitationsType) {
-		if (layerLimitationsType.getMinOccurs() != null) {
-			limitations.setMinOccurs(DefinitionUtil.parseMultiplicity(layerLimitationsType.getMinOccurs()));
-		}
-		if (layerLimitationsType.getMaxOccurs() != null) {
-			limitations.setMaxOccurs(DefinitionUtil.parseMultiplicity(layerLimitationsType.getMaxOccurs()));
-		}
-		if (layerLimitationsType.isIgnore() != null) {
-			limitations.setProcessing(ItemProcessing.IGNORE);
-		}
-		if (layerLimitationsType.getProcessing() != null) {
-			limitations.setProcessing(MiscSchemaUtil.toItemProcessing(layerLimitationsType.getProcessing()));
-		}
-		if (layerLimitationsType.getAccess() != null) {
-			PropertyAccessType accessType = layerLimitationsType.getAccess();
-			if (accessType.isAdd() != null) {
-				limitations.getAccess().setAdd(accessType.isAdd());
-			}
-			if (accessType.isRead() != null) {
-				limitations.getAccess().setRead(accessType.isRead());
-			}
-			if (accessType.isModify() != null) {
-				limitations.getAccess().setModify(accessType.isModify());
-			}
-		}
+    private static void applyLimitationsType(PropertyLimitations limitations, PropertyLimitationsType layerLimitationsType) {
+        if (layerLimitationsType.getMinOccurs() != null) {
+            limitations.setMinOccurs(DefinitionUtil.parseMultiplicity(layerLimitationsType.getMinOccurs()));
+        }
+        if (layerLimitationsType.getMaxOccurs() != null) {
+            limitations.setMaxOccurs(DefinitionUtil.parseMultiplicity(layerLimitationsType.getMaxOccurs()));
+        }
+        if (layerLimitationsType.isIgnore() != null) {
+            limitations.setProcessing(ItemProcessing.IGNORE);
+        }
+        if (layerLimitationsType.getProcessing() != null) {
+            limitations.setProcessing(MiscSchemaUtil.toItemProcessing(layerLimitationsType.getProcessing()));
+        }
+        if (layerLimitationsType.getAccess() != null) {
+            PropertyAccessType accessType = layerLimitationsType.getAccess();
+            if (accessType.isAdd() != null) {
+                limitations.getAccess().setAdd(accessType.isAdd());
+            }
+            if (accessType.isRead() != null) {
+                limitations.getAccess().setRead(accessType.isRead());
+            }
+            if (accessType.isModify() != null) {
+                limitations.getAccess().setModify(accessType.isModify());
+            }
+        }
 
-	}
+    }
 
-	private static PropertyLimitations getOrCreateLimitations(Map<LayerType, PropertyLimitations> limitationsMap,
-			LayerType layer) {
-		PropertyLimitations limitations = limitationsMap.get(layer);
-		if (limitations == null) {
-			limitations = new PropertyLimitations();
-			limitationsMap.put(layer, limitations);
-		}
-		return limitations;
-	}
+    private static PropertyLimitations getOrCreateLimitations(Map<LayerType, PropertyLimitations> limitationsMap,
+            LayerType layer) {
+        PropertyLimitations limitations = limitationsMap.get(layer);
+        if (limitations == null) {
+            limitations = new PropertyLimitations();
+            limitationsMap.put(layer, limitations);
+        }
+        return limitations;
+    }
 
-	static boolean isIgnored(ResourceAttributeDefinitionType attrDefType) throws SchemaException {
-		List<PropertyLimitationsType> limitations = attrDefType.getLimitations();
-		if (limitations == null) {
-			return false;
-		}
-		PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, DEFAULT_LAYER);
-		if (limitationsType == null) {
-			return false;
-		}
-		if (limitationsType.getProcessing() != null) {
-			return limitationsType.getProcessing() == ItemProcessingType.IGNORE;
-		}
-		if (limitationsType.isIgnore() != null) {
-			return limitationsType.isIgnore();
-		}
+    static boolean isIgnored(ResourceAttributeDefinitionType attrDefType) throws SchemaException {
+        List<PropertyLimitationsType> limitations = attrDefType.getLimitations();
+        if (limitations == null) {
+            return false;
+        }
+        PropertyLimitationsType limitationsType = MiscSchemaUtil.getLimitationsType(limitations, DEFAULT_LAYER);
+        if (limitationsType == null) {
+            return false;
+        }
+        if (limitationsType.getProcessing() != null) {
+            return limitationsType.getProcessing() == ItemProcessingType.IGNORE;
+        }
+        if (limitationsType.isIgnore() != null) {
+            return limitationsType.isIgnore();
+        }
         return false;
     }
 
     @NotNull
-	@Override
-	public RefinedAttributeDefinitionImpl<T> clone() {
-    	ResourceAttributeDefinition<T> attrDefClone = this.attributeDefinition.clone();
-		RefinedAttributeDefinitionImpl<T> clone = new RefinedAttributeDefinitionImpl<>(attrDefClone, getPrismContext());
-		copyDefinitionData(clone);
-		return clone;
-	}
+    @Override
+    public RefinedAttributeDefinitionImpl<T> clone() {
+        ResourceAttributeDefinition<T> attrDefClone = this.attributeDefinition.clone();
+        RefinedAttributeDefinitionImpl<T> clone = new RefinedAttributeDefinitionImpl<>(attrDefClone, getPrismContext());
+        copyDefinitionData(clone);
+        return clone;
+    }
 
-	protected void copyDefinitionData(RefinedAttributeDefinitionImpl<T> clone) {
-		super.copyDefinitionData(clone);
-		clone.accessOverride = this.accessOverride.clone();
-		clone.description = this.description;
-		clone.displayName = this.displayName;
-		clone.fetchStrategy = this.fetchStrategy;
-		clone.storageStrategy = this.storageStrategy;
-		clone.inboundMappingTypes = this.inboundMappingTypes;
-		clone.intolerantValuePattern = this.intolerantValuePattern;
-		clone.isExclusiveStrong = this.isExclusiveStrong;
-		clone.isVolatilityTrigger = this.isVolatilityTrigger;
-		clone.limitationsMap = this.limitationsMap;
-		clone.matchingRuleQName = this.matchingRuleQName;
-		clone.modificationPriority = this.modificationPriority;
-		clone.outboundMappingType = this.outboundMappingType;
-		clone.readReplaceMode = this.readReplaceMode;
-		clone.secondaryIdentifierOverride = this.secondaryIdentifierOverride;
-		clone.tolerant = this.tolerant;
-		clone.tolerantValuePattern = this.tolerantValuePattern;
-	}
+    protected void copyDefinitionData(RefinedAttributeDefinitionImpl<T> clone) {
+        super.copyDefinitionData(clone);
+        clone.accessOverride = this.accessOverride.clone();
+        clone.description = this.description;
+        clone.displayName = this.displayName;
+        clone.fetchStrategy = this.fetchStrategy;
+        clone.storageStrategy = this.storageStrategy;
+        clone.inboundMappingTypes = this.inboundMappingTypes;
+        clone.intolerantValuePattern = this.intolerantValuePattern;
+        clone.isExclusiveStrong = this.isExclusiveStrong;
+        clone.isVolatilityTrigger = this.isVolatilityTrigger;
+        clone.limitationsMap = this.limitationsMap;
+        clone.matchingRuleQName = this.matchingRuleQName;
+        clone.modificationPriority = this.modificationPriority;
+        clone.outboundMappingType = this.outboundMappingType;
+        clone.readReplaceMode = this.readReplaceMode;
+        clone.secondaryIdentifierOverride = this.secondaryIdentifierOverride;
+        clone.tolerant = this.tolerant;
+        clone.tolerantValuePattern = this.tolerantValuePattern;
+    }
 
-	@Override
-	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
-		return (RefinedAttributeDefinition<T>) super.deepClone(ctdMap, onThisPath, postCloneAction);
-	}
+    @Override
+    public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+        return (RefinedAttributeDefinition<T>) super.deepClone(ctdMap, onThisPath, postCloneAction);
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(super.toString());
-		if (getDisplayName() != null) {
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        if (getDisplayName() != null) {
             sb.append(",Disp");
         }
         if (getDescription() != null) {
@@ -598,8 +598,8 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         if (getModificationPriority() != null) {
             sb.append(",P").append(getModificationPriority());
         }
-		return sb.toString();
-	}
+        return sb.toString();
+    }
 
     /**
      * Return a human readable name of this class suitable for logs.
@@ -610,37 +610,37 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     @Override
-	public String debugDump(int indent) {
-    	return debugDump(indent, (LayerType) null);
+    public String debugDump(int indent) {
+        return debugDump(indent, (LayerType) null);
     }
 
-	@Override
-	public String debugDump(int indent, LayerType layer) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(super.debugDump(indent));
-		if (layer == null) {
-			sb.append("\n");
-			DebugUtil.debugDumpMapSingleLine(sb, limitationsMap, indent + 1);
-		} else {
-			PropertyLimitations limitations = limitationsMap.get(layer);
-			if (limitations != null) {
-				sb.append(limitations.toString());
-			}
-		}
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent, LayerType layer) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.debugDump(indent));
+        if (layer == null) {
+            sb.append("\n");
+            DebugUtil.debugDumpMapSingleLine(sb, limitationsMap, indent + 1);
+        } else {
+            PropertyLimitations limitations = limitationsMap.get(layer);
+            if (limitations != null) {
+                sb.append(limitations.toString());
+            }
+        }
+        return sb.toString();
+    }
 
     public void setModificationPriority(Integer modificationPriority) {
         this.modificationPriority = modificationPriority;
     }
 
     @Override
-	public Integer getModificationPriority() {
+    public Integer getModificationPriority() {
         return modificationPriority;
     }
 
     @Override
-	public Boolean getReadReplaceMode() {           // "get" instead of "is" because it may be null
+    public Boolean getReadReplaceMode() {           // "get" instead of "is" because it may be null
         return readReplaceMode;
     }
 
@@ -648,8 +648,8 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         this.readReplaceMode = readReplaceMode;
     }
 
-	@Override
-	public boolean isDisplayNameAttribute() {
-		return isDisplayNameAttribute;
-	}
+    @Override
+    public boolean isDisplayNameAttribute() {
+        return isDisplayNameAttribute;
+    }
 }

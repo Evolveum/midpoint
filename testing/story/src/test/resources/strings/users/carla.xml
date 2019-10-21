@@ -2,32 +2,32 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user oid="f9be8006-fd58-43f9-99ff-311935d9d3d3"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>carla</name>
-	<parentOrgRef oid="00000000-8888-6666-0000-100000000002" type="c:OrgType"/>
-	<parentOrgRef oid="00000000-8888-6666-0000-200000000001" type="c:OrgType"/>
-	<parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType"/>
-	<assignment>
-		<targetRef oid="00000000-8888-6666-0000-100000000002" type="c:OrgType"/>
-	</assignment>
-	<assignment>
-		<targetRef oid="00000000-8888-6666-0000-200000000001" type="c:OrgType"/>
-	</assignment>
-	<assignment>
-		<targetRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType"/>
-	</assignment>
-	<fullName>Carla the Swordmaster</fullName>
-	<givenName>Carla</givenName>
-	<emailAddress>carla@evolveum.com</emailAddress>
-	<credentials>
-		<password>
-			<value>a123456</value>
-		</password>
-	</credentials>  
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>carla</name>
+    <parentOrgRef oid="00000000-8888-6666-0000-100000000002" type="c:OrgType"/>
+    <parentOrgRef oid="00000000-8888-6666-0000-200000000001" type="c:OrgType"/>
+    <parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType"/>
+    <assignment>
+        <targetRef oid="00000000-8888-6666-0000-100000000002" type="c:OrgType"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="00000000-8888-6666-0000-200000000001" type="c:OrgType"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType"/>
+    </assignment>
+    <fullName>Carla the Swordmaster</fullName>
+    <givenName>Carla</givenName>
+    <emailAddress>carla@evolveum.com</emailAddress>
+    <credentials>
+        <password>
+            <value>a123456</value>
+        </password>
+    </credentials>
 </user>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -38,71 +38,71 @@ import java.util.List;
 @Component
 public class TransitionConstraintEvaluator implements PolicyConstraintEvaluator<TransitionPolicyConstraintType> {
 
-	private static final String OP_EVALUATE = TransitionConstraintEvaluator.class.getName() + ".evaluate";
+    private static final String OP_EVALUATE = TransitionConstraintEvaluator.class.getName() + ".evaluate";
 
-	private static final String CONSTRAINT_KEY = "transition";
+    private static final String CONSTRAINT_KEY = "transition";
 
-	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
-	@Autowired private PolicyRuleProcessor policyRuleProcessor;
+    @Autowired private ConstraintEvaluatorHelper evaluatorHelper;
+    @Autowired private PolicyRuleProcessor policyRuleProcessor;
 
-	@Override
-	public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<TransitionPolicyConstraintType> constraintElement,
-			PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    @Override
+    public <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger evaluate(JAXBElement<TransitionPolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<AH> rctx, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		OperationResult result = parentResult.subresult(OP_EVALUATE)
-				.setMinor()
-				.build();
-		try {
-			TransitionPolicyConstraintType trans = constraintElement.getValue();
-			List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
-			boolean match =
-					evaluateState(trans, rctx, ObjectState.BEFORE, trans.isStateBefore(), triggers, result)
-							&& evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
-			if (match) {
-				return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans,
-						createMessage(constraintElement, rctx, result),
-						createShortMessage(constraintElement, rctx, result),
-						triggers);
-			} else {
-				return null;
-			}
-		} catch (Throwable t) {
-			result.recordFatalError(t.getMessage(), t);
-			throw t;
-		} finally {
-			result.computeStatusIfUnknown();
-		}
-	}
+        OperationResult result = parentResult.subresult(OP_EVALUATE)
+                .setMinor()
+                .build();
+        try {
+            TransitionPolicyConstraintType trans = constraintElement.getValue();
+            List<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+            boolean match =
+                    evaluateState(trans, rctx, ObjectState.BEFORE, trans.isStateBefore(), triggers, result)
+                            && evaluateState(trans, rctx, ObjectState.AFTER, trans.isStateAfter(), triggers, result);
+            if (match) {
+                return new EvaluatedTransitionTrigger(PolicyConstraintKindType.TRANSITION, trans,
+                        createMessage(constraintElement, rctx, result),
+                        createShortMessage(constraintElement, rctx, result),
+                        triggers);
+            } else {
+                return null;
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t.getMessage(), t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
 
-	private <AH extends AssignmentHolderType> boolean evaluateState(TransitionPolicyConstraintType trans,
-			PolicyRuleEvaluationContext<AH> rctx, ObjectState state, Boolean expected,
-			List<EvaluatedPolicyRuleTrigger<?>> triggers, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		if (expected == null) {
-			return true;
-		}
-		PolicyRuleEvaluationContext<AH> subContext = rctx.cloneWithStateConstraints(state);
-		List<EvaluatedPolicyRuleTrigger<?>> subTriggers = policyRuleProcessor
-				.evaluateConstraints(trans.getConstraints(), true, subContext, result);
-		triggers.addAll(subTriggers);
-		boolean real = !subTriggers.isEmpty();
-		return expected == real;
-	}
+    private <AH extends AssignmentHolderType> boolean evaluateState(TransitionPolicyConstraintType trans,
+            PolicyRuleEvaluationContext<AH> rctx, ObjectState state, Boolean expected,
+            List<EvaluatedPolicyRuleTrigger<?>> triggers, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        if (expected == null) {
+            return true;
+        }
+        PolicyRuleEvaluationContext<AH> subContext = rctx.cloneWithStateConstraints(state);
+        List<EvaluatedPolicyRuleTrigger<?>> subTriggers = policyRuleProcessor
+                .evaluateConstraints(trans.getConstraints(), true, subContext, result);
+        triggers.addAll(subTriggers);
+        boolean real = !subTriggers.isEmpty();
+        return expected == real;
+    }
 
-	private LocalizableMessage createMessage(JAXBElement<TransitionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
-				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
-				.build();
-		return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
-	}
+    private LocalizableMessage createMessage(JAXBElement<TransitionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY)
+                .build();
+        return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
+    }
 
-	private LocalizableMessage createShortMessage(JAXBElement<TransitionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
-				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
-				.build();
-		return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
-	}
+    private LocalizableMessage createShortMessage(JAXBElement<TransitionPolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
+                .key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + CONSTRAINT_KEY)
+                .build();
+        return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
+    }
 }

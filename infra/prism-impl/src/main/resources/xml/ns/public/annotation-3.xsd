@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -20,7 +20,7 @@
         <xsd:documentation>
             Common Prism annotations used in various XSD schemas.
 
-			Version: 4.0
+            Version: 4.0
             Default prefix: a
         </xsd:documentation>
     </xsd:annotation>
@@ -35,45 +35,45 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="object">
         <xsd:annotation>
             <xsd:documentation>
                 Item marker annotation: Object marker. This annotation marks complex types that are considered prism objects.
-				Note: prism object are also containers.
+                Note: prism object are also containers.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="type" type="xsd:QName">
         <xsd:annotation>
             <xsd:documentation>
-            	Type override annotation.
+                Type override annotation.
                 TODO
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="displayName" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
-            	Item annotation: item display name. The content of this annotation specifies a
-            	human-readable string that describes the type.
-            	E.g. "User" may be a good display name for UserType.
-            	It may also contain key to the catalog file.
+                Item annotation: item display name. The content of this annotation specifies a
+                human-readable string that describes the type.
+                E.g. "User" may be a good display name for UserType.
+                It may also contain key to the catalog file.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="displayOrder" type="xsd:int">
         <xsd:annotation>
             <xsd:documentation>
-            	Item annotation: display order. The content of this annotation specifies
-            	an order in which the item should be displayed relative to other items
-            	at the same level. The items will be displayed by sorting them by the
-            	values of displayOrder annotation (ascending). Items that do not have
-            	any displayOrder annotation will be displayed last. The ordering of
-            	values with the same displayOrder is undefined and it may be arbitrary.
+                Item annotation: display order. The content of this annotation specifies
+                an order in which the item should be displayed relative to other items
+                at the same level. The items will be displayed by sorting them by the
+                values of displayOrder annotation (ascending). Items that do not have
+                any displayOrder annotation will be displayed last. The ordering of
+                values with the same displayOrder is undefined and it may be arbitrary.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -81,9 +81,9 @@
     <xsd:element name="help" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
-            	Item annotation: help text. The help text is usually displayed as a tooltip
-            	or when a special icon is clicked.
-            	It may also contain key to the catalog file. 
+                Item annotation: help text. The help text is usually displayed as a tooltip
+                or when a special icon is clicked.
+                It may also contain key to the catalog file.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -91,15 +91,15 @@
     <xsd:element name="access" type="tns:AccessAnnotationType">
         <xsd:annotation>
             <xsd:documentation>
-            	Item annotation: access restrictions. This annotation specifies the allowed
-            	operations for an item. If no access annotation is present then all
-            	operations are allowed.
+                Item annotation: access restrictions. This annotation specifies the allowed
+                operations for an item. If no access annotation is present then all
+                operations are allowed.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:simpleType name="AccessAnnotationType">
-    	<xsd:restriction base="xsd:string">
+        <xsd:restriction base="xsd:string">
             <xsd:enumeration value="read">
             </xsd:enumeration>
             <xsd:enumeration value="update">
@@ -120,7 +120,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="indexOnly" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
@@ -155,7 +155,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:simpleType name="IndexType">
         <xsd:annotation>
             <xsd:documentation>
@@ -189,8 +189,8 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-    
-    
+
+
     <xsd:element name="ignore" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
@@ -204,17 +204,17 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="processing" type="tns:ItemProcessingType">
-    	<xsd:annotation>
-    		<xsd:documentation>
-    			Specifies the "depth" of item processing.
-    			In midPoint 3.8 this is only supported by the user interface
-    			(presentation layer) and only as an experimental feature.
-    		</xsd:documentation>
-    	</xsd:annotation>
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the "depth" of item processing.
+                In midPoint 3.8 this is only supported by the user interface
+                (presentation layer) and only as an experimental feature.
+            </xsd:documentation>
+        </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:simpleType name="ItemProcessingType">
         <xsd:annotation>
             <xsd:documentation>
@@ -227,11 +227,11 @@
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="ignore">
                 <xsd:annotation>
-                	<xsd:documentation>
-                		Item is ignored. No processing is done at all.
-                		The item will behave in the same way as it is does not
-                		exists at all.
-                	</xsd:documentation>
+                    <xsd:documentation>
+                        Item is ignored. No processing is done at all.
+                        The item will behave in the same way as it is does not
+                        exists at all.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="IGNORE"/>
                     </xsd:appinfo>
@@ -239,16 +239,16 @@
             </xsd:enumeration>
             <xsd:enumeration value="minimal">
                 <xsd:annotation>
-                	<xsd:documentation>
-                		Only very minimal item processing is done. This usually means
-                		that basic data structures about the item is maintained.
-                		The item values may be logged. But all automatic processing,
-                		presentation, transformation or any similar processing is
-                		skipped. This type of processing is designed to support
-                		item processing by custom code. The underlying data structures
-                		will be present and they can be manipulated by custom code.
-                		But any built-in automatic processing will be skipped.
-                	</xsd:documentation>
+                    <xsd:documentation>
+                        Only very minimal item processing is done. This usually means
+                        that basic data structures about the item is maintained.
+                        The item values may be logged. But all automatic processing,
+                        presentation, transformation or any similar processing is
+                        skipped. This type of processing is designed to support
+                        item processing by custom code. The underlying data structures
+                        will be present and they can be manipulated by custom code.
+                        But any built-in automatic processing will be skipped.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MINIMAL"/>
                     </xsd:appinfo>
@@ -256,10 +256,10 @@
             </xsd:enumeration>
             <xsd:enumeration value="auto">
                 <xsd:annotation>
-                	<xsd:documentation>
-                		All usual processing of the item is applied. Or automated presentation,
-                		transformation or any other processing will take place. 
-                	</xsd:documentation>
+                    <xsd:documentation>
+                        All usual processing of the item is applied. Or automated presentation,
+                        transformation or any other processing will take place.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="AUTO"/>
                     </xsd:appinfo>
@@ -267,7 +267,7 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <xsd:element name="operational" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
@@ -275,7 +275,7 @@
                 (or meta-data) that are usually not modifiable by the end user. They are
                 generated and maintained by the system. Operational properties are also
                 not usually displayed unless it is explicitly requested.
-                
+
                 The example of operation properties are modification timestamps, create timestamps,
                 user that made the last change, etc.
             </xsd:documentation>
@@ -290,7 +290,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="deprecated" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
@@ -300,7 +300,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="experimental" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
@@ -310,7 +310,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="elaborate" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
@@ -323,17 +323,17 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="emphasized" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
-     			Set true for definitions that are more important than others and that should be emphasized
-     			during presentation. E.g. the emphasized definitions will always be displayed in the user
-     			interfaces (even if they are empty), they will always be included in the dumps, etc.
+                 Set true for definitions that are more important than others and that should be emphasized
+                 during presentation. E.g. the emphasized definitions will always be displayed in the user
+                 interfaces (even if they are empty), they will always be included in the dumps, etc.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="expensive" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
@@ -342,7 +342,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="relational" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
@@ -370,7 +370,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Item marker annotation: object reference. This annotation specifies that
-                an element or data type is object reference (PrismReference). 
+                an element or data type is object reference (PrismReference).
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -379,11 +379,11 @@
         <xsd:annotation>
             <xsd:documentation>
                 Object reference annotation: reference target type. Content of this
-                annotation specifies the object type that the reference points to. 
+                annotation specifies the object type that the reference points to.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="maxOccurs" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
@@ -394,7 +394,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:attribute name="maxOccurs" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
@@ -403,17 +403,17 @@
                 It may contain decimal string representation of a non-negative integer value or
                 a string 'unbounded'.
             </xsd:documentation>
-        </xsd:annotation>    
+        </xsd:annotation>
     </xsd:attribute>
-    
+
     <xsd:element name="since" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
                 Version of data model in which was the item introduced.
             </xsd:documentation>
-        </xsd:annotation>    
+        </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="deprecatedSince" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
@@ -421,16 +421,16 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="plannedRemoval" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
                 Version of data model in which the item is likely to be removed.
                 This annotation is used for deprecated item to indicate imminent incompatibility in future versions of data model.
             </xsd:documentation>
-        </xsd:annotation>    
+        </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="plannedChange" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
@@ -438,7 +438,7 @@
                 This annotation is used for items that will be retained in future versions, but their definition is likely to change
                 in a non-compatible way. It may also be used for major change in meaning or behavior of the item.
             </xsd:documentation>
-        </xsd:annotation>    
+        </xsd:annotation>
     </xsd:element>
 
     <xsd:element name="label" type="xsd:string">
@@ -446,52 +446,52 @@
             <xsd:documentation>
                 Displayable label of enumeration item.
             </xsd:documentation>
-        </xsd:annotation>    
+        </xsd:annotation>
     </xsd:element>
 
     <xsd:element name="matchingRule" type="xsd:QName">
         <xsd:annotation>
             <xsd:documentation>
                 Matching rules are algorithms that specify
-	 			how to compare, normalize and/or order the values. E.g. there are matching
-				rules for case insensitive string comparison, for LDAP DNs, etc.
+                 how to compare, normalize and/or order the values. E.g. there are matching
+                rules for case insensitive string comparison, for LDAP DNs, etc.
             </xsd:documentation>
-        </xsd:annotation>    
+        </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="valueEnumerationRef" type="tns:ObjectReferenceType">
         <xsd:annotation>
             <xsd:documentation>
                 Reference to an object that directly or indirectly represents possible values for
-				this item. We do not define here what exactly the object has to be. It can be a lookup
-				table, script that dynamically produces the values or anything similar. 
-				The object must produce the values of the correct type for this item otherwise an
-				error occurs.
+                this item. We do not define here what exactly the object has to be. It can be a lookup
+                table, script that dynamically produces the values or anything similar.
+                The object must produce the values of the correct type for this item otherwise an
+                error occurs.
             </xsd:documentation>
-        </xsd:annotation>    
+        </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:complexType name="ObjectReferenceType">
         <xsd:annotation>
             <xsd:documentation>
-            	<p>
-	                Reference to an object. It contains OID of the object that it
-	                refers to.
-	                This is simplified version of the "real" object reference used
-	                in the main schemas. This has to be a duplicate to avoid circular
-	                dependencies.
+                <p>
+                    Reference to an object. It contains OID of the object that it
+                    refers to.
+                    This is simplified version of the "real" object reference used
+                    in the main schemas. This has to be a duplicate to avoid circular
+                    dependencies.
                 </p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:attribute name="oid" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
-                	<p>
-	                    Target of the reference.
+                    <p>
+                        Target of the reference.
                     </p>
-					<p>
-	                    Optional only during imports. The objects stored in the repository must have the OID
-	                    value filled in.
+                    <p>
+                        Optional only during imports. The objects stored in the repository must have the OID
+                        value filled in.
                     </p>
                 </xsd:documentation>
             </xsd:annotation>
@@ -499,12 +499,12 @@
         <xsd:attribute name="type" type="xsd:QName" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                	<p>
-                    	Type of the reference target object.
+                    <p>
+                        Type of the reference target object.
                     </p>
-					<p>
-	                    It has to be provided unless the schema explicitly defines
-	                    a non-polymorphic type for the reference target type. 
+                    <p>
+                        It has to be provided unless the schema explicitly defines
+                        a non-polymorphic type for the reference target type.
                     </p>
                 </xsd:documentation>
             </xsd:annotation>
@@ -534,9 +534,9 @@
         <xsd:annotation>
             <xsd:documentation>
                 This substitutable element can be used in "heterogeneous list" items, i.e. items that can have
-				several values with different types. (All having a common declared supertype.) This annotation is necessary
-				to minimize "guesswork" that XML parser has to do when processing substitutable elements - in order to lower
-				the risk of accidentally merging two unrelated subsequent elements into one.
+                several values with different types. (All having a common declared supertype.) This annotation is necessary
+                to minimize "guesswork" that XML parser has to do when processing substitutable elements - in order to lower
+                the risk of accidentally merging two unrelated subsequent elements into one.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -553,68 +553,68 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:complexType name="SchemaMigrationType">
         <xsd:annotation>
             <xsd:documentation>
-            	<p>
-	                Annotation that describes schema changes that need to be migrated. 
-                	I.e. incompatible schema changes.
+                <p>
+                    Annotation that describes schema changes that need to be migrated.
+                    I.e. incompatible schema changes.
                 </p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-	        <xsd:element name="element" type="xsd:QName" minOccurs="1">
-	            <xsd:annotation>
-	                <xsd:documentation>
-	                	<p>
-		                    Name of the element that was changed. This is the original name
-		                    used in previous schema versions.
-	                    </p>
-	                </xsd:documentation>
-	            </xsd:annotation>
-	        </xsd:element>
-	        <xsd:element name="version" type="xsd:string" minOccurs="1">
-	            <xsd:annotation>
-	                <xsd:documentation>
-	                	<p>
-	                    	Version of the schema in which the change was applied.
-	                    </p>
-	                </xsd:documentation>
-	            </xsd:annotation>
-	        </xsd:element>
-	        <xsd:element name="operation" type="tns:SchemaMigrationOperationType" minOccurs="1">
-	            <xsd:annotation>
-	                <xsd:documentation>
-	                	<p>
-	                    	Operation that needs to be done to migrate old schema to new schema.
-	                    </p>
-	                </xsd:documentation>
-	            </xsd:annotation>
-	        </xsd:element>
-	        <xsd:element name="replacement" type="xsd:QName" minOccurs="0">
-	            <xsd:annotation>
-	                <xsd:documentation>
-	                	<p>
-		                    Name of the element that replaced removed or deprecated element.
-		                    EXPERIMENTAL. May be changed to a path later on.
-	                    </p>
-	                </xsd:documentation>
-	            </xsd:annotation>
-	        </xsd:element>
-	        <!-- TODO: replacement element -->
+            <xsd:element name="element" type="xsd:QName" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Name of the element that was changed. This is the original name
+                            used in previous schema versions.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="version" type="xsd:string" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Version of the schema in which the change was applied.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operation" type="tns:SchemaMigrationOperationType" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Operation that needs to be done to migrate old schema to new schema.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="replacement" type="xsd:QName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Name of the element that replaced removed or deprecated element.
+                            EXPERIMENTAL. May be changed to a path later on.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO: replacement element -->
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:element name="schemaMigration" type="tns:SchemaMigrationType">
         <xsd:annotation>
             <xsd:documentation>
-                Annotation that describes schema changes that need to be migrated. 
+                Annotation that describes schema changes that need to be migrated.
                 I.e. incompatible schema changes.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:simpleType name="SchemaMigrationOperationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -627,9 +627,9 @@
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="removed">
                 <xsd:annotation>
-                	<xsd:documentation>
-                		Element was removed. There is no replacement.
-                	</xsd:documentation>
+                    <xsd:documentation>
+                        Element was removed. There is no replacement.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="REMOVED"/>
                     </xsd:appinfo>

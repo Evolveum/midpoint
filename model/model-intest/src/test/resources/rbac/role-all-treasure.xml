@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="7fda5d86-5817-11e7-ac85-3b1cba81d3ef"
@@ -13,14 +13,14 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>All Treasure</name>
     <inducement>
-    	<targetRef>
-    		<filter>
-				<q:equal>
-					<q:path>roleType</q:path>
-					<q:value>treasure</q:value>
-				</q:equal>
-			</filter>
-			<resolutionTime>run</resolutionTime>
-    	</targetRef>
+        <targetRef>
+            <filter>
+                <q:equal>
+                    <q:path>roleType</q:path>
+                    <q:value>treasure</q:value>
+                </q:equal>
+            </filter>
+            <resolutionTime>run</resolutionTime>
+        </targetRef>
     </inducement>
 </role>

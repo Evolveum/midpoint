@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -61,7 +61,7 @@ public class ChangeProcessingCoordinator {
 
         int threadsCount = getWorkerThreadsCount();
         if (threadsCount > 0) {
-            int queueSize = threadsCount*2;				// actually, size of threadsCount should be sufficient but it doesn't hurt if queue is larger
+            int queueSize = threadsCount*2;                // actually, size of threadsCount should be sufficient but it doesn't hurt if queue is larger
             multithreaded = true;
             waitingRequestsQueue = new ArrayBlockingQueue<>(queueSize);
             workerSpecificResults = new ArrayList<>(threadsCount);

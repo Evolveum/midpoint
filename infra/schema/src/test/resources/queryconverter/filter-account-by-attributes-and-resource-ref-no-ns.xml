@@ -2,22 +2,22 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <filter xsi:type="SearchFilterType"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<and>
-		<ref>
-			<path>resourceRef</path>
-			<value>
-				<oid>aae7be60-df56-11df-8608-0002a5d5c51b</oid>
-			</value>
-		</ref>
-		<equal>
-			<path>attributes/name</path>
-			<value>uid=jbond,ou=People,dc=example,dc=com</value>
-		</equal>
-	</and>
+    <and>
+        <ref>
+            <path>resourceRef</path>
+            <value>
+                <oid>aae7be60-df56-11df-8608-0002a5d5c51b</oid>
+            </value>
+        </ref>
+        <equal>
+            <path>attributes/name</path>
+            <value>uid=jbond,ou=People,dc=example,dc=com</value>
+        </equal>
+    </and>
 </filter>

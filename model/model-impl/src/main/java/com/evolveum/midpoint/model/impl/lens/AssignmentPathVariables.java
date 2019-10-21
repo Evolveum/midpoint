@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2014-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
@@ -19,75 +19,75 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
  */
 public class AssignmentPathVariables {
 
-	private AssignmentPathImpl assignmentPath;
-	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> magicAssignment;
-	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> immediateAssignment;
-	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> thisAssignment;
-	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> focusAssignment;
-	private PrismObject<? extends AbstractRoleType> immediateRole;
+    private AssignmentPathImpl assignmentPath;
+    private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> magicAssignment;
+    private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> immediateAssignment;
+    private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> thisAssignment;
+    private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> focusAssignment;
+    private PrismObject<? extends AbstractRoleType> immediateRole;
 
-	public AssignmentPathImpl getAssignmentPath() {
-		return assignmentPath;
-	}
+    public AssignmentPathImpl getAssignmentPath() {
+        return assignmentPath;
+    }
 
-	public void setAssignmentPath(AssignmentPathImpl assignmentPath) {
-		this.assignmentPath = assignmentPath;
-	}
+    public void setAssignmentPath(AssignmentPathImpl assignmentPath) {
+        this.assignmentPath = assignmentPath;
+    }
 
-	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getMagicAssignment() {
-		return magicAssignment;
-	}
+    public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getMagicAssignment() {
+        return magicAssignment;
+    }
 
-	public void setMagicAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> magicAssignment) {
-		this.magicAssignment = magicAssignment;
-	}
+    public void setMagicAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> magicAssignment) {
+        this.magicAssignment = magicAssignment;
+    }
 
-	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getImmediateAssignment() {
-		return immediateAssignment;
-	}
+    public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getImmediateAssignment() {
+        return immediateAssignment;
+    }
 
-	public void setImmediateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> immediateAssignment) {
-		this.immediateAssignment = immediateAssignment;
-	}
+    public void setImmediateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> immediateAssignment) {
+        this.immediateAssignment = immediateAssignment;
+    }
 
-	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getThisAssignment() {
-		return thisAssignment;
-	}
+    public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getThisAssignment() {
+        return thisAssignment;
+    }
 
-	public void setThisAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> thisAssignment) {
-		this.thisAssignment = thisAssignment;
-	}
+    public void setThisAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> thisAssignment) {
+        this.thisAssignment = thisAssignment;
+    }
 
-	public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getFocusAssignment() {
-		return focusAssignment;
-	}
+    public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getFocusAssignment() {
+        return focusAssignment;
+    }
 
-	public void setFocusAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> focusAssignment) {
-		this.focusAssignment = focusAssignment;
-	}
+    public void setFocusAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> focusAssignment) {
+        this.focusAssignment = focusAssignment;
+    }
 
-	public PrismObject<? extends AbstractRoleType> getImmediateRole() {
-		return immediateRole;
-	}
+    public PrismObject<? extends AbstractRoleType> getImmediateRole() {
+        return immediateRole;
+    }
 
-	public void setImmediateRole(PrismObject<? extends AbstractRoleType> immediateRole) {
-		this.immediateRole = immediateRole;
-	}
+    public void setImmediateRole(PrismObject<? extends AbstractRoleType> immediateRole) {
+        this.immediateRole = immediateRole;
+    }
 
-	public PrismContainerDefinition<AssignmentType> getAssignmentDefinition() {
-		if (magicAssignment != null && magicAssignment.getDefinition() != null) {
-			return magicAssignment.getDefinition();
-		}
-		if (immediateAssignment != null && immediateAssignment.getDefinition() != null) {
-			return immediateAssignment.getDefinition();
-		}
-		if (thisAssignment != null && thisAssignment.getDefinition() != null) {
-			return thisAssignment.getDefinition();
-		}
-		if (focusAssignment != null && focusAssignment.getDefinition() != null) {
-			return focusAssignment.getDefinition();
-		}
-		return null;
-	}
+    public PrismContainerDefinition<AssignmentType> getAssignmentDefinition() {
+        if (magicAssignment != null && magicAssignment.getDefinition() != null) {
+            return magicAssignment.getDefinition();
+        }
+        if (immediateAssignment != null && immediateAssignment.getDefinition() != null) {
+            return immediateAssignment.getDefinition();
+        }
+        if (thisAssignment != null && thisAssignment.getDefinition() != null) {
+            return thisAssignment.getDefinition();
+        }
+        if (focusAssignment != null && focusAssignment.getDefinition() != null) {
+            return focusAssignment.getDefinition();
+        }
+        return null;
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,9 +23,9 @@ public class RepoQueryDto implements Serializable {
     public static final String F_QUERY_RESULT_OBJECT = "queryResultObject";
     public static final String F_DISTINCT = "distinct";
 
-	private static final String EMPTY_RESULT = null;
+    private static final String EMPTY_RESULT = null;
 
-	private QName objectType;
+    private QName objectType;
     private String midPointQuery = "";
     private String hibernateQuery = "";
     private String hibernateParameters = "";
@@ -33,23 +33,23 @@ public class RepoQueryDto implements Serializable {
     private Object queryResultObject = null;
     private boolean distinct;
 
-	public QName getObjectType() {
-		return objectType;
-	}
+    public QName getObjectType() {
+        return objectType;
+    }
 
-	public void setObjectType(QName objectType) {
-		this.objectType = objectType;
-	}
+    public void setObjectType(QName objectType) {
+        this.objectType = objectType;
+    }
 
-	public String getMidPointQuery() {
-		return midPointQuery;
-	}
+    public String getMidPointQuery() {
+        return midPointQuery;
+    }
 
-	public void setMidPointQuery(String midPointQuery) {
-		this.midPointQuery = midPointQuery;
-	}
+    public void setMidPointQuery(String midPointQuery) {
+        this.midPointQuery = midPointQuery;
+    }
 
-	public String getHibernateQuery() {
+    public String getHibernateQuery() {
         return hibernateQuery;
     }
 
@@ -57,15 +57,15 @@ public class RepoQueryDto implements Serializable {
         this.hibernateQuery = hibernateQuery;
     }
 
-	public String getHibernateParameters() {
-		return hibernateParameters;
-	}
+    public String getHibernateParameters() {
+        return hibernateParameters;
+    }
 
-	public void setHibernateParameters(String hibernateParameters) {
-		this.hibernateParameters = hibernateParameters;
-	}
+    public void setHibernateParameters(String hibernateParameters) {
+        this.hibernateParameters = hibernateParameters;
+    }
 
-	public String getQueryResultText() {
+    public String getQueryResultText() {
         return queryResultText;
     }
 
@@ -73,23 +73,23 @@ public class RepoQueryDto implements Serializable {
         this.queryResultText = queryResultText;
     }
 
-	public Object getQueryResultObject() {
-		return queryResultObject;
-	}
+    public Object getQueryResultObject() {
+        return queryResultObject;
+    }
 
-	public void setQueryResultObject(Object queryResultObject) {
-		this.queryResultObject = queryResultObject;
-	}
+    public void setQueryResultObject(Object queryResultObject) {
+        this.queryResultObject = queryResultObject;
+    }
 
-	public void resetQueryResultText() {
-		setQueryResultText(EMPTY_RESULT);
-	}
+    public void resetQueryResultText() {
+        setQueryResultText(EMPTY_RESULT);
+    }
 
-	public boolean isDistinct() {
-		return distinct;
-	}
+    public boolean isDistinct() {
+        return distinct;
+    }
 
-	public void setDistinct(boolean distinct) {
-		this.distinct = distinct;
-	}
+    public void setDistinct(boolean distinct) {
+        this.distinct = distinct;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism.component;
@@ -328,7 +328,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString> implements Vali
     }
 
     private String getLocalizedPolyStringValue(){
-    	return getPageBase().getLocalizationService().translate(getModelObject(), WebComponentUtil.getCurrentLocale(), false);
+        return getPageBase().getLocalizationService().translate(getModelObject(), WebComponentUtil.getCurrentLocale(), false);
     }
 
     private IModel<List<String>> getLanguageChoicesModel(){
@@ -395,7 +395,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString> implements Vali
             }
         });
     }
-    
+
     private AttributeAppender getInputFieldClassAppender(){
         return AttributeModifier.append("class", new LoadableModel<String>() {
             @Override

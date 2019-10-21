@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component;
@@ -64,681 +64,681 @@ import static java.util.Collections.singleton;
  * @author katkav
  */
 public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_MAIN_FORM = "mainForm";
 
-	private static final String ID_TABLE = "table";
+    private static final String ID_TABLE = "table";
 
-	private static final Trace LOGGER = TraceManager.getTrace(ObjectListPanel.class);
-	private static final String DOT_CLASS = ObjectListPanel.class.getName() + ".";
-	private static final String OPERATION_LOAD_CUSTOM_MENU_ITEMS = DOT_CLASS + "loadCustomMenuItems";
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectListPanel.class);
+    private static final String DOT_CLASS = ObjectListPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_CUSTOM_MENU_ITEMS = DOT_CLASS + "loadCustomMenuItems";
 
-	private ObjectTypes type;
+    private ObjectTypes type;
 
-	private LoadableModel<Search> searchModel;
+    private LoadableModel<Search> searchModel;
 
-	private Collection<SelectorOptions<GetOperationOptions>> options;
+    private Collection<SelectorOptions<GetOperationOptions>> options;
 
-	private boolean multiselect;
+    private boolean multiselect;
 
-	private TableId tableId;
+    private TableId tableId;
 
-	private String addutionalBoxCssClasses;
+    private String addutionalBoxCssClasses;
 
-	public Class<? extends O> getType() {
-		return (Class) type.getClassDefinition();
-	}
-
-	/**
-	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
-	 */
-	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options) {
-		this(id, defaultType, tableId, options, false);
-	}
-
-	/**
-	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
-	 */
-	ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, boolean multiselect) {
-		this(id, defaultType, tableId, null, multiselect);
-	}
-
-	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
-						   boolean multiselect) {
-		super(id);
-		this.type = defaultType  != null ? ObjectTypes.getObjectType(defaultType) : null;
-		this.options = options;
-		this.multiselect = multiselect;
-		this.tableId = tableId;
-
-	}
-
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		initLayout();
-	}
-
-	public boolean isMultiselect() {
-		return multiselect;
-	}
-
-	public int getSelectedObjectsCount(){
-		List<O> selectedList = getSelectedObjects();
-		return selectedList.size();
-	}
-
-	@SuppressWarnings("unchecked")
-	@NotNull
-	public List<O> getSelectedObjects() {
-		BaseSortableDataProvider<SelectableBean<O>> dataProvider = getDataProvider();
-		if (dataProvider instanceof SelectableBeanObjectDataProvider) {
-			return ((SelectableBeanObjectDataProvider<O>) dataProvider).getSelectedData();
-		} else if (dataProvider instanceof ListDataProvider2) {
-			return ((ListDataProvider2) dataProvider).getSelectedObjects();
-		}
-		return new ArrayList<>();
-	}
-
-	private void initLayout() {
-		Form<O> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
-		add(mainForm);
-
-		searchModel = initSearchModel();
-
-		BoxedTablePanel<SelectableBean<O>> table = createTable();
-		mainForm.add(table);
-
-	}
-
-	private LoadableModel<Search> initSearchModel(){
-		return new LoadableModel<Search>(false) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public Search load() {
-				String storageKey = getStorageKey();
-				Search search = null;
-				if (StringUtils.isNotEmpty(storageKey)) {
-					PageStorage storage = getPageStorage(storageKey);
-					if (storage != null) {
-						search = storage.getSearch();
-					}
-				}
-				if (search == null) {
-					search = createSearch();
-				}
-				return search;
-			}
-		};
-	}
-
-	protected Search createSearch() {
-		return SearchFactory.createSearch(type.getClassDefinition(), getPageBase());
-	}
-
-	private BoxedTablePanel<SelectableBean<O>> createTable() {
-
-		List<IColumn<SelectableBean<O>, String>> columns;
-		if (isCustomColumnsListConfigured()){
-			columns = initCustomColumns();
-		} else {
-			columns = initColumns();
-		}
-		List<InlineMenuItem> menuItems = createInlineMenu();
-		if (menuItems == null) {
-			menuItems = new ArrayList<>();
-		}
-		addCustomActions(menuItems, () -> getSelectedObjects());
-
-		if (!menuItems.isEmpty()) {
-			InlineMenuButtonColumn<SelectableBean<O>> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase());
-			columns.add(actionsColumn);
-		}
-
-		BaseSortableDataProvider<SelectableBean<O>> provider = initProvider();
-
-
-		BoxedTablePanel<SelectableBean<O>> table = new BoxedTablePanel<SelectableBean<O>>(ID_TABLE, provider,
-				columns, tableId, tableId == null ? 10 : getPageBase().getSessionStorage().getUserProfile().getPagingSize(getTableIdKeyValue())) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected WebMarkupContainer createHeader(String headerId) {
-				return ObjectListPanel.this.createHeader(headerId);
-			}
-
-			@Override
-			public String getAdditionalBoxCssClasses() {
-				return ObjectListPanel.this.getAdditionalBoxCssClasses();
-			}
-
-			@Override
-			protected WebMarkupContainer createButtonToolbar(String id) {
-				WebMarkupContainer bar = ObjectListPanel.this.createTableButtonToolbar(id);
-
-				return bar != null ? bar : super.createButtonToolbar(id);
-			}
-
-			@Override
-			protected boolean hideFooterIfSinglePage(){
-				return ObjectListPanel.this.hideFooterIfSinglePage();
-			}
-
-		};
-		table.setOutputMarkupId(true);
-		String storageKey = getStorageKey();
-		if (StringUtils.isNotEmpty(storageKey)) {
-			PageStorage storage = getPageStorage(storageKey);
-			if (storage != null) {
-				table.setCurrentPage(storage.getPaging());
-			}
-		}
-
-		return table;
-	}
-
-	protected WebMarkupContainer createHeader(String headerId) {
-		return initSearch(headerId);
-	}
-
-	protected List<IColumn<SelectableBean<O>, String>> initCustomColumns() {
-		LOGGER.trace("Start to init custom columns for table of type {}", type);
-		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
-		List<GuiObjectColumnType> customColumns = getGuiObjectColumnTypeList();
-		if (customColumns == null){
-			return columns;
-		}
-
-		CheckBoxHeaderColumn<SelectableBean<O>> checkboxColumn = (CheckBoxHeaderColumn<SelectableBean<O>>) createCheckboxColumn();
-		if (checkboxColumn != null) {
-			columns.add(checkboxColumn);
-		}
-
-		IColumn<SelectableBean<O>, String> iconColumn = createIconColumn();
-		columns.add(iconColumn);
-
-		columns.addAll(getCustomColumnsTransformed(customColumns));
-		LOGGER.trace("Finished to init custom columns, created columns {}", columns);
-		return columns;
-	}
-
-	protected List<IColumn<SelectableBean<O>, String>> getCustomColumnsTransformed(List<GuiObjectColumnType> customColumns){
-		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
-		if (customColumns == null || customColumns.isEmpty()) {
-			return columns;
-		}
-		IColumn<SelectableBean<O>, String> column;
-		for (GuiObjectColumnType customColumn : customColumns) {
-			if (customColumn.getPath() == null) {
-				continue;
-			}
-			ItemPath columnPath = customColumn.getPath().getItemPath();
-			// TODO this throws an exception for some kinds of invalid paths like e.g. fullName/norm (but we probably should fix prisms in that case!)
-			ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
-					.findObjectDefinitionByCompileTimeClass(type.getClassDefinition())
-					.findItemDefinition(columnPath);
-			if (itemDefinition == null) {
-				LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
-				continue;
-			}
-
-			if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
-				IModel<String> columnDisplayModel =
-						customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
-								Model.of(customColumn.getDisplay().getLabel().getOrig()) :
-								createStringResource(getItemDisplayName(customColumn));
-				if (customColumns.indexOf(customColumn) == 0) {
-					// TODO what if a complex path is provided here?
-					column = createNameColumn(columnDisplayModel, customColumn.getPath().toString());
-				} else {
-					column = new AbstractColumn<SelectableBean<O>, String>(columnDisplayModel, null) {
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<SelectableBean<O>>> item,
-								String componentId, IModel<SelectableBean<O>> rowModel) {
-							item.add(new Label(componentId, getDataModel(rowModel)));
-						}
-
-						private IModel<?> getDataModel(IModel<SelectableBean<O>> rowModel) {
-							Item<?, ?> item = rowModel.getObject().getValue().asPrismContainerValue().findItem(columnPath);
-							if (item != null) {
-								if (item.getDefinition() != null && item.getDefinition().getValueEnumerationRef() != null &&
-										item.getDefinition().getValueEnumerationRef().getOid() != null){
-									String lookupTableOid = item.getDefinition().getValueEnumerationRef().getOid();
-									Task task = getPageBase().createSimpleTask("loadLookupTable");
-									OperationResult result = task.getResult();
-
-									Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-											.createLookupTableRetrieveOptions(getPageBase().getSchemaHelper());
-									PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
-											lookupTableOid, options, getPageBase(), task, result);
-									return getItemValuesString(item, lookupTable);
-								} else {
-									return getItemValuesString(item, null);
-								}
-							} else {
-								return Model.of("");
-							}
-						}
-					};
-				}
-				columns.add(column);
-			}
-		}
-		return columns;
-	}
-
-	private IModel<String> getItemValuesString(Item<?, ?> item, PrismObject<LookupTableType> lookupTable){
-		return Model.of(item.getValues().stream()
-				.filter(Objects::nonNull)
-				.map(itemValue -> {
-					if (itemValue instanceof PrismPropertyValue) {
-						if (lookupTable == null) {
-							return String.valueOf(((PrismPropertyValue<?>) itemValue).getValue());
-						} else {
-							String lookupTableKey = ((PrismPropertyValue<?>) itemValue).getValue().toString();
-							LookupTableType lookupTableObject = lookupTable.asObjectable();
-							String rowLabel = "";
-							for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()){
-								if (lookupTableRow.getKey().equals(lookupTableKey)){
-									rowLabel = lookupTableRow.getLabel() != null ? lookupTableRow.getLabel().getOrig() : lookupTableRow.getValue();
-									break;
-								}
-							}
-							return rowLabel;
-						}
-					} else {
-						return itemValue.toString() + " ";      // TODO why + " "?
-					}
-				})
-				.collect(Collectors.joining(", ")));
-	}
-
-	protected List<IColumn<SelectableBean<O>, String>> initColumns() {
-		LOGGER.trace("Start to init columns for table of type {}", type);
-		List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
-
-		CheckBoxHeaderColumn<SelectableBean<O>> checkboxColumn = (CheckBoxHeaderColumn<SelectableBean<O>>) createCheckboxColumn();
-		if (checkboxColumn != null) {
-			columns.add(checkboxColumn);
-		}
-
-		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(getPageBase());
-		columns.add(iconColumn);
-
-		IColumn<SelectableBean<O>, String> nameColumn = createNameColumn(null, null);
-		columns.add(nameColumn);
-
-		List<IColumn<SelectableBean<O>, String>> others = createColumns();
-		if (others != null) {
-			columns.addAll(others);
-		}
-		LOGGER.trace("Finished to init columns, created columns {}", columns);
-		return columns;
-	}
-
-	protected BaseSortableDataProvider<SelectableBean<O>> initProvider() {
-		List<O> preSelectedObjectList = getPreselectedObjectList();
-		SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
-				getPageBase(), (Class) type.getClassDefinition(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-				String storageKey = getStorageKey();
-				if (StringUtils.isNotEmpty(storageKey)) {
-					PageStorage storage = getPageStorage(storageKey);
-					if (storage != null) {
-						storage.setPaging(paging);
-					}
-				}
-			}
-
-			@Override
-			public SelectableBean<O> createDataObjectWrapper(O obj) {
-				SelectableBean<O> bean = super.createDataObjectWrapper(obj);
-
-				List<InlineMenuItem> inlineMenu = createInlineMenu();
-				if (inlineMenu != null) {
-					bean.getMenuItems().addAll(inlineMenu);
-				}
-				if (obj.getOid() != null) {
-					addCustomActions(bean.getMenuItems(), () -> singleton(obj));
-				}
-				return bean;
-			}
-
-			@NotNull
-			@Override
-			protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-				List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
-				if (customOrdering != null) {
-					return customOrdering;
-				}
-				return super.createObjectOrderings(sortParam);
-			}
-
-			@Override
-			public boolean isOrderingDisabled() {
-				return ObjectListPanel.this.isOrderingDisabled();
-			}
-
-			@Override
-			public boolean isUseObjectCounting(){
-				return isCountingEnabled();
-			}
-		};
-		if (options == null){
-			if (ResourceType.class.equals(type.getClassDefinition())) {
-				options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-			}
-		} else {
-			if (ResourceType.class.equals(type.getClassDefinition())) {
-				GetOperationOptions root = SelectorOptions.findRootOptions(options);
-				root.setNoFetch(Boolean.TRUE);
-			}
-			provider.setOptions(options);
-		}
-		setDefaultSorting(provider);
-		provider.setQuery(getQuery());
-
-		return provider;
-	}
-
-	protected String getTableIdKeyValue(){
-	    return tableId != null ? tableId.name() : null;
+    public Class<? extends O> getType() {
+        return (Class) type.getClassDefinition();
     }
 
-	protected List<O> getPreselectedObjectList(){
-		return null;
-	}
+    /**
+     * @param defaultType specifies type of the object that will be selected by default. It can be changed.
+     */
+    public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options) {
+        this(id, defaultType, tableId, options, false);
+    }
 
-	protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
-		return null;
-	}
+    /**
+     * @param defaultType specifies type of the object that will be selected by default. It can be changed.
+     */
+    ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, boolean multiselect) {
+        this(id, defaultType, tableId, null, multiselect);
+    }
 
-	/**
-	 * should be overrided in case when ObjectListPanel is used
-	 * for additional panel of some object type (e.g. members panel on the org tree page)
-	 * @return
-	 */
-	protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
-		return null;
-	}
+    public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
+                           boolean multiselect) {
+        super(id);
+        this.type = defaultType  != null ? ObjectTypes.getObjectType(defaultType) : null;
+        this.options = options;
+        this.multiselect = multiselect;
+        this.tableId = tableId;
 
-	protected boolean isOrderingDisabled(){
-		CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
-		if (isAdditionalPanel()){
-			if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
-					guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
-					guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting() != null){
-				return guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting();
-			}
-		} else {
-			if (guiObjectListViewType != null && guiObjectListViewType.isDisableSorting() != null){
-				return guiObjectListViewType.isDisableSorting();
-			}
-		}
-		return false;
-	}
+    }
 
-	protected boolean isCountingEnabled(){
-		CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
-		if (isAdditionalPanel()){
-			if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
-					guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
-					guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting() != null){
-				return !guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting();
-			}
-		} else {
-			if (guiObjectListViewType != null && guiObjectListViewType.isDisableCounting() != null){
-				return !guiObjectListViewType.isDisableCounting();
-			}
-		}
-		return true;
-	}
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
 
-	protected boolean isAdditionalPanel(){
-		return false;
-	}
+    public boolean isMultiselect() {
+        return multiselect;
+    }
 
-	private SearchFormPanel initSearch(String headerId) {
-		SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
+    public int getSelectedObjectsCount(){
+        List<O> selectedList = getSelectedObjects();
+        return selectedList.size();
+    }
 
-			private static final long serialVersionUID = 1L;
+    @SuppressWarnings("unchecked")
+    @NotNull
+    public List<O> getSelectedObjects() {
+        BaseSortableDataProvider<SelectableBean<O>> dataProvider = getDataProvider();
+        if (dataProvider instanceof SelectableBeanObjectDataProvider) {
+            return ((SelectableBeanObjectDataProvider<O>) dataProvider).getSelectedData();
+        } else if (dataProvider instanceof ListDataProvider2) {
+            return ((ListDataProvider2) dataProvider).getSelectedObjects();
+        }
+        return new ArrayList<>();
+    }
 
-			@Override
-			protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-				ObjectListPanel.this.searchPerformed(query, target);
-			}
+    private void initLayout() {
+        Form<O> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
+        add(mainForm);
 
-		};
+        searchModel = initSearchModel();
 
-		return searchPanel;
-	}
+        BoxedTablePanel<SelectableBean<O>> table = createTable();
+        mainForm.add(table);
 
-	public String getAdditionalBoxCssClasses() {
-		return addutionalBoxCssClasses;
-	}
+    }
 
-	public void setAdditionalBoxCssClasses(String boxCssClasses) {
-		this.addutionalBoxCssClasses = boxCssClasses;
-	}
+    private LoadableModel<Search> initSearchModel(){
+        return new LoadableModel<Search>(false) {
 
-	/**
-	 * there's no way to do it properly...
-	 */
-	@Deprecated
-	protected WebMarkupContainer createTableButtonToolbar(String id) {
-		return null;
-	}
+            private static final long serialVersionUID = 1L;
 
-	protected String getStorageKey() {
-		String storageKey =  WebComponentUtil.getStorageKeyForPage(getPageBase().getClass());
-		if (storageKey == null) {
-			storageKey = WebComponentUtil.getStorageKeyForTableId(tableId);
-		}
+            @Override
+            public Search load() {
+                String storageKey = getStorageKey();
+                Search search = null;
+                if (StringUtils.isNotEmpty(storageKey)) {
+                    PageStorage storage = getPageStorage(storageKey);
+                    if (storage != null) {
+                        search = storage.getSearch();
+                    }
+                }
+                if (search == null) {
+                    search = createSearch();
+                }
+                return search;
+            }
+        };
+    }
 
-		return storageKey;
+    protected Search createSearch() {
+        return SearchFactory.createSearch(type.getClassDefinition(), getPageBase());
+    }
 
-	}
+    private BoxedTablePanel<SelectableBean<O>> createTable() {
 
-	private PageStorage getPageStorage(String storageKey){
-		PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
-		if (storage == null) {
-			storage = getSession().getSessionStorage().initPageStorage(storageKey);
-		}
-		return storage;
-	}
+        List<IColumn<SelectableBean<O>, String>> columns;
+        if (isCustomColumnsListConfigured()){
+            columns = initCustomColumns();
+        } else {
+            columns = initColumns();
+        }
+        List<InlineMenuItem> menuItems = createInlineMenu();
+        if (menuItems == null) {
+            menuItems = new ArrayList<>();
+        }
+        addCustomActions(menuItems, () -> getSelectedObjects());
 
-	@SuppressWarnings("unchecked")
-	protected BaseSortableDataProvider<SelectableBean<O>> getDataProvider() {
-		BoxedTablePanel<SelectableBean<O>> table = getTable();
-		BaseSortableDataProvider<SelectableBean<O>> provider = (BaseSortableDataProvider<SelectableBean<O>>) table
-				.getDataTable().getDataProvider();
-		return provider;
+        if (!menuItems.isEmpty()) {
+            InlineMenuButtonColumn<SelectableBean<O>> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase());
+            columns.add(actionsColumn);
+        }
 
-	}
-
-	protected Collection<SelectorOptions<GetOperationOptions>> getOptions(){
-		return options;
-	}
-
-	@SuppressWarnings("unchecked")
-	protected BoxedTablePanel<SelectableBean<O>> getTable() {
-		return (BoxedTablePanel<SelectableBean<O>>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
-	}
+        BaseSortableDataProvider<SelectableBean<O>> provider = initProvider();
 
 
-	@SuppressWarnings("deprecation")
-	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+        BoxedTablePanel<SelectableBean<O>> table = new BoxedTablePanel<SelectableBean<O>>(ID_TABLE, provider,
+                columns, tableId, tableId == null ? 10 : getPageBase().getSessionStorage().getUserProfile().getPagingSize(getTableIdKeyValue())) {
+            private static final long serialVersionUID = 1L;
 
-		BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
+            @Override
+            protected WebMarkupContainer createHeader(String headerId) {
+                return ObjectListPanel.this.createHeader(headerId);
+            }
 
-		// note: we ignore 'query' parameter, as the 'customQuery' already contains its content (MID-3271)
-		ObjectQuery customQuery = getQuery();
+            @Override
+            public String getAdditionalBoxCssClasses() {
+                return ObjectListPanel.this.getAdditionalBoxCssClasses();
+            }
 
-//		if (customQuery == null){
-//			customQuery = query;
-//		} else {
-//			if (query != null){
-//				customQuery.addFilter(query.getFilter());
-//			}
-//		}
+            @Override
+            protected WebMarkupContainer createButtonToolbar(String id) {
+                WebMarkupContainer bar = ObjectListPanel.this.createTableButtonToolbar(id);
 
-		provider.setQuery(customQuery);
-		String storageKey = getStorageKey();
-		if (StringUtils.isNotEmpty(storageKey)) {
-			PageStorage storage = getPageStorage(storageKey);
-			if (storage != null) {
-				storage.setSearch(searchModel.getObject());
-				storage.setPaging(null);
-			}
-		}
+                return bar != null ? bar : super.createButtonToolbar(id);
+            }
 
-		Table table = getTable();
-		table.setCurrentPage(null);
-		target.add((Component) table);
-		target.add(getPageBase().getFeedbackPanel());
+            @Override
+            protected boolean hideFooterIfSinglePage(){
+                return ObjectListPanel.this.hideFooterIfSinglePage();
+            }
 
-	}
+        };
+        table.setOutputMarkupId(true);
+        String storageKey = getStorageKey();
+        if (StringUtils.isNotEmpty(storageKey)) {
+            PageStorage storage = getPageStorage(storageKey);
+            if (storage != null) {
+                table.setCurrentPage(storage.getPaging());
+            }
+        }
 
-	public void refreshTable(Class<O> newTypeClass, AjaxRequestTarget target) {
-		ObjectTypes newType = newTypeClass != null ? ObjectTypes.getObjectType(newTypeClass) : null;
+        return table;
+    }
 
-		BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
-		provider.setQuery(getQuery());
-		if (newType != null && provider instanceof SelectableBeanObjectDataProvider) {
-			((SelectableBeanObjectDataProvider<O>) provider).setType(newTypeClass);
-		}
+    protected WebMarkupContainer createHeader(String headerId) {
+        return initSearch(headerId);
+    }
 
-		BoxedTablePanel<SelectableBean<O>> table = getTable();
+    protected List<IColumn<SelectableBean<O>, String>> initCustomColumns() {
+        LOGGER.trace("Start to init custom columns for table of type {}", type);
+        List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
+        List<GuiObjectColumnType> customColumns = getGuiObjectColumnTypeList();
+        if (customColumns == null){
+            return columns;
+        }
 
-		((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
-		if (newType != null && !this.type.equals(newType)) {
-			this.type = newType;
-			resetSearchModel();
-			table.setCurrentPage(null);
-		} else {
-			saveSearchModel(getCurrentTablePaging());
-		}
+        CheckBoxHeaderColumn<SelectableBean<O>> checkboxColumn = (CheckBoxHeaderColumn<SelectableBean<O>>) createCheckboxColumn();
+        if (checkboxColumn != null) {
+            columns.add(checkboxColumn);
+        }
 
-		target.add((Component) table);
-		target.add(getPageBase().getFeedbackPanel());
+        IColumn<SelectableBean<O>, String> iconColumn = createIconColumn();
+        columns.add(iconColumn);
 
-	}
+        columns.addAll(getCustomColumnsTransformed(customColumns));
+        LOGGER.trace("Finished to init custom columns, created columns {}", columns);
+        return columns;
+    }
 
-	public void resetSearchModel(){
-		String storageKey = getStorageKey();
-		if (StringUtils.isNotEmpty(storageKey)) {
-			PageStorage storage = getPageStorage(storageKey);
-			storage.setSearch(null);
-			storage.setPaging(null);
-		}
+    protected List<IColumn<SelectableBean<O>, String>> getCustomColumnsTransformed(List<GuiObjectColumnType> customColumns){
+        List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
+        if (customColumns == null || customColumns.isEmpty()) {
+            return columns;
+        }
+        IColumn<SelectableBean<O>, String> column;
+        for (GuiObjectColumnType customColumn : customColumns) {
+            if (customColumn.getPath() == null) {
+                continue;
+            }
+            ItemPath columnPath = customColumn.getPath().getItemPath();
+            // TODO this throws an exception for some kinds of invalid paths like e.g. fullName/norm (but we probably should fix prisms in that case!)
+            ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
+                    .findObjectDefinitionByCompileTimeClass(type.getClassDefinition())
+                    .findItemDefinition(columnPath);
+            if (itemDefinition == null) {
+                LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
+                continue;
+            }
 
-		searchModel.reset();
-	}
+            if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
+                IModel<String> columnDisplayModel =
+                        customColumn.getDisplay() != null && customColumn.getDisplay().getLabel() != null ?
+                                Model.of(customColumn.getDisplay().getLabel().getOrig()) :
+                                createStringResource(getItemDisplayName(customColumn));
+                if (customColumns.indexOf(customColumn) == 0) {
+                    // TODO what if a complex path is provided here?
+                    column = createNameColumn(columnDisplayModel, customColumn.getPath().toString());
+                } else {
+                    column = new AbstractColumn<SelectableBean<O>, String>(columnDisplayModel, null) {
+                        private static final long serialVersionUID = 1L;
 
-	private void saveSearchModel(ObjectPaging paging) {
-		String storageKey = getStorageKey();
-		if (StringUtils.isNotEmpty(storageKey)) {
-			PageStorage storage = getPageStorage(storageKey);
-			if (storage != null) {
-				storage.setSearch(searchModel.getObject());
-				storage.setPaging(paging);
-			}
-		}
+                        @Override
+                        public void populateItem(org.apache.wicket.markup.repeater.Item<ICellPopulator<SelectableBean<O>>> item,
+                                String componentId, IModel<SelectableBean<O>> rowModel) {
+                            item.add(new Label(componentId, getDataModel(rowModel)));
+                        }
 
-	}
+                        private IModel<?> getDataModel(IModel<SelectableBean<O>> rowModel) {
+                            Item<?, ?> item = rowModel.getObject().getValue().asPrismContainerValue().findItem(columnPath);
+                            if (item != null) {
+                                if (item.getDefinition() != null && item.getDefinition().getValueEnumerationRef() != null &&
+                                        item.getDefinition().getValueEnumerationRef().getOid() != null){
+                                    String lookupTableOid = item.getDefinition().getValueEnumerationRef().getOid();
+                                    Task task = getPageBase().createSimpleTask("loadLookupTable");
+                                    OperationResult result = task.getResult();
 
-	public void clearCache() {
-		WebComponentUtil.clearProviderCache(getDataProvider());
-	}
+                                    Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+                                            .createLookupTableRetrieveOptions(getPageBase().getSchemaHelper());
+                                    PrismObject<LookupTableType> lookupTable = WebModelServiceUtils.loadObject(LookupTableType.class,
+                                            lookupTableOid, options, getPageBase(), task, result);
+                                    return getItemValuesString(item, lookupTable);
+                                } else {
+                                    return getItemValuesString(item, null);
+                                }
+                            } else {
+                                return Model.of("");
+                            }
+                        }
+                    };
+                }
+                columns.add(column);
+            }
+        }
+        return columns;
+    }
 
-	public ObjectQuery getQuery() {
-		return createContentQuery();
-	}
+    private IModel<String> getItemValuesString(Item<?, ?> item, PrismObject<LookupTableType> lookupTable){
+        return Model.of(item.getValues().stream()
+                .filter(Objects::nonNull)
+                .map(itemValue -> {
+                    if (itemValue instanceof PrismPropertyValue) {
+                        if (lookupTable == null) {
+                            return String.valueOf(((PrismPropertyValue<?>) itemValue).getValue());
+                        } else {
+                            String lookupTableKey = ((PrismPropertyValue<?>) itemValue).getValue().toString();
+                            LookupTableType lookupTableObject = lookupTable.asObjectable();
+                            String rowLabel = "";
+                            for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()){
+                                if (lookupTableRow.getKey().equals(lookupTableKey)){
+                                    rowLabel = lookupTableRow.getLabel() != null ? lookupTableRow.getLabel().getOrig() : lookupTableRow.getValue();
+                                    break;
+                                }
+                            }
+                            return rowLabel;
+                        }
+                    } else {
+                        return itemValue.toString() + " ";      // TODO why + " "?
+                    }
+                })
+                .collect(Collectors.joining(", ")));
+    }
 
-	protected ObjectQuery createContentQuery() {
-		Search search = searchModel.getObject();
-		ObjectQuery query = search.createObjectQuery(getPageBase().getPrismContext());
-		query = addFilterToContentQuery(query);
-		return query;
-	}
+    protected List<IColumn<SelectableBean<O>, String>> initColumns() {
+        LOGGER.trace("Start to init columns for table of type {}", type);
+        List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
 
-	protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-		return query;
-	}
+        CheckBoxHeaderColumn<SelectableBean<O>> checkboxColumn = (CheckBoxHeaderColumn<SelectableBean<O>>) createCheckboxColumn();
+        if (checkboxColumn != null) {
+            columns.add(checkboxColumn);
+        }
 
-	protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
-		//should be overrided if needed
-	}
+        IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(getPageBase());
+        columns.add(iconColumn);
 
-	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-		return PageBase.createStringResourceStatic(this, resourceKey, objects);
-	}
+        IColumn<SelectableBean<O>, String> nameColumn = createNameColumn(null, null);
+        columns.add(nameColumn);
 
-	protected abstract IColumn<SelectableBean<O>, String> createCheckboxColumn();
+        List<IColumn<SelectableBean<O>, String>> others = createColumns();
+        if (others != null) {
+            columns.addAll(others);
+        }
+        LOGGER.trace("Finished to init columns, created columns {}", columns);
+        return columns;
+    }
 
-	protected IColumn<SelectableBean<O>, String> createIconColumn(){
-		return (IColumn) ColumnUtils.createIconColumn(getPageBase());
-	}
+    protected BaseSortableDataProvider<SelectableBean<O>> initProvider() {
+        List<O> preSelectedObjectList = getPreselectedObjectList();
+        SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
+                getPageBase(), (Class) type.getClassDefinition(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
+            private static final long serialVersionUID = 1L;
 
-	protected abstract IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath);
+            @Override
+            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+                String storageKey = getStorageKey();
+                if (StringUtils.isNotEmpty(storageKey)) {
+                    PageStorage storage = getPageStorage(storageKey);
+                    if (storage != null) {
+                        storage.setPaging(paging);
+                    }
+                }
+            }
 
-	protected abstract List<IColumn<SelectableBean<O>, String>> createColumns();
+            @Override
+            public SelectableBean<O> createDataObjectWrapper(O obj) {
+                SelectableBean<O> bean = super.createDataObjectWrapper(obj);
 
-	protected abstract List<InlineMenuItem> createInlineMenu();
+                List<InlineMenuItem> inlineMenu = createInlineMenu();
+                if (inlineMenu != null) {
+                    bean.getMenuItems().addAll(inlineMenu);
+                }
+                if (obj.getOid() != null) {
+                    addCustomActions(bean.getMenuItems(), () -> singleton(obj));
+                }
+                return bean;
+            }
 
-	protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends ObjectType>> objectsSupplier) {
-		CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
-		if (guiObjectListViewType != null && !guiObjectListViewType.getActions().isEmpty()) {
-			actionsList.addAll(WebComponentUtil.createMenuItemsFromActions(guiObjectListViewType.getActions(),
-					OPERATION_LOAD_CUSTOM_MENU_ITEMS, getPageBase(), objectsSupplier));
-		}
-	}
+            @NotNull
+            @Override
+            protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+                List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
+                if (customOrdering != null) {
+                    return customOrdering;
+                }
+                return super.createObjectOrderings(sortParam);
+            }
 
-	public void addPerformed(AjaxRequestTarget target, List<O> selected) {
-		getPageBase().hideMainPopup(target);
-	}
+            @Override
+            public boolean isOrderingDisabled() {
+                return ObjectListPanel.this.isOrderingDisabled();
+            }
 
-	private List<GuiObjectColumnType> getGuiObjectColumnTypeList(){
-		CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
-		return guiObjectListViewType != null ? guiObjectListViewType.getColumns() : null;
-	}
+            @Override
+            public boolean isUseObjectCounting(){
+                return isCountingEnabled();
+            }
+        };
+        if (options == null){
+            if (ResourceType.class.equals(type.getClassDefinition())) {
+                options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+            }
+        } else {
+            if (ResourceType.class.equals(type.getClassDefinition())) {
+                GetOperationOptions root = SelectorOptions.findRootOptions(options);
+                root.setNoFetch(Boolean.TRUE);
+            }
+            provider.setOptions(options);
+        }
+        setDefaultSorting(provider);
+        provider.setQuery(getQuery());
 
-	private CompiledObjectCollectionView getGuiObjectListViewType(){
-		return getPageBase().getCompiledUserProfile().findObjectCollectionView(type.getTypeQName(), null);
-	}
+        return provider;
+    }
 
-	private boolean isCustomColumnsListConfigured(){
-		List<GuiObjectColumnType> columnList = getGuiObjectColumnTypeList();
-		return columnList != null && !columnList.isEmpty();
-	}
+    protected String getTableIdKeyValue(){
+        return tableId != null ? tableId.name() : null;
+    }
 
-	private String getItemDisplayName(GuiObjectColumnType column){
-		ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(type.getClassDefinition()).findItemDefinition(column.getPath().getItemPath());
-		return itemDefinition == null ? "" : itemDefinition.getDisplayName();
-	}
+    protected List<O> getPreselectedObjectList(){
+        return null;
+    }
 
-	public ObjectPaging getCurrentTablePaging(){
-		String storageKey = getStorageKey();
-		if (StringUtils.isEmpty(storageKey)){
-			return null;
-		}
-		PageStorage storage = getPageStorage(storageKey);
-		if (storage == null) {
-			return null;
-		}
-		return storage.getPaging();
-	}
+    protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {
+        return null;
+    }
 
-	protected boolean hideFooterIfSinglePage(){
-		return false;
-	}
+    /**
+     * should be overrided in case when ObjectListPanel is used
+     * for additional panel of some object type (e.g. members panel on the org tree page)
+     * @return
+     */
+    protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
+        return null;
+    }
+
+    protected boolean isOrderingDisabled(){
+        CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
+        if (isAdditionalPanel()){
+            if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
+                    guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
+                    guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting() != null){
+                return guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting();
+            }
+        } else {
+            if (guiObjectListViewType != null && guiObjectListViewType.isDisableSorting() != null){
+                return guiObjectListViewType.isDisableSorting();
+            }
+        }
+        return false;
+    }
+
+    protected boolean isCountingEnabled(){
+        CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
+        if (isAdditionalPanel()){
+            if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
+                    guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
+                    guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting() != null){
+                return !guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting();
+            }
+        } else {
+            if (guiObjectListViewType != null && guiObjectListViewType.isDisableCounting() != null){
+                return !guiObjectListViewType.isDisableCounting();
+            }
+        }
+        return true;
+    }
+
+    protected boolean isAdditionalPanel(){
+        return false;
+    }
+
+    private SearchFormPanel initSearch(String headerId) {
+        SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+                ObjectListPanel.this.searchPerformed(query, target);
+            }
+
+        };
+
+        return searchPanel;
+    }
+
+    public String getAdditionalBoxCssClasses() {
+        return addutionalBoxCssClasses;
+    }
+
+    public void setAdditionalBoxCssClasses(String boxCssClasses) {
+        this.addutionalBoxCssClasses = boxCssClasses;
+    }
+
+    /**
+     * there's no way to do it properly...
+     */
+    @Deprecated
+    protected WebMarkupContainer createTableButtonToolbar(String id) {
+        return null;
+    }
+
+    protected String getStorageKey() {
+        String storageKey =  WebComponentUtil.getStorageKeyForPage(getPageBase().getClass());
+        if (storageKey == null) {
+            storageKey = WebComponentUtil.getStorageKeyForTableId(tableId);
+        }
+
+        return storageKey;
+
+    }
+
+    private PageStorage getPageStorage(String storageKey){
+        PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
+        if (storage == null) {
+            storage = getSession().getSessionStorage().initPageStorage(storageKey);
+        }
+        return storage;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected BaseSortableDataProvider<SelectableBean<O>> getDataProvider() {
+        BoxedTablePanel<SelectableBean<O>> table = getTable();
+        BaseSortableDataProvider<SelectableBean<O>> provider = (BaseSortableDataProvider<SelectableBean<O>>) table
+                .getDataTable().getDataProvider();
+        return provider;
+
+    }
+
+    protected Collection<SelectorOptions<GetOperationOptions>> getOptions(){
+        return options;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected BoxedTablePanel<SelectableBean<O>> getTable() {
+        return (BoxedTablePanel<SelectableBean<O>>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
+    }
+
+
+    @SuppressWarnings("deprecation")
+    private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
+
+        BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
+
+        // note: we ignore 'query' parameter, as the 'customQuery' already contains its content (MID-3271)
+        ObjectQuery customQuery = getQuery();
+
+//        if (customQuery == null){
+//            customQuery = query;
+//        } else {
+//            if (query != null){
+//                customQuery.addFilter(query.getFilter());
+//            }
+//        }
+
+        provider.setQuery(customQuery);
+        String storageKey = getStorageKey();
+        if (StringUtils.isNotEmpty(storageKey)) {
+            PageStorage storage = getPageStorage(storageKey);
+            if (storage != null) {
+                storage.setSearch(searchModel.getObject());
+                storage.setPaging(null);
+            }
+        }
+
+        Table table = getTable();
+        table.setCurrentPage(null);
+        target.add((Component) table);
+        target.add(getPageBase().getFeedbackPanel());
+
+    }
+
+    public void refreshTable(Class<O> newTypeClass, AjaxRequestTarget target) {
+        ObjectTypes newType = newTypeClass != null ? ObjectTypes.getObjectType(newTypeClass) : null;
+
+        BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
+        provider.setQuery(getQuery());
+        if (newType != null && provider instanceof SelectableBeanObjectDataProvider) {
+            ((SelectableBeanObjectDataProvider<O>) provider).setType(newTypeClass);
+        }
+
+        BoxedTablePanel<SelectableBean<O>> table = getTable();
+
+        ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
+        if (newType != null && !this.type.equals(newType)) {
+            this.type = newType;
+            resetSearchModel();
+            table.setCurrentPage(null);
+        } else {
+            saveSearchModel(getCurrentTablePaging());
+        }
+
+        target.add((Component) table);
+        target.add(getPageBase().getFeedbackPanel());
+
+    }
+
+    public void resetSearchModel(){
+        String storageKey = getStorageKey();
+        if (StringUtils.isNotEmpty(storageKey)) {
+            PageStorage storage = getPageStorage(storageKey);
+            storage.setSearch(null);
+            storage.setPaging(null);
+        }
+
+        searchModel.reset();
+    }
+
+    private void saveSearchModel(ObjectPaging paging) {
+        String storageKey = getStorageKey();
+        if (StringUtils.isNotEmpty(storageKey)) {
+            PageStorage storage = getPageStorage(storageKey);
+            if (storage != null) {
+                storage.setSearch(searchModel.getObject());
+                storage.setPaging(paging);
+            }
+        }
+
+    }
+
+    public void clearCache() {
+        WebComponentUtil.clearProviderCache(getDataProvider());
+    }
+
+    public ObjectQuery getQuery() {
+        return createContentQuery();
+    }
+
+    protected ObjectQuery createContentQuery() {
+        Search search = searchModel.getObject();
+        ObjectQuery query = search.createObjectQuery(getPageBase().getPrismContext());
+        query = addFilterToContentQuery(query);
+        return query;
+    }
+
+    protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+        return query;
+    }
+
+    protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
+        //should be overrided if needed
+    }
+
+    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+        return PageBase.createStringResourceStatic(this, resourceKey, objects);
+    }
+
+    protected abstract IColumn<SelectableBean<O>, String> createCheckboxColumn();
+
+    protected IColumn<SelectableBean<O>, String> createIconColumn(){
+        return (IColumn) ColumnUtils.createIconColumn(getPageBase());
+    }
+
+    protected abstract IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath);
+
+    protected abstract List<IColumn<SelectableBean<O>, String>> createColumns();
+
+    protected abstract List<InlineMenuItem> createInlineMenu();
+
+    protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends ObjectType>> objectsSupplier) {
+        CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
+        if (guiObjectListViewType != null && !guiObjectListViewType.getActions().isEmpty()) {
+            actionsList.addAll(WebComponentUtil.createMenuItemsFromActions(guiObjectListViewType.getActions(),
+                    OPERATION_LOAD_CUSTOM_MENU_ITEMS, getPageBase(), objectsSupplier));
+        }
+    }
+
+    public void addPerformed(AjaxRequestTarget target, List<O> selected) {
+        getPageBase().hideMainPopup(target);
+    }
+
+    private List<GuiObjectColumnType> getGuiObjectColumnTypeList(){
+        CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
+        return guiObjectListViewType != null ? guiObjectListViewType.getColumns() : null;
+    }
+
+    private CompiledObjectCollectionView getGuiObjectListViewType(){
+        return getPageBase().getCompiledUserProfile().findObjectCollectionView(type.getTypeQName(), null);
+    }
+
+    private boolean isCustomColumnsListConfigured(){
+        List<GuiObjectColumnType> columnList = getGuiObjectColumnTypeList();
+        return columnList != null && !columnList.isEmpty();
+    }
+
+    private String getItemDisplayName(GuiObjectColumnType column){
+        ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(type.getClassDefinition()).findItemDefinition(column.getPath().getItemPath());
+        return itemDefinition == null ? "" : itemDefinition.getDisplayName();
+    }
+
+    public ObjectPaging getCurrentTablePaging(){
+        String storageKey = getStorageKey();
+        if (StringUtils.isEmpty(storageKey)){
+            return null;
+        }
+        PageStorage storage = getPageStorage(storageKey);
+        if (storage == null) {
+            return null;
+        }
+        return storage.getPaging();
+    }
+
+    protected boolean hideFooterIfSinglePage(){
+        return false;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.users;
@@ -56,9 +56,9 @@ import java.util.List;
                 label = "PageMergeObjects.auth.mergeObjects.label",
                 description = "PageMergeObjects.auth.mergeObjects.description") })
 public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String DOT_CLASS = PageMergeObjects.class.getName() + ".";
+    private static final String DOT_CLASS = PageMergeObjects.class.getName() + ".";
     private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
     private static final String OPERATION_MERGE_OBJECTS = DOT_CLASS + "mergeObjects";
     private static final Trace LOGGER = TraceManager.getTrace(PageMergeObjects.class);
@@ -123,19 +123,19 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     @Override
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id){
 
-    	//empty assignments model
-    	CountableLoadableModel<AssignmentType> assignemtns = new CountableLoadableModel<AssignmentType>() {
-        	private static final long serialVersionUID = 1L;
+        //empty assignments model
+        CountableLoadableModel<AssignmentType> assignemtns = new CountableLoadableModel<AssignmentType>() {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected List<AssignmentType> load() {
                 return new ArrayList<>();
             }
-    	};
+        };
 
-    	//empty policy rules  model
-    	 CountableLoadableModel<AssignmentType> policyRules = new CountableLoadableModel<AssignmentType>() {
-         	private static final long serialVersionUID = 1L;
+        //empty policy rules  model
+         CountableLoadableModel<AssignmentType> policyRules = new CountableLoadableModel<AssignmentType>() {
+             private static final long serialVersionUID = 1L;
 
              @Override
              protected List<AssignmentType> load() {
@@ -145,7 +145,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
          //empty projections model
          LoadableModel<List<ShadowWrapper>> shadows = new LoadableModel<List<ShadowWrapper>>() {
-         	private static final long serialVersionUID = 1L;
+             private static final long serialVersionUID = 1L;
                      @Override
                      protected List<ShadowWrapper> load() {
                          return new ArrayList<>();
@@ -154,9 +154,9 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
         return new FocusMainPanel<UserType>(id, getObjectModel(), shadows, this) {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             protected List<ITab> createTabs(final PageAdminObjectDetails<UserType> parentPage) {
                 List<ITab> tabs = new ArrayList<>();
                 tabs.add(

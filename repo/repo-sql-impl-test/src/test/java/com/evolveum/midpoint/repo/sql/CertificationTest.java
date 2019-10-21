@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -209,9 +209,9 @@ public class CertificationTest extends BaseSQLRepoTest {
 
     @Test
     public void test250DeleteCase() throws Exception {
-    	final String TEST_NAME = "test250DeleteCase";
+        final String TEST_NAME = "test250DeleteCase";
         OperationResult result = createResult(TEST_NAME);
-        
+
         PrismObject<AccessCertificationCampaignType> campaign10Before = getFullCampaign(campaign1Oid);
         display("Campaign 10 before", campaign10Before);
 
@@ -224,11 +224,11 @@ public class CertificationTest extends BaseSQLRepoTest {
 
         // WHEN
         executeAndCheckModification(modifications, result, 0);
-        
+
         // THEN
         PrismObject<AccessCertificationCampaignType> campaign10After = getFullCampaign(campaign1Oid);
         display("Campaign 10 after", campaign10After);
-        
+
         checkCasesForCampaign(campaign1Oid, 8, result);
         checkCasesTotal(8, result);
         checkWorkItemsForCampaign(campaign1Oid, 9, result);
@@ -702,12 +702,12 @@ public class CertificationTest extends BaseSQLRepoTest {
     }
 
     private PrismObject<AccessCertificationCampaignType> getFullCampaign(String oid) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = new OperationResult("getFullCampaign");
-		PrismObject<AccessCertificationCampaignType> object = getFullCampaign(oid, result);
+        OperationResult result = new OperationResult("getFullCampaign");
+        PrismObject<AccessCertificationCampaignType> object = getFullCampaign(oid, result);
         assertSuccess(result);
         return object;
-	}
-    
+    }
+
     private void checksCountsStandard(OperationResult result) throws SchemaException, ObjectNotFoundException {
         checkCasesForCampaign(campaign1Oid, 7, result);
         checkCasesTotal(7, result);

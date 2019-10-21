@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.api;
@@ -24,103 +24,103 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class OptimisticLockingRunner<O extends ObjectType, R> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(OptimisticLockingRunner.class);
-	protected static final Random RND = new Random();
+    private static final Trace LOGGER = TraceManager.getTrace(OptimisticLockingRunner.class);
+    protected static final Random RND = new Random();
 
-	private PrismObject<O> object;
-	private final OperationResult result;
-	private final RepositoryService repositoryService;
-	private final int maxNumberOfAttempts;
-	private final Integer delayRange;
+    private PrismObject<O> object;
+    private final OperationResult result;
+    private final RepositoryService repositoryService;
+    private final int maxNumberOfAttempts;
+    private final Integer delayRange;
 
-	private OptimisticLockingRunner(PrismObject<O> object, OperationResult result,
-			RepositoryService repositoryService, int maxNumberOfAttempts, Integer delayRange) {
-		super();
-		this.object = object;
-		this.result = result;
-		this.repositoryService = repositoryService;
-		this.maxNumberOfAttempts = maxNumberOfAttempts;
-		this.delayRange = delayRange;
-	}
+    private OptimisticLockingRunner(PrismObject<O> object, OperationResult result,
+            RepositoryService repositoryService, int maxNumberOfAttempts, Integer delayRange) {
+        super();
+        this.object = object;
+        this.result = result;
+        this.repositoryService = repositoryService;
+        this.maxNumberOfAttempts = maxNumberOfAttempts;
+        this.delayRange = delayRange;
+    }
 
-	public PrismObject<O> getObject() {
-		return object;
-	}
+    public PrismObject<O> getObject() {
+        return object;
+    }
 
-	public R run(RepositoryOperation<O,R> lambda)
-			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-		int numberOfAttempts = 0;
-		while (true) {
-			try {
+    public R run(RepositoryOperation<O,R> lambda)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        int numberOfAttempts = 0;
+        while (true) {
+            try {
 
-				R ret = lambda.run(object);
-				
-				LOGGER.trace("Finished repository operation (attempt {} of {})",
-						numberOfAttempts, maxNumberOfAttempts);
-				
-				return ret;
+                R ret = lambda.run(object);
 
-			} catch (PreconditionViolationException e) {
-				if (numberOfAttempts < maxNumberOfAttempts) {
-					LOGGER.trace("Restarting repository operation due to optimistic locking conflict (attempt {} of {})",
-							numberOfAttempts, maxNumberOfAttempts);
-					numberOfAttempts++;
+                LOGGER.trace("Finished repository operation (attempt {} of {})",
+                        numberOfAttempts, maxNumberOfAttempts);
 
-					if (delayRange != null) {
-						int delay = RND.nextInt(delayRange);
-						try {
-							Thread.sleep(delay);
-						} catch (InterruptedException eint) {
-							// nothing to do, just go on
-						}
-					}
+                return ret;
 
-					object = repositoryService.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
+            } catch (PreconditionViolationException e) {
+                if (numberOfAttempts < maxNumberOfAttempts) {
+                    LOGGER.trace("Restarting repository operation due to optimistic locking conflict (attempt {} of {})",
+                            numberOfAttempts, maxNumberOfAttempts);
+                    numberOfAttempts++;
 
-				} else {
-					LOGGER.trace("Optimistic locking conflict and maximum attempts exceeded ({})",
-							maxNumberOfAttempts);
-					throw new SystemException("Repository optimistic locking conflict and maximum attempts exceeded");
-				}
-			}
-		}
-	}
+                    if (delayRange != null) {
+                        int delay = RND.nextInt(delayRange);
+                        try {
+                            Thread.sleep(delay);
+                        } catch (InterruptedException eint) {
+                            // nothing to do, just go on
+                        }
+                    }
 
-	public static class Builder<O extends ObjectType,R> {
+                    object = repositoryService.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
 
-		private PrismObject<O> object;
-		private OperationResult result;
-		private RepositoryService repositoryService;
-		private int maxNumberOfAttempts;
-		private Integer delayRange;
+                } else {
+                    LOGGER.trace("Optimistic locking conflict and maximum attempts exceeded ({})",
+                            maxNumberOfAttempts);
+                    throw new SystemException("Repository optimistic locking conflict and maximum attempts exceeded");
+                }
+            }
+        }
+    }
 
-		public Builder<O,R> object(PrismObject<O> object) {
-			this.object = object;
-			return this;
-		}
+    public static class Builder<O extends ObjectType,R> {
 
-		public Builder<O,R> result(OperationResult result) {
-			this.result = result;
-			return this;
-		}
+        private PrismObject<O> object;
+        private OperationResult result;
+        private RepositoryService repositoryService;
+        private int maxNumberOfAttempts;
+        private Integer delayRange;
 
-		public Builder<O,R> repositoryService(RepositoryService repositoryService) {
-			this.repositoryService = repositoryService;
-			return this;
-		}
+        public Builder<O,R> object(PrismObject<O> object) {
+            this.object = object;
+            return this;
+        }
 
-		public Builder<O,R> maxNumberOfAttempts(int maxNumberOfAttempts) {
-			this.maxNumberOfAttempts = maxNumberOfAttempts;
-			return this;
-		}
+        public Builder<O,R> result(OperationResult result) {
+            this.result = result;
+            return this;
+        }
 
-		public Builder<O,R> delayRange(Integer delayRange) {
-			this.delayRange = delayRange;
-			return this;
-		}
+        public Builder<O,R> repositoryService(RepositoryService repositoryService) {
+            this.repositoryService = repositoryService;
+            return this;
+        }
 
-		public OptimisticLockingRunner<O,R> build() {
-			return new OptimisticLockingRunner<>(object, result, repositoryService, maxNumberOfAttempts, delayRange);
-		}
-	}
+        public Builder<O,R> maxNumberOfAttempts(int maxNumberOfAttempts) {
+            this.maxNumberOfAttempts = maxNumberOfAttempts;
+            return this;
+        }
+
+        public Builder<O,R> delayRange(Integer delayRange) {
+            this.delayRange = delayRange;
+            return this;
+        }
+
+        public OptimisticLockingRunner<O,R> build() {
+            return new OptimisticLockingRunner<>(object, result, repositoryService, maxNumberOfAttempts, delayRange);
+        }
+    }
 }

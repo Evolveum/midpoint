@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.scripting;
@@ -37,61 +37,61 @@ import javax.annotation.PostConstruct;
 public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, AbstractSearchIterativeResultHandler<ObjectType>> {
 
     @Autowired private TaskManager taskManager;
-	@Autowired private ScriptingService scriptingService;
+    @Autowired private ScriptingService scriptingService;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(IterativeScriptExecutionTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(IterativeScriptExecutionTaskHandler.class);
 
-	public IterativeScriptExecutionTaskHandler() {
+    public IterativeScriptExecutionTaskHandler() {
         super("Execute script", OperationConstants.EXECUTE_SCRIPT);
-		setLogFinishInfo(true);     // todo
+        setLogFinishInfo(true);     // todo
     }
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI, this);
+    }
 
-	protected Class<? extends ObjectType> getType(Task task) {
-		return getTypeFromTask(task, ObjectType.class);
-	}
+    protected Class<? extends ObjectType> getType(Task task) {
+        return getTypeFromTask(task, ObjectType.class);
+    }
 
-	@NotNull
-	@Override
-	protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
-			OperationResult opResult) {
+    @NotNull
+    @Override
+    protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
+            OperationResult opResult) {
 
-		PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
-		if (executeScriptProperty == null || executeScriptProperty.getValue().getValue() == null ||
-				executeScriptProperty.getValue().getValue().getScriptingExpression() == null) {
-			throw new IllegalStateException("There's no script to be run in task " + coordinatorTask + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
-		}
-		ExecuteScriptType executeScriptRequestTemplate = executeScriptProperty.getRealValue();
-		if (executeScriptRequestTemplate.getInput() != null && !executeScriptRequestTemplate.getInput().getValue().isEmpty()) {
-			LOGGER.warn("Ignoring input values in executeScript data in task {}", coordinatorTask);
-		}
+        PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
+        if (executeScriptProperty == null || executeScriptProperty.getValue().getValue() == null ||
+                executeScriptProperty.getValue().getValue().getScriptingExpression() == null) {
+            throw new IllegalStateException("There's no script to be run in task " + coordinatorTask + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
+        }
+        ExecuteScriptType executeScriptRequestTemplate = executeScriptProperty.getRealValue();
+        if (executeScriptRequestTemplate.getInput() != null && !executeScriptRequestTemplate.getInput().getValue().isEmpty()) {
+            LOGGER.warn("Ignoring input values in executeScript data in task {}", coordinatorTask);
+        }
 
-		AbstractSearchIterativeResultHandler<ObjectType> handler = new AbstractSearchIterativeResultHandler<ObjectType>(
-				coordinatorTask, IterativeScriptExecutionTaskHandler.class.getName(), "execute", "execute task", taskManager) {
-			@Override
-			protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result) {
-				try {
-					ExecuteScriptType executeScriptRequest = executeScriptRequestTemplate.clone();
-					executeScriptRequest.setInput(new ValueListType().value(object.asObjectable()));
-					ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest, VariablesMap.emptyMap(),
-							false, workerTask, result);
-					LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
-					LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
-					result.computeStatus();
-				} catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
-					result.recordFatalError("Couldn't execute script: " + e.getMessage(), e);
-					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script", e);
-				}
-				return true;
-			}
-		};
+        AbstractSearchIterativeResultHandler<ObjectType> handler = new AbstractSearchIterativeResultHandler<ObjectType>(
+                coordinatorTask, IterativeScriptExecutionTaskHandler.class.getName(), "execute", "execute task", taskManager) {
+            @Override
+            protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result) {
+                try {
+                    ExecuteScriptType executeScriptRequest = executeScriptRequestTemplate.clone();
+                    executeScriptRequest.setInput(new ValueListType().value(object.asObjectable()));
+                    ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest, VariablesMap.emptyMap(),
+                            false, workerTask, result);
+                    LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
+                    LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
+                    result.computeStatus();
+                } catch (ScriptExecutionException | SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
+                    result.recordFatalError("Couldn't execute script: " + e.getMessage(), e);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script", e);
+                }
+                return true;
+            }
+        };
         handler.setStopOnError(false);
         return handler;
-	}
+    }
 
     @Override
     public String getCategoryName(Task task) {

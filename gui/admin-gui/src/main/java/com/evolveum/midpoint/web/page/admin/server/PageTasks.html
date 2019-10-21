@@ -18,17 +18,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-	<div class="main-form-panel">
-	    <div wicket:id="refreshPanel" class="pull-right"/>
-	    <br/>       <!-- fixme -->
-	    <form wicket:id="mainForm" class="form-inline">
-	        <div wicket:id="taskTablePanel"/>
-	
-	        <h3><wicket:message key="pageTasks.nodes"/></h3>
-	        <div wicket:id="nodeTable"/>
-	    </form>
-	</div>
-	
+    <div class="main-form-panel">
+        <div wicket:id="refreshPanel" class="pull-right"/>
+        <br/>       <!-- fixme -->
+        <form wicket:id="mainForm" class="form-inline">
+            <div wicket:id="taskTablePanel"/>
+
+            <h3><wicket:message key="pageTasks.nodes"/></h3>
+            <div wicket:id="nodeTable"/>
+        </form>
+    </div>
+
     <div class="main-button-bar">
         <a class="btn btn-danger" wicket:id="deactivateServiceThreads"/>
         <a class="btn btn-success" wicket:id="reactivateServiceThreads"/>

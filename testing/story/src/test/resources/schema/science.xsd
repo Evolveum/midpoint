@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <xsd:schema elementFormDefault="qualified"
@@ -22,36 +22,36 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="aixUserId" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-						<a:displayName>AIX user ID</a:displayName>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                        <a:displayName>AIX user ID</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
              <xsd:element name="aixHomeDir" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-						<a:displayName>AIX home dir</a:displayName>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                        <a:displayName>AIX home dir</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
-			<xsd:element name="aixDefaultShell" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-						<a:displayName>AIX default shell</a:displayName>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+            <xsd:element name="aixDefaultShell" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                        <a:displayName>AIX default shell</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
-			<xsd:element name="aixDescription" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-						<a:displayName>AIX description</a:displayName>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+            <xsd:element name="aixDescription" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                        <a:displayName>AIX description</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>

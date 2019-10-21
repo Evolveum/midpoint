@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -197,31 +197,31 @@ public class ModelEvent extends BaseEvent {
         return hasFocusOfType(UserType.class);
     }
 
-	public String getFocusTypeName() {
-		if (getFocusContext() == null || getFocusContext().getObjectTypeClass() == null) {
-			return null;
-		}
-		String simpleName = getFocusContext().getObjectTypeClass().getSimpleName();
-		return StringUtils.substringBeforeLast(simpleName, "Type");         // should usually work ;)
-	}
+    public String getFocusTypeName() {
+        if (getFocusContext() == null || getFocusContext().getObjectTypeClass() == null) {
+            return null;
+        }
+        String simpleName = getFocusContext().getObjectTypeClass().getSimpleName();
+        return StringUtils.substringBeforeLast(simpleName, "Type");         // should usually work ;)
+    }
 
-	public String getContentAsFormattedList() {
-		return getContentAsFormattedList(false, false);
-	}
+    public String getContentAsFormattedList() {
+        return getContentAsFormattedList(false, false);
+    }
 
-	public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
-		return getNotificationFunctions().getContentAsFormattedList(this, showSynchronizationItems, showAuxiliaryAttributes);
-	}
+    public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
+        return getNotificationFunctions().getContentAsFormattedList(this, showSynchronizationItems, showAuxiliaryAttributes);
+    }
 
-	public String getFocusPassword() {
+    public String getFocusPassword() {
         return getNotificationFunctions().getFocusPasswordFromEvent(this);
     }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
-		debugDumpCommon(sb, indent);
-		DebugUtil.debugDumpWithLabelToString(sb, "modelContext", modelContext, indent + 1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
+        debugDumpCommon(sb, indent);
+        DebugUtil.debugDumpWithLabelToString(sb, "modelContext", modelContext, indent + 1);
+        return sb.toString();
+    }
 }

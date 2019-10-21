@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,32 +28,32 @@ import javax.xml.namespace.QName;
  */
 public class QueryBasedHandlerDto extends HandlerDto {
 
-	public static final String F_OBJECT_TYPE_KEY = "objectTypeKey";
-	public static final String F_OBJECT_QUERY = "objectQuery";
+    public static final String F_OBJECT_TYPE_KEY = "objectTypeKey";
+    public static final String F_OBJECT_QUERY = "objectQuery";
 
-	public QueryBasedHandlerDto(TaskDto taskDto) {
-		super(taskDto);
-	}
+    public QueryBasedHandlerDto(TaskDto taskDto) {
+        super(taskDto);
+    }
 
-	public String getObjectTypeKey() {
-		QName objectType = taskDto.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, QName.class);
-		ObjectTypeGuiDescriptor descriptor = ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(objectType));
-		return descriptor != null ? descriptor.getLocalizationKey() : null;
-	}
+    public String getObjectTypeKey() {
+        QName objectType = taskDto.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, QName.class);
+        ObjectTypeGuiDescriptor descriptor = ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(objectType));
+        return descriptor != null ? descriptor.getLocalizationKey() : null;
+    }
 
-	public String getObjectQuery() {
-		QueryType query = taskDto.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.class);
-		if (query == null) {
-			return null;
-		}
-		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
-		try {
-			return WebXmlUtil.stripNamespaceDeclarations(
-					prismContext.xmlSerializer().serializeAnyData(query, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
-		} catch (SchemaException e) {
-			throw new SystemException("Couldn't serialize query: " + e.getMessage(), e);
-		}
-	}
+    public String getObjectQuery() {
+        QueryType query = taskDto.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.class);
+        if (query == null) {
+            return null;
+        }
+        PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+        try {
+            return WebXmlUtil.stripNamespaceDeclarations(
+                    prismContext.xmlSerializer().serializeAnyData(query, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't serialize query: " + e.getMessage(), e);
+        }
+    }
 
 
 }

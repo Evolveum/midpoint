@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -44,40 +44,40 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapNested extends AbstractLdapHierarchyTest {
 
-	public static final File TEST_DIR = new File(LDAP_HIERARCHY_TEST_DIR, "nested");
+    public static final File TEST_DIR = new File(LDAP_HIERARCHY_TEST_DIR, "nested");
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+    }
 
-	@Override
-	protected File getTestDir() {
-		return TEST_DIR;
-	}
+    @Override
+    protected File getTestDir() {
+        return TEST_DIR;
+    }
 
-	@Override
-	protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
-		PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
-		Entry accountEntry = openDJController.searchSingle("uid="+username);
+    @Override
+    protected PrismObject<UserType> getAndAssertUser(String username, String directOrgGroupname, String... indirectGroupNames) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+        PrismObject<UserType> user = super.getAndAssertUser(username, directOrgGroupname, indirectGroupNames);
+        Entry accountEntry = openDJController.searchSingle("uid="+username);
 
-		Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
-		assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
-		openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
+        Entry groupEntry = openDJController.searchSingle("cn="+directOrgGroupname);
+        assertNotNull("No group LDAP entry for "+directOrgGroupname, groupEntry);
+        openDJController.assertUniqueMember(groupEntry, accountEntry.getDN().toString());
 
-		return user;
-	}
+        return user;
+    }
 
-	@Override
-	protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
-		PrismObject<OrgType> org = super.getAndAssertFunctionalOrg(orgName, directParentOrgOid);
-		if (directParentOrgOid != null && !ORG_TOP_OID.equals(directParentOrgOid)) {
-			Entry groupEntry = openDJController.searchSingle("cn="+orgName);
-			PrismObject<OrgType> parentOrg = getObject(OrgType.class, directParentOrgOid);
-			Entry parentGroupEntry = openDJController.searchSingle("cn="+parentOrg.getName());
-			assertNotNull("No group LDAP entry for "+parentOrg.getName(), parentGroupEntry);
-			openDJController.assertUniqueMember(parentGroupEntry, groupEntry.getDN().toString());
-		}
-		return org;
-	}
+    @Override
+    protected PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
+        PrismObject<OrgType> org = super.getAndAssertFunctionalOrg(orgName, directParentOrgOid);
+        if (directParentOrgOid != null && !ORG_TOP_OID.equals(directParentOrgOid)) {
+            Entry groupEntry = openDJController.searchSingle("cn="+orgName);
+            PrismObject<OrgType> parentOrg = getObject(OrgType.class, directParentOrgOid);
+            Entry parentGroupEntry = openDJController.searchSingle("cn="+parentOrg.getName());
+            assertNotNull("No group LDAP entry for "+parentOrg.getName(), parentGroupEntry);
+            openDJController.assertUniqueMember(parentGroupEntry, groupEntry.getDN().toString());
+        }
+        return org;
+    }
 }

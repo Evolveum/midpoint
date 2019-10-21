@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component.path;
@@ -29,133 +29,133 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final String ID_DEFINITION = "definition";
-	private static final String ID_PARENT = "parentPath";
+    private static final long serialVersionUID = 1L;
 
-	public ItemPathSegmentPanel(String id, ItemPathDto model) {
-		this(id, Model.of(model));
-	}
+    private static final String ID_DEFINITION = "definition";
+    private static final String ID_PARENT = "parentPath";
 
-	public ItemPathSegmentPanel(String id, IModel<ItemPathDto> model) {
-		super(id, model);
+    public ItemPathSegmentPanel(String id, ItemPathDto model) {
+        this(id, Model.of(model));
+    }
 
-		initLayout();
-	}
+    public ItemPathSegmentPanel(String id, IModel<ItemPathDto> model) {
+        super(id, model);
 
-	private void initLayout() {
+        initLayout();
+    }
 
-		Label label = new Label(ID_PARENT,
-				new IModel<String>() {
-			private static final long serialVersionUID = 1L;
-				@Override
-				public String getObject() {
+    private void initLayout() {
 
-					if (getModelObject().getParentPath() == null) {
-						return null;
-					}
+        Label label = new Label(ID_PARENT,
+                new IModel<String>() {
+            private static final long serialVersionUID = 1L;
+                @Override
+                public String getObject() {
 
-					if (getModelObject().getParentPath().toItemPath() == null) {
-						return null;
-					}
+                    if (getModelObject().getParentPath() == null) {
+                        return null;
+                    }
 
-					return getString("ItemPathSegmentPanel.itemToSearch", getModelObject().getParentPath().toItemPath().toString());
-				}
-				});
+                    if (getModelObject().getParentPath().toItemPath() == null) {
+                        return null;
+                    }
 
-		label.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+                    return getString("ItemPathSegmentPanel.itemToSearch", getModelObject().getParentPath().toItemPath().toString());
+                }
+                });
 
-			@Override
-			public boolean isVisible() {
-				return getModelObject().getParentPath() != null && getModelObject().getParentPath().toItemPath() != null;
-			}
-		});
-		label.setOutputMarkupId(true);
-		add(label);
+        label.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-		final AutoCompleteItemDefinitionPanel itemDefPanel = new AutoCompleteItemDefinitionPanel(
-				ID_DEFINITION, new PropertyModel<>(getModel(), "itemDef")) {
-			private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible() {
+                return getModelObject().getParentPath() != null && getModelObject().getParentPath().toItemPath() != null;
+            }
+        });
+        label.setOutputMarkupId(true);
+        add(label);
 
-			protected Map<String, ItemDefinition<?>> listChoices(String input) {
-				return collectAvailableDefinitions(input);
+        final AutoCompleteItemDefinitionPanel itemDefPanel = new AutoCompleteItemDefinitionPanel(
+                ID_DEFINITION, new PropertyModel<>(getModel(), "itemDef")) {
+            private static final long serialVersionUID = 1L;
 
-			}
-			
-			@Override
-					protected void onUpdateAutoComplete(AjaxRequestTarget target,
-							Model<String> itemDefinitionAsStringModel, IModel<ItemDefinition<?>> model) {
-						super.onUpdateAutoComplete(target, itemDefinitionAsStringModel, model);
-						onUpdateAutoCompletePanel(target);
-					}
-			
-		};
-		itemDefPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		itemDefPanel.setOutputMarkupId(true);
-		add(itemDefPanel);
-	}
-	
-	protected void onUpdateAutoCompletePanel(AjaxRequestTarget target) {
-		
-	}
+            protected Map<String, ItemDefinition<?>> listChoices(String input) {
+                return collectAvailableDefinitions(input);
 
-	private Map<String, ItemDefinition<?>> collectAvailableDefinitions(String input) {
-		Map<String, ItemDefinition<?>> toSelect = new HashMap<>();
-		ItemPathDto parentItem = getModelObject().getParentPath();
-		if (parentItem != null) {
-			if (parentItem.getItemDef() instanceof PrismContainerDefinition<?>) {
-				PrismContainerDefinition<?> parentContainer = (PrismContainerDefinition<?>) parentItem.getItemDef();
-				collectItems(parentContainer.getDefinitions(), input, toSelect);
-			}
-		} else {
-			Collection<ItemDefinition<?>> definitions = getSchemaDefinitionMap().get(getModelObject().getObjectType());
-			collectItems(definitions, input, toSelect);
-		}
-		return toSelect;
-	}
+            }
 
-	private void collectItems(Collection<? extends ItemDefinition> definitions, String input, Map<String, ItemDefinition<?>> toSelect) {
-		if (definitions == null) {
-			return;
-		}
-		for (ItemDefinition<?> def : definitions) {
-			if (StringUtils.isBlank(input)) {
-				toSelect.put(def.getItemName().getLocalPart(), def);
-			} else {
-				if (def.getItemName().getLocalPart().startsWith(input)) {
-					toSelect.put(def.getItemName().getLocalPart(), def);
-				}
-			}
-		}
-	}
+            @Override
+                    protected void onUpdateAutoComplete(AjaxRequestTarget target,
+                            Model<String> itemDefinitionAsStringModel, IModel<ItemDefinition<?>> model) {
+                        super.onUpdateAutoComplete(target, itemDefinitionAsStringModel, model);
+                        onUpdateAutoCompletePanel(target);
+                    }
 
-	public void refreshModel(ItemPathDto newModel) {
-		getModel().setObject(newModel);
-	}
+        };
+        itemDefPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        itemDefPanel.setOutputMarkupId(true);
+        add(itemDefPanel);
+    }
 
-	protected Map<QName, Collection<ItemDefinition<?>>> getSchemaDefinitionMap() {
-		return new HashMap<>();
-	}
+    protected void onUpdateAutoCompletePanel(AjaxRequestTarget target) {
 
-	public boolean validate() {
-//		AutoCompleteItemDefinitionPanel autocompletePanel = (AutoCompleteItemDefinitionPanel) get(ID_DEFINITION);
-//		String current = (String) autocompletePanel.getBaseFormComponent().getModelObject();
-//		if (getModelObject().getParentPath() != null && StringUtils.isNotBlank(current)) {
-//			ItemDefinition<?> def = getModelObject().getParentPath().getItemDef();
-//			if (def.getName().getLocalPart())
-//			( !=
-//		}
-		return getModelObject().getItemDef() != null;
+    }
 
-//		return autocompletePanel.getBaseFormComponent().getModelObject() != null;
-	}
-	
-	public Component getBaseFormComponent() {
-		return ((AutoCompleteItemDefinitionPanel)get(ID_DEFINITION)).getBaseFormComponent();
-	}
-	
-	
+    private Map<String, ItemDefinition<?>> collectAvailableDefinitions(String input) {
+        Map<String, ItemDefinition<?>> toSelect = new HashMap<>();
+        ItemPathDto parentItem = getModelObject().getParentPath();
+        if (parentItem != null) {
+            if (parentItem.getItemDef() instanceof PrismContainerDefinition<?>) {
+                PrismContainerDefinition<?> parentContainer = (PrismContainerDefinition<?>) parentItem.getItemDef();
+                collectItems(parentContainer.getDefinitions(), input, toSelect);
+            }
+        } else {
+            Collection<ItemDefinition<?>> definitions = getSchemaDefinitionMap().get(getModelObject().getObjectType());
+            collectItems(definitions, input, toSelect);
+        }
+        return toSelect;
+    }
+
+    private void collectItems(Collection<? extends ItemDefinition> definitions, String input, Map<String, ItemDefinition<?>> toSelect) {
+        if (definitions == null) {
+            return;
+        }
+        for (ItemDefinition<?> def : definitions) {
+            if (StringUtils.isBlank(input)) {
+                toSelect.put(def.getItemName().getLocalPart(), def);
+            } else {
+                if (def.getItemName().getLocalPart().startsWith(input)) {
+                    toSelect.put(def.getItemName().getLocalPart(), def);
+                }
+            }
+        }
+    }
+
+    public void refreshModel(ItemPathDto newModel) {
+        getModel().setObject(newModel);
+    }
+
+    protected Map<QName, Collection<ItemDefinition<?>>> getSchemaDefinitionMap() {
+        return new HashMap<>();
+    }
+
+    public boolean validate() {
+//        AutoCompleteItemDefinitionPanel autocompletePanel = (AutoCompleteItemDefinitionPanel) get(ID_DEFINITION);
+//        String current = (String) autocompletePanel.getBaseFormComponent().getModelObject();
+//        if (getModelObject().getParentPath() != null && StringUtils.isNotBlank(current)) {
+//            ItemDefinition<?> def = getModelObject().getParentPath().getItemDef();
+//            if (def.getName().getLocalPart())
+//            ( !=
+//        }
+        return getModelObject().getItemDef() != null;
+
+//        return autocompletePanel.getBaseFormComponent().getModelObject() != null;
+    }
+
+    public Component getBaseFormComponent() {
+        return ((AutoCompleteItemDefinitionPanel)get(ID_DEFINITION)).getBaseFormComponent();
+    }
+
+
 
 }

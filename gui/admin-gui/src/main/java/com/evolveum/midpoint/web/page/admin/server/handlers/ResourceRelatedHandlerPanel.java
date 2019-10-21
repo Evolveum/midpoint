@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server.handlers;
@@ -53,222 +53,222 @@ import java.util.List;
  * @author mederly
  */
 public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> extends BasePanel<D> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String DOT_CLASS = ResourceRelatedHandlerPanel.class.getName() + ".";
-	private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "createResourceList";
-	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+    private static final String DOT_CLASS = ResourceRelatedHandlerPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "createResourceList";
+    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
-	private static final Trace LOGGER = TraceManager.getTrace(ResourceRelatedHandlerPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceRelatedHandlerPanel.class);
 
-	private static final String ID_RESOURCE_REF_CONTAINER = "resourceRefContainer";
-	private static final String ID_RESOURCE_REF = "resourceRef";
-	private static final String ID_KIND_CONTAINER = "kindContainer";
-	private static final String ID_KIND = "kind";
-	private static final String ID_INTENT_CONTAINER = "intentContainer";
-	private static final String ID_INTENT = "intent";
-	private static final String ID_OBJECT_CLASS_CONTAINER = "objectClassContainer";
-	private static final String ID_OBJECT_CLASS = "objectClass";
-	private static final String ID_OPTIONS_CONTAINER = "optionsContainer";
-	private static final String ID_DRY_RUN_CONTAINER = "dryRunContainer";
-	private static final String ID_DRY_RUN = "dryRun";
+    private static final String ID_RESOURCE_REF_CONTAINER = "resourceRefContainer";
+    private static final String ID_RESOURCE_REF = "resourceRef";
+    private static final String ID_KIND_CONTAINER = "kindContainer";
+    private static final String ID_KIND = "kind";
+    private static final String ID_INTENT_CONTAINER = "intentContainer";
+    private static final String ID_INTENT = "intent";
+    private static final String ID_OBJECT_CLASS_CONTAINER = "objectClassContainer";
+    private static final String ID_OBJECT_CLASS = "objectClass";
+    private static final String ID_OPTIONS_CONTAINER = "optionsContainer";
+    private static final String ID_DRY_RUN_CONTAINER = "dryRunContainer";
+    private static final String ID_DRY_RUN = "dryRun";
 
-	private PageTaskEdit parentPage;
+    private PageTaskEdit parentPage;
         protected VisibleEnableBehaviour enabledIfEdit;
 
-	public ResourceRelatedHandlerPanel(String id, IModel<D> handlerDtoModel, PageTaskEdit parentPage) {
-		super(id, handlerDtoModel);
-		this.parentPage = parentPage;
-		initLayout();
-	}
+    public ResourceRelatedHandlerPanel(String id, IModel<D> handlerDtoModel, PageTaskEdit parentPage) {
+        super(id, handlerDtoModel);
+        this.parentPage = parentPage;
+        initLayout();
+    }
 
-	private void initLayout() {
+    private void initLayout() {
 
-		final VisibleEnableBehaviour visibleIfEdit = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return parentPage.isEdit();
-			}
-		};
-		final VisibleEnableBehaviour visibleIfView = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return !parentPage.isEdit();
-			}
-		};
-		enabledIfEdit = new VisibleEnableBehaviour() {
+        final VisibleEnableBehaviour visibleIfEdit = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return parentPage.isEdit();
+            }
+        };
+        final VisibleEnableBehaviour visibleIfView = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return !parentPage.isEdit();
+            }
+        };
+        enabledIfEdit = new VisibleEnableBehaviour() {
 
-			@Override
-			public boolean isEnabled() {
-				return parentPage.isEdit();
-			}
-		};
-		final VisibleEnableBehaviour visibleForResourceCoordinates = new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return getTaskDto().configuresResourceCoordinates();
-			}
-		};
+            @Override
+            public boolean isEnabled() {
+                return parentPage.isEdit();
+            }
+        };
+        final VisibleEnableBehaviour visibleForResourceCoordinates = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return getTaskDto().configuresResourceCoordinates();
+            }
+        };
 
-		final WebMarkupContainer resourceRefContainer = new WebMarkupContainer(ID_RESOURCE_REF_CONTAINER);
-		resourceRefContainer.add(visibleForResourceCoordinates);
-		resourceRefContainer.setOutputMarkupId(true);
-		add(resourceRefContainer);
+        final WebMarkupContainer resourceRefContainer = new WebMarkupContainer(ID_RESOURCE_REF_CONTAINER);
+        resourceRefContainer.add(visibleForResourceCoordinates);
+        resourceRefContainer.setOutputMarkupId(true);
+        add(resourceRefContainer);
 
-		final DropDownChoicePanel<TaskAddResourcesDto> resourceRef = new DropDownChoicePanel<>(ID_RESOURCE_REF,
+        final DropDownChoicePanel<TaskAddResourcesDto> resourceRef = new DropDownChoicePanel<>(ID_RESOURCE_REF,
             new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_RESOURCE_REFERENCE),
-				new IModel<List<TaskAddResourcesDto>>() {
-					@Override
-					public List<TaskAddResourcesDto> getObject() {
-						return createResourceList();
-					}
-				}, new ChoiceableChoiceRenderer<>());
-		resourceRef.setOutputMarkupId(true);
-		resourceRef.getBaseFormComponent().add(enabledIfEdit);
-		resourceRef.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+                new IModel<List<TaskAddResourcesDto>>() {
+                    @Override
+                    public List<TaskAddResourcesDto> getObject() {
+                        return createResourceList();
+                    }
+                }, new ChoiceableChoiceRenderer<>());
+        resourceRef.setOutputMarkupId(true);
+        resourceRef.getBaseFormComponent().add(enabledIfEdit);
+        resourceRef.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				Task task = parentPage.createSimpleTask(OPERATION_LOAD_RESOURCE);
-				OperationResult result = task.getResult();
-				List<QName> objectClassList = new ArrayList<>();
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                Task task = parentPage.createSimpleTask(OPERATION_LOAD_RESOURCE);
+                OperationResult result = task.getResult();
+                List<QName> objectClassList = new ArrayList<>();
 
-				TaskAddResourcesDto resourcesDto = getModelObject().getResourceRef();
+                TaskAddResourcesDto resourcesDto = getModelObject().getResourceRef();
 
-				if(resourcesDto != null){
-					PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class,
-							resourcesDto.getOid(), parentPage, task, result);
+                if(resourcesDto != null){
+                    PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class,
+                            resourcesDto.getOid(), parentPage, task, result);
 
-					try {
-						ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, parentPage.getPrismContext());
-						schema.getObjectClassDefinitions();
+                    try {
+                        ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, parentPage.getPrismContext());
+                        schema.getObjectClassDefinitions();
 
-						for(Definition def: schema.getDefinitions()){
-							objectClassList.add(def.getTypeName());
-						}
+                        for(Definition def: schema.getDefinitions()){
+                            objectClassList.add(def.getTypeName());
+                        }
 
-						getModelObject().setObjectClassList(objectClassList);
-					} catch (Exception e){
-						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
-						error("Couldn't load object class list from resource.");
-					}
+                        getModelObject().setObjectClassList(objectClassList);
+                    } catch (Exception e){
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
+                        error("Couldn't load object class list from resource.");
+                    }
 
-				}
-				target.add(resourceRefContainer);
-			}
-		});
-		resourceRefContainer.add(resourceRef);
+                }
+                target.add(resourceRefContainer);
+            }
+        });
+        resourceRefContainer.add(resourceRef);
 
-		WebMarkupContainer kindContainer = new WebMarkupContainer(ID_KIND_CONTAINER);
-		kindContainer.add(visibleForResourceCoordinates);
-		add(kindContainer);
+        WebMarkupContainer kindContainer = new WebMarkupContainer(ID_KIND_CONTAINER);
+        kindContainer.add(visibleForResourceCoordinates);
+        add(kindContainer);
 
-		final DropDownChoicePanel kind = new DropDownChoicePanel<>(ID_KIND,
+        final DropDownChoicePanel kind = new DropDownChoicePanel<>(ID_KIND,
             new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_KIND),
-				WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<>());
-		kind.setOutputMarkupId(true);
-		kind.getBaseFormComponent().setNullValid(true);
-		kindContainer.add(kind);
+                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), new EnumChoiceRenderer<>());
+        kind.setOutputMarkupId(true);
+        kind.getBaseFormComponent().setNullValid(true);
+        kindContainer.add(kind);
 
-		WebMarkupContainer intentContainer = new WebMarkupContainer(ID_INTENT_CONTAINER);
-		intentContainer.add(visibleForResourceCoordinates);
-		add(intentContainer);
+        WebMarkupContainer intentContainer = new WebMarkupContainer(ID_INTENT_CONTAINER);
+        intentContainer.add(visibleForResourceCoordinates);
+        add(intentContainer);
 
-		final TextField<String> intent = new TextField<>(ID_INTENT, new PropertyModel<String>(getModel(), ResourceRelatedHandlerDto.F_INTENT));
-		intentContainer.add(intent);
-		intent.setOutputMarkupId(true);
-		intent.add(enabledIfEdit);
+        final TextField<String> intent = new TextField<>(ID_INTENT, new PropertyModel<String>(getModel(), ResourceRelatedHandlerDto.F_INTENT));
+        intentContainer.add(intent);
+        intent.setOutputMarkupId(true);
+        intent.add(enabledIfEdit);
 
-		WebMarkupContainer objectClassContainer = new WebMarkupContainer(ID_OBJECT_CLASS_CONTAINER);
-		objectClassContainer.add(visibleForResourceCoordinates);
-		add(objectClassContainer);
+        WebMarkupContainer objectClassContainer = new WebMarkupContainer(ID_OBJECT_CLASS_CONTAINER);
+        objectClassContainer.add(visibleForResourceCoordinates);
+        add(objectClassContainer);
 
-		AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
-		autoCompleteSettings.setShowListOnEmptyInput(true);
-		final AutoCompleteTextField<String> objectClass = new AutoCompleteTextField<String>(ID_OBJECT_CLASS,
+        AutoCompleteSettings autoCompleteSettings = new AutoCompleteSettings();
+        autoCompleteSettings.setShowListOnEmptyInput(true);
+        final AutoCompleteTextField<String> objectClass = new AutoCompleteTextField<String>(ID_OBJECT_CLASS,
             new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_OBJECT_CLASS), autoCompleteSettings) {
 
-			@Override
-			protected Iterator<String> getChoices(String input) {
+            @Override
+            protected Iterator<String> getChoices(String input) {
 
-				return prepareObjectClassChoiceList(input);
-			}
-		};
-		objectClass.add(enabledIfEdit);
-		objectClassContainer.add(objectClass);
+                return prepareObjectClassChoiceList(input);
+            }
+        };
+        objectClass.add(enabledIfEdit);
+        objectClassContainer.add(objectClass);
 
-		WebMarkupContainer optionsContainer = new WebMarkupContainer(ID_OPTIONS_CONTAINER);
-		optionsContainer.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return getTaskDto().configuresDryRun();
-			}
-		});
-		add(optionsContainer);
+        WebMarkupContainer optionsContainer = new WebMarkupContainer(ID_OPTIONS_CONTAINER);
+        optionsContainer.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return getTaskDto().configuresDryRun();
+            }
+        });
+        add(optionsContainer);
 
-		WebMarkupContainer dryRunContainer = new WebMarkupContainer(ID_DRY_RUN_CONTAINER);
-		dryRunContainer.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return getTaskDto().configuresDryRun();
-			}
-		});
-		optionsContainer.add(dryRunContainer);
-		CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_DRY_RUN));
-		dryRun.add(enabledIfEdit);
-		dryRunContainer.add(dryRun);
-	}
+        WebMarkupContainer dryRunContainer = new WebMarkupContainer(ID_DRY_RUN_CONTAINER);
+        dryRunContainer.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return getTaskDto().configuresDryRun();
+            }
+        });
+        optionsContainer.add(dryRunContainer);
+        CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<>(getModel(), ResourceRelatedHandlerDto.F_DRY_RUN));
+        dryRun.add(enabledIfEdit);
+        dryRunContainer.add(dryRun);
+    }
 
-	private TaskDto getTaskDto() {
-		return parentPage.getTaskDto();
-	}
+    private TaskDto getTaskDto() {
+        return parentPage.getTaskDto();
+    }
 
-	private List<TaskAddResourcesDto> createResourceList() {
-		OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
-		Task task = parentPage.createSimpleTask(OPERATION_LOAD_RESOURCES);
-		List<PrismObject<ResourceType>> resources = null;
-		List<TaskAddResourcesDto> resourceList = new ArrayList<>();
+    private List<TaskAddResourcesDto> createResourceList() {
+        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
+        Task task = parentPage.createSimpleTask(OPERATION_LOAD_RESOURCES);
+        List<PrismObject<ResourceType>> resources = null;
+        List<TaskAddResourcesDto> resourceList = new ArrayList<>();
 
-		try {
-			resources = parentPage.getModelService().searchObjects(ResourceType.class, null, null, task, result);
-			result.recomputeStatus();
-		} catch (Exception ex) {
-			result.recordFatalError(getString("ResourceRelatedHandlerPanel.message.createResourceList.fatalError"), ex);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resource list", ex);
-		}
+        try {
+            resources = parentPage.getModelService().searchObjects(ResourceType.class, null, null, task, result);
+            result.recomputeStatus();
+        } catch (Exception ex) {
+            result.recordFatalError(getString("ResourceRelatedHandlerPanel.message.createResourceList.fatalError"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resource list", ex);
+        }
 
-		if (resources != null) {
-			ResourceType item = null;
-			for (PrismObject<ResourceType> resource : resources) {
-				item = resource.asObjectable();
-				resourceList.add(new TaskAddResourcesDto(item.getOid(), WebComponentUtil.getOrigStringFromPoly(item.getName())));
-			}
-		}
-		return resourceList;
-	}
+        if (resources != null) {
+            ResourceType item = null;
+            for (PrismObject<ResourceType> resource : resources) {
+                item = resource.asObjectable();
+                resourceList.add(new TaskAddResourcesDto(item.getOid(), WebComponentUtil.getOrigStringFromPoly(item.getName())));
+            }
+        }
+        return resourceList;
+    }
 
-	private Iterator<String> prepareObjectClassChoiceList(String input){
-		List<String> choices = new ArrayList<>();
+    private Iterator<String> prepareObjectClassChoiceList(String input){
+        List<String> choices = new ArrayList<>();
 
-		if(getModelObject().getResourceRef() == null){
-			return choices.iterator();
-		}
+        if(getModelObject().getResourceRef() == null){
+            return choices.iterator();
+        }
 
-		if(Strings.isEmpty(input)){
-			for(QName q: getModelObject().getObjectClassList()){
-				choices.add(q.getLocalPart());
-				Collections.sort(choices);
-			}
-		} else {
-			for(QName q: getModelObject().getObjectClassList()){
-				if(q.getLocalPart().startsWith(input)){
-					choices.add(q.getLocalPart());
-				}
-				Collections.sort(choices);
-			}
-		}
+        if(Strings.isEmpty(input)){
+            for(QName q: getModelObject().getObjectClassList()){
+                choices.add(q.getLocalPart());
+                Collections.sort(choices);
+            }
+        } else {
+            for(QName q: getModelObject().getObjectClassList()){
+                if(q.getLocalPart().startsWith(input)){
+                    choices.add(q.getLocalPart());
+                }
+                Collections.sort(choices);
+            }
+        }
 
-		return choices.iterator();
-	}
+        return choices.iterator();
+    }
 
 }

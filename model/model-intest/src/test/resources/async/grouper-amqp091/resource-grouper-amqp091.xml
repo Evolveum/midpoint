@@ -2,322 +2,322 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <resource oid="bbb9900a-b53d-4453-b60b-908725e3950e"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-		  xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async/AsyncUpdateConnector"
+          xmlns:conf="http://midpoint.evolveum.com/xml/ns/public/connector/builtin-1/bundle/com.evolveum.midpoint.provisioning.ucf.impl.builtin.async/AsyncUpdateConnector"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Grouper Resource</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:equal>
-				<q:path>connectorType</q:path>
-				<q:value>AsyncUpdateConnector</q:value>
-			</q:equal>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration>
-		<conf:sources>
-			<other>
-				<className>com.evolveum.midpoint.model.intest.async.MockAsyncUpdateSource</className>
-			</other>
-		</conf:sources>
-		<!-- Some examples:
-			{
-			  encrypted=false,
-			  esbEvent=[
-			  {
-				sourceId=ldap,
-				membershipType=flattened,
-				fieldName=members,
-				groupId=00000000000000000000000000000001,
-				changeOccurred=false,
-				createdOnMicros=1551884863420000,
-				subjectId=banderson,
-				id=94320942304930294023940329403294,
-				sequenceNumber=1000,
-				eventType=MEMBERSHIP_ADD,
-				groupName=etc:midpointGroups
-			  }
-			]}
+    <name>Grouper Resource</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>connectorType</q:path>
+                <q:value>AsyncUpdateConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration>
+        <conf:sources>
+            <other>
+                <className>com.evolveum.midpoint.model.intest.async.MockAsyncUpdateSource</className>
+            </other>
+        </conf:sources>
+        <!-- Some examples:
+            {
+              encrypted=false,
+              esbEvent=[
+              {
+                sourceId=ldap,
+                membershipType=flattened,
+                fieldName=members,
+                groupId=00000000000000000000000000000001,
+                changeOccurred=false,
+                createdOnMicros=1551884863420000,
+                subjectId=banderson,
+                id=94320942304930294023940329403294,
+                sequenceNumber=1000,
+                eventType=MEMBERSHIP_ADD,
+                groupName=etc:midpointGroups
+              }
+            ]}
 
 
-			 {
-			  "encrypted": false,
-			  "esbEvent": [
-				{
-				  "displayName": "ref:alumni",
-				  "changeOccurred": false,
-				  "createdOnMicros": 1551884850499000,
-				  "parentStemId": "9a7ce40af6c546148b41eec81b8ca18d",
-				  "id": "00000000000000000000000000000002",
-				  "sequenceNumber": "110",
-				  "eventType": "GROUP_ADD",
-				  "name": "ref:alumni"
-				}
-			  ]
-			}
-			 -->
-		<conf:transformExpression>
-			<script>
-				<code>
-					import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-					import com.evolveum.prism.xml.ns._public.types_3.*
-					import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
-					import com.evolveum.midpoint.schema.util.*
-					import com.evolveum.midpoint.prism.path.*
+             {
+              "encrypted": false,
+              "esbEvent": [
+                {
+                  "displayName": "ref:alumni",
+                  "changeOccurred": false,
+                  "createdOnMicros": 1551884850499000,
+                  "parentStemId": "9a7ce40af6c546148b41eec81b8ca18d",
+                  "id": "00000000000000000000000000000002",
+                  "sequenceNumber": "110",
+                  "eventType": "GROUP_ADD",
+                  "name": "ref:alumni"
+                }
+              ]
+            }
+             -->
+        <conf:transformExpression>
+            <script>
+                <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                    import com.evolveum.prism.xml.ns._public.types_3.*
+                    import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
+                    import com.evolveum.midpoint.schema.util.*
+                    import com.evolveum.midpoint.prism.path.*
 
-					SUPER_GROUP = 'etc:midpointGroups'
-					EXPORTED_GROUP_PREFIX = 'ref:'
-					RELEVANT_SOURCE_ID = 'ldap'
+                    SUPER_GROUP = 'etc:midpointGroups'
+                    EXPORTED_GROUP_PREFIX = 'ref:'
+                    RELEVANT_SOURCE_ID = 'ldap'
 
-					log.info('*** Variables:')
-					this.binding.variables.each {k,v -> log.info('- {} = {}', k, v)}
+                    log.info('*** Variables:')
+                    this.binding.variables.each {k,v -> log.info('- {} = {}', k, v)}
 
-					esbEvent = midpoint.getMessageBodyAsMap(message)['esbEvent'][0]
-					log.info('esbEvent = {}', esbEvent)
-					eventType = esbEvent['eventType']
-					if (eventType == 'MEMBERSHIP_ADD' || eventType == 'MEMBERSHIP_DELETE') {
-						groupName = esbEvent['groupName']
-						if (groupName == null) {
-							log.warn('No group name in membership change message, ignoring it: {}', esbEvent)
-							return null
-						}
-					    isExported = groupName.startsWith(EXPORTED_GROUP_PREFIX)
-						isSuper = groupName == SUPER_GROUP
-						if (!isExported &amp;&amp; !isSuper) {
-							log.info('Irrelevant group membership change, ignoring it: {}', groupName)
-							return null
-						}
-						sourceId = esbEvent['sourceId']
-						if (sourceId != RELEVANT_SOURCE_ID) {
-							log.info('Irrelevant subject source ID in membership change message, ignoring it: {}', sourceId)
-							return null
-						}
-						subjectId = esbEvent['subjectId']
-						identifiers = new HashMap()
-						identifiers.put(ICFS_NAME, subjectId)
-						identifiers.put(ICFS_UID, subjectId)
-						ObjectDeltaType delta
-						if (isExported) {
-							itemDelta = new ItemDeltaType()
-							itemDelta.modificationType = eventType == 'MEMBERSHIP_ADD' ? ModificationTypeType.ADD : ModificationTypeType.DELETE
-							itemDelta.path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, 'group'))
-							itemDelta.value.add(RawType.fromPropertyRealValue(groupName, null, prismContext))
-							delta = new ObjectDeltaType()
-							delta.changeType = ChangeTypeType.MODIFY
-							delta.itemDelta.add(itemDelta)
-						} else {
-							delta = null
-						}
-						return UcfChangeUtil.create(RI_ACCOUNT_OBJECT_CLASS, identifiers, delta, prismContext)
-					} else if (eventType == 'GROUP_ADD' || eventType == 'GROUP_DELETE') {
-						groupName = esbEvent['name']
-						groupId = esbEvent['id']
-						isExported = groupName.startsWith(EXPORTED_GROUP_PREFIX)
-						if (!isExported) {
-							log.info('Irrelevant group add/delete event, ignoring it: {}', groupName)
-							return null
-						}
-						identifiers = new HashMap()
-						identifiers.put(ICFS_NAME, groupName)
-						identifiers.put(ICFS_UID, groupId)
-						ObjectDeltaType delta
-						if (eventType == 'GROUP_DELETE') {
-							delta = new ObjectDeltaType()
-							delta.changeType = ChangeTypeType.DELETE
-						} else {
-							delta = null
-						}
-						return UcfChangeUtil.create(RI_GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
-					} else {
-						log.warn('Unsupported event type: {} -> {}', eventType, esbEvent)
-						return null
-					}
-				</code>
-			</script>
-		</conf:transformExpression>
-	</connectorConfiguration>
-	<schema>
-		<definition>
-			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-						xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-						targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
-				<xsd:complexType name="AccountObjectClass">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<ra:resourceObject/>
-							<ra:identifier>icfs:uid</ra:identifier>
-							<ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-							<ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-							<ra:namingAttribute>icfs:name</ra:namingAttribute>
-							<ra:account/>
-							<ra:default/>
-						</xsd:appinfo>
-					</xsd:annotation>
-					<xsd:sequence>
-						<xsd:element ref="icfs:name"/>
-						<xsd:element ref="icfs:uid"/>
-						<xsd:element name="group" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-					</xsd:sequence>
-				</xsd:complexType>
-				<xsd:complexType name="GroupObjectClass">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<ra:resourceObject/>
-							<ra:identifier>icfs:uid</ra:identifier>
-							<ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-							<ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-							<ra:namingAttribute>icfs:name</ra:namingAttribute>
-							<ra:account/>
-							<ra:default/>
-						</xsd:appinfo>
-					</xsd:annotation>
-					<xsd:sequence>
-						<xsd:element ref="icfs:name"/>
-						<xsd:element ref="icfs:uid"/>
-					</xsd:sequence>
-				</xsd:complexType>
-			</xsd:schema>
-		</definition>
-	</schema>
+                    esbEvent = midpoint.getMessageBodyAsMap(message)['esbEvent'][0]
+                    log.info('esbEvent = {}', esbEvent)
+                    eventType = esbEvent['eventType']
+                    if (eventType == 'MEMBERSHIP_ADD' || eventType == 'MEMBERSHIP_DELETE') {
+                        groupName = esbEvent['groupName']
+                        if (groupName == null) {
+                            log.warn('No group name in membership change message, ignoring it: {}', esbEvent)
+                            return null
+                        }
+                        isExported = groupName.startsWith(EXPORTED_GROUP_PREFIX)
+                        isSuper = groupName == SUPER_GROUP
+                        if (!isExported &amp;&amp; !isSuper) {
+                            log.info('Irrelevant group membership change, ignoring it: {}', groupName)
+                            return null
+                        }
+                        sourceId = esbEvent['sourceId']
+                        if (sourceId != RELEVANT_SOURCE_ID) {
+                            log.info('Irrelevant subject source ID in membership change message, ignoring it: {}', sourceId)
+                            return null
+                        }
+                        subjectId = esbEvent['subjectId']
+                        identifiers = new HashMap()
+                        identifiers.put(ICFS_NAME, subjectId)
+                        identifiers.put(ICFS_UID, subjectId)
+                        ObjectDeltaType delta
+                        if (isExported) {
+                            itemDelta = new ItemDeltaType()
+                            itemDelta.modificationType = eventType == 'MEMBERSHIP_ADD' ? ModificationTypeType.ADD : ModificationTypeType.DELETE
+                            itemDelta.path = new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, 'group'))
+                            itemDelta.value.add(RawType.fromPropertyRealValue(groupName, null, prismContext))
+                            delta = new ObjectDeltaType()
+                            delta.changeType = ChangeTypeType.MODIFY
+                            delta.itemDelta.add(itemDelta)
+                        } else {
+                            delta = null
+                        }
+                        return UcfChangeUtil.create(RI_ACCOUNT_OBJECT_CLASS, identifiers, delta, prismContext)
+                    } else if (eventType == 'GROUP_ADD' || eventType == 'GROUP_DELETE') {
+                        groupName = esbEvent['name']
+                        groupId = esbEvent['id']
+                        isExported = groupName.startsWith(EXPORTED_GROUP_PREFIX)
+                        if (!isExported) {
+                            log.info('Irrelevant group add/delete event, ignoring it: {}', groupName)
+                            return null
+                        }
+                        identifiers = new HashMap()
+                        identifiers.put(ICFS_NAME, groupName)
+                        identifiers.put(ICFS_UID, groupId)
+                        ObjectDeltaType delta
+                        if (eventType == 'GROUP_DELETE') {
+                            delta = new ObjectDeltaType()
+                            delta.changeType = ChangeTypeType.DELETE
+                        } else {
+                            delta = null
+                        }
+                        return UcfChangeUtil.create(RI_GROUP_OBJECT_CLASS, identifiers, delta, prismContext)
+                    } else {
+                        log.warn('Unsupported event type: {} -> {}', eventType, esbEvent)
+                        return null
+                    }
+                </code>
+            </script>
+        </conf:transformExpression>
+    </connectorConfiguration>
+    <schema>
+        <definition>
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+                        xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+                <xsd:complexType name="AccountObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <ra:resourceObject/>
+                            <ra:identifier>icfs:uid</ra:identifier>
+                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                            <ra:account/>
+                            <ra:default/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element ref="icfs:name"/>
+                        <xsd:element ref="icfs:uid"/>
+                        <xsd:element name="group" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+                <xsd:complexType name="GroupObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <ra:resourceObject/>
+                            <ra:identifier>icfs:uid</ra:identifier>
+                            <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                            <ra:account/>
+                            <ra:default/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element ref="icfs:name"/>
+                        <xsd:element ref="icfs:uid"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:schema>
+        </definition>
+    </schema>
 
-	<schemaHandling>
-		<objectType>
-			<kind>account</kind>
-			<intent>subject</intent>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<default>true</default>
-			<attribute>
-				<ref>icfs:name</ref>
-				<inbound>
-					<target>
-						<path>name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:group</ref>
-				<inbound>
-					<target>
-						<path>organizationalUnit</path>
-					</target>
-				</inbound>
-			</attribute>
-		</objectType>
-		<objectType>
-			<kind>entitlement</kind>
-			<intent>group</intent>
-			<objectClass>ri:GroupObjectClass</objectClass>
-			<default>true</default>
-			<attribute>
-				<ref>icfs:name</ref>
-				<inbound>
-					<target>
-						<path>name</path>
-					</target>
-				</inbound>
-			</attribute>
-		</objectType>
-	</schemaHandling>
-	<synchronization>
-		<objectSynchronization>
-			<enabled>true</enabled>
-			<kind>account</kind>
-			<intent>subject</intent>
-			<focusType>UserType</focusType>
-			<correlation>
-				<q:equal>
-					<q:path>name</q:path>
-					<expression>
-						<path>
-							$account/attributes/name
-						</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-				<situation>linked</situation>
-				<synchronize>true</synchronize>
-			</reaction>
-			<reaction>
-				<situation>deleted</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unlinked</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unmatched</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-				</action>
-			</reaction>
-		</objectSynchronization>
-		<objectSynchronization>
-			<enabled>true</enabled>
-			<kind>entitlement</kind>
-			<intent>group</intent>
-			<focusType>OrgType</focusType>
-			<correlation>
-				<q:equal>
-					<q:path>name</q:path>
-					<expression>
-						<path>
-							$account/attributes/name
-						</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-				<situation>linked</situation>
-				<synchronize>true</synchronize>
-			</reaction>
-			<reaction>
-				<situation>deleted</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unlinked</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-				</action>
-			</reaction>
-			<reaction>
-				<situation>unmatched</situation>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-				</action>
-			</reaction>
-		</objectSynchronization>
-	</synchronization>
-	<!--<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">-->
-		<!--<configured>-->
-			<!--<cap:read>-->
-				<!--<cap:cachingOnly>true</cap:cachingOnly>-->
-			<!--</cap:read>-->
-		<!--</configured>-->
-	<!--</capabilities>-->
-	<caching>
-		<cachingStategy>passive</cachingStategy>
-	</caching>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>subject</intent>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <default>true</default>
+            <attribute>
+                <ref>icfs:name</ref>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:group</ref>
+                <inbound>
+                    <target>
+                        <path>organizationalUnit</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <default>true</default>
+            <attribute>
+                <ref>icfs:name</ref>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+        </objectType>
+    </schemaHandling>
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <kind>account</kind>
+            <intent>subject</intent>
+            <focusType>UserType</focusType>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>
+                            $account/attributes/name
+                        </path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <focusType>OrgType</focusType>
+            <correlation>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>
+                            $account/attributes/name
+                        </path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+    <!--<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">-->
+        <!--<configured>-->
+            <!--<cap:read>-->
+                <!--<cap:cachingOnly>true</cap:cachingOnly>-->
+            <!--</cap:read>-->
+        <!--</configured>-->
+    <!--</capabilities>-->
+    <caching>
+        <cachingStategy>passive</cachingStategy>
+    </caching>
 </resource>

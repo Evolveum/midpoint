@@ -3,17 +3,17 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-8888-6666-0000-100000000005"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>Basic Role - LDAP</name>    
+    <name>Basic Role - LDAP</name>
     <assignment id="1">
-    	<construction>
-    		<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e333" type="c:ResourceType"/>
-    	</construction>
+        <construction>
+            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e333" type="c:ResourceType"/>
+        </construction>
     </assignment>
     <inducement id="2">
         <construction>
@@ -23,5 +23,5 @@
     <inducement id="3">
         <targetRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:OrgType"/>
     </inducement>
-    <approverRef oid="f65963e3-9d47-4b18-aaf3-bfc98bdfa000" type="c:UserType"/>  
+    <approverRef oid="f65963e3-9d47-4b18-aaf3-bfc98bdfa000" type="c:UserType"/>
 </role>

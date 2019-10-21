@@ -2,37 +2,37 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- Import test file with references between objects -->
 
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
 
-	<resource xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-		<name>Sample Resource</name>
-		<connectorRef type="ConnectorType">
-			<filter>
-				<!-- <q:and> -->
-				<!-- <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType"/> -->
-				<q:equal>
-					<q:path>c:connectorType</q:path>
-					<q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
-				</q:equal>
-				<!-- </q:and> -->
-			</filter>
-		</connectorRef>
-		<connectorConfiguration>
-		</connectorConfiguration>
-		<namespace>http://foo.bar.com/</namespace>
-		<schema>
-		</schema>
-	</resource>
+    <resource xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        <name>Sample Resource</name>
+        <connectorRef type="ConnectorType">
+            <filter>
+                <!-- <q:and> -->
+                <!-- <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType"/> -->
+                <q:equal>
+                    <q:path>c:connectorType</q:path>
+                    <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
+                </q:equal>
+                <!-- </q:and> -->
+            </filter>
+        </connectorRef>
+        <connectorConfiguration>
+        </connectorConfiguration>
+        <namespace>http://foo.bar.com/</namespace>
+        <schema>
+        </schema>
+    </resource>
 
-	<user>
+    <user>
         <name>jack2</name>
         <extension>
             <piracy:ship>Black Pearl</piracy:ship>

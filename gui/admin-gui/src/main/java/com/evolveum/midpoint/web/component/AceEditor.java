@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,9 +21,9 @@ import java.util.Map;
 
 public class AceEditor extends TextArea<String> {
 
-	public static final String MODE_XML = "ace/mode/xml";
-	public static final String MODE_JSON = "ace/mode/json";
-	public static final String MODE_YAML = "ace/mode/yaml";
+    public static final String MODE_XML = "ace/mode/xml";
+    public static final String MODE_JSON = "ace/mode/json";
+    public static final String MODE_YAML = "ace/mode/yaml";
 
     public static final Map<String,String> MODES = new HashMap<>();
 
@@ -40,7 +40,7 @@ public class AceEditor extends TextArea<String> {
 
     private int minHeight = 200;
     private int height = minHeight;
-	private String mode = MODE_XML;
+    private String mode = MODE_XML;
 
     public AceEditor(String id, IModel<String> model) {
         super(id, model);
@@ -87,13 +87,13 @@ public class AceEditor extends TextArea<String> {
         this.height = height;
     }
 
-	public String getMode() {
-		return mode;
-	}
+    public String getMode() {
+        return mode;
+    }
 
-	public void setMode(String mode) {
-		this.mode = mode;
-	}
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
 
     public void setModeForDataLanguage(@Nullable String dataLanguage) {
         setMode(MODES.get(dataLanguage));

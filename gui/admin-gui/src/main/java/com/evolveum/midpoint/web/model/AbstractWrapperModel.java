@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2015-2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,25 +22,25 @@ public abstract class AbstractWrapperModel<T,O extends ObjectType> implements IM
     private IModel<PrismObjectWrapper<O>> wrapperModel;
 
     public AbstractWrapperModel(IModel<PrismObjectWrapper<O>> wrapperModel) {
-    	Validate.notNull(wrapperModel, "Wrapper model must not be null.");
+        Validate.notNull(wrapperModel, "Wrapper model must not be null.");
         this.wrapperModel = wrapperModel;
     }
 
     public IModel<PrismObjectWrapper<O>> getWrapperModel() {
-		return wrapperModel;
-	}
+        return wrapperModel;
+    }
 
     public PrismObjectWrapper<O> getWrapper() {
-		return wrapperModel.getObject();
-	}
+        return wrapperModel.getObject();
+    }
 
     public O getObjectType() {
-		return wrapperModel.getObject().getObject().asObjectable();
-	}
+        return wrapperModel.getObject().getObject().asObjectable();
+    }
 
     public PrismObject<O> getPrismObject() {
-		return wrapperModel.getObject().getObject();
-	}
+        return wrapperModel.getObject().getObject();
+    }
 
     @Override
     public void detach() {

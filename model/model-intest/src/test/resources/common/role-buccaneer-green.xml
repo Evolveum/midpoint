@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="12345678-d34d-b33f-f00d-555555558888"
@@ -13,45 +13,45 @@
     <name>Buccaneer Green</name>
     <description>Scurvy Buccaneers</description>
     <inducement id="1111">
-    	<extension>
-    		<piracy:sea>The Seven Seas</piracy:sea>
-    	</extension>
-    	<construction id="60004">
-    		<resourceRef oid="10000000-0000-0000-0000-000000000404" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		
+        <extension>
+            <piracy:sea>The Seven Seas</piracy:sea>
+        </extension>
+        <construction id="60004">
+            <resourceRef oid="10000000-0000-0000-0000-000000000404" type="c:ResourceType"/>
+            <kind>account</kind>
+
             <attribute>
                 <ref>ri:ship</ref>
                 <outbound>
-                	<expression>
-						<value>buccaneer</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>buccaneer</value>
+                    </expression>
+                </outbound>
             </attribute>
-            
-    	</construction>
+
+        </construction>
     </inducement>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>
-    	<phase>execution</phase>
+        <action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>
+        <phase>execution</phase>
     </authorization>
     <requestable>true</requestable>
     <adminGuiConfiguration>
-    	<additionalMenuLink>
-    		<targetUrl>http://piracy.com/plunder</targetUrl>
-    		<label>Plunder</label>
-    	</additionalMenuLink>
-    	<userDashboardLink>
-    		<targetUrl>http://example.com/swashbuckle</targetUrl>
-    		<label>Swashbuckle</label>
-    	</userDashboardLink>
-    	<objectForms>
-    		<objectForm>
-    			<type>UserType</type>
-    			<formSpecification>
-    				<panelClass>com.piracy.form.PirateUserPanel</panelClass>
-    			</formSpecification>
-    		</objectForm>
-    	</objectForms>
+        <additionalMenuLink>
+            <targetUrl>http://piracy.com/plunder</targetUrl>
+            <label>Plunder</label>
+        </additionalMenuLink>
+        <userDashboardLink>
+            <targetUrl>http://example.com/swashbuckle</targetUrl>
+            <label>Swashbuckle</label>
+        </userDashboardLink>
+        <objectForms>
+            <objectForm>
+                <type>UserType</type>
+                <formSpecification>
+                    <panelClass>com.piracy.form.PirateUserPanel</panelClass>
+                </formSpecification>
+            </objectForm>
+        </objectForms>
     </adminGuiConfiguration>
 </role>

@@ -2,22 +2,22 @@
 <!--
   ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
 <xsd:schema elementFormDefault="qualified"
             targetNamespace="http://midpoint.evolveum.com/xml/ns/test/weapons"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/weapons"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    
+
     <xsd:complexType name="WeaponBrandType">
-    	<xsd:sequence>
-    		<xsd:element name="manufacturer" type="xsd:string" minOccurs="1"/>
-    		<xsd:element name="model" type="xsd:string" minOccurs="0"/>
-    	</xsd:sequence>
+        <xsd:sequence>
+            <xsd:element name="manufacturer" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="model" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
 
 </xsd:schema>

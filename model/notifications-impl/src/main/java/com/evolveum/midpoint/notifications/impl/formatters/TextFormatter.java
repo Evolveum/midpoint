@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -201,9 +201,9 @@ public class TextFormatter {
             boolean first = true;
             for (ShadowAssociationType shadowAssociationType : shadowType.getAssociation()) {
                 if (first) {
-					first = false;
-					retval.append("\n");
-				}
+                    first = false;
+                    retval.append("\n");
+                }
                 retval.append("Association:\n");
                 formatContainerValue(retval, "  ", shadowAssociationType.asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
                 retval.append("\n");
@@ -328,12 +328,12 @@ public class TextFormatter {
             PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
             ResourceType resourceType = null;
             if (resource == null) {
-	            resource = getPrismObject(resourceRef.getOid(), false, result);
+                resource = getPrismObject(resourceRef.getOid(), false, result);
                 if (resource != null) {
                     resourceType = (ResourceType) resource.asObjectable();
                 }
             } else {
-            	resourceType = resource.asObjectable();
+                resourceType = resource.asObjectable();
             }
             if (resourceType != null) {
                 qualifier = " on " + resourceType.getName();
@@ -348,7 +348,7 @@ public class TextFormatter {
                     " (" + object.toDebugType() + ")" +
                     qualifier;
         } else {
-        	String nameOrOid = value.getTargetName() != null ? value.getTargetName().getOrig() : value.getOid();
+            String nameOrOid = value.getTargetName() != null ? value.getTargetName().getOrig() : value.getOid();
             if (mightBeRemoved) {
                 referredObjectIdentification = "(cannot display the actual name of " + localPart(value.getTargetType()) + ":" + nameOrOid + ", as it might be already removed)";
             } else {
@@ -357,14 +357,14 @@ public class TextFormatter {
         }
 
         return value.getRelation() != null ?
-				referredObjectIdentification + " [" + value.getRelation().getLocalPart() + "]"
-				: referredObjectIdentification;
+                referredObjectIdentification + " [" + value.getRelation().getLocalPart() + "]"
+                : referredObjectIdentification;
     }
 
     private <O extends ObjectType> PrismObject<O> getPrismObject(String oid, boolean mightBeRemoved, OperationResult result) {
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-			return (PrismObject<O>) cacheRepositoryService.getObject(ObjectType.class, oid, options, result);
+            return (PrismObject<O>) cacheRepositoryService.getObject(ObjectType.class, oid, options, result);
         } catch (ObjectNotFoundException e) {
             if (!mightBeRemoved) {
                 LoggingUtils.logException(LOGGER, "Couldn't resolve reference when displaying object name within a notification (it might be already removed)", e);
@@ -420,15 +420,15 @@ public class TextFormatter {
         return sb.toString();
     }
 
-	private String resolve(String key) {
+    private String resolve(String key) {
         if (key != null) {
             return localizationService.translate(key, null, Locale.getDefault(), key);
         } else {
             return null;
         }
-	}
+    }
 
-	// we call this on filtered list of item deltas - all of they have definition set
+    // we call this on filtered list of item deltas - all of they have definition set
     private ItemPath getPathToExplain(ItemDelta itemDelta) {
         ItemPath path = itemDelta.getPath();
 
@@ -455,17 +455,17 @@ public class TextFormatter {
         for (ItemDelta itemDelta: objectDelta.getModifications()) {
             if (itemDelta.getDefinition() != null) {
                 if ((showOperationalAttributes || !itemDelta.getDefinition().isOperational()) && !NotificationFunctionsImpl
-						.isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
+                        .isAmongHiddenPaths(itemDelta.getPath(), hiddenPaths)) {
                     toBeDisplayed.add(itemDelta);
                 }
             } else {
                 noDefinition.add(itemDelta.getElementName());
             }
         }
-		if (!noDefinition.isEmpty()) {
-			LOGGER.error("ItemDeltas for {} without definition - WILL NOT BE INCLUDED IN NOTIFICATION. Containing object delta:\n{}",
-					noDefinition, objectDelta.debugDump());
-		}
+        if (!noDefinition.isEmpty()) {
+            LOGGER.error("ItemDeltas for {} without definition - WILL NOT BE INCLUDED IN NOTIFICATION. Containing object delta:\n{}",
+                    noDefinition, objectDelta.debugDump());
+        }
         toBeDisplayed.sort((delta1, delta2) -> {
             Integer order1 = delta1.getDefinition().getDisplayOrder();
             Integer order2 = delta2.getDefinition().getDisplayOrder();
@@ -501,13 +501,13 @@ public class TextFormatter {
                     toBeDisplayed.add(item);
                 }
             } else {
-				noDefinition.add(item.getElementName());
+                noDefinition.add(item.getElementName());
             }
         }
-		if (!noDefinition.isEmpty()) {
-			LOGGER.error("Items {} without definition - THEY WILL NOT BE INCLUDED IN NOTIFICATION.\nAll items:\n{}",
-					noDefinition, DebugUtil.debugDump(items));
-		}
+        if (!noDefinition.isEmpty()) {
+            LOGGER.error("Items {} without definition - THEY WILL NOT BE INCLUDED IN NOTIFICATION.\nAll items:\n{}",
+                    noDefinition, DebugUtil.debugDump(items));
+        }
         toBeDisplayed.sort((item1, item2) -> {
             Integer order1 = item1.getDefinition().getDisplayOrder();
             Integer order2 = item2.getDefinition().getDisplayOrder();
@@ -546,8 +546,8 @@ public class TextFormatter {
 
     // TODO implement seriously
     public String formatDateTime(XMLGregorianCalendar timestamp) {
-		//DateFormatUtils.format(timestamp.toGregorianCalendar(), DateFormatUtils.SMTP_DATETIME_FORMAT.getPattern());
-		return String.valueOf(XmlTypeConverter.toDate(timestamp));
-	}
+        //DateFormatUtils.format(timestamp.toGregorianCalendar(), DateFormatUtils.SMTP_DATETIME_FORMAT.getPattern());
+        return String.valueOf(XmlTypeConverter.toDate(timestamp));
+    }
 
 }

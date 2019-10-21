@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,24 +22,24 @@ import org.apache.wicket.Application;
  */
 public class ScriptExecutionHandlerDto extends HandlerDto {
 
-	public static final String F_SCRIPT = "script";
+    public static final String F_SCRIPT = "script";
 
-	public ScriptExecutionHandlerDto(TaskDto taskDto) {
-		super(taskDto);
-	}
+    public ScriptExecutionHandlerDto(TaskDto taskDto) {
+        super(taskDto);
+    }
 
-	public String getScript() {
-		ExecuteScriptType script = taskDto.getExtensionPropertyRealValue(SchemaConstants.SE_EXECUTE_SCRIPT, ExecuteScriptType.class);
-		if (script == null) {
-			return null;
-		}
-		PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
-		try {
-			return WebXmlUtil.stripNamespaceDeclarations(
-					prismContext.xmlSerializer().serializeAnyData(script, SchemaConstants.SE_EXECUTE_SCRIPT));
-		} catch (SchemaException e) {
-			throw new SystemException("Couldn't serialize script: " + e.getMessage(), e);
-		}
-	}
+    public String getScript() {
+        ExecuteScriptType script = taskDto.getExtensionPropertyRealValue(SchemaConstants.SE_EXECUTE_SCRIPT, ExecuteScriptType.class);
+        if (script == null) {
+            return null;
+        }
+        PrismContext prismContext = ((MidPointApplication) Application.get()).getPrismContext();
+        try {
+            return WebXmlUtil.stripNamespaceDeclarations(
+                    prismContext.xmlSerializer().serializeAnyData(script, SchemaConstants.SE_EXECUTE_SCRIPT));
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't serialize script: " + e.getMessage(), e);
+        }
+    }
 
 }

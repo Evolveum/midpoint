@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component;
@@ -126,8 +126,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                         continue;
                     }
                     executeMemberOperation(memberPanel.getAbstractRoleTypeObject(),
-                    		createInOidQuery(selectedObjects), memberPanel.getRelationValue(),
-                    		memberPanel.getObjectType().getTypeQName(), target, getPageBase());
+                            createInOidQuery(selectedObjects), memberPanel.getRelationValue(),
+                            memberPanel.getObjectType().getTypeQName(), target, getPageBase());
                     if (memberPanel.getObjectType().equals(ObjectTypes.ORG)){
                         orgPanelProcessed = true;
                     }
@@ -390,15 +390,15 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     }
 
     protected void executeMemberOperation(AbstractRoleType targetObject, ObjectQuery query,
-    		QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
-    	MemberOperationsHelper.assignMembersPerformed(targetObject, query,
-        		relation, type, target, pageBase);
+            QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
+        MemberOperationsHelper.assignMembersPerformed(targetObject, query,
+                relation, type, target, pageBase);
     }
 
     protected boolean isOrgTreeVisible(){
         return true;
     }
-    
+
     protected abstract T getAssignmentTargetRefObject();
 
     public int getWidth(){
@@ -426,8 +426,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     public Component getComponent(){
         return this;
     }
-    
+
     protected QName getDefaultTargetType() {
-    	return RoleType.COMPLEX_TYPE;
+        return RoleType.COMPLEX_TYPE;
     }
 }

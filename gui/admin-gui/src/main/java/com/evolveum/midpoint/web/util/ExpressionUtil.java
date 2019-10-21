@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -39,9 +39,9 @@ import java.util.*;
  * */
 public class ExpressionUtil {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ExpressionUtil.class);
 
-	public static enum ExpressionEvaluatorType{
+    public static enum ExpressionEvaluatorType{
         LITERAL,
         AS_IS,
         PATH,
@@ -206,94 +206,94 @@ public class ExpressionUtil {
     }
 
     public static String loadExpression(ExpressionType expression, PrismContext prismContext, Trace LOGGER) {
-		if (expression == null || expression.getExpressionEvaluator().isEmpty()) {
-			return "";
-		}
-		List<JAXBElement<?>> evaluators = expression.getExpressionEvaluator();
-		try {
-			return serializeEvaluators(evaluators, prismContext);
-		} catch (SchemaException e) {
-			//TODO - how can we show this error to user?
-			LoggingUtils.logUnexpectedException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
-			return e.getMessage();
-		}
-	}
+        if (expression == null || expression.getExpressionEvaluator().isEmpty()) {
+            return "";
+        }
+        List<JAXBElement<?>> evaluators = expression.getExpressionEvaluator();
+        try {
+            return serializeEvaluators(evaluators, prismContext);
+        } catch (SchemaException e) {
+            //TODO - how can we show this error to user?
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not load expressions from mapping.", e, e.getStackTrace());
+            return e.getMessage();
+        }
+    }
 
-	private static String serializeEvaluators(List<JAXBElement<?>> evaluators, PrismContext prismContext) throws SchemaException {
-		if (evaluators.size() == 1) {
-			return serialize(evaluators.get(0), prismContext);
-		} else {
-			StringBuilder sb = new StringBuilder();
-			for (JAXBElement<?> element : evaluators) {
-				String subElement = serialize(element, prismContext);
-				sb.append(subElement).append("\n");
-			}
-			return sb.toString();
-		}
-	}
+    private static String serializeEvaluators(List<JAXBElement<?>> evaluators, PrismContext prismContext) throws SchemaException {
+        if (evaluators.size() == 1) {
+            return serialize(evaluators.get(0), prismContext);
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (JAXBElement<?> element : evaluators) {
+                String subElement = serialize(element, prismContext);
+                sb.append(subElement).append("\n");
+            }
+            return sb.toString();
+        }
+    }
 
-	private static String serialize(JAXBElement<?> element, PrismContext prismContext) throws SchemaException {
-		String xml;
-		if (element.getValue() instanceof RawType) {
-			RawType raw = (RawType) element.getValue();
-			RootXNode rootNode = prismContext.xnodeFactory().root(element.getName(), raw.serializeToXNode());
-			xml = prismContext.xmlSerializer().serialize(rootNode);
-		} else {
-			xml = prismContext.xmlSerializer().serialize(element);
-		}
-		return WebXmlUtil.stripNamespaceDeclarations(xml);
-	}
+    private static String serialize(JAXBElement<?> element, PrismContext prismContext) throws SchemaException {
+        String xml;
+        if (element.getValue() instanceof RawType) {
+            RawType raw = (RawType) element.getValue();
+            RootXNode rootNode = prismContext.xnodeFactory().root(element.getName(), raw.serializeToXNode());
+            xml = prismContext.xmlSerializer().serialize(rootNode);
+        } else {
+            xml = prismContext.xmlSerializer().serialize(element);
+        }
+        return WebXmlUtil.stripNamespaceDeclarations(xml);
+    }
 
-	public static boolean isEmpty(ExpressionType expression) {
-		return expression == null || expression.getExpressionEvaluator().isEmpty();
-	}
+    public static boolean isEmpty(ExpressionType expression) {
+        return expression == null || expression.getExpressionEvaluator().isEmpty();
+    }
 
-	public static boolean isShadowRefNotEmpty(ExpressionType expression, PrismContext prismContext) {
+    public static boolean isShadowRefNotEmpty(ExpressionType expression, PrismContext prismContext) {
         List<ObjectReferenceType> shadowRefValueList = getShadowRefValue(expression, prismContext);
-		return !isEmpty(expression) && shadowRefValueList != null && shadowRefValueList.size() > 0;
-	}
+        return !isEmpty(expression) && shadowRefValueList != null && shadowRefValueList.size() > 0;
+    }
 
-	public static boolean isAssociationTargetSearchNotEmpty(ExpressionType expression) {
+    public static boolean isAssociationTargetSearchNotEmpty(ExpressionType expression) {
         String path = getTargetSearchExpPathValue(expression);
         String value = getTargetSearchExpValue(expression);
-		return StringUtils.isNotEmpty(path) && StringUtils.isNotEmpty(value);
-	}
+        return StringUtils.isNotEmpty(path) && StringUtils.isNotEmpty(value);
+    }
 
-	public static boolean isLiteralExpressionValueNotEmpty(ExpressionType expression) throws SchemaException{
+    public static boolean isLiteralExpressionValueNotEmpty(ExpressionType expression) throws SchemaException{
         List<String> values = getLiteralExpressionValues(expression);
-		return values != null && values.size() > 0;
-	}
+        return values != null && values.size() > 0;
+    }
 
-	public static boolean areAllExpressionValuesEmpty(ExpressionType expression, PrismContext prismContext) throws SchemaException {
+    public static boolean areAllExpressionValuesEmpty(ExpressionType expression, PrismContext prismContext) throws SchemaException {
         return !isShadowRefNotEmpty(expression, prismContext) && !isLiteralExpressionValueNotEmpty(expression) && !isAssociationTargetSearchNotEmpty(expression);
     }
 
-	public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
-		expressionObject.getExpressionEvaluator().clear();
-		if (StringUtils.isNotBlank(xml)) {
-			xml = WebXmlUtil.wrapInElement("expression", xml, true);
-			LOGGER.info("Expression to serialize: {}", xml);
-			JAXBElement<?> newElement = context.parserFor(xml).xml().parseRealValueToJaxbElement();
-			expressionObject.getExpressionEvaluator().addAll(((ExpressionType) (newElement.getValue())).getExpressionEvaluator());
-		}
-	}
+    public static void parseExpressionEvaluators(String xml, ExpressionType expressionObject, PrismContext context) throws SchemaException {
+        expressionObject.getExpressionEvaluator().clear();
+        if (StringUtils.isNotBlank(xml)) {
+            xml = WebXmlUtil.wrapInElement("expression", xml, true);
+            LOGGER.info("Expression to serialize: {}", xml);
+            JAXBElement<?> newElement = context.parserFor(xml).xml().parseRealValueToJaxbElement();
+            expressionObject.getExpressionEvaluator().addAll(((ExpressionType) (newElement.getValue())).getExpressionEvaluator());
+        }
+    }
 
-	// TODO move somewhere else? generalize a bit?
-	public static RootXNode parseSearchFilter(String data, PrismContext context) throws SchemaException {
-		String xml = WebXmlUtil.wrapInElement("root", data, false);
-		RootXNode rootXNode = context.parserFor(xml).xml().parseToXNode();
-		if (rootXNode.getSubnode() instanceof MapXNode) {
-			MapXNode mapXNode = (MapXNode) rootXNode.getSubnode();
-			if (mapXNode.size() != 1) {
-				throw new SchemaException("Content cannot be parsed as a search filter: " + mapXNode.debugDump());
-			}
-			return mapXNode.getEntryAsRoot(mapXNode.keySet().iterator().next());
-		} else {
-			throw new SchemaException("Content cannot be parsed as a search filter: " + DebugUtil.debugDump(rootXNode.getSubnode()));
-		}
-	}
+    // TODO move somewhere else? generalize a bit?
+    public static RootXNode parseSearchFilter(String data, PrismContext context) throws SchemaException {
+        String xml = WebXmlUtil.wrapInElement("root", data, false);
+        RootXNode rootXNode = context.parserFor(xml).xml().parseToXNode();
+        if (rootXNode.getSubnode() instanceof MapXNode) {
+            MapXNode mapXNode = (MapXNode) rootXNode.getSubnode();
+            if (mapXNode.size() != 1) {
+                throw new SchemaException("Content cannot be parsed as a search filter: " + mapXNode.debugDump());
+            }
+            return mapXNode.getEntryAsRoot(mapXNode.keySet().iterator().next());
+        } else {
+            throw new SchemaException("Content cannot be parsed as a search filter: " + DebugUtil.debugDump(rootXNode.getSubnode()));
+        }
+    }
 
-	public static JAXBElement findFirstEvaluatorByName(ExpressionType expression, QName elementName){
+    public static JAXBElement findFirstEvaluatorByName(ExpressionType expression, QName elementName){
         if (isEmpty(expression) || elementName == null){
             return null;
         }
@@ -306,7 +306,7 @@ public class ExpressionUtil {
     }
 
     public static List<JAXBElement> findAllEvaluatorsByName(ExpressionType expression, QName elementName){
-	    List<JAXBElement> elements = new ArrayList<>();
+        List<JAXBElement> elements = new ArrayList<>();
         if (isEmpty(expression) || elementName == null){
             return elements;
         }

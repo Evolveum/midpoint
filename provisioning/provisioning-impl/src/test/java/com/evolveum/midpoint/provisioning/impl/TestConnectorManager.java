@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2017-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl;
@@ -35,78 +35,78 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @DirtiesContext
 public class TestConnectorManager extends AbstractIntegrationTest {
 
-	private static final String CONNID_FRAMEWORK_VERSION = "1.5.0.10";
+    private static final String CONNID_FRAMEWORK_VERSION = "1.5.0.10";
 
-	@Autowired private ProvisioningService provisioningService;
-	@Autowired private ConnectorManager connectorManager;
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired private ConnectorManager connectorManager;
 
-	private static Trace LOGGER = TraceManager.getTrace(TestConnectorManager.class);
+    private static Trace LOGGER = TraceManager.getTrace(TestConnectorManager.class);
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		// do NOT postInit provisioning. postInit would start connector discovery
-		// we want to test the state before discovery
-//		provisioningService.postInit(initResult);
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        // do NOT postInit provisioning. postInit would start connector discovery
+        // we want to test the state before discovery
+//        provisioningService.postInit(initResult);
+    }
 
-	@Test
-	public void test100ListConnectorFactories() throws Exception {
-		final String TEST_NAME = "test100ListConnectorFactories";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test100ListConnectorFactories() throws Exception {
+        final String TEST_NAME = "test100ListConnectorFactories";
+        displayTestTitle(TEST_NAME);
 
-		OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
+        OperationResult result = new OperationResult(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		Collection<ConnectorFactory> connectorFactories = connectorManager.getConnectorFactories();
+        // WHEN
+        displayWhen(TEST_NAME);
+        Collection<ConnectorFactory> connectorFactories = connectorManager.getConnectorFactories();
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertNotNull("Null connector factories", connectorFactories);
-		assertFalse("No connector factories found", connectorFactories.isEmpty());
-		display("Found "+connectorFactories.size()+" connector factories");
+        // THEN
+        displayThen(TEST_NAME);
+        assertNotNull("Null connector factories", connectorFactories);
+        assertFalse("No connector factories found", connectorFactories.isEmpty());
+        display("Found "+connectorFactories.size()+" connector factories");
 
-		assertSuccess(result);
+        assertSuccess(result);
 
 
-		for (ConnectorFactory connectorFactory : connectorFactories) {
-			display("Found connector factory " +connectorFactory, connectorFactory);
-		}
+        for (ConnectorFactory connectorFactory : connectorFactories) {
+            display("Found connector factory " +connectorFactory, connectorFactory);
+        }
 
-		PrismAsserts.assertEqualsUnordered("Wrong connector factories",
-				connectorFactories.stream().map(x -> x.getClass().getName()),
-				"com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorFactoryConnIdImpl",
-				"com.evolveum.midpoint.provisioning.ucf.impl.builtin.ConnectorFactoryBuiltinImpl");
-	}
+        PrismAsserts.assertEqualsUnordered("Wrong connector factories",
+                connectorFactories.stream().map(x -> x.getClass().getName()),
+                "com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnectorFactoryConnIdImpl",
+                "com.evolveum.midpoint.provisioning.ucf.impl.builtin.ConnectorFactoryBuiltinImpl");
+    }
 
-	@Test
-	public void test110SelfTest() throws Exception {
-		final String TEST_NAME = "test100ListConnectorFactories";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test110SelfTest() throws Exception {
+        final String TEST_NAME = "test100ListConnectorFactories";
+        displayTestTitle(TEST_NAME);
 
-		Task task = taskManager.createTaskInstance(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
+        Task task = taskManager.createTaskInstance(TestConnectorDiscovery.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		connectorManager.connectorFrameworkSelfTest(result, task);
+        // WHEN
+        displayWhen(TEST_NAME);
+        connectorManager.connectorFrameworkSelfTest(result, task);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-	}
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+    }
 
-	@Test
-	public void test120FrameworkVersion() throws Exception {
-		final String TEST_NAME = "test120FrameworkVersion";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test120FrameworkVersion() throws Exception {
+        final String TEST_NAME = "test120FrameworkVersion";
+        displayTestTitle(TEST_NAME);
 
-		// WHEN
-		String frameworkVersion = connectorManager.getFrameworkVersion();
+        // WHEN
+        String frameworkVersion = connectorManager.getFrameworkVersion();
 
-		// THEN
-		assertEquals("Unexpected framework version", CONNID_FRAMEWORK_VERSION, frameworkVersion);
+        // THEN
+        assertEquals("Unexpected framework version", CONNID_FRAMEWORK_VERSION, frameworkVersion);
 
-	}
+    }
 
 }

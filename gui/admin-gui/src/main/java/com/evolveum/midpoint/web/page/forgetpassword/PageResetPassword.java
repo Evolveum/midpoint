@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.forgetpassword;
@@ -33,66 +33,66 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
                 description = "PageSelfCredentials.auth.credentials.description")})
 public class PageResetPassword extends PageAbstractSelfCredentials{
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
 
-	public PageResetPassword() {
-		// TODO Auto-generated constructor stub
-	}
+    public PageResetPassword() {
+        // TODO Auto-generated constructor stub
+    }
 
-	@Override
-	protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
-		return false;
-	}
-
-
-	@Override
-	protected boolean isCheckOldPassword() {
-		return false;
-	}
-
-	@Override
-	protected void finishChangePassword(final OperationResult result, AjaxRequestTarget target) {
+    @Override
+    protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
+        return false;
+    }
 
 
-		if (result.getStatus() == OperationResultStatus.SUCCESS) {
-			result.setMessage(getString("PageResetPassword.reset.successful"));
-			setResponsePage(PageLogin.class);
+    @Override
+    protected boolean isCheckOldPassword() {
+        return false;
+    }
 
-			PrismObject<UserType> user = getUser();
-			if (user == null) {
-				SecurityContextHolder.getContext().setAuthentication(null);
-				return;
-			}
-
-			UserType userType = user.asObjectable();
-
-			if (userType.getCredentials() != null && userType.getCredentials().getNonce() != null) {
-
-				try {
-					ObjectDelta<UserType> deleteNonceDelta = getPrismContext().deltaFactory().object()
-							.createModificationDeleteContainer(UserType.class, userType.getOid(), SchemaConstants.PATH_NONCE,
-									userType.getCredentials().getNonce().clone());
-					WebModelServiceUtils.save(deleteNonceDelta, result, this);
-				} catch (SchemaException e) {
-					//nothing to do, just let the nonce here.. it will be invalid
-				}
-			}
-
-			SecurityContextHolder.getContext().setAuthentication(null);
-		}
-
-		showResult(result);
-		target.add(getFeedbackPanel());
-//		get(ID_MAIN_FORM).setVisible(false);
+    @Override
+    protected void finishChangePassword(final OperationResult result, AjaxRequestTarget target) {
 
 
-	}
+        if (result.getStatus() == OperationResultStatus.SUCCESS) {
+            result.setMessage(getString("PageResetPassword.reset.successful"));
+            setResponsePage(PageLogin.class);
 
-	@Override
-	protected void createBreadcrumb() {
-		// we don't want breadcrumbs here
-	}
+            PrismObject<UserType> user = getUser();
+            if (user == null) {
+                SecurityContextHolder.getContext().setAuthentication(null);
+                return;
+            }
+
+            UserType userType = user.asObjectable();
+
+            if (userType.getCredentials() != null && userType.getCredentials().getNonce() != null) {
+
+                try {
+                    ObjectDelta<UserType> deleteNonceDelta = getPrismContext().deltaFactory().object()
+                            .createModificationDeleteContainer(UserType.class, userType.getOid(), SchemaConstants.PATH_NONCE,
+                                    userType.getCredentials().getNonce().clone());
+                    WebModelServiceUtils.save(deleteNonceDelta, result, this);
+                } catch (SchemaException e) {
+                    //nothing to do, just let the nonce here.. it will be invalid
+                }
+            }
+
+            SecurityContextHolder.getContext().setAuthentication(null);
+        }
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+//        get(ID_MAIN_FORM).setVisible(false);
+
+
+    }
+
+    @Override
+    protected void createBreadcrumb() {
+        // we don't want breadcrumbs here
+    }
 
 
 }

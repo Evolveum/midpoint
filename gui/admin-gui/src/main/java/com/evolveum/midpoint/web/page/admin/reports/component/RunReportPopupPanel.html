@@ -17,59 +17,59 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-	<form wicket:id="mainForm">
-	
-	<div class="feedbackContainer">
-		<div wicket:id="popupFeedback" class="messagePanel"/>
-	</div>
-    	<h3 style="margin-left: 20px;">
-        	<wicket:message key="RunReportPopupPanel.title"/>
-    	</h3>
+    <form wicket:id="mainForm">
 
-		<div class="box boxed-table">
-	        <div class="box-header">
-	        	
-	        </div>
-	        <div  class="box-body no-padding">
-				<table class="table table-striped table-hover table-bordered">
-				<thead>
-				<tr>
-				<th><wicket:message key="runReportPopupContent.param.name"/></th>
-				<th><wicket:message key="runReportPopupContent.param.class"/></th>
-				<th><wicket:message key="runReportPopupContent.param.value"/></th>
-				</tr>
-				</thead>
-					<div wicket:id="paramTable">
-						<tr wicket:id="paramPanel">
-							<td>
-								<label wicket:id="name" />
-								<span wicket:id="required" style="color: #f00; font-weight: bold;"
-                					wicket:message="title:prismPropertyPanel.required">*</span>
-							</td>
-							<td>
-								<label wicket:id="type" />
-							</td>
-							<td>
-								<div wicket:id="valueList">
-									<div wicket:id="valueMarkup" class="row">
-										<div wicket:id="inputValue" class="col-xs-10"/>
-										<div class="col-xs-2">	
-											<span class="btn-group">
-								                <a class="btn btn-danger btn-sm" wicket:id="remove"><i class="glyphicon glyphicon-minus"/></a>
-								                <a class="btn btn-success btn-sm" wicket:id="add"><i class="glyphicon glyphicon-plus"/></a>
-								            </span>
-							            </div>
-									</div>
-								</div>
-							</td>
-						</tr>
-					</div>
-				</table>
-			</div>
-		</div>
-		<p align="center">
+    <div class="feedbackContainer">
+        <div wicket:id="popupFeedback" class="messagePanel"/>
+    </div>
+        <h3 style="margin-left: 20px;">
+            <wicket:message key="RunReportPopupPanel.title"/>
+        </h3>
+
+        <div class="box boxed-table">
+            <div class="box-header">
+
+            </div>
+            <div  class="box-body no-padding">
+                <table class="table table-striped table-hover table-bordered">
+                <thead>
+                <tr>
+                <th><wicket:message key="runReportPopupContent.param.name"/></th>
+                <th><wicket:message key="runReportPopupContent.param.class"/></th>
+                <th><wicket:message key="runReportPopupContent.param.value"/></th>
+                </tr>
+                </thead>
+                    <div wicket:id="paramTable">
+                        <tr wicket:id="paramPanel">
+                            <td>
+                                <label wicket:id="name" />
+                                <span wicket:id="required" style="color: #f00; font-weight: bold;"
+                                    wicket:message="title:prismPropertyPanel.required">*</span>
+                            </td>
+                            <td>
+                                <label wicket:id="type" />
+                            </td>
+                            <td>
+                                <div wicket:id="valueList">
+                                    <div wicket:id="valueMarkup" class="row">
+                                        <div wicket:id="inputValue" class="col-xs-10"/>
+                                        <div class="col-xs-2">
+                                            <span class="btn-group">
+                                                <a class="btn btn-danger btn-sm" wicket:id="remove"><i class="glyphicon glyphicon-minus"/></a>
+                                                <a class="btn btn-success btn-sm" wicket:id="add"><i class="glyphicon glyphicon-plus"/></a>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </div>
+                </table>
+            </div>
+        </div>
+        <p align="center">
             <a class="btn btn-success" wicket:id="runReport" />
         </p>
-	</form>
+    </form>
 </wicket:panel>
 </html>

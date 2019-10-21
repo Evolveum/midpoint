@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.configuration;
@@ -22,79 +22,79 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.InternalsConfigDto
 
 public class InternalsConfigPanel extends BasePanel<InternalsConfigDto> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final Trace LOGGER = TraceManager.getTrace(InternalsConfigPanel.class);
-	
-	private static final String ID_FORM = "form";
-	private static final String ID_INTERNALS_CONFIG_FORM = "internalsConfigForm";
-	private static final String ID_UPDATE_INTERNALS_CONFIG = "updateInternalsConfig";
-	private static final String ID_CONSISTENCY_CHECKS = "consistencyChecks";
-	private static final String ID_ENCRYPTION_CHECKS = "encryptionChecks";
-	private static final String ID_MODEL_PROFILING = "modelProfiling";
-	private static final String ID_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
-	private static final String ID_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
-	private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
-	
-	private static final String LABEL_SIZE = "col-md-4";
+    private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(InternalsConfigPanel.class);
+
+    private static final String ID_FORM = "form";
+    private static final String ID_INTERNALS_CONFIG_FORM = "internalsConfigForm";
+    private static final String ID_UPDATE_INTERNALS_CONFIG = "updateInternalsConfig";
+    private static final String ID_CONSISTENCY_CHECKS = "consistencyChecks";
+    private static final String ID_ENCRYPTION_CHECKS = "encryptionChecks";
+    private static final String ID_MODEL_PROFILING = "modelProfiling";
+    private static final String ID_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
+    private static final String ID_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
+    private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
+
+    private static final String LABEL_SIZE = "col-md-4";
     private static final String INPUT_SIZE = "col-md-8";
 
-	public InternalsConfigPanel(String id, IModel<InternalsConfigDto> model) {
-		super(id, model);
-	}
+    public InternalsConfigPanel(String id, IModel<InternalsConfigDto> model) {
+        super(id, model);
+    }
 
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
 
-		setOutputMarkupId(true);
-		
-		Form form = new com.evolveum.midpoint.web.component.form.Form<>(ID_FORM);
-		form.setOutputMarkupId(true);
-		add(form);
+        setOutputMarkupId(true);
 
-		form.add(createCheckbox(ID_CONSISTENCY_CHECKS, InternalsConfigDto.F_CONSISTENCY_CHECKS));
-		form.add(createCheckbox(ID_ENCRYPTION_CHECKS, InternalsConfigDto.F_ENCRYPTION_CHECKS));
-		form.add(createCheckbox(ID_READ_ENCRYPTION_CHECKS, InternalsConfigDto.F_READ_ENCRYPTION_CHECKS));
-		form.add(createCheckbox(ID_MODEL_PROFILING, InternalsConfigDto.F_MODEL_PROFILING));
-		form.add(createCheckbox(ID_TOLERATE_UNDECLARED_PREFIXES, InternalsConfigDto.F_TOLERATE_UNDECLARED_PREFIXES));
+        Form form = new com.evolveum.midpoint.web.component.form.Form<>(ID_FORM);
+        form.setOutputMarkupId(true);
+        add(form);
 
-		AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE_INTERNALS_CONFIG,
-				createStringResource("PageBase.button.update")) {
-			private static final long serialVersionUID = 1L;
+        form.add(createCheckbox(ID_CONSISTENCY_CHECKS, InternalsConfigDto.F_CONSISTENCY_CHECKS));
+        form.add(createCheckbox(ID_ENCRYPTION_CHECKS, InternalsConfigDto.F_ENCRYPTION_CHECKS));
+        form.add(createCheckbox(ID_READ_ENCRYPTION_CHECKS, InternalsConfigDto.F_READ_ENCRYPTION_CHECKS));
+        form.add(createCheckbox(ID_MODEL_PROFILING, InternalsConfigDto.F_MODEL_PROFILING));
+        form.add(createCheckbox(ID_TOLERATE_UNDECLARED_PREFIXES, InternalsConfigDto.F_TOLERATE_UNDECLARED_PREFIXES));
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target) {
-				updateInternalConfig(target);
-			}
+        AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE_INTERNALS_CONFIG,
+                createStringResource("PageBase.button.update")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void onError(AjaxRequestTarget target) {
-				target.add(getPageBase().getFeedbackPanel());
-			}
-		};
-		form.add(update);
-	}
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                updateInternalConfig(target);
+            }
 
-	private void updateInternalConfig(AjaxRequestTarget target) {
-		getModelObject().saveInternalsConfig();
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(getPageBase().getFeedbackPanel());
+            }
+        };
+        form.add(update);
+    }
 
-		LOGGER.trace(
-				"Updated internals config, consistencyChecks={},encryptionChecks={},readEncryptionChecks={}, QNameUtil.tolerateUndeclaredPrefixes={}",
-				new Object[] { InternalsConfig.consistencyChecks, InternalsConfig.encryptionChecks,
-						InternalsConfig.readEncryptionChecks, QNameUtil.isTolerateUndeclaredPrefixes() });
-		success(getString("PageInternals.message.internalsConfigUpdate", InternalsConfig.consistencyChecks,
-				InternalsConfig.encryptionChecks, InternalsConfig.readEncryptionChecks,
-				QNameUtil.isTolerateUndeclaredPrefixes()));
-		target.add(getPageBase().getFeedbackPanel(), getForm());
-	}
+    private void updateInternalConfig(AjaxRequestTarget target) {
+        getModelObject().saveInternalsConfig();
 
-	private Form getForm() {
-		return (Form) get(ID_FORM);
-	}
+        LOGGER.trace(
+                "Updated internals config, consistencyChecks={},encryptionChecks={},readEncryptionChecks={}, QNameUtil.tolerateUndeclaredPrefixes={}",
+                new Object[] { InternalsConfig.consistencyChecks, InternalsConfig.encryptionChecks,
+                        InternalsConfig.readEncryptionChecks, QNameUtil.isTolerateUndeclaredPrefixes() });
+        success(getString("PageInternals.message.internalsConfigUpdate", InternalsConfig.consistencyChecks,
+                InternalsConfig.encryptionChecks, InternalsConfig.readEncryptionChecks,
+                QNameUtil.isTolerateUndeclaredPrefixes()));
+        target.add(getPageBase().getFeedbackPanel(), getForm());
+    }
 
-	private CheckFormGroup createCheckbox(String id, String propName) {
-		return new CheckFormGroup(id, new PropertyModel<>(getModel(), propName),
-				createStringResource("PageInternals." + propName), LABEL_SIZE, INPUT_SIZE);
-	}
+    private Form getForm() {
+        return (Form) get(ID_FORM);
+    }
+
+    private CheckFormGroup createCheckbox(String id, String propName) {
+        return new CheckFormGroup(id, new PropertyModel<>(getModel(), propName),
+                createStringResource("PageInternals." + propName), LABEL_SIZE, INPUT_SIZE);
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
@@ -18,9 +18,9 @@ import java.util.*;
  * @author shood
  */
 public class ReportOutputSearchDto extends Selectable implements DebugDumpable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final String F_REPORT_TYPE = "reportType";
+    public static final String F_REPORT_TYPE = "reportType";
     public static final String F_FILE_TYPE = "fileType";
     public static final String F_TYPE = "type";
     public static final String F_TEXT = "text";
@@ -76,19 +76,19 @@ public class ReportOutputSearchDto extends Selectable implements DebugDumpable {
     }
 
     @Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ReportOutputSearchDto\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "reportTypeMap", reportTypeMap, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "fileType", fileType==null?null:fileType.toString(), indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "reportType", reportType, indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "text", text, indent+1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("ReportOutputSearchDto\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "reportTypeMap", reportTypeMap, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "fileType", fileType==null?null:fileType.toString(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "reportType", reportType, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "text", text, indent+1);
+        return sb.toString();
+    }
 }

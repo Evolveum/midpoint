@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -24,7 +24,7 @@ import org.apache.wicket.model.Model;
 public class DropDownChoicePanel<T> extends InputPanel {
 
   private static final long serialVersionUID = 1L;
-	private static final String ID_INPUT = "input";
+    private static final String ID_INPUT = "input";
 
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices) {
         this(id, model, choices, false);
@@ -45,7 +45,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
         DropDownChoice<T> input = new DropDownChoice<T>(ID_INPUT, model,
                 choices, renderer) {
 
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {
@@ -77,7 +77,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
     }
 
     public IModel<T> getModel() {
-    	return getBaseFormComponent().getModel();
+        return getBaseFormComponent().getModel();
     }
 
     protected String getNullValidDisplayValue() {

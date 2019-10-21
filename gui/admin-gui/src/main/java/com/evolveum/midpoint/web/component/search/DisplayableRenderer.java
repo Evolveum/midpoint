@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -24,9 +24,9 @@ import java.util.Locale;
 public class DisplayableRenderer<T extends Serializable> extends AbstractConverter<DisplayableValue<T>>
         implements IChoiceRenderer<DisplayableValue<T>> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private IModel<List<DisplayableValue<T>>> allChoices;
+    private static final long serialVersionUID = 1L;
+
+    private IModel<List<DisplayableValue<T>>> allChoices;
 
     public DisplayableRenderer(IModel<List<DisplayableValue<T>>> allChoices) {
         this.allChoices = allChoices;
@@ -34,7 +34,7 @@ public class DisplayableRenderer<T extends Serializable> extends AbstractConvert
 
     @Override
     protected Class<DisplayableValue<T>> getTargetType() {
-		return (Class) DisplayableValue.class;
+        return (Class) DisplayableValue.class;
     }
 
     @Override

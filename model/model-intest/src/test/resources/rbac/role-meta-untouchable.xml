@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2015-2016 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="a80c9572-b57d-11e6-80a9-6fdae1dc39bc"
@@ -12,14 +12,14 @@
     <name>Untouchable Metarole</name>
     <description>Metarole for all immutable roles</description>
     <inducement>
-    	<policyRule>
-    		<name>untouchable</name>
-    		<policyConstraints>
-		    	<modification/>
-		    </policyConstraints>
-		    <policyActions>
-		    	<enforcement/>
-		    </policyActions>
-    	</policyRule>
+        <policyRule>
+            <name>untouchable</name>
+            <policyConstraints>
+                <modification/>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
     </inducement>
 </role>

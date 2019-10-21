@@ -2,17 +2,17 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <connector oid="cccccccc-cccc-cccc-cccc-000000000004"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:ns2="http://www.w3.org/2001/04/xmlenc#"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ns2="http://www.w3.org/2001/04/xmlenc#"
            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:ns3="http://www.w3.org/2000/09/xmldsig#">
-	
+    xmlns:ns3="http://www.w3.org/2000/09/xmldsig#">
+
    <c:name>ICF com.evolveum.icf.dummy.connector.DummyConnector</c:name>
    <c:framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</c:framework>
    <c:connectorType>com.evolveum.icf.dummy.connector.DummyConnector</c:connectorType>

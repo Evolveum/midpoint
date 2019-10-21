@@ -1,41 +1,41 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					 xmlns:test="http://test"
-					 xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
-	<roleManagement>
-		<relations>
-			<relation>
-				<ref>test:kinderManager</ref>
-				<display>
-					<label>Kinder Manager</label>
-				</display>
-				<category>administration</category>
-				<category>organization</category>
-				<defaultFor>manager</defaultFor>
-				<automaticallyMatched>true</automaticallyMatched>
-			</relation>
-			<relation>
-				<ref>test:extra</ref>
-			</relation>
-			<relation>
-				<ref>test:approver</ref>		<!-- local name collision -->
-				<!-- intentionally not of APPROVER kind -->
-			</relation>
-			<relation>	<!-- overriding default relation -->
-				<ref>org:meta</ref>
-				<display>
-					<label>Meta-relation</label>
-				</display>
-				<defaultFor>meta</defaultFor>
-				<category>policy</category>
-				<automaticallyMatched>false</automaticallyMatched>
-			</relation>
-		</relations>
-	</roleManagement>
+                     xmlns:test="http://test"
+                     xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <roleManagement>
+        <relations>
+            <relation>
+                <ref>test:kinderManager</ref>
+                <display>
+                    <label>Kinder Manager</label>
+                </display>
+                <category>administration</category>
+                <category>organization</category>
+                <defaultFor>manager</defaultFor>
+                <automaticallyMatched>true</automaticallyMatched>
+            </relation>
+            <relation>
+                <ref>test:extra</ref>
+            </relation>
+            <relation>
+                <ref>test:approver</ref>        <!-- local name collision -->
+                <!-- intentionally not of APPROVER kind -->
+            </relation>
+            <relation>    <!-- overriding default relation -->
+                <ref>org:meta</ref>
+                <display>
+                    <label>Meta-relation</label>
+                </display>
+                <defaultFor>meta</defaultFor>
+                <category>policy</category>
+                <automaticallyMatched>false</automaticallyMatched>
+            </relation>
+        </relations>
+    </roleManagement>
 </systemConfiguration>

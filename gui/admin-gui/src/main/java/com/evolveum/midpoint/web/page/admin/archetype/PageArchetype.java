@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.archetype;
@@ -41,93 +41,93 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 
 @PageDescriptor(
-		url  = "/admin/archetype",
-		encoder = OnePageParameterEncoder.class,
-		action = {
-				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL,
-		                label = "PageArchetypes.auth.archetypesAll.label",
-		                description = "PageArchetypes.auth.archetypesAll.description"),
-		        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPE_URL,
-		                label = "PageArchetype.auth.user.label",
-		                description = "PageArchetype.auth.archetype.description")
-		})
+        url  = "/admin/archetype",
+        encoder = OnePageParameterEncoder.class,
+        action = {
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL,
+                        label = "PageArchetypes.auth.archetypesAll.label",
+                        description = "PageArchetypes.auth.archetypesAll.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPE_URL,
+                        label = "PageArchetype.auth.user.label",
+                        description = "PageArchetype.auth.archetype.description")
+        })
 public class PageArchetype extends PageAdminAbstractRole<ArchetypeType> {
 
-	private static final long serialVersionUID = 1L;
-	
-	public PageArchetype() {
-		super();
-	}
+    private static final long serialVersionUID = 1L;
 
-	public PageArchetype(PageParameters parameters) {
-		super(parameters);
-	}
+    public PageArchetype() {
+        super();
+    }
 
-	public PageArchetype(final PrismObject<ArchetypeType> role) {
-		super(role);
-	}
+    public PageArchetype(PageParameters parameters) {
+        super(parameters);
+    }
 
-	public PageArchetype(final PrismObject<ArchetypeType> userToEdit, boolean isNewObject) {
-		super(userToEdit, isNewObject);
-	}
-	
-	public PageArchetype(final PrismObject<ArchetypeType> abstractRole, boolean isNewObject, boolean isReadonly) {
-		super(abstractRole, isNewObject, isReadonly);
-	}
-			
+    public PageArchetype(final PrismObject<ArchetypeType> role) {
+        super(role);
+    }
 
-	@Override
-	public Class<ArchetypeType> getCompileTimeClass() {
-		return ArchetypeType.class;
-	}
+    public PageArchetype(final PrismObject<ArchetypeType> userToEdit, boolean isNewObject) {
+        super(userToEdit, isNewObject);
+    }
 
-	@Override
-	protected ArchetypeType createNewObject() {
-		return new ArchetypeType(getPrismContext());
-	}
+    public PageArchetype(final PrismObject<ArchetypeType> abstractRole, boolean isNewObject, boolean isReadonly) {
+        super(abstractRole, isNewObject, isReadonly);
+    }
 
-	@Override
-	protected ObjectSummaryPanel<ArchetypeType> createSummaryPanel() {
-		IModel<PrismObjectValueWrapper<ArchetypeType>> valueModel = new PropertyModel<PrismObjectValueWrapper<ArchetypeType>>(getObjectModel(), "value");
-		return new ArchetypeSummaryPanel(ID_SUMMARY_PANEL, new ItemRealValueModel<ArchetypeType>(valueModel), this);
-		
-	}
 
-	@Override
-	protected AbstractObjectMainPanel<ArchetypeType> createMainPanel(String id) {
-		return new AbstractRoleMainPanel<ArchetypeType>(id, getObjectModel(), getProjectionModel(), this) {
-			
-			private static final long serialVersionUID = 1L;
+    @Override
+    public Class<ArchetypeType> getCompileTimeClass() {
+        return ArchetypeType.class;
+    }
 
-			@Override
-			public AbstractRoleMemberPanel<ArchetypeType> createMemberPanel(String panelId) {
-				return new ArchetypeMembersPanel(panelId, new Model<>(getObject().asObjectable()));
-			}
-			
-			@Override
-			protected List<ITab> createTabs(PageAdminObjectDetails<ArchetypeType> parentPage) {
-				List<ITab> tabs =  super.createTabs(parentPage);
-				tabs.add(
-						new PanelTab(parentPage.createStringResource("PageArchetype.archetypePolicy"),
-								getTabVisibility(ComponentConstants.UI_ARCHTYPE_TAB_ARCHETYPE_POLICY_URL, false, parentPage)) {
+    @Override
+    protected ArchetypeType createNewObject() {
+        return new ArchetypeType(getPrismContext());
+    }
 
-							private static final long serialVersionUID = 1L;
+    @Override
+    protected ObjectSummaryPanel<ArchetypeType> createSummaryPanel() {
+        IModel<PrismObjectValueWrapper<ArchetypeType>> valueModel = new PropertyModel<PrismObjectValueWrapper<ArchetypeType>>(getObjectModel(), "value");
+        return new ArchetypeSummaryPanel(ID_SUMMARY_PANEL, new ItemRealValueModel<ArchetypeType>(valueModel), this);
 
-							@Override
-							public WebMarkupContainer createPanel(String panelId) {
-								return new ContainerOfSystemConfigurationPanel<ArchetypePolicyType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ArchetypeType.F_ARCHETYPE_POLICY), ArchetypePolicyType.COMPLEX_TYPE);
-							}
-						});
-				
-				return tabs;
-			}
-		};
-	
-	}
+    }
 
-	@Override
-	protected Class<? extends Page> getRestartResponsePage() {
-		return PageArchetypes.class;
-	}
+    @Override
+    protected AbstractObjectMainPanel<ArchetypeType> createMainPanel(String id) {
+        return new AbstractRoleMainPanel<ArchetypeType>(id, getObjectModel(), getProjectionModel(), this) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public AbstractRoleMemberPanel<ArchetypeType> createMemberPanel(String panelId) {
+                return new ArchetypeMembersPanel(panelId, new Model<>(getObject().asObjectable()));
+            }
+
+            @Override
+            protected List<ITab> createTabs(PageAdminObjectDetails<ArchetypeType> parentPage) {
+                List<ITab> tabs =  super.createTabs(parentPage);
+                tabs.add(
+                        new PanelTab(parentPage.createStringResource("PageArchetype.archetypePolicy"),
+                                getTabVisibility(ComponentConstants.UI_ARCHTYPE_TAB_ARCHETYPE_POLICY_URL, false, parentPage)) {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public WebMarkupContainer createPanel(String panelId) {
+                                return new ContainerOfSystemConfigurationPanel<ArchetypePolicyType>(panelId, PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ArchetypeType.F_ARCHETYPE_POLICY), ArchetypePolicyType.COMPLEX_TYPE);
+                            }
+                        });
+
+                return tabs;
+            }
+        };
+
+    }
+
+    @Override
+    protected Class<? extends Page> getRestartResponsePage() {
+        return PageArchetypes.class;
+    }
 
 }

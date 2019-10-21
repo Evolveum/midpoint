@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
@@ -34,48 +34,48 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRaceConditions extends AbstractInitializedModelIntegrationTest {
 
-	public static final File TEST_DIR = new File("src/test/resources/contract");
+    public static final File TEST_DIR = new File("src/test/resources/contract");
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult)
-			throws Exception {
-		super.initSystem(initTask, initResult);
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult)
+            throws Exception {
+        super.initSystem(initTask, initResult);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+    }
 
-	@Override
-	protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
-		return ConflictResolutionActionType.RECOMPUTE;
-	}
+    @Override
+    protected ConflictResolutionActionType getDefaultConflictResolutionAction() {
+        return ConflictResolutionActionType.RECOMPUTE;
+    }
 
-	@Test
+    @Test
     public void test100AssignRoles() throws Exception {
-		final String TEST_NAME="test100AssignRoles";
+        final String TEST_NAME="test100AssignRoles";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         TestUtil.displayWhen(TEST_NAME);
         @SuppressWarnings({"raw"})
-		ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
-				.item(UserType.F_ASSIGNMENT).add(
-						ObjectTypeUtil.createAssignmentTo(ROLE_PIRATE_OID, ObjectTypes.ROLE, prismContext),
-						ObjectTypeUtil.createAssignmentTo(ROLE_SAILOR_OID, ObjectTypes.ROLE, prismContext))
-				.asObjectDelta(USER_JACK_OID);
-		executeChangesAssertSuccess(objectDelta, null, task, result);
+        ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT).add(
+                        ObjectTypeUtil.createAssignmentTo(ROLE_PIRATE_OID, ObjectTypes.ROLE, prismContext),
+                        ObjectTypeUtil.createAssignmentTo(ROLE_SAILOR_OID, ObjectTypes.ROLE, prismContext))
+                .asObjectDelta(USER_JACK_OID);
+        executeChangesAssertSuccess(objectDelta, null, task, result);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User after change execution", userJack);
-		assertUserJack(userJack);
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User after change execution", userJack);
+        assertUserJack(userJack);
 
-		String accountJackOid = getSingleLinkOid(userJack);
+        String accountJackOid = getSingleLinkOid(userJack);
 
-		// Check shadow
+        // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
         assertDummyAccountShadowRepo(accountShadow, accountJackOid, "jack");
 
@@ -87,50 +87,50 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
         assertDefaultDummyAccount("jack", "Jack Sparrow", true);
     }
 
-	/**
-	 * Remove both roles at once, in different threads.
-	 */
-	@Test
+    /**
+     * Remove both roles at once, in different threads.
+     */
+    @Test
     public void test110UnassignRoles() throws Exception {
-		final String TEST_NAME = "test110UnassignRoles";
+        final String TEST_NAME = "test110UnassignRoles";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRaceConditions.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		List<AssignmentType> assignments = userJack.asObjectable().getAssignment();
-		assertEquals("Wrong # of assignments", 2, assignments.size());
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        List<AssignmentType> assignments = userJack.asObjectable().getAssignment();
+        assertEquals("Wrong # of assignments", 2, assignments.size());
 
-		OperationResult subresult1 = result.createSubresult("thread1");
-		OperationResult subresult2 = result.createSubresult("thread1");
+        OperationResult subresult1 = result.createSubresult("thread1");
+        OperationResult subresult2 = result.createSubresult("thread1");
 
-		// WHEN
-		Thread t1 = new Thread(() -> deleteAssignment(userJack, 0, task, subresult1));
-		Thread t2 = new Thread(() -> deleteAssignment(userJack, 1, task, subresult2));
-		t1.start();
-		t2.start();
-		t1.join(30000L);
-		t2.join(30000L);
+        // WHEN
+        Thread t1 = new Thread(() -> deleteAssignment(userJack, 0, task, subresult1));
+        Thread t2 = new Thread(() -> deleteAssignment(userJack, 1, task, subresult2));
+        t1.start();
+        t2.start();
+        t1.join(30000L);
+        t2.join(30000L);
 
-		// THEN
-		PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
-		display("User after change execution", userJackAfter);
-		assertEquals("Unexpected # of projections of jack", 0, userJackAfter.asObjectable().getLinkRef().size());
+        // THEN
+        PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
+        display("User after change execution", userJackAfter);
+        assertEquals("Unexpected # of projections of jack", 0, userJackAfter.asObjectable().getLinkRef().size());
     }
 
     private void deleteAssignment(PrismObject<UserType> user, int index, Task task, OperationResult result) {
-		try {
-			login(userAdministrator.clone());       // without cloning there are conflicts on login->getPrincipal->recompute
-			@SuppressWarnings({ "raw" })
-			ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
-					.item(FocusType.F_ASSIGNMENT).delete(user.asObjectable().getAssignment().get(index).clone())
-					.asObjectDelta(USER_JACK_OID);
-			modelService.executeChanges(Collections.singletonList(objectDelta), null, task,
-					Collections.singletonList(new DelayingProgressListener(0, 1000)), result);
-		} catch (Throwable t) {
-			throw new SystemException(t);
-		}
+        try {
+            login(userAdministrator.clone());       // without cloning there are conflicts on login->getPrincipal->recompute
+            @SuppressWarnings({ "raw" })
+            ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
+                    .item(FocusType.F_ASSIGNMENT).delete(user.asObjectable().getAssignment().get(index).clone())
+                    .asObjectDelta(USER_JACK_OID);
+            modelService.executeChanges(Collections.singletonList(objectDelta), null, task,
+                    Collections.singletonList(new DelayingProgressListener(0, 1000)), result);
+        } catch (Throwable t) {
+            throw new SystemException(t);
+        }
     }
 }

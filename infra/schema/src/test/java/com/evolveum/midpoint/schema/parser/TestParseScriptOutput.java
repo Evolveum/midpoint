@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.parser;
@@ -28,79 +28,79 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class TestParseScriptOutput extends AbstractPropertyValueParserTest<PipelineDataType> {
 
-	@Override
-	protected File getFile() {
-		return getFile("script-output");
-	}
+    @Override
+    protected File getFile() {
+        return getFile("script-output");
+    }
 
-	@Test
-	public void testParseToXNode() throws Exception {
-		displayTestTitle("testParseToXNode");
+    @Test
+    public void testParseToXNode() throws Exception {
+        displayTestTitle("testParseToXNode");
 
-		System.out.println("\n\n-----------------------------------\n");
+        System.out.println("\n\n-----------------------------------\n");
 
-		String file = MiscUtil.readFile(getFile());
-		System.out.println("Original text:\n" + file);
+        String file = MiscUtil.readFile(getFile());
+        System.out.println("Original text:\n" + file);
 
-		RootXNode xnode = getPrismContext().parserFor(file).parseToXNode();
-		System.out.println("XNode:\n" + xnode.debugDump());
+        RootXNode xnode = getPrismContext().parserFor(file).parseToXNode();
+        System.out.println("XNode:\n" + xnode.debugDump());
 
-		System.out.println("source -> XNode -> JSON:\n" + getPrismContext().jsonSerializer().serialize(xnode));
-		System.out.println("source -> XNode -> YAML:\n" + getPrismContext().yamlSerializer().serialize(xnode));
-		System.out.println("source -> XNode -> XML:\n" + getPrismContext().xmlSerializer().serialize(xnode));
-	}
+        System.out.println("source -> XNode -> JSON:\n" + getPrismContext().jsonSerializer().serialize(xnode));
+        System.out.println("source -> XNode -> YAML:\n" + getPrismContext().yamlSerializer().serialize(xnode));
+        System.out.println("source -> XNode -> XML:\n" + getPrismContext().xmlSerializer().serialize(xnode));
+    }
 
-	@Test
-	public void testParseFile() throws Exception {
-		displayTestTitle("testParseFile");
-		processParsings(null, null);
-	}
+    @Test
+    public void testParseFile() throws Exception {
+        displayTestTitle("testParseFile");
+        processParsings(null, null);
+    }
 
-	@Test
-	public void testParseRoundTrip() throws Exception {
-		displayTestTitle("testParseRoundTrip");
+    @Test
+    public void testParseRoundTrip() throws Exception {
+        displayTestTitle("testParseRoundTrip");
 
-		processParsings(v -> getPrismContext().serializerFor(language).serialize(v), "s0");
-		processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
-		processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");		// misleading item name
-		processParsings(v -> getPrismContext().serializerFor(language).serializeRealValue(v.getValue()), "s3");
-		processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.getValue()), "s4");
-	}
+        processParsings(v -> getPrismContext().serializerFor(language).serialize(v), "s0");
+        processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serialize(v), "s1");
+        processParsings(v -> getPrismContext().serializerFor(language).root(SchemaConstantsGenerated.C_USER).serialize(v), "s2");        // misleading item name
+        processParsings(v -> getPrismContext().serializerFor(language).serializeRealValue(v.getValue()), "s3");
+        processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.getValue()), "s4");
+    }
 
-	@Test
-	public void testNamespaces() throws Exception {
-		String file = MiscUtil.readFile(getFile());
-		RootXNode xnode = getPrismContext().parserFor(file).parseToXNode();
-		System.out.println("XNode:\n" + xnode.debugDump());
+    @Test
+    public void testNamespaces() throws Exception {
+        String file = MiscUtil.readFile(getFile());
+        RootXNode xnode = getPrismContext().parserFor(file).parseToXNode();
+        System.out.println("XNode:\n" + xnode.debugDump());
 
-		String serialized = getPrismContext().xmlSerializer().serialize(xnode);
-		System.out.println("XML: " + serialized);
+        String serialized = getPrismContext().xmlSerializer().serialize(xnode);
+        System.out.println("XML: " + serialized);
 
-		final String common_3 = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+        final String common_3 = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 
-		int count = StringUtils.countMatches(serialized, common_3);
-		// temporarily set from 2 to 4 (some XML weirdness in Xerces 2.12/Xalan 2.7.2); see MID-5661
-		assertEquals("Wrong # of occurrences of '" + common_3 + "' in serialized form", 4, count);
-	}
+        int count = StringUtils.countMatches(serialized, common_3);
+        // temporarily set from 2 to 4 (some XML weirdness in Xerces 2.12/Xalan 2.7.2); see MID-5661
+        assertEquals("Wrong # of occurrences of '" + common_3 + "' in serialized form", 4, count);
+    }
 
-//	private void assertNamespaceDeclarations(String context, Element element, String... prefixes) {
-//		assertEquals("Wrong namespace declarations for " + context, new HashSet<>(Arrays.asList(prefixes)),
-//				DOMUtil.getNamespaceDeclarations(element).keySet());
-//	}
+//    private void assertNamespaceDeclarations(String context, Element element, String... prefixes) {
+//        assertEquals("Wrong namespace declarations for " + context, new HashSet<>(Arrays.asList(prefixes)),
+//                DOMUtil.getNamespaceDeclarations(element).keySet());
+//    }
 
-	private void processParsings(SerializingFunction<PrismPropertyValue<PipelineDataType>> serializer, String serId) throws Exception {
-		PrismPropertyDefinition definition = getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.S_PIPELINE_DATA);
-		processParsings(PipelineDataType.class, PipelineDataType.COMPLEX_TYPE, definition, serializer, serId);
-	}
+    private void processParsings(SerializingFunction<PrismPropertyValue<PipelineDataType>> serializer, String serId) throws Exception {
+        PrismPropertyDefinition definition = getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.S_PIPELINE_DATA);
+        processParsings(PipelineDataType.class, PipelineDataType.COMPLEX_TYPE, definition, serializer, serId);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	protected void assertPrismPropertyValueLocal(PrismPropertyValue<PipelineDataType> value) throws SchemaException {
-		// TODO
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    protected void assertPrismPropertyValueLocal(PrismPropertyValue<PipelineDataType> value) throws SchemaException {
+        // TODO
+    }
 
-	@Override
-	protected boolean isContainer() {
-		return false;
-	}
+    @Override
+    protected boolean isContainer() {
+        return false;
+    }
 }

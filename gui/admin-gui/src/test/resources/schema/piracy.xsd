@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <xsd:schema elementFormDefault="qualified"
@@ -23,85 +23,85 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="ship" type="xsd:string">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>true</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="tales" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>true</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="loot" type="xsd:int" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>true</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="badLuck" type="xsd:long" minOccurs="0" maxOccurs="unbounded">
-            	<!-- This has default indexed setting -->
+                <!-- This has default indexed setting -->
             </xsd:element>
             <xsd:element name="funeralTimestamp" type="xsd:dateTime" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>true</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="colors" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-            			<a:processing>auto</a:processing>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                        <a:processing>auto</a:processing>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="mark" type="tns:MarkType" minOccurs="0" maxOccurs="1">
             </xsd:element>
             <xsd:element name="secret" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:processing>ignore</a:processing>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:processing>ignore</a:processing>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="rant" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:processing>minimal</a:processing>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:processing>minimal</a:processing>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:simpleType name="MarkType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="pegLeg">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:label>Peg Leg</a:label>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:label>Peg Leg</a:label>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="noEye">
                <xsd:annotation>
-            		<xsd:appinfo>
-            			<a:label>No Eye</a:label>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                    <xsd:appinfo>
+                        <a:label>No Eye</a:label>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="hook"/>
             <xsd:enumeration value="tatoo"/>
@@ -109,9 +109,9 @@
             <xsd:enumeration value="bravery"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <!-- assignment extension -->
-    
+
     <xsd:element name="sea" type="xsd:string"/>
 
     <!-- role extension -->
@@ -132,7 +132,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="OrgExtensionType">
         <xsd:annotation>
             <xsd:appinfo>
@@ -140,22 +140,22 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="transformDescription" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="transformDescription" type="xsd:string" minOccurs="0"/>
             <xsd:element name="transformationEnabled" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="transform" type="tns:TransformConfigType" minOccurs="0" maxOccurs="unbounded">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:processing>minimal</a:processing>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:processing>minimal</a:processing>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="TransformConfigType">
         <xsd:annotation>
             <xsd:appinfo>
-            	<a:container/>
+                <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

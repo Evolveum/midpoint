@@ -3,13 +3,13 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
-<!-- User template referenced from the LIME resource 
-	MID-2427 -->
-  
+
+<!-- User template referenced from the LIME resource
+    MID-2427 -->
+
 <objectTemplate oid="3cf43520-241d-11e6-afa5-a377b674950d"
                 xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -19,27 +19,27 @@
 
     <name>Lime User Template</name>
 
-	<item>
-		<ref>assignment</ref>
-		<mapping>
-			<strength>strong</strength>
-			<source>
-				<path>organization</path>
-			</source>
-			<expression>
-				<assignmentTargetSearch>
-					<targetType>OrgType</targetType>
-					<filter>
-						<q:equal>
-							<q:path>c:name</q:path>
-							<expression>
-								<path>$organization</path>
-							</expression>
-						</q:equal>
-					</filter>
-				</assignmentTargetSearch>
-			</expression>
-		</mapping>
-	</item>
+    <item>
+        <ref>assignment</ref>
+        <mapping>
+            <strength>strong</strength>
+            <source>
+                <path>organization</path>
+            </source>
+            <expression>
+                <assignmentTargetSearch>
+                    <targetType>OrgType</targetType>
+                    <filter>
+                        <q:equal>
+                            <q:path>c:name</q:path>
+                            <expression>
+                                <path>$organization</path>
+                            </expression>
+                        </q:equal>
+                    </filter>
+                </assignmentTargetSearch>
+            </expression>
+        </mapping>
+    </item>
 
 </objectTemplate>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -67,17 +67,17 @@ public class OrgFilterImpl extends ObjectFilterImpl implements OrgFilter {
             return new OrgFilterImpl(getOrgRef(), getScope());
         }
     }
-    
-    
+
+
 
     @Override
-	public void checkConsistence(boolean requireDefinitions) {
-		if (baseOrgRef == null) {
-			throw new IllegalArgumentException("Null baseOrgRef in "+this);
-		}
-	}
+    public void checkConsistence(boolean requireDefinitions) {
+        if (baseOrgRef == null) {
+            throw new IllegalArgumentException("Null baseOrgRef in "+this);
+        }
+    }
 
-	@Override
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

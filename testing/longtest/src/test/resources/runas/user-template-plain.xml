@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="d7b2f8fc-c9ea-11e7-98bd-eb714a446e68"
@@ -13,166 +13,166 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>User Template</name>
-    
+
     <mapping>
-		<name>org001</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
+        <name>org001</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
             <script>
-            	<code>'001' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'001' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
 
     <mapping>
-		<name>org002</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
+        <name>org002</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
             <script>
-            	<code>'002' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'002' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org003</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
+
+    <mapping>
+        <name>org003</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
             <script>
-            	<code>'003' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'003' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org004</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
+
+    <mapping>
+        <name>org004</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
             <script>
-            	<code>'004' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'004' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org005</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
+
+    <mapping>
+        <name>org005</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
             <script>
-            	<code>'005' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'005' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org006</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
+
+    <mapping>
+        <name>org006</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
             <script>
-            	<code>'006' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'006' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org007</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
+
+    <mapping>
+        <name>org007</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
             <script>
-            	<code>'007' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'007' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org008</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
+
+    <mapping>
+        <name>org008</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
             <script>
-            	<code>'008' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'008' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org009</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
+
+    <mapping>
+        <name>org009</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
             <script>
-            	<code>'009' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'009' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
-	<mapping>
-		<name>org010</name>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organization</path>
-    	</source>
-    	<expression>
+
+    <mapping>
+        <name>org010</name>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organization</path>
+        </source>
+        <expression>
             <script>
-            	<code>'010' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
+                <code>'010' + organization + ": " + midpoint.getPrincipal().getUsername()</code>
             </script>
-    	</expression>
-    	<target>
-    		<path>organizationalUnit</path>
-    	</target>
+        </expression>
+        <target>
+            <path>organizationalUnit</path>
+        </target>
     </mapping>
-    
+
 
 </objectTemplate>

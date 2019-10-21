@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
  <!-- This is a runtime schema that defines data types used in the
       <extension> part of the objects. It should be loaded during
       test initialization (creation of prism context). -->
-      
+
 <xsd:schema elementFormDefault="qualified"
             targetNamespace="http://myself.me/schemas/whatever"
             xmlns:tns="http://myself.me/schemas/whatever"
@@ -19,7 +19,7 @@
 
     <xsd:element name="sinkTimestamp" type="xsd:dateTime"/>
 
-	<xsd:element name="shipState" type="xsd:string">
+    <xsd:element name="shipState" type="xsd:string">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:indexed>false</a:indexed>
@@ -28,8 +28,8 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-	
-	<xsd:element name="dead" type="xsd:int"/>
+
+    <xsd:element name="dead" type="xsd:int"/>
 
     <!-- used for some handlers tests -->
     <xsd:element name="l1Flag" type="xsd:boolean">

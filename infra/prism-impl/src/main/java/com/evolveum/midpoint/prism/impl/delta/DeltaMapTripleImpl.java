@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.delta;
@@ -68,183 +68,183 @@ public class DeltaMapTripleImpl<K,V> implements DeltaMapTriple<K,V> {
     }
 
     public Map<K,V> getMap(PlusMinusZero plusMinusZero) {
-    	if (plusMinusZero == null) {
-    		return null;
-    	}
-    	switch (plusMinusZero) {
-    		case PLUS: return plusMap;
-    		case MINUS: return minusMap;
-    		case ZERO: return zeroMap;
-    	}
-    	// notreached
-    	throw new IllegalStateException();
+        if (plusMinusZero == null) {
+            return null;
+        }
+        switch (plusMinusZero) {
+            case PLUS: return plusMap;
+            case MINUS: return minusMap;
+            case ZERO: return zeroMap;
+        }
+        // notreached
+        throw new IllegalStateException();
     }
 
     public boolean hasPlusMap() {
-    	return (plusMap != null && !plusMap.isEmpty());
+        return (plusMap != null && !plusMap.isEmpty());
     }
 
     public boolean hasZeroMap() {
-    	return (zeroMap != null && !zeroMap.isEmpty());
+        return (zeroMap != null && !zeroMap.isEmpty());
     }
 
     public boolean hasMinusMap() {
-    	return (minusMap != null && !minusMap.isEmpty());
+        return (minusMap != null && !minusMap.isEmpty());
     }
 
-	public boolean isZeroOnly() {
-		return hasZeroMap() && !hasPlusMap() && !hasMinusMap();
-	}
+    public boolean isZeroOnly() {
+        return hasZeroMap() && !hasPlusMap() && !hasMinusMap();
+    }
 
     public void addToPlusMap(K key, V value) {
-    	addToMap(plusMap, key, value);
+        addToMap(plusMap, key, value);
     }
 
     public void addToMinusMap(K key, V value) {
-    	addToMap(minusMap, key, value);
+        addToMap(minusMap, key, value);
     }
 
     public void addToZeroMap(K key, V value) {
-    	addToMap(zeroMap, key, value);
+        addToMap(zeroMap, key, value);
     }
 
     public void addAllToPlusMap(Map<K,V> map) {
-    	addAllToMap(plusMap, map);
+        addAllToMap(plusMap, map);
     }
 
-	public void addAllToMinusMap(Map<K,V> map) {
-		addAllToMap(minusMap, map);
+    public void addAllToMinusMap(Map<K,V> map) {
+        addAllToMap(minusMap, map);
     }
 
     public void addAllToZeroMap(Map<K,V> map) {
-    	addAllToMap(zeroMap, map);
+        addAllToMap(zeroMap, map);
 
     }
 
     public void addAllToMap(PlusMinusZero destination, Map<K,V> map) {
-    	if (destination == null) {
-    		return;
-    	} else if (destination == PlusMinusZero.PLUS) {
-    		addAllToMap(plusMap, map);
-    	} else if (destination == PlusMinusZero.MINUS) {
-    		addAllToMap(minusMap, map);
-    	} else if (destination == PlusMinusZero.ZERO) {
-    		addAllToMap(zeroMap, map);
-    	}
+        if (destination == null) {
+            return;
+        } else if (destination == PlusMinusZero.PLUS) {
+            addAllToMap(plusMap, map);
+        } else if (destination == PlusMinusZero.MINUS) {
+            addAllToMap(minusMap, map);
+        } else if (destination == PlusMinusZero.ZERO) {
+            addAllToMap(zeroMap, map);
+        }
     }
 
-	private void addAllToMap(Map<K,V> set, Map<K,V> items) {
-		if (items == null) {
-			return;
-		}
-		for (Entry<K, V> item: items.entrySet()) {
-			addToMap(set, item.getKey(), item.getValue());
-		}
-	}
+    private void addAllToMap(Map<K,V> set, Map<K,V> items) {
+        if (items == null) {
+            return;
+        }
+        for (Entry<K, V> item: items.entrySet()) {
+            addToMap(set, item.getKey(), item.getValue());
+        }
+    }
 
-	private void addToMap(Map<K,V> set, K key, V value) {
-		if (set == null) {
-			set = createMap();
-    	}
-		set.put(key, value);
-	}
+    private void addToMap(Map<K,V> set, K key, V value) {
+        if (set == null) {
+            set = createMap();
+        }
+        set.put(key, value);
+    }
 
-	public void clearPlusMap() {
-		clearMap(plusMap);
-	}
+    public void clearPlusMap() {
+        clearMap(plusMap);
+    }
 
-	public void clearMinusMap() {
-		clearMap(minusMap);
-	}
+    public void clearMinusMap() {
+        clearMap(minusMap);
+    }
 
-	public void clearZeroMap() {
-		clearMap(zeroMap);
-	}
+    public void clearZeroMap() {
+        clearMap(zeroMap);
+    }
 
-	private void clearMap(Map<K,V> set) {
-		if (set != null) {
-			set.clear();
-		}
-	}
+    private void clearMap(Map<K,V> set) {
+        if (set != null) {
+            set.clear();
+        }
+    }
 
-	public int size() {
-		return sizeMap(zeroMap) + sizeMap(plusMap) + sizeMap(minusMap);
-	}
+    public int size() {
+        return sizeMap(zeroMap) + sizeMap(plusMap) + sizeMap(minusMap);
+    }
 
-	private int sizeMap(Map<K,V> set) {
-		if (set == null) {
-			return 0;
-		}
-		return set.size();
-	}
+    private int sizeMap(Map<K,V> set) {
+        if (set == null) {
+            return 0;
+        }
+        return set.size();
+    }
 
-	public void merge(DeltaMapTriple<K,V> triple) {
-		addAllToZeroMap(triple.getZeroMap());
-		addAllToPlusMap(triple.getPlusMap());
-		addAllToMinusMap(triple.getMinusMap());
-	}
+    public void merge(DeltaMapTriple<K,V> triple) {
+        addAllToZeroMap(triple.getZeroMap());
+        addAllToPlusMap(triple.getPlusMap());
+        addAllToMinusMap(triple.getMinusMap());
+    }
 
-	/**
+    /**
      * Returns all values, regardless of the internal sets.
      */
     public Collection<K> unionKeySets() {
         return MiscUtil.union(zeroMap.keySet(), plusMap.keySet(), minusMap.keySet());
     }
 
-	public DeltaMapTriple<K,V> clone(Cloner<Entry<K, V>> cloner) {
-		DeltaMapTripleImpl<K,V> clone = new DeltaMapTripleImpl<>();
-		copyValues(clone, cloner);
-		return clone;
-	}
+    public DeltaMapTriple<K,V> clone(Cloner<Entry<K, V>> cloner) {
+        DeltaMapTripleImpl<K,V> clone = new DeltaMapTripleImpl<>();
+        copyValues(clone, cloner);
+        return clone;
+    }
 
-	protected void copyValues(DeltaMapTripleImpl<K,V> clone, Cloner<Entry<K, V>> cloner) {
-		clone.zeroMap = cloneSet(this.zeroMap, cloner);
-		clone.plusMap = cloneSet(this.plusMap, cloner);
-		clone.minusMap = cloneSet(this.minusMap, cloner);
-	}
+    protected void copyValues(DeltaMapTripleImpl<K,V> clone, Cloner<Entry<K, V>> cloner) {
+        clone.zeroMap = cloneSet(this.zeroMap, cloner);
+        clone.plusMap = cloneSet(this.plusMap, cloner);
+        clone.minusMap = cloneSet(this.minusMap, cloner);
+    }
 
-	private Map<K,V> cloneSet(Map<K,V> origSet, Cloner<Entry<K, V>> cloner) {
-		if (origSet == null) {
-			return null;
-		}
-		Map<K,V> clonedSet = createMap();
-		for (Entry<K, V> origVal: origSet.entrySet()) {
-			Entry<K, V> clonedVal = cloner.clone(origVal);
-			clonedSet.put(clonedVal.getKey(), clonedVal.getValue());
-		}
-		return clonedSet;
-	}
+    private Map<K,V> cloneSet(Map<K,V> origSet, Cloner<Entry<K, V>> cloner) {
+        if (origSet == null) {
+            return null;
+        }
+        Map<K,V> clonedSet = createMap();
+        for (Entry<K, V> origVal: origSet.entrySet()) {
+            Entry<K, V> clonedVal = cloner.clone(origVal);
+            clonedSet.put(clonedVal.getKey(), clonedVal.getValue());
+        }
+        return clonedSet;
+    }
 
-	public boolean isEmpty() {
-		return isEmpty(minusMap) && isEmpty(plusMap) && isEmpty(zeroMap);
-	}
+    public boolean isEmpty() {
+        return isEmpty(minusMap) && isEmpty(plusMap) && isEmpty(zeroMap);
+    }
 
-	private boolean isEmpty(Map<K,V> set) {
-		if (set == null) {
-			return true;
-		}
-		return set.isEmpty();
-	}
+    private boolean isEmpty(Map<K,V> set) {
+        if (set == null) {
+            return true;
+        }
+        return set.isEmpty();
+    }
 
-	@Override
-	public void simpleAccept(SimpleVisitor<Entry<K, V>> visitor) {
-		acceptMap(visitor, zeroMap);
-		acceptMap(visitor, plusMap);
-		acceptMap(visitor, minusMap);
-	}
+    @Override
+    public void simpleAccept(SimpleVisitor<Entry<K, V>> visitor) {
+        acceptMap(visitor, zeroMap);
+        acceptMap(visitor, plusMap);
+        acceptMap(visitor, minusMap);
+    }
 
-	private void acceptMap(SimpleVisitor<Entry<K, V>> visitor, Map<K,V> set) {
-		if (set == null) {
-			return;
-		}
-		for (Entry<K, V> element: set.entrySet()) {
-			visitor.visit(element);
-		}
-	}
+    private void acceptMap(SimpleVisitor<Entry<K, V>> visitor, Map<K,V> set) {
+        if (set == null) {
+            return;
+        }
+        for (Entry<K, V> element: set.entrySet()) {
+            visitor.visit(element);
+        }
+    }
 
-	@Override
+    @Override
     public String toString() {
-		StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         sb.append(debugName()).append("(");
         dumpMap(sb, "zero", zeroMap);
         dumpMap(sb, "plus", plusMap);
@@ -254,28 +254,28 @@ public class DeltaMapTripleImpl<K,V> implements DeltaMapTriple<K,V> {
     }
 
     protected String debugName() {
-    	return "DeltaMapTriple";
+        return "DeltaMapTriple";
     }
 
     private void dumpMap(StringBuilder sb, String label, Map<K,V> set) {
         sb.append(label).append(": ").append(set).append("; ");
     }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
-	 */
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
+     */
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
-	 */
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
+     */
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
         sb.append("DeltaSetTriple:\n");
         debugDumpMap(sb, "zero", zeroMap, indent + 1);
         sb.append("\n");
@@ -283,12 +283,12 @@ public class DeltaMapTripleImpl<K,V> implements DeltaMapTriple<K,V> {
         sb.append("\n");
         debugDumpMap(sb, "minus", minusMap, indent + 1);
         return sb.toString();
-	}
+    }
 
-	private void debugDumpMap(StringBuilder sb, String label, Map<K,V> set, int indent) {
-		DebugUtil.debugDumpLabel(sb, label, indent);
-		sb.append("\n");
-		DebugUtil.debugDumpMapMultiLine(sb, set, indent + 1);
-	}
+    private void debugDumpMap(StringBuilder sb, String label, Map<K,V> set, int indent) {
+        DebugUtil.debugDumpLabel(sb, label, indent);
+        sb.append("\n");
+        DebugUtil.debugDumpMapMultiLine(sb, set, indent + 1);
+    }
 
 }

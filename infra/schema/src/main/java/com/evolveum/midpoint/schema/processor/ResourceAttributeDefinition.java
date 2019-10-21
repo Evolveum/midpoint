@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,29 +18,29 @@ import javax.xml.namespace.QName;
  */
 public interface ResourceAttributeDefinition<T> extends PrismPropertyDefinition<T> {
 
-	@NotNull
-	ResourceAttribute<T> instantiate();
+    @NotNull
+    ResourceAttribute<T> instantiate();
 
-	@NotNull
-	ResourceAttribute<T> instantiate(QName name);
+    @NotNull
+    ResourceAttribute<T> instantiate(QName name);
 
-	Boolean getReturnedByDefault();
+    Boolean getReturnedByDefault();
 
-	boolean isReturnedByDefault();
+    boolean isReturnedByDefault();
 
-	boolean isPrimaryIdentifier(ResourceAttributeContainerDefinition objectDefinition);
+    boolean isPrimaryIdentifier(ResourceAttributeContainerDefinition objectDefinition);
 
-	boolean isPrimaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition);
+    boolean isPrimaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition);
 
-	boolean isSecondaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition);
+    boolean isSecondaryIdentifier(ObjectClassComplexTypeDefinition objectDefinition);
 
-	String getNativeAttributeName();
+    String getNativeAttributeName();
 
-	String getFrameworkAttributeName();
+    String getFrameworkAttributeName();
 
-	@NotNull
-	@Override
-	ResourceAttributeDefinition<T> clone();
+    @NotNull
+    @Override
+    ResourceAttributeDefinition<T> clone();
 
-	MutableResourceAttributeDefinition<T> toMutable();
+    MutableResourceAttributeDefinition<T> toMutable();
 }

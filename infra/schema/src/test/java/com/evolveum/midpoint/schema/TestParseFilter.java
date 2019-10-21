@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema;
@@ -30,28 +30,28 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class TestParseFilter {
 
-	public static final File FILTER_FILE = new File(TestConstants.COMMON_DIR, "filter.xml");
+    public static final File FILTER_FILE = new File(TestConstants.COMMON_DIR, "filter.xml");
 
-	@BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
 
-	@Test
-	public void testParseFilterFile() throws Exception {
-		System.out.println("===[ testParseFilterFile ]===");
+    @Test
+    public void testParseFilterFile() throws Exception {
+        System.out.println("===[ testParseFilterFile ]===");
 
-		// GIVEN
-		PrismContext prismContext = PrismTestUtil.getPrismContext();
+        // GIVEN
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-		// WHEN
-		SearchFilterType filter = prismContext.parserFor(FILTER_FILE).parseRealValue(SearchFilterType.class);
+        // WHEN
+        SearchFilterType filter = prismContext.parserFor(FILTER_FILE).parseRealValue(SearchFilterType.class);
 
-		// THEN
-		System.out.println("Parsed filter:");
-		System.out.println(filter.debugDump());
+        // THEN
+        System.out.println("Parsed filter:");
+        System.out.println(filter.debugDump());
 
         String serialized = PrismTestUtil.serializeJaxbElementToString(new JAXBElement<>(
             new QName(SchemaConstants.NS_QUERY, "filter"), SearchFilterType.class, filter));

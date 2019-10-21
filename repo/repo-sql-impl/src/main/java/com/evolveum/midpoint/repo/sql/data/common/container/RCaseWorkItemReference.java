@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -48,11 +48,11 @@ public class RCaseWorkItemReference extends RReference {
     public static final String REFERENCE_TYPE = "reference_type";
 
     private RCaseWorkItem owner;
-	private String ownerOwnerOid;						// case OID
-	private Integer ownerId;							// work item ID
+    private String ownerOwnerOid;                        // case OID
+    private Integer ownerId;                            // work item ID
     private RCaseWorkItemReferenceOwner referenceType;
 
-	@ForeignKey(name = "fk_case_wi_reference_owner")
+    @ForeignKey(name = "fk_case_wi_reference_owner")
     @MapsId("workItem")
     @ManyToOne(fetch = FetchType.LAZY)
     @NotQueryable
@@ -60,15 +60,15 @@ public class RCaseWorkItemReference extends RReference {
         return owner;
     }
 
-	public void setOwner(RCaseWorkItem owner) {
-		this.owner = owner;
-		if (owner != null) {
-			this.ownerOwnerOid = owner.getOwnerOid();
-			this.ownerId = owner.getId();
-		}
-	}
+    public void setOwner(RCaseWorkItem owner) {
+        this.owner = owner;
+        if (owner != null) {
+            this.ownerOwnerOid = owner.getOwnerOid();
+            this.ownerId = owner.getId();
+        }
+    }
 
-	@Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     @NotQueryable
     public String getOwnerOwnerOid() {
         if (ownerOwnerOid == null && getOwner() != null) {
@@ -77,11 +77,11 @@ public class RCaseWorkItemReference extends RReference {
         return ownerOwnerOid;
     }
 
-	public void setOwnerOwnerOid(String ownerOwnerOid) {
-		this.ownerOwnerOid = ownerOwnerOid;
-	}
+    public void setOwnerOwnerOid(String ownerOwnerOid) {
+        this.ownerOwnerOid = ownerOwnerOid;
+    }
 
-	@Column(name = "owner_id")
+    @Column(name = "owner_id")
     @NotQueryable
     public Integer getOwnerId() {
         if (ownerId == null && getOwner() != null) {
@@ -90,11 +90,11 @@ public class RCaseWorkItemReference extends RReference {
         return ownerId;
     }
 
-	public void setOwnerId(Integer ownerId) {
-		this.ownerId = ownerId;
-	}
+    public void setOwnerId(Integer ownerId) {
+        this.ownerId = ownerId;
+    }
 
-	//@MapsId("target")
+    //@MapsId("target")
     @ForeignKey(name="none")
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
@@ -128,13 +128,13 @@ public class RCaseWorkItemReference extends RReference {
     }
 
     @Column(name = "targetType")
-	@Enumerated(EnumType.ORDINAL)
-	@Override
-	public RObjectType getType() {
-		return super.getType();
-	}
+    @Enumerated(EnumType.ORDINAL)
+    @Override
+    public RObjectType getType() {
+        return super.getType();
+    }
 
-	public static Set<RCaseWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list,
+    public static Set<RCaseWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list,
             RCaseWorkItem owner, RelationRegistry relationRegistry,
             RCaseWorkItemReferenceOwner type) {
         Set<RCaseWorkItemReference> set = new HashSet<>();

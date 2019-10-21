@@ -2,7 +2,7 @@ package com.evolveum.midpoint.testing.story.uuid;
 /*
  * Copyright (c) 2014-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -41,25 +41,25 @@ import static org.testng.AssertJUnit.assertEquals;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public abstract class AbstractUuidTest extends AbstractStoryTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "uuid");
+    public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "uuid");
 
-	public static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
-	public static final String OBJECT_TEMPLATE_USER_OID = "10000000-0000-0000-0000-000000000222";
-	
-	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
+    public static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
+    public static final String OBJECT_TEMPLATE_USER_OID = "10000000-0000-0000-0000-000000000222";
 
-	protected static final String ATTR_ROOM_NUMBER = "roomNumber";
-	protected static final String ATTR_MOBILE = "mobile";
-	protected static final String ATTR_DEPARTMENT_NUMBER = "departmentNumber";
+    protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
+    protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
-	protected ResourceType resourceOpenDjType;
-	protected PrismObject<ResourceType> resourceOpenDj;
+    protected static final String ATTR_ROOM_NUMBER = "roomNumber";
+    protected static final String ATTR_MOBILE = "mobile";
+    protected static final String ATTR_DEPARTMENT_NUMBER = "departmentNumber";
 
-	protected String userRappOid;
-	protected String userMancombOid;
+    protected ResourceType resourceOpenDjType;
+    protected PrismObject<ResourceType> resourceOpenDj;
 
-	@Override
+    protected String userRappOid;
+    protected String userMancombOid;
+
+    @Override
     protected void startResources() throws Exception {
         openDJController.startCleanServer();
     }
@@ -69,30 +69,30 @@ public abstract class AbstractUuidTest extends AbstractStoryTest {
         openDJController.stop();
     }
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		// Resources
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
-		resourceOpenDjType = resourceOpenDj.asObjectable();
-		openDJController.setResource(resourceOpenDj);
+        // Resources
+        resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, getResourceOpenDjFile(), RESOURCE_OPENDJ_OID, initTask, initResult);
+        resourceOpenDjType = resourceOpenDj.asObjectable();
+        openDJController.setResource(resourceOpenDj);
 
-		// Object Templates
-		importObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
+        // Object Templates
+        importObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
 
-	}
-	
-	protected abstract File getResourceOpenDjFile();
+    }
 
-	@Override
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_FILE;
-	}
+    protected abstract File getResourceOpenDjFile();
 
-	@Test
+    @Override
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_FILE;
+    }
+
+    @Test
     public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
+        final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
         Task task = createTask(TEST_NAME);
 
@@ -101,6 +101,6 @@ public abstract class AbstractUuidTest extends AbstractStoryTest {
 
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
-	}
+    }
 
 }

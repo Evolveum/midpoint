@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,9 +17,9 @@ import java.io.Serializable;
  * @author lazyman
  */
 public class InternalsConfigDto implements Serializable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final String F_CONSISTENCY_CHECKS = "consistencyChecks";
+    public static final String F_CONSISTENCY_CHECKS = "consistencyChecks";
     public static final String F_ENCRYPTION_CHECKS = "encryptionChecks";
     public static final String F_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
     public static final String F_MODEL_PROFILING = "modelProfiling";
@@ -71,15 +71,15 @@ public class InternalsConfigDto implements Serializable {
         this.readEncryptionChecks = readEncryptionChecks;
     }
 
-	protected boolean isModelProfiling() {
-		return modelProfiling;
-	}
+    protected boolean isModelProfiling() {
+        return modelProfiling;
+    }
 
-	protected void setModelProfiling(boolean modelProfiling) {
-		this.modelProfiling = modelProfiling;
-	}
+    protected void setModelProfiling(boolean modelProfiling) {
+        this.modelProfiling = modelProfiling;
+    }
 
-	public boolean isDetailedDebugDump() {
+    public boolean isDetailedDebugDump() {
         return detailedDebugDump;
     }
 

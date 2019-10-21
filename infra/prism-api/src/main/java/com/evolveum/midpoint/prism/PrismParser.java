@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -53,203 +53,203 @@ import java.util.List;
  */
 public interface PrismParser {
 
-	/**
-	 * For string inputs: sets the data language that the parser will try to parse; null means auto-detect.
-	 * For other kinds of input (DOM and XNode) the language is fixed to XML or none, respectively.
-	 *
-	 * @param language The language
-	 * @return Updated parser.
-	 */
-	@NotNull
-	PrismParser language(@Nullable String language);
+    /**
+     * For string inputs: sets the data language that the parser will try to parse; null means auto-detect.
+     * For other kinds of input (DOM and XNode) the language is fixed to XML or none, respectively.
+     *
+     * @param language The language
+     * @return Updated parser.
+     */
+    @NotNull
+    PrismParser language(@Nullable String language);
 
-	/**
-	 * Sets the language of the parser to be XML.
-	 * @return Updated parser.
-	 */
-	@NotNull
-	PrismParser xml();
+    /**
+     * Sets the language of the parser to be XML.
+     * @return Updated parser.
+     */
+    @NotNull
+    PrismParser xml();
 
-	/**
-	 * Sets the language of the parser to be JSON.
-	 * @return Updated parser.
-	 */
-	@NotNull
-	PrismParser json();
+    /**
+     * Sets the language of the parser to be JSON.
+     * @return Updated parser.
+     */
+    @NotNull
+    PrismParser json();
 
-	/**
-	 * Sets the language of the parser to be YAML.
-	 * @return Updated parser.
-	 */
-	@NotNull
-	PrismParser yaml();
+    /**
+     * Sets the language of the parser to be YAML.
+     * @return Updated parser.
+     */
+    @NotNull
+    PrismParser yaml();
 
-	/**
-	 * Provides a parsing context for the parser. The context contains e.g. selection of strict/compat
-	 * mode of operation (set by client) or a list of warnings (maintained by the parser).
-	 * @param context The parsing context.
-	 * @return Updated parser.
-	 */
-	@NotNull
-	PrismParser context(@NotNull ParsingContext context);
+    /**
+     * Provides a parsing context for the parser. The context contains e.g. selection of strict/compat
+     * mode of operation (set by client) or a list of warnings (maintained by the parser).
+     * @param context The parsing context.
+     * @return Updated parser.
+     */
+    @NotNull
+    PrismParser context(@NotNull ParsingContext context);
 
-	/**
-	 * Switches the parser into "strict" parsing mode.
-	 * @return Updated parser.
-	 */
-	@NotNull
-	PrismParser strict();
+    /**
+     * Switches the parser into "strict" parsing mode.
+     * @return Updated parser.
+     */
+    @NotNull
+    PrismParser strict();
 
-	/**
-	 * Switches the parser into "compatibility" (or relaxed) parsing mode.
-	 * TODO description here
-	 * @return Updated parser.
-	 */
-	@NotNull
-	PrismParser compat();
+    /**
+     * Switches the parser into "compatibility" (or relaxed) parsing mode.
+     * TODO description here
+     * @return Updated parser.
+     */
+    @NotNull
+    PrismParser compat();
 
-	/**
-	 * Tells parser which definition to use when parsing item (or an item value). Optional.
-	 * @param itemDefinition The definition
-	 * @return Updated parser.
-	 */
-	@NotNull
-	PrismParser definition(ItemDefinition<?> itemDefinition);
+    /**
+     * Tells parser which definition to use when parsing item (or an item value). Optional.
+     * @param itemDefinition The definition
+     * @return Updated parser.
+     */
+    @NotNull
+    PrismParser definition(ItemDefinition<?> itemDefinition);
 
-	/**
-	 * Tells parser what data type to expect. Optional.
-	 * @param typeName Data type to expect.
-	 * @return Updated parser.
-	 */
-	@NotNull
-	PrismParser type(QName typeName);
+    /**
+     * Tells parser what data type to expect. Optional.
+     * @param typeName Data type to expect.
+     * @return Updated parser.
+     */
+    @NotNull
+    PrismParser type(QName typeName);
 
-	/**
-	 * Tells parser what data type to expect. Optional.
-	 * @param typeClass Data type to expect.
-	 * @return Updated parser.
-	 */
-	@NotNull
-	PrismParser type(Class<?> typeClass);
+    /**
+     * Tells parser what data type to expect. Optional.
+     * @param typeClass Data type to expect.
+     * @return Updated parser.
+     */
+    @NotNull
+    PrismParser type(Class<?> typeClass);
 
-	/**
-	 * Tells parser what name to use for parsed item. Optional.
-	 * @param itemName Item name to use.
-	 * @return Updated parser.
-	 */
-	@NotNull
-	PrismParser name(QName itemName);
+    /**
+     * Tells parser what name to use for parsed item. Optional.
+     * @param itemName Item name to use.
+     * @return Updated parser.
+     */
+    @NotNull
+    PrismParser name(QName itemName);
 
-	/**
-	 * Parses the input as a prism object.
-	 * @return The object.
-	 */
-	@NotNull
-	<O extends Objectable> PrismObject<O> parse() throws SchemaException, IOException;
+    /**
+     * Parses the input as a prism object.
+     * @return The object.
+     */
+    @NotNull
+    <O extends Objectable> PrismObject<O> parse() throws SchemaException, IOException;
 
-	/**
-	 * Parses the input as a prism item. (Object, container, reference, value.)
-	 * May return raw property values as part of the prism structure, if definitions are not known.
-	 * @return The item.
-	 */
-	<IV extends PrismValue, ID extends ItemDefinition> Item<IV,ID> parseItem() throws SchemaException, IOException;
+    /**
+     * Parses the input as a prism item. (Object, container, reference, value.)
+     * May return raw property values as part of the prism structure, if definitions are not known.
+     * @return The item.
+     */
+    <IV extends PrismValue, ID extends ItemDefinition> Item<IV,ID> parseItem() throws SchemaException, IOException;
 
-	/**
-	 * Parses the input as a prism value. (Container value, reference value, property value.)
-	 * May return raw property values as part of the prism structure, if definitions are not known.
-	 * @return The item.
-	 */
-	<IV extends PrismValue> IV parseItemValue() throws SchemaException, IOException;
+    /**
+     * Parses the input as a prism value. (Container value, reference value, property value.)
+     * May return raw property values as part of the prism structure, if definitions are not known.
+     * @return The item.
+     */
+    <IV extends PrismValue> IV parseItemValue() throws SchemaException, IOException;
 
-	/**
-	 * Parses a real value - either property or container value.
-	 * @param clazz Expected class of the data. May be null if unknown.
-	 * @return Real value - POJO, Containerable, Objectable or Referencable.
-	 */
-	<T> T parseRealValue(@Nullable Class<T> clazz) throws IOException, SchemaException;
+    /**
+     * Parses a real value - either property or container value.
+     * @param clazz Expected class of the data. May be null if unknown.
+     * @return Real value - POJO, Containerable, Objectable or Referencable.
+     */
+    <T> T parseRealValue(@Nullable Class<T> clazz) throws IOException, SchemaException;
 
-	/**
-	 * Parses a real value. The class is not supplied by the caller, so it has to be determined from the data source.
-	 * @return Real value - POJO, Containerable, Objectable or Referencable.
-	 */
-	<T> T parseRealValue() throws IOException, SchemaException;
+    /**
+     * Parses a real value. The class is not supplied by the caller, so it has to be determined from the data source.
+     * @return Real value - POJO, Containerable, Objectable or Referencable.
+     */
+    <T> T parseRealValue() throws IOException, SchemaException;
 
-	/**
-	 * Parses a real value and stores it into JAXBElement, using item name derived in the usual way.
-	 */
-	<T> JAXBElement<T> parseRealValueToJaxbElement() throws IOException, SchemaException;
+    /**
+     * Parses a real value and stores it into JAXBElement, using item name derived in the usual way.
+     */
+    <T> JAXBElement<T> parseRealValueToJaxbElement() throws IOException, SchemaException;
 
-	/**
-	 * Parses the input into RootXNode. This is a bit unusual approach, skipping the unmarshalling phase altogether.
-	 * But it is useful at some places.
-	 * @return RootXNode corresponding to the input.
-	 */
-	RootXNode parseToXNode() throws IOException, SchemaException;
+    /**
+     * Parses the input into RootXNode. This is a bit unusual approach, skipping the unmarshalling phase altogether.
+     * But it is useful at some places.
+     * @return RootXNode corresponding to the input.
+     */
+    RootXNode parseToXNode() throws IOException, SchemaException;
 
-	/**
-	 * Parses either an item, or a real value. It depends on the type declaration or item name in the source data.
-	 * 1) If explicit type is present, it is taken into account. If it corresponds to a prism item, the input is parsed
-	 *    as a prism item. Otherwise, it is parsed as a real value (containerable or simple POJO), if possible.
-	 * 2) If there is no type, the item name is consulted. If it corresponds to a prism item, the input is parsed
-	 *    as a prism item. Otherwise, an exception is thrown.
-	 *
-	 * Pre-set parameters (itemDefinition, typeName, itemName) must NOT be present.
-	 *
-	 * Use with utmost care. If at all possible, avoid it.
-	 *
-	 * @return either prism item (Item) or a real value (Object)
-	 */
-	@Deprecated
-	Object parseItemOrRealValue() throws IOException, SchemaException;
+    /**
+     * Parses either an item, or a real value. It depends on the type declaration or item name in the source data.
+     * 1) If explicit type is present, it is taken into account. If it corresponds to a prism item, the input is parsed
+     *    as a prism item. Otherwise, it is parsed as a real value (containerable or simple POJO), if possible.
+     * 2) If there is no type, the item name is consulted. If it corresponds to a prism item, the input is parsed
+     *    as a prism item. Otherwise, an exception is thrown.
+     *
+     * Pre-set parameters (itemDefinition, typeName, itemName) must NOT be present.
+     *
+     * Use with utmost care. If at all possible, avoid it.
+     *
+     * @return either prism item (Item) or a real value (Object)
+     */
+    @Deprecated
+    Object parseItemOrRealValue() throws IOException, SchemaException;
 
-	/**
-	 * Parses the input as a collection of prism objects.
-	 * For XML the input must be formatted as a collection of objects (TODO change this).
-	 * For other languages the input may contain one or more objects.
-	 *
-	 * @return A list of objects.
-	 */
-	@NotNull
-	List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException, IOException;
+    /**
+     * Parses the input as a collection of prism objects.
+     * For XML the input must be formatted as a collection of objects (TODO change this).
+     * For other languages the input may contain one or more objects.
+     *
+     * @return A list of objects.
+     */
+    @NotNull
+    List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException, IOException;
 
-	interface ObjectHandler {
-		/**
-		 * Called when an object was successfully retrieved from the input.
-		 * @return true if the processing should continue
-		 */
-		boolean handleData(PrismObject<?> object);
+    interface ObjectHandler {
+        /**
+         * Called when an object was successfully retrieved from the input.
+         * @return true if the processing should continue
+         */
+        boolean handleData(PrismObject<?> object);
 
-		/**
-		 * Called when an object could not be successfully retrieved from the input.
-		 * No data is provided; instead a Throwable is given to the caller.
-		 * @return true if the processing should continue
-		 */
-		boolean handleError(Throwable t);
-	}
+        /**
+         * Called when an object could not be successfully retrieved from the input.
+         * No data is provided; instead a Throwable is given to the caller.
+         * @return true if the processing should continue
+         */
+        boolean handleError(Throwable t);
+    }
 
-	/**
-	 * Currently implemented for JSON/YAML only. For XML, use old Validator code.
-	 *
-	 * @param handler
-	 * @throws SchemaException
-	 * @throws IOException
-	 */
-	void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException, IOException;
+    /**
+     * Currently implemented for JSON/YAML only. For XML, use old Validator code.
+     *
+     * @param handler
+     * @throws SchemaException
+     * @throws IOException
+     */
+    void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException, IOException;
 
-	// ============= other methods (convenience ones, deprecated ones etc) =============
+    // ============= other methods (convenience ones, deprecated ones etc) =============
 
-	//	/**
-//	 * Parses the input as a single value of a prism container.
-//	 * @return Single-valued container.
-//	 */
-//	@NotNull
-//	<C extends Containerable> PrismContainer<C> parseContainer() throws SchemaException, IOException;
+    //    /**
+//     * Parses the input as a single value of a prism container.
+//     * @return Single-valued container.
+//     */
+//    @NotNull
+//    <C extends Containerable> PrismContainer<C> parseContainer() throws SchemaException, IOException;
 
-//	/**
-//	 * Parses an atomic value - i.e. something that could present a property
-//	 * value, if such a property would exist.
-//	 */
-//	<T> T parseAtomicValue(QName typeName) throws IOException, SchemaException;
+//    /**
+//     * Parses an atomic value - i.e. something that could present a property
+//     * value, if such a property would exist.
+//     */
+//    <T> T parseAtomicValue(QName typeName) throws IOException, SchemaException;
 
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -55,15 +55,15 @@ public class PolicyRuleEvent extends BaseEvent {
         return policyRule;
     }
 
-	public String getRuleName() {
-		return policyRule.getName();
-	}
+    public String getRuleName() {
+        return policyRule.getName();
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
-		debugDumpCommon(sb, indent);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "policyRule", policyRule, indent + 1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
+        debugDumpCommon(sb, indent);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "policyRule", policyRule, indent + 1);
+        return sb.toString();
+    }
 }

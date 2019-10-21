@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -52,10 +52,10 @@ public class CertEventFactory {
     }
 
     protected void fillInReviewerRelatedEvent(ObjectReferenceType reviewerOrDeputyRef, ObjectReferenceType actualReviewerRef,
-			Task task, CertReviewEvent event) {
+            Task task, CertReviewEvent event) {
         event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, reviewerOrDeputyRef));
-        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner()));        			// or campaign owner?
-		event.setActualReviewer(new SimpleObjectRefImpl(notificationsUtil, actualReviewerRef));
+        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner()));                    // or campaign owner?
+        event.setActualReviewer(new SimpleObjectRefImpl(notificationsUtil, actualReviewerRef));
     }
 
     public CertCampaignEvent createOnCampaignEndEvent(AccessCertificationCampaignType campaign, Task task, OperationResult result) {

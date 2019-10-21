@@ -7,24 +7,24 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="2421b2c5-8563-4ba7-9a87-f9ef4b169620">
-	<name>bearable</name>
-	<inducement>
-		<focusMappings>
-			<mapping>
-				<expression>
-					<script>
-						<code>
-							basic.stringify(assignmentPath[0].target.name) + '-bearer'
-						</code>
-					</script>
-				</expression>
-				<target>
-					<path>organizationalUnit</path>
-				</target>
-			</mapping>
-		</focusMappings>
-		<order>2</order>
-		<focusType>UserType</focusType>
-	</inducement>
+      oid="2421b2c5-8563-4ba7-9a87-f9ef4b169620">
+    <name>bearable</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <expression>
+                    <script>
+                        <code>
+                            basic.stringify(assignmentPath[0].target.name) + '-bearer'
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>organizationalUnit</path>
+                </target>
+            </mapping>
+        </focusMappings>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
 </role>

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -28,29 +28,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType
 @Component
 public class ShadowAttributesWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C> {
 
-	
-	@Override
-	public boolean match(ItemDefinition<?> def) {
-		return def instanceof ResourceAttributeContainerDefinition && ShadowAttributesType.class.isAssignableFrom(((ResourceAttributeContainerDefinition) def).getCompileTimeClass());
-	}
-	
-	@Override
-	public int getOrder() {
-		return Integer.MAX_VALUE - 100;
-	}
-	
-	@Override
-	protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent,
-			PrismContainer<C> childContainer, ItemStatus status) {
-		getRegistry().registerWrapperPanel(ShadowAttributesType.COMPLEX_TYPE, PrismContainerPanel.class);
-		return new PrismContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, childContainer, status);
-	}
 
-//	@Override
-//	protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent,
-//			PrismContainerValue<C> value) {
-//		ObjectClassComplexTypeDefinition occtDef = (ObjectClassComplexTypeDefinition) parent.getComplexTypeDefinition();
-//		
-//		return occtDef.getDefinitions();
-//	}
+    @Override
+    public boolean match(ItemDefinition<?> def) {
+        return def instanceof ResourceAttributeContainerDefinition && ShadowAttributesType.class.isAssignableFrom(((ResourceAttributeContainerDefinition) def).getCompileTimeClass());
+    }
+
+    @Override
+    public int getOrder() {
+        return Integer.MAX_VALUE - 100;
+    }
+
+    @Override
+    protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent,
+            PrismContainer<C> childContainer, ItemStatus status) {
+        getRegistry().registerWrapperPanel(ShadowAttributesType.COMPLEX_TYPE, PrismContainerPanel.class);
+        return new PrismContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, childContainer, status);
+    }
+
+//    @Override
+//    protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent,
+//            PrismContainerValue<C> value) {
+//        ObjectClassComplexTypeDefinition occtDef = (ObjectClassComplexTypeDefinition) parent.getComplexTypeDefinition();
+//
+//        return occtDef.getDefinitions();
+//    }
 }

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.prism.show;
@@ -100,7 +100,7 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             primaryScenes = getPageBase().getModelInteractionService().visualizeDeltas(primaryDeltas, task, task.getResult());
             secondaryScenes = getPageBase().getModelInteractionService().visualizeDeltas(secondaryDeltas, task, task.getResult());
         } catch (SchemaException | ExpressionEvaluationException e) {
-            throw new SystemException(e);		// TODO
+            throw new SystemException(e);        // TODO
         }
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Creating context DTO for primary deltas:\n{}", DebugUtil.debugDump(primaryScenes));
@@ -151,7 +151,7 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             } catch (Throwable t) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare approval information", t);
                 result.recordFatalError(
-                		createStringResource("PreviewChangesTabPanel.message.prepareApproval.fatalError", t.getMessage()).getString(), t);
+                        createStringResource("PreviewChangesTabPanel.message.prepareApproval.fatalError", t.getMessage()).getString(), t);
             }
             if (WebComponentUtil.showResultInPage(result)) {
                 getPageBase().showResult(result);

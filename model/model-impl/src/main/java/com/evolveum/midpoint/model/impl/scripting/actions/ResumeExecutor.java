@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -66,8 +66,8 @@ public class ResumeExecutor extends BaseActionExecutor {
                     processActionException(new ScriptExecutionException("Item is not a task"), NAME, value, context);
                 }
             } else {
-				//noinspection ThrowableNotThrown
-				processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
+                //noinspection ThrowableNotThrown
+                processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
             }
             operationsHelper.trimAndCloneResult(result, globalResult, context);
         }

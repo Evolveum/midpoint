@@ -1,28 +1,28 @@
 <!--
   ~ Copyright (c) 2014-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="27058fde-b27e-11e7-b557-e7e43b583989"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Expression Read Roles</name>    
+    <name>Expression Read Roles</name>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>RoleType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>subtype</q:path>
-    				<expression>
-    					<!-- Make sure empty value of costCenter does not allow any access. -->
-    					<queryInterpretationOfNoValue>filterNone</queryInterpretationOfNoValue>
-    					<path>$subject/costCenter</path>
-    				</expression>
-    			</q:equal>
-    		</filter>
-    	</object>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>subtype</q:path>
+                    <expression>
+                        <!-- Make sure empty value of costCenter does not allow any access. -->
+                        <queryInterpretationOfNoValue>filterNone</queryInterpretationOfNoValue>
+                        <path>$subject/costCenter</path>
+                    </expression>
+                </q:equal>
+            </filter>
+        </object>
     </authorization>
 </role>

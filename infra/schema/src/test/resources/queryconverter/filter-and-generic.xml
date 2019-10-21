@@ -3,30 +3,30 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <filter xsi:type="SearchFilterType"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-       xmlns="http://prism.evolveum.com/xml/ns/public/query-3" 
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+       xmlns="http://prism.evolveum.com/xml/ns/public/query-3"
        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-	<and>
-		<equal>
-			<path>c:name</path>
-			<value>
-				<t:orig>generic object</t:orig>
-				<t:norm>generic object</t:norm>
-			</value>
-		</equal>
-		<equal>
-			<path>
+    <and>
+        <equal>
+            <path>c:name</path>
+            <value>
+                <t:orig>generic object</t:orig>
+                <t:norm>generic object</t:norm>
+            </value>
+        </equal>
+        <equal>
+            <path>
                 declare namespace p="http://midpoint.evolveum.com/xml/ns/test/extension";
                 c:extension/p:intType
             </path>
-			<value xsi:type="xsd:int">123</value>
-		</equal>
-	</and>
+            <value xsi:type="xsd:int">123</value>
+        </equal>
+    </and>
 </filter>

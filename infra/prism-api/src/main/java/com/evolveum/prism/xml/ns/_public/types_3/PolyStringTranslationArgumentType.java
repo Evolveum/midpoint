@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -35,82 +35,82 @@ import javax.xml.namespace.QName;
     "translation"
 })
 public class PolyStringTranslationArgumentType implements Serializable, Cloneable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "PolyStringTranslationArgumentType");
+    public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "PolyStringTranslationArgumentType");
 
     protected String value;
     protected PolyStringTranslationType translation;
 
-	public PolyStringTranslationArgumentType() {
-	}
+    public PolyStringTranslationArgumentType() {
+    }
 
-	public PolyStringTranslationArgumentType(PolyStringTranslationType translation) {
-		this.translation = translation;
-	}
+    public PolyStringTranslationArgumentType(PolyStringTranslationType translation) {
+        this.translation = translation;
+    }
 
-	public PolyStringTranslationArgumentType(String value) {
-		this.value = value;
-	}
+    public PolyStringTranslationArgumentType(String value) {
+        this.value = value;
+    }
 
-	public String getValue() {
-		return value;
-	}
+    public String getValue() {
+        return value;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	public PolyStringTranslationType getTranslation() {
-		return translation;
-	}
+    public PolyStringTranslationType getTranslation() {
+        return translation;
+    }
 
-	public void setTranslation(PolyStringTranslationType translation) {
-		this.translation = translation;
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((translation == null) ? 0 : translation.hashCode());
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		PolyStringTranslationArgumentType other = (PolyStringTranslationArgumentType) obj;
-		if (translation == null) {
-			if (other.translation != null)
-				return false;
-		} else if (!translation.equals(other.translation))
-			return false;
-		if (value == null) {
-			if (other.value != null)
-				return false;
-		} else if (!value.equals(other.value))
-			return false;
-		return true;
-	}
+    public void setTranslation(PolyStringTranslationType translation) {
+        this.translation = translation;
+    }
 
     @Override
-	public String toString() {
-		return "PolyStringTranslationArgumentType(value=" + value + ", translation=" + translation + ")";
-	}
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((translation == null) ? 0 : translation.hashCode());
+        result = prime * result + ((value == null) ? 0 : value.hashCode());
+        return result;
+    }
 
-	@Override
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        PolyStringTranslationArgumentType other = (PolyStringTranslationArgumentType) obj;
+        if (translation == null) {
+            if (other.translation != null)
+                return false;
+        } else if (!translation.equals(other.translation))
+            return false;
+        if (value == null) {
+            if (other.value != null)
+                return false;
+        } else if (!value.equals(other.value))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "PolyStringTranslationArgumentType(value=" + value + ", translation=" + translation + ")";
+    }
+
+    @Override
     public PolyStringTranslationArgumentType clone() {
         PolyStringTranslationArgumentType cloned = new PolyStringTranslationArgumentType();
         cloned.setValue(value);
         if (translation != null) {
-        	cloned.setTranslation(translation.clone());
+            cloned.setTranslation(translation.clone());
         }
         return cloned;
     }

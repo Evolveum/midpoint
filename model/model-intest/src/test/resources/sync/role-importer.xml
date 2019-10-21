@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-1111-1111-1111-000000000004"
@@ -10,30 +10,30 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Importer</name>
     <description>User with limited authorizations, just to make import possible</description>
-	<authorization>
-		<name>autz-importer-resource-name-get</name>
-		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
-		<object>
-			<type>ResourceType</type>
-		</object>
-		<item>name</item>		<!-- we need to be able to read at least something from the resource object -->
-	</authorization>
     <authorization>
-	  <name>autz-importer-user-write</name>
-	  <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-	  <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-	  <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-	  <object>
-	    <type>UserType</type>
-	  </object>
-	</authorization>
-	<authorization>
-	  <name>autz-importer-shadow-write</name>
-	  <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-	  <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-	  <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-	  <object>
-	    <type>ShadowType</type>
-	  </object>
-	</authorization>
+        <name>autz-importer-resource-name-get</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+        <object>
+            <type>ResourceType</type>
+        </object>
+        <item>name</item>        <!-- we need to be able to read at least something from the resource object -->
+    </authorization>
+    <authorization>
+      <name>autz-importer-user-write</name>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+      <object>
+        <type>UserType</type>
+      </object>
+    </authorization>
+    <authorization>
+      <name>autz-importer-shadow-write</name>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+      <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+      <object>
+        <type>ShadowType</type>
+      </object>
+    </authorization>
 </role>

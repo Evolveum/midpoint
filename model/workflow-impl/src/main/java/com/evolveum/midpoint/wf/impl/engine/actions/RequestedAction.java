@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -16,10 +16,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class RequestedAction<R extends Request> extends Action {
 
-	@NotNull public final R request;
+    @NotNull public final R request;
 
-	RequestedAction(@NotNull EngineInvocationContext ctx, @NotNull R request) {
-		super(ctx);
-		this.request = request;
-	}
+    RequestedAction(@NotNull EngineInvocationContext ctx, @NotNull R request) {
+        super(ctx);
+        this.request = request;
+    }
 }

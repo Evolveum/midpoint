@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -62,70 +62,70 @@ public abstract class DataImport {
         Validate.notNull(model, "Model service must not be null.");
         this.model = model;
     }
-    
+
     public void setPrismContext(PrismContext prismContext) {
-    	Validate.notNull(prismContext, "Prism context must not be null.");
-		this.prismContext = prismContext;
-	}
+        Validate.notNull(prismContext, "Prism context must not be null.");
+        this.prismContext = prismContext;
+    }
 
     public void setTaskManager(TaskManager taskManager) {
         Validate.notNull(taskManager, "Task manager must not be null.");
         this.taskManager = taskManager;
     }
-    
+
     public void setConfiguration(MidpointConfiguration configuration) {
-    	Validate.notNull(configuration, "Midpoint configuration must not be null.");
-		this.configuration = configuration;
-	}
+        Validate.notNull(configuration, "Midpoint configuration must not be null.");
+        this.configuration = configuration;
+    }
 
     public abstract void init() throws SchemaException;
-    
+
     protected SecurityContext provideFakeSecurityContext() throws SchemaException {
-    	// We need to provide a fake Spring security context here.
-    	// We have to fake it because we do not have anything in the repository yet. And to get
-    	// something to the repository we need a context. Chicken and egg. So we fake the egg.
-    	SecurityContext securityContext = SecurityContextHolder.getContext();
-    	UserType userAdministrator = new UserType();
-    	prismContext.adopt(userAdministrator);
-    	userAdministrator.setName(new PolyStringType(new PolyString("initAdmin", "initAdmin")));
-		MidPointPrincipal principal = new MidPointPrincipal(userAdministrator);
-		AuthorizationType superAutzType = new AuthorizationType();
-		prismContext.adopt(superAutzType, RoleType.class, RoleType.F_AUTHORIZATION);
-		superAutzType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
-		Authorization superAutz = new Authorization(superAutzType);
-		Collection<Authorization> authorities = principal.getAuthorities();
-		authorities.add(superAutz);
-		Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
-		securityContext.setAuthentication(authentication);
-		return securityContext;
+        // We need to provide a fake Spring security context here.
+        // We have to fake it because we do not have anything in the repository yet. And to get
+        // something to the repository we need a context. Chicken and egg. So we fake the egg.
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        UserType userAdministrator = new UserType();
+        prismContext.adopt(userAdministrator);
+        userAdministrator.setName(new PolyStringType(new PolyString("initAdmin", "initAdmin")));
+        MidPointPrincipal principal = new MidPointPrincipal(userAdministrator);
+        AuthorizationType superAutzType = new AuthorizationType();
+        prismContext.adopt(superAutzType, RoleType.class, RoleType.F_AUTHORIZATION);
+        superAutzType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
+        Authorization superAutz = new Authorization(superAutzType);
+        Collection<Authorization> authorities = principal.getAuthorities();
+        authorities.add(superAutz);
+        Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
+        securityContext.setAuthentication(authentication);
+        return securityContext;
     }
-    
+
 
     protected <O extends ObjectType> void preImportUpdate(PrismObject<O> object) {
-		if (object.canRepresent(SystemConfigurationType.class)) {
-			SystemConfigurationType systemConfigType = (SystemConfigurationType) object.asObjectable();
-			InternalsConfigurationType internals = systemConfigType.getInternals();
-			if (internals != null) {
-				PolyStringNormalizerConfigurationType normalizerConfig = internals.getPolyStringNormalizer();
-				if (normalizerConfig != null) {
-					try {
-						prismContext.configurePolyStringNormalizer(normalizerConfig);
-						LOGGER.debug("Applied PolyString normalizer configuration {}", DebugUtil.shortDumpLazily(normalizerConfig));
-					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-						LOGGER.error("Error applying polystring normalizer configuration: "+e.getMessage(), e);
-						throw new SystemException("Error applying polystring normalizer configuration: "+e.getMessage(), e);
-					}
-					// PolyString normalizer configuration applied. But we need to re-normalize the imported object
-					// otherwise it would be normalized in a different way than other objects.
-					object.recomputeAllValues();
-				}
-			}
-		}
-		
-	}
+        if (object.canRepresent(SystemConfigurationType.class)) {
+            SystemConfigurationType systemConfigType = (SystemConfigurationType) object.asObjectable();
+            InternalsConfigurationType internals = systemConfigType.getInternals();
+            if (internals != null) {
+                PolyStringNormalizerConfigurationType normalizerConfig = internals.getPolyStringNormalizer();
+                if (normalizerConfig != null) {
+                    try {
+                        prismContext.configurePolyStringNormalizer(normalizerConfig);
+                        LOGGER.debug("Applied PolyString normalizer configuration {}", DebugUtil.shortDumpLazily(normalizerConfig));
+                    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+                        LOGGER.error("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+                        throw new SystemException("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+                    }
+                    // PolyString normalizer configuration applied. But we need to re-normalize the imported object
+                    // otherwise it would be normalized in a different way than other objects.
+                    object.recomputeAllValues();
+                }
+            }
+        }
+
+    }
 
     protected void sortFiles(File[] files) {
-    	Arrays.sort(files, (o1, o2) -> {
+        Arrays.sort(files, (o1, o2) -> {
             int n1 = getNumberFromName(o1);
             int n2 = getNumberFromName(o2);
 

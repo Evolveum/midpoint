@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -53,9 +53,9 @@ import java.util.Set;
 @Persister(impl = MidPointJoinedPersister.class)
 public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T> {
 
-	private String identifier;
-	private String riskLevel;
-	private RPolyString displayName;
+    private String identifier;
+    private String riskLevel;
+    private RPolyString displayName;
     private Boolean requestable;
     private Set<RObjectReference<RFocus>> approverRef;
     private String approvalProcess;
@@ -93,20 +93,20 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         return ownerRef;
     }
 
-	public String getIdentifier() {
-		return identifier;
-	}
+    public String getIdentifier() {
+        return identifier;
+    }
 
-	public String getRiskLevel() {
-		return riskLevel;
-	}
+    public String getRiskLevel() {
+        return riskLevel;
+    }
 
-	@Embedded
-	public RPolyString getDisplayName() {
-		return displayName;
-	}
+    @Embedded
+    public RPolyString getDisplayName() {
+        return displayName;
+    }
 
-	public void setApproverRef(Set<RObjectReference<RFocus>> approverRef) {
+    public void setApproverRef(Set<RObjectReference<RFocus>> approverRef) {
         this.approverRef = approverRef;
     }
 
@@ -122,17 +122,17 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         this.requestable = requestable;
     }
 
-	public void setIdentifier(String identifier) {
-		this.identifier = identifier;
-	}
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
+    }
 
-	public void setRiskLevel(String riskLevel) {
-		this.riskLevel = riskLevel;
-	}
+    public void setRiskLevel(String riskLevel) {
+        this.riskLevel = riskLevel;
+    }
 
-	public void setDisplayName(RPolyString displayName) {
-		this.displayName = displayName;
-	}
+    public void setDisplayName(RPolyString displayName) {
+        this.displayName = displayName;
+    }
 
     public RAutoassignSpecification getAutoassign() {
         return autoassign;
@@ -176,23 +176,23 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
     // dynamically called
     public static <T extends AbstractRoleType> void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole<T> repo,
-		    RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
-			throws DtoTranslationException {
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
+            throws DtoTranslationException {
 
         copyFocusInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setRequestable(jaxb.isRequestable());
 
-		repo.setDisplayName(RPolyString.copyFromJAXB(jaxb.getDisplayName()));
-		repo.setIdentifier(jaxb.getIdentifier());
-		repo.setRiskLevel(jaxb.getRiskLevel());
+        repo.setDisplayName(RPolyString.copyFromJAXB(jaxb.getDisplayName()));
+        repo.setIdentifier(jaxb.getIdentifier());
+        repo.setRiskLevel(jaxb.getRiskLevel());
 
-		if (jaxb.getAutoassign() != null) {
-		    RAutoassignSpecification aa = new RAutoassignSpecification();
-		    RAutoassignSpecification.formJaxb(jaxb.getAutoassign(), aa);
+        if (jaxb.getAutoassign() != null) {
+            RAutoassignSpecification aa = new RAutoassignSpecification();
+            RAutoassignSpecification.formJaxb(jaxb.getAutoassign(), aa);
             repo.setAutoassign(aa);
         }
 
-		for (AssignmentType inducement : jaxb.getInducement()) {
+        for (AssignmentType inducement : jaxb.getInducement()) {
             RAssignment rInducement = new RAssignment(repo, RAssignmentOwner.ABSTRACT_ROLE);
             RAssignment.fromJaxb(inducement, rInducement, jaxb, repositoryContext, generatorResult);
 

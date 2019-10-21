@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -48,69 +48,69 @@ public class WorkflowManagerImpl implements WorkflowManager {
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManagerImpl.class);
 
     @Autowired private PrismContext prismContext;
-	@Autowired private WfConfiguration wfConfiguration;
-	@Autowired private CaseManager caseManager;
-	@Autowired private NotificationHelper notificationHelper;
-	@Autowired private WorkItemManager workItemManager;
-	@Autowired private ChangesSorter changesSorter;
-	@Autowired private AuthorizationHelper authorizationHelper;
-	@Autowired private ApprovalSchemaExecutionInformationHelper approvalSchemaExecutionInformationHelper;
-	@Autowired
-	@Qualifier("cacheRepositoryService")
-	private RepositoryService repositoryService;
-	@Autowired private ExpressionEvaluationHelper expressionEvaluationHelper;
+    @Autowired private WfConfiguration wfConfiguration;
+    @Autowired private CaseManager caseManager;
+    @Autowired private NotificationHelper notificationHelper;
+    @Autowired private WorkItemManager workItemManager;
+    @Autowired private ChangesSorter changesSorter;
+    @Autowired private AuthorizationHelper authorizationHelper;
+    @Autowired private ApprovalSchemaExecutionInformationHelper approvalSchemaExecutionInformationHelper;
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
+    @Autowired private ExpressionEvaluationHelper expressionEvaluationHelper;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
-	@PostConstruct
-	public void initialize() {
-		LOGGER.debug("Workflow manager starting.");
-	}
+    @PostConstruct
+    public void initialize() {
+        LOGGER.debug("Workflow manager starting.");
+    }
 
-	//region Work items
-	@Override
+    //region Work items
+    @Override
     public void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output,
-			WorkItemEventCauseInformationType causeInformation, Task task, OperationResult parentResult)
-			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-	    try {
-		    workItemManager.completeWorkItem(workItemId, output, causeInformation, task, parentResult);
-	    } catch (ObjectAlreadyExistsException e) {
-		    throw new IllegalStateException(e);
-	    }
+            WorkItemEventCauseInformationType causeInformation, Task task, OperationResult parentResult)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        try {
+            workItemManager.completeWorkItem(workItemId, output, causeInformation, task, parentResult);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
     public void claimWorkItem(WorkItemId workItemId, Task task, OperationResult result)
-		    throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
-		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         workItemManager.claimWorkItem(workItemId, task, result);
     }
 
     @Override
     public void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult result)
-		    throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
-		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         workItemManager.releaseWorkItem(workItemId, task, result);
     }
 
     @Override
     public void delegateWorkItem(WorkItemId workItemId, WorkItemDelegationRequestType delegationRequest,
-		    Task task, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException,
-		    ExpressionEvaluationException, CommunicationException, ConfigurationException {
+            Task task, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException {
         workItemManager.delegateWorkItem(workItemId, delegationRequest, null, null, null, null, task, parentResult);
     }
     //endregion
 
-	//region Process instances (cases)
+    //region Process instances (cases)
     @Override
     public void cancelCase(String caseOid, Task task, OperationResult parentResult)
-		    throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
-		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
         caseManager.cancelCase(caseOid, task, parentResult);
     }
     //endregion
 
-	/*
+    /*
      * Other
      * =====
      */
@@ -127,10 +127,10 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
     @Override
     public void registerWorkflowListener(WorkflowListener workflowListener) {
-	    notificationHelper.registerWorkItemListener(workflowListener);
+        notificationHelper.registerWorkItemListener(workflowListener);
     }
 
-	@Override
+    @Override
     public boolean isCurrentUserAuthorizedToSubmit(CaseWorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         return authorizationHelper.isAuthorized(workItem, AuthorizationHelper.RequestedOperation.COMPLETE, task, result);
     }
@@ -145,56 +145,56 @@ public class WorkflowManagerImpl implements WorkflowManager {
         return authorizationHelper.isAuthorized(workItem, AuthorizationHelper.RequestedOperation.DELEGATE, task, result);
     }
 
-	@Override
-	public ChangesByState getChangesByState(CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext,
-			Task task, OperationResult result) throws SchemaException {
+    @Override
+    public ChangesByState getChangesByState(CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext,
+            Task task, OperationResult result) throws SchemaException {
 
-		// TODO op subresult
-		return changesSorter.getChangesByStateForRoot(rootCase, prismContext, result);
-	}
+        // TODO op subresult
+        return changesSorter.getChangesByStateForRoot(rootCase, prismContext, result);
+    }
 
-	@Override
-	public ChangesByState getChangesByState(CaseType approvalCase, CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext,
-			OperationResult result) throws SchemaException {
+    @Override
+    public ChangesByState getChangesByState(CaseType approvalCase, CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext,
+            OperationResult result) throws SchemaException {
 
-		// TODO op subresult
-		return changesSorter.getChangesByStateForChild(approvalCase, rootCase, prismContext, result);
-	}
+        // TODO op subresult
+        return changesSorter.getChangesByStateForChild(approvalCase, rootCase, prismContext, result);
+    }
 
-	@Override
-	public ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String taskOid, Task opTask,
-			OperationResult parentResult)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-			SecurityViolationException, ExpressionEvaluationException {
-		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getApprovalSchemaExecutionInformation");
-		try {
-			return approvalSchemaExecutionInformationHelper.getApprovalSchemaExecutionInformation(taskOid, opTask, result);
-		} catch (Throwable t) {
-			result.recordFatalError("Couldn't determine schema execution information: " + t.getMessage(), t);
-			throw t;
-		} finally {
-			result.recordSuccessIfUnknown();
-		}
-	}
+    @Override
+    public ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String taskOid, Task opTask,
+            OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getApprovalSchemaExecutionInformation");
+        try {
+            return approvalSchemaExecutionInformationHelper.getApprovalSchemaExecutionInformation(taskOid, opTask, result);
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't determine schema execution information: " + t.getMessage(), t);
+            throw t;
+        } finally {
+            result.recordSuccessIfUnknown();
+        }
+    }
 
-	@Override
-	public List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
-			OperationResult parentResult)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-			SecurityViolationException, ExpressionEvaluationException {
-		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getApprovalSchemaPreview");
-		try {
-			return approvalSchemaExecutionInformationHelper.getApprovalSchemaPreview(modelContext, opTask, result);
-		} catch (Throwable t) {
-			result.recordFatalError("Couldn't compute approval schema preview: " + t.getMessage(), t);
-			throw t;
-		} finally {
-			result.recordSuccessIfUnknown();
-		}
-	}
+    @Override
+    public List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
+            OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getApprovalSchemaPreview");
+        try {
+            return approvalSchemaExecutionInformationHelper.getApprovalSchemaPreview(modelContext, opTask, result);
+        } catch (Throwable t) {
+            result.recordFatalError("Couldn't compute approval schema preview: " + t.getMessage(), t);
+            throw t;
+        } finally {
+            result.recordSuccessIfUnknown();
+        }
+    }
 
-	@Override
-	public PerformerCommentsFormatter createPerformerCommentsFormatter(PerformerCommentsFormattingType formatting) {
-		return new PerformerCommentsFormatterImpl(formatting, repositoryService, expressionEvaluationHelper);
-	}
+    @Override
+    public PerformerCommentsFormatter createPerformerCommentsFormatter(PerformerCommentsFormattingType formatting) {
+        return new PerformerCommentsFormatterImpl(formatting, repositoryService, expressionEvaluationHelper);
+    }
 }

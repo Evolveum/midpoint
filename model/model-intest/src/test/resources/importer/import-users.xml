@@ -2,19 +2,19 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- Sample file to test import -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
 
-	<user oid="c0c010c0-d34d-b33f-f00d-111111111111">
+    <user oid="c0c010c0-d34d-b33f-f00d-111111111111">
         <name>jack</name>
         <extension>
             <piracy:ship>Black Pearl</piracy:ship>
@@ -26,11 +26,11 @@
         <!-- Following value checks processing of XML-escaped character -->
         <costCenter>&lt;No &apos;cost&apos; &amp; no &quot;center&quot;&gt;</costCenter>
         <credentials>
-        	<password>
-        		<value>
-        			<t:clearValue>dead men tell no tales</t:clearValue>
-        		</value>
-        	</password>
+            <password>
+                <value>
+                    <t:clearValue>dead men tell no tales</t:clearValue>
+                </value>
+            </password>
         </credentials>
     </user>
 
@@ -41,7 +41,7 @@
         <familyName>Turner</familyName>
     </user>
 
-	<!-- No OID -->
+    <!-- No OID -->
     <user>
         <name>guybrush</name>
         <fullName>Guybrush Threepwood</fullName>

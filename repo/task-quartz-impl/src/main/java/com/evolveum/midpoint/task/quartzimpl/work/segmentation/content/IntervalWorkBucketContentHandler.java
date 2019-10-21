@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,55 +27,55 @@ import java.util.function.Function;
  */
 public abstract class IntervalWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 
-	@NotNull
-	@Override
-	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
-			Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
+    @NotNull
+    @Override
+    public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
+            Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
 
-		AbstractWorkBucketContentType content = bucket.getContent();
+        AbstractWorkBucketContentType content = bucket.getContent();
 
-		if (hasNoBoundaries(content)) {
-			return new ArrayList<>();
-		}
-		if (configuration == null) {
-			throw new IllegalStateException("No buckets configuration but having defined bucket content: " + content);
-		}
-		ItemPath discriminator = getDiscriminator(configuration, content);
-		ItemDefinition<?> discriminatorDefinition = itemDefinitionProvider != null ? itemDefinitionProvider.apply(discriminator) : null;
+        if (hasNoBoundaries(content)) {
+            return new ArrayList<>();
+        }
+        if (configuration == null) {
+            throw new IllegalStateException("No buckets configuration but having defined bucket content: " + content);
+        }
+        ItemPath discriminator = getDiscriminator(configuration, content);
+        ItemDefinition<?> discriminatorDefinition = itemDefinitionProvider != null ? itemDefinitionProvider.apply(discriminator) : null;
 
-		QName matchingRuleName = configuration.getMatchingRule() != null
-				? QNameUtil.uriToQName(configuration.getMatchingRule(), PrismConstants.NS_MATCHING_RULE)
-				: null;
+        QName matchingRuleName = configuration.getMatchingRule() != null
+                ? QNameUtil.uriToQName(configuration.getMatchingRule(), PrismConstants.NS_MATCHING_RULE)
+                : null;
 
-		List<ObjectFilter> filters = new ArrayList<>();
-		if (getFrom(content) != null) {
-			filters.add(prismContext.queryFor(type)
-					.item(discriminator, discriminatorDefinition).ge(getFrom(content)).matching(matchingRuleName)
-					.buildFilter());
-		}
-		if (getTo(content) != null) {
-			filters.add(prismContext.queryFor(type)
-					.item(discriminator, discriminatorDefinition).lt(getTo(content)).matching(matchingRuleName)
-					.buildFilter());
-		}
-		return filters;
-	}
+        List<ObjectFilter> filters = new ArrayList<>();
+        if (getFrom(content) != null) {
+            filters.add(prismContext.queryFor(type)
+                    .item(discriminator, discriminatorDefinition).ge(getFrom(content)).matching(matchingRuleName)
+                    .buildFilter());
+        }
+        if (getTo(content) != null) {
+            filters.add(prismContext.queryFor(type)
+                    .item(discriminator, discriminatorDefinition).lt(getTo(content)).matching(matchingRuleName)
+                    .buildFilter());
+        }
+        return filters;
+    }
 
-	@NotNull
-	private ItemPath getDiscriminator(AbstractWorkSegmentationType configuration, AbstractWorkBucketContentType content) {
-		ItemPathType discriminatorPathType = configuration.getDiscriminator();
-		if (discriminatorPathType != null) {
-			return discriminatorPathType.getItemPath();
-		} else if (configuration instanceof OidWorkSegmentationType) {
-			return ItemName.fromQName(PrismConstants.T_ID);     // fixme
-		} else {
-			throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
-		}
-	}
+    @NotNull
+    private ItemPath getDiscriminator(AbstractWorkSegmentationType configuration, AbstractWorkBucketContentType content) {
+        ItemPathType discriminatorPathType = configuration.getDiscriminator();
+        if (discriminatorPathType != null) {
+            return discriminatorPathType.getItemPath();
+        } else if (configuration instanceof OidWorkSegmentationType) {
+            return ItemName.fromQName(PrismConstants.T_ID);     // fixme
+        } else {
+            throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
+        }
+    }
 
-	protected abstract boolean hasNoBoundaries(AbstractWorkBucketContentType bucketContent);
+    protected abstract boolean hasNoBoundaries(AbstractWorkBucketContentType bucketContent);
 
-	protected abstract Object getFrom(AbstractWorkBucketContentType content);
+    protected abstract Object getFrom(AbstractWorkBucketContentType content);
 
-	protected abstract Object getTo(AbstractWorkBucketContentType content);
+    protected abstract Object getTo(AbstractWorkBucketContentType content);
 }

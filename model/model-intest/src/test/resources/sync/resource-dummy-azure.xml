@@ -2,16 +2,16 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<!-- AZURE resource. It disables unmatched accounts. 
+<!-- AZURE resource. It disables unmatched accounts.
      It also has several objectType definitions that are designed to confuse
      the code that determines refined schema definitions -->
 
 <resource oid="10000000-0000-0000-0000-00000000a204"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -19,294 +19,294 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Azure</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>azure</icfi:instanceId>
-			<icfi:supportValidity>true</icfi:supportValidity>
-			<icfi:requiredBaseContextOrgName>top</icfi:requiredBaseContextOrgName>
-		</icfc:configurationProperties>
+    <name>Dummy Resource Azure</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	</connectorConfiguration>
-	
-	
-	<schemaHandling>
-	
-		<objectType>
-			<!-- Not used. Just to confuse the tests a bit. -->
-			<kind>account</kind>
-			<intent>fake</intent>
-			<displayName>Fake Account</displayName>
-			<default>false</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>ri:ship</ref>
-				<displayName>Ship</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>Flying Saucer</value>
-					</expression>
-				</outbound>
-			</attribute>
-		</objectType>
-		
-		<objectType>
-			<!-- Not used. Just to confuse the tests a bit. -->
-			<!--  This is the default definition for AccountObjectClass. But it should not be used. -->
-			<kind>account</kind>
-			<intent>trap</intent>
-			<displayName>Trap Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>ri:ship</ref>
-				<displayName>Ship</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>Titanic</value>
-					</expression>
-				</outbound>
-			</attribute>
-		</objectType>
-	
-		<objectType>
-			<!-- This is the primary object type. It has the "default" intent, but it is not
-			     a default type for AccountObjectClass -->
-			<kind>account</kind>
-			<intent>default</intent>
-			<displayName>Default Account</displayName>
-			<default>false</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<baseContext>
-				<objectClass>ri:CustomorgObjectClass</objectClass>
-				<filter>
-					<q:equal>
-						<q:path>attributes/name</q:path>
-						<q:value>top</q:value>
-					</q:equal>
-				</filter>
-			</baseContext>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<outbound>
-				    <strength>weak</strength>
-				    <source>
-				    	<path>name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>name + iterationToken</code>
-						</script>
-					</expression>
-				</outbound>
-				<inbound>
-					<target>
-						<path>$c:user/c:name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>$user/fullName</path>
-					</source>
-				</outbound>
-				<inbound>
-					<strength>weak</strength>
-					<target>
-						<path>$c:user/c:fullName</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:ship</ref>
-				<displayName>Ship</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>$c:user/c:organizationalUnit</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:quote</ref>
-				<displayName>Quote</displayName>
-				<tolerant>true</tolerant>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>$user/description</path>
-					</source>
-				</outbound>
-			</attribute>
-			<association>
-            	<ref>ri:group</ref>
-            	<kind>entitlement</kind>
-            	<intent>group</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:members</associationAttribute>
-            	<valueAttribute>icfs:name</valueAttribute>
+        <icfc:configurationProperties>
+            <icfi:instanceId>azure</icfi:instanceId>
+            <icfi:supportValidity>true</icfi:supportValidity>
+            <icfi:requiredBaseContextOrgName>top</icfi:requiredBaseContextOrgName>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+
+    <schemaHandling>
+
+        <objectType>
+            <!-- Not used. Just to confuse the tests a bit. -->
+            <kind>account</kind>
+            <intent>fake</intent>
+            <displayName>Fake Account</displayName>
+            <default>false</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>Flying Saucer</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <!-- Not used. Just to confuse the tests a bit. -->
+            <!--  This is the default definition for AccountObjectClass. But it should not be used. -->
+            <kind>account</kind>
+            <intent>trap</intent>
+            <displayName>Trap Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>Titanic</value>
+                    </expression>
+                </outbound>
+            </attribute>
+        </objectType>
+
+        <objectType>
+            <!-- This is the primary object type. It has the "default" intent, but it is not
+                 a default type for AccountObjectClass -->
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>false</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <baseContext>
+                <objectClass>ri:CustomorgObjectClass</objectClass>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/name</q:path>
+                        <q:value>top</q:value>
+                    </q:equal>
+                </filter>
+            </baseContext>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>name + iterationToken</code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>$c:user/c:name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>$c:user/c:fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$c:user/c:organizationalUnit</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <displayName>Quote</displayName>
+                <tolerant>true</tolerant>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/description</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <association>
+                <ref>ri:group</ref>
+                <kind>entitlement</kind>
+                <intent>group</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:members</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
             </association>
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-			<activation>
-            	<administrativeStatus>
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            	</administrativeStatus>
-            	<validFrom>
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                    </outbound>
+                </administrativeStatus>
+                <validFrom>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            	</validFrom>
-            	<validTo>
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                    </outbound>
+                </validFrom>
+                <validTo>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            	</validTo>
+                    </outbound>
+                </validTo>
             </activation>
             <credentials>
             <password>
                <inbound>
                   <expression>
                      <generate>
-                     	<valuePolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3fffd" type="c:ValuePolicyType"/> <!-- Azure password policy -->
+                         <valuePolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3fffd" type="c:ValuePolicyType"/> <!-- Azure password policy -->
                      </generate>
                   </expression>
                </inbound>
-               
+
             </password>
          </credentials>
-		</objectType>
-		
-		<objectType>
-			<kind>entitlement</kind>
-        	<intent>group</intent>
-        	<default>true</default>
-        	<objectClass>ri:GroupObjectClass</objectClass>
-        	<baseContext>
-				<objectClass>ri:CustomorgObjectClass</objectClass>
-				<filter>
-					<q:equal>
-						<q:path>attributes/name</q:path>
-						<q:value>top</q:value>
-					</q:equal>
-				</filter>
-			</baseContext>
-        	<attribute>
-				<ref>icfs:name</ref>
-				<outbound>
-				    <source>
-				    	<path>$focus/name</path>
-				    </source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:description</ref>
-				<outbound>
-				    <source>
-				    	<path>$focus/description</path>
-				    </source>
-				</outbound>
-			</attribute>
-            <attribute>
-				<ref>ri:members</ref>
-				<fetchStrategy>minimal</fetchStrategy>
-			</attribute>
         </objectType>
-		
-	</schemaHandling>
-	
-	<synchronization>
-		<objectSynchronization>
-			<enabled>true</enabled>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<kind>account</kind>
-			<intent>default</intent>
-			<correlation>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<expression>
-						<script>
-							<code>
-								basic.getAttributeValue(account, 
-									'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
-							</code>
-						</script>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation</channel>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
-	            </action>
-	        </reaction>
+
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <default>true</default>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <baseContext>
+                <objectClass>ri:CustomorgObjectClass</objectClass>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/name</q:path>
+                        <q:value>top</q:value>
+                    </q:equal>
+                </filter>
+            </baseContext>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                    <source>
+                        <path>$focus/description</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:members</ref>
+                <fetchStrategy>minimal</fetchStrategy>
+            </attribute>
+        </objectType>
+
+    </schemaHandling>
+
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <kind>account</kind>
+            <intent>default</intent>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <script>
+                            <code>
+                                basic.getAttributeValue(account,
+                                    'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation</channel>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow</handlerUri>
+                </action>
+            </reaction>
         </objectSynchronization>
-	</synchronization>
-	
+    </synchronization>
+
 </resource>

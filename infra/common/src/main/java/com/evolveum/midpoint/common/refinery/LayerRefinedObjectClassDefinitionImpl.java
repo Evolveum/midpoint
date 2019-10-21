@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.common.refinery;
@@ -38,570 +38,570 @@ import static java.util.Collections.emptySet;
  *
  */
 public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObjectClassDefinition {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private RefinedObjectClassDefinition refinedObjectClassDefinition;
-	private LayerType layer;
+    private RefinedObjectClassDefinition refinedObjectClassDefinition;
+    private LayerType layer;
     /**
      * Keeps layer-specific information on resource object attributes.
      * This list is lazily evaluated.
      */
     private List<LayerRefinedAttributeDefinition<?>> layerRefinedAttributeDefinitions;
 
-	private LayerRefinedObjectClassDefinitionImpl(RefinedObjectClassDefinition refinedAccountDefinition, LayerType layer) {
-		this.refinedObjectClassDefinition = refinedAccountDefinition;
-		this.layer = layer;
-	}
+    private LayerRefinedObjectClassDefinitionImpl(RefinedObjectClassDefinition refinedAccountDefinition, LayerType layer) {
+        this.refinedObjectClassDefinition = refinedAccountDefinition;
+        this.layer = layer;
+    }
 
-	static LayerRefinedObjectClassDefinition wrap(RefinedObjectClassDefinition rOCD, LayerType layer) {
-		if (rOCD == null) {
-			return null;
-		}
-		return new LayerRefinedObjectClassDefinitionImpl(rOCD, layer);
-	}
+    static LayerRefinedObjectClassDefinition wrap(RefinedObjectClassDefinition rOCD, LayerType layer) {
+        if (rOCD == null) {
+            return null;
+        }
+        return new LayerRefinedObjectClassDefinitionImpl(rOCD, layer);
+    }
 
-	static List<? extends LayerRefinedObjectClassDefinition> wrapCollection(Collection<? extends RefinedObjectClassDefinition> rOCDs, LayerType layer) {
-		return(rOCDs.stream()
-				.map(rAccountDef -> wrap(rAccountDef, layer))
-				.collect(Collectors.toCollection(() -> new ArrayList<>(rOCDs.size()))));
-	}
+    static List<? extends LayerRefinedObjectClassDefinition> wrapCollection(Collection<? extends RefinedObjectClassDefinition> rOCDs, LayerType layer) {
+        return(rOCDs.stream()
+                .map(rAccountDef -> wrap(rAccountDef, layer))
+                .collect(Collectors.toCollection(() -> new ArrayList<>(rOCDs.size()))));
+    }
 
-	@Override
-	public LayerType getLayer() {
-		return layer;
-	}
+    @Override
+    public LayerType getLayer() {
+        return layer;
+    }
 
     @NotNull
-	@Override
-	public QName getTypeName() {
-		return refinedObjectClassDefinition.getTypeName();
-	}
+    @Override
+    public QName getTypeName() {
+        return refinedObjectClassDefinition.getTypeName();
+    }
 
     @Override
-	public boolean isIgnored() {
-		return refinedObjectClassDefinition.isIgnored();
-	}
+    public boolean isIgnored() {
+        return refinedObjectClassDefinition.isIgnored();
+    }
 
     @Override
-	public ItemProcessing getProcessing() {
-    	return refinedObjectClassDefinition.getProcessing();
-	}
-    
+    public ItemProcessing getProcessing() {
+        return refinedObjectClassDefinition.getProcessing();
+    }
+
     @Override
-	public List<SchemaMigration> getSchemaMigrations() {
-		return refinedObjectClassDefinition.getSchemaMigrations();
-	}
+    public List<SchemaMigration> getSchemaMigrations() {
+        return refinedObjectClassDefinition.getSchemaMigrations();
+    }
 
-	public boolean isEmphasized() {
-		return refinedObjectClassDefinition.isEmphasized();
-	}
+    public boolean isEmphasized() {
+        return refinedObjectClassDefinition.isEmphasized();
+    }
 
-	@Override
+    @Override
     public <X> LayerRefinedAttributeDefinition<X> getDescriptionAttribute() {
-		// TODO optimize
+        // TODO optimize
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getDescriptionAttribute());
     }
 
-	@Override
-	@NotNull
-	public List<String> getIgnoredNamespaces() {
-		return refinedObjectClassDefinition.getIgnoredNamespaces();
-	}
+    @Override
+    @NotNull
+    public List<String> getIgnoredNamespaces() {
+        return refinedObjectClassDefinition.getIgnoredNamespaces();
+    }
 
-	private <X> LayerRefinedAttributeDefinition<X> substituteLayerRefinedAttributeDefinition(ResourceAttributeDefinition<?> attributeDef) {
-		return findAttributeDefinition(attributeDef.getItemName());
+    private <X> LayerRefinedAttributeDefinition<X> substituteLayerRefinedAttributeDefinition(ResourceAttributeDefinition<?> attributeDef) {
+        return findAttributeDefinition(attributeDef.getItemName());
     }
 
     private Collection<LayerRefinedAttributeDefinition<?>> substituteLayerRefinedAttributeDefinitionCollection(Collection<? extends RefinedAttributeDefinition<?>> attributes) {
-		return attributes.stream()
-				.map(this::substituteLayerRefinedAttributeDefinition)
-				.collect(Collectors.toList());
+        return attributes.stream()
+                .map(this::substituteLayerRefinedAttributeDefinition)
+                .collect(Collectors.toList());
     }
 
     @Override
     public <X> LayerRefinedAttributeDefinition<X> getNamingAttribute() {
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getNamingAttribute());
-	}
+    }
 
     @Override
-	public String getNativeObjectClass() {
-		return refinedObjectClassDefinition.getNativeObjectClass();
-	}
-
-	@Override
-	public boolean isAuxiliary() {
-		return refinedObjectClassDefinition.isAuxiliary();
-	}
-
-	@Override
-	public Integer getDisplayOrder() {
-		return refinedObjectClassDefinition.getDisplayOrder();
-	}
-
-	// TODO - doesn't return layered definition (should it?)
-	@Override
-	public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path,
-			@NotNull Class<ID> clazz) {
-		return refinedObjectClassDefinition.findItemDefinition(path, clazz);
-	}
-
-	// TODO - doesn't return layered definition (should it?)
-	@Override
-	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
-			@NotNull Class<ID> clazz) {
-		return refinedObjectClassDefinition.findNamedItemDefinition(firstName, rest, clazz);
-	}
-
-	@Override
-	public boolean isDefaultInAKind() {
-		return refinedObjectClassDefinition.isDefaultInAKind();
-	}
+    public String getNativeObjectClass() {
+        return refinedObjectClassDefinition.getNativeObjectClass();
+    }
 
     @Override
-	public ShadowKindType getKind() {
-		return refinedObjectClassDefinition.getKind();
-	}
-
-	@Override
-	public AttributeFetchStrategyType getPasswordFetchStrategy() {
-		return refinedObjectClassDefinition.getPasswordFetchStrategy();
-	}
+    public boolean isAuxiliary() {
+        return refinedObjectClassDefinition.isAuxiliary();
+    }
 
     @Override
-	public String getIntent() {
-		return refinedObjectClassDefinition.getIntent();
-	}
+    public Integer getDisplayOrder() {
+        return refinedObjectClassDefinition.getDisplayOrder();
+    }
 
-	@Override
-	public LayerRefinedObjectClassDefinition forLayer(@NotNull LayerType layerType) {
-		return refinedObjectClassDefinition.forLayer(layerType);
-	}
+    // TODO - doesn't return layered definition (should it?)
+    @Override
+    public <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path,
+            @NotNull Class<ID> clazz) {
+        return refinedObjectClassDefinition.findItemDefinition(path, clazz);
+    }
 
-	@Override
-	public <X> LayerRefinedAttributeDefinition<X> getDisplayNameAttribute() {
+    // TODO - doesn't return layered definition (should it?)
+    @Override
+    public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest,
+            @NotNull Class<ID> clazz) {
+        return refinedObjectClassDefinition.findNamedItemDefinition(firstName, rest, clazz);
+    }
+
+    @Override
+    public boolean isDefaultInAKind() {
+        return refinedObjectClassDefinition.isDefaultInAKind();
+    }
+
+    @Override
+    public ShadowKindType getKind() {
+        return refinedObjectClassDefinition.getKind();
+    }
+
+    @Override
+    public AttributeFetchStrategyType getPasswordFetchStrategy() {
+        return refinedObjectClassDefinition.getPasswordFetchStrategy();
+    }
+
+    @Override
+    public String getIntent() {
+        return refinedObjectClassDefinition.getIntent();
+    }
+
+    @Override
+    public LayerRefinedObjectClassDefinition forLayer(@NotNull LayerType layerType) {
+        return refinedObjectClassDefinition.forLayer(layerType);
+    }
+
+    @Override
+    public <X> LayerRefinedAttributeDefinition<X> getDisplayNameAttribute() {
         return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getDisplayNameAttribute());
-	}
+    }
 
-	@Override
-	public String getHelp() {
-		return refinedObjectClassDefinition.getHelp();
-	}
+    @Override
+    public String getHelp() {
+        return refinedObjectClassDefinition.getHelp();
+    }
 
     @NotNull
-	@Override
-	public Collection<? extends LayerRefinedAttributeDefinition<?>> getPrimaryIdentifiers() {
+    @Override
+    public Collection<? extends LayerRefinedAttributeDefinition<?>> getPrimaryIdentifiers() {
         return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getPrimaryIdentifiers());
-	}
+    }
 
     @Override
-	public Collection<? extends LayerRefinedAttributeDefinition<?>> getAllIdentifiers() {
+    public Collection<? extends LayerRefinedAttributeDefinition<?>> getAllIdentifiers() {
         return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getAllIdentifiers());
-	}
+    }
 
     @NotNull
-	@Override
-	public Collection<? extends LayerRefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
-		return LayerRefinedAttributeDefinitionImpl.wrapCollection(refinedObjectClassDefinition.getSecondaryIdentifiers(), layer);
-	}
+    @Override
+    public Collection<? extends LayerRefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
+        return LayerRefinedAttributeDefinitionImpl.wrapCollection(refinedObjectClassDefinition.getSecondaryIdentifiers(), layer);
+    }
 
     @Override
-	public Class getTypeClass() {
-		return refinedObjectClassDefinition.getTypeClass();
-	}
+    public Class getTypeClass() {
+        return refinedObjectClassDefinition.getTypeClass();
+    }
 
     @Override
-	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
-		return refinedObjectClassDefinition.getProtectedObjectPatterns();
-	}
+    public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
+        return refinedObjectClassDefinition.getProtectedObjectPatterns();
+    }
 
-	@Override
-	public void merge(ComplexTypeDefinition otherComplexTypeDef) {
-		refinedObjectClassDefinition.merge(otherComplexTypeDef);
-	}
+    @Override
+    public void merge(ComplexTypeDefinition otherComplexTypeDef) {
+        refinedObjectClassDefinition.merge(otherComplexTypeDef);
+    }
 
-	@Override
-	public PrismContext getPrismContext() {
-		return refinedObjectClassDefinition.getPrismContext();
-	}
+    @Override
+    public PrismContext getPrismContext() {
+        return refinedObjectClassDefinition.getPrismContext();
+    }
 
-	@Override
-	public ResourceAttributeContainer instantiate(QName name) {
-		return ObjectClassComplexTypeDefinitionImpl.instantiate(name, this);
-	}
+    @Override
+    public ResourceAttributeContainer instantiate(QName name) {
+        return ObjectClassComplexTypeDefinitionImpl.instantiate(name, this);
+    }
 
 //    @Override
-//	public <T> PrismPropertyDefinition<T> findPropertyDefinition(@NotNull QName name) {
+//    public <T> PrismPropertyDefinition<T> findPropertyDefinition(@NotNull QName name) {
 //        LayerRefinedAttributeDefinition<T> def = findAttributeDefinition(name);
 //        if (def != null) {
 //            return def;
 //        } else {
-//		    return LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition<T>) refinedObjectClassDefinition.findPropertyDefinition(name), layer);
+//            return LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition<T>) refinedObjectClassDefinition.findPropertyDefinition(name), layer);
 //        }
-//	}
+//    }
 
     @Override
-	public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(@NotNull QName elementQName) {
+    public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(@NotNull QName elementQName) {
         for (LayerRefinedAttributeDefinition definition : getAttributeDefinitions()) {
             if (QNameUtil.match(definition.getItemName(), elementQName)) {
-	            //noinspection unchecked
-	            return definition;
+                //noinspection unchecked
+                return definition;
             }
         }
         return null;
-	}
+    }
 
     @Override
-	public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(String elementLocalName) {
-    	return LayerRefinedAttributeDefinitionImpl.wrap(refinedObjectClassDefinition.findAttributeDefinition(elementLocalName), layer);
-	}
+    public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(String elementLocalName) {
+        return LayerRefinedAttributeDefinitionImpl.wrap(refinedObjectClassDefinition.findAttributeDefinition(elementLocalName), layer);
+    }
 
     @Override
-	public String getDisplayName() {
-		return refinedObjectClassDefinition.getDisplayName();
-	}
+    public String getDisplayName() {
+        return refinedObjectClassDefinition.getDisplayName();
+    }
 
     @NotNull
-	@Override
-	public List<? extends ItemDefinition> getDefinitions() {
-		return getAttributeDefinitions();
-	}
+    @Override
+    public List<? extends ItemDefinition> getDefinitions() {
+        return getAttributeDefinitions();
+    }
 
     @Override
-	public String getDescription() {
-		return refinedObjectClassDefinition.getDescription();
-	}
+    public String getDescription() {
+        return refinedObjectClassDefinition.getDescription();
+    }
 
     @Override
-	public boolean isDefault() {
-		return refinedObjectClassDefinition.isDefault();
-	}
+    public boolean isDefault() {
+        return refinedObjectClassDefinition.isDefault();
+    }
 
     @Override
-	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
-		return refinedObjectClassDefinition.getObjectClassDefinition();
-	}
+    public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
+        return refinedObjectClassDefinition.getObjectClassDefinition();
+    }
 
     @NotNull
-	@Override
-	public List<? extends LayerRefinedAttributeDefinition<?>> getAttributeDefinitions() {
+    @Override
+    public List<? extends LayerRefinedAttributeDefinition<?>> getAttributeDefinitions() {
         if (layerRefinedAttributeDefinitions == null) {
             layerRefinedAttributeDefinitions = LayerRefinedAttributeDefinitionImpl.wrapCollection(refinedObjectClassDefinition.getAttributeDefinitions(), layer);
         }
-		return layerRefinedAttributeDefinitions;
-	}
+        return layerRefinedAttributeDefinitions;
+    }
 
-	@Override
-	public boolean containsAttributeDefinition(ItemPathType pathType) {
-		return refinedObjectClassDefinition.containsAttributeDefinition(pathType);
-	}
+    @Override
+    public boolean containsAttributeDefinition(ItemPathType pathType) {
+        return refinedObjectClassDefinition.containsAttributeDefinition(pathType);
+    }
 
-	@Override
+    @Override
     public String getResourceOid() {
-		return refinedObjectClassDefinition.getResourceOid();
-	}
+        return refinedObjectClassDefinition.getResourceOid();
+    }
 
     @Override
-	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
-		return refinedObjectClassDefinition.getObjectDefinition();
-	}
+    public PrismObjectDefinition<ShadowType> getObjectDefinition() {
+        return refinedObjectClassDefinition.getObjectDefinition();
+    }
 
     @Override
-	public boolean containsAttributeDefinition(@NotNull QName attributeName) {
-		return refinedObjectClassDefinition.containsAttributeDefinition(attributeName);
-	}
+    public boolean containsAttributeDefinition(@NotNull QName attributeName) {
+        return refinedObjectClassDefinition.containsAttributeDefinition(attributeName);
+    }
 
     @Override
-	public boolean isEmpty() {
-		return refinedObjectClassDefinition.isEmpty();
-	}
+    public boolean isEmpty() {
+        return refinedObjectClassDefinition.isEmpty();
+    }
 
     @Override
-	public PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition) {
-		return refinedObjectClassDefinition.createBlankShadow(definition);
-	}
+    public PrismObject<ShadowType> createBlankShadow(RefinedObjectClassDefinition definition) {
+        return refinedObjectClassDefinition.createBlankShadow(definition);
+    }
 
     @Override
-	public ResourceShadowDiscriminator getShadowDiscriminator() {
-		return refinedObjectClassDefinition.getShadowDiscriminator();
-	}
+    public ResourceShadowDiscriminator getShadowDiscriminator() {
+        return refinedObjectClassDefinition.getShadowDiscriminator();
+    }
 
     @Override
-	public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
-		return refinedObjectClassDefinition.getNamesOfAttributesWithOutboundExpressions();
-	}
+    public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
+        return refinedObjectClassDefinition.getNamesOfAttributesWithOutboundExpressions();
+    }
 
     @Override
     public Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
-		return refinedObjectClassDefinition.getNamesOfAttributesWithInboundExpressions();
-	}
+        return refinedObjectClassDefinition.getNamesOfAttributesWithInboundExpressions();
+    }
 
     @Override
-	public List<MappingType> getPasswordInbound() {
-		return refinedObjectClassDefinition.getPasswordInbound();
-	}
+    public List<MappingType> getPasswordInbound() {
+        return refinedObjectClassDefinition.getPasswordInbound();
+    }
 
     @Override
-	public List<MappingType> getPasswordOutbound() {
-		return refinedObjectClassDefinition.getPasswordOutbound();
-	}
+    public List<MappingType> getPasswordOutbound() {
+        return refinedObjectClassDefinition.getPasswordOutbound();
+    }
 
     @Override
     @Deprecated
-	public ObjectReferenceType getPasswordPolicy() {
-		return refinedObjectClassDefinition.getPasswordPolicy();
-	}
+    public ObjectReferenceType getPasswordPolicy() {
+        return refinedObjectClassDefinition.getPasswordPolicy();
+    }
 
-	public ObjectReferenceType getSecurityPolicyRef() {
-		return refinedObjectClassDefinition.getSecurityPolicyRef();
-	}
-
-	@Override
-	public ResourcePasswordDefinitionType getPasswordDefinition() {
-		return refinedObjectClassDefinition.getPasswordDefinition();
-	}
-
-	@Override
-	public Class<?> getCompileTimeClass() {
-		return refinedObjectClassDefinition.getCompileTimeClass();
-	}
+    public ObjectReferenceType getSecurityPolicyRef() {
+        return refinedObjectClassDefinition.getSecurityPolicyRef();
+    }
 
     @Override
-	public QName getExtensionForType() {
-		return refinedObjectClassDefinition.getExtensionForType();
-	}
+    public ResourcePasswordDefinitionType getPasswordDefinition() {
+        return refinedObjectClassDefinition.getPasswordDefinition();
+    }
+
+    @Override
+    public Class<?> getCompileTimeClass() {
+        return refinedObjectClassDefinition.getCompileTimeClass();
+    }
+
+    @Override
+    public QName getExtensionForType() {
+        return refinedObjectClassDefinition.getExtensionForType();
+    }
 
     @Override
     public boolean isContainerMarker() {
-		return refinedObjectClassDefinition.isContainerMarker();
-	}
-
-	@Override
-	public boolean isReferenceMarker() {
-		return refinedObjectClassDefinition.isReferenceMarker();
-	}
-
-	@Override
-	public boolean isPrimaryIdentifier(QName attrName) {
-		return refinedObjectClassDefinition.isPrimaryIdentifier(attrName);
-	}
-
-	@Override
-	public boolean isObjectMarker() {
-		return refinedObjectClassDefinition.isObjectMarker();
-	}
+        return refinedObjectClassDefinition.isContainerMarker();
+    }
 
     @Override
-	public boolean isXsdAnyMarker() {
-		return refinedObjectClassDefinition.isXsdAnyMarker();
-	}
-
-	@Override
-	public boolean isListMarker() {
-		return refinedObjectClassDefinition.isListMarker();
-	}
-
-	@Override
-	public QName getSuperType() {
-		return refinedObjectClassDefinition.getSuperType();
-	}
+    public boolean isReferenceMarker() {
+        return refinedObjectClassDefinition.isReferenceMarker();
+    }
 
     @Override
-	public boolean isSecondaryIdentifier(QName attrName) {
-		return refinedObjectClassDefinition.isSecondaryIdentifier(attrName);
-	}
+    public boolean isPrimaryIdentifier(QName attrName) {
+        return refinedObjectClassDefinition.isPrimaryIdentifier(attrName);
+    }
 
     @Override
-	public boolean isRuntimeSchema() {
-		return refinedObjectClassDefinition.isRuntimeSchema();
-	}
+    public boolean isObjectMarker() {
+        return refinedObjectClassDefinition.isObjectMarker();
+    }
+
+    @Override
+    public boolean isXsdAnyMarker() {
+        return refinedObjectClassDefinition.isXsdAnyMarker();
+    }
+
+    @Override
+    public boolean isListMarker() {
+        return refinedObjectClassDefinition.isListMarker();
+    }
+
+    @Override
+    public QName getSuperType() {
+        return refinedObjectClassDefinition.getSuperType();
+    }
+
+    @Override
+    public boolean isSecondaryIdentifier(QName attrName) {
+        return refinedObjectClassDefinition.isSecondaryIdentifier(attrName);
+    }
+
+    @Override
+    public boolean isRuntimeSchema() {
+        return refinedObjectClassDefinition.isRuntimeSchema();
+    }
 
     @NotNull
-	@Override
-	public Collection<RefinedAssociationDefinition> getAssociationDefinitions() {
-		return refinedObjectClassDefinition.getAssociationDefinitions();
-	}
+    @Override
+    public Collection<RefinedAssociationDefinition> getAssociationDefinitions() {
+        return refinedObjectClassDefinition.getAssociationDefinitions();
+    }
 
     @Override
-	public Collection<RefinedAssociationDefinition> getAssociationDefinitions(ShadowKindType kind) {
-		return refinedObjectClassDefinition.getAssociationDefinitions(kind);
-	}
+    public Collection<RefinedAssociationDefinition> getAssociationDefinitions(ShadowKindType kind) {
+        return refinedObjectClassDefinition.getAssociationDefinitions(kind);
+    }
 
-	@Override
-	public Collection<QName> getNamesOfAssociations() {
-		return refinedObjectClassDefinition.getNamesOfAssociations();
-	}
+    @Override
+    public Collection<QName> getNamesOfAssociations() {
+        return refinedObjectClassDefinition.getNamesOfAssociations();
+    }
 
     @Override
     public ResourceActivationDefinitionType getActivationSchemaHandling() {
-		return refinedObjectClassDefinition.getActivationSchemaHandling();
-	}
+        return refinedObjectClassDefinition.getActivationSchemaHandling();
+    }
 
     @Override
-	public ResourceBidirectionalMappingType getActivationBidirectionalMappingType(QName propertyName) {
-		return refinedObjectClassDefinition.getActivationBidirectionalMappingType(propertyName);
-	}
+    public ResourceBidirectionalMappingType getActivationBidirectionalMappingType(QName propertyName) {
+        return refinedObjectClassDefinition.getActivationBidirectionalMappingType(propertyName);
+    }
 
     @Override
-	public AttributeFetchStrategyType getActivationFetchStrategy(QName propertyName) {
-		return refinedObjectClassDefinition.getActivationFetchStrategy(propertyName);
-	}
-
-	@Override
-	public CapabilitiesType getCapabilities() {
-		return refinedObjectClassDefinition.getCapabilities();
-	}
-
-	@Override
-	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
-		return refinedObjectClassDefinition.getEffectiveCapability(capabilityClass, resourceType);
-	}
-
-	@Override
-	public PagedSearchCapabilityType getPagedSearches(ResourceType resourceType) {
-		return refinedObjectClassDefinition.getPagedSearches(resourceType);
-	}
-
-	@Override
-	public boolean isPagedSearchEnabled(ResourceType resourceType) {
-		return refinedObjectClassDefinition.isPagedSearchEnabled(resourceType);
-	}
-
-	@Override
-	public boolean isObjectCountingEnabled(ResourceType resourceType) {
-		return refinedObjectClassDefinition.isObjectCountingEnabled(resourceType);
-	}
+    public AttributeFetchStrategyType getActivationFetchStrategy(QName propertyName) {
+        return refinedObjectClassDefinition.getActivationFetchStrategy(propertyName);
+    }
 
     @Override
-	public boolean isAbstract() {
-		return refinedObjectClassDefinition.isAbstract();
-	}
+    public CapabilitiesType getCapabilities() {
+        return refinedObjectClassDefinition.getCapabilities();
+    }
 
     @Override
-	public boolean isDeprecated() {
-		return refinedObjectClassDefinition.isDeprecated();
-	}
-    
+    public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
+        return refinedObjectClassDefinition.getEffectiveCapability(capabilityClass, resourceType);
+    }
+
+    @Override
+    public PagedSearchCapabilityType getPagedSearches(ResourceType resourceType) {
+        return refinedObjectClassDefinition.getPagedSearches(resourceType);
+    }
+
+    @Override
+    public boolean isPagedSearchEnabled(ResourceType resourceType) {
+        return refinedObjectClassDefinition.isPagedSearchEnabled(resourceType);
+    }
+
+    @Override
+    public boolean isObjectCountingEnabled(ResourceType resourceType) {
+        return refinedObjectClassDefinition.isObjectCountingEnabled(resourceType);
+    }
+
+    @Override
+    public boolean isAbstract() {
+        return refinedObjectClassDefinition.isAbstract();
+    }
+
+    @Override
+    public boolean isDeprecated() {
+        return refinedObjectClassDefinition.isDeprecated();
+    }
+
     @Override
     public String getDeprecatedSince() {
-    	return refinedObjectClassDefinition.getDeprecatedSince();
+        return refinedObjectClassDefinition.getDeprecatedSince();
     }
-    
-    @Override
-	public boolean isExperimental() {
-		return refinedObjectClassDefinition.isExperimental();
-	}
-    
-    @Override
-	public String getPlannedRemoval() {
-		return refinedObjectClassDefinition.getPlannedRemoval();
-	}
-    
-    @Override
-	public boolean isElaborate() {
-		return refinedObjectClassDefinition.isElaborate();
-	}
 
     @Override
-	public String getDocumentation() {
-		return refinedObjectClassDefinition.getDocumentation();
-	}
+    public boolean isExperimental() {
+        return refinedObjectClassDefinition.isExperimental();
+    }
 
     @Override
-	public String getDocumentationPreview() {
-		return refinedObjectClassDefinition.getDocumentationPreview();
-	}
+    public String getPlannedRemoval() {
+        return refinedObjectClassDefinition.getPlannedRemoval();
+    }
 
     @Override
-	public RefinedAssociationDefinition findAssociationDefinition(QName name) {
-		return refinedObjectClassDefinition.findAssociationDefinition(name);
-	}
-
-	@Override
-	public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
-			boolean caseInsensitive) {
-		if (layerRefinedAttributeDefinitions != null) {
-			for (LayerRefinedAttributeDefinition attrDef : layerRefinedAttributeDefinitions) {
-				if (attrDef.isValidFor(name, clazz, caseInsensitive)) {
-					//noinspection unchecked
-					return (ID) attrDef;
-				}
-			}
-		}
-		
-		ID def = refinedObjectClassDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
-		//noinspection unchecked
-		return (ID) LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition) def, layer);
-	}
+    public boolean isElaborate() {
+        return refinedObjectClassDefinition.isElaborate();
+    }
 
     @Override
-	public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
-		return refinedObjectClassDefinition.getNamesOfAssociationsWithOutboundExpressions();
-	}
-    
-    @Override
-	public Collection<? extends QName> getNamesOfAssociationsWithInboundExpressions() {
-    	return refinedObjectClassDefinition.getNamesOfAssociationsWithOutboundExpressions();
-	}
+    public String getDocumentation() {
+        return refinedObjectClassDefinition.getDocumentation();
+    }
 
     @Override
-	public boolean matches(ShadowType shadowType) {
-		return refinedObjectClassDefinition.matches(shadowType);
-	}
-    
+    public String getDocumentationPreview() {
+        return refinedObjectClassDefinition.getDocumentationPreview();
+    }
+
     @Override
-	public boolean matchesWithoutIntent(ShadowType shadowType) {
-		return refinedObjectClassDefinition.matchesWithoutIntent(shadowType);
-	}
+    public RefinedAssociationDefinition findAssociationDefinition(QName name) {
+        return refinedObjectClassDefinition.findAssociationDefinition(name);
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + ((layer == null) ? 0 : layer.hashCode());
-		result = prime * result + ((refinedObjectClassDefinition == null) ? 0 : refinedObjectClassDefinition.hashCode());
-		return result;
-	}
+    @Override
+    public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
+            boolean caseInsensitive) {
+        if (layerRefinedAttributeDefinitions != null) {
+            for (LayerRefinedAttributeDefinition attrDef : layerRefinedAttributeDefinitions) {
+                if (attrDef.isValidFor(name, clazz, caseInsensitive)) {
+                    //noinspection unchecked
+                    return (ID) attrDef;
+                }
+            }
+        }
 
-	@SuppressWarnings("RedundantIfStatement")
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-//		if (!super.equals(obj))
-//			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		LayerRefinedObjectClassDefinitionImpl other = (LayerRefinedObjectClassDefinitionImpl) obj;
-		if (layer != other.layer)
-			return false;
-		if (refinedObjectClassDefinition == null) {
-			if (other.refinedObjectClassDefinition != null)
-				return false;
-		} else if (!refinedObjectClassDefinition.equals(other.refinedObjectClassDefinition))
-			return false;
-		return true;
-	}
+        ID def = refinedObjectClassDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
+        //noinspection unchecked
+        return (ID) LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition) def, layer);
+    }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
+        return refinedObjectClassDefinition.getNamesOfAssociationsWithOutboundExpressions();
+    }
 
-	@Override
-	public String getDefaultNamespace() {
-		return refinedObjectClassDefinition.getDefaultNamespace();
-	}
+    @Override
+    public Collection<? extends QName> getNamesOfAssociationsWithInboundExpressions() {
+        return refinedObjectClassDefinition.getNamesOfAssociationsWithOutboundExpressions();
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		return RefinedObjectClassDefinitionImpl.debugDump(indent, layer, this);
-	}
+    @Override
+    public boolean matches(ShadowType shadowType) {
+        return refinedObjectClassDefinition.matches(shadowType);
+    }
+
+    @Override
+    public boolean matchesWithoutIntent(ShadowType shadowType) {
+        return refinedObjectClassDefinition.matchesWithoutIntent(shadowType);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((layer == null) ? 0 : layer.hashCode());
+        result = prime * result + ((refinedObjectClassDefinition == null) ? 0 : refinedObjectClassDefinition.hashCode());
+        return result;
+    }
+
+    @SuppressWarnings("RedundantIfStatement")
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+//        if (!super.equals(obj))
+//            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        LayerRefinedObjectClassDefinitionImpl other = (LayerRefinedObjectClassDefinitionImpl) obj;
+        if (layer != other.layer)
+            return false;
+        if (refinedObjectClassDefinition == null) {
+            if (other.refinedObjectClassDefinition != null)
+                return false;
+        } else if (!refinedObjectClassDefinition.equals(other.refinedObjectClassDefinition))
+            return false;
+        return true;
+    }
+
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String getDefaultNamespace() {
+        return refinedObjectClassDefinition.getDefaultNamespace();
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        return RefinedObjectClassDefinitionImpl.debugDump(indent, layer, this);
+    }
 
     // Do NOT override&delegate debugDump(int indent, LayerType layer) here.
     // We want to use code in the context of this class so things like
     // getDebugDumpClassName() will be correct.
 
-	/**
+    /**
      * Return a human readable name of this class suitable for logs.
      */
     public String getDebugDumpClassName() {
@@ -609,134 +609,134 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
     }
 
     @Override
-	public String getHumanReadableName() {
-		return refinedObjectClassDefinition.getHumanReadableName();
-	}
-    
-    @Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-		refinedObjectClassDefinition.accept(visitor);
-	}
+    public String getHumanReadableName() {
+        return refinedObjectClassDefinition.getHumanReadableName();
+    }
 
-	@NotNull
-	@Override
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+        refinedObjectClassDefinition.accept(visitor);
+    }
+
+    @NotNull
+    @Override
     public LayerRefinedObjectClassDefinition clone() {
         return wrap(refinedObjectClassDefinition.clone(), this.layer);
     }
 
-	@NotNull
-	@Override
-	public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
-		return new LayerRefinedObjectClassDefinitionImpl(refinedObjectClassDefinition.deepClone(ctdMap, onThisPath, postCloneAction), layer);
-	}
+    @NotNull
+    @Override
+    public RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+        return new LayerRefinedObjectClassDefinitionImpl(refinedObjectClassDefinition.deepClone(ctdMap, onThisPath, postCloneAction), layer);
+    }
 
     @Override
     public ResourceObjectReferenceType getBaseContext() {
-		return refinedObjectClassDefinition.getBaseContext();
-	}
-    
-	@Override
-	public SearchHierarchyScope getSearchHierarchyScope() {
-		return refinedObjectClassDefinition.getSearchHierarchyScope();
-	}
-
-	@Override
-	public ResourceObjectVolatilityType getVolatility() {
-		return refinedObjectClassDefinition.getVolatility();
-	}
-	
-	@Override
-	public ResourceObjectMultiplicityType getMultiplicity() {
-		return refinedObjectClassDefinition.getMultiplicity();
-	}
-	
-	@Override
-	public ProjectionPolicyType getProjection() {
-		return refinedObjectClassDefinition.getProjection();
-	}
-
-	@Override
-	public Class getTypeClassIfKnown() {
-		return refinedObjectClassDefinition.getTypeClassIfKnown();
-	}
-
-	@NotNull
-	@Override
-	public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
-		return refinedObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
-	}
-
-	@Override
-	public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
-		return refinedObjectClassDefinition.hasAuxiliaryObjectClass(expectedObjectClassName);
-	}
-
-	@Override
-	public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
-		return refinedObjectClassDefinition.getAuxiliaryObjectClassMappings();
-	}
-
-	@Override
-    public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
-    	return refinedObjectClassDefinition.createShadowSearchQuery(resourceOid);
+        return refinedObjectClassDefinition.getBaseContext();
     }
 
-	@Override
-	public void revive(PrismContext prismContext) {
-		refinedObjectClassDefinition.revive(prismContext);
-	}
+    @Override
+    public SearchHierarchyScope getSearchHierarchyScope() {
+        return refinedObjectClassDefinition.getSearchHierarchyScope();
+    }
 
-	@Override
-	public String toString() {
-		return "LROCDef("+layer+": "
-				+ refinedObjectClassDefinition + ")";
-	}
+    @Override
+    public ResourceObjectVolatilityType getVolatility() {
+        return refinedObjectClassDefinition.getVolatility();
+    }
 
-	@Override
-	public void trimTo(@NotNull Collection<ItemPath> paths) {
-		if (refinedObjectClassDefinition != null) {
-			refinedObjectClassDefinition.trimTo(paths);
-		}
-	}
+    @Override
+    public ResourceObjectMultiplicityType getMultiplicity() {
+        return refinedObjectClassDefinition.getMultiplicity();
+    }
 
-	@Override
-	public MutableObjectClassComplexTypeDefinition toMutable() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public ProjectionPolicyType getProjection() {
+        return refinedObjectClassDefinition.getProjection();
+    }
 
-	@Override
-	public boolean isShared() {
-		if (refinedObjectClassDefinition != null) {
-			return refinedObjectClassDefinition.isShared();
-		} else {
-			return true;		// ok?
-		}
-	}
+    @Override
+    public Class getTypeClassIfKnown() {
+        return refinedObjectClassDefinition.getTypeClassIfKnown();
+    }
 
-	@NotNull
-	@Override
-	public Collection<TypeDefinition> getStaticSubTypes() {
-		return emptySet();          // not supported for now (this type itself is not statically defined)
-	}
-	
-	@Override
-	public <A> A getAnnotation(QName qname) {
-		return refinedObjectClassDefinition.getAnnotation(qname);
-	}
+    @NotNull
+    @Override
+    public Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
+        return refinedObjectClassDefinition.getAuxiliaryObjectClassDefinitions();
+    }
 
-	@Override
-	public <A> void setAnnotation(QName qname, A value) {
-		refinedObjectClassDefinition.setAnnotation(qname, value);
-	}
+    @Override
+    public boolean hasAuxiliaryObjectClass(QName expectedObjectClassName) {
+        return refinedObjectClassDefinition.hasAuxiliaryObjectClass(expectedObjectClassName);
+    }
 
-	@Override
-	public Integer getInstantiationOrder() {
-		return null;
-	}
+    @Override
+    public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
+        return refinedObjectClassDefinition.getAuxiliaryObjectClassMappings();
+    }
 
-	@Override
-	public boolean canRepresent(QName typeName) {
-		return refinedObjectClassDefinition.canRepresent(typeName);
-	}
+    @Override
+    public ObjectQuery createShadowSearchQuery(String resourceOid) throws SchemaException {
+        return refinedObjectClassDefinition.createShadowSearchQuery(resourceOid);
+    }
+
+    @Override
+    public void revive(PrismContext prismContext) {
+        refinedObjectClassDefinition.revive(prismContext);
+    }
+
+    @Override
+    public String toString() {
+        return "LROCDef("+layer+": "
+                + refinedObjectClassDefinition + ")";
+    }
+
+    @Override
+    public void trimTo(@NotNull Collection<ItemPath> paths) {
+        if (refinedObjectClassDefinition != null) {
+            refinedObjectClassDefinition.trimTo(paths);
+        }
+    }
+
+    @Override
+    public MutableObjectClassComplexTypeDefinition toMutable() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isShared() {
+        if (refinedObjectClassDefinition != null) {
+            return refinedObjectClassDefinition.isShared();
+        } else {
+            return true;        // ok?
+        }
+    }
+
+    @NotNull
+    @Override
+    public Collection<TypeDefinition> getStaticSubTypes() {
+        return emptySet();          // not supported for now (this type itself is not statically defined)
+    }
+
+    @Override
+    public <A> A getAnnotation(QName qname) {
+        return refinedObjectClassDefinition.getAnnotation(qname);
+    }
+
+    @Override
+    public <A> void setAnnotation(QName qname, A value) {
+        refinedObjectClassDefinition.setAnnotation(qname, value);
+    }
+
+    @Override
+    public Integer getInstantiationOrder() {
+        return null;
+    }
+
+    @Override
+    public boolean canRepresent(QName typeName) {
+        return refinedObjectClassDefinition.canRepresent(typeName);
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -43,166 +43,166 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 @Component
 public class HeterogenousContainerWrapperFactory<C extends Containerable> implements PrismContainerWrapperFactory<C> {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(HeterogenousContainerWrapperFactory.class); 
-	
-	@Autowired private GuiComponentRegistry registry; 
-	
-	@Override
-	public PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent,
-			ItemDefinition<?> def, WrapperContext context) throws SchemaException {
-		ItemName name = def.getItemName();
-		
-		PrismContainer<C> childItem = parent.getNewValue().findContainer(name);
-		ItemStatus status = ItemStatus.NOT_CHANGED;
-		if (childItem == null) {
-			childItem = (PrismContainer<C>) def.instantiate();
-			status = ItemStatus.ADDED;
-		}
-		
-		PrismContainerWrapper<C> itemWrapper = new PrismContainerWrapperImpl<C>(parent, childItem, status);
-		registry.registerWrapperPanel(childItem.getDefinition().getTypeName(), PrismContainerPanel.class);
-		
-		List<PrismContainerValueWrapper<C>> valueWrappers  = createValuesWrapper(itemWrapper, childItem, context);
-		LOGGER.trace("valueWrappers {}", itemWrapper.getValues());
-		itemWrapper.getValues().addAll((Collection) valueWrappers);
-		
-		return itemWrapper;
-	}
+    private static final transient Trace LOGGER = TraceManager.getTrace(HeterogenousContainerWrapperFactory.class);
 
-	@Override
-	public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent,
-			PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
-			throws SchemaException {
-		PrismContainerValueWrapper<C> containerValueWrapper = new PrismContainerValueWrapperImpl<C>(parent, value, status);
-		containerValueWrapper.setShowEmpty(context.isShowEmpty());
-		containerValueWrapper.setExpanded(shouldBeExpanded(parent, value, context));
-		containerValueWrapper.setHeterogenous(true);
-		
-		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
-		
-		for (ItemDefinition<?> def : value.getDefinition().getDefinitions()) {
-			
-			Item<?,?> childItem = value.findItem(def.getItemName());
-			
-			if (childItem == null && def instanceof PrismContainerDefinition) {
-				LOGGER.trace("Skipping craeting wrapper for {}, only property and refernce wrappers are created for heterogenous containers.");
-				continue;
-			}
-			
-			ItemWrapperFactory<?,?,?> factory = registry.findWrapperFactory(def);
-			
-			ItemWrapper<?, ?, ?, ?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
-			if (wrapper != null) {
-				wrappers.add(wrapper);
-			}
-		}
-		
-		containerValueWrapper.getItems().addAll((Collection) wrappers);
-		return containerValueWrapper;
-	}
+    @Autowired private GuiComponentRegistry registry;
 
-	protected boolean shouldBeExpanded(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, WrapperContext context) {
-		if (value.isEmpty()) {
-			return context.isShowEmpty() || containsEmphasizedItems(parent.getDefinitions());
-		}
+    @Override
+    public PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent,
+            ItemDefinition<?> def, WrapperContext context) throws SchemaException {
+        ItemName name = def.getItemName();
 
-		return true;
-	}
+        PrismContainer<C> childItem = parent.getNewValue().findContainer(name);
+        ItemStatus status = ItemStatus.NOT_CHANGED;
+        if (childItem == null) {
+            childItem = (PrismContainer<C>) def.instantiate();
+            status = ItemStatus.ADDED;
+        }
 
-	private boolean containsEmphasizedItems(List<? extends ItemDefinition> definitions) {
-		for (ItemDefinition def : definitions) {
-			if (def.isEmphasized()) {
-				return true;
-			}
-		}
+        PrismContainerWrapper<C> itemWrapper = new PrismContainerWrapperImpl<C>(parent, childItem, status);
+        registry.registerWrapperPanel(childItem.getDefinition().getTypeName(), PrismContainerPanel.class);
 
-		return false;
-	}
-	
-	protected List<PrismContainerValueWrapper<C>> createValuesWrapper(PrismContainerWrapper<C> itemWrapper, PrismContainer<C> item, WrapperContext context) throws SchemaException {
-		List<PrismContainerValueWrapper<C>> pvWrappers = new ArrayList<>();
-		
-//		PrismContainerDefinition<C> definition = item.getDefinition();
-		
-		if (item.getValues() == null || item.getValues().isEmpty()) {
-			PrismContainerValueWrapper<C> valueWrapper = createValueWrapper(itemWrapper, item.createNewValue(), ValueStatus.ADDED, context);
-			pvWrappers.add(valueWrapper);
-			return pvWrappers;
-		}
-		
-		for (PrismContainerValue<C> pcv : item.getValues()) {
-			PrismContainerValueWrapper<C> valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
-			pvWrappers.add(valueWrapper);
-		}
-		
-		return pvWrappers;
-	
-	}
+        List<PrismContainerValueWrapper<C>> valueWrappers  = createValuesWrapper(itemWrapper, childItem, context);
+        LOGGER.trace("valueWrappers {}", itemWrapper.getValues());
+        itemWrapper.getValues().addAll((Collection) valueWrappers);
 
-	/**
-	 * 
-	 * match single value containers which contains a looot of other conainers, e.g. policy rule, policy action, notification configuration, etc
-	 */
-	@Override
-	public boolean match(ItemDefinition<?> def) {
-		QName defName = def.getTypeName();
-		
-		if (!(def instanceof PrismContainerDefinition)) {
-			return false;
-		}
-		
-		PrismContainerDefinition<?> containerDef = (PrismContainerDefinition<?>) def;
-		
-		if (containerDef.isMultiValue()) {
-			return false;
-		}
-		
-		List<? extends ItemDefinition> defs = containerDef.getDefinitions();
-		int containers = 0;
-		for (ItemDefinition<?> itemDef : defs) {
-			if (itemDef instanceof PrismContainerDefinition<?> && itemDef.isMultiValue()) {			
-				containers++;
-			}
-		}
-		
-		if (containers > 2) {
-			return true;
-		}
-		
-		return false;
-		
-//		if (def.isSingleValue() && )
-//		return PolicyConstraintPresentationType.COMPLEX_TYPE.equals(defName) 
-//				|| StatePolicyConstraintType.COMPLEX_TYPE.equals(defName)
-//				|| HasAssignmentPolicyConstraintType.COMPLEX_TYPE.equals(defName)
-//				|| ExclusionPolicyConstraintType.COMPLEX_TYPE.equals(defName)
-//				|| PolicyConstraintsType.COMPLEX_TYPE.equals(defName);
-	}
+        return itemWrapper;
+    }
 
-	@Override
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
+    @Override
+    public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent,
+            PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
+            throws SchemaException {
+        PrismContainerValueWrapper<C> containerValueWrapper = new PrismContainerValueWrapperImpl<C>(parent, value, status);
+        containerValueWrapper.setShowEmpty(context.isShowEmpty());
+        containerValueWrapper.setExpanded(shouldBeExpanded(parent, value, context));
+        containerValueWrapper.setHeterogenous(true);
 
-	@Override
-	public int getOrder() {
-		return 110;
-	}
+        List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
 
-	@Override
-	public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper,
-			PrismContainerValue<C> objectValue, ValueStatus status, WrapperContext context) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+        for (ItemDefinition<?> def : value.getDefinition().getDefinitions()) {
 
-	@Override
-	public PrismContainerWrapper<C> createWrapper(Item childContainer, ItemStatus status, WrapperContext context)
-			throws SchemaException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
+            Item<?,?> childItem = value.findItem(def.getItemName());
+
+            if (childItem == null && def instanceof PrismContainerDefinition) {
+                LOGGER.trace("Skipping craeting wrapper for {}, only property and refernce wrappers are created for heterogenous containers.");
+                continue;
+            }
+
+            ItemWrapperFactory<?,?,?> factory = registry.findWrapperFactory(def);
+
+            ItemWrapper<?, ?, ?, ?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
+            if (wrapper != null) {
+                wrappers.add(wrapper);
+            }
+        }
+
+        containerValueWrapper.getItems().addAll((Collection) wrappers);
+        return containerValueWrapper;
+    }
+
+    protected boolean shouldBeExpanded(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, WrapperContext context) {
+        if (value.isEmpty()) {
+            return context.isShowEmpty() || containsEmphasizedItems(parent.getDefinitions());
+        }
+
+        return true;
+    }
+
+    private boolean containsEmphasizedItems(List<? extends ItemDefinition> definitions) {
+        for (ItemDefinition def : definitions) {
+            if (def.isEmphasized()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected List<PrismContainerValueWrapper<C>> createValuesWrapper(PrismContainerWrapper<C> itemWrapper, PrismContainer<C> item, WrapperContext context) throws SchemaException {
+        List<PrismContainerValueWrapper<C>> pvWrappers = new ArrayList<>();
+
+//        PrismContainerDefinition<C> definition = item.getDefinition();
+
+        if (item.getValues() == null || item.getValues().isEmpty()) {
+            PrismContainerValueWrapper<C> valueWrapper = createValueWrapper(itemWrapper, item.createNewValue(), ValueStatus.ADDED, context);
+            pvWrappers.add(valueWrapper);
+            return pvWrappers;
+        }
+
+        for (PrismContainerValue<C> pcv : item.getValues()) {
+            PrismContainerValueWrapper<C> valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
+            pvWrappers.add(valueWrapper);
+        }
+
+        return pvWrappers;
+
+    }
+
+    /**
+     *
+     * match single value containers which contains a looot of other conainers, e.g. policy rule, policy action, notification configuration, etc
+     */
+    @Override
+    public boolean match(ItemDefinition<?> def) {
+        QName defName = def.getTypeName();
+
+        if (!(def instanceof PrismContainerDefinition)) {
+            return false;
+        }
+
+        PrismContainerDefinition<?> containerDef = (PrismContainerDefinition<?>) def;
+
+        if (containerDef.isMultiValue()) {
+            return false;
+        }
+
+        List<? extends ItemDefinition> defs = containerDef.getDefinitions();
+        int containers = 0;
+        for (ItemDefinition<?> itemDef : defs) {
+            if (itemDef instanceof PrismContainerDefinition<?> && itemDef.isMultiValue()) {
+                containers++;
+            }
+        }
+
+        if (containers > 2) {
+            return true;
+        }
+
+        return false;
+
+//        if (def.isSingleValue() && )
+//        return PolicyConstraintPresentationType.COMPLEX_TYPE.equals(defName)
+//                || StatePolicyConstraintType.COMPLEX_TYPE.equals(defName)
+//                || HasAssignmentPolicyConstraintType.COMPLEX_TYPE.equals(defName)
+//                || ExclusionPolicyConstraintType.COMPLEX_TYPE.equals(defName)
+//                || PolicyConstraintsType.COMPLEX_TYPE.equals(defName);
+    }
+
+    @Override
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
+
+    @Override
+    public int getOrder() {
+        return 110;
+    }
+
+    @Override
+    public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper,
+            PrismContainerValue<C> objectValue, ValueStatus status, WrapperContext context) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public PrismContainerWrapper<C> createWrapper(Item childContainer, ItemStatus status, WrapperContext context)
+            throws SchemaException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 
 }

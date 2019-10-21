@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -92,7 +92,7 @@ public interface AccessCertificationService {
      *
      * @param campaignOid
      * @param task
-     * @param result 
+     * @param result
      */
     void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
@@ -101,7 +101,7 @@ public interface AccessCertificationService {
      *
      * @param campaignOid
      * @param task
-     * @param result 
+     * @param result
      */
     void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
@@ -129,7 +129,7 @@ public interface AccessCertificationService {
      * @param options Options to use (e.g. RESOLVE_NAMES).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
-     * @return A list of relevant certification cases. 
+     * @return A list of relevant certification cases.
      *
      */
     List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
@@ -149,7 +149,7 @@ public interface AccessCertificationService {
      * @param response The response.
      * @param comment Reviewer's comment.
      * @param task Task in context of which all operations will take place.
-     * @param parentResult Result for the operations. 
+     * @param parentResult Result for the operations.
      */
     void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment,
                         Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
@@ -167,5 +167,5 @@ public interface AccessCertificationService {
     AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
-	void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result);
+    void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result);
 }

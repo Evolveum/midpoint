@@ -6,49 +6,49 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" 
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
-      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" 
+      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" 
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" 
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       oid="bcaec940-50c8-44bb-aa37-b2b5bb2d5b90">
     <name>metarole-grouper-provided-group</name>
     <description>A metarole for archetyped Grouper-provided groups</description>
-    <!-- 
+    <!--
         This metarole arranges everything that is needed for a Grouper group to live in midPoint.
         The schema is the following:
-        
+
         Grouper group -> shadow -> org -> archetype -> this metarole
-        
+
         e.g.
-        
-        ref:affiliation:member -> shadow -> affiliation_member -> affiliation (archetype) -> metarole-grouper-provided-group 
-            
+
+        ref:affiliation:member -> shadow -> affiliation_member -> affiliation (archetype) -> metarole-grouper-provided-group
+
         1) Grouper group (e.g. ref:affiliation:member) has a shadow object.
-        
+
         2) An org object (affiliation_member) is created and linked to this shadow.
-        
-        3) At the same time, appropriate archetype is assigned to the org, based on the Grouper name 
+
+        3) At the same time, appropriate archetype is assigned to the org, based on the Grouper name
         (e.g. ref:affiliation:* leads to archetype affiliation).
-        
+
         4) This archetype defines basic parameters for the particular class of Grouper groups; e.g. where in midPoint
-        org tree they belong (e.g. under Affiliations org), where in LDAP tree they belong (e.g. under 
+        org tree they belong (e.g. under Affiliations org), where in LDAP tree they belong (e.g. under
         ou=Affiliations,ou=Groups,dc=internet2,dc=edu), what's the schema for their midPoint name
         (e.g. affiliation_...) and displayName (e.g. Affiliation: ...).
-        
+
         5) To avoid code duplication, these archetypes delegate specific processing
         (i.e. filling-in appropriate properties of org objects) to metaroles:
         to this one as well as to metarole-ldap-group.
-        
+
         This metarole is devoted to process Grouper-specific information for Grouper groups.
         As a source it needs only two pieces of information: extension/grouperName (e.g. ref:affiliation:member)
         and particular archetype (e.g. affiliation) with its configuration data.
-        
+
         It fills-in the following items: extension/grouperName -> identifier -> name and displayName
-        by inducing appropriate focus mappings to the org object.    
+        by inducing appropriate focus mappings to the org object.
          -->
     <inducement>
         <focusMappings>
@@ -77,7 +77,7 @@
                                 }
                                 // grouperName is e.g. 'ref:affiliation:member'
                                 if (grouperName.startsWith(grouperNamePrefix)) {
-                                    grouperName.substring(grouperNamePrefix.length())       // returning e.g. 'member'                                
+                                    grouperName.substring(grouperNamePrefix.length())       // returning e.g. 'member'
                                 } else {
                                     throw new IllegalStateException('Grouper name ' + grouperName + ' does not match the expected prefix: ' + grouperNamePrefix)
                                 }
@@ -119,7 +119,7 @@
                     <path>name</path>
                 </target>
             </mapping>
-            
+
             <mapping>
                 <name>displayName</name>
                 <description>This mapping fills-in org displayName (e.g. 'Affiliation: member') from identifier (e.g. 'member').
@@ -181,10 +181,10 @@
                 </target>
             </mapping>
         </focusMappings>
-        
-        <!-- 
+
+        <!--
             Inducement order of 2 means these mappings are to be applied on org object, because the assignment structure is like this:
-            
+
                 org -> archetype -> this-metarole
          -->
         <order>2</order>

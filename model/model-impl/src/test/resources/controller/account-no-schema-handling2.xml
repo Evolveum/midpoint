@@ -2,68 +2,68 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <c:object oid="007" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' 
-	xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
-	xmlns:mi6="http://mi6.gov.uk/schema/" xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd"
-	xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
-	xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.x"
-	xmlns:opendse="http://midpoint.evolveum.com/schema/resources/instances/ldap/embeddedJUnitOpenDS" xmlns:opendsl="http://midpoint.evolveum.com/schema/resources/instances/ldap/localhostOpenDS"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="c:AccountShadowType"
-	xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
+    xmlns:mi6="http://mi6.gov.uk/schema/" xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd"
+    xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
+    xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.x"
+    xmlns:opendse="http://midpoint.evolveum.com/schema/resources/instances/ldap/embeddedJUnitOpenDS" xmlns:opendsl="http://midpoint.evolveum.com/schema/resources/instances/ldap/localhostOpenDS"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="c:AccountShadowType"
+    xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../ns/public/common/common-3.xsd
-   
+
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd ../ns/public/resource/idconnector/resource-schema-3.xsd
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd'>
-	<c:name>bond new</c:name>
-	<resource oid="333">
-		<c:name>ds1</c:name>
-		<type>http://midpoint.evolveum.com/xml/ns/resource/ldap/1#LdapResource</type>
-		<namespace>http://mi6.gov.uk/schema/</namespace>
-		<schema>
-			<xsd:schema targetNamespace="http://mi6.gov.uk/schema/">
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/resource/ldap/1#" />
+    <c:name>bond new</c:name>
+    <resource oid="333">
+        <c:name>ds1</c:name>
+        <type>http://midpoint.evolveum.com/xml/ns/resource/ldap/1#LdapResource</type>
+        <namespace>http://mi6.gov.uk/schema/</namespace>
+        <schema>
+            <xsd:schema targetNamespace="http://mi6.gov.uk/schema/">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/resource/ldap/1#" />
 
-				<xsd:complexType name="Mi6PersonObjectClass">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<r:identifier ref="ldap:dn" />
-							<r:displayName ref="ldap:uid" />
-							<r:nativeObjectClass>mi6Person</r:nativeObjectClass>
-						</xsd:appinfo>
-					</xsd:annotation>
-					<xsd:complexContent>
-						<xsd:extension base="ldap:InetOrgPersonObjectClass">
-							<xsd:sequence>
-								<xsd:element name="mi6Licence" type="xsd:string">
-									<xsd:annotation>
-										<xsd:appinfo>
-											<c:name>Agent's Licence</c:name>
-											<c:access>read</c:access>
-										</xsd:appinfo>
-									</xsd:annotation>
-								</xsd:element>
-							</xsd:sequence>
-						</xsd:extension>
-					</xsd:complexContent>
-				</xsd:complexType>
-			</xsd:schema>			
-		</schema>
-	</resource>
-	<objectClass>mi6:Mi6PersonObjectClass</objectClass>
-	<attributes>
-		<ldap:dn>uid=bond,o=mi6</ldap:dn>
-		<ldap:uid>bond</ldap:uid>
-		<ldap:cn>James Bond</ldap:cn>
-		<ldap:o>mi6</ldap:o>
-		<mi6:mi6Licence>to kill</mi6:mi6Licence>
-	</attributes>
-	<c:credentials>
-		<c:password>
-			<c:base64>asdf</c:base64>
-		</c:password>
-	</c:credentials>
+                <xsd:complexType name="Mi6PersonObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <r:identifier ref="ldap:dn" />
+                            <r:displayName ref="ldap:uid" />
+                            <r:nativeObjectClass>mi6Person</r:nativeObjectClass>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:complexContent>
+                        <xsd:extension base="ldap:InetOrgPersonObjectClass">
+                            <xsd:sequence>
+                                <xsd:element name="mi6Licence" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <c:name>Agent's Licence</c:name>
+                                            <c:access>read</c:access>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                            </xsd:sequence>
+                        </xsd:extension>
+                    </xsd:complexContent>
+                </xsd:complexType>
+            </xsd:schema>
+        </schema>
+    </resource>
+    <objectClass>mi6:Mi6PersonObjectClass</objectClass>
+    <attributes>
+        <ldap:dn>uid=bond,o=mi6</ldap:dn>
+        <ldap:uid>bond</ldap:uid>
+        <ldap:cn>James Bond</ldap:cn>
+        <ldap:o>mi6</ldap:o>
+        <mi6:mi6Licence>to kill</mi6:mi6Licence>
+    </attributes>
+    <c:credentials>
+        <c:password>
+            <c:base64>asdf</c:base64>
+        </c:password>
+    </c:credentials>
 </c:object>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.misc;
@@ -54,42 +54,42 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMisc extends AbstractInitializedModelIntegrationTest {
-	
-	public static final File TEST_DIR = new File("src/test/resources/misc");
-	
-	protected static final File ROLE_IMPORT_FILTERS_FILE = new File(TEST_DIR, "role-import-filters.xml");
-	protected static final String ROLE_IMPORT_FILTERS_OID = "aad19b9a-d511-11e7-8bf7-cfecde275e59";
-	
-	protected static final File ROLE_SHIP_FILE = new File(TEST_DIR, "role-ship.xml");
-	protected static final String ROLE_SHIP_OID = "bbd19b9a-d511-11e7-8bf7-cfecde275e59";
-	
-	protected static final File RESOURCE_SCRIPTY_FILE = new File(TEST_DIR, "resource-dummy-scripty.xml");
-	protected static final String RESOURCE_SCRIPTY_OID = "399f5308-0447-11e8-91e9-a7f9c4100ffb";
-	protected static final String RESOURCE_DUMMY_SCRIPTY_NAME = "scripty";
 
-	public static final byte[] KEY = { 0x01, 0x02, 0x03, 0x04, 0x05 };
+    public static final File TEST_DIR = new File("src/test/resources/misc");
 
-	private static final String USER_CLEAN_NAME = "clean";
-	private static final String USER_CLEAN_GIVEN_NAME = "John";
-	private static final String USER_CLEAN_FAMILY_NAME = "Clean";
+    protected static final File ROLE_IMPORT_FILTERS_FILE = new File(TEST_DIR, "role-import-filters.xml");
+    protected static final String ROLE_IMPORT_FILTERS_OID = "aad19b9a-d511-11e7-8bf7-cfecde275e59";
 
-	private String userCleanOid;
-	private Integer lastDummyConnectorNumber;
+    protected static final File ROLE_SHIP_FILE = new File(TEST_DIR, "role-ship.xml");
+    protected static final String ROLE_SHIP_OID = "bbd19b9a-d511-11e7-8bf7-cfecde275e59";
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult)
-			throws Exception {
-		super.initSystem(initTask, initResult);
-		
-		initDummyResourcePirate(RESOURCE_DUMMY_SCRIPTY_NAME,
-				RESOURCE_SCRIPTY_FILE, RESOURCE_SCRIPTY_OID, initTask, initResult);
-		
-		importObjectFromFile(ROLE_SHIP_FILE);
-	}
+    protected static final File RESOURCE_SCRIPTY_FILE = new File(TEST_DIR, "resource-dummy-scripty.xml");
+    protected static final String RESOURCE_SCRIPTY_OID = "399f5308-0447-11e8-91e9-a7f9c4100ffb";
+    protected static final String RESOURCE_DUMMY_SCRIPTY_NAME = "scripty";
 
-	@Test
+    public static final byte[] KEY = { 0x01, 0x02, 0x03, 0x04, 0x05 };
+
+    private static final String USER_CLEAN_NAME = "clean";
+    private static final String USER_CLEAN_GIVEN_NAME = "John";
+    private static final String USER_CLEAN_FAMILY_NAME = "Clean";
+
+    private String userCleanOid;
+    private Integer lastDummyConnectorNumber;
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult)
+            throws Exception {
+        super.initSystem(initTask, initResult);
+
+        initDummyResourcePirate(RESOURCE_DUMMY_SCRIPTY_NAME,
+                RESOURCE_SCRIPTY_FILE, RESOURCE_SCRIPTY_OID, initTask, initResult);
+
+        importObjectFromFile(ROLE_SHIP_FILE);
+    }
+
+    @Test
     public void test100GetRepositoryDiag() throws Exception {
-		final String TEST_NAME = "test100GetRepositoryDiag";
+        final String TEST_NAME = "test100GetRepositoryDiag";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -102,17 +102,17 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-		display("Diag", diag);
-		assertSuccess(result);
+        display("Diag", diag);
+        assertSuccess(result);
 
         assertEquals("Wrong implementationShortName", "SQL", diag.getImplementationShortName());
         assertNotNull("Missing implementationDescription", diag.getImplementationDescription());
         // TODO
-	}
+    }
 
-	@Test
+    @Test
     public void test110RepositorySelfTest() throws Exception {
-		final String TEST_NAME = "test110RepositorySelfTest";
+        final String TEST_NAME = "test110RepositorySelfTest";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -124,15 +124,15 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-		display("Repository self-test result", testResult);
+        display("Repository self-test result", testResult);
         TestUtil.assertSuccess("Repository self-test result", testResult);
 
         // TODO: check the number of tests, etc.
-	}
+    }
 
-	@Test
+    @Test
     public void test200ExportUsers() throws Exception {
-		final String TEST_NAME = "test200ExportUsers";
+        final String TEST_NAME = "test200ExportUsers";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -142,7 +142,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         // WHEN
         displayWhen(TEST_NAME);
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null,
-        		SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
+                SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -150,32 +150,32 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Unexpected number of users", 6, users.size());
         for (PrismObject<UserType> user: users) {
-        	display("Exporting user", user);
-        	assertNotNull("Null definition in "+user, user.getDefinition());
-        	display("Definition", user.getDefinition());
-        	String xmlString = prismContext.serializerFor(PrismContext.LANG_XML).serialize(user);
-        	display("Exported user", xmlString);
+            display("Exporting user", user);
+            assertNotNull("Null definition in "+user, user.getDefinition());
+            display("Definition", user.getDefinition());
+            String xmlString = prismContext.serializerFor(PrismContext.LANG_XML).serialize(user);
+            display("Exported user", xmlString);
 
-        	Document xmlDocument = DOMUtil.parseDocument(xmlString);
-    		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
-    		Validator validator = javaxSchema.newValidator();
-    		validator.setResourceResolver(prismContext.getEntityResolver());
-    		validator.validate(new DOMSource(xmlDocument));
+            Document xmlDocument = DOMUtil.parseDocument(xmlString);
+            Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
+            Validator validator = javaxSchema.newValidator();
+            validator.setResourceResolver(prismContext.getEntityResolver());
+            validator.validate(new DOMSource(xmlDocument));
 
-    		PrismObject<Objectable> parsedUser = prismContext.parseObject(xmlString);
-    		assertTrue("Re-parsed user is not equal to original: "+user, user.equals(parsedUser));
+            PrismObject<Objectable> parsedUser = prismContext.parseObject(xmlString);
+            assertTrue("Re-parsed user is not equal to original: "+user, user.equals(parsedUser));
 
         }
 
-	}
+    }
 
-	/**
-	 * Just to make sure Jack is clean and that the next text will
-	 * start from a clean state.
-	 */
-	@Test
+    /**
+     * Just to make sure Jack is clean and that the next text will
+     * start from a clean state.
+     */
+    @Test
     public void test300RecomputeJack() throws Exception {
-		final String TEST_NAME = "test300RecomputeJack";
+        final String TEST_NAME = "test300RecomputeJack";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -188,19 +188,19 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-		assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
-	}
+    }
 
-	/**
-	 * Modify custom binary property.
-	 * MID-3999
-	 */
-	@Test
+    /**
+     * Modify custom binary property.
+     * MID-3999
+     */
+    @Test
     public void test302UpdateKeyJack() throws Exception {
-		final String TEST_NAME = "test302UpdateKeyJack";
+        final String TEST_NAME = "test302UpdateKeyJack";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -213,16 +213,16 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-		assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_KEY), KEY);
-	}
+    }
 
-	@Test
+    @Test
     public void test310AddUserClean() throws Exception {
-		final String TEST_NAME = "test310AddUserClean";
+        final String TEST_NAME = "test310AddUserClean";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -237,21 +237,21 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-		assertSuccess(result);
+        assertSuccess(result);
 
-		userCleanOid = userBefore.getOid();
+        userCleanOid = userBefore.getOid();
 
         PrismObject<UserType> userAfter = getUser(userCleanOid);
         display("User after", userAfter);
-	}
+    }
 
-	/**
-	 * Modify custom binary property.
-	 * MID-3999
-	 */
-	@Test
+    /**
+     * Modify custom binary property.
+     * MID-3999
+     */
+    @Test
     public void test312UpdateBinaryIdClean() throws Exception {
-		final String TEST_NAME = "test312UpdateBinaryIdClean";
+        final String TEST_NAME = "test312UpdateBinaryIdClean";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -264,42 +264,42 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-		assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> userAfter = getUser(userCleanOid);
         display("User after", userAfter);
         PrismAsserts.assertPropertyValue(userAfter, getExtensionPath(PIRACY_BINARY_ID), KEY);
-	}
-	
-	/**
+    }
+
+    /**
      * MID-4660, MID-4491, MID-3581
      */
     @Test
     public void test320DefaultRelations() throws Exception {
-		final String TEST_NAME="test320DefaultRelations";
+        final String TEST_NAME="test320DefaultRelations";
         displayTestTitle(TEST_NAME);
-        
+
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         List<RelationDefinitionType> relations = modelInteractionService.getRelationDefinitions();
-        
+
         // THEN
- 		displayThen(TEST_NAME);
- 		display("Relations", relations);
+         displayThen(TEST_NAME);
+         display("Relations", relations);
         assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "RelationTypes.manager");
         assertRelationDef(relations, SchemaConstants.ORG_OWNER, "RelationTypes.owner");
         assertEquals("Unexpected number of relation definitions", 7, relations.size());
     }
-	
-	/**
-	 * MID-3879
-	 */
-	@Test
+
+    /**
+     * MID-3879
+     */
+    @Test
     public void test400ImportRoleWithFilters() throws Exception {
-		final String TEST_NAME = "test400ImportRoleWithFilters";
+        final String TEST_NAME = "test400ImportRoleWithFilters";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -312,25 +312,25 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-		assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<RoleType> roleAfter = getRole(ROLE_IMPORT_FILTERS_OID);
         display("Role after", roleAfter);
-        
+
         assertInducedRole(roleAfter, ROLE_PIRATE_OID);
         assertInducedRole(roleAfter, ROLE_SAILOR_OID);
         assertInducements(roleAfter, 2);
-	}
-	
-	@Test
+    }
+
+    @Test
     public void test500AddHocProvisioningScriptAssignJackResourceScripty() throws Exception {
-		final String TEST_NAME = "test500AddHocProvisioningScriptAssignJackResourceScripty";
+        final String TEST_NAME = "test500AddHocProvisioningScriptAssignJackResourceScripty";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 0);
@@ -341,30 +341,30 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-		assertSuccess(result);
+        assertSuccess(result);
 
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
-        
+
         assertDummyAccount(RESOURCE_DUMMY_SCRIPTY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_SCRIPTY_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
-        		"Mr. POLY JACK SPARROW");
-	}
-	
-	/**
-	 * MID-3044
-	 */
-	@Test
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
+                "Mr. POLY JACK SPARROW");
+    }
+
+    /**
+     * MID-3044
+     */
+    @Test
     public void test502GetAccountJackResourceScripty() throws Exception {
-		final String TEST_NAME = "test502GetAccountJackResourceScripty";
+        final String TEST_NAME = "test502GetAccountJackResourceScripty";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 1);
@@ -376,28 +376,28 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-		assertSuccess(result);
+        assertSuccess(result);
 
-		assertAttribute(accountShadow.asObjectable(),
-				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
-				"Dummy Resource: Scripty");
-		lastDummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 
-				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
-	}
-	
-	/**
-	 * Check that the same connector instance is used. The connector should be pooled and cached.
-	 * MID-3104
-	 */
-	@Test
+        assertAttribute(accountShadow.asObjectable(),
+                getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+                "Dummy Resource: Scripty");
+        lastDummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow,
+                getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
+    }
+
+    /**
+     * Check that the same connector instance is used. The connector should be pooled and cached.
+     * MID-3104
+     */
+    @Test
     public void test504GetAccountJackResourceScriptyAgain() throws Exception {
-		final String TEST_NAME = "test504GetAccountJackResourceScriptyAgain";
+        final String TEST_NAME = "test504GetAccountJackResourceScriptyAgain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 1);
@@ -409,33 +409,33 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-		assertSuccess(result);
+        assertSuccess(result);
 
-		assertAttribute(accountShadow.asObjectable(),
-				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME), 
-				"Dummy Resource: Scripty");
-		Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 
-				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
-		assertEquals("Connector number has changed", lastDummyConnectorNumber, dummyConnectorNumber);
-	}
-	
-	/**
-	 * Modify resource (but make sure that connector configuration is the same).
-	 * Make just small an unimportant change in the connector. That should increase the version
-	 * number which should purge resource caches. But the connector instance should still be the
-	 * same because connector configuration haven't changed. We do NOT want to purge connector cache
-	 * (and re-create connector) after every minor change to the resource. In that case change in
-	 * resource availability status can trigger quite a lot of connector re-initializations.
-	 */
-	@Test
+        assertAttribute(accountShadow.asObjectable(),
+                getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
+                "Dummy Resource: Scripty");
+        Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow,
+                getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
+        assertEquals("Connector number has changed", lastDummyConnectorNumber, dummyConnectorNumber);
+    }
+
+    /**
+     * Modify resource (but make sure that connector configuration is the same).
+     * Make just small an unimportant change in the connector. That should increase the version
+     * number which should purge resource caches. But the connector instance should still be the
+     * same because connector configuration haven't changed. We do NOT want to purge connector cache
+     * (and re-create connector) after every minor change to the resource. In that case change in
+     * resource availability status can trigger quite a lot of connector re-initializations.
+     */
+    @Test
     public void test506ModifyResourceGetAccountJackResourceScripty() throws Exception {
-		final String TEST_NAME = "test506ModifyResourceGetAccountJackResourceScripty";
+        final String TEST_NAME = "test506ModifyResourceGetAccountJackResourceScripty";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 1);
@@ -445,66 +445,66 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyObjectReplaceProperty(ResourceType.class, RESOURCE_SCRIPTY_OID, 
-        		ResourceType.F_DESCRIPTION, null, task, result, "Whatever");
+        modifyObjectReplaceProperty(ResourceType.class, RESOURCE_SCRIPTY_OID,
+                ResourceType.F_DESCRIPTION, null, task, result, "Whatever");
 
         // THEN
         displayThen(TEST_NAME);
-		assertSuccess(result);
-		
-		PrismObject<ResourceType> resourceAfter = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
+        assertSuccess(result);
+
+        PrismObject<ResourceType> resourceAfter = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
         display("Resource version after", resourceAfter.getVersion());
         assertFalse("Resource version is still the same: "+resourceAfter.getVersion(), resourceBefore.getVersion().equals(resourceAfter.getVersion()));
-		
+
         PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
 
-		Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 
-				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
-		assertTrue("Connector number hash changed: "+lastDummyConnectorNumber+" -> "+dummyConnectorNumber,
-				lastDummyConnectorNumber.equals(dummyConnectorNumber));
-	}
-	
+        Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow,
+                getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
+        assertTrue("Connector number hash changed: "+lastDummyConnectorNumber+" -> "+dummyConnectorNumber,
+                lastDummyConnectorNumber.equals(dummyConnectorNumber));
+    }
 
-	
-	/**
-	 * MID-4504
-	 * midpoint.getLinkedShadow fails recomputing without throwing exception during shadow delete
-	 * 
-	 * the ship attribute in the role "Ship" has mapping with calling midpoint.getLinkedShadow() on the reosurce which doesn't exist
-	 */
-	@Test
-	public void test600jackAssignRoleShip() throws Exception {
-		final String TEST_NAME = "test600jackAssignRoleShip";
+
+
+    /**
+     * MID-4504
+     * midpoint.getLinkedShadow fails recomputing without throwing exception during shadow delete
+     *
+     * the ship attribute in the role "Ship" has mapping with calling midpoint.getLinkedShadow() on the reosurce which doesn't exist
+     */
+    @Test
+    public void test600jackAssignRoleShip() throws Exception {
+        final String TEST_NAME = "test600jackAssignRoleShip";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-       
+
 
         // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_SHIP_OID);
-        
+
         //THEN
         displayThen(TEST_NAME);
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User before", userAfter);
         assertAssignments(userAfter, 2);
         assertLinks(userAfter, 1);
-        
+
         PrismReference linkRef = userAfter.findReference(UserType.F_LINK_REF);
-	    assertTrue(!linkRef.isEmpty());
-	            
-//	    PrismObject<ShadowType> shadowModel = getShadowModel(linkRef.getOid());
-	      
-	    assertDummyAccountAttribute(RESOURCE_DUMMY_SCRIPTY_NAME, USER_JACK_USERNAME, "ship", "ship");
-        
-	}
-	
-	@Test
-	public void test601jackUnassignResourceAccount() throws Exception {
-		final String TEST_NAME = "test601jackUnassignResourceAccount";
+        assertTrue(!linkRef.isEmpty());
+
+//        PrismObject<ShadowType> shadowModel = getShadowModel(linkRef.getOid());
+
+        assertDummyAccountAttribute(RESOURCE_DUMMY_SCRIPTY_NAME, USER_JACK_USERNAME, "ship", "ship");
+
+    }
+
+    @Test
+    public void test601jackUnassignResourceAccount() throws Exception {
+        final String TEST_NAME = "test601jackUnassignResourceAccount";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -513,47 +513,47 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
         assertAssignments(userBefore, 2);
-        
+
         // WHEN
         displayWhen(TEST_NAME);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_SCRIPTY_OID, null);
-        
+
         //THEN
         displayThen(TEST_NAME);
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
         assertLinks(userAfter, 1);
-	}
-	
-	
-	/**
-	 * MID-4504
-	 * midpoint.getLinkedShadow fails recomputing without throwing exception during shadow delete
-	 * 
-	 * first assign role ship, the ship attribute in the role has mapping with calling midpoint.getLinkedShadow()
-	 */
-	@Test
-	public void test602jackUnssigndRoleShip() throws Exception {
-		final String TEST_NAME = "test602jackUnssigndRoleShip";
+    }
+
+
+    /**
+     * MID-4504
+     * midpoint.getLinkedShadow fails recomputing without throwing exception during shadow delete
+     *
+     * first assign role ship, the ship attribute in the role has mapping with calling midpoint.getLinkedShadow()
+     */
+    @Test
+    public void test602jackUnssigndRoleShip() throws Exception {
+        final String TEST_NAME = "test602jackUnssigndRoleShip";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-       
+
 
         // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_SHIP_OID);
-        
+
         //THEN
         displayThen(TEST_NAME);
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User before", userAfter);
         assertAssignments(userAfter, 0);
         assertLinks(userAfter, 0);
-        
-	}
+
+    }
 
 }

@@ -2,58 +2,58 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>System Configuration</name>
-	<globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
-	<defaultUserTemplate>
-	    <name>Default User Template</name>
-	    <mapping>
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>System Configuration</name>
+    <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
+    <defaultUserTemplate>
+        <name>Default User Template</name>
+        <mapping>
             <strength>weak</strength>
-	        <target>c:fullName</target>
+            <target>c:fullName</target>
             <expression>
                 <script>
                     <code>
-                    	user.getGivenName() + ' ' + user.getFamilyName()
+                        user.getGivenName() + ' ' + user.getFamilyName()
                     </code>
                 </script>
             </expression>
-	    </mapping>
-	    <mapping>
+        </mapping>
+        <mapping>
             <strength>weak</strength>
-	        <target>c:assignment</target>
-	        <expression>
-	            <value>
+            <target>c:assignment</target>
+            <expression>
+                <value>
                     <construction>
                         <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
                     </construction>
-	            </value>
-	        </expression>
-	    </mapping>
-	</defaultUserTemplate>
-	<logging>
-		<!--<logger>-->
-			<!--<level>all</level>-->
-			<!--<category>category1</category>-->
-			<!--<category>category2</category>-->
-			<!--<component>util</component>-->
-			<!--<component>common</component>-->
-			<!--<component>model</component>-->
-			<!--<component>provisioning</component>-->
-			<!--<component>repository</component>-->
-			<!--<component>gui</component>-->
-			<!--<package>com.evolveum.midpoint</package>-->
-			<!--<appender>File Appender</appender>-->
-		<!--</logger>-->
-		<appender xsi:type="FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-			<pattern>%d{HH:mm:ss,SSS} %-5p [%c] - %m%n</pattern>
-			<fileName>${catalina.base}/logs/idm.log</fileName>
-			<maxFileSize>1024</maxFileSize>
-		</appender>
-	</logging>
+                </value>
+            </expression>
+        </mapping>
+    </defaultUserTemplate>
+    <logging>
+        <!--<logger>-->
+            <!--<level>all</level>-->
+            <!--<category>category1</category>-->
+            <!--<category>category2</category>-->
+            <!--<component>util</component>-->
+            <!--<component>common</component>-->
+            <!--<component>model</component>-->
+            <!--<component>provisioning</component>-->
+            <!--<component>repository</component>-->
+            <!--<component>gui</component>-->
+            <!--<package>com.evolveum.midpoint</package>-->
+            <!--<appender>File Appender</appender>-->
+        <!--</logger>-->
+        <appender xsi:type="FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%d{HH:mm:ss,SSS} %-5p [%c] - %m%n</pattern>
+            <fileName>${catalina.base}/logs/idm.log</fileName>
+            <maxFileSize>1024</maxFileSize>
+        </appender>
+    </logging>
 </systemConfiguration>

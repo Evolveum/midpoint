@@ -1,19 +1,19 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user oid="e38df3fc-3510-45c2-a379-2b4a1406d4b6" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>administrator-deputy-none</name>
-	<assignment id="1">
-		<targetRef oid="00000000-0000-0000-0000-000000000002" type="UserType" relation="deputy"/>	<!-- administrator -->
-		<limitTargetContent/>
-		<limitOtherPrivileges/>
-	</assignment>
-	<assignment id="2">
-		<targetRef oid="00000000-d34d-b33f-f00d-ffffffff0000" type="RoleType"/>		<!-- reviewer -->
-	</assignment>
-	<fullName>Administrator Deputy Gets Nothing</fullName>
+    <name>administrator-deputy-none</name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000002" type="UserType" relation="deputy"/>    <!-- administrator -->
+        <limitTargetContent/>
+        <limitOtherPrivileges/>
+    </assignment>
+    <assignment id="2">
+        <targetRef oid="00000000-d34d-b33f-f00d-ffffffff0000" type="RoleType"/>        <!-- reviewer -->
+    </assignment>
+    <fullName>Administrator Deputy Gets Nothing</fullName>
 </user>

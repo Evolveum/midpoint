@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common;
@@ -19,31 +19,31 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 @Component
 public class ConstantsManager {
 
-	@Autowired
-	private MidpointConfiguration midpointConfiguration;
+    @Autowired
+    private MidpointConfiguration midpointConfiguration;
 
-	private Configuration constConfig;
+    private Configuration constConfig;
 
-	public ConstantsManager() {
-	}
+    public ConstantsManager() {
+    }
 
-	/**
-	 * For testing.
-	 */
-	public ConstantsManager(Configuration config) {
-		this.constConfig = config;
-	}
+    /**
+     * For testing.
+     */
+    public ConstantsManager(Configuration config) {
+        this.constConfig = config;
+    }
 
-	private Configuration getConstConfig() {
-		if (constConfig == null) {
-			constConfig = midpointConfiguration.getConfiguration(MidpointConfiguration.CONSTANTS_CONFIGURATION);
-		}
-		return constConfig;
-	}
+    private Configuration getConstConfig() {
+        if (constConfig == null) {
+            constConfig = midpointConfiguration.getConfiguration(MidpointConfiguration.CONSTANTS_CONFIGURATION);
+        }
+        return constConfig;
+    }
 
-	public String getConstantValue(String constName) {
-		String val = getConstConfig().getString(constName);
-		return val;
-	}
+    public String getConstantValue(String constName) {
+        String val = getConstConfig().getString(constName);
+        return val;
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -46,12 +46,12 @@ public class AggregatedEventHandler extends BaseHandler {
 
     @Autowired private CategoryFilterHelper categoryFilter;
     @Autowired private OperationFilterHelper operationFilter;
-	@Autowired private StatusFilterHelper statusFilter;
-	@Autowired private KindIntentFilterHelper kindIntentFilter;
-	@Autowired private FocusTypeFilterHelper focusTypeFilterHelper;
-	@Autowired private ExpressionFilterHelper expressionFilter;
-	@Autowired private ChainHelper chainHelper;
-	@Autowired private ForkHelper forkHelper;
+    @Autowired private StatusFilterHelper statusFilter;
+    @Autowired private KindIntentFilterHelper kindIntentFilter;
+    @Autowired private FocusTypeFilterHelper focusTypeFilterHelper;
+    @Autowired private ExpressionFilterHelper expressionFilter;
+    @Autowired private ChainHelper chainHelper;
+    @Autowired private ForkHelper forkHelper;
 
     @PostConstruct
     public void init() {
@@ -60,7 +60,7 @@ public class AggregatedEventHandler extends BaseHandler {
 
     @Override
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
-    		Task task, OperationResult result) throws SchemaException {
+            Task task, OperationResult result) throws SchemaException {
 
         logStart(LOGGER, event, eventHandlerType);
 

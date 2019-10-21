@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -48,33 +48,33 @@ public class StageDefinitionDto implements Serializable {
     private List<AccessCertificationResponseType> advanceToNextStageOnRaw;
     private List<WorkItemTimedActionsType> timedActionsTypes;
 
-	public StageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj, ModelServiceLocator modelServiceLocator) throws SchemaException {
-		if (stageDefObj != null) {
-			setNumber(stageDefObj.getNumber());
-			setName(stageDefObj.getName());
-			setDescription(stageDefObj.getDescription());
-			if (stageDefObj.getDuration() != null) {
-				setDuration(stageDefObj.getDuration().toString());
-			}
-			setDeadlineRounding(stageDefObj.getDeadlineRounding());
-			setNotifyBeforeDeadline(convertDurationListToString(stageDefObj.getNotifyBeforeDeadline()));
-			setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
-			setReviewerDto(new AccessCertificationReviewerDto(stageDefObj.getReviewerSpecification(), modelServiceLocator));
-			setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
-			setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
-			setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
-			setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
-			setTimedActionsTypes(new ArrayList<>(stageDefObj.getTimedActions()));
-		} else {
-			setReviewerDto(new AccessCertificationReviewerDto(null, modelServiceLocator));
-		}
-	}
+    public StageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj, ModelServiceLocator modelServiceLocator) throws SchemaException {
+        if (stageDefObj != null) {
+            setNumber(stageDefObj.getNumber());
+            setName(stageDefObj.getName());
+            setDescription(stageDefObj.getDescription());
+            if (stageDefObj.getDuration() != null) {
+                setDuration(stageDefObj.getDuration().toString());
+            }
+            setDeadlineRounding(stageDefObj.getDeadlineRounding());
+            setNotifyBeforeDeadline(convertDurationListToString(stageDefObj.getNotifyBeforeDeadline()));
+            setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
+            setReviewerDto(new AccessCertificationReviewerDto(stageDefObj.getReviewerSpecification(), modelServiceLocator));
+            setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
+            setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
+            setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
+            setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
+            setTimedActionsTypes(new ArrayList<>(stageDefObj.getTimedActions()));
+        } else {
+            setReviewerDto(new AccessCertificationReviewerDto(null, modelServiceLocator));
+        }
+    }
 
-	private String convertDurationListToString(List<Duration> list){
-		return StringUtils.join(list, ", ");
-	}
+    private String convertDurationListToString(List<Duration> list){
+        return StringUtils.join(list, ", ");
+    }
 
-	public int getNumber() {
+    public int getNumber() {
         return number;
     }
 
@@ -106,15 +106,15 @@ public class StageDefinitionDto implements Serializable {
         this.duration = duration;
     }
 
-	public DeadlineRoundingType getDeadlineRounding() {
-		return deadlineRounding;
-	}
+    public DeadlineRoundingType getDeadlineRounding() {
+        return deadlineRounding;
+    }
 
-	public void setDeadlineRounding(DeadlineRoundingType deadlineRounding) {
-		this.deadlineRounding = deadlineRounding;
-	}
+    public void setDeadlineRounding(DeadlineRoundingType deadlineRounding) {
+        this.deadlineRounding = deadlineRounding;
+    }
 
-	public String getNotifyBeforeDeadline() {
+    public String getNotifyBeforeDeadline() {
         return notifyBeforeDeadline;
     }
 
@@ -177,11 +177,11 @@ public class StageDefinitionDto implements Serializable {
         this.advanceToNextStageOnRaw = advanceToNextStageOnRaw;
     }
 
-	public List<WorkItemTimedActionsType> getTimedActionsTypes() {
-		return timedActionsTypes;
-	}
+    public List<WorkItemTimedActionsType> getTimedActionsTypes() {
+        return timedActionsTypes;
+    }
 
-	public void setTimedActionsTypes(List<WorkItemTimedActionsType> timedActionsTypes) {
-		this.timedActionsTypes = timedActionsTypes;
-	}
+    public void setTimedActionsTypes(List<WorkItemTimedActionsType> timedActionsTypes) {
+        this.timedActionsTypes = timedActionsTypes;
+    }
 }

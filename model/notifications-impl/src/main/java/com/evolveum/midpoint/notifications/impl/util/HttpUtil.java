@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -15,21 +15,21 @@ import org.springframework.http.HttpMethod;
  */
 public class HttpUtil {
 
-	// Unfortunately, this requires spring-web, so it cannot be moved e.g. into schema module.
-	public static HttpMethod toHttpMethod(HttpMethodType method) {
-    	if (method == null) {
-    		return null;
-	    }
-		switch (method) {
-			case GET: return HttpMethod.GET;
-			case POST: return HttpMethod.POST;
-			case PUT: return HttpMethod.PUT;
-			case HEAD: return HttpMethod.HEAD;
-			case PATCH: return HttpMethod.PATCH;
-			case DELETE: return HttpMethod.DELETE;
-			case OPTIONS: return HttpMethod.OPTIONS;
-			case TRACE: return HttpMethod.TRACE;
-			default: throw new AssertionError("HttpMethodType: " + method);
-		}
-	}
+    // Unfortunately, this requires spring-web, so it cannot be moved e.g. into schema module.
+    public static HttpMethod toHttpMethod(HttpMethodType method) {
+        if (method == null) {
+            return null;
+        }
+        switch (method) {
+            case GET: return HttpMethod.GET;
+            case POST: return HttpMethod.POST;
+            case PUT: return HttpMethod.PUT;
+            case HEAD: return HttpMethod.HEAD;
+            case PATCH: return HttpMethod.PATCH;
+            case DELETE: return HttpMethod.DELETE;
+            case OPTIONS: return HttpMethod.OPTIONS;
+            case TRACE: return HttpMethod.TRACE;
+            default: throw new AssertionError("HttpMethodType: " + method);
+        }
+    }
 }

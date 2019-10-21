@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.sync;
@@ -63,30 +63,30 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
-	private static final File TEST_DIR = new File("src/test/resources/sync");
+    private static final File TEST_DIR = new File("src/test/resources/sync");
 
-	private static final File TASK_USER_RECOMPUTE_FILE = new File(TEST_DIR, "task-user-recompute.xml");
-	private static final String TASK_USER_RECOMPUTE_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
+    private static final File TASK_USER_RECOMPUTE_FILE = new File(TEST_DIR, "task-user-recompute.xml");
+    private static final String TASK_USER_RECOMPUTE_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
 
-	private static final File TASK_USER_RECOMPUTE_LIGHT_FILE = new File(TEST_DIR, "task-user-recompute-light.xml");
-	private static final String TASK_USER_RECOMPUTE_LIGHT_OID = "b7b6af78-fffe-11e6-ac04-2fdd62641ce2";
+    private static final File TASK_USER_RECOMPUTE_LIGHT_FILE = new File(TEST_DIR, "task-user-recompute-light.xml");
+    private static final String TASK_USER_RECOMPUTE_LIGHT_OID = "b7b6af78-fffe-11e6-ac04-2fdd62641ce2";
 
-	private static final File TASK_USER_RECOMPUTE_CAPTAIN_FILE = new File(TEST_DIR, "task-user-recompute-captain.xml");
-	private static final String TASK_USER_RECOMPUTE_CAPTAIN_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaac";
+    private static final File TASK_USER_RECOMPUTE_CAPTAIN_FILE = new File(TEST_DIR, "task-user-recompute-captain.xml");
+    private static final String TASK_USER_RECOMPUTE_CAPTAIN_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaac";
 
-	private static final File TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_FILE = new File(TEST_DIR, "task-user-recompute-herman-by-expression.xml");
-	private static final String TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID = "91919191-76e0-59e2-86d6-3d4f02d3aadd";
+    private static final File TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_FILE = new File(TEST_DIR, "task-user-recompute-herman-by-expression.xml");
+    private static final String TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID = "91919191-76e0-59e2-86d6-3d4f02d3aadd";
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-//		DebugUtil.setDetailedDebugDump(true);
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+//        DebugUtil.setDetailedDebugDump(true);
+    }
 
-	@Test
+    @Test
     public void test100RecomputeAll() throws Exception {
-		final String TEST_NAME = "test100RecomputeAll";
+        final String TEST_NAME = "test100RecomputeAll";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -123,46 +123,46 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertNotNull("No attribute property in "+rolePirate, attributeCont);
         PrismContainerValue<ResourceAttributeDefinitionType> oldAttrContainer = null;
         for (PrismContainerValue<ResourceAttributeDefinitionType> cval: attributeCont.getValues()) {
-        	ResourceAttributeDefinitionType attrType = cval.getValue();
-        	if (ItemPathTypeUtil.asSingleNameOrFail(attrType.getRef()).getLocalPart().equals(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME)) {
-        		oldAttrContainer = cval;
-        	}
+            ResourceAttributeDefinitionType attrType = cval.getValue();
+            if (ItemPathTypeUtil.asSingleNameOrFail(attrType.getRef()).getLocalPart().equals(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME)) {
+                oldAttrContainer = cval;
+            }
         }
         assertNotNull("Definition for weapon attribute not found in "+rolePirate, oldAttrContainer);
         PrismContainerValue<ResourceAttributeDefinitionType> newAttrContainer = oldAttrContainer.clone();
         JAXBElement<?> cutlassExpressionEvalJaxbElement = newAttrContainer.getValue().getOutbound().getExpression().getExpressionEvaluator().get(0);
         RawType cutlassValueEvaluator = (RawType) cutlassExpressionEvalJaxbElement.getValue();
-		XNode daggerXNode = prismContext.xnodeFactory().primitive("dagger");
+        XNode daggerXNode = prismContext.xnodeFactory().primitive("dagger");
         RawType daggerValueEvaluator = new RawType(daggerXNode, prismContext);
         JAXBElement<?> daggerExpressionEvalJaxbElement = new JAXBElement<>(SchemaConstants.C_VALUE, Object.class, daggerValueEvaluator);
         newAttrContainer.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
         newAttrContainer.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);
 
         ObjectDelta<RoleType> rolePirateDelta = prismContext.deltaFactory().object()
-		        .createModificationDeleteContainer(RoleType.class, ROLE_PIRATE_OID,
-        		attrItemPath, oldAttrContainer.getValue().clone());
+                .createModificationDeleteContainer(RoleType.class, ROLE_PIRATE_OID,
+                attrItemPath, oldAttrContainer.getValue().clone());
         ResourceAttributeDefinitionType newAttrCVal = newAttrContainer.getValue();
         newAttrCVal.asPrismContainerValue().setId(null);
         rolePirateDelta.addModificationAddContainer(attrItemPath, newAttrCVal);
 
         display("Role pirate delta", rolePirateDelta);
-		modelService.executeChanges(MiscSchemaUtil.createCollection(rolePirateDelta), null, task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(rolePirateDelta), null, task, result);
 
-		displayRoles(task, result);
+        displayRoles(task, result);
 
-		assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-		assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		display("User jack (before)", userJack);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack (before)", userJack);
 
-		assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
-		assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		// WHEN
+        // WHEN
         TestUtil.displayWhen(TEST_NAME);
         addTask(TASK_USER_RECOMPUTE_FILE);
 
@@ -183,11 +183,11 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         userJack = getUser(USER_JACK_OID);
-		display("User jack (after)", userJack);
+        display("User jack (after)", userJack);
 
         assertNoDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
@@ -199,51 +199,51 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
 
-    	int i=0;
-    	int modifications = 0;
-    	for (; i < (auditRecords.size() - 1); i+=2) {
-        	AuditEventRecord requestRecord = auditRecords.get(i);
-        	assertNotNull("No request audit record ("+i+")", requestRecord);
-        	assertEquals("Got this instead of request audit record ("+i+"): "+requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
-        	assertTrue("Unexpected delta in request audit record "+requestRecord, requestRecord.getDeltas() == null || requestRecord.getDeltas().isEmpty());
+        int i=0;
+        int modifications = 0;
+        for (; i < (auditRecords.size() - 1); i+=2) {
+            AuditEventRecord requestRecord = auditRecords.get(i);
+            assertNotNull("No request audit record ("+i+")", requestRecord);
+            assertEquals("Got this instead of request audit record ("+i+"): "+requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
+            assertTrue("Unexpected delta in request audit record "+requestRecord, requestRecord.getDeltas() == null || requestRecord.getDeltas().isEmpty());
 
-        	AuditEventRecord executionRecord = auditRecords.get(i+1);
-        	assertNotNull("No execution audit record ("+i+")", executionRecord);
-        	assertEquals("Got this instead of execution audit record ("+i+"): "+executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
+            AuditEventRecord executionRecord = auditRecords.get(i+1);
+            assertNotNull("No execution audit record ("+i+")", executionRecord);
+            assertEquals("Got this instead of execution audit record ("+i+"): "+executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
 
-        	assertTrue("Empty deltas in execution audit record "+executionRecord, executionRecord.getDeltas() != null && ! executionRecord.getDeltas().isEmpty());
-        	modifications++;
+            assertTrue("Empty deltas in execution audit record "+executionRecord, executionRecord.getDeltas() != null && ! executionRecord.getDeltas().isEmpty());
+            modifications++;
 
-        	// check next records
-        	while (i < (auditRecords.size() - 2)) {
-        		AuditEventRecord nextRecord = auditRecords.get(i+2);
-        		if (nextRecord.getEventStage() == AuditEventStage.EXECUTION) {
-        			// more than one execution record is OK
-        			i++;
-        		} else {
-        			break;
-        		}
-        	}
+            // check next records
+            while (i < (auditRecords.size() - 2)) {
+                AuditEventRecord nextRecord = auditRecords.get(i+2);
+                if (nextRecord.getEventStage() == AuditEventStage.EXECUTION) {
+                    // more than one execution record is OK
+                    i++;
+                } else {
+                    break;
+                }
+            }
 
         }
         assertEquals("Unexpected number of audit modifications", 7, modifications);
 
         deleteObject(TaskType.class, TASK_USER_RECOMPUTE_OID, task, result);
-	}
+    }
 
-	private void displayRoles(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
-		display("Role pirate after modify", rolePirate);
-		IntegrationTestTools.displayXml("Role pirate after modify", rolePirate);
-		PrismObject<RoleType> roleJudge = modelService.getObject(RoleType.class, ROLE_JUDGE_OID, null, task, result);
-		display("Role judge after modify", roleJudge);
-		IntegrationTestTools.displayXml("Role judge after modify", roleJudge);
+    private void displayRoles(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
+        display("Role pirate after modify", rolePirate);
+        IntegrationTestTools.displayXml("Role pirate after modify", rolePirate);
+        PrismObject<RoleType> roleJudge = modelService.getObject(RoleType.class, ROLE_JUDGE_OID, null, task, result);
+        display("Role judge after modify", roleJudge);
+        IntegrationTestTools.displayXml("Role judge after modify", roleJudge);
 
-	}
+    }
 
-	@Test
+    @Test
     public void test110RecomputeSome() throws Exception {
-		final String TEST_NAME = "test110RecomputeSome";
+        final String TEST_NAME = "test110RecomputeSome";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -263,7 +263,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         displayRoles(task, result);
 
-		// WHEN
+        // WHEN
         TestUtil.displayWhen(TEST_NAME);
         addTask(TASK_USER_RECOMPUTE_CAPTAIN_FILE);
 
@@ -284,7 +284,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
         // Red resource does not delete accounts on deprovision, it disables them
@@ -295,155 +295,155 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         assertUsers(7);
 
-	}
+    }
 
-	/**
-	 * Here we recompute herman as well.
-	 */
-	@Test
-	public void test120RecomputeByExpression() throws Exception {
-		final String TEST_NAME = "test120RecomputeByExpression";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+    /**
+     * Here we recompute herman as well.
+     */
+    @Test
+    public void test120RecomputeByExpression() throws Exception {
+        final String TEST_NAME = "test120RecomputeByExpression";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		prepareNotifications();
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareNotifications();
 
-		// Preconditions
-		assertUsers(7);
-		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
-		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", true);
+        // Preconditions
+        assertUsers(7);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", true);
 
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		addTask(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_FILE);
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addTask(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_FILE);
 
-		dummyAuditService.clear();
+        dummyAuditService.clear();
 
-		waitForTaskStart(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, false);
+        waitForTaskStart(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, false);
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
 
-		waitForTaskFinish(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, true, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID, true, 40000);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
 
-		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
-		display("Users after recompute", users);
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after recompute", users);
 
-		assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-		assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
-		assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
-		// Red resource does not delete accounts on deprovision, it disables them
-		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
+        // Red resource does not delete accounts on deprovision, it disables them
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
 
-		// Herman should be recomputed now
-		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
+        // Herman should be recomputed now
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
 
-		TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID).asObjectable();
-		assertEquals("Wrong success count", 1, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
-		assertEquals("Wrong failure count", 0, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
+        TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_HERMAN_BY_EXPRESSION_OID).asObjectable();
+        assertEquals("Wrong success count", 1, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
+        assertEquals("Wrong failure count", 0, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
 
-		assertUsers(7);
+        assertUsers(7);
 
-		displayAllNotifications();
-		assertSingleDummyTransportMessageContaining("simpleAccountNotifier-SUCCESS", "Channel: " + SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
-	}
+        displayAllNotifications();
+        assertSingleDummyTransportMessageContaining("simpleAccountNotifier-SUCCESS", "Channel: " + SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
+    }
 
-	/**
-	 * Light recompute. Very efficient, no resource operations, just fix the focus.
-	 * MID-3384
-	 */
-	@Test
-	public void test130RecomputeLight() throws Exception {
-		final String TEST_NAME = "test130RecomputeLight";
-		TestUtil.displayTestTitle(this, TEST_NAME);
+    /**
+     * Light recompute. Very efficient, no resource operations, just fix the focus.
+     * MID-3384
+     */
+    @Test
+    public void test130RecomputeLight() throws Exception {
+        final String TEST_NAME = "test130RecomputeLight";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		// Preconditions
-		assertUsers(7);
+        // Preconditions
+        assertUsers(7);
 
-		PrismObject<UserType> usetJackBefore = getUser(USER_JACK_OID);
-		display("User jack before", usetJackBefore);
-		assertAssignedRole(usetJackBefore, ROLE_JUDGE_OID);
-		assertRoleMembershipRef(usetJackBefore, ROLE_JUDGE_OID);
+        PrismObject<UserType> usetJackBefore = getUser(USER_JACK_OID);
+        display("User jack before", usetJackBefore);
+        assertAssignedRole(usetJackBefore, ROLE_JUDGE_OID);
+        assertRoleMembershipRef(usetJackBefore, ROLE_JUDGE_OID);
 
-		assignOrg(USER_GUYBRUSH_OID, ORG_MINISTRY_OF_OFFENSE_OID, null);
-		PrismObject<UserType> usetGuybrushBefore = getUser(USER_GUYBRUSH_OID);
-		display("User guybrush before", usetGuybrushBefore);
-		assertAssignedRole(usetGuybrushBefore, ROLE_PIRATE_OID);
-		assertRoleMembershipRef(usetGuybrushBefore, ROLE_PIRATE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
-		assertAssignedOrgs(usetGuybrushBefore, ORG_MINISTRY_OF_OFFENSE_OID);
-	    assertHasOrgs(usetGuybrushBefore, ORG_MINISTRY_OF_OFFENSE_OID);
+        assignOrg(USER_GUYBRUSH_OID, ORG_MINISTRY_OF_OFFENSE_OID, null);
+        PrismObject<UserType> usetGuybrushBefore = getUser(USER_GUYBRUSH_OID);
+        display("User guybrush before", usetGuybrushBefore);
+        assertAssignedRole(usetGuybrushBefore, ROLE_PIRATE_OID);
+        assertRoleMembershipRef(usetGuybrushBefore, ROLE_PIRATE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrgs(usetGuybrushBefore, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(usetGuybrushBefore, ORG_MINISTRY_OF_OFFENSE_OID);
 
-		clearUserOrgAndRoleRefs(USER_JACK_OID);
-		clearUserOrgAndRoleRefs(USER_GUYBRUSH_OID);
+        clearUserOrgAndRoleRefs(USER_JACK_OID);
+        clearUserOrgAndRoleRefs(USER_GUYBRUSH_OID);
 
-		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
-		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
-		addTask(TASK_USER_RECOMPUTE_LIGHT_FILE);
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addTask(TASK_USER_RECOMPUTE_LIGHT_FILE);
 
-		dummyAuditService.clear();
+        dummyAuditService.clear();
 
-		waitForTaskStart(TASK_USER_RECOMPUTE_LIGHT_OID, false);
+        waitForTaskStart(TASK_USER_RECOMPUTE_LIGHT_OID, false);
 
-		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
 
-		waitForTaskFinish(TASK_USER_RECOMPUTE_LIGHT_OID, true, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_LIGHT_OID, true, 40000);
 
-		// THEN
-		TestUtil.displayThen(TEST_NAME);
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
 
-		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
-		display("Users after recompute", users);
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after recompute", users);
 
-		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
-		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 0);
 
-		assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
-		assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
-		assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
-		// Red resource does not delete accounts on deprovision, it disables them
-		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
+        // Red resource does not delete accounts on deprovision, it disables them
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
 
-		// Herman should be recomputed now
-		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
+        // Herman should be recomputed now
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", false);
 
-		TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_LIGHT_OID).asObjectable();
-		assertEquals("Wrong success count", 7, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
-		assertEquals("Wrong failure count", 0, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
+        TaskType recomputeTask = getTask(TASK_USER_RECOMPUTE_LIGHT_OID).asObjectable();
+        assertEquals("Wrong success count", 7, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalSuccessCount());
+        assertEquals("Wrong failure count", 0, recomputeTask.getOperationStats().getIterativeTaskInformation().getTotalFailureCount());
 
-		PrismObject<UserType> usetJackAfter = getUser(USER_JACK_OID);
-		display("User jack after", usetJackAfter);
-		assertAssignedRole(usetJackAfter, ROLE_JUDGE_OID);
-		assertRoleMembershipRef(usetJackAfter, ROLE_JUDGE_OID);
+        PrismObject<UserType> usetJackAfter = getUser(USER_JACK_OID);
+        display("User jack after", usetJackAfter);
+        assertAssignedRole(usetJackAfter, ROLE_JUDGE_OID);
+        assertRoleMembershipRef(usetJackAfter, ROLE_JUDGE_OID);
 
-		PrismObject<UserType> usetGuybrushAfter = getUser(USER_GUYBRUSH_OID);
-		display("User guybrush after", usetGuybrushAfter);
-		assertAssignedRole(usetGuybrushAfter, ROLE_PIRATE_OID);
-		assertRoleMembershipRef(usetGuybrushAfter, ROLE_PIRATE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
-		assertAssignedOrgs(usetGuybrushAfter, ORG_MINISTRY_OF_OFFENSE_OID);
-	    assertHasOrgs(usetGuybrushAfter, ORG_MINISTRY_OF_OFFENSE_OID);
+        PrismObject<UserType> usetGuybrushAfter = getUser(USER_GUYBRUSH_OID);
+        display("User guybrush after", usetGuybrushAfter);
+        assertAssignedRole(usetGuybrushAfter, ROLE_PIRATE_OID);
+        assertRoleMembershipRef(usetGuybrushAfter, ROLE_PIRATE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrgs(usetGuybrushAfter, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrgs(usetGuybrushAfter, ORG_MINISTRY_OF_OFFENSE_OID);
 
-		assertUsers(7);
+        assertUsers(7);
 
-	}
+    }
 
 }

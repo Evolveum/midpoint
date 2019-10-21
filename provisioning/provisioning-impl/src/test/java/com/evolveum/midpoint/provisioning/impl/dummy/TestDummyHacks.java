@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -62,128 +62,128 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 @DirtiesContext
 public class TestDummyHacks extends AbstractIntegrationTest {
 
-	private static final File TEST_DIR = new File(AbstractDummyTest.TEST_DIR_DUMMY, "dummy-hacks");
+    private static final File TEST_DIR = new File(AbstractDummyTest.TEST_DIR_DUMMY, "dummy-hacks");
 
-	private static final File CONNECTOR_DUMMY_FILE = new File(TEST_DIR, "connector-dummy.xml");
+    private static final File CONNECTOR_DUMMY_FILE = new File(TEST_DIR, "connector-dummy.xml");
 
-	private static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
-	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
+    private static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
+    private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestDummyHacks.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestDummyHacks.class);
 
-	private PrismObject<ConnectorType> connector;
-	private PrismObject<ResourceType> resource;
-	private ResourceType resourceType;
-	private static DummyResource dummyResource;
-	private static Task syncTask;
+    private PrismObject<ConnectorType> connector;
+    private PrismObject<ResourceType> resource;
+    private ResourceType resourceType;
+    private static DummyResource dummyResource;
+    private static Task syncTask;
 
-	@Autowired(required=true)
-	private ProvisioningService provisioningService;
+    @Autowired(required=true)
+    private ProvisioningService provisioningService;
 
-	// Used to make sure that the connector is cached
-	@Autowired(required=true)
-	private ConnectorManager connectorManager;
+    // Used to make sure that the connector is cached
+    @Autowired(required=true)
+    private ConnectorManager connectorManager;
 
-	@Autowired(required=true)
-	private SynchronizationServiceMock syncServiceMock;
-
-
-	public TestDummyHacks() {
-		super();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
-	 */
-
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		// DO NOT DO provisioningService.postInit(..)
-		// We want to avoid connector discovery and insert our own connector object
-//		provisioningService.postInit(initResult);
-
-		connector = repoAddObjectFromFile(CONNECTOR_DUMMY_FILE, initResult);
-
-		resource = repoAddObjectFromFile(RESOURCE_DUMMY_FILE, initResult);
-		resourceType = resource.asObjectable();
-
-		dummyResource = DummyResource.getInstance();
-		dummyResource.reset();
-		dummyResource.populateWithDefaultSchema();
-		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
-		accountObjectClass.addAttributeDefinition(ProvisioningTestUtil.CONNID_DESCRIPTION_NAME, String.class);
-	}
+    @Autowired(required=true)
+    private SynchronizationServiceMock syncServiceMock;
 
 
-	/**
-	 * This should be the very first test that works with the resource.
-	 *
-	 * The original repository object does not have resource schema. The schema
-	 * should be generated from the resource on the first use. This is the test
-	 * that executes testResource and checks whether the schema was generated.
-	 */
-	@Test
-	public void test003Connection() throws Exception {
-		final String TEST_NAME = "test003Connection";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		// Check that there is no schema before test (pre-condition)
-		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
-				null, result).asObjectable();
-		assertNotNull("No connector ref", resourceBefore.getConnectorRef());
-		assertNotNull("No connector ref OID", resourceBefore.getConnectorRef().getOid());
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, resourceBefore
-				.getConnectorRef().getOid(), null, result).asObjectable();
-		assertNotNull(connector);
-		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
-		Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
-		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
+    public TestDummyHacks() {
+        super();
+    }
 
-		// WHEN
-		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
+     */
 
-		// THEN
-		display("Test result", testResult);
-		TestUtil.assertSuccess("Test resource failed (result)", testResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        // DO NOT DO provisioningService.postInit(..)
+        // We want to avoid connector discovery and insert our own connector object
+//        provisioningService.postInit(initResult);
 
-		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
-		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
-		display("Resource after test", resourceTypeRepoAfter);
+        connector = repoAddObjectFromFile(CONNECTOR_DUMMY_FILE, initResult);
 
-		XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
-		assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
-		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
-		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
+        resource = repoAddObjectFromFile(RESOURCE_DUMMY_FILE, initResult);
+        resourceType = resource.asObjectable();
 
-		String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
-		display("Resource XML", resourceXml);
+        dummyResource = DummyResource.getInstance();
+        dummyResource.reset();
+        dummyResource.populateWithDefaultSchema();
+        DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
+        accountObjectClass.addAttributeDefinition(ProvisioningTestUtil.CONNID_DESCRIPTION_NAME, String.class);
+    }
 
-		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
-		assertNotNull("No caching metadata", cachingMetadata);
-		assertNotNull("No retrievalTimestamp", cachingMetadata.getRetrievalTimestamp());
-		assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
 
-		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
-		ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceBefore.toString(), prismContext);
-		assertNotNull("No schema after parsing", parsedSchema);
-		display("Parsed schema", parsedSchema);
+    /**
+     * This should be the very first test that works with the resource.
+     *
+     * The original repository object does not have resource schema. The schema
+     * should be generated from the resource on the first use. This is the test
+     * that executes testResource and checks whether the schema was generated.
+     */
+    @Test
+    public void test003Connection() throws Exception {
+        final String TEST_NAME = "test003Connection";
+        TestUtil.displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        // Check that there is no schema before test (pre-condition)
+        ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
+                null, result).asObjectable();
+        assertNotNull("No connector ref", resourceBefore.getConnectorRef());
+        assertNotNull("No connector ref OID", resourceBefore.getConnectorRef().getOid());
+        ConnectorType connector = repositoryService.getObject(ConnectorType.class, resourceBefore
+                .getConnectorRef().getOid(), null, result).asObjectable();
+        assertNotNull(connector);
+        XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
+        Element resourceXsdSchemaElementBefore = ResourceTypeUtil.getResourceXsdSchema(resourceBefore);
+        AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
-		ComplexTypeDefinition accountDef = parsedSchema.findComplexTypeDefinition(
-				new QName(parsedSchema.getNamespace(),SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
-		assertNotNull("No account definition in schema after parsing", accountDef);
-		PrismAsserts.assertPropertyDefinition(accountDef,
-				SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1);
-		PrismAsserts.assertPropertyDefinition(accountDef,
-				new QName(SchemaConstants.NS_ICF_SCHEMA, "description"),
-				DOMUtil.XSD_STRING, 0, 1);
+        // WHEN
+        OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
 
-		// The useless configuration variables should be reflected to the resource now
-		assertEquals("Wrong useless string", "Shiver me timbers!", dummyResource.getUselessString());
-		assertEquals("Wrong guarded useless string", "Dead men tell no tales", dummyResource.getUselessGuardedString());
-	}
+        // THEN
+        display("Test result", testResult);
+        TestUtil.assertSuccess("Test resource failed (result)", testResult);
+
+        PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+        ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
+        display("Resource after test", resourceTypeRepoAfter);
+
+        XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
+        assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
+        Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
+        assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
+
+        String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
+        display("Resource XML", resourceXml);
+
+        CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
+        assertNotNull("No caching metadata", cachingMetadata);
+        assertNotNull("No retrievalTimestamp", cachingMetadata.getRetrievalTimestamp());
+        assertNotNull("No serialNumber", cachingMetadata.getSerialNumber());
+
+        Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
+        ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceBefore.toString(), prismContext);
+        assertNotNull("No schema after parsing", parsedSchema);
+        display("Parsed schema", parsedSchema);
+
+        ComplexTypeDefinition accountDef = parsedSchema.findComplexTypeDefinition(
+                new QName(parsedSchema.getNamespace(),SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+        assertNotNull("No account definition in schema after parsing", accountDef);
+        PrismAsserts.assertPropertyDefinition(accountDef,
+                SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1);
+        PrismAsserts.assertPropertyDefinition(accountDef,
+                new QName(SchemaConstants.NS_ICF_SCHEMA, "description"),
+                DOMUtil.XSD_STRING, 0, 1);
+
+        // The useless configuration variables should be reflected to the resource now
+        assertEquals("Wrong useless string", "Shiver me timbers!", dummyResource.getUselessString());
+        assertEquals("Wrong guarded useless string", "Dead men tell no tales", dummyResource.getUselessGuardedString());
+    }
 
 }

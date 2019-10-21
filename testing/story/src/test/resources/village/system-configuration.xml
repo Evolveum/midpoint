@@ -2,21 +2,21 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SystemConfiguration</name>
     <logging>
-    	<rootLoggerAppender>File Appender</rootLoggerAppender>
-    	<rootLoggerLevel>INFO</rootLoggerLevel>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
         <classLogger>
-	        <level>TRACE</level>
-	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-      	</classLogger>
+            <level>TRACE</level>
+            <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+          </classLogger>
         <c:classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>
@@ -28,11 +28,11 @@
         </appender>
     </logging>
     <defaultObjectPolicyConfiguration>
-    	<type>UserType</type>
-    	<propertyConstraint>
-    		<path>employeeNumber</path>
-    		<oidBound>true</oidBound>
-    	</propertyConstraint>
+        <type>UserType</type>
+        <propertyConstraint>
+            <path>employeeNumber</path>
+            <oidBound>true</oidBound>
+        </propertyConstraint>
     </defaultObjectPolicyConfiguration>
     <notificationConfiguration>
         <!--<dummyNotifier name="newAccounts">-->
@@ -50,81 +50,81 @@
             <!--</expressionFilter>-->
         <!--</dummyNotifier>-->
         <handler>
-	        <accountPasswordNotifier>
-	            <recipientExpression>
-	                <value>recipient@evolveum.com</value>
-	            </recipientExpression>
-	            <transport>dummy:accountPasswordNotifier</transport>
-	        </accountPasswordNotifier>
+            <accountPasswordNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:accountPasswordNotifier</transport>
+            </accountPasswordNotifier>
         </handler>
         <handler>
-	        <userPasswordNotifier>
-	            <recipientExpression>
-	                <value>recipient@evolveum.com</value>
-	            </recipientExpression>
-	            <transport>dummy:userPasswordNotifier</transport>
-	        </userPasswordNotifier>
+            <userPasswordNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:userPasswordNotifier</transport>
+            </userPasswordNotifier>
         </handler>
         <handler>
-        	<status>success</status>
-	        <simpleResourceObjectNotifier>
-	            <recipientExpression>
-	                <value>recipient@evolveum.com</value>
-	            </recipientExpression>
-	            <transport>dummy:simpleAccountNotifier-SUCCESS</transport>
-	        </simpleResourceObjectNotifier>
+            <status>success</status>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleAccountNotifier-SUCCESS</transport>
+            </simpleResourceObjectNotifier>
         </handler>
         <handler>
-	        <status>failure</status>
-	        <simpleResourceObjectNotifier>
-	            <recipientExpression>
-	                <value>recipient@evolveum.com</value>
-	            </recipientExpression>
-	            <transport>dummy:simpleAccountNotifier-FAILURE</transport>
-	        </simpleResourceObjectNotifier>
+            <status>failure</status>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleAccountNotifier-FAILURE</transport>
+            </simpleResourceObjectNotifier>
         </handler>
         <handler>
-	        <operation>add</operation>
-	        <status>success</status>
-	        <simpleResourceObjectNotifier>
-	            <recipientExpression>
-	                <value>recipient@evolveum.com</value>
-	            </recipientExpression>
-	            <transport>dummy:simpleAccountNotifier-ADD-SUCCESS</transport>
-	        </simpleResourceObjectNotifier>
+            <operation>add</operation>
+            <status>success</status>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleAccountNotifier-ADD-SUCCESS</transport>
+            </simpleResourceObjectNotifier>
         </handler>
         <handler>
-	        <operation>delete</operation>
-	        <status>success</status>
-	        <simpleResourceObjectNotifier>
-	            <recipientExpression>
-	                <value>recipient@evolveum.com</value>
-	            </recipientExpression>
-	            <transport>dummy:simpleAccountNotifier-DELETE-SUCCESS</transport>
-	        </simpleResourceObjectNotifier>
+            <operation>delete</operation>
+            <status>success</status>
+            <simpleResourceObjectNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleAccountNotifier-DELETE-SUCCESS</transport>
+            </simpleResourceObjectNotifier>
         </handler>
         <handler>
-	        <simpleUserNotifier>
-	            <recipientExpression>
-	                <value>recipient@evolveum.com</value>
-	            </recipientExpression>
-	            <transport>dummy:simpleUserNotifier</transport>
-	        </simpleUserNotifier>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleUserNotifier</transport>
+            </simpleUserNotifier>
         </handler>
         <handler>
-	        <chained>
-	            <operation>add</operation>
-	        </chained>
-	        <chained>
-	            <simpleUserNotifier>
-	                <recipientExpression>
-	                    <value>recipient@evolveum.com</value>
-	                </recipientExpression>
-	                <transport>dummy:simpleUserNotifier-ADD</transport>
-	            </simpleUserNotifier>
-	        </chained>
-	    </handler>
-	    <handler>
+            <chained>
+                <operation>add</operation>
+            </chained>
+            <chained>
+                <simpleUserNotifier>
+                    <recipientExpression>
+                        <value>recipient@evolveum.com</value>
+                    </recipientExpression>
+                    <transport>dummy:simpleUserNotifier-ADD</transport>
+                </simpleUserNotifier>
+            </chained>
+        </handler>
+        <handler>
             <chained>
                 <operation>delete</operation>
             </chained>

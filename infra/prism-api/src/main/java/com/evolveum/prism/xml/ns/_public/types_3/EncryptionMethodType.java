@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 //
@@ -28,11 +28,11 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  *
- * 				TODO
+ *                 TODO
  *
- * 				Loosely based on XML encryption standard. But we cannot use full
- * 				standard as we are not bound to XML. We need this to work also for
- * 				JSON and YAML and other languages.
+ *                 Loosely based on XML encryption standard. But we cannot use full
+ *                 standard as we are not bound to XML. We need this to work also for
+ *                 JSON and YAML and other languages.
  *
  *
  * <p>Java class for EncryptionMethodType complex type.
@@ -85,35 +85,35 @@ public class EncryptionMethodType  implements Serializable, Cloneable, JaxbVisit
         this.algorithm = value;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((algorithm == null) ? 0 : algorithm.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((algorithm == null) ? 0 : algorithm.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		EncryptionMethodType other = (EncryptionMethodType) obj;
-		if (algorithm == null) {
-			if (other.algorithm != null)
-				return false;
-		} else if (!algorithm.equals(other.algorithm))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        EncryptionMethodType other = (EncryptionMethodType) obj;
+        if (algorithm == null) {
+            if (other.algorithm != null)
+                return false;
+        } else if (!algorithm.equals(other.algorithm))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "EncryptionMethodType(algorithm=" + algorithm + ")";
-	}
+    @Override
+    public String toString() {
+        return "EncryptionMethodType(algorithm=" + algorithm + ")";
+    }
 
     public EncryptionMethodType clone() {
         EncryptionMethodType cloned = new EncryptionMethodType();
@@ -121,8 +121,8 @@ public class EncryptionMethodType  implements Serializable, Cloneable, JaxbVisit
         return cloned;
     }
 
-	@Override
-	public void accept(JaxbVisitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+    }
 }

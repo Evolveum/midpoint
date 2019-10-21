@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -79,7 +79,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
     @Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
 
-		final ModelEvent modelEvent = (ModelEvent) event;
+        final ModelEvent modelEvent = (ModelEvent) event;
         String typeName = modelEvent.getFocusTypeName();
 
         if (event.isAdd()) {
@@ -96,14 +96,14 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
     @Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) throws SchemaException {
 
-		final ModelEvent modelEvent = (ModelEvent) event;
+        final ModelEvent modelEvent = (ModelEvent) event;
 
-		String typeName = modelEvent.getFocusTypeName();
+        String typeName = modelEvent.getFocusTypeName();
         String typeNameLower = typeName.toLowerCase();
 
         boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
 
-		ModelContext<FocusType> modelContext = (ModelContext) modelEvent.getModelContext();
+        ModelContext<FocusType> modelContext = (ModelContext) modelEvent.getModelContext();
         ModelElementContext<FocusType> focusContext = modelContext.getFocusContext();
         PrismObject<FocusType> focus = focusContext.getObjectNew() != null ? focusContext.getObjectNew() : focusContext.getObjectOld();
         FocusType userType = focus.asObjectable();
@@ -126,24 +126,24 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
 
         StringBuilder body = new StringBuilder();
 
-		String status = modelEvent.getStatusAsText();
+        String status = modelEvent.getStatusAsText();
         String attemptedTo = event.isSuccess() ? "" : "(attempted to be) ";
 
         body.append("Notification about ").append(typeNameLower).append("-related operation (status: ").append(status).append(")\n\n");
         body.append(typeName).append(": ").append(fullName).append(" (").append(userType.getName()).append(", oid ").append(oid).append(")\n");
         body.append("Notification created on: ").append(new Date()).append("\n\n");
 
-		final boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(generalNotifierType);
-		if (delta.isAdd()) {
+        final boolean watchAuxiliaryAttributes = isWatchAuxiliaryAttributes(generalNotifierType);
+        if (delta.isAdd()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("created with the following data:\n");
             body.append(modelEvent.getContentAsFormattedList(false, watchAuxiliaryAttributes));
         } else if (delta.isModify()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("modified. Modified attributes are:\n");
-			body.append(modelEvent.getContentAsFormattedList(false, watchAuxiliaryAttributes));
+            body.append(modelEvent.getContentAsFormattedList(false, watchAuxiliaryAttributes));
         } else if (delta.isDelete()) {
             body.append("The ").append(typeNameLower).append(" record was ").append(attemptedTo).append("removed.\n");
         }
-		body.append("\n");
+        body.append("\n");
 
         if (!event.isSuccess()) {
             body.append("More information about the status of the request was displayed and/or is present in log files.\n\n");
@@ -160,7 +160,7 @@ public class SimpleFocalObjectNotifier extends GeneralNotifier {
         return body.toString();
     }
 
-	@Override
+    @Override
     protected Trace getLogger() {
         return LOGGER;
     }

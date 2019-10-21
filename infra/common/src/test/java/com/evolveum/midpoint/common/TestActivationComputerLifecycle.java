@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.common;
@@ -38,72 +38,72 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusTy
  *
  */
 public class TestActivationComputerLifecycle extends AbstractActivationComputerTest {
-	
-	private static final File SYSTEM_CONFIGURATION_LIFECYCLE_FILE = new File("src/test/resources/system-configuration-lifecycle.xml");
+
+    private static final File SYSTEM_CONFIGURATION_LIFECYCLE_FILE = new File("src/test/resources/system-configuration-lifecycle.xml");
 
     @Override
     protected LifecycleStateModelType createLifecycleModel() throws SchemaException, IOException {
-    	PrismObject<SystemConfigurationType> systemConfig = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_LIFECYCLE_FILE);
-    	List<ObjectPolicyConfigurationType> objectPolicyConfigurations = systemConfig.asObjectable().getDefaultObjectPolicyConfiguration();
-    	return objectPolicyConfigurations.get(0).getLifecycleStateModel();
-    }    
+        PrismObject<SystemConfigurationType> systemConfig = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_LIFECYCLE_FILE);
+        List<ObjectPolicyConfigurationType> objectPolicyConfigurations = systemConfig.asObjectable().getDefaultObjectPolicyConfiguration();
+        return objectPolicyConfigurations.get(0).getLifecycleStateModel();
+    }
 
     @Test
     @Override
     public void testGetProposedAdministrativeEnabled() throws Exception {
-    	System.out.println("\n===[ testGetProposedAdministrativeEnabled ]===\n");
+        System.out.println("\n===[ testGetProposedAdministrativeEnabled ]===\n");
 
         // GIVEN
-    	Clock clock = createClock(YEAR_START);
-    	ActivationComputer activationComputer = createActivationComputer(clock);
-    	ActivationType activationType = createActivationType(ActivationStatusType.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
+        Clock clock = createClock(YEAR_START);
+        ActivationComputer activationComputer = createActivationComputer(clock);
+        ActivationType activationType = createActivationType(ActivationStatusType.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
 
-    	// WHEN
-    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(SchemaConstants.LIFECYCLE_PROPOSED, activationType, createLifecycleModel());
+        // WHEN
+        ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(SchemaConstants.LIFECYCLE_PROPOSED, activationType, createLifecycleModel());
 
-    	// THEN
-    	assertEquals("Unexpected effective status", ActivationStatusType.ENABLED, effectiveStatus);
+        // THEN
+        assertEquals("Unexpected effective status", ActivationStatusType.ENABLED, effectiveStatus);
     }
-    
+
     @Test
     @Override
     public void testGetDraftAdministrativeEnabled() throws Exception {
-    	System.out.println("\n===[ testGetDraftAdministrativeEnabled ]===\n");
+        System.out.println("\n===[ testGetDraftAdministrativeEnabled ]===\n");
 
         // GIVEN
-    	Clock clock = createClock(YEAR_START);
-    	ActivationComputer activationComputer = createActivationComputer(clock);
-    	ActivationType activationType = createActivationType(ActivationStatusType.DISABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
+        Clock clock = createClock(YEAR_START);
+        ActivationComputer activationComputer = createActivationComputer(clock);
+        ActivationType activationType = createActivationType(ActivationStatusType.DISABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
 
-    	// WHEN
-    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(SchemaConstants.LIFECYCLE_DRAFT, activationType, createLifecycleModel());
+        // WHEN
+        ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(SchemaConstants.LIFECYCLE_DRAFT, activationType, createLifecycleModel());
 
-    	// THEN
-    	assertEquals("Unexpected effective status", ActivationStatusType.ARCHIVED, effectiveStatus);
+        // THEN
+        assertEquals("Unexpected effective status", ActivationStatusType.ARCHIVED, effectiveStatus);
     }
-    
+
     @Override
     protected void testComputeDraft(final String TEST_NAME, XMLGregorianCalendar now, ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom,
-			XMLGregorianCalendar validTo, ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity) throws SchemaException, IOException {
-    	testCompute(TEST_NAME, SchemaConstants.LIFECYCLE_DRAFT, now, administrativeStatus, validFrom, validTo, ActivationStatusType.ARCHIVED, expectedValidity);
+            XMLGregorianCalendar validTo, ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity) throws SchemaException, IOException {
+        testCompute(TEST_NAME, SchemaConstants.LIFECYCLE_DRAFT, now, administrativeStatus, validFrom, validTo, ActivationStatusType.ARCHIVED, expectedValidity);
     }
-    
+
     @Override
     protected void testComputeProposed(final String TEST_NAME, XMLGregorianCalendar now, ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom,
-			XMLGregorianCalendar validTo, ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity) throws SchemaException, IOException {
-    	testCompute(TEST_NAME, SchemaConstants.LIFECYCLE_PROPOSED, now, administrativeStatus, validFrom, validTo, expectedEffective, expectedValidity);
+            XMLGregorianCalendar validTo, ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity) throws SchemaException, IOException {
+        testCompute(TEST_NAME, SchemaConstants.LIFECYCLE_PROPOSED, now, administrativeStatus, validFrom, validTo, expectedEffective, expectedValidity);
     }
-    
+
     @Override
     protected void testComputeCharmed(final String TEST_NAME, XMLGregorianCalendar now, ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom,
-			XMLGregorianCalendar validTo, ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity) throws SchemaException, IOException {
-    	testCompute(TEST_NAME, LIFECYCLE_STATE_CHARMED, now, administrativeStatus, validFrom, validTo, expectedEffective, expectedValidity);
+            XMLGregorianCalendar validTo, ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity) throws SchemaException, IOException {
+        testCompute(TEST_NAME, LIFECYCLE_STATE_CHARMED, now, administrativeStatus, validFrom, validTo, expectedEffective, expectedValidity);
     }
-    
+
     @Override
     protected void testComputeInhumed(final String TEST_NAME, XMLGregorianCalendar now, ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom,
-			XMLGregorianCalendar validTo, ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity) throws SchemaException, IOException {
-    	testCompute(TEST_NAME, LIFECYCLE_STATE_INHUMED, now, administrativeStatus, validFrom, validTo, ActivationStatusType.ARCHIVED, expectedValidity);
+            XMLGregorianCalendar validTo, ActivationStatusType expectedEffective, TimeIntervalStatusType expectedValidity) throws SchemaException, IOException {
+        testCompute(TEST_NAME, LIFECYCLE_STATE_INHUMED, now, administrativeStatus, validFrom, validTo, ActivationStatusType.ARCHIVED, expectedValidity);
     }
-    
+
 }

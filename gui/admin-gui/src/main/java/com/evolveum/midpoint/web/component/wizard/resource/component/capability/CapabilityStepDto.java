@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,15 +21,15 @@ public class CapabilityStepDto implements Serializable {
 
     public static final String F_CAPABILITIES = "capabilities";
 
-	private CapabilityDto selectedDto;
+    private CapabilityDto selectedDto;
 
     private List<CapabilityDto<CapabilityType>> capabilities = new ArrayList<>();
 
-	public CapabilityStepDto(List<CapabilityDto<CapabilityType>> capabilities) {
-		this.capabilities = capabilities;
-	}
+    public CapabilityStepDto(List<CapabilityDto<CapabilityType>> capabilities) {
+        this.capabilities = capabilities;
+    }
 
-	public List<CapabilityDto<CapabilityType>> getCapabilities() {
+    public List<CapabilityDto<CapabilityType>> getCapabilities() {
         return capabilities;
     }
 
@@ -37,12 +37,12 @@ public class CapabilityStepDto implements Serializable {
         this.capabilities = capabilities;
     }
 
-	public CapabilityDto getSelectedDto() {
-		return selectedDto;
-	}
+    public CapabilityDto getSelectedDto() {
+        return selectedDto;
+    }
 
-	public void setSelected(CapabilityDto selected) {
-		this.selectedDto = selected;
-	}
+    public void setSelected(CapabilityDto selected) {
+        this.selectedDto = selected;
+    }
 
 }

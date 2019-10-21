@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -14,15 +14,15 @@ import com.evolveum.midpoint.prism.ItemDefinition;
  */
 public interface ExistsFilter extends ObjectFilter, ItemFilter {
 
-	ItemDefinition getDefinition();
+    ItemDefinition getDefinition();
 
-	ObjectFilter getFilter();
+    ObjectFilter getFilter();
 
-	void setFilter(ObjectFilter filter);
+    void setFilter(ObjectFilter filter);
 
-	@Override
-	ExistsFilter clone();
+    @Override
+    ExistsFilter clone();
 
-	ExistsFilter cloneEmpty();
+    ExistsFilter cloneEmpty();
 
 }

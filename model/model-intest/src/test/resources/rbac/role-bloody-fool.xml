@@ -1,14 +1,14 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="0a0ac150-af3d-11e6-9901-67fbcbd5bb25"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Bloody Fool</name>
     <assignment>
-    	<!-- Fool metarole -->
+        <!-- Fool metarole -->
         <targetRef oid="2edc5fe4-af3c-11e6-a81e-eb332578ec4f" type="RoleType"/>
     </assignment>
 </role>

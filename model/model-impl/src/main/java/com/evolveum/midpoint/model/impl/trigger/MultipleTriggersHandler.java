@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.trigger;
@@ -20,9 +20,9 @@ import java.util.Collection;
  */
 public interface MultipleTriggersHandler extends TriggerHandler {
 
-	/**
-	 * @pre triggers have the same timestamp
-	 * @return triggers that were successfully processed (and should be therefore removed from the object)
-	 */
-	<O extends ObjectType> Collection<TriggerType> handle(PrismObject<O> object, Collection<TriggerType> triggers, RunningTask task, OperationResult result);
+    /**
+     * @pre triggers have the same timestamp
+     * @return triggers that were successfully processed (and should be therefore removed from the object)
+     */
+    <O extends ObjectType> Collection<TriggerType> handle(PrismObject<O> object, Collection<TriggerType> triggers, RunningTask task, OperationResult result);
 }

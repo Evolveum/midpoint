@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -29,36 +29,36 @@ import static com.evolveum.midpoint.schema.TestConstants.COMMON_DIR_PATH;
  */
 public abstract class AbstractParserTest {
 
-	protected String language;
-	protected boolean namespaces;
+    protected String language;
+    protected boolean namespaces;
 
-	@BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
-	@BeforeClass
-	@Parameters({ "language", "namespaces" })
-	public void temp(@Optional String language, @Optional Boolean namespaces) {
-		this.language = language != null ? language : "xml";
-		this.namespaces = namespaces != null ? namespaces : Boolean.TRUE;
-		System.out.println("Testing with language = " + this.language + ", namespaces = " + this.namespaces);
-	}
+    @BeforeClass
+    @Parameters({ "language", "namespaces" })
+    public void temp(@Optional String language, @Optional Boolean namespaces) {
+        this.language = language != null ? language : "xml";
+        this.namespaces = namespaces != null ? namespaces : Boolean.TRUE;
+        System.out.println("Testing with language = " + this.language + ", namespaces = " + this.namespaces);
+    }
 
-	protected File getFile(String baseName) {
-		return new File(COMMON_DIR_PATH + "/" + language + "/" + (namespaces ? "ns":"no-ns"),
-				baseName + "." + language);
-	}
+    protected File getFile(String baseName) {
+        return new File(COMMON_DIR_PATH + "/" + language + "/" + (namespaces ? "ns":"no-ns"),
+                baseName + "." + language);
+    }
 
-	protected void displayTestTitle(String testName) {
-		PrismTestUtil.displayTestTitle(testName + " (" + language + ", " + (namespaces ? "with" : "no") + " namespaces)");
-	}
+    protected void displayTestTitle(String testName) {
+        PrismTestUtil.displayTestTitle(testName + " (" + language + ", " + (namespaces ? "with" : "no") + " namespaces)");
+    }
 
-	protected abstract File getFile();
+    protected abstract File getFile();
 
-	protected PrismContext getPrismContext() {
-		return PrismTestUtil.getPrismContext();
-	}
+    protected PrismContext getPrismContext() {
+        return PrismTestUtil.getPrismContext();
+    }
 
 }

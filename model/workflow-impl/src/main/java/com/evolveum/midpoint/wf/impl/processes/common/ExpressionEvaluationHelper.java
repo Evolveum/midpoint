@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -44,79 +44,79 @@ import java.util.function.Function;
 @Component
 public class ExpressionEvaluationHelper {
 
-	@Autowired private ExpressionFactory expressionFactory;
-	@Autowired private PrismContext prismContext;
+    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private PrismContext prismContext;
 
-	public List<ObjectReferenceType> evaluateRefExpressions(List<ExpressionType> expressions,
-			ExpressionVariables variables, String contextDescription,
-			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		List<ObjectReferenceType> retval = new ArrayList<>();
-		for (ExpressionType expression : expressions) {
-			retval.addAll(evaluateRefExpression(expression, variables, contextDescription, task, result));
-		}
-		return retval;
-	}
+    public List<ObjectReferenceType> evaluateRefExpressions(List<ExpressionType> expressions,
+            ExpressionVariables variables, String contextDescription,
+            Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+        List<ObjectReferenceType> retval = new ArrayList<>();
+        for (ExpressionType expression : expressions) {
+            retval.addAll(evaluateRefExpression(expression, variables, contextDescription, task, result));
+        }
+        return retval;
+    }
 
-	public List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables variables,
-			String contextDescription, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return evaluateExpression(expressionType, variables, contextDescription, ObjectReferenceType.class,
-				ObjectReferenceType.COMPLEX_TYPE, false, ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE), task, result);
-	}
+    public List<ObjectReferenceType> evaluateRefExpression(ExpressionType expressionType, ExpressionVariables variables,
+            String contextDescription, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return evaluateExpression(expressionType, variables, contextDescription, ObjectReferenceType.class,
+                ObjectReferenceType.COMPLEX_TYPE, false, ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE), task, result);
+    }
 
-	@SuppressWarnings("unchecked")
-	@NotNull
-	public <T> List<T> evaluateExpression(ExpressionType expressionType, ExpressionVariables variables,
-			String contextDescription, Class<T> clazz, QName typeName,
-			boolean multiValued, Function<Object, Object> additionalConvertor, Task task,
-			OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		MutableItemDefinition<?> resultDef;
-		ItemName resultName = new ItemName(SchemaConstants.NS_C, "result");
-		if (QNameUtil.match(typeName, ObjectReferenceType.COMPLEX_TYPE)) {
-			resultDef = prismContext.definitionFactory().createReferenceDefinition(resultName, typeName);
-		} else {
-			resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, typeName);
-		}
-		if (multiValued) {
-			resultDef.setMaxOccurs(-1);
-		}
-		Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
-		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task);
-		context.setAdditionalConvertor(additionalConvertor);
-		PrismValueDeltaSetTriple<?> exprResultTriple = ModelExpressionThreadLocalHolder
-				.evaluateAnyExpressionInContext(expression, context, task, result);
-		List<T> list = new ArrayList<>();
-		for (PrismValue pv : exprResultTriple.getZeroSet()) {
-			T realValue;
-			if (pv instanceof PrismReferenceValue) {
-				// pv.getRealValue sometimes returns synthesized Referencable, not ObjectReferenceType
-				// If we would stay with that we would need to make many changes throughout workflow module.
-				// So it is safer to stay with ObjectReferenceType.
-				ObjectReferenceType ort = new ObjectReferenceType();
-				ort.setupReferenceValue((PrismReferenceValue) pv);
-				realValue = (T) ort;
-			} else {
-				realValue = pv.getRealValue();
-			}
-			list.add(realValue);
-		}
-		return list;
-	}
+    @SuppressWarnings("unchecked")
+    @NotNull
+    public <T> List<T> evaluateExpression(ExpressionType expressionType, ExpressionVariables variables,
+            String contextDescription, Class<T> clazz, QName typeName,
+            boolean multiValued, Function<Object, Object> additionalConvertor, Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        MutableItemDefinition<?> resultDef;
+        ItemName resultName = new ItemName(SchemaConstants.NS_C, "result");
+        if (QNameUtil.match(typeName, ObjectReferenceType.COMPLEX_TYPE)) {
+            resultDef = prismContext.definitionFactory().createReferenceDefinition(resultName, typeName);
+        } else {
+            resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, typeName);
+        }
+        if (multiValued) {
+            resultDef.setMaxOccurs(-1);
+        }
+        Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
+        ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task);
+        context.setAdditionalConvertor(additionalConvertor);
+        PrismValueDeltaSetTriple<?> exprResultTriple = ModelExpressionThreadLocalHolder
+                .evaluateAnyExpressionInContext(expression, context, task, result);
+        List<T> list = new ArrayList<>();
+        for (PrismValue pv : exprResultTriple.getZeroSet()) {
+            T realValue;
+            if (pv instanceof PrismReferenceValue) {
+                // pv.getRealValue sometimes returns synthesized Referencable, not ObjectReferenceType
+                // If we would stay with that we would need to make many changes throughout workflow module.
+                // So it is safer to stay with ObjectReferenceType.
+                ObjectReferenceType ort = new ObjectReferenceType();
+                ort.setupReferenceValue((PrismReferenceValue) pv);
+                realValue = (T) ort;
+            } else {
+                realValue = pv.getRealValue();
+            }
+            list.add(realValue);
+        }
+        return list;
+    }
 
-	public boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
-			String contextDescription, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		Collection<Boolean> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
-				Boolean.class, DOMUtil.XSD_BOOLEAN, false, null, task, result);
-		return MiscUtil.getSingleValue(values, false, contextDescription);
-	}
+    public boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+            String contextDescription, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        Collection<Boolean> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
+                Boolean.class, DOMUtil.XSD_BOOLEAN, false, null, task, result);
+        return MiscUtil.getSingleValue(values, false, contextDescription);
+    }
 
-	public String evaluateStringExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
-			String contextDescription, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		Collection<String> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
-				String.class, DOMUtil.XSD_STRING, false, null, task, result);
-		return MiscUtil.getSingleValue(values, null, contextDescription);
-	}
+    public String evaluateStringExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+            String contextDescription, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        Collection<String> values = evaluateExpression(expressionType, expressionVariables, contextDescription,
+                String.class, DOMUtil.XSD_STRING, false, null, task, result);
+        return MiscUtil.getSingleValue(values, null, contextDescription);
+    }
 }

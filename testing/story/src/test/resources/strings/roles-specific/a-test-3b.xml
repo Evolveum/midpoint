@@ -1,18 +1,18 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="0090e8a0-05a7-4181-b763-265cd2804ca7"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-	<name>a-test-3b</name>
-	<c:description>Testing SoD with induced role (test-3y)</c:description>
-	<inducement>
-		<targetRef oid="1e422483-997c-4808-bebd-0151d18a391e" type="RoleType" />		<!-- 3y -->
-	</inducement>
-	<roleType>test</roleType>
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>a-test-3b</name>
+    <c:description>Testing SoD with induced role (test-3y)</c:description>
+    <inducement>
+        <targetRef oid="1e422483-997c-4808-bebd-0151d18a391e" type="RoleType" />        <!-- 3y -->
+    </inducement>
+    <roleType>test</roleType>
 </role>

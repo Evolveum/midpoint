@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -151,7 +151,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         int count = 0;
         elements = prismContext.parserFor(file).parseObjects();
         for (int i = 0; i < elements.size(); i++) {
-        	PrismObject object = elements.get(i);
+            PrismObject object = elements.get(i);
             try {
                 object.asObjectable().setOid(oids.get(i));
 
@@ -249,8 +249,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         PrismContainerDefinition def = oldContainer.getDefinition();
         if (def != null && def.isMultiValue()) {
-        	// Comparison item-by-item is not reliable
-        	return;
+            // Comparison item-by-item is not reliable
+            return;
         }
         List<Long> checked = new ArrayList<>();
         List<PrismContainerValue> newValues = newContainer.getValues();
@@ -333,9 +333,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
     @Test
     public void testAddGetSystemConfigFile() throws Exception {
-    	final String TEST_NAME = "testAddGetSystemConfigFile";
+        final String TEST_NAME = "testAddGetSystemConfigFile";
         LOGGER.info("===[ {} ]===", TEST_NAME);
-        
+
         PrismObject<SecurityPolicyType> securityPolicy = prismContext.parseObject(new File(FOLDER_BASIC, "security-policy-special.xml"));
 
         OperationResult result = new OperationResult(TEST_NAME);
@@ -363,10 +363,10 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 prismContext.itemFactory().createReferenceValue(repoSecurityPolicy));
         List<ReferenceDelta> refDeltas = new ArrayList<>();
         refDeltas.add(refDelta);
-        
+
         // WHEN
         repositoryService.modifyObject(SystemConfigurationType.class, systemCongigOid, refDeltas, result);
-        
+
         // THEN
         repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, null, result);
         LOGGER.info("system config after modify: {}", repoSystemConfig.debugDump());
@@ -398,10 +398,10 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
     @Test
     public void addGetRoleWithResourceRefFilter() throws Exception{
-    	PrismObject<RoleType> role = prismContext.parseObject(new File("src/test/resources/basic/role-resource-filter.xml"));
+        PrismObject<RoleType> role = prismContext.parseObject(new File("src/test/resources/basic/role-resource-filter.xml"));
 
-    	System.out.println("role: " + role.debugDump());
-    	System.out.println("role: " + role.asObjectable().getInducement().get(0).getConstruction().getResourceRef().getFilter());
+        System.out.println("role: " + role.debugDump());
+        System.out.println("role: " + role.asObjectable().getInducement().get(0).getConstruction().getResourceRef().getFilter());
 
         OperationResult result = new OperationResult("sync desc test");
         String oid = repositoryService.addObject(role, null, result);
@@ -604,9 +604,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         }
     }
 
-	private final String OID_200 = "70016628-2c41-4a2d-9558-8340014adaab";
+    private final String OID_200 = "70016628-2c41-4a2d-9558-8340014adaab";
 
-	@Test
+    @Test
     public void test200WatcherAddWithOid() throws Exception {
         OperationResult result = new OperationResult("test200WatcherAddWithOid");
 
@@ -625,7 +625,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         assertFalse("false conflict reported for " + watcher, hasConflict);
     }
 
-	@Test
+    @Test
     public void test201WatcherOverwriteWithOidNoVersion() throws Exception {
         OperationResult result = new OperationResult("test201WatcherOverwriteWithOidNoVersion");
 
@@ -644,7 +644,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         assertFalse("false conflict reported for " + watcher, hasConflict);
     }
 
-	@Test
+    @Test
     public void test202WatcherOverwriteWithOidNoVersion2() throws Exception {
         OperationResult result = new OperationResult("test202WatcherOverwriteWithOidNoVersion2");
 
@@ -663,7 +663,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         assertFalse("false conflict reported for " + watcher, hasConflict);
     }
 
-	@Test
+    @Test
     public void test203WatcherOverwriteWithOidAndVersion() throws Exception {
         OperationResult result = new OperationResult("test203WatcherOverwriteWithOidAndVersion");
 
@@ -711,8 +711,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         // WHEN
         String oid = repositoryService.addObject(user.asPrismObject(), null, result);
-	    ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(oid);
-	    watcher.setExpectedVersion(user.getVersion());      // the version should be set by repo here
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(oid);
+        watcher.setExpectedVersion(user.getVersion());      // the version should be set by repo here
 
         // THEN
         assertTrue("watcher is not initialized", watcher.isInitialized());
@@ -731,8 +731,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         // WHEN
         String oid = repositoryService.addObject(user.asPrismObject(), null, result);
-	    ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(oid);
-	    watcher.setExpectedVersion(user.getVersion());      // the version should be preserved here
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(oid);
+        watcher.setExpectedVersion(user.getVersion());      // the version should be preserved here
 
         // THEN
         assertTrue("watcher is not initialized", watcher.isInitialized());

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.sync;
@@ -69,200 +69,200 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
 @Component
 public class DeleteNotUpdatedShadowTaskHandler extends AbstractSearchIterativeModelTaskHandler<ShadowType, AbstractSearchIterativeResultHandler<ShadowType>> {
 
-	public static final String HANDLER_URI = ModelPublicConstants.DELETE_NOT_UPDATE_SHADOW_TASK_HANDLER_URI;
-	private static final ItemName NOT_UPDATED_DURATION_PROPERTY_NAME = new ItemName(ModelConstants.NS_EXTENSION, "notUpdatedShadowsDuration");
+    public static final String HANDLER_URI = ModelPublicConstants.DELETE_NOT_UPDATE_SHADOW_TASK_HANDLER_URI;
+    private static final ItemName NOT_UPDATED_DURATION_PROPERTY_NAME = new ItemName(ModelConstants.NS_EXTENSION, "notUpdatedShadowsDuration");
 
     @Autowired private TaskManager taskManager;
-	@Autowired private PrismContext prismContext;
+    @Autowired private PrismContext prismContext;
     @Autowired private SynchronizationService synchronizationService;
     @Autowired private Clock clock;
     @Autowired private ModelService model;
     @Autowired private ProvisioningService provisioningService;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(DeleteNotUpdatedShadowTaskHandler.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(DeleteNotUpdatedShadowTaskHandler.class);
 
-	public DeleteNotUpdatedShadowTaskHandler() {
+    public DeleteNotUpdatedShadowTaskHandler() {
         super("DeleteNotUpdatedShadow", OperationConstants.DELETE_NOT_UPDATED_SHADOWS);
-		setLogFinishInfo(true);
-		setPreserveStatistics(false);
+        setLogFinishInfo(true);
+        setPreserveStatistics(false);
     }
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(HANDLER_URI, this);
+    }
 
-	protected Class<? extends ObjectType> getType(Task task) {
-		return getTypeFromTask(task, ShadowType.class);
-	}
+    protected Class<? extends ObjectType> getType(Task task) {
+        return getTypeFromTask(task, ShadowType.class);
+    }
 
-	@Override
-	protected AbstractSearchIterativeResultHandler<ShadowType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
-			OperationResult opResult) {
+    @Override
+    protected AbstractSearchIterativeResultHandler<ShadowType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
+            OperationResult opResult) {
 
-		AbstractSearchIterativeResultHandler<ShadowType> handler = new AbstractSearchIterativeResultHandler<ShadowType>(
-				coordinatorTask, DeleteNotUpdatedShadowTaskHandler.class.getName(), "delete not updated shadow", "delete not updated shadow task", partition, taskManager) {
-			
-			@Override
-			protected boolean handleObject(PrismObject<ShadowType> object, RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
-				deleteShadow(object, getOptions(coordinatorTask), workerTask, result);
-				return true;
-			}
+        AbstractSearchIterativeResultHandler<ShadowType> handler = new AbstractSearchIterativeResultHandler<ShadowType>(
+                coordinatorTask, DeleteNotUpdatedShadowTaskHandler.class.getName(), "delete not updated shadow", "delete not updated shadow task", partition, taskManager) {
 
-		};
+            @Override
+            protected boolean handleObject(PrismObject<ShadowType> object, RunningTask workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
+                deleteShadow(object, getOptions(coordinatorTask), workerTask, result);
+                return true;
+            }
+
+        };
         handler.setStopOnError(false);
         return handler;
-	}
-	
-	@Override
-	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
-			AbstractSearchIterativeResultHandler<ShadowType> resultHandler, TaskRunResult runResult,
-			Task coordinatorTask, OperationResult opResult) {
-		return SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-	}
-	
-	@Override
-	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<ShadowType> handler, TaskRunResult runResult,
-			Task task, OperationResult opResult) throws SchemaException {
-		Duration notUpdatedDuration = task.getExtensionPropertyRealValue(NOT_UPDATED_DURATION_PROPERTY_NAME);
-		if(notUpdatedDuration == null) {
-			throw new IllegalArgumentException("Duration for deleting not updated shadow is missing in task extension");
-		}
-		
-		String resourceOid = task.getObjectOid();
-		
-		if (resourceOid == null) {
-			throw new IllegalArgumentException("Resource OID is missing in task extension");
-		}
-		
-		PrismObject<ResourceType> resource = getResource(task);
-		ObjectClassComplexTypeDefinition objectclassDef = null;
-			
-		RefinedResourceSchema refinedSchema;
-		try {
-			refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-			objectclassDef = ModelImplUtils.determineObjectClass(refinedSchema, task);
-		} catch (SchemaException ex) {
-			// Not sure about this. But most likely it is a misconfigured resource or connector
-			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorPartial("Error dealing with schema", ex, opResult);
-		}
-		
-		LOGGER.trace("Resource {}", resource);
-			
-		if(notUpdatedDuration.getSign() == 1) {
-			notUpdatedDuration.negate();
-		}
-		Date deletingDate =  new Date(clock.currentTimeMillis());
-		notUpdatedDuration.addTo(deletingDate);
-		
-		ObjectQuery query = prismContext.queryFor(ShadowType.class)
-				.block()
-					.item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(deletingDate))
-					.or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
-				.endBlock()
-				.and().item(ShadowType.F_RESOURCE_REF).ref(ObjectTypeUtil.createObjectRef(resource, prismContext).asReferenceValue())
-				.and().item(ShadowType.F_OBJECT_CLASS).eq(objectclassDef.getTypeName())
-				.build();
-		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow query:\n{}", query.debugDump());
-		}
-		
-		return query;
-	}
-	
-	private PrismObject<ResourceType> getResource(Task task) {
-		
-		String resourceOid = task.getObjectOid();
-		if (resourceOid == null) {
-			throw new IllegalArgumentException("Resource OID is missing in task extension");
-		}
-		
-		PrismObject<ResourceType> resource = null;
-		ObjectClassComplexTypeDefinition objectclassDef = null;
-		try {
-			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, task, task.getResult());
-			
-			RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-			objectclassDef = ModelImplUtils.determineObjectClass(refinedSchema, task);
-		} catch (ObjectNotFoundException ex) {
-			// This is bad. The resource does not exist. Permanent problem.
-			processErrorPartial("Resource does not exist, OID: " + resourceOid, ex, task.getResult());
-		} catch (CommunicationException ex) {
-			// Error, but not critical. Just try later.
-			processErrorPartial("Communication error", ex, task.getResult());
-		} catch (SchemaException ex) {
-			// Not sure about this. But most likely it is a misconfigured resource or connector
-			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorPartial("Error dealing with schema", ex, task.getResult());
-		} catch (RuntimeException ex) {
-			// Can be anything ... but we can't recover from that.
-			// It is most likely a programming error. Does not make much sense
-			// to retry.
-			processErrorPartial("Internal Error", ex, task.getResult());
-		} catch (ConfigurationException ex) {
-			// Not sure about this. But most likely it is a misconfigured resource or connector
-			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorPartial("Configuration error", ex, task.getResult());
-		} catch (SecurityViolationException ex) {
-			processErrorPartial("Security violation", ex, task.getResult());
-		} catch (ExpressionEvaluationException ex) {
-			processErrorPartial("Expression error", ex, task.getResult());
-		}
-		
-		if(resource == null) {
-			throw new IllegalArgumentException("Resource is null");
-		}
-		
-		PrismProperty<AvailabilityStatusType> status = resource.findProperty(ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS));
-		
-		if(status == null || !AvailabilityStatusType.UP.equals(status.getRealValue())) {
-			throw new IllegalArgumentException("Resource have to have value of last availability status on UP");
-		}
-		
-		return resource;
-	}
-	
-	private void processErrorPartial(String errorDesc, Exception ex, OperationResult opResult) {
-		String message;
-		if (ex == null) {
-			message = errorDesc;
-		} else {
-			message = errorDesc+": "+ex.getMessage();
-		}
-		LOGGER.error("Reconciliation: {}-{}", new Object[]{message, ex});
-		opResult.recordFatalError(message, ex);
-	}
+    }
+
+    @Override
+    protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
+            AbstractSearchIterativeResultHandler<ShadowType> resultHandler, TaskRunResult runResult,
+            Task coordinatorTask, OperationResult opResult) {
+        return SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+    }
+
+    @Override
+    protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<ShadowType> handler, TaskRunResult runResult,
+            Task task, OperationResult opResult) throws SchemaException {
+        Duration notUpdatedDuration = task.getExtensionPropertyRealValue(NOT_UPDATED_DURATION_PROPERTY_NAME);
+        if(notUpdatedDuration == null) {
+            throw new IllegalArgumentException("Duration for deleting not updated shadow is missing in task extension");
+        }
+
+        String resourceOid = task.getObjectOid();
+
+        if (resourceOid == null) {
+            throw new IllegalArgumentException("Resource OID is missing in task extension");
+        }
+
+        PrismObject<ResourceType> resource = getResource(task);
+        ObjectClassComplexTypeDefinition objectclassDef = null;
+
+        RefinedResourceSchema refinedSchema;
+        try {
+            refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+            objectclassDef = ModelImplUtils.determineObjectClass(refinedSchema, task);
+        } catch (SchemaException ex) {
+            // Not sure about this. But most likely it is a misconfigured resource or connector
+            // It may be worth to retry. Error is fatal, but may not be permanent.
+            processErrorPartial("Error dealing with schema", ex, opResult);
+        }
+
+        LOGGER.trace("Resource {}", resource);
+
+        if(notUpdatedDuration.getSign() == 1) {
+            notUpdatedDuration.negate();
+        }
+        Date deletingDate =  new Date(clock.currentTimeMillis());
+        notUpdatedDuration.addTo(deletingDate);
+
+        ObjectQuery query = prismContext.queryFor(ShadowType.class)
+                .block()
+                    .item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(deletingDate))
+                    .or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
+                .endBlock()
+                .and().item(ShadowType.F_RESOURCE_REF).ref(ObjectTypeUtil.createObjectRef(resource, prismContext).asReferenceValue())
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(objectclassDef.getTypeName())
+                .build();
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Shadow query:\n{}", query.debugDump());
+        }
+
+        return query;
+    }
+
+    private PrismObject<ResourceType> getResource(Task task) {
+
+        String resourceOid = task.getObjectOid();
+        if (resourceOid == null) {
+            throw new IllegalArgumentException("Resource OID is missing in task extension");
+        }
+
+        PrismObject<ResourceType> resource = null;
+        ObjectClassComplexTypeDefinition objectclassDef = null;
+        try {
+            resource = provisioningService.getObject(ResourceType.class, resourceOid, null, task, task.getResult());
+
+            RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+            objectclassDef = ModelImplUtils.determineObjectClass(refinedSchema, task);
+        } catch (ObjectNotFoundException ex) {
+            // This is bad. The resource does not exist. Permanent problem.
+            processErrorPartial("Resource does not exist, OID: " + resourceOid, ex, task.getResult());
+        } catch (CommunicationException ex) {
+            // Error, but not critical. Just try later.
+            processErrorPartial("Communication error", ex, task.getResult());
+        } catch (SchemaException ex) {
+            // Not sure about this. But most likely it is a misconfigured resource or connector
+            // It may be worth to retry. Error is fatal, but may not be permanent.
+            processErrorPartial("Error dealing with schema", ex, task.getResult());
+        } catch (RuntimeException ex) {
+            // Can be anything ... but we can't recover from that.
+            // It is most likely a programming error. Does not make much sense
+            // to retry.
+            processErrorPartial("Internal Error", ex, task.getResult());
+        } catch (ConfigurationException ex) {
+            // Not sure about this. But most likely it is a misconfigured resource or connector
+            // It may be worth to retry. Error is fatal, but may not be permanent.
+            processErrorPartial("Configuration error", ex, task.getResult());
+        } catch (SecurityViolationException ex) {
+            processErrorPartial("Security violation", ex, task.getResult());
+        } catch (ExpressionEvaluationException ex) {
+            processErrorPartial("Expression error", ex, task.getResult());
+        }
+
+        if(resource == null) {
+            throw new IllegalArgumentException("Resource is null");
+        }
+
+        PrismProperty<AvailabilityStatusType> status = resource.findProperty(ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS));
+
+        if(status == null || !AvailabilityStatusType.UP.equals(status.getRealValue())) {
+            throw new IllegalArgumentException("Resource have to have value of last availability status on UP");
+        }
+
+        return resource;
+    }
+
+    private void processErrorPartial(String errorDesc, Exception ex, OperationResult opResult) {
+        String message;
+        if (ex == null) {
+            message = errorDesc;
+        } else {
+            message = errorDesc+": "+ex.getMessage();
+        }
+        LOGGER.error("Reconciliation: {}-{}", new Object[]{message, ex});
+        opResult.recordFatalError(message, ex);
+    }
 
 
-	private ModelExecuteOptions getOptions(Task coordinatorTask) throws SchemaException {
-		ModelExecuteOptions modelExecuteOptions = ModelImplUtils.getModelExecuteOptions(coordinatorTask);
-		if (modelExecuteOptions == null) {
-			modelExecuteOptions =  ModelExecuteOptions.createReconcile();
-		}
-		LOGGER.trace("ModelExecuteOptions: {}", modelExecuteOptions);
-		return modelExecuteOptions;
-	}
+    private ModelExecuteOptions getOptions(Task coordinatorTask) throws SchemaException {
+        ModelExecuteOptions modelExecuteOptions = ModelImplUtils.getModelExecuteOptions(coordinatorTask);
+        if (modelExecuteOptions == null) {
+            modelExecuteOptions =  ModelExecuteOptions.createReconcile();
+        }
+        LOGGER.trace("ModelExecuteOptions: {}", modelExecuteOptions);
+        return modelExecuteOptions;
+    }
 
-	private void deleteShadow(PrismObject<ShadowType> shadow, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException,
-		ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
-		ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
-		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-		change.setObjectDelta(shadow.createDeleteDelta());
-		change.setResource(getResource(task));
-		change.setOldShadow(shadow);
-		change.setCurrentShadow(shadow);
-		synchronizationService.notifyChange(change, task, result);
-	}
+    private void deleteShadow(PrismObject<ShadowType> shadow, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException,
+        ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
+        ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
+        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+        change.setObjectDelta(shadow.createDeleteDelta());
+        change.setResource(getResource(task));
+        change.setOldShadow(shadow);
+        change.setCurrentShadow(shadow);
+        synchronizationService.notifyChange(change, task, result);
+    }
 
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
     }
-    
-	@Override
-	protected String getDefaultChannel() {
-		return SchemaConstants.CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_URI;
-	}
+
+    @Override
+    protected String getDefaultChannel() {
+        return SchemaConstants.CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_URI;
+    }
 }

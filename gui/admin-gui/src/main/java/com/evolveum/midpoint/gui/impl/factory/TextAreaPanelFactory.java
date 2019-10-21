@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,31 +27,31 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 @Component
 public class TextAreaPanelFactory<T extends Serializable> extends AbstractGuiComponentFactory<T> {
 
-	private static final long serialVersionUID = 1L;
-	
-	@Autowired private GuiComponentRegistry registry;
-	
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return FocusType.F_DESCRIPTION.equals(wrapper.getItemName()) || QueryType.COMPLEX_TYPE.equals(wrapper.getTypeName()); // || CleanupPoliciesType.COMPLEX_TYPE.equals(wrapper.getTypeName());
-	}
+    @Autowired private GuiComponentRegistry registry;
 
-	@Override
-	protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
-		int size = 10;
-		if (FocusType.F_DESCRIPTION.equals(panelCtx.getDefinitionName())) {
-			size = 2;
-		}
-		return new TextAreaPanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), size);
-	}
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
 
-	@Override
-	public Integer getOrder() {
-		return super.getOrder() - 2;
-	}
+    @Override
+    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+        return FocusType.F_DESCRIPTION.equals(wrapper.getItemName()) || QueryType.COMPLEX_TYPE.equals(wrapper.getTypeName()); // || CleanupPoliciesType.COMPLEX_TYPE.equals(wrapper.getTypeName());
+    }
+
+    @Override
+    protected Panel getPanel(PrismPropertyPanelContext<T> panelCtx) {
+        int size = 10;
+        if (FocusType.F_DESCRIPTION.equals(panelCtx.getDefinitionName())) {
+            size = 2;
+        }
+        return new TextAreaPanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), size);
+    }
+
+    @Override
+    public Integer getOrder() {
+        return super.getOrder() - 2;
+    }
 }

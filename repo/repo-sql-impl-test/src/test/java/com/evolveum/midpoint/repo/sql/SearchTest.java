@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -66,15 +66,15 @@ public class SearchTest extends BaseSQLRepoTest {
                 .asPrismObject();
         beforeConfigOid = repositoryService.addObject(beforeConfig, null, result);
 
-		FullTextSearchConfigurationType fullTextConfig = new FullTextSearchConfigurationType();
-		FullTextSearchIndexedItemsConfigurationType entry = new FullTextSearchIndexedItemsConfigurationType();
-		entry.getItem().add(new ItemPathType(ObjectType.F_NAME));
-		entry.getItem().add(new ItemPathType(ObjectType.F_DESCRIPTION));
-		fullTextConfig.getIndexed().add(entry);
-		repositoryService.applyFullTextSearchConfiguration(fullTextConfig);
-		LOGGER.info("Applying full text search configuration: {}", fullTextConfig);
+        FullTextSearchConfigurationType fullTextConfig = new FullTextSearchConfigurationType();
+        FullTextSearchIndexedItemsConfigurationType entry = new FullTextSearchIndexedItemsConfigurationType();
+        entry.getItem().add(new ItemPathType(ObjectType.F_NAME));
+        entry.getItem().add(new ItemPathType(ObjectType.F_DESCRIPTION));
+        fullTextConfig.getIndexed().add(entry);
+        repositoryService.applyFullTextSearchConfiguration(fullTextConfig);
+        LOGGER.info("Applying full text search configuration: {}", fullTextConfig);
 
-		List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
+        List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
         objects.addAll(prismContext.parserFor(new File(FOLDER_BASIC, "objects-2.xml")).parseObjects());
 
         for (PrismObject object : objects) {
@@ -90,9 +90,9 @@ public class SearchTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("search empty");
 
         ResultHandler handler = (object, parentResult) -> {
-			fail();
-			return false;
-		};
+            fail();
+            return false;
+        };
 
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).eqPoly("asdf", "asdf").matchingStrict()
@@ -111,9 +111,9 @@ public class SearchTest extends BaseSQLRepoTest {
         final List<PrismObject> objects = new ArrayList<>();
 
         ResultHandler handler = (object, parentResult) -> {
-			objects.add(object);
-			return true;
-		};
+            objects.add(object);
+            return true;
+        };
 
         repositoryService.searchObjectsIterative(UserType.class, null, handler, null, false, result);
         result.recomputeStatus();
@@ -261,7 +261,7 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00003", users.get(0).getName().getOrig());
 
-		PrismReferenceValue r789 = itemFactory().createReferenceValue("r789", RoleType.COMPLEX_TYPE);
+        PrismReferenceValue r789 = itemFactory().createReferenceValue("r789", RoleType.COMPLEX_TYPE);
         query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_PERSONA_REF).ref(r789)
                 .build();
@@ -546,81 +546,81 @@ public class SearchTest extends BaseSQLRepoTest {
         }
     }
 
-	@Test
-	public void testResourceUp() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(ResourceType.class)
-				.item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<ResourceType>> resources = repositoryService.searchObjects(ResourceType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find one resource", 1, resources.size());
-	}
+    @Test
+    public void testResourceUp() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(ResourceType.class)
+                .item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<ResourceType>> resources = repositoryService.searchObjects(ResourceType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one resource", 1, resources.size());
+    }
 
-	@Test
-	public void testMultivaluedExtensionPropertySubstringQualified() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
-				.item(ObjectType.F_EXTENSION, new QName("http://example.com/p", "multivalued")).contains("slava")
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find one object", 1, resources.size());
-	}
+    @Test
+    public void testMultivaluedExtensionPropertySubstringQualified() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
+                .item(ObjectType.F_EXTENSION, new QName("http://example.com/p", "multivalued")).contains("slava")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one object", 1, resources.size());
+    }
 
-	@Test
-	public void testMultivaluedExtensionPropertyEqualsQualified() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
-				.item(ObjectType.F_EXTENSION, new QName("http://example.com/p", "multivalued")).eq("Bratislava")
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find one object", 1, resources.size());
-	}
+    @Test
+    public void testMultivaluedExtensionPropertyEqualsQualified() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
+                .item(ObjectType.F_EXTENSION, new QName("http://example.com/p", "multivalued")).eq("Bratislava")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one object", 1, resources.size());
+    }
 
-	@Test
-	public void testMultivaluedExtensionPropertySubstringUnqualified() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
-				.item(ObjectType.F_EXTENSION, new QName("multivalued")).contains("slava")
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find one object", 1, resources.size());
-	}
+    @Test
+    public void testMultivaluedExtensionPropertySubstringUnqualified() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
+                .item(ObjectType.F_EXTENSION, new QName("multivalued")).contains("slava")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one object", 1, resources.size());
+    }
 
-	@Test
-	public void testMultivaluedExtensionPropertyEqualsUnqualified() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
-				.item(ObjectType.F_EXTENSION, new QName("multivalued")).eq("Bratislava")
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find one object", 1, resources.size());
-	}
+    @Test
+    public void testMultivaluedExtensionPropertyEqualsUnqualified() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
+                .item(ObjectType.F_EXTENSION, new QName("multivalued")).eq("Bratislava")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<GenericObjectType>> resources = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one object", 1, resources.size());
+    }
 
-	@Test
-	public void testRoleAttributes() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(RoleType.class)
-				.item(RoleType.F_RISK_LEVEL).eq("critical")
-				.and().item(RoleType.F_IDENTIFIER).eq("123")
-				.and().item(RoleType.F_DISPLAY_NAME).eqPoly("The honest one", "").matchingOrig()
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find one object", 1, roles.size());
-	}
+    @Test
+    public void testRoleAttributes() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(RoleType.class)
+                .item(RoleType.F_RISK_LEVEL).eq("critical")
+                .and().item(RoleType.F_IDENTIFIER).eq("123")
+                .and().item(RoleType.F_DISPLAY_NAME).eqPoly("The honest one", "").matchingOrig()
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<RoleType>> roles = repositoryService.searchObjects(RoleType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one object", 1, roles.size());
+    }
 
-	// testing MID-3568
+    // testing MID-3568
     @Test
     public void caseInsensitiveSearchTest() throws Exception {
         final String existingNameNorm = "test userx00003";
@@ -631,135 +631,135 @@ public class SearchTest extends BaseSQLRepoTest {
         assertUsersFound(prismContext.queryFor(UserType.class)
                         .item(UserType.F_FULL_NAME).eqPoly(existingNameNorm).matchingNorm()
                         .build(),
-				false, 1);
+                false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
                 .item(UserType.F_FULL_NAME).eqPoly(existingNameOrig).matchingNorm()
                 .build(),
-				false, 1);
+                false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
                 .item(UserType.F_EMAIL_ADDRESS).eq(emailLowerCase).matchingCaseIgnore()
                 .build(),
-				false, 1);
+                false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
                 .item(UserType.F_EMAIL_ADDRESS).eq(emailVariousCase).matchingCaseIgnore()
                 .build(),
-				false, 1);
+                false, 1);
 
         // comparing polystrings, but providing plain String
-		assertUsersFound(prismContext.queryFor(UserType.class)
-						.item(UserType.F_FULL_NAME).eq(existingNameNorm).matchingNorm()
-						.build(),
-				false, 1);
+        assertUsersFound(prismContext.queryFor(UserType.class)
+                        .item(UserType.F_FULL_NAME).eq(existingNameNorm).matchingNorm()
+                        .build(),
+                false, 1);
 
-		assertUsersFound(prismContext.queryFor(UserType.class)
-						.item(UserType.F_FULL_NAME).eq(existingNameOrig).matchingNorm()
-						.build(),
-				false, 1);
+        assertUsersFound(prismContext.queryFor(UserType.class)
+                        .item(UserType.F_FULL_NAME).eq(existingNameOrig).matchingNorm()
+                        .build(),
+                false, 1);
 
-		assertUsersFound(prismContext.queryFor(UserType.class)
+        assertUsersFound(prismContext.queryFor(UserType.class)
                         .item(UserType.F_FULL_NAME).containsPoly(existingNameNorm).matchingNorm()
                         .build(),
-				false, 1);
+                false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
                 .item(UserType.F_FULL_NAME).containsPoly(existingNameOrig).matchingNorm()
                 .build(),
-				false, 1);
+                false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
                 .item(UserType.F_EMAIL_ADDRESS).contains(emailLowerCase).matchingCaseIgnore()
                 .build(),
-				false, 1);
+                false, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
                 .item(UserType.F_EMAIL_ADDRESS).contains(emailVariousCase).matchingCaseIgnore()
                 .build(),
-				false, 1);
+                false, 1);
 
-		// comparing polystrings, but providing plain String
-		assertUsersFound(prismContext.queryFor(UserType.class)
-						.item(UserType.F_FULL_NAME).contains(existingNameNorm).matchingNorm()
-						.build(),
-				false, 1);
+        // comparing polystrings, but providing plain String
+        assertUsersFound(prismContext.queryFor(UserType.class)
+                        .item(UserType.F_FULL_NAME).contains(existingNameNorm).matchingNorm()
+                        .build(),
+                false, 1);
 
-		assertUsersFound(prismContext.queryFor(UserType.class)
-						.item(UserType.F_FULL_NAME).contains(existingNameOrig).matchingNorm()
-						.build(),
-				false, 1);
-	}
+        assertUsersFound(prismContext.queryFor(UserType.class)
+                        .item(UserType.F_FULL_NAME).contains(existingNameOrig).matchingNorm()
+                        .build(),
+                false, 1);
+    }
 
-	@Test
-	public void fullTextSearch() throws Exception {
+    @Test
+    public void fullTextSearch() throws Exception {
 
-		OperationResult result = new OperationResult("fullTextSearch");
+        OperationResult result = new OperationResult("fullTextSearch");
 
-		Collection<SelectorOptions<GetOperationOptions>> distinct = distinct();
+        Collection<SelectorOptions<GetOperationOptions>> distinct = distinct();
 
-		assertUsersFound(prismContext.queryFor(UserType.class)
-						.fullText("atestuserX00003")
-						.build(),
-				false, 1);
+        assertUsersFound(prismContext.queryFor(UserType.class)
+                        .fullText("atestuserX00003")
+                        .build(),
+                false, 1);
 
-		List<PrismObject<UserType>> users = assertUsersFound(prismContext.queryFor(UserType.class)
-						.fullText("Pellentesque")
-						.build(),
-				true, 1);
+        List<PrismObject<UserType>> users = assertUsersFound(prismContext.queryFor(UserType.class)
+                        .fullText("Pellentesque")
+                        .build(),
+                true, 1);
 
-		assertUsersFound(prismContext.queryFor(UserType.class)
-						.fullText("viverra")
-						.build(),
-				true, 1);       // MID-4590
+        assertUsersFound(prismContext.queryFor(UserType.class)
+                        .fullText("viverra")
+                        .build(),
+                true, 1);       // MID-4590
 
-		assertUsersFound(prismContext.queryFor(UserType.class)
-						.fullText("sollicitudin")
-						.build(),
-				true, 0);
+        assertUsersFound(prismContext.queryFor(UserType.class)
+                        .fullText("sollicitudin")
+                        .build(),
+                true, 0);
 
-		String newDescription = "\n"
-				+ "\t\t\tUt pellentesque massa elit, in varius justo pellentesque ac. Vivamus gravida lectus non odio tempus iaculis sed quis\n"
-				+ "\t\t\tenim. Praesent sed ante nunc. Etiam euismod urna sit amet mi commodo luctus. Morbi dictum suscipit mauris ac\n"
-				+ "\t\t\tfacilisis. Phasellus congue luctus nibh, eu gravida sem iaculis in. Fusce bibendum quam sit amet tortor venenatis\n"
-				+ "\t\t\tmalesuada. Nam non varius nibh. Ut porta sit amet dui ut mollis. Etiam tincidunt ex viverra purus condimentum\n"
-				+ "\t\t\tinterdum. Sed ornare lacinia finibus. Pellentesque ac tortor scelerisque, sagittis diam nec, vehicula ligula.\n"
-				+ "\t\t\tPhasellus sodales felis quis fermentum volutpat. Orci varius natoque penatibus et magnis dis parturient montes,\n"
-				+ "\t\t\tnascetur ridiculus mus. Suspendisse mattis efficitur ligula et pharetra. Morbi risus erat, mollis nec suscipit vel,\n"
-				+ "\t\t\tconvallis eu ex.\n"
-				+ "\n"
-				+ "\t\t\tPellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur cursus\n"
-				+ "\t\t\tplacerat nisl, quis egestas ante semper at. Aenean semper nulla in elit tincidunt fringilla. Proin tristique sapien ac\n"
-				+ "\t\t\tenim blandit, a faucibus dui maximus. Curabitur sodales eget nulla eget mattis. Sed mollis blandit sapien. Aenean\n"
-				+ "\t\t\tpulvinar condimentum condimentum. Ut et venenatis arcu. Nam a nisl at nibh aliquam luctus. Phasellus eleifend non\n"
-				+ "\t\t\ttellus eget varius.\n"
-				+ "\n"
-				+ "\t\t\tNunc tincidunt sed lacus congue iaculis. Donec vel orci nulla. Phasellus fringilla, erat ac elementum lacinia, ex enim\n"
-				+ "\t\t\tdictum magna, accumsan dignissim elit mauris vel quam. Fusce vel tellus magna. Quisque sed tellus lectus. Donec id\n"
-				+ "\t\t\tnibh a lorem rutrum pharetra. Vestibulum vehicula leo ac eros pulvinar, eget tristique purus porta. Aliquam cursus\n"
-				+ "\t\t\tturpis sed libero eleifend interdum. Sed ac nisi a turpis finibus consectetur. Sed a velit vel nisi semper commodo.\n"
-				+ "\t\t\tVestibulum vel pulvinar ligula, vitae rutrum leo. Sed efficitur dignissim augue in placerat. Aliquam dapibus mauris\n"
-				+ "\t\t\teget diam pharetra molestie. Morbi vitae nulla sollicitudin, dignissim tellus a, tincidunt neque.\n";
+        String newDescription = "\n"
+                + "\t\t\tUt pellentesque massa elit, in varius justo pellentesque ac. Vivamus gravida lectus non odio tempus iaculis sed quis\n"
+                + "\t\t\tenim. Praesent sed ante nunc. Etiam euismod urna sit amet mi commodo luctus. Morbi dictum suscipit mauris ac\n"
+                + "\t\t\tfacilisis. Phasellus congue luctus nibh, eu gravida sem iaculis in. Fusce bibendum quam sit amet tortor venenatis\n"
+                + "\t\t\tmalesuada. Nam non varius nibh. Ut porta sit amet dui ut mollis. Etiam tincidunt ex viverra purus condimentum\n"
+                + "\t\t\tinterdum. Sed ornare lacinia finibus. Pellentesque ac tortor scelerisque, sagittis diam nec, vehicula ligula.\n"
+                + "\t\t\tPhasellus sodales felis quis fermentum volutpat. Orci varius natoque penatibus et magnis dis parturient montes,\n"
+                + "\t\t\tnascetur ridiculus mus. Suspendisse mattis efficitur ligula et pharetra. Morbi risus erat, mollis nec suscipit vel,\n"
+                + "\t\t\tconvallis eu ex.\n"
+                + "\n"
+                + "\t\t\tPellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Curabitur cursus\n"
+                + "\t\t\tplacerat nisl, quis egestas ante semper at. Aenean semper nulla in elit tincidunt fringilla. Proin tristique sapien ac\n"
+                + "\t\t\tenim blandit, a faucibus dui maximus. Curabitur sodales eget nulla eget mattis. Sed mollis blandit sapien. Aenean\n"
+                + "\t\t\tpulvinar condimentum condimentum. Ut et venenatis arcu. Nam a nisl at nibh aliquam luctus. Phasellus eleifend non\n"
+                + "\t\t\ttellus eget varius.\n"
+                + "\n"
+                + "\t\t\tNunc tincidunt sed lacus congue iaculis. Donec vel orci nulla. Phasellus fringilla, erat ac elementum lacinia, ex enim\n"
+                + "\t\t\tdictum magna, accumsan dignissim elit mauris vel quam. Fusce vel tellus magna. Quisque sed tellus lectus. Donec id\n"
+                + "\t\t\tnibh a lorem rutrum pharetra. Vestibulum vehicula leo ac eros pulvinar, eget tristique purus porta. Aliquam cursus\n"
+                + "\t\t\tturpis sed libero eleifend interdum. Sed ac nisi a turpis finibus consectetur. Sed a velit vel nisi semper commodo.\n"
+                + "\t\t\tVestibulum vel pulvinar ligula, vitae rutrum leo. Sed efficitur dignissim augue in placerat. Aliquam dapibus mauris\n"
+                + "\t\t\teget diam pharetra molestie. Morbi vitae nulla sollicitudin, dignissim tellus a, tincidunt neque.\n";
 
-		LOGGER.info("## changing description ##");
-		repositoryService.modifyObject(UserType.class, users.get(0).getOid(),
-				prismContext.deltaFor(UserType.class)
-						.item(UserType.F_DESCRIPTION).replace(newDescription)
-						.asItemDeltas(),
-				result);
+        LOGGER.info("## changing description ##");
+        repositoryService.modifyObject(UserType.class, users.get(0).getOid(),
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_DESCRIPTION).replace(newDescription)
+                        .asItemDeltas(),
+                result);
 
-		// just to see SQL used
-		LOGGER.info("## changing telephoneNumber ##");
-		repositoryService.modifyObject(UserType.class, users.get(0).getOid(),
-				prismContext.deltaFor(UserType.class)
-						.item(UserType.F_TELEPHONE_NUMBER).replace("123456")
-						.asItemDeltas(),
-				result);
+        // just to see SQL used
+        LOGGER.info("## changing telephoneNumber ##");
+        repositoryService.modifyObject(UserType.class, users.get(0).getOid(),
+                prismContext.deltaFor(UserType.class)
+                        .item(UserType.F_TELEPHONE_NUMBER).replace("123456")
+                        .asItemDeltas(),
+                result);
 
-		assertUsersFoundBySearch(prismContext.queryFor(UserType.class)
-						.fullText("sollicitudin")
-						.build(),
-				distinct, 1);
+        assertUsersFoundBySearch(prismContext.queryFor(UserType.class)
+                        .fullText("sollicitudin")
+                        .build(),
+                distinct, 1);
 
         assertUsersFound(prismContext.queryFor(UserType.class)
                         .fullText("viverra")
@@ -767,11 +767,11 @@ public class SearchTest extends BaseSQLRepoTest {
                 true, 1);       // MID-4590
 
         assertUsersFoundBySearch(prismContext.queryFor(UserType.class)
-						.fullText("sollicitudin")
-						.asc(UserType.F_FULL_NAME)
-						.maxSize(100)
-						.build(),
-				distinct, 1);
+                        .fullText("sollicitudin")
+                        .asc(UserType.F_FULL_NAME)
+                        .maxSize(100)
+                        .build(),
+                distinct, 1);
     }
 
     @Test // MID-4932
@@ -808,32 +808,32 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     private Collection<SelectorOptions<GetOperationOptions>> distinct() {
-		return SelectorOptions.createCollection(GetOperationOptions.createDistinct());
-	}
+        return SelectorOptions.createCollection(GetOperationOptions.createDistinct());
+    }
 
-	@Test
-	public void testShadowPendingOperation() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(ShadowType.class)
-				.exists(ShadowType.F_PENDING_OPERATION)
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find one object", 1, shadows.size());
-	}
+    @Test
+    public void testShadowPendingOperation() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(ShadowType.class)
+                .exists(ShadowType.F_PENDING_OPERATION)
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one object", 1, shadows.size());
+    }
 
-	@SuppressWarnings("SameParameterValue")
-	private List<PrismObject<UserType>> assertUsersFound(ObjectQuery query, boolean distinct, int expectedCount) throws Exception {
-		Collection<SelectorOptions<GetOperationOptions>> options = distinct ? distinct() : null;
-		assertObjectsFoundByCount(query, options, expectedCount);
-    	return assertUsersFoundBySearch(query, options, expectedCount);
-	}
+    @SuppressWarnings("SameParameterValue")
+    private List<PrismObject<UserType>> assertUsersFound(ObjectQuery query, boolean distinct, int expectedCount) throws Exception {
+        Collection<SelectorOptions<GetOperationOptions>> options = distinct ? distinct() : null;
+        assertObjectsFoundByCount(query, options, expectedCount);
+        return assertUsersFoundBySearch(query, options, expectedCount);
+    }
 
     private List<PrismObject<UserType>> assertUsersFoundBySearch(ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, int expectedCount) throws Exception {
+            Collection<SelectorOptions<GetOperationOptions>> options, int expectedCount) throws Exception {
         OperationResult result = new OperationResult("search");
-		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, options, result);
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, options, result);
         result.recomputeStatus();
         assertTrue(result.isSuccess());
         assertEquals("Wrong # of results found: " + query, expectedCount, users.size());
@@ -841,130 +841,130 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     private void assertObjectsFoundByCount(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-			int expectedCount) throws Exception {
+            int expectedCount) throws Exception {
         OperationResult result = new OperationResult("count");
-		int count = repositoryService.countObjects(UserType.class, query, options, result);
-		result.recomputeStatus();
+        int count = repositoryService.countObjects(UserType.class, query, options, result);
+        result.recomputeStatus();
         assertTrue(result.isSuccess());
         assertEquals("Wrong # of results found: " + query, expectedCount, count);
     }
 
-	@Test
-	public void testOperationExecutionAny() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(CaseType.class)
-				.item(ObjectType.F_OPERATION_EXECUTION, OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find one object", 1, cases.size());
-	}
+    @Test
+    public void testOperationExecutionAny() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(CaseType.class)
+                .item(ObjectType.F_OPERATION_EXECUTION, OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one object", 1, cases.size());
+    }
 
-	@Test
-	public void testOperationExecutionWithTask() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(CaseType.class)
-				.exists(ObjectType.F_OPERATION_EXECUTION)
-					.block()
-						.item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
-						.and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.SUCCESS)
-					.endBlock()
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find one object", 1, cases.size());
-	}
+    @Test
+    public void testOperationExecutionWithTask() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(CaseType.class)
+                .exists(ObjectType.F_OPERATION_EXECUTION)
+                    .block()
+                        .item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
+                        .and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.SUCCESS)
+                    .endBlock()
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one object", 1, cases.size());
+    }
 
-	@Test
-	public void testOperationExecutionWithTask2() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(CaseType.class)
-				.exists(ObjectType.F_OPERATION_EXECUTION)
-					.block()
-						.item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
-						.and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
-					.endBlock()
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find no object", 0, cases.size());
-	}
+    @Test
+    public void testOperationExecutionWithTask2() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(CaseType.class)
+                .exists(ObjectType.F_OPERATION_EXECUTION)
+                    .block()
+                        .item(OperationExecutionType.F_TASK_REF).ref("task-oid-2")
+                        .and().item(OperationExecutionType.F_STATUS).eq(OperationResultStatusType.FATAL_ERROR)
+                    .endBlock()
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find no object", 0, cases.size());
+    }
 
-	@Test
-	public void testExtensionReference() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
-				.item(ObjectType.F_EXTENSION, new QName("referenceType"))
-					.ref("12345678-1234-1234-1234-123456789012")
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find 1 object", 1, cases.size());
-	}
+    @Test
+    public void testExtensionReference() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
+                .item(ObjectType.F_EXTENSION, new QName("referenceType"))
+                    .ref("12345678-1234-1234-1234-123456789012")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find 1 object", 1, cases.size());
+    }
 
-	@Test
-	public void testExtensionReferenceNotMatching() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
-				.item(ObjectType.F_EXTENSION, new QName("referenceType"))
-					.ref("12345678-1234-1234-1234-123456789xxx")
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find no object", 0, cases.size());
-	}
+    @Test
+    public void testExtensionReferenceNotMatching() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
+                .item(ObjectType.F_EXTENSION, new QName("referenceType"))
+                    .ref("12345678-1234-1234-1234-123456789xxx")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find no object", 0, cases.size());
+    }
 
-	@Test
-	public void testExtensionReferenceNull() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
-				.item(ObjectType.F_EXTENSION, new QName("referenceType"))
-					.isNull()
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find no object", 0, cases.size());
-	}
+    @Test
+    public void testExtensionReferenceNull() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
+                .item(ObjectType.F_EXTENSION, new QName("referenceType"))
+                    .isNull()
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find no object", 0, cases.size());
+    }
 
-	@Test
-	public void testExtensionReferenceNonNull() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
-				.not().item(ObjectType.F_EXTENSION, new QName("referenceType"))
-					.isNull()
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find 1 object", 1, cases.size());
-	}
+    @Test
+    public void testExtensionReferenceNonNull() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(GenericObjectType.class)
+                .not().item(ObjectType.F_EXTENSION, new QName("referenceType"))
+                    .isNull()
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<GenericObjectType>> cases = repositoryService.searchObjects(GenericObjectType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find 1 object", 1, cases.size());
+    }
 
-	@Test
-	public void testObjectCollection() throws SchemaException {
-		ObjectQuery query = prismContext.queryFor(ObjectCollectionType.class)
-				.item(ObjectType.F_NAME).eqPoly("collection1", "collection1").matchingOrig()
-				.build();
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<ObjectCollectionType>> collections = repositoryService.searchObjects(ObjectCollectionType.class, query, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find 1 object", 1, collections.size());
-	}
+    @Test
+    public void testObjectCollection() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(ObjectCollectionType.class)
+                .item(ObjectType.F_NAME).eqPoly("collection1", "collection1").matchingOrig()
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<ObjectCollectionType>> collections = repositoryService.searchObjects(ObjectCollectionType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find 1 object", 1, collections.size());
+    }
 
-	@Test
-	public void testAllObjectCollections() throws SchemaException {
-		OperationResult result = new OperationResult("search");
-		List<PrismObject<ObjectCollectionType>> collections = repositoryService.searchObjects(ObjectCollectionType.class, null, null, result);
-		result.recomputeStatus();
-		assertTrue(result.isSuccess());
-		assertEquals("Should find 1 object", 1, collections.size());
-	}
+    @Test
+    public void testAllObjectCollections() throws SchemaException {
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<ObjectCollectionType>> collections = repositoryService.searchObjects(ObjectCollectionType.class, null, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find 1 object", 1, collections.size());
+    }
 
     @Test
     public void testFunctionLibrary() throws SchemaException {

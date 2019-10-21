@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -32,11 +32,11 @@ import java.util.List;
  */
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
-	private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
     private static final long POOL_CLOSE_WAIT = 500L;
     private static final long H2_CLOSE_WAIT = 2000L;
-	private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
-	private boolean initialized;
+    private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
+    private boolean initialized;
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
 
@@ -160,9 +160,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         } catch (BindException e) {
             throw new RepositoryServiceFactoryException("Configured port (" + port + ") for H2 already in use.", e);
         } catch (IOException e) {
-        	LOGGER.error("Reported IO error, while binding ServerSocket to port "+port+" used to test availability " +
+            LOGGER.error("Reported IO error, while binding ServerSocket to port "+port+" used to test availability " +
                     "of port for H2 Server", e);
-		} finally {
+        } finally {
             try {
                 if (ss != null) {
                     ss.close();
@@ -179,11 +179,11 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         checkPort(config.getPort());
 
         try {
-        	String[] serverArguments = createArguments(config);
-        	if (LOGGER.isTraceEnabled()) {
-        		String stringArgs = StringUtils.join(serverArguments, " ");
-        		LOGGER.trace("Starting H2 server with arguments: {}", stringArgs);
-        	}
+            String[] serverArguments = createArguments(config);
+            if (LOGGER.isTraceEnabled()) {
+                String stringArgs = StringUtils.join(serverArguments, " ");
+                LOGGER.trace("Starting H2 server with arguments: {}", stringArgs);
+            }
             server = Server.createTcpServer(serverArguments);
             server.start();
         } catch (Exception ex) {
@@ -253,11 +253,11 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             removeFile(traceFile);
 
             File[] tempFiles = file.listFiles((parent, name) -> {
-				if (name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$")) {
-					return true;
-				}
-				return false;
-			});
+                if (name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$")) {
+                    return true;
+                }
+                return false;
+            });
             if (tempFiles != null) {
                 for (File temp : tempFiles) {
                     removeFile(temp);

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -81,8 +81,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
     private Map<String, PageStorage> pageStorageMap = new HashMap<>();
 
     public Map<String, PageStorage> getPageStorageMap() {
-		return pageStorageMap;
-	}
+        return pageStorageMap;
+    }
 
     public Map<String, Boolean> getMainMenuState() {
         return mainMenuState;
@@ -167,16 +167,16 @@ public class SessionStorage implements Serializable, DebugDumpable {
     }
 
     public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {
-    	String key = getContentStorageKey(kind, searchMode);
-    	if (pageStorageMap.get(key) == null) {
+        String key = getContentStorageKey(kind, searchMode);
+        if (pageStorageMap.get(key) == null) {
             pageStorageMap.put(key, new ResourceContentStorage(kind));
         }
         return (ResourceContentStorage)pageStorageMap.get(key);
 
-	}
-    
+    }
+
     private ObjectTabStorage getObjectTabStorage(String key) {
-    	if (pageStorageMap.get(key) == null) {
+        if (pageStorageMap.get(key) == null) {
             pageStorageMap.put(key, new ObjectTabStorage());
         }
         return (ObjectTabStorage)pageStorageMap.get(key);
@@ -184,70 +184,70 @@ public class SessionStorage implements Serializable, DebugDumpable {
 
     public ObjectTabStorage getAssignmentsTabStorage() {
         return getObjectTabStorage(KEY_ASSIGNMENTS_TAB);
-	}
+    }
 
     public ObjectTabStorage getInducementsTabStorage() {
         return getObjectTabStorage(KEY_INDUCEMENTS_TAB);
-	}
+    }
 
     public ObjectTabStorage getInducedEntitlementsTabStorage() {
         return getObjectTabStorage(KEY_INDUCED_ENTITLEMENTS_TAB);
-	}
-    
+    }
+
     public ObjectTabStorage getCaseWorkitemsTabStorage() {
         return getObjectTabStorage(KEY_CASE_WORKITEMS_TAB);
-	}
+    }
 
     public ObjectTabStorage getCaseEventsTabStorage() {
         return getObjectTabStorage(KEY_CASE_EVENTS_TAB);
-	}
+    }
 
     public ObjectTabStorage getObjectPoliciesConfigurationTabStorage() {
         return getObjectTabStorage(KEY_OBJECT_POLICIES_TAB);
-	}
-    
+    }
+
     public ObjectTabStorage getGlobalPolicyRulesTabStorage() {
         return getObjectTabStorage(KEY_GLOBAL_POLICY_RULES_TAB);
-	}
-    
+    }
+
     public ObjectTabStorage getLoggingConfigurationTabAppenderTableStorage() {
         return getObjectTabStorage(KEY_LOGGING_TAB_APPENDER_TABLE);
-	}
-    
+    }
+
     public ObjectTabStorage getLoggingConfigurationTabLoggerTableStorage() {
         return getObjectTabStorage(KEY_LOGGING_TAB_LOGGER_TABLE);
-	}
-    
+    }
+
     public ObjectTabStorage getFocusProjectionTableStorage() {
         return getObjectTabStorage(KEY_FOCUS_PROJECTION_TABLE);
-	}
-    
+    }
+
     public ObjectTabStorage getNotificationConfigurationTabMailServerTableStorage() {
         return getObjectTabStorage(KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE);
-	}
+    }
 
     private String getContentStorageKey(ShadowKindType kind, String searchMode) {
-    	if (kind == null) {
-			return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
-		}
+        if (kind == null) {
+            return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
+        }
 
-		switch (kind) {
-			case ACCOUNT:
-				return KEY_RESOURCE_ACCOUNT_CONTENT + searchMode;
+        switch (kind) {
+            case ACCOUNT:
+                return KEY_RESOURCE_ACCOUNT_CONTENT + searchMode;
 
-			case ENTITLEMENT:
-				return KEY_RESOURCE_ENTITLEMENT_CONTENT + searchMode;
+            case ENTITLEMENT:
+                return KEY_RESOURCE_ENTITLEMENT_CONTENT + searchMode;
 
-			case GENERIC:
-				return KEY_RESOURCE_GENERIC_CONTENT + searchMode;
-			default:
-				return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
+            case GENERIC:
+                return KEY_RESOURCE_GENERIC_CONTENT + searchMode;
+            default:
+                return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
 
-		}
+        }
     }
 
     public WorkItemsStorage getWorkItemStorage() {
-    	if (pageStorageMap.get(KEY_WORK_ITEMS) == null) {
+        if (pageStorageMap.get(KEY_WORK_ITEMS) == null) {
             pageStorageMap.put(KEY_WORK_ITEMS, new WorkItemsStorage());
         }
         return (WorkItemsStorage)pageStorageMap.get(KEY_WORK_ITEMS);
@@ -259,7 +259,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
         }
         return (TasksStorage)pageStorageMap.get(KEY_TASKS);
     }
-    
+
     public TasksStorage getSubtasks() {
         if (pageStorageMap.get(KEY_SUBTASKS) == null) {
             pageStorageMap.put(KEY_SUBTASKS, new TasksStorage());
@@ -289,69 +289,69 @@ public class SessionStorage implements Serializable, DebugDumpable {
     }
 
     public PageStorage initPageStorage(String key){
-    	PageStorage pageStorage = null;
-    	if (key.startsWith(KEY_OBJECT_LIST)) {
-    	    pageStorage = new ObjectListStorage();
-    	    pageStorageMap.put(key, pageStorage);
+        PageStorage pageStorage = null;
+        if (key.startsWith(KEY_OBJECT_LIST)) {
+            pageStorage = new ObjectListStorage();
+            pageStorageMap.put(key, pageStorage);
         } else  if (KEY_USERS.equals(key)){
-    		pageStorage = new UsersStorage();
-    		pageStorageMap.put(KEY_USERS, pageStorage);
+            pageStorage = new UsersStorage();
+            pageStorageMap.put(KEY_USERS, pageStorage);
 
-    	} else if (KEY_ROLES.equals(key)){
-    		pageStorage = new RolesStorage();
-    		pageStorageMap.put(KEY_ROLES, pageStorage);
-    	} else if (KEY_SERVICES.equals(key)) {
-    		pageStorage = new ServicesStorage();
-    		pageStorageMap.put(KEY_SERVICES, pageStorage);
-    	} else if (KEY_RESOURCES.equals(key)) {
-    		pageStorage = new ResourcesStorage();
-    		pageStorageMap.put(KEY_RESOURCES, pageStorage);
-    	} else if (KEY_ORG_MEMEBER_PANEL.equals(key)) {
-    		pageStorage = new MemberPanelStorage();
-    		pageStorageMap.put(KEY_ORG_MEMEBER_PANEL, pageStorage);
-    	} else if (KEY_ROLE_MEMEBER_PANEL.equals(key)) {
-    		pageStorage = new MemberPanelStorage();
-    		pageStorageMap.put(KEY_ROLE_MEMEBER_PANEL, pageStorage);
-    	} else if (KEY_SERVICE_MEMEBER_PANEL.equals(key)) {
-    		pageStorage = new MemberPanelStorage();
-    		pageStorageMap.put(KEY_SERVICE_MEMEBER_PANEL, pageStorage);
-    	}
-    	return pageStorage;
-    	//TODO: fixme
+        } else if (KEY_ROLES.equals(key)){
+            pageStorage = new RolesStorage();
+            pageStorageMap.put(KEY_ROLES, pageStorage);
+        } else if (KEY_SERVICES.equals(key)) {
+            pageStorage = new ServicesStorage();
+            pageStorageMap.put(KEY_SERVICES, pageStorage);
+        } else if (KEY_RESOURCES.equals(key)) {
+            pageStorage = new ResourcesStorage();
+            pageStorageMap.put(KEY_RESOURCES, pageStorage);
+        } else if (KEY_ORG_MEMEBER_PANEL.equals(key)) {
+            pageStorage = new MemberPanelStorage();
+            pageStorageMap.put(KEY_ORG_MEMEBER_PANEL, pageStorage);
+        } else if (KEY_ROLE_MEMEBER_PANEL.equals(key)) {
+            pageStorage = new MemberPanelStorage();
+            pageStorageMap.put(KEY_ROLE_MEMEBER_PANEL, pageStorage);
+        } else if (KEY_SERVICE_MEMEBER_PANEL.equals(key)) {
+            pageStorage = new MemberPanelStorage();
+            pageStorageMap.put(KEY_SERVICE_MEMEBER_PANEL, pageStorage);
+        }
+        return pageStorage;
+        //TODO: fixme
     }
 
     public void setUserProfile(UserProfileStorage profile){
         userProfile = profile;
     }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("SessionStorage\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "userProfile", userProfile, indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "pageStorageMap", pageStorageMap, indent+1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("SessionStorage\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "userProfile", userProfile, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "pageStorageMap", pageStorageMap, indent+1);
+        return sb.toString();
+    }
 
-	public void dumpSizeEstimates(StringBuilder sb, int indent) {
-		DebugUtil.dumpObjectSizeEstimate(sb, "SessionStorage", this, indent);
-		if (userProfile != null) {
-			sb.append("\n");
-			DebugUtil.dumpObjectSizeEstimate(sb, "userProfile", userProfile, indent + 1);
-		}
-		sb.append("\n");
-		DebugUtil.dumpObjectSizeEstimate(sb, "pageStorageMap", (Serializable)pageStorageMap, indent + 1);
-		for (Entry<String,PageStorage> entry: pageStorageMap.entrySet()) {
-			sb.append("\n");
-			DebugUtil.dumpObjectSizeEstimate(sb, entry.getKey(), entry.getValue(), indent + 2);
-		}
-	}
+    public void dumpSizeEstimates(StringBuilder sb, int indent) {
+        DebugUtil.dumpObjectSizeEstimate(sb, "SessionStorage", this, indent);
+        if (userProfile != null) {
+            sb.append("\n");
+            DebugUtil.dumpObjectSizeEstimate(sb, "userProfile", userProfile, indent + 1);
+        }
+        sb.append("\n");
+        DebugUtil.dumpObjectSizeEstimate(sb, "pageStorageMap", (Serializable)pageStorageMap, indent + 1);
+        for (Entry<String,PageStorage> entry: pageStorageMap.entrySet()) {
+            sb.append("\n");
+            DebugUtil.dumpObjectSizeEstimate(sb, entry.getKey(), entry.getValue(), indent + 2);
+        }
+    }
 
     public void clearResourceContentStorage() {
         pageStorageMap.remove(KEY_RESOURCE_ACCOUNT_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);

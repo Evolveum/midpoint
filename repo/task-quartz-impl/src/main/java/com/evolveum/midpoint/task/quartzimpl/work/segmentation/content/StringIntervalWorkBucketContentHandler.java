@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,24 +19,24 @@ import javax.annotation.PostConstruct;
 @Component
 public class StringIntervalWorkBucketContentHandler extends IntervalWorkBucketContentHandler {
 
-	@PostConstruct
-	public void register() {
-		registry.registerHandler(StringIntervalWorkBucketContentType.class, this);
-	}
+    @PostConstruct
+    public void register() {
+        registry.registerHandler(StringIntervalWorkBucketContentType.class, this);
+    }
 
-	@Override
-	protected boolean hasNoBoundaries(AbstractWorkBucketContentType bucketContent) {
-		StringIntervalWorkBucketContentType cnt = (StringIntervalWorkBucketContentType) bucketContent;
-		return cnt == null || cnt.getFrom() == null && cnt.getTo() == null;
-	}
+    @Override
+    protected boolean hasNoBoundaries(AbstractWorkBucketContentType bucketContent) {
+        StringIntervalWorkBucketContentType cnt = (StringIntervalWorkBucketContentType) bucketContent;
+        return cnt == null || cnt.getFrom() == null && cnt.getTo() == null;
+    }
 
-	@Override
-	protected Object getFrom(AbstractWorkBucketContentType content) {
-		return ((StringIntervalWorkBucketContentType) content).getFrom();
-	}
+    @Override
+    protected Object getFrom(AbstractWorkBucketContentType content) {
+        return ((StringIntervalWorkBucketContentType) content).getFrom();
+    }
 
-	@Override
-	protected Object getTo(AbstractWorkBucketContentType content) {
-		return ((StringIntervalWorkBucketContentType) content).getTo();
-	}
+    @Override
+    protected Object getTo(AbstractWorkBucketContentType content) {
+        return ((StringIntervalWorkBucketContentType) content).getTo();
+    }
 }

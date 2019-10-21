@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql;
@@ -90,9 +90,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private static final String QUERY_MAX_RESULT = "setMaxResults";
     private static final String QUERY_FIRST_RESULT = "setFirstResult";
-    
+
     private Map<String, String> customColumn = new HashMap<String, String>();
-    
+
     public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
     }
@@ -246,56 +246,56 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             LOGGER.trace("List records attempt\n  query: {}\n params:\n{}", query,
                     DebugUtil.debugDump(params, 2));
         }
-        
+
         session = baseHelper.beginReadOnlyTransaction();
 
         try {
-        	Session localSession = session;
+            Session localSession = session;
             session.doWork(new Work() {
-                
+
                 @Override
                 public void execute(Connection con) throws SQLException {
-                	
-                	Database database = baseHelper.getConfiguration().getDatabase();
-                	int count = 0;
-                		String basicQuery = query;
+
+                    Database database = baseHelper.getConfiguration().getDatabase();
+                    int count = 0;
+                        String basicQuery = query;
                         if (StringUtils.isBlank(query)) {
-                        	basicQuery = "select * from m_audit_event "
-                        			+ (database.equals(Database.ORACLE) ? "" : "as ") 
-                        			+ "aer where 1=1 order by aer.timestampValue desc";
+                            basicQuery = "select * from m_audit_event "
+                                    + (database.equals(Database.ORACLE) ? "" : "as ")
+                                    + "aer where 1=1 order by aer.timestampValue desc";
                         }
                         String deltaQuery = "select * from m_audit_delta "
-                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
-                        		+ "delta where delta.record_id=?";
+                                + (database.equals(Database.ORACLE) ? "" : "as ")
+                                + "delta where delta.record_id=?";
                         String propertyQuery = "select * from m_audit_prop_value "
-                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
-                        		+ "prop where prop.record_id=?";
+                                + (database.equals(Database.ORACLE) ? "" : "as ")
+                                + "prop where prop.record_id=?";
                         String refQuery = "select * from m_audit_ref_value "
-                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
-                        		+ "ref where ref.record_id=?";
+                                + (database.equals(Database.ORACLE) ? "" : "as ")
+                                + "ref where ref.record_id=?";
                         String resourceQuery = "select * from m_audit_resource "
-                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
-                        		+ "res where res.record_id=?";
+                                + (database.equals(Database.ORACLE) ? "" : "as ")
+                                + "res where res.record_id=?";
                         SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
                         setParametersToQuery(queryBuilder, params);
 
                         if (LOGGER.isTraceEnabled()) {
                             LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
                         }
-                        
+
                         PreparedStatement stmt = queryBuilder.build().createPreparedStatement(con);
-                        
+
                         ResultSet resultList = stmt.executeQuery();
                         try {
-                        	while (resultList.next()) {
-                            	
+                            while (resultList.next()) {
+
                                 AuditEventRecord audit = RAuditEventRecord.fromRepo(resultList);
                                 if(!customColumn.isEmpty()) {
-                                	for(Entry<String, String> property : customColumn.entrySet()) {
-                                		audit.getCustomColumnProperty().put(property.getKey(), resultList.getString(property.getValue()));
-                                	}
+                                    for(Entry<String, String> property : customColumn.entrySet()) {
+                                        audit.getCustomColumnProperty().put(property.getKey(), resultList.getString(property.getValue()));
+                                    }
                                 }
-                                
+
                                 //query for deltas
                                 PreparedStatement subStmt = con.prepareStatement(deltaQuery);
                                 subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
@@ -322,67 +322,67 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                     subStmt.close();
                                     deltaResult.computeStatus();
                                 }
-                                
+
                                 //query for properties
                                 subStmt = con.prepareStatement(propertyQuery);
                                 subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
                                 subResultList = subStmt.executeQuery();
-                                
+
                                 try {
-                                	while (subResultList.next()) {
-                                		audit.addPropertyValue(subResultList.getString(RAuditPropertyValue.NAME_COLUMN_NAME),
-                                							   subResultList.getString(RAuditPropertyValue.VALUE_COLUMN_NAME));
-                                	}
+                                    while (subResultList.next()) {
+                                        audit.addPropertyValue(subResultList.getString(RAuditPropertyValue.NAME_COLUMN_NAME),
+                                                               subResultList.getString(RAuditPropertyValue.VALUE_COLUMN_NAME));
+                                    }
                                 } finally {
-                                	subResultList.close();
-                                	subStmt.close();
-								}
-                                
+                                    subResultList.close();
+                                    subStmt.close();
+                                }
+
                                 //query for references
                                 subStmt = con.prepareStatement(refQuery);
                                 subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
                                 subResultList = subStmt.executeQuery();
-                                
+
                                 try {
-                                	while (subResultList.next()) {
-                                		audit.addReferenceValue(subResultList.getString(RAuditReferenceValue.NAME_COLUMN_NAME),
-                                				RAuditReferenceValue.fromRepo(subResultList));
-                                	}
+                                    while (subResultList.next()) {
+                                        audit.addReferenceValue(subResultList.getString(RAuditReferenceValue.NAME_COLUMN_NAME),
+                                                RAuditReferenceValue.fromRepo(subResultList));
+                                    }
                                 } finally {
-                                	subResultList.close();
-                                	subStmt.close();
-								}
-                                
+                                    subResultList.close();
+                                    subStmt.close();
+                                }
+
                                 //query for target resource oids
                                 subStmt = con.prepareStatement(resourceQuery);
                                 subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
                                 subResultList = subStmt.executeQuery();
-                                
+
                                 try {
-                                	while (subResultList.next()) {
-                                		audit.addResourceOid(subResultList.getString(RTargetResourceOid.RESOURCE_OID_COLUMN_NAME));
-                                	}
+                                    while (subResultList.next()) {
+                                        audit.addResourceOid(subResultList.getString(RTargetResourceOid.RESOURCE_OID_COLUMN_NAME));
+                                    }
                                 } finally {
-                                	subResultList.close();
-                                	subStmt.close();
-								}
-                                
+                                    subResultList.close();
+                                    subStmt.close();
+                                }
+
                                 try {
-                                	// TODO what if original name (in audit log) differs from the current one (in repo) ?
-                                	audit.setInitiator(resolve(localSession, resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
-                                			resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
-                                    		defaultIfNull(RObjectType.values()[resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)], RObjectType.USER)));
+                                    // TODO what if original name (in audit log) differs from the current one (in repo) ?
+                                    audit.setInitiator(resolve(localSession, resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
+                                            resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
+                                            defaultIfNull(RObjectType.values()[resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)], RObjectType.USER)));
                                     audit.setAttorney(resolve(localSession, resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
-                                    		resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.USER));
+                                            resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.USER));
                                     audit.setTarget(resolve(localSession, resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
-                                    		resultList.getString(RAuditEventRecord.TARGET_NAME_COLUMN_NAME),
-                                    		RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME)]), getPrismContext());
-        							audit.setTargetOwner(resolve(localSession, resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
-        									resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
-        									RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME)]));
-    							} catch (SchemaException ex) {
-    					            baseHelper.handleGeneralCheckedException(ex, localSession, null);
-    					        }
+                                            resultList.getString(RAuditEventRecord.TARGET_NAME_COLUMN_NAME),
+                                            RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME)]), getPrismContext());
+                                    audit.setTargetOwner(resolve(localSession, resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
+                                            resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
+                                            RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME)]));
+                                } catch (SchemaException ex) {
+                                    baseHelper.handleGeneralCheckedException(ex, localSession, null);
+                                }
                                 count++;
                                 if (!handler.handle(audit)) {
                                     LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
@@ -390,12 +390,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                 }
                             }
                         }finally {
-                        	stmt.close();
-                        	result.computeStatus();
-						}
-                        
-//                	
-                	LOGGER.trace("List records iterative attempt processed {} records", count);
+                            stmt.close();
+                            result.computeStatus();
+                        }
+
+//
+                    LOGGER.trace("List records iterative attempt processed {} records", count);
                 }
             });
             session.getTransaction().commit();
@@ -407,7 +407,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
 
     }
-    
+
     private void setParametersToQuery(Query q, Map<String, Object> params) {
         if (params == null) {
             return;
@@ -433,30 +433,30 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             } else {
                 q.setParameter(p.getKey(), toRepoType(p.getValue()));
             }
-//			if (XMLGregorianCalendar.class.isAssignableFrom(p.getValue().getClass())) {
-//				q.setParameter(p.getKey(), MiscUtil.asDate((XMLGregorianCalendar) p.getValue()));
-//			} else if (p.getValue() instanceof AuditEventType) {
-//				q.setParameter(p.getKey(), RAuditEventType.toRepo((AuditEventType) p.getValue()));
-//			} else if (p.getValue() instanceof AuditEventStage) {
-//				q.setParameter(p.getKey(), RAuditEventStage.toRepo((AuditEventStage) p.getValue()));
-//			} else {
-//				q.setParameter(p.getKey(), p.getValue());
-//			}
+//            if (XMLGregorianCalendar.class.isAssignableFrom(p.getValue().getClass())) {
+//                q.setParameter(p.getKey(), MiscUtil.asDate((XMLGregorianCalendar) p.getValue()));
+//            } else if (p.getValue() instanceof AuditEventType) {
+//                q.setParameter(p.getKey(), RAuditEventType.toRepo((AuditEventType) p.getValue()));
+//            } else if (p.getValue() instanceof AuditEventStage) {
+//                q.setParameter(p.getKey(), RAuditEventStage.toRepo((AuditEventStage) p.getValue()));
+//            } else {
+//                q.setParameter(p.getKey(), p.getValue());
+//            }
         }
     }
-    
+
     private void setParametersToQuery(SelectQueryBuilder queryBuilder, Map<String, Object> params) {
         if (params == null) {
             return;
         }
 
         if (params.containsKey(QUERY_FIRST_RESULT)) {
-        	queryBuilder.setFirstResult((int)params.get(QUERY_FIRST_RESULT));
-        	params.remove(QUERY_FIRST_RESULT);
+            queryBuilder.setFirstResult((int)params.get(QUERY_FIRST_RESULT));
+            params.remove(QUERY_FIRST_RESULT);
         }
         if (params.containsKey(QUERY_MAX_RESULT)) {
-        	queryBuilder.setMaxResult((int)params.get(QUERY_MAX_RESULT));
-        	params.remove(QUERY_MAX_RESULT);
+            queryBuilder.setMaxResult((int)params.get(QUERY_MAX_RESULT));
+            params.remove(QUERY_MAX_RESULT);
         }
         queryBuilder.addParameters(params);
     }
@@ -517,102 +517,102 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             SingleSqlQuery query = RAuditEventRecord.toRepo(record, customColumn);
             Session localSession = session;
             session.doWork(new Work() {
-				
-				@Override
-				public void execute(Connection connection) throws SQLException {
-					Database database = getConfiguration().getDatabase();
-					String[] keyColumn = {RAuditEventRecord.ID_COLUMN_NAME};
-					PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
-					Long id = null;
-					try {
-						smtp.executeUpdate();
-						ResultSet resultSet = smtp.getGeneratedKeys();
-						
-						if (resultSet.next()) {
-							id = resultSet.getLong(1);
-						    
-						}
-					} finally {
-						smtp.close();
-					}
-					if(id == null) {
-						throw new IllegalArgumentException("Returned id of new record is null");
-					}
-					
-					
-					BatchSqlQuery deltaBatchQuery = new BatchSqlQuery(database);
-					BatchSqlQuery itemBatchQuery = new BatchSqlQuery(database);
-					
-		            for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
-		            	if (delta == null) {
-		                    continue;
-		                }
-		
-		                ObjectDelta<?> objectDelta = delta.getObjectDelta();
-		                for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
-		                    ItemPath path = itemDelta.getPath();
-		                    if (path != null) {        // TODO what if empty?
-		                        CanonicalItemPath canonical = getPrismContext().createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
-		                        for (int i = 0; i < canonical.size(); i++) {
-		                        	
-		                            SingleSqlQuery itemQuery = RAuditItem.toRepo(id, canonical.allUpToIncluding(i).asString());
-//		                            changedItem.setTransient(true);
-		                            itemBatchQuery.addQueryForBatch(itemQuery);
-		                        }
-		                    }
-		                }
-		
-		                SingleSqlQuery deltaQuery;
-						try {
-							deltaQuery = RObjectDeltaOperation.toRepo(id, delta, getPrismContext());
-							deltaBatchQuery.addQueryForBatch(deltaQuery);
-						} catch (DtoTranslationException e) {
-							baseHelper.handleGeneralCheckedException(e, localSession, null);
-						}
-//		                rDelta.setTransient(true);
-		            }
-		            if(!deltaBatchQuery.isEmpty()) {
-		            	deltaBatchQuery.execute(connection);
-		            }
-		            if(!itemBatchQuery.isEmpty()) {
-		            	itemBatchQuery.execute(connection);
-		            }
-		            
-		            BatchSqlQuery propertyBatchQuery = new BatchSqlQuery(database);
-		            for (Map.Entry<String, Set<String>> propertyEntry : record.getProperties().entrySet()) {
-		            	for (String propertyValue : propertyEntry.getValue()) {
-		            		SingleSqlQuery propertyQuery = RAuditPropertyValue.toRepo(
-		            				id, propertyEntry.getKey(), RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE));
-//	              	      	val.setTransient(isTransient);
-		            		propertyBatchQuery.addQueryForBatch(propertyQuery);
-		            	}
-		            }
-		            if(!propertyBatchQuery.isEmpty()) {
-		            	propertyBatchQuery.execute(connection);
-		            }
-		            
-		            BatchSqlQuery referenceBatchQuery = new BatchSqlQuery(database);
-		            for (Map.Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
-		            	for (AuditReferenceValue referenceValue : referenceEntry.getValue()) {
-		            		SingleSqlQuery referenceQuery = RAuditReferenceValue.toRepo(id, referenceEntry.getKey(), referenceValue);
-//	           	  	        val.setTransient(isTransient);
-		            		referenceBatchQuery.addQueryForBatch(referenceQuery);
-		            	}
-		            }
-		            if(!referenceBatchQuery.isEmpty()) {
-		            	referenceBatchQuery.execute(connection);
-		            }
-		            
-		            BatchSqlQuery resourceOidBatchQuery = new BatchSqlQuery(database);
-		            for (String resourceOid : record.getResourceOids()) {
-		            	SingleSqlQuery resourceOidQuery = RTargetResourceOid.toRepo(id, resourceOid);
-		            	resourceOidBatchQuery.addQueryForBatch(resourceOidQuery);
-		            }
-		            if(!resourceOidBatchQuery.isEmpty()) {
-		            	resourceOidBatchQuery.execute(connection);
-		            }
-				}
-			});
+
+                @Override
+                public void execute(Connection connection) throws SQLException {
+                    Database database = getConfiguration().getDatabase();
+                    String[] keyColumn = {RAuditEventRecord.ID_COLUMN_NAME};
+                    PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
+                    Long id = null;
+                    try {
+                        smtp.executeUpdate();
+                        ResultSet resultSet = smtp.getGeneratedKeys();
+
+                        if (resultSet.next()) {
+                            id = resultSet.getLong(1);
+
+                        }
+                    } finally {
+                        smtp.close();
+                    }
+                    if(id == null) {
+                        throw new IllegalArgumentException("Returned id of new record is null");
+                    }
+
+
+                    BatchSqlQuery deltaBatchQuery = new BatchSqlQuery(database);
+                    BatchSqlQuery itemBatchQuery = new BatchSqlQuery(database);
+
+                    for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
+                        if (delta == null) {
+                            continue;
+                        }
+
+                        ObjectDelta<?> objectDelta = delta.getObjectDelta();
+                        for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
+                            ItemPath path = itemDelta.getPath();
+                            if (path != null) {        // TODO what if empty?
+                                CanonicalItemPath canonical = getPrismContext().createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
+                                for (int i = 0; i < canonical.size(); i++) {
+
+                                    SingleSqlQuery itemQuery = RAuditItem.toRepo(id, canonical.allUpToIncluding(i).asString());
+//                                    changedItem.setTransient(true);
+                                    itemBatchQuery.addQueryForBatch(itemQuery);
+                                }
+                            }
+                        }
+
+                        SingleSqlQuery deltaQuery;
+                        try {
+                            deltaQuery = RObjectDeltaOperation.toRepo(id, delta, getPrismContext());
+                            deltaBatchQuery.addQueryForBatch(deltaQuery);
+                        } catch (DtoTranslationException e) {
+                            baseHelper.handleGeneralCheckedException(e, localSession, null);
+                        }
+//                        rDelta.setTransient(true);
+                    }
+                    if(!deltaBatchQuery.isEmpty()) {
+                        deltaBatchQuery.execute(connection);
+                    }
+                    if(!itemBatchQuery.isEmpty()) {
+                        itemBatchQuery.execute(connection);
+                    }
+
+                    BatchSqlQuery propertyBatchQuery = new BatchSqlQuery(database);
+                    for (Map.Entry<String, Set<String>> propertyEntry : record.getProperties().entrySet()) {
+                        for (String propertyValue : propertyEntry.getValue()) {
+                            SingleSqlQuery propertyQuery = RAuditPropertyValue.toRepo(
+                                    id, propertyEntry.getKey(), RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE));
+//                                val.setTransient(isTransient);
+                            propertyBatchQuery.addQueryForBatch(propertyQuery);
+                        }
+                    }
+                    if(!propertyBatchQuery.isEmpty()) {
+                        propertyBatchQuery.execute(connection);
+                    }
+
+                    BatchSqlQuery referenceBatchQuery = new BatchSqlQuery(database);
+                    for (Map.Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
+                        for (AuditReferenceValue referenceValue : referenceEntry.getValue()) {
+                            SingleSqlQuery referenceQuery = RAuditReferenceValue.toRepo(id, referenceEntry.getKey(), referenceValue);
+//                                 val.setTransient(isTransient);
+                            referenceBatchQuery.addQueryForBatch(referenceQuery);
+                        }
+                    }
+                    if(!referenceBatchQuery.isEmpty()) {
+                        referenceBatchQuery.execute(connection);
+                    }
+
+                    BatchSqlQuery resourceOidBatchQuery = new BatchSqlQuery(database);
+                    for (String resourceOid : record.getResourceOids()) {
+                        SingleSqlQuery resourceOidQuery = RTargetResourceOid.toRepo(id, resourceOid);
+                        resourceOidBatchQuery.addQueryForBatch(resourceOidQuery);
+                    }
+                    if(!resourceOidBatchQuery.isEmpty()) {
+                        resourceOidBatchQuery.execute(connection);
+                    }
+                }
+            });
 
             session.getTransaction().commit();
         } catch (DtoTranslationException ex) {
@@ -656,7 +656,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         // factored out because it produces INFO-level message
         Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
-		checkTemporaryTablesSupport(dialect);
+        checkTemporaryTablesSupport(dialect);
 
         long start = System.currentTimeMillis();
         boolean first = true;
@@ -676,8 +676,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         LOGGER.debug(
                                 "Starting audit cleanup batch, deleting up to {} (duration '{}'), batch size {}, up to now deleted {} entries.",
                                 minValue, duration, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
-						count = batchDeletionAttempt((session, tempTable) -> selectRecordsByMaxAge(session, tempTable, minValue, dialect),
-								totalCountHolder, batchStart, dialect, parentResult);
+                        count = batchDeletionAttempt((session, tempTable) -> selectRecordsByMaxAge(session, tempTable, minValue, dialect),
+                                totalCountHolder, batchStart, dialect, parentResult);
                     } while (count > 0);
                     return;
                 } catch (RuntimeException ex) {
@@ -706,9 +706,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         Integer recordsToKeep = policy.getMaxRecords();
 
-		// factored out because it produces INFO-level message
-		Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
-		checkTemporaryTablesSupport(dialect);
+        // factored out because it produces INFO-level message
+        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
+        checkTemporaryTablesSupport(dialect);
 
         long start = System.currentTimeMillis();
         boolean first = true;
@@ -728,8 +728,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         LOGGER.debug(
                                 "Starting audit cleanup batch, keeping at most {} records, batch size {}, up to now deleted {} entries.",
                                 recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
-						count = batchDeletionAttempt((session, tempTable) -> selectRecordsByNumberToKeep(session, tempTable, recordsToKeep, dialect),
-								totalCountHolder, batchStart, dialect, parentResult);
+                        count = batchDeletionAttempt((session, tempTable) -> selectRecordsByNumberToKeep(session, tempTable, recordsToKeep, dialect),
+                                totalCountHolder, batchStart, dialect, parentResult);
                     } while (count > 0);
                     return;
                 } catch (RuntimeException ex) {
@@ -744,19 +744,19 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
-	private void checkTemporaryTablesSupport(Dialect dialect) {
+    private void checkTemporaryTablesSupport(Dialect dialect) {
         TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
 
-		if (!ttDialect.supportsTemporaryTables()) {
-			LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup audit logs.",
-					dialect);
-			throw new SystemException(
-					"Dialect " + dialect + " doesn't support temporary tables, couldn't cleanup audit logs.");
-		}
-	}
+        if (!ttDialect.supportsTemporaryTables()) {
+            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup audit logs.",
+                    dialect);
+            throw new SystemException(
+                    "Dialect " + dialect + " doesn't support temporary tables, couldn't cleanup audit logs.");
+        }
+    }
 
-	// deletes one batch of records (using recordsSelector to select records according to particular cleanup policy)
-	private int batchDeletionAttempt(BiFunction<Session, String, Integer> recordsSelector, Holder<Integer> totalCountHolder,
+    // deletes one batch of records (using recordsSelector to select records according to particular cleanup policy)
+    private int batchDeletionAttempt(BiFunction<Session, String, Integer> recordsSelector, Holder<Integer> totalCountHolder,
                                      long batchStart, Dialect dialect, OperationResult subResult) {
 
         Session session = null;
@@ -765,36 +765,36 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
             TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
 
-			// create temporary table
-			final String tempTable = ttDialect.generateTemporaryTableName(RAuditEventRecord.TABLE_NAME);
-			createTemporaryTable(session, dialect, tempTable);
-			LOGGER.trace("Created temporary table '{}'.", tempTable);
+            // create temporary table
+            final String tempTable = ttDialect.generateTemporaryTableName(RAuditEventRecord.TABLE_NAME);
+            createTemporaryTable(session, dialect, tempTable);
+            LOGGER.trace("Created temporary table '{}'.", tempTable);
 
-			int count = recordsSelector.apply(session, tempTable);
-			LOGGER.trace("Inserted {} audit record ids ready for deleting.", count);
+            int count = recordsSelector.apply(session, tempTable);
+            LOGGER.trace("Inserted {} audit record ids ready for deleting.", count);
 
-			// drop records from m_audit_item, m_audit_event, m_audit_delta, and others
-			session.createNativeQuery(createDeleteQuery(RAuditItem.TABLE_NAME, tempTable,
-					RAuditItem.COLUMN_RECORD_ID)).executeUpdate();
-			session.createNativeQuery(createDeleteQuery(RObjectDeltaOperation.TABLE_NAME, tempTable,
-					RObjectDeltaOperation.COLUMN_RECORD_ID)).executeUpdate();
-			session.createNativeQuery(createDeleteQuery(RAuditPropertyValue.TABLE_NAME, tempTable,
-					RAuditPropertyValue.COLUMN_RECORD_ID)).executeUpdate();
-			session.createNativeQuery(createDeleteQuery(RAuditReferenceValue.TABLE_NAME, tempTable,
-					RAuditReferenceValue.COLUMN_RECORD_ID)).executeUpdate();
-			session.createNativeQuery(createDeleteQuery(RTargetResourceOid.TABLE_NAME, tempTable,
-					RTargetResourceOid.COLUMN_RECORD_ID)).executeUpdate();
-			session.createNativeQuery(createDeleteQuery(RAuditEventRecord.TABLE_NAME, tempTable, "id"))
-					.executeUpdate();
+            // drop records from m_audit_item, m_audit_event, m_audit_delta, and others
+            session.createNativeQuery(createDeleteQuery(RAuditItem.TABLE_NAME, tempTable,
+                    RAuditItem.COLUMN_RECORD_ID)).executeUpdate();
+            session.createNativeQuery(createDeleteQuery(RObjectDeltaOperation.TABLE_NAME, tempTable,
+                    RObjectDeltaOperation.COLUMN_RECORD_ID)).executeUpdate();
+            session.createNativeQuery(createDeleteQuery(RAuditPropertyValue.TABLE_NAME, tempTable,
+                    RAuditPropertyValue.COLUMN_RECORD_ID)).executeUpdate();
+            session.createNativeQuery(createDeleteQuery(RAuditReferenceValue.TABLE_NAME, tempTable,
+                    RAuditReferenceValue.COLUMN_RECORD_ID)).executeUpdate();
+            session.createNativeQuery(createDeleteQuery(RTargetResourceOid.TABLE_NAME, tempTable,
+                    RTargetResourceOid.COLUMN_RECORD_ID)).executeUpdate();
+            session.createNativeQuery(createDeleteQuery(RAuditEventRecord.TABLE_NAME, tempTable, "id"))
+                    .executeUpdate();
 
-			// drop temporary table
-			if (ttDialect.dropTemporaryTableAfterUse()) {
-				LOGGER.debug("Dropping temporary table.");
-				StringBuilder sb = new StringBuilder();
-				sb.append(ttDialect.getDropTemporaryTableString());
-				sb.append(' ').append(tempTable);
+            // drop temporary table
+            if (ttDialect.dropTemporaryTableAfterUse()) {
+                LOGGER.debug("Dropping temporary table.");
+                StringBuilder sb = new StringBuilder();
+                sb.append(ttDialect.getDropTemporaryTableString());
+                sb.append(' ').append(tempTable);
 
-				session.createNativeQuery(sb.toString()).executeUpdate();
+                session.createNativeQuery(sb.toString()).executeUpdate();
             }
 
             session.getTransaction().commit();
@@ -813,38 +813,38 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
-	private int selectRecordsByMaxAge(Session session, String tempTable, Date minValue, Dialect dialect) {
+    private int selectRecordsByMaxAge(Session session, String tempTable, Date minValue, Dialect dialect) {
 
-		// fill temporary table, we don't need to join task on object on
-		// container, oid and id is already in task table
-		StringBuilder selectSB = new StringBuilder();
-		selectSB.append("select a.id as id from ").append(RAuditEventRecord.TABLE_NAME).append(" a");
-		selectSB.append(" where a.").append(RAuditEventRecord.COLUMN_TIMESTAMP).append(" < ###TIME###");
-		String selectString = selectSB.toString();
+        // fill temporary table, we don't need to join task on object on
+        // container, oid and id is already in task table
+        StringBuilder selectSB = new StringBuilder();
+        selectSB.append("select a.id as id from ").append(RAuditEventRecord.TABLE_NAME).append(" a");
+        selectSB.append(" where a.").append(RAuditEventRecord.COLUMN_TIMESTAMP).append(" < ###TIME###");
+        String selectString = selectSB.toString();
 
-		// batch size
-		RowSelection rowSelection = new RowSelection();
-		rowSelection.setMaxRows(CLEANUP_AUDIT_BATCH_SIZE);
-		LimitHandler limitHandler = dialect.getLimitHandler();
-		selectString = limitHandler.processSql(selectString, rowSelection);
+        // batch size
+        RowSelection rowSelection = new RowSelection();
+        rowSelection.setMaxRows(CLEANUP_AUDIT_BATCH_SIZE);
+        LimitHandler limitHandler = dialect.getLimitHandler();
+        selectString = limitHandler.processSql(selectString, rowSelection);
 
-		// replace ? -> batch size, $ -> ?
-		// Sorry for that .... I just don't know how to write this query in HQL,
-		// nor I'm not sure if limiting max size in
-		// compound insert into ... select ... query via query.setMaxSize()
-		// would work - TODO write more nicely if anybody knows how)
-		selectString = selectString.replace("?", String.valueOf(CLEANUP_AUDIT_BATCH_SIZE));
-		selectString = selectString.replace("###TIME###", "?");
+        // replace ? -> batch size, $ -> ?
+        // Sorry for that .... I just don't know how to write this query in HQL,
+        // nor I'm not sure if limiting max size in
+        // compound insert into ... select ... query via query.setMaxSize()
+        // would work - TODO write more nicely if anybody knows how)
+        selectString = selectString.replace("?", String.valueOf(CLEANUP_AUDIT_BATCH_SIZE));
+        selectString = selectString.replace("###TIME###", "?");
 
-		String queryString = "insert into " + tempTable + " " + selectString;
-		LOGGER.trace("Query string = {}", queryString);
-		NativeQuery query = session.createNativeQuery(queryString);
-		query.setParameter(1, new Timestamp(minValue.getTime()));
+        String queryString = "insert into " + tempTable + " " + selectString;
+        LOGGER.trace("Query string = {}", queryString);
+        NativeQuery query = session.createNativeQuery(queryString);
+        query.setParameter(1, new Timestamp(minValue.getTime()));
 
-		return query.executeUpdate();
+        return query.executeUpdate();
     }
 
-	private int selectRecordsByNumberToKeep(Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
+    private int selectRecordsByNumberToKeep(Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
         CriteriaBuilder cb = session.getCriteriaBuilder();
         CriteriaQuery cq = cb.createQuery(RAuditEventRecord.class);
         cq.select(cb.count(cq.from(RAuditEventRecord.class)));
@@ -858,37 +858,37 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         LOGGER.debug("Total audit records: {}, records to keep: {} => records to delete in this batch: {}",
                 totalAuditRecords, recordsToKeep, recordsToDelete);
         if (recordsToDelete == 0) {
-			return 0;
+            return 0;
         }
 
-		StringBuilder selectSB = new StringBuilder();
-		selectSB.append("select a.id as id from ").append(RAuditEventRecord.TABLE_NAME).append(" a");
-		selectSB.append(" order by a.").append(RAuditEventRecord.COLUMN_TIMESTAMP).append(" asc");
-		String selectString = selectSB.toString();
+        StringBuilder selectSB = new StringBuilder();
+        selectSB.append("select a.id as id from ").append(RAuditEventRecord.TABLE_NAME).append(" a");
+        selectSB.append(" order by a.").append(RAuditEventRecord.COLUMN_TIMESTAMP).append(" asc");
+        String selectString = selectSB.toString();
 
-		// batch size
-		RowSelection rowSelection = new RowSelection();
-		rowSelection.setMaxRows(recordsToDelete);
-		LimitHandler limitHandler = dialect.getLimitHandler();
-		selectString = limitHandler.processSql(selectString, rowSelection);
-		selectString = selectString.replace("?", String.valueOf(recordsToDelete));
+        // batch size
+        RowSelection rowSelection = new RowSelection();
+        rowSelection.setMaxRows(recordsToDelete);
+        LimitHandler limitHandler = dialect.getLimitHandler();
+        selectString = limitHandler.processSql(selectString, rowSelection);
+        selectString = selectString.replace("?", String.valueOf(recordsToDelete));
 
-		String queryString = "insert into " + tempTable + " " + selectString;
-		LOGGER.trace("Query string = {}", queryString);
-		NativeQuery query = session.createNativeQuery(queryString);
-		return query.executeUpdate();
-	}
+        String queryString = "insert into " + tempTable + " " + selectString;
+        LOGGER.trace("Query string = {}", queryString);
+        NativeQuery query = session.createNativeQuery(queryString);
+        return query.executeUpdate();
+    }
 
-	/**
-	 * This method creates temporary table for cleanup audit method.
-	 *
-	 * @param session
-	 * @param dialect
-	 * @param tempTable
-	 */
-	private void createTemporaryTable(Session session, final Dialect dialect, final String tempTable) {
-		session.doWork(connection -> {
-			// check if table exists
+    /**
+     * This method creates temporary table for cleanup audit method.
+     *
+     * @param session
+     * @param dialect
+     * @param tempTable
+     */
+    private void createTemporaryTable(Session session, final Dialect dialect, final String tempTable) {
+        session.doWork(connection -> {
+            // check if table exists
             if (!getConfiguration().isUsingPostgreSQL()) {
                 try {
                     Statement s = connection.createStatement();
@@ -904,46 +904,46 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
             TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
 
-			StringBuilder sb = new StringBuilder();
-			sb.append(ttDialect.getCreateTemporaryTableString());
-			sb.append(' ').append(tempTable).append(" (id ");
-			sb.append(dialect.getTypeName(Types.BIGINT));
-			sb.append(" not null)");
-			sb.append(ttDialect.getCreateTemporaryTablePostfix());
+            StringBuilder sb = new StringBuilder();
+            sb.append(ttDialect.getCreateTemporaryTableString());
+            sb.append(' ').append(tempTable).append(" (id ");
+            sb.append(dialect.getTypeName(Types.BIGINT));
+            sb.append(" not null)");
+            sb.append(ttDialect.getCreateTemporaryTablePostfix());
 
             Statement s = connection.createStatement();
             s.execute(sb.toString());
             s.close();
-		});
-	}
+        });
+    }
 
-	private String createDeleteQuery(String objectTable, String tempTable, String idColumnName) {
-		if (getConfiguration().isUsingMySqlCompatible()) {
-			return createDeleteQueryAsJoin(objectTable, tempTable, idColumnName);
-		} else if (getConfiguration().isUsingPostgreSQL()) {
-			return createDeleteQueryAsJoinPostgreSQL(objectTable, tempTable, idColumnName);
-		} else {
-			// todo consider using join for other databases as well
-			return createDeleteQueryAsSubquery(objectTable, tempTable, idColumnName);
-		}
-	}
+    private String createDeleteQuery(String objectTable, String tempTable, String idColumnName) {
+        if (getConfiguration().isUsingMySqlCompatible()) {
+            return createDeleteQueryAsJoin(objectTable, tempTable, idColumnName);
+        } else if (getConfiguration().isUsingPostgreSQL()) {
+            return createDeleteQueryAsJoinPostgreSQL(objectTable, tempTable, idColumnName);
+        } else {
+            // todo consider using join for other databases as well
+            return createDeleteQueryAsSubquery(objectTable, tempTable, idColumnName);
+        }
+    }
 
-	private String createDeleteQueryAsJoin(String objectTable, String tempTable, String idColumnName) {
-		return "DELETE FROM main, temp USING " + objectTable + " AS main INNER JOIN " + tempTable + " as temp "
-				+ "WHERE main." + idColumnName + " = temp.id";
-	}
+    private String createDeleteQueryAsJoin(String objectTable, String tempTable, String idColumnName) {
+        return "DELETE FROM main, temp USING " + objectTable + " AS main INNER JOIN " + tempTable + " as temp "
+                + "WHERE main." + idColumnName + " = temp.id";
+    }
 
-	private String createDeleteQueryAsJoinPostgreSQL(String objectTable, String tempTable, String idColumnName) {
-		return "delete from " + objectTable + " main using " + tempTable + " temp where main." + idColumnName + " = temp.id";
-	}
+    private String createDeleteQueryAsJoinPostgreSQL(String objectTable, String tempTable, String idColumnName) {
+        return "delete from " + objectTable + " main using " + tempTable + " temp where main." + idColumnName + " = temp.id";
+    }
 
-	private String createDeleteQueryAsSubquery(String objectTable, String tempTable, String idColumnName) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("delete from ").append(objectTable);
-		sb.append(" where ").append(idColumnName).append(" in (select id from ").append(tempTable)
-				.append(')');
+    private String createDeleteQueryAsSubquery(String objectTable, String tempTable, String idColumnName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("delete from ").append(objectTable);
+        sb.append(" where ").append(idColumnName).append(" in (select id from ").append(tempTable)
+                .append(')');
 
-		return sb.toString();
+        return sb.toString();
     }
 
     public long countObjects(String query, Map<String, Object> params) {
@@ -954,40 +954,40 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             session.setFlushMode(FlushMode.MANUAL);
 //            Query q = session.createQuery(query);
             session.doWork(new Work() {
-            	
-				@Override
-				public void execute(Connection connection) throws SQLException {
-					Database database = getConfiguration().getDatabase();
-					
-					String basicQuery = query;
-					if (StringUtils.isBlank(query)) {
-						basicQuery = "select count (*) from m_audit_event "
-								+ (database.equals(Database.ORACLE) ? "" : "as ") 
-								+ "aer where 1 = 1";
-		            }
-					SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
+
+                @Override
+                public void execute(Connection connection) throws SQLException {
+                    Database database = getConfiguration().getDatabase();
+
+                    String basicQuery = query;
+                    if (StringUtils.isBlank(query)) {
+                        basicQuery = "select count (*) from m_audit_event "
+                                + (database.equals(Database.ORACLE) ? "" : "as ")
+                                + "aer where 1 = 1";
+                    }
+                    SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
                     setParametersToQuery(queryBuilder, params);
 
                     if (LOGGER.isTraceEnabled()) {
                         LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
                     }
-                    
+
                     PreparedStatement stmt = queryBuilder.build().createPreparedStatement(connection);
                     try {
-                    	ResultSet resultList = stmt.executeQuery();
-                    	if(!resultList.next()) {
-                    		throw new IllegalArgumentException("Result set don't have value for select: " + query);
-                    	}
-                    	if(resultList.getMetaData().getColumnCount() > 1) {
-                    		throw new IllegalArgumentException("Result have more as one value for select: " + query);
-                    	}
-                    	count[0] = resultList.getLong(1);
+                        ResultSet resultList = stmt.executeQuery();
+                        if(!resultList.next()) {
+                            throw new IllegalArgumentException("Result set don't have value for select: " + query);
+                        }
+                        if(resultList.getMetaData().getColumnCount() > 1) {
+                            throw new IllegalArgumentException("Result have more as one value for select: " + query);
+                        }
+                        count[0] = resultList.getLong(1);
                     } finally {
-						stmt.close();
-					}
-					
-				}
-			});
+                        stmt.close();
+                    }
+
+                }
+            });
 
 //            setParametersToQuery(q, params);
 //            Number numberCount = (Number) q.uniqueResult();
@@ -1004,9 +1004,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     public boolean supportsRetrieval() {
         return true;
     }
-    
+
     public Map<String, String> getCustomColumn() {
-		return customColumn;
-	}
+        return customColumn;
+    }
 
 }

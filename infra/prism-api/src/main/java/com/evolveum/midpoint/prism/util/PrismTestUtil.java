@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.util;
@@ -50,59 +50,59 @@ public class PrismTestUtil {
     private static final Trace LOGGER = TraceManager.getTrace(PrismTestUtil.class);
 
     private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
-    
+
     private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
-	private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
-	private static final String LOG_MESSAGE_PREFIX = "";
+    private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
+    private static final String LOG_MESSAGE_PREFIX = "";
 
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
 
     public static void resetPrismContext(PrismContextFactory newPrismContextFactory) throws SchemaException, SAXException, IOException {
-    	if (prismContextFactory == newPrismContextFactory) {
-    		// Exactly the same factory instance, nothing to do.
-    		return;
-    	}
-    	setFactory(newPrismContextFactory);
-    	resetPrismContext();
+        if (prismContextFactory == newPrismContextFactory) {
+            // Exactly the same factory instance, nothing to do.
+            return;
+        }
+        setFactory(newPrismContextFactory);
+        resetPrismContext();
     }
 
-	public static void setFactory(PrismContextFactory newPrismContextFactory) {
-		PrismTestUtil.prismContextFactory = newPrismContextFactory;
-	}
+    public static void setFactory(PrismContextFactory newPrismContextFactory) {
+        PrismTestUtil.prismContextFactory = newPrismContextFactory;
+    }
 
-	public static void resetPrismContext() throws SchemaException, SAXException, IOException {
-		prismContext = createInitializedPrismContext();
-	}
+    public static void resetPrismContext() throws SchemaException, SAXException, IOException {
+        prismContext = createInitializedPrismContext();
+    }
 
-	public static PrismContext createPrismContext() throws SchemaException, FileNotFoundException {
-    	if (prismContextFactory == null) {
-    		throw new IllegalStateException("Cannot create prism context, no prism factory is set");
-    	}
-		PrismContext prismContext = prismContextFactory.createPrismContext();
-		prismContext.setExtraValidation(true);
-		return prismContext;
-	}
+    public static PrismContext createPrismContext() throws SchemaException, FileNotFoundException {
+        if (prismContextFactory == null) {
+            throw new IllegalStateException("Cannot create prism context, no prism factory is set");
+        }
+        PrismContext prismContext = prismContextFactory.createPrismContext();
+        prismContext.setExtraValidation(true);
+        return prismContext;
+    }
 
     public static PrismContext createInitializedPrismContext() throws SchemaException, SAXException, IOException {
-    	PrismContext newPrismContext = createPrismContext();
-    	newPrismContext.initialize();
+        PrismContext newPrismContext = createPrismContext();
+        newPrismContext.initialize();
         return newPrismContext;
     }
 
     public static PrismContext getPrismContext() {
-    	if (prismContext == null) {
-    		throw new IllegalStateException("Prism context is not set in PrismTestUtil. Maybe a missing call to resetPrismContext(..) in test initialization?");
-    	}
-    	return prismContext;
+        if (prismContext == null) {
+            throw new IllegalStateException("Prism context is not set in PrismTestUtil. Maybe a missing call to resetPrismContext(..) in test initialization?");
+        }
+        return prismContext;
     }
-    
+
     public static void setPrismContext(PrismContext prismContext) {
-		PrismTestUtil.prismContext = prismContext;
-	}
+        PrismTestUtil.prismContext = prismContext;
+    }
 
     public static SchemaRegistry getSchemaRegistry() {
-    	return prismContext.getSchemaRegistry();
+        return prismContext.getSchemaRegistry();
     }
 
     // ==========================
@@ -110,16 +110,16 @@ public class PrismTestUtil {
     // ==========================
 
     public static <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException {
-    	return getPrismContext().parseObject(file);
+        return getPrismContext().parseObject(file);
     }
 
     public static <T extends Objectable> PrismObject<T> parseObject(String xmlString) throws SchemaException {
-    	return getPrismContext().parseObject(xmlString);
+        return getPrismContext().parseObject(xmlString);
     }
 
     @Deprecated
     public static <T extends Objectable> PrismObject<T> parseObject(Element element) throws SchemaException {
-    	return getPrismContext().parserFor(element).parse();
+        return getPrismContext().parserFor(element).parse();
     }
 
     public static <T extends Objectable> T parseObjectable(File file, Class<T> clazz) throws SchemaException, IOException {
@@ -128,7 +128,7 @@ public class PrismTestUtil {
 
 
     public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
-    	return getPrismContext().parserFor(file).parseObjects();
+        return getPrismContext().parserFor(file).parseObjects();
     }
 
     // ==========================
@@ -136,7 +136,7 @@ public class PrismTestUtil {
     // ==========================
 
     public static String serializeObjectToString(PrismObject<? extends Objectable> object, String language) throws SchemaException {
-    	return getPrismContext().serializeObjectToString(object, language);
+        return getPrismContext().serializeObjectToString(object, language);
     }
 
     public static String serializeObjectToString(PrismObject<? extends Objectable> object) throws SchemaException {
@@ -182,107 +182,107 @@ public class PrismTestUtil {
     }
 
     public static <T extends Objectable> PrismObjectDefinition<T> getObjectDefinition(Class<T> compileTimeClass) {
-		return getSchemaRegistry().findObjectDefinitionByCompileTimeClass(compileTimeClass);
-	}
+        return getSchemaRegistry().findObjectDefinitionByCompileTimeClass(compileTimeClass);
+    }
 
-	public static PolyString createPolyString(String orig) {
-		PolyString polyString = new PolyString(orig);
-		polyString.recompute(getPrismContext().getDefaultPolyStringNormalizer());
-		return polyString;
-	}
+    public static PolyString createPolyString(String orig) {
+        PolyString polyString = new PolyString(orig);
+        polyString.recompute(getPrismContext().getDefaultPolyStringNormalizer());
+        return polyString;
+    }
 
     public static PolyString createPolyString(String orig, String norm) {
         return new PolyString(orig, norm);
     }
 
-	public static PolyStringType createPolyStringType(String string) {
-		return new PolyStringType(createPolyString(string));
-	}
+    public static PolyStringType createPolyStringType(String string) {
+        return new PolyStringType(createPolyString(string));
+    }
 
     public static PolyStringType createPolyStringType(String orig, String norm) {
         return new PolyStringType(createPolyString(orig, norm));
     }
 
-	public static void displayTestTitle(String testName) {
-		System.out.println("\n\n===[ "+testName+" ]===\n");
-		LOGGER.info("===[ {} ]===",testName);
-	}
-	
-	public static void displayWhen(String testName) {
-		System.out.println("\n\n---[ "+testName+" WHEN ]---\n");
-		LOGGER.info("---[ {} WHEN ]---",testName);
-	}
-	
-	public static void displayThen(String testName) {
-		System.out.println("\n\n---[ "+testName+" THEN ]---\n");
-		LOGGER.info("---[ {} THEN ]---",testName);
-	}
+    public static void displayTestTitle(String testName) {
+        System.out.println("\n\n===[ "+testName+" ]===\n");
+        LOGGER.info("===[ {} ]===",testName);
+    }
 
-	public static SearchFilterType unmarshalFilter(File file) throws Exception {
-		return prismContext.parserFor(file).parseRealValue(SearchFilterType.class);
-	}
+    public static void displayWhen(String testName) {
+        System.out.println("\n\n---[ "+testName+" WHEN ]---\n");
+        LOGGER.info("---[ {} WHEN ]---",testName);
+    }
 
-	public static ObjectFilter getFilterCondition(ObjectFilter filter, int index) {
-		if (!(filter instanceof NaryLogicalFilter)) {
-			throw new IllegalArgumentException("Filter not an instance of n-ary logical filter.");
-		}
-		return ((LogicalFilter) filter).getConditions().get(index);
-	}
+    public static void displayThen(String testName) {
+        System.out.println("\n\n---[ "+testName+" THEN ]---\n");
+        LOGGER.info("---[ {} THEN ]---",testName);
+    }
 
-	public static void display(String title, String value) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(value);
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
-				+ value);
-	}
+    public static SearchFilterType unmarshalFilter(File file) throws Exception {
+        return prismContext.parserFor(file).parseRealValue(SearchFilterType.class);
+    }
 
-	public static void display(String title, DebugDumpable dumpable) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(dumpable == null ? "null" : dumpable.debugDump(1));
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n"
-				+ (dumpable == null ? "null" : dumpable.debugDump(1)));
-	}
-	
-	public static void display(String title, Object value) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(PrettyPrinter.prettyPrint(value));
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
-				+ PrettyPrinter.prettyPrint(value));
-	}
-	
-	public static void displayCollection(String title, Collection<?> collection) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title + " (" + collection.size() + ")");
-		for (Object object : collection) {
-			System.out.println(" - " + PrettyPrinter.prettyPrint(object));
-		}
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + " (" + collection.size() + ")" + "\n" +
-				collection.stream().map(object -> PrettyPrinter.prettyPrint(object)).collect(Collectors.joining("\n")));
-	}
+    public static ObjectFilter getFilterCondition(ObjectFilter filter, int index) {
+        if (!(filter instanceof NaryLogicalFilter)) {
+            throw new IllegalArgumentException("Filter not an instance of n-ary logical filter.");
+        }
+        return ((LogicalFilter) filter).getConditions().get(index);
+    }
 
-	public static void displayQuery(ObjectQuery query) {
-		LOGGER.trace("object query:\n{}\n", query);
-		System.out.println("object query:\n" + query + "\n");
-		if (query != null) {
-			LOGGER.trace("object query debug dump:\n{}\n", query.debugDump());
-			System.out.println("object query debug dump:\n" + query.debugDump() + "\n");
-		}
-	}
+    public static void display(String title, String value) {
+        System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+        System.out.println(value);
+        LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
+                + value);
+    }
 
-	public static void displayQueryXml(String xml) {
-		LOGGER.trace("object query XML:\n{}", xml);
-		System.out.println("object query XML:\n" + xml);
-	}
+    public static void display(String title, DebugDumpable dumpable) {
+        System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+        System.out.println(dumpable == null ? "null" : dumpable.debugDump(1));
+        LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n"
+                + (dumpable == null ? "null" : dumpable.debugDump(1)));
+    }
 
-	public static void displayText(String text) {
-		LOGGER.trace(text);
-		System.out.println(text);
-	}
+    public static void display(String title, Object value) {
+        System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+        System.out.println(PrettyPrinter.prettyPrint(value));
+        LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
+                + PrettyPrinter.prettyPrint(value));
+    }
+
+    public static void displayCollection(String title, Collection<?> collection) {
+        System.out.println(OBJECT_TITLE_OUT_PREFIX + title + " (" + collection.size() + ")");
+        for (Object object : collection) {
+            System.out.println(" - " + PrettyPrinter.prettyPrint(object));
+        }
+        LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + " (" + collection.size() + ")" + "\n" +
+                collection.stream().map(object -> PrettyPrinter.prettyPrint(object)).collect(Collectors.joining("\n")));
+    }
+
+    public static void displayQuery(ObjectQuery query) {
+        LOGGER.trace("object query:\n{}\n", query);
+        System.out.println("object query:\n" + query + "\n");
+        if (query != null) {
+            LOGGER.trace("object query debug dump:\n{}\n", query.debugDump());
+            System.out.println("object query debug dump:\n" + query.debugDump() + "\n");
+        }
+    }
+
+    public static void displayQueryXml(String xml) {
+        LOGGER.trace("object query XML:\n{}", xml);
+        System.out.println("object query XML:\n" + xml);
+    }
+
+    public static void displayText(String text) {
+        LOGGER.trace(text);
+        System.out.println(text);
+    }
 
     public static void displayQueryType(QueryType queryType) throws SchemaException {
         displaySearchFilterType(queryType.getFilter());
     }
 
-	public static void displaySearchFilterType(SearchFilterType filterType) throws SchemaException {
+    public static void displaySearchFilterType(SearchFilterType filterType) throws SchemaException {
         MapXNode mapXNode = filterType.getFilterClauseXNode();
 
         String dumpX = mapXNode.debugDump();
@@ -290,11 +290,11 @@ public class PrismTestUtil {
         System.out.println("filter clause xnode:\n" + dumpX + "\n");
 
         String dumpXml = prismContext.xmlSerializer().serialize(
-        		prismContext.xnodeFactory().root(new QName("filterClauseXNode"), mapXNode));
+                prismContext.xnodeFactory().root(new QName("filterClauseXNode"), mapXNode));
         System.out.println("filter clause xnode serialized:\n" + dumpXml + "\n");
-	}
+    }
 
-	public static ParsingContext createDefaultParsingContext() {
-		return getPrismContext().getDefaultParsingContext();
-	}
+    public static ParsingContext createDefaultParsingContext() {
+        return getPrismContext().getDefaultParsingContext();
+    }
 }

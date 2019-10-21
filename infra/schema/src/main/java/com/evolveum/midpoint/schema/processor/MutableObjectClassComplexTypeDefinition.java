@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,35 +17,35 @@ import javax.xml.namespace.QName;
  *
  */
 public interface MutableObjectClassComplexTypeDefinition extends ObjectClassComplexTypeDefinition, MutableComplexTypeDefinition {
-	void add(ItemDefinition<?> definition);
+    void add(ItemDefinition<?> definition);
 
-	void addPrimaryIdentifier(ResourceAttributeDefinition<?> identifier);
+    void addPrimaryIdentifier(ResourceAttributeDefinition<?> identifier);
 
-	void addSecondaryIdentifier(ResourceAttributeDefinition<?> identifier);
+    void addSecondaryIdentifier(ResourceAttributeDefinition<?> identifier);
 
-	void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute);
+    void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute);
 
-	void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute);
+    void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute);
 
-	void setNamingAttribute(QName namingAttribute);
+    void setNamingAttribute(QName namingAttribute);
 
-	void setNativeObjectClass(String nativeObjectClass);
+    void setNativeObjectClass(String nativeObjectClass);
 
-	void setAuxiliary(boolean auxiliary);
+    void setAuxiliary(boolean auxiliary);
 
-	void setKind(ShadowKindType kind);
+    void setKind(ShadowKindType kind);
 
-	void setDefaultInAKind(boolean defaultAccountType);
+    void setDefaultInAKind(boolean defaultAccountType);
 
-	void setIntent(String intent);
+    void setIntent(String intent);
 
-	void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName);
+    void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName);
 
-	void setDisplayNameAttribute(QName displayName);
+    void setDisplayNameAttribute(QName displayName);
 
-	<X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(QName name, QName typeName);
+    <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(QName name, QName typeName);
 
-	<X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(String localName, QName typeName);
+    <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(String localName, QName typeName);
 
-	<X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName);
+    <X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName);
 }

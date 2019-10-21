@@ -1,14 +1,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="649986bc-12e2-4c54-b59a-fcf900c8ac43">
-	<name>IT-4</name>
-	<assignment>
-		<targetRef oid="4d512b66-3afd-4a8b-aca8-43a1a8ac948f" type="RoleType"/> <!-- k11-tpu-10-rem-elaine -->
-	</assignment>
+      oid="649986bc-12e2-4c54-b59a-fcf900c8ac43">
+    <name>IT-4</name>
+    <assignment>
+        <targetRef oid="4d512b66-3afd-4a8b-aca8-43a1a8ac948f" type="RoleType"/> <!-- k11-tpu-10-rem-elaine -->
+    </assignment>
 </role>

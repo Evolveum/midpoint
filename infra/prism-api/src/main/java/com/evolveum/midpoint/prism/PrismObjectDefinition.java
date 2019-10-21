@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,24 +19,24 @@ import javax.xml.namespace.QName;
  */
 public interface PrismObjectDefinition<O extends Objectable> extends PrismContainerDefinition<O> {
 
-	@Override
-	@NotNull
-	PrismObject<O> instantiate() throws SchemaException;
+    @Override
+    @NotNull
+    PrismObject<O> instantiate() throws SchemaException;
 
-	@Override
-	@NotNull
-	PrismObject<O> instantiate(QName name) throws SchemaException;
+    @Override
+    @NotNull
+    PrismObject<O> instantiate(QName name) throws SchemaException;
 
-	@NotNull
-	PrismObjectDefinition<O> clone();
+    @NotNull
+    PrismObjectDefinition<O> clone();
 
-	@Override
-	PrismObjectDefinition<O> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
+    @Override
+    PrismObjectDefinition<O> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
 
-	PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
+    PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
 
-	PrismContainerDefinition<?> getExtensionDefinition();
+    PrismContainerDefinition<?> getExtensionDefinition();
 
-	@Override
-	PrismObjectValue<O> createValue();
+    @Override
+    PrismObjectValue<O> createValue();
 }

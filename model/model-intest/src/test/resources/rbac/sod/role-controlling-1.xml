@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="d20aefe6-3ecf-11e7-8068-5f346db1cc01"
@@ -10,7 +10,7 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Controlling: One</name>
     <assignment>
-    	<targetRef oid="d20aefe6-3ecf-11e7-8068-5f346db1cc00" type="RoleType"/> <!-- Controlling metarole -->
+        <targetRef oid="d20aefe6-3ecf-11e7-8068-5f346db1cc00" type="RoleType"/> <!-- Controlling metarole -->
     </assignment>
-	<roleType>controlling</roleType>
+    <roleType>controlling</roleType>
 </role>

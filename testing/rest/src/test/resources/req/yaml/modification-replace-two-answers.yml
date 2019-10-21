@@ -15,12 +15,12 @@
 #
 ---
 '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
-objectModification: 
-  itemDelta: 
+objectModification:
+  itemDelta:
     '@ns': "http://prism.evolveum.com/xml/ns/public/types-3"
     modificationType: "replace"
     path: "credentials/securityQuestions/questionAnswer"
-    value: 
+    value:
        - '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          questionIdentifier: "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001"
          questionAnswer:

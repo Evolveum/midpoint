@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,20 +22,20 @@ import org.apache.wicket.util.string.AppendingStringBuffer;
  * @author katkav
  */
 public class MainPopupDialog extends ModalWindow {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_MAIN_POPUP_BODY = "popupBody";
+    private static final String ID_MAIN_POPUP_BODY = "popupBody";
 
-	private boolean initialized;
+    private boolean initialized;
 
     public MainPopupDialog(String id) {
         super(id);
     }
-    
+
 //    @Override
 //    protected void onInitialize() {
-//    	super.onInitialize();
-//    	setCssClassName(ModalWindow.CSS_CLASS_GRAY);
+//        super.onInitialize();
+//        setCssClassName(ModalWindow.CSS_CLASS_GRAY);
 //        showUnloadConfirmation(false);
 //        setResizable(false);
 //        setInitialWidth(350);
@@ -43,18 +43,18 @@ public class MainPopupDialog extends ModalWindow {
 //        setWidthUnit("px");
 //
 //        setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-//			private static final long serialVersionUID = 1L;
+//            private static final long serialVersionUID = 1L;
 //
-//			@Override
+//            @Override
 //            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
 //                return true;
 //            }
 //        });
 //
 //        setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
-//			private static final long serialVersionUID = 1L;
+//            private static final long serialVersionUID = 1L;
 //
-//			@Override
+//            @Override
 //            public void onClose(AjaxRequestTarget target) {
 //                MainPopupDialog.this.close(target);
 //            }
@@ -84,27 +84,27 @@ public class MainPopupDialog extends ModalWindow {
 //    }
 //
 //    private void setBody(Component component){
-//    	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
-//    	component.setOutputMarkupId(true);
-//    	component.setOutputMarkupPlaceholderTag(true);
+//        WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
+//        component.setOutputMarkupId(true);
+//        component.setOutputMarkupPlaceholderTag(true);
 //        content.setOutputMarkupPlaceholderTag(true);
 //        content.setOutputMarkupId(true);
 //        content.addOrReplace(component);
 //    }
 //
 //    public void setBody(Popupable popupable){
-//    	setTitle(popupable.getTitle());
-//    	setInitialHeight(popupable.getHeight());
-//    	setInitialWidth(popupable.getWidth());
-//    	setHeightUnit(popupable.getHeightUnit());
-//    	setWidthUnit(popupable.getWidthUnit());
-//    	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
-//    	content.setOutputMarkupPlaceholderTag(true);
-//    	content.setOutputMarkupId(true);
-//    	Component component = popupable.getComponent();
-//    	component.setOutputMarkupId(true);
-//    	component.setOutputMarkupPlaceholderTag(true);
-//    	content.addOrReplace(component);
+//        setTitle(popupable.getTitle());
+//        setInitialHeight(popupable.getHeight());
+//        setInitialWidth(popupable.getWidth());
+//        setHeightUnit(popupable.getHeightUnit());
+//        setWidthUnit(popupable.getWidthUnit());
+//        WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
+//        content.setOutputMarkupPlaceholderTag(true);
+//        content.setOutputMarkupId(true);
+//        Component component = popupable.getComponent();
+//        component.setOutputMarkupId(true);
+//        component.setOutputMarkupPlaceholderTag(true);
+//        content.addOrReplace(component);
 //    }
 
 

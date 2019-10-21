@@ -2,25 +2,25 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-	<source>
-    	<path>$user/givenName</path>
+    <source>
+        <path>$user/givenName</path>
     </source>
-	<source>
-    	<path>$user/familyName</path>
+    <source>
+        <path>$user/familyName</path>
     </source>
-	<expression>
-		<script>
-			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-			<code>
-				"Captain " + givenName[0] + ". " + familyName
-			</code>
-		</script>
-	</expression>
+    <expression>
+        <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            <code>
+                "Captain " + givenName[0] + ". " + familyName
+            </code>
+        </script>
+    </expression>
 </mapping>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.sync;
@@ -35,80 +35,80 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInboundReconTask extends AbstractInboundSyncTest {
 
-	private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
-	private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
+    private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
+    private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		dummyResourceEmerald.setSyncStyle(DummySyncStyle.DUMB);
-	}
+        dummyResourceEmerald.setSyncStyle(DummySyncStyle.DUMB);
+    }
 
-	@Override
-	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
-		if (resource == resourceDummyEmerald) {
-			importObjectFromFile(TASK_RECON_DUMMY_EMERALD_FILE);
-		} else {
-			throw new IllegalArgumentException("Unknown resource "+resource);
-		}
-	}
+    @Override
+    protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
+        if (resource == resourceDummyEmerald) {
+            importObjectFromFile(TASK_RECON_DUMMY_EMERALD_FILE);
+        } else {
+            throw new IllegalArgumentException("Unknown resource "+resource);
+        }
+    }
 
-	@Override
-	protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
-		if (resource == resourceDummyEmerald) {
-			return TASK_RECON_DUMMY_EMERALD_OID;
-		} else {
-			throw new IllegalArgumentException("Unknown resource "+resource);
-		}
-	}
+    @Override
+    protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
+        if (resource == resourceDummyEmerald) {
+            return TASK_RECON_DUMMY_EMERALD_OID;
+        } else {
+            throw new IllegalArgumentException("Unknown resource "+resource);
+        }
+    }
 
-	@Override
-	public void test180NoChange() throws Exception {
-		final String TEST_NAME = "test180NoChange";
-		displayTestTitle(TEST_NAME);
+    @Override
+    public void test180NoChange() throws Exception {
+        final String TEST_NAME = "test180NoChange";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
-		OperationResult result = task.getResult();
-		dummyAuditService.clear();
-		rememberTimeBeforeSync();
-		prepareNotifications();
+        // GIVEN
+        Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        rememberTimeBeforeSync();
+        prepareNotifications();
 
-		// Preconditions
-		assertUsers(7);
+        // Preconditions
+        assertUsers(7);
 
-		/// WHEN
-		displayWhen(TEST_NAME);
+        /// WHEN
+        displayWhen(TEST_NAME);
 
-		waitForSyncTaskNextRun(resourceDummyEmerald);
+        waitForSyncTaskNextRun(resourceDummyEmerald);
 
-		// THEN
-		displayThen(TEST_NAME);
+        // THEN
+        displayThen(TEST_NAME);
 
-		PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
-		display("Account mancomb", accountMancomb);
-		assertNotNull("Account shadow mancomb gone", accountMancomb);
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
+        display("Account mancomb", accountMancomb);
+        assertNotNull("Account shadow mancomb gone", accountMancomb);
 
-		PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-		display("User mancomb", userMancomb);
-		assertNotNull("User mancomb is gone", userMancomb);
-		assertLinks(userMancomb, 1);
-		assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
-		assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
+        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        display("User mancomb", userMancomb);
+        assertNotNull("User mancomb is gone", userMancomb);
+        assertLinks(userMancomb, 1);
+        assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
+        assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
 
-		assertUsers(7);
+        assertUsers(7);
 
-		// notifications
-		notificationManager.setDisabled(true);
+        // notifications
+        notificationManager.setDisabled(true);
 
-		display("Audit", dummyAuditService);
-		dummyAuditService.assertRecords(2);			// reconciliation request + execution
-	}
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);            // reconciliation request + execution
+    }
 
-	@Override
-	public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
-		final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
+    @Override
+    public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
+        final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -120,10 +120,10 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         // Preconditions
         assertUsers(7);
 
-		/// WHEN
+        /// WHEN
         displayWhen(TEST_NAME);
 
-		dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
@@ -135,18 +135,18 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         assertNull("Account shadow mancomb not gone", accountMancomb);
 
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
-        	.displayWithProjections()
-        	.activation()
-        		// Disabled by sync reaction
-        		.assertAdministrativeStatus(ActivationStatusType.DISABLED)
-        		.assertValidFrom(ACCOUNT_MANCOMB_VALID_FROM_DATE)
-        		.assertValidTo(ACCOUNT_MANCOMB_VALID_TO_DATE)
-        		.end()
-        	.links()
-        		.single()
-        			.resolveTarget()
-        				.display()
-        				.assertTombstone();
+            .displayWithProjections()
+            .activation()
+                // Disabled by sync reaction
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                .assertValidFrom(ACCOUNT_MANCOMB_VALID_FROM_DATE)
+                .assertValidTo(ACCOUNT_MANCOMB_VALID_TO_DATE)
+                .end()
+            .links()
+                .single()
+                    .resolveTarget()
+                        .display()
+                        .assertTombstone();
 
         assertNoDummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
@@ -155,6 +155,6 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
         // notifications
         notificationManager.setDisabled(true);
 
-	}
+    }
 
 }

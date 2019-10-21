@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-00000000aac1"
@@ -11,19 +11,19 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Conditional</name>
     <assignment> <!-- ASSIGNMENT, not inducement. This should NOT work for authorizations. -->
-    	<targetRef oid="602f72b8-2a11-11e5-8dd9-001e8c717e5b" type="RoleType"/>
+        <targetRef oid="602f72b8-2a11-11e5-8dd9-001e8c717e5b" type="RoleType"/>
     </assignment>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#superspecial</action>
+        <action>http://midpoint.evolveum.com/xml/ns/test/authorization#superspecial</action>
     </authorization>
     <condition>
-    	<source>
-    		<path>$focus/subtype</path>
-    	</source>
-    	<expression>
-    		<script>
-    			<code>subtype == 'special'</code>
-    		</script>
-    	</expression>
+        <source>
+            <path>$focus/subtype</path>
+        </source>
+        <expression>
+            <script>
+                <code>subtype == 'special'</code>
+            </script>
+        </expression>
     </condition>
 </role>

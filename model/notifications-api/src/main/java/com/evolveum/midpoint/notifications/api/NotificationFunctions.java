@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,19 +23,19 @@ import java.util.List;
  */
 public interface NotificationFunctions {
 
-	String getShadowName(PrismObject<? extends ShadowType> shadow);
+    String getShadowName(PrismObject<? extends ShadowType> shadow);
 
-	String getPlaintextPasswordFromDelta(ObjectDelta delta);
+    String getPlaintextPasswordFromDelta(ObjectDelta delta);
 
-	String getContentAsFormattedList(Event event, boolean showSynchronizationItems, boolean showAuxiliaryAttributes);
+    String getContentAsFormattedList(Event event, boolean showSynchronizationItems, boolean showAuxiliaryAttributes);
 
-	List<ItemPath> getSynchronizationPaths();
+    List<ItemPath> getSynchronizationPaths();
 
-	List<ItemPath> getAuxiliaryPaths();
+    List<ItemPath> getAuxiliaryPaths();
 
-	// TODO: polish this method
-	// TODO indicate somehow if password was erased from the focus
-	// We should (probably) return only a value if it has been (successfully) written to the focus.
-	String getFocusPasswordFromEvent(ModelEvent modelEvent);
+    // TODO: polish this method
+    // TODO indicate somehow if password was erased from the focus
+    // We should (probably) return only a value if it has been (successfully) written to the focus.
+    String getFocusPasswordFromEvent(ModelEvent modelEvent);
 
 }

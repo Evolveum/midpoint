@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component.path;
@@ -16,88 +16,88 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class ItemPathDto implements Serializable{
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private  QName objectType = FocusType.COMPLEX_TYPE;
+    private  QName objectType = FocusType.COMPLEX_TYPE;
 
-	private ItemPathDto parentPath;
+    private ItemPathDto parentPath;
 
-	private ItemDefinition<?> itemDef;
+    private ItemDefinition<?> itemDef;
 
-	private ItemPath path;
+    private ItemPath path;
 
-	public ItemPathDto() {
-		// TODO Auto-generated constructor stub
-	}
+    public ItemPathDto() {
+        // TODO Auto-generated constructor stub
+    }
 
-	public ItemPathDto(ItemPathType itemPathType) {
-		if (itemPathType == null) {
-			return;
-		}
-		this.path = itemPathType.getItemPath();
-	}
-	
-	public ItemPathDto(ItemPathDto parentPath) {
-		this.parentPath = parentPath;
-		this.path = parentPath.toItemPath();
-	}
+    public ItemPathDto(ItemPathType itemPathType) {
+        if (itemPathType == null) {
+            return;
+        }
+        this.path = itemPathType.getItemPath();
+    }
+
+    public ItemPathDto(ItemPathDto parentPath) {
+        this.parentPath = parentPath;
+        this.path = parentPath.toItemPath();
+    }
 
 
-	public QName getObjectType() {
-		return objectType;
-	}
+    public QName getObjectType() {
+        return objectType;
+    }
 
-	public void setObjectType(QName objectType) {
-		this.objectType = objectType;
-	}
+    public void setObjectType(QName objectType) {
+        this.objectType = objectType;
+    }
 
-	public ItemDefinition<?> getItemDef() {
-		return itemDef;
-	}
+    public ItemDefinition<?> getItemDef() {
+        return itemDef;
+    }
 
-	public void setItemDef(ItemDefinition<?> itemDef) {
-		if (parentPath == null) {
-			this.path = itemDef.getItemName();
-		} else {
-			this.path = parentPath.toItemPath().append(itemDef.getItemName());
-		}
-		this.itemDef = itemDef;
-	}
+    public void setItemDef(ItemDefinition<?> itemDef) {
+        if (parentPath == null) {
+            this.path = itemDef.getItemName();
+        } else {
+            this.path = parentPath.toItemPath().append(itemDef.getItemName());
+        }
+        this.itemDef = itemDef;
+    }
 
-	public ItemPathDto getParentPath() {
-		return parentPath;
-	}
+    public ItemPathDto getParentPath() {
+        return parentPath;
+    }
 
-	public void setParentPath(ItemPathDto parentPath) {
-		this.parentPath = parentPath;
-	}
+    public void setParentPath(ItemPathDto parentPath) {
+        this.parentPath = parentPath;
+    }
 
-	public ItemPath toItemPath() {
-		if (parentPath == null) {
-			if (itemDef == null) {
-				return path;
-			}
-			this.path = itemDef.getItemName();
-		} else {
-			if (itemDef == null) {
-				return parentPath.toItemPath();
-			}
-			this.path = parentPath.toItemPath().append(itemDef.getItemName());
-		}
-		return path;
+    public ItemPath toItemPath() {
+        if (parentPath == null) {
+            if (itemDef == null) {
+                return path;
+            }
+            this.path = itemDef.getItemName();
+        } else {
+            if (itemDef == null) {
+                return parentPath.toItemPath();
+            }
+            this.path = parentPath.toItemPath().append(itemDef.getItemName());
+        }
+        return path;
 
-	}
-	
-	public boolean isPathDefined() {
-		return (path != null && itemDef == null && parentPath == null);
-	}
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("{ObjectType: [").append("], Parent: [").append(parentPath).append("], ItemDef: [")
-		.append(getItemDef()).append("], Path: [").append(path).append("] }");
-		return sb.toString();
-	}
+    public boolean isPathDefined() {
+        return (path != null && itemDef == null && parentPath == null);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{ObjectType: [").append("], Parent: [").append(parentPath).append("], ItemDef: [")
+        .append(getItemDef()).append("], Path: [").append(path).append("] }");
+        return sb.toString();
+    }
 
 }

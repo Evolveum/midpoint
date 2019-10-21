@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="12345678-d34d-b33f-f00d-5555551bdddd"
@@ -9,32 +9,32 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    <name>Dummies: Beige</name>    
+    <name>Dummies: Beige</name>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/> <!-- default dummy -->
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/> <!-- default dummy -->
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-						<value>The Great Voodoo Master</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>The Great Voodoo Master</value>
+                    </expression>
+                </outbound>
             </attribute>
-    		<attribute>
+            <attribute>
                 <ref>ri:ship</ref>
                 <outbound>
-                	<expression>
-						<value>The Lost Souls</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>The Lost Souls</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
-    </inducement>    
+        </construction>
+    </inducement>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-00000001b504" type="c:ResourceType"/> <!-- Beige dummy -->
-    	</construction>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-00000001b504" type="c:ResourceType"/> <!-- Beige dummy -->
+        </construction>
     </inducement>
 </role>

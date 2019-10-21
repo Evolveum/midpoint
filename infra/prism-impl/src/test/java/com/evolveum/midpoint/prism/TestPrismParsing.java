@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism;
@@ -48,442 +48,442 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public abstract class TestPrismParsing {
 
-	protected abstract String getSubdirName();
+    protected abstract String getSubdirName();
 
-	protected abstract String getFilenameSuffix();
+    protected abstract String getFilenameSuffix();
 
-	protected File getCommonSubdir() {
-		return new File(COMMON_DIR_PATH, getSubdirName());
-	}
+    protected File getCommonSubdir() {
+        return new File(COMMON_DIR_PATH, getSubdirName());
+    }
 
-	protected File getFile(String baseName) {
-		return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
-	}
+    protected File getFile(String baseName) {
+        return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
+    }
 
-	@BeforeSuite
-	public void setupDebug() {
-		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-	}
+    @BeforeSuite
+    public void setupDebug() {
+        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
+    }
 
-	protected abstract String getOutputFormat();
+    protected abstract String getOutputFormat();
 
-	@Test
-	public void test100PrismParseFile() throws Exception {
-		final String TEST_NAME = "test100PrismParseFile";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
+    @Test
+    public void test100PrismParseFile() throws Exception {
+        final String TEST_NAME = "test100PrismParseFile";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
 
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
+        // WHEN
+        PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
 
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
-		assertNotNull(user);
+        // THEN
+        System.out.println("User:");
+        System.out.println(user.debugDump());
+        assertNotNull(user);
 
-		assertUserJack(user, true);
-	}
+        assertUserJack(user, true);
+    }
 
-	@Test
-	public void test110PrismParseFileNoNs() throws Exception {
-		final String TEST_NAME = "test110PrismParseFileNoNs";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
+    @Test
+    public void test110PrismParseFileNoNs() throws Exception {
+        final String TEST_NAME = "test110PrismParseFileNoNs";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
 
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_NO_NS_BASENAME));
+        // WHEN
+        PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_NO_NS_BASENAME));
 
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
-		assertNotNull(user);
+        // THEN
+        System.out.println("User:");
+        System.out.println(user.debugDump());
+        assertNotNull(user);
 
-		assertUserJack(user, true);
-	}
+        assertUserJack(user, true);
+    }
 
-	@Test
-	public void test120PrismParseFileObject() throws Exception {
-		final String TEST_NAME = "test120PrismParseFileObject";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test120PrismParseFileObject() throws Exception {
+        final String TEST_NAME = "test120PrismParseFileObject";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
 
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_OBJECT_BASENAME));
+        // WHEN
+        PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_OBJECT_BASENAME));
 
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
-		assertNotNull(user);
+        // THEN
+        System.out.println("User:");
+        System.out.println(user.debugDump());
+        assertNotNull(user);
 
-		assertUserJack(user, true, false);
-	}
+        assertUserJack(user, true, false);
+    }
 
-	@Test
-	public void test130PrismParseFileAdhoc() throws Exception {
-		final String TEST_NAME = "test130PrismParseFileAdhoc";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test130PrismParseFileAdhoc() throws Exception {
+        final String TEST_NAME = "test130PrismParseFileAdhoc";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
 
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_ADHOC_BASENAME));
+        // WHEN
+        PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_ADHOC_BASENAME));
 
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
-		assertNotNull(user);
+        // THEN
+        System.out.println("User:");
+        System.out.println(user.debugDump());
+        assertNotNull(user);
 
-		assertUserAdhoc(user, true);
-	}
+        assertUserAdhoc(user, true);
+    }
 
-	@Test
-	public void test200RoundTrip() throws Exception {
-		final String TEST_NAME = "test200RoundTrip";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test200RoundTrip() throws Exception {
+        final String TEST_NAME = "test200RoundTrip";
+        displayTestTitle(TEST_NAME);
 
-		roundTrip(getFile(USER_JACK_FILE_BASENAME), true);
-	}
+        roundTrip(getFile(USER_JACK_FILE_BASENAME), true);
+    }
 
-	@Test
-	public void test210RoundTripNoNs() throws Exception {
-		final String TEST_NAME = "test210RoundTripNoNs";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test210RoundTripNoNs() throws Exception {
+        final String TEST_NAME = "test210RoundTripNoNs";
+        displayTestTitle(TEST_NAME);
 
-		roundTrip(getFile(USER_JACK_NO_NS_BASENAME), true);
-	}
+        roundTrip(getFile(USER_JACK_NO_NS_BASENAME), true);
+    }
 
-	@Test
-	public void test220RoundTripObject() throws Exception {
-		final String TEST_NAME = "test220RoundTripObject";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test220RoundTripObject() throws Exception {
+        final String TEST_NAME = "test220RoundTripObject";
+        displayTestTitle(TEST_NAME);
 
-		roundTrip(getFile(USER_JACK_OBJECT_BASENAME), false);
-	}
+        roundTrip(getFile(USER_JACK_OBJECT_BASENAME), false);
+    }
 
 
-	private void roundTrip(File file, boolean expectFullPolyName) throws SchemaException, SAXException, IOException {
+    private void roundTrip(File file, boolean expectFullPolyName) throws SchemaException, SAXException, IOException {
 
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
-		PrismObject<UserType> originalUser = prismContext.parseObject(file);
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
+        PrismObject<UserType> originalUser = prismContext.parseObject(file);
 
-		System.out.println("Input parsed user:");
-		System.out.println(originalUser.debugDump());
-		assertNotNull(originalUser);
+        System.out.println("Input parsed user:");
+        System.out.println(originalUser.debugDump());
+        assertNotNull(originalUser);
 
-		// precondition
-		assertUserJack(originalUser, true, expectFullPolyName);
+        // precondition
+        assertUserJack(originalUser, true, expectFullPolyName);
 
-		// WHEN
-		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
-		String userXml = prismContext.serializerFor(getOutputFormat()).serialize(originalUser);
+        // WHEN
+        // We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
+        String userXml = prismContext.serializerFor(getOutputFormat()).serialize(originalUser);
 
-		// THEN
-		System.out.println("Serialized user:");
-		System.out.println(userXml);
-		assertNotNull(userXml);
+        // THEN
+        System.out.println("Serialized user:");
+        System.out.println(userXml);
+        assertNotNull(userXml);
 
-		validateXml(userXml, prismContext);
+        validateXml(userXml, prismContext);
 
-		// WHEN
-		PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
-		System.out.println("Re-parsed user:");
-		System.out.println(parsedUser.debugDump());
-		assertNotNull(parsedUser);
+        // WHEN
+        PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
+        System.out.println("Re-parsed user:");
+        System.out.println(parsedUser.debugDump());
+        assertNotNull(parsedUser);
 
-		assertUserJack(parsedUser, true, expectFullPolyName);
+        assertUserJack(parsedUser, true, expectFullPolyName);
 
-		ObjectDelta<UserType> diff = DiffUtil.diff(originalUser, parsedUser);
-		System.out.println("Diff:");
-		System.out.println(diff.debugDump());
+        ObjectDelta<UserType> diff = DiffUtil.diff(originalUser, parsedUser);
+        System.out.println("Diff:");
+        System.out.println(diff.debugDump());
 
-		assertTrue("Diff: "+diff, diff.isEmpty());
+        assertTrue("Diff: "+diff, diff.isEmpty());
 
-		assertTrue("Users not equal", originalUser.equals(parsedUser));
-	}
+        assertTrue("Users not equal", originalUser.equals(parsedUser));
+    }
 
 
-	@Test
-	public void test230RoundTripAdhoc() throws Exception {
-		final String TEST_NAME = "test230RoundTripAdhoc";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test230RoundTripAdhoc() throws Exception {
+        final String TEST_NAME = "test230RoundTripAdhoc";
+        displayTestTitle(TEST_NAME);
 
-		roundTripAdhoc(getFile(USER_JACK_ADHOC_BASENAME));
-	}
+        roundTripAdhoc(getFile(USER_JACK_ADHOC_BASENAME));
+    }
 
-	private void roundTripAdhoc(File file) throws SchemaException, SAXException, IOException {
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
-		PrismObject<UserType> originalUser = prismContext.parseObject(file);
+    private void roundTripAdhoc(File file) throws SchemaException, SAXException, IOException {
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
+        PrismObject<UserType> originalUser = prismContext.parseObject(file);
 
-		System.out.println("Input parsed user:");
-		System.out.println(originalUser.debugDump());
-		assertNotNull(originalUser);
+        System.out.println("Input parsed user:");
+        System.out.println(originalUser.debugDump());
+        assertNotNull(originalUser);
 
-		// precondition
-		assertUserAdhoc(originalUser, true);
+        // precondition
+        assertUserAdhoc(originalUser, true);
 
-		// WHEN
-		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
-		String userXml = prismContext.serializeObjectToString(originalUser, getOutputFormat());
+        // WHEN
+        // We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
+        String userXml = prismContext.serializeObjectToString(originalUser, getOutputFormat());
 
-		// THEN
-		System.out.println("Serialized user:");
-		System.out.println(userXml);
-		assertNotNull(userXml);
+        // THEN
+        System.out.println("Serialized user:");
+        System.out.println(userXml);
+        assertNotNull(userXml);
 
-		validateXml(userXml, prismContext);
+        validateXml(userXml, prismContext);
 
-		// WHEN
-		PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
-		System.out.println("Re-parsed user:");
-		System.out.println(parsedUser.debugDump());
-		assertNotNull(parsedUser);
+        // WHEN
+        PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
+        System.out.println("Re-parsed user:");
+        System.out.println(parsedUser.debugDump());
+        assertNotNull(parsedUser);
 
-		assertUserAdhoc(parsedUser, true);
+        assertUserAdhoc(parsedUser, true);
 
-		assertTrue("Users not equal", originalUser.equals(parsedUser));
-	}
+        assertTrue("Users not equal", originalUser.equals(parsedUser));
+    }
 
 
-	@Test
-	public void test300MeleeContext() throws Exception {
-		final String TEST_NAME = "test300MeleeContext";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test300MeleeContext() throws Exception {
+        final String TEST_NAME = "test300MeleeContext";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
 
-		PrismObject<UserType> userJack = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
-		PrismContainer<Containerable> meleeContextContainer = userJack.findOrCreateContainer(ItemPath.create(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT));
-		PrismReference opponentRef = meleeContextContainer.findOrCreateReference(EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT);
-		PrismObject<UserType> userBarbossa = prismContext.parseObject(getFile(USER_BARBOSSA_FILE_BASENAME));
-		// Cosmetics to make sure the equivalence assert below works
-		userBarbossa.setElementName(EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT);
-		PrismReferenceValue opponentRefValue = new PrismReferenceValueImpl();
-		opponentRefValue.setObject(userBarbossa);
-		opponentRef.add(opponentRefValue);
+        PrismObject<UserType> userJack = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
+        PrismContainer<Containerable> meleeContextContainer = userJack.findOrCreateContainer(ItemPath.create(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT));
+        PrismReference opponentRef = meleeContextContainer.findOrCreateReference(EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT);
+        PrismObject<UserType> userBarbossa = prismContext.parseObject(getFile(USER_BARBOSSA_FILE_BASENAME));
+        // Cosmetics to make sure the equivalence assert below works
+        userBarbossa.setElementName(EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT);
+        PrismReferenceValue opponentRefValue = new PrismReferenceValueImpl();
+        opponentRefValue.setObject(userBarbossa);
+        opponentRef.add(opponentRefValue);
 
-		System.out.println("User jack:");
-		System.out.println(userJack.debugDump());
+        System.out.println("User jack:");
+        System.out.println(userJack.debugDump());
 
-		// WHEN
-		String elementJack = prismContext.serializeObjectToString(userJack, getOutputFormat());
+        // WHEN
+        String elementJack = prismContext.serializeObjectToString(userJack, getOutputFormat());
 
-		// THEN
-		System.out.println("Serialized user jack:");
-		System.out.println(elementJack);
+        // THEN
+        System.out.println("Serialized user jack:");
+        System.out.println(elementJack);
 
-		// TODO: see that there is really the serialized barbossa
+        // TODO: see that there is really the serialized barbossa
 
-		// WHEN
-		PrismObject<UserType> reparsedUserJack = prismContext.parseObject(elementJack);
+        // WHEN
+        PrismObject<UserType> reparsedUserJack = prismContext.parseObject(elementJack);
 
-		// THEN
-		System.out.println("Re-parsed user jack:");
-		System.out.println(reparsedUserJack.debugDump());
+        // THEN
+        System.out.println("Re-parsed user jack:");
+        System.out.println(reparsedUserJack.debugDump());
 
-		PrismReference reparsedOpponentRef = reparsedUserJack.findReference(ItemPath.create(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT, EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT));
-		assertNotNull("No opponent ref (reparsed)", reparsedOpponentRef);
-		PrismReferenceValue reparsedOpponentRefValue = reparsedOpponentRef.getValue();
-		assertNotNull("No opponent ref value (reparsed)", reparsedOpponentRefValue);
-		PrismObject<UserType> reparsedUserBarbossa = reparsedOpponentRefValue.getObject();
-		assertNotNull("No object in opponent ref value (reparsed)", reparsedUserBarbossa);
+        PrismReference reparsedOpponentRef = reparsedUserJack.findReference(ItemPath.create(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT, EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT));
+        assertNotNull("No opponent ref (reparsed)", reparsedOpponentRef);
+        PrismReferenceValue reparsedOpponentRefValue = reparsedOpponentRef.getValue();
+        assertNotNull("No opponent ref value (reparsed)", reparsedOpponentRefValue);
+        PrismObject<UserType> reparsedUserBarbossa = reparsedOpponentRefValue.getObject();
+        assertNotNull("No object in opponent ref value (reparsed)", reparsedUserBarbossa);
 
-		PrismAsserts.assertEquivalent("User barbossa", userBarbossa, reparsedUserBarbossa);
+        PrismAsserts.assertEquivalent("User barbossa", userBarbossa, reparsedUserBarbossa);
 
-		// Make the original user jack suitable for comparison.
-		// Some of the accountRef information is (intentionally) lost in re-parsing therefore erase it before comparing
-		PrismReference jackAccountRef = userJack.findReference(UserType.F_ACCOUNT_REF);
-		for (PrismReferenceValue accRefVal: jackAccountRef.getValues()) {
-			String oid = accRefVal.getOid();
-			QName targetType = accRefVal.getTargetType();
-			accRefVal.setObject(null);
-			accRefVal.setOid(oid);
-			accRefVal.setTargetType(targetType);
-		}
+        // Make the original user jack suitable for comparison.
+        // Some of the accountRef information is (intentionally) lost in re-parsing therefore erase it before comparing
+        PrismReference jackAccountRef = userJack.findReference(UserType.F_ACCOUNT_REF);
+        for (PrismReferenceValue accRefVal: jackAccountRef.getValues()) {
+            String oid = accRefVal.getOid();
+            QName targetType = accRefVal.getTargetType();
+            accRefVal.setObject(null);
+            accRefVal.setOid(oid);
+            accRefVal.setTargetType(targetType);
+        }
 
-		PrismAsserts.assertEquivalent("User jack", userJack, reparsedUserJack);
+        PrismAsserts.assertEquivalent("User jack", userJack, reparsedUserJack);
 
-	}
+    }
 
-	@Test
-	public void test400UserWill() throws Exception {
-		final String TEST_NAME = "test400UserWill";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test400UserWill() throws Exception {
+        final String TEST_NAME = "test400UserWill";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
 
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_WILL_FILE_BASENAME));
+        // WHEN
+        PrismObject<UserType> user = prismContext.parseObject(getFile(USER_WILL_FILE_BASENAME));
 
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
-		assertNotNull(user);
+        // THEN
+        System.out.println("User:");
+        System.out.println(user.debugDump());
+        assertNotNull(user);
 
-		assertUserWill(user);
-	}
+        assertUserWill(user);
+    }
 
-	@Test
-	public void test410UserWillRoundTrip() throws Exception {
-		final String TEST_NAME = "test410UserWillRoundTrip";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test410UserWillRoundTrip() throws Exception {
+        final String TEST_NAME = "test410UserWillRoundTrip";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
 
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_WILL_FILE_BASENAME));
+        // WHEN
+        PrismObject<UserType> user = prismContext.parseObject(getFile(USER_WILL_FILE_BASENAME));
 
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
-		assertNotNull(user);
+        // THEN
+        System.out.println("User:");
+        System.out.println(user.debugDump());
+        assertNotNull(user);
 
-		assertUserWill(user);
+        assertUserWill(user);
 
-		// WHEN
-		String serialized = prismContext.serializerFor(getOutputFormat()).serialize(user);
+        // WHEN
+        String serialized = prismContext.serializerFor(getOutputFormat()).serialize(user);
 
-		// THEN
-		assertNotNull(serialized);
-		System.out.println("Serialized user:");
-		System.out.println(serialized);
+        // THEN
+        assertNotNull(serialized);
+        System.out.println("Serialized user:");
+        System.out.println(serialized);
 
-		// WHEN
-		PrismObject<UserType> reparsedUser = prismContext.parseObject(serialized);
+        // WHEN
+        PrismObject<UserType> reparsedUser = prismContext.parseObject(serialized);
 
-		// THEN
-		System.out.println("Re-parsed user:");
-		System.out.println(reparsedUser.debugDump());
-		assertNotNull(reparsedUser);
+        // THEN
+        System.out.println("Re-parsed user:");
+        System.out.println(reparsedUser.debugDump());
+        assertNotNull(reparsedUser);
 
-		assertUserWill(reparsedUser);
+        assertUserWill(reparsedUser);
 
-	}
+    }
 
-	@Test
-	public void test500UserElisabethRoundTrip() throws Exception {
-		final String TEST_NAME = "test500UserElisabethRoundTrip";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test500UserElisabethRoundTrip() throws Exception {
+        final String TEST_NAME = "test500UserElisabethRoundTrip";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
 
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_ELISABETH_FILE_BASENAME));
+        // WHEN
+        PrismObject<UserType> user = prismContext.parseObject(getFile(USER_ELISABETH_FILE_BASENAME));
 
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.debugDump());
-		assertNotNull(user);
+        // THEN
+        System.out.println("User:");
+        System.out.println(user.debugDump());
+        assertNotNull(user);
 
-		assertUserElisabeth(user);
+        assertUserElisabeth(user);
 
-		// WHEN
-		String serialized = prismContext.serializeObjectToString(user, getOutputFormat());
+        // WHEN
+        String serialized = prismContext.serializeObjectToString(user, getOutputFormat());
 
-		// THEN
-		assertNotNull(serialized);
-		System.out.println("Serialized user:");
-		System.out.println(serialized);
+        // THEN
+        assertNotNull(serialized);
+        System.out.println("Serialized user:");
+        System.out.println(serialized);
 
-		// WHEN
-		PrismObject<UserType> reparsedUser = prismContext.parseObject(serialized);
+        // WHEN
+        PrismObject<UserType> reparsedUser = prismContext.parseObject(serialized);
 
-		// THEN
-		System.out.println("Re-parsed user:");
-		System.out.println(reparsedUser.debugDump());
-		assertNotNull(reparsedUser);
+        // THEN
+        System.out.println("Re-parsed user:");
+        System.out.println(reparsedUser.debugDump());
+        assertNotNull(reparsedUser);
 
-		assertUserElisabeth(reparsedUser);
+        assertUserElisabeth(reparsedUser);
 
-	}
+    }
 
-	// MID-5326
-	@Test
-	public void test600AccountBarbossa() throws Exception {
-		final String TEST_NAME = "test600AccountBarbossa";
-		displayTestTitle(TEST_NAME);
+    // MID-5326
+    @Test
+    public void test600AccountBarbossa() throws Exception {
+        final String TEST_NAME = "test600AccountBarbossa";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		PrismContext prismContext = constructInitializedPrismContext();
+        // GIVEN
+        PrismContext prismContext = constructInitializedPrismContext();
 
-		// WHEN
-		PrismObject<AccountType> account = prismContext.parseObject(getFile(ACCOUNT_BARBOSSA_FILE_BASENAME));
+        // WHEN
+        PrismObject<AccountType> account = prismContext.parseObject(getFile(ACCOUNT_BARBOSSA_FILE_BASENAME));
 
-		// THEN
-		assertNotNull(account);
-		System.out.println("Account:");
-		System.out.println(account.debugDump());
+        // THEN
+        assertNotNull(account);
+        System.out.println("Account:");
+        System.out.println(account.debugDump());
 
-		PrismContainer<?> attributes = account.findContainer(AccountType.F_ATTRIBUTES);
-		assertNotNull(attributes);
-		PrismContainerValue<?> attributesValue = attributes.getValue();
-		assertNotNull(attributesValue);
-		assertEquals("Wrong # of attributes", 3, attributesValue.size());
-		Set<ItemName> names = attributesValue.getItems().stream().map(a -> a.getElementName()).collect(Collectors.toSet());
-		assertEquals("Wrong attribute names", new HashSet<>(Arrays.asList(
-				new ItemName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003", "uid"),
-				new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "uid"),
-				new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "name")
-		)), names);
-	}
+        PrismContainer<?> attributes = account.findContainer(AccountType.F_ATTRIBUTES);
+        assertNotNull(attributes);
+        PrismContainerValue<?> attributesValue = attributes.getValue();
+        assertNotNull(attributesValue);
+        assertEquals("Wrong # of attributes", 3, attributesValue.size());
+        Set<ItemName> names = attributesValue.getItems().stream().map(a -> a.getElementName()).collect(Collectors.toSet());
+        assertEquals("Wrong attribute names", new HashSet<>(Arrays.asList(
+                new ItemName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003", "uid"),
+                new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "uid"),
+                new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "name")
+        )), names);
+    }
 
 
-	protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
-		user.checkConsistence();
-		assertUserJackContent(user, expectRawInConstructions, true);
-		assertUserExtensionAdhoc(user);
-		assertVisitor(user, 58);
-	}
+    protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
+        user.checkConsistence();
+        assertUserJackContent(user, expectRawInConstructions, true);
+        assertUserExtensionAdhoc(user);
+        assertVisitor(user, 58);
+    }
 
 
-	private void assertUserExtensionAdhoc(PrismObject<UserType> user) {
+    private void assertUserExtensionAdhoc(PrismObject<UserType> user) {
 
-		PrismContainer<?> extension = user.getExtension();
-		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
-		PrismContainerValue<?> extensionValue = extension.getValue();
-		assertTrue("Extension parent", extensionValue.getParent() == extension);
-		assertNull("Extension ID", extensionValue.getId());
-		PrismAsserts.assertPropertyValue(extension, USER_ADHOC_BOTTLES_ELEMENT, 20);
+        PrismContainer<?> extension = user.getExtension();
+        assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
+        PrismContainerValue<?> extensionValue = extension.getValue();
+        assertTrue("Extension parent", extensionValue.getParent() == extension);
+        assertNull("Extension ID", extensionValue.getId());
+        PrismAsserts.assertPropertyValue(extension, USER_ADHOC_BOTTLES_ELEMENT, 20);
 
-		ItemPath bottlesPath = ItemPath.create(new QName(NS_FOO,"extension"), USER_ADHOC_BOTTLES_ELEMENT);
-		PrismProperty<Integer> bottlesProperty = user.findProperty(bottlesPath);
-		assertNotNull("Property "+bottlesPath+" not found", bottlesProperty);
-		PrismAsserts.assertPropertyValue(bottlesProperty, 20);
-		PrismPropertyDefinition bottlesPropertyDef = bottlesProperty.getDefinition();
-		assertNotNull("No definition for bottles", bottlesPropertyDef);
-		PrismAsserts.assertDefinition(bottlesPropertyDef, USER_ADHOC_BOTTLES_ELEMENT, DOMUtil.XSD_INT, 1, -1);
-		assertTrue("Bottles definition is NOT dynamic", bottlesPropertyDef.isDynamic());
+        ItemPath bottlesPath = ItemPath.create(new QName(NS_FOO,"extension"), USER_ADHOC_BOTTLES_ELEMENT);
+        PrismProperty<Integer> bottlesProperty = user.findProperty(bottlesPath);
+        assertNotNull("Property "+bottlesPath+" not found", bottlesProperty);
+        PrismAsserts.assertPropertyValue(bottlesProperty, 20);
+        PrismPropertyDefinition bottlesPropertyDef = bottlesProperty.getDefinition();
+        assertNotNull("No definition for bottles", bottlesPropertyDef);
+        PrismAsserts.assertDefinition(bottlesPropertyDef, USER_ADHOC_BOTTLES_ELEMENT, DOMUtil.XSD_INT, 1, -1);
+        assertTrue("Bottles definition is NOT dynamic", bottlesPropertyDef.isDynamic());
 
-	}
+    }
 
-	private void assertUserWill(PrismObject<UserType> user) throws SchemaException {
-		user.checkConsistence();
-		user.assertDefinitions("test");
-		assertUserWillExtension(user);
-		assertVisitor(user,55);
-	}
+    private void assertUserWill(PrismObject<UserType> user) throws SchemaException {
+        user.checkConsistence();
+        user.assertDefinitions("test");
+        assertUserWillExtension(user);
+        assertVisitor(user,55);
+    }
 
-	private void assertUserWillExtension(PrismObject<UserType> user) {
+    private void assertUserWillExtension(PrismObject<UserType> user) {
 
-		PrismContainer<?> extension = user.getExtension();
-		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
-		PrismContainerValue<?> extensionValue = extension.getValue();
-		assertTrue("Extension parent", extensionValue.getParent() == extension);
-		assertNull("Extension ID", extensionValue.getId());
+        PrismContainer<?> extension = user.getExtension();
+        assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
+        PrismContainerValue<?> extensionValue = extension.getValue();
+        assertTrue("Extension parent", extensionValue.getParent() == extension);
+        assertNull("Extension ID", extensionValue.getId());
 
-		PrismProperty<String> stringType = extension.findProperty(EXTENSION_STRING_TYPE_ELEMENT);
-		PrismAsserts.assertPropertyValue(stringType, "BARbar", "FOObar");
-		PrismPropertyDefinition stringTypePropertyDef = stringType.getDefinition();
+        PrismProperty<String> stringType = extension.findProperty(EXTENSION_STRING_TYPE_ELEMENT);
+        PrismAsserts.assertPropertyValue(stringType, "BARbar", "FOObar");
+        PrismPropertyDefinition stringTypePropertyDef = stringType.getDefinition();
         PrismAsserts.assertDefinition(stringTypePropertyDef, EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
         assertNull("'Indexed' attribute on 'stringType' property is not null", stringTypePropertyDef.isIndexed());
 
@@ -534,8 +534,8 @@ public abstract class TestPrismParsing {
         PrismAsserts.assertDefinition(localtionsDef, EXTENSION_LOCATIONS_ELEMENT, EXTENSION_LOCATIONS_TYPE_QNAME, 0, -1);
 
         PrismProperty<String> ignoredType = extension.findProperty(EXTENSION_IGNORED_TYPE_ELEMENT);
-		PrismAsserts.assertPropertyValue(ignoredType, "this is just a fiction");
-		PrismPropertyDefinition ignoredTypePropertyDef = ignoredType.getDefinition();
+        PrismAsserts.assertPropertyValue(ignoredType, "this is just a fiction");
+        PrismPropertyDefinition ignoredTypePropertyDef = ignoredType.getDefinition();
         PrismAsserts.assertDefinition(ignoredTypePropertyDef, EXTENSION_IGNORED_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
         assertNull("'Indexed' attribute on 'ignoredType' property is not null", ignoredTypePropertyDef.isIndexed());
         assertTrue("'Ignored' attribute on 'ignoredType' property is not true", ignoredTypePropertyDef.isIgnored());
@@ -545,14 +545,14 @@ public abstract class TestPrismParsing {
         PrismAsserts.assertDefinition(indexedStringPropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
         assertEquals("'Indexed' attribute on 'singleStringType' property is wrong", Boolean.FALSE, indexedStringPropertyDef.isIndexed());
 
-		ItemPath barPath = ItemPath.create(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
-		PrismProperty<String> barProperty = user.findProperty(barPath);
-		assertNotNull("Property "+barPath+" not found", barProperty);
-		PrismAsserts.assertPropertyValue(barProperty, "BAR");
-		PrismPropertyDefinition barPropertyDef = barProperty.getDefinition();
-		assertNotNull("No definition for bar", barPropertyDef);
-		PrismAsserts.assertDefinition(barPropertyDef, EXTENSION_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
-		assertNull("'Indexed' attribute on 'bar' property is not null", barPropertyDef.isIndexed());
+        ItemPath barPath = ItemPath.create(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
+        PrismProperty<String> barProperty = user.findProperty(barPath);
+        assertNotNull("Property "+barPath+" not found", barProperty);
+        PrismAsserts.assertPropertyValue(barProperty, "BAR");
+        PrismPropertyDefinition barPropertyDef = barProperty.getDefinition();
+        assertNotNull("No definition for bar", barPropertyDef);
+        PrismAsserts.assertDefinition(barPropertyDef, EXTENSION_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
+        assertNull("'Indexed' attribute on 'bar' property is not null", barPropertyDef.isIndexed());
 
         PrismProperty<?> multi = extension.findProperty(EXTENSION_MULTI_ELEMENT);
         PrismPropertyDefinition multiPropertyDef = multi.getDefinition();
@@ -560,45 +560,45 @@ public abstract class TestPrismParsing {
         assertNull("'Indexed' attribute on 'multi' property is not null", multiPropertyDef.isIndexed());
 
 
-		PrismAsserts.assertPropertyValue(extension, EXTENSION_BAR_ELEMENT, "BAR");
-		PrismAsserts.assertPropertyValue(extension, EXTENSION_NUM_ELEMENT, 42);
-		Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(EXTENSION_MULTI_ELEMENT).getValues();
-		assertEquals("Multi",3,multiPVals.size());
+        PrismAsserts.assertPropertyValue(extension, EXTENSION_BAR_ELEMENT, "BAR");
+        PrismAsserts.assertPropertyValue(extension, EXTENSION_NUM_ELEMENT, 42);
+        Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(EXTENSION_MULTI_ELEMENT).getValues();
+        assertEquals("Multi",3,multiPVals.size());
 
     }
 
-	private void assertUserElisabeth(PrismObject<UserType> user) throws SchemaException {
-		user.checkConsistence();
-		user.assertDefinitions("test");
-		assertUserElisabethExtension(user);
-		//assertVisitor(user,55);
-	}
+    private void assertUserElisabeth(PrismObject<UserType> user) throws SchemaException {
+        user.checkConsistence();
+        user.assertDefinitions("test");
+        assertUserElisabethExtension(user);
+        //assertVisitor(user,55);
+    }
 
-	private void assertUserElisabethExtension(PrismObject<UserType> user) {
+    private void assertUserElisabethExtension(PrismObject<UserType> user) {
 
-		PrismContainer<?> extension = user.getExtension();
-		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
-		PrismContainerValue<?> extensionValue = extension.getValue();
-		assertTrue("Extension parent", extensionValue.getParent() == extension);
-		assertNull("Extension ID", extensionValue.getId());
+        PrismContainer<?> extension = user.getExtension();
+        assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
+        PrismContainerValue<?> extensionValue = extension.getValue();
+        assertTrue("Extension parent", extensionValue.getParent() == extension);
+        assertNull("Extension ID", extensionValue.getId());
 
-//		PrismProperty<String> stringType = extension.findProperty(EXTENSION_STRING_TYPE_ELEMENT);
-//		PrismAsserts.assertPropertyValue(stringType, "BARbar", "FOObar");
-//		PrismPropertyDefinition stringTypePropertyDef = stringType.getDefinition();
-//		PrismAsserts.assertDefinition(stringTypePropertyDef, EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
-//		assertNull("'Indexed' attribute on 'stringType' property is not null", stringTypePropertyDef.isIndexed());
+//        PrismProperty<String> stringType = extension.findProperty(EXTENSION_STRING_TYPE_ELEMENT);
+//        PrismAsserts.assertPropertyValue(stringType, "BARbar", "FOObar");
+//        PrismPropertyDefinition stringTypePropertyDef = stringType.getDefinition();
+//        PrismAsserts.assertDefinition(stringTypePropertyDef, EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+//        assertNull("'Indexed' attribute on 'stringType' property is not null", stringTypePropertyDef.isIndexed());
 
-		PrismProperty<String> secondaryStringType = extension.findProperty(EXTENSION_SECONDARY_SECONDARY_STRING_TYPE_ELEMENT);
-		PrismAsserts.assertPropertyValue(secondaryStringType, "string1");
-		PrismPropertyDefinition secondaryStringTypePropertyDef = secondaryStringType.getDefinition();
-		PrismAsserts.assertDefinition(secondaryStringTypePropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
-		assertNull("'Indexed' attribute on 'secondaryStringType' property is not null", secondaryStringTypePropertyDef.isIndexed());
-	}
+        PrismProperty<String> secondaryStringType = extension.findProperty(EXTENSION_SECONDARY_SECONDARY_STRING_TYPE_ELEMENT);
+        PrismAsserts.assertPropertyValue(secondaryStringType, "string1");
+        PrismPropertyDefinition secondaryStringTypePropertyDef = secondaryStringType.getDefinition();
+        PrismAsserts.assertDefinition(secondaryStringTypePropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+        assertNull("'Indexed' attribute on 'secondaryStringType' property is not null", secondaryStringTypePropertyDef.isIndexed());
+    }
 
-	protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
-	}
+    protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
+    }
 
-	protected void displayTestTitle(final String TEST_NAME) {
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME+"("+getSubdirName()+")");
-	}
+    protected void displayTestTitle(final String TEST_NAME) {
+        PrismInternalTestUtil.displayTestTitle(TEST_NAME+"("+getSubdirName()+")");
+    }
 }

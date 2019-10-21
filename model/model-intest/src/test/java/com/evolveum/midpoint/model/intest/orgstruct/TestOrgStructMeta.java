@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.orgstruct;
@@ -50,21 +50,21 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestOrgStructMeta extends TestOrgStruct {
 
-	private static final File OBJECT_TEMPLATE_ORG_FILE = new File(TEST_DIR, "object-template-org.xml");
-	protected static final String OBJECT_TEMPLATE_ORG_OID = "3e62558c-ca0f-11e3-ba83-001e8c717e5b";
+    private static final File OBJECT_TEMPLATE_ORG_FILE = new File(TEST_DIR, "object-template-org.xml");
+    protected static final String OBJECT_TEMPLATE_ORG_OID = "3e62558c-ca0f-11e3-ba83-001e8c717e5b";
 
-	protected static final File ROLE_META_FUNCTIONAL_ORG_FILE = new File(TEST_DIR, "role-meta-functional-org.xml");
+    protected static final File ROLE_META_FUNCTIONAL_ORG_FILE = new File(TEST_DIR, "role-meta-functional-org.xml");
     protected static final String ROLE_META_FUNCTIONAL_ORG_OID = "74aac2c8-ca0f-11e3-bb29-001e8c717e5b";
 
-	protected static final File ROLE_ORGANIZED_FILE = new File(TEST_DIR, "role-organized.xml");
+    protected static final File ROLE_ORGANIZED_FILE = new File(TEST_DIR, "role-organized.xml");
     protected static final String ROLE_ORGANIZED_OID = "12345111-1111-2222-1111-121212111001";
 
     @Override
-	protected boolean doAddOrgstruct() {
-		return false;
-	}
+    protected boolean doAddOrgstruct() {
+        return false;
+    }
 
-	@Override
+    @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
@@ -75,71 +75,71 @@ public class TestOrgStructMeta extends TestOrgStruct {
         repoAddObjectFromFile(ROLE_ORGANIZED_FILE, initResult);
     }
 
-	@Override
-	protected ResultHandler<OrgType> getOrgSanityCheckHandler() {
-		return (org, parentResult) -> {
-			OrgType orgBean = org.asObjectable();
-			List<String> orgType = FocusTypeUtil.determineSubTypes(orgBean);
-			if (orgType.contains("functional")) {
-				assertAssigned(org, ROLE_META_FUNCTIONAL_ORG_OID, RoleType.COMPLEX_TYPE);
-			} else if (orgType.contains("project")) {
-				// Nothing to check (yet)
-			} else if (orgType.contains("fictional")) {
-				// Nothing to check (yet)
-			} else {
-				AssertJUnit.fail("Unexpected orgType in "+org);
-			}
-			return true;
-		};
-	}
+    @Override
+    protected ResultHandler<OrgType> getOrgSanityCheckHandler() {
+        return (org, parentResult) -> {
+            OrgType orgBean = org.asObjectable();
+            List<String> orgType = FocusTypeUtil.determineSubTypes(orgBean);
+            if (orgType.contains("functional")) {
+                assertAssigned(org, ROLE_META_FUNCTIONAL_ORG_OID, RoleType.COMPLEX_TYPE);
+            } else if (orgType.contains("project")) {
+                // Nothing to check (yet)
+            } else if (orgType.contains("fictional")) {
+                // Nothing to check (yet)
+            } else {
+                AssertJUnit.fail("Unexpected orgType in "+org);
+            }
+            return true;
+        };
+    }
 
-	/**
-	 * Add org struct after the object template and metarole has been initialized.
-	 */
-	@Override
+    /**
+     * Add org struct after the object template and metarole has been initialized.
+     */
+    @Override
     protected void addOrgStruct() throws Exception {
         List<PrismObject<OrgType>> orgs = (List) PrismTestUtil.parseObjects(ORG_MONKEY_ISLAND_FILE);
 
         // WHEN
         for (PrismObject<OrgType> org: orgs) {
-        	display("Adding", org);
-        	addObject(org);
+            display("Adding", org);
+            addObject(org);
         }
 
         // Sanity is asserted in the inherited tests
-	}
+    }
 
-	@Override
-	protected void assertUserOrg(PrismObject<UserType> user, String... orgOids) throws Exception {
-		super.assertUserOrg(user, orgOids);
-		List<PolyStringType> userOrganizations = user.asObjectable().getOrganization();
-		List<PolyStringType> expextedOrgs = new ArrayList<>();
-		for (String orgOid: orgOids) {
-			PrismObject<OrgType> org = getObject(OrgType.class, orgOid);
-			List<String> orgType = FocusTypeUtil.determineSubTypes(org);
-			if (orgType.contains("functional")) {
-				PolyStringType orgName = org.asObjectable().getName();
-				assertTrue("Value "+orgName+" not found in user organization property: "+userOrganizations, userOrganizations.contains(orgName));
-				if (!expextedOrgs.contains(orgName)) {
-					expextedOrgs.add(orgName);
-				}
-			}
-		}
-		assertEquals("Wrong number of user organization property values: "+userOrganizations,  expextedOrgs.size(), userOrganizations.size());
-	}
+    @Override
+    protected void assertUserOrg(PrismObject<UserType> user, String... orgOids) throws Exception {
+        super.assertUserOrg(user, orgOids);
+        List<PolyStringType> userOrganizations = user.asObjectable().getOrganization();
+        List<PolyStringType> expextedOrgs = new ArrayList<>();
+        for (String orgOid: orgOids) {
+            PrismObject<OrgType> org = getObject(OrgType.class, orgOid);
+            List<String> orgType = FocusTypeUtil.determineSubTypes(org);
+            if (orgType.contains("functional")) {
+                PolyStringType orgName = org.asObjectable().getName();
+                assertTrue("Value "+orgName+" not found in user organization property: "+userOrganizations, userOrganizations.contains(orgName));
+                if (!expextedOrgs.contains(orgName)) {
+                    expextedOrgs.add(orgName);
+                }
+            }
+        }
+        assertEquals("Wrong number of user organization property values: "+userOrganizations,  expextedOrgs.size(), userOrganizations.size());
+    }
 
-	@Override
-	protected void assertUserNoOrg(PrismObject<UserType> user) throws Exception {
-		super.assertUserNoOrg(user);
-		List<PolyStringType> userOrganizations = user.asObjectable().getOrganization();
-		assertTrue("Unexpected value in user organization property: "+userOrganizations, userOrganizations.isEmpty());
-	}
+    @Override
+    protected void assertUserNoOrg(PrismObject<UserType> user) throws Exception {
+        super.assertUserNoOrg(user);
+        List<PolyStringType> userOrganizations = user.asObjectable().getOrganization();
+        assertTrue("Unexpected value in user organization property: "+userOrganizations, userOrganizations.isEmpty());
+    }
 
-	// test05x - test7xx inherited from superclass
+    // test05x - test7xx inherited from superclass
 
-	@Test
+    @Test
     public void test800JackAssignScummBar() throws Exception {
-		final String TEST_NAME = "test800JackAssignScummBar";
+        final String TEST_NAME = "test800JackAssignScummBar";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -163,11 +163,11 @@ public class TestOrgStructMeta extends TestOrgStruct {
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
-	}
+    }
 
-	@Test
+    @Test
     public void test802JackAssignOrganized() throws Exception {
-		final String TEST_NAME = "test802JackAssignOrganized";
+        final String TEST_NAME = "test802JackAssignOrganized";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -186,17 +186,17 @@ public class TestOrgStructMeta extends TestOrgStruct {
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Proud member of F0006");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Proud member of F0006");
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!", "I say: Hosting the worst scumm of the Caribbean.");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!", "I say: Hosting the worst scumm of the Caribbean.");
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
-	}
+    }
 
-	@Test
+    @Test
     public void test804JackUnAssignOrganized() throws Exception {
-		final String TEST_NAME = "test804JackUnAssignOrganized";
+        final String TEST_NAME = "test804JackUnAssignOrganized";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -214,17 +214,17 @@ public class TestOrgStructMeta extends TestOrgStruct {
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Arr!");
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
-	}
+    }
 
-	@Test
+    @Test
     public void test809JackUnassignScummBar() throws Exception {
-		final String TEST_NAME = "test809JackUnassignScummBar";
+        final String TEST_NAME = "test809JackUnassignScummBar";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -244,14 +244,14 @@ public class TestOrgStructMeta extends TestOrgStruct {
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
-	}
+    }
 
-	/**
-	 * Now do the same things as 80x but do it all at once.
-	 */
-	@Test
+    /**
+     * Now do the same things as 80x but do it all at once.
+     */
+    @Test
     public void test810JackAssignScummBarOrganized() throws Exception {
-		final String TEST_NAME = "test810JackAssignScummBarOrganized";
+        final String TEST_NAME = "test810JackAssignScummBarOrganized";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
@@ -261,16 +261,16 @@ public class TestOrgStructMeta extends TestOrgStruct {
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 
         Collection<ItemDelta<?,?>> modifications = new ArrayList<>();
-		modifications.add((createAssignmentModification(ROLE_ORGANIZED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
-		modifications.add((createAssignmentModification(ORG_SCUMM_BAR_OID, OrgType.COMPLEX_TYPE, null, null, null, true)));
-		ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
-				.createModifyDelta(USER_JACK_OID, modifications, UserType.class);
+        modifications.add((createAssignmentModification(ROLE_ORGANIZED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
+        modifications.add((createAssignmentModification(ORG_SCUMM_BAR_OID, OrgType.COMPLEX_TYPE, null, null, null, true)));
+        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
+                .createModifyDelta(USER_JACK_OID, modifications, UserType.class);
 
         // WHEN
-		modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
 
         // THEN
-		result.computeStatus();
+        result.computeStatus();
         TestUtil.assertSuccess(result);
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         display("User after", user);
@@ -279,11 +279,11 @@ public class TestOrgStructMeta extends TestOrgStruct {
 
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
         assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Proud member of F0006");
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Proud member of F0006");
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
-	}
+    }
 
     @Test
     public void test890AddFictionalOrg() throws Exception {

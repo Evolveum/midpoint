@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.lex.json.yaml;
@@ -20,24 +20,24 @@ public class MidpointYAMLFactory extends YAMLFactory {
 
 
 
-	@Override
-	protected MidpointYAMLGenerator _createGenerator(Writer out, IOContext ctxt) throws IOException {
-		int feats = _yamlGeneratorFeatures;
-		MidpointYAMLGenerator gen = new MidpointYAMLGenerator(ctxt, _generatorFeatures, feats, _objectCodec, out, _version);
-		// any other initializations? No?
-		return gen;
-	}
+    @Override
+    protected MidpointYAMLGenerator _createGenerator(Writer out, IOContext ctxt) throws IOException {
+        int feats = _yamlGeneratorFeatures;
+        MidpointYAMLGenerator gen = new MidpointYAMLGenerator(ctxt, _generatorFeatures, feats, _objectCodec, out, _version);
+        // any other initializations? No?
+        return gen;
+    }
 
-	@SuppressWarnings("resource")
-	@Override
-	protected MidpointYAMLParser _createParser(InputStream in, IOContext ctxt) throws IOException {
-		return _createParser(_createReader(in, null, ctxt), ctxt);
-	}
+    @SuppressWarnings("resource")
+    @Override
+    protected MidpointYAMLParser _createParser(InputStream in, IOContext ctxt) throws IOException {
+        return _createParser(_createReader(in, null, ctxt), ctxt);
+    }
 
-	@Override
-	protected MidpointYAMLParser _createParser(Reader r, IOContext ctxt) throws IOException {
-		MidpointYAMLParser p = new MidpointYAMLParser(ctxt, _getBufferRecycler(), _parserFeatures, _yamlParserFeatures, _objectCodec, r);
-		p.enable(JsonParser.Feature.ALLOW_YAML_COMMENTS);
-		return p;
-	}
+    @Override
+    protected MidpointYAMLParser _createParser(Reader r, IOContext ctxt) throws IOException {
+        MidpointYAMLParser p = new MidpointYAMLParser(ctxt, _getBufferRecycler(), _parserFeatures, _yamlParserFeatures, _objectCodec, r);
+        p.enable(JsonParser.Feature.ALLOW_YAML_COMMENTS);
+        return p;
+    }
 }

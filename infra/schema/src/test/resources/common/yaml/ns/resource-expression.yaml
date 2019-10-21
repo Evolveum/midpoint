@@ -15,11 +15,11 @@ resource:
     configurationProperties:
       '@ns': "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
       port: "389"
-      host: 
+      host:
         '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         expression:
           const: "ldapHostname"
-      baseContexts: 
+      baseContexts:
         '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         expression:
           script:

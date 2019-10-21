@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism;
@@ -22,17 +22,17 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  */
 public interface PrismValueWrapper<T, V extends PrismValue> extends Serializable, DebugDumpable {
 
-	T getRealValue();
-	void setRealValue(T realValue);
-	
-	ValueStatus getStatus();
-	void setStatus(ValueStatus status);
-	
-	V getNewValue();
-	V getOldValue();
-	<IW extends ItemWrapper> IW getParent();
-	
-	<D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDelta(D delta) throws SchemaException;
-	
-//	<ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException;
+    T getRealValue();
+    void setRealValue(T realValue);
+
+    ValueStatus getStatus();
+    void setStatus(ValueStatus status);
+
+    V getNewValue();
+    V getOldValue();
+    <IW extends ItemWrapper> IW getParent();
+
+    <D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDelta(D delta) throws SchemaException;
+
+//    <ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException;
 }

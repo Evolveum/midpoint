@@ -7,9 +7,9 @@
   -->
 
 <service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="7540cf28-a143-4eea-9379-75cae5d212cb">
-	<name>ring</name>
-	<assignment>
-		<targetRef oid="2421b2c5-8563-4ba7-9a87-f9ef4b169620" type="RoleType"/>	<!-- bearable -->
-	</assignment>
+      oid="7540cf28-a143-4eea-9379-75cae5d212cb">
+    <name>ring</name>
+    <assignment>
+        <targetRef oid="2421b2c5-8563-4ba7-9a87-f9ef4b169620" type="RoleType"/>    <!-- bearable -->
+    </assignment>
 </service>

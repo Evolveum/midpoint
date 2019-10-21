@@ -1,42 +1,42 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <cachingProfile xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<global>true</global>
-	<localRepoCache>
-		<objectTypeSettings>
-			<objectType>__ALL__</objectType>
-		</objectTypeSettings>
-	</localRepoCache>
-	<globalRepoCache>
-		<timeToLive>60</timeToLive>
-		<objectTypeSettings>
-			<objectType>SystemConfigurationType</objectType>
-			<objectType>ArchetypeType</objectType>
-			<objectType>ObjectTemplateType</objectType>
-			<timeToVersionCheck>10</timeToVersionCheck>
-		</objectTypeSettings>
-	</globalRepoCache>
-	<localFocusConstraintCheckerCache>
-		<objectTypeSettings>
-			<objectType>__ALL__</objectType>
-		</objectTypeSettings>
-	</localFocusConstraintCheckerCache>
-	<localShadowConstraintCheckerCache>
-		<objectTypeSettings>
-			<objectType>ShadowType</objectType>
-		</objectTypeSettings>
-	</localShadowConstraintCheckerCache>
-	<localAssociationTargetSearchEvaluatorCache>
-		<objectTypeSettings>
-			<objectType>ShadowType</objectType>
-		</objectTypeSettings>
-	</localAssociationTargetSearchEvaluatorCache>
-<!--	<localDefaultSearchEvaluatorCache>-->
-<!--		<maxSize>0</maxSize>-->
-<!--	</localDefaultSearchEvaluatorCache>-->
+    <global>true</global>
+    <localRepoCache>
+        <objectTypeSettings>
+            <objectType>__ALL__</objectType>
+        </objectTypeSettings>
+    </localRepoCache>
+    <globalRepoCache>
+        <timeToLive>60</timeToLive>
+        <objectTypeSettings>
+            <objectType>SystemConfigurationType</objectType>
+            <objectType>ArchetypeType</objectType>
+            <objectType>ObjectTemplateType</objectType>
+            <timeToVersionCheck>10</timeToVersionCheck>
+        </objectTypeSettings>
+    </globalRepoCache>
+    <localFocusConstraintCheckerCache>
+        <objectTypeSettings>
+            <objectType>__ALL__</objectType>
+        </objectTypeSettings>
+    </localFocusConstraintCheckerCache>
+    <localShadowConstraintCheckerCache>
+        <objectTypeSettings>
+            <objectType>ShadowType</objectType>
+        </objectTypeSettings>
+    </localShadowConstraintCheckerCache>
+    <localAssociationTargetSearchEvaluatorCache>
+        <objectTypeSettings>
+            <objectType>ShadowType</objectType>
+        </objectTypeSettings>
+    </localAssociationTargetSearchEvaluatorCache>
+<!--    <localDefaultSearchEvaluatorCache>-->
+<!--        <maxSize>0</maxSize>-->
+<!--    </localDefaultSearchEvaluatorCache>-->
 </cachingProfile>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,43 +18,43 @@ import com.evolveum.midpoint.util.PrettyPrinter;
  * Contains the expression that can be part of e.g. prism filters (or other data).
  */
 public class ExpressionWrapper implements Cloneable, Serializable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * Name of the expression root element (e.g. "expression").
-	 */
-	private final QName elementName;
+    /**
+     * Name of the expression root element (e.g. "expression").
+     */
+    private final QName elementName;
 
-	/**
-	 * Content of the expression.
-	 * TODO specify more precisely
-	 */
+    /**
+     * Content of the expression.
+     * TODO specify more precisely
+     */
     private final Object expression;
 
     public ExpressionWrapper(QName elementName, Object expression) {
-		super();
-		this.elementName = elementName;
-		this.expression = expression;
-	}
+        super();
+        this.elementName = elementName;
+        this.expression = expression;
+    }
 
-	public QName getElementName() {
-		return elementName;
-	}
+    public QName getElementName() {
+        return elementName;
+    }
 
-	public Object getExpression() {
+    public Object getExpression() {
         return expression;
     }
 
-	public ExpressionWrapper clone() {
-    	// todo call super.clone?
-		Object expressionClone = CloneUtil.clone(expression);
-		return new ExpressionWrapper(elementName, expressionClone);
-	}
+    public ExpressionWrapper clone() {
+        // todo call super.clone?
+        Object expressionClone = CloneUtil.clone(expression);
+        return new ExpressionWrapper(elementName, expressionClone);
+    }
 
-	@Override
-	public String toString() {
-		return "ExpressionWrapper(" + PrettyPrinter.prettyPrint(elementName) + ":" + PrettyPrinter.prettyPrint(expression);
-	}
+    @Override
+    public String toString() {
+        return "ExpressionWrapper(" + PrettyPrinter.prettyPrint(elementName) + ":" + PrettyPrinter.prettyPrint(expression);
+    }
 
 
 }

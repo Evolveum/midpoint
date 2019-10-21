@@ -1,24 +1,24 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user oid="00000001-d34d-b33f-f00d-L00000000021">
-	<name>lead21</name>
-	<assignment> <!-- approver -->
-		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
-	</assignment>
-	<assignment> <!-- Role21 (standard) -->
-		<targetRef oid="00000001-d34d-b33f-f00d-000000000021" type="RoleType" relation="approver"/>
-	</assignment>
-	<assignment> <!-- Role25 -->
-		<targetRef oid="00000001-d34d-b33f-f00d-000000000025" type="RoleType" relation="extraordinary"/>
-	</assignment>
-	<assignment> <!-- Leads2122 -->
-		<targetRef oid="00000001-d34d-b33f-f00d-000000002122" type="OrgType"/>
-	</assignment>
-	<fullName>Lead21</fullName>
-	<familyName>Lead21</familyName>
+    <name>lead21</name>
+    <assignment> <!-- approver -->
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
+    <assignment> <!-- Role21 (standard) -->
+        <targetRef oid="00000001-d34d-b33f-f00d-000000000021" type="RoleType" relation="approver"/>
+    </assignment>
+    <assignment> <!-- Role25 -->
+        <targetRef oid="00000001-d34d-b33f-f00d-000000000025" type="RoleType" relation="extraordinary"/>
+    </assignment>
+    <assignment> <!-- Leads2122 -->
+        <targetRef oid="00000001-d34d-b33f-f00d-000000002122" type="OrgType"/>
+    </assignment>
+    <fullName>Lead21</fullName>
+    <familyName>Lead21</familyName>
 </user>

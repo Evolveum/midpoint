@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -72,16 +72,16 @@ public class UserType
     implements Serializable
 {
 
-	// This is NOT GENERATED. It is supplied here manually for the testing.
-	public final static ItemName F_FULL_NAME = new ItemName(NS_FOO, "fullName");
-	public final static ItemName F_GIVEN_NAME = new ItemName(NS_FOO, "givenName");
-	public final static ItemName F_FAMILY_NAME = new ItemName(NS_FOO, "familyName");
-	public final static ItemName F_ADDITIONAL_NAMES = new ItemName(NS_FOO, "additionalNames");
-	public final static ItemName F_POLY_NAME = new ItemName(NS_FOO, "polyName");
-	public final static ItemName F_ACTIVATION = new ItemName(NS_FOO, "activation");
-	public final static ItemName F_ASSIGNMENT = new ItemName(NS_FOO, "assignment");
-	public final static ItemName F_LOCALITY = new ItemName(NS_FOO, "locality");
-	public final static ItemName F_ACCOUNT_REF = new ItemName(NS_FOO, "accountRef");
+    // This is NOT GENERATED. It is supplied here manually for the testing.
+    public final static ItemName F_FULL_NAME = new ItemName(NS_FOO, "fullName");
+    public final static ItemName F_GIVEN_NAME = new ItemName(NS_FOO, "givenName");
+    public final static ItemName F_FAMILY_NAME = new ItemName(NS_FOO, "familyName");
+    public final static ItemName F_ADDITIONAL_NAMES = new ItemName(NS_FOO, "additionalNames");
+    public final static ItemName F_POLY_NAME = new ItemName(NS_FOO, "polyName");
+    public final static ItemName F_ACTIVATION = new ItemName(NS_FOO, "activation");
+    public final static ItemName F_ASSIGNMENT = new ItemName(NS_FOO, "assignment");
+    public final static ItemName F_LOCALITY = new ItemName(NS_FOO, "locality");
+    public final static ItemName F_ACCOUNT_REF = new ItemName(NS_FOO, "accountRef");
     public final static ItemName F_SPECIAL = new ItemName(NS_FOO, "special");
     public final static ItemName F_SINGLE_ACTIVATION = new ItemName(NS_FOO, "singleActivation");
     public final static ItemName F_MULTI_ACTIVATION = new ItemName(NS_FOO, "multiActivation");

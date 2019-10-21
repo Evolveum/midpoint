@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism;
@@ -22,12 +22,12 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  */
 public interface Itemable {
 
-	ItemName getElementName();
+    ItemName getElementName();
 
-	ItemDefinition getDefinition();
+    ItemDefinition getDefinition();
 
-	PrismContext getPrismContext();
+    PrismContext getPrismContext();
 
-	ItemPath getPath();
+    ItemPath getPath();
 
 }

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.forgetpassword;
@@ -42,133 +42,133 @@ public class PageResetPasswordConfirmation extends PageRegistrationBase{
 
 private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);
 
-	private static final String DOT_CLASS = PageRegistrationConfirmation.class.getName() + ".";
+    private static final String DOT_CLASS = PageRegistrationConfirmation.class.getName() + ".";
 
 
-	private static final String ID_LABEL_ERROR = "errorLabel";
-	private static final String ID_ERROR_PANEL = "errorPanel";
+    private static final String ID_LABEL_ERROR = "errorLabel";
+    private static final String ID_ERROR_PANEL = "errorPanel";
 
-	private static final String OPERATION_ASSIGN_DEFAULT_ROLES = DOT_CLASS + ".assignDefaultRoles";
-	private static final String OPERATION_FINISH_REGISTRATION = DOT_CLASS + "finishRegistration";
+    private static final String OPERATION_ASSIGN_DEFAULT_ROLES = DOT_CLASS + ".assignDefaultRoles";
+    private static final String OPERATION_FINISH_REGISTRATION = DOT_CLASS + "finishRegistration";
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public PageResetPasswordConfirmation() {
-		super();
-		init(null);
-	}
+    public PageResetPasswordConfirmation() {
+        super();
+        init(null);
+    }
 
-	public PageResetPasswordConfirmation(PageParameters params) {
-		super();
-		init(params);
-	}
+    public PageResetPasswordConfirmation(PageParameters params) {
+        super();
+        init(params);
+    }
 
-	private void init(final PageParameters pageParameters) {
+    private void init(final PageParameters pageParameters) {
 
-		PageParameters params = pageParameters;
-		if (params == null) {
-			params = getPageParameters();
-		}
+        PageParameters params = pageParameters;
+        if (params == null) {
+            params = getPageParameters();
+        }
 
-		OperationResult result = new OperationResult(OPERATION_FINISH_REGISTRATION);
-		if (params == null) {
-			LOGGER.error("Confirmation link is not valid. No credentials provided in it");
-			String msg = createStringResource("PageSelfRegistration.invalid.registration.link").getString();
-			getSession().error(createStringResource(msg));
-			result.recordFatalError(msg);
-			initLayout(result);
-			return;
-		}
+        OperationResult result = new OperationResult(OPERATION_FINISH_REGISTRATION);
+        if (params == null) {
+            LOGGER.error("Confirmation link is not valid. No credentials provided in it");
+            String msg = createStringResource("PageSelfRegistration.invalid.registration.link").getString();
+            getSession().error(createStringResource(msg));
+            result.recordFatalError(msg);
+            initLayout(result);
+            return;
+        }
 
-		StringValue userNameValue = params.get(SchemaConstants.USER_ID);
-		Validate.notEmpty(userNameValue.toString());
-		StringValue tokenValue = params.get(SchemaConstants.TOKEN);
-		Validate.notEmpty(tokenValue.toString());
+        StringValue userNameValue = params.get(SchemaConstants.USER_ID);
+        Validate.notEmpty(userNameValue.toString());
+        StringValue tokenValue = params.get(SchemaConstants.TOKEN);
+        Validate.notEmpty(tokenValue.toString());
 
-		UsernamePasswordAuthenticationToken token = authenticateUser(userNameValue.toString(), tokenValue.toString(), result);
-		if (token == null) {
-			initLayout(result);
-			return;
-		} else {
-//			SecurityContextHolder.getContext().setAuthentication(token);
-			MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
-			Collection<Authorization> authz = principal.getAuthorities();
+        UsernamePasswordAuthenticationToken token = authenticateUser(userNameValue.toString(), tokenValue.toString(), result);
+        if (token == null) {
+            initLayout(result);
+            return;
+        } else {
+//            SecurityContextHolder.getContext().setAuthentication(token);
+            MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+            Collection<Authorization> authz = principal.getAuthorities();
 
-			if (authz != null) {
-				Iterator<Authorization> authzIterator = authz.iterator();
-				while (authzIterator.hasNext()) {
-					Authorization authzI= authzIterator.next();
-					Iterator<String> actionIterator = authzI.getAction().iterator();
-					while (actionIterator.hasNext()) {
-						String action = actionIterator.next();
-						if (action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI)) {
-							actionIterator.remove();
-						}
-					}
+            if (authz != null) {
+                Iterator<Authorization> authzIterator = authz.iterator();
+                while (authzIterator.hasNext()) {
+                    Authorization authzI= authzIterator.next();
+                    Iterator<String> actionIterator = authzI.getAction().iterator();
+                    while (actionIterator.hasNext()) {
+                        String action = actionIterator.next();
+                        if (action.contains(AuthorizationConstants.NS_AUTHORIZATION_UI)) {
+                            actionIterator.remove();
+                        }
+                    }
 
-				}
+                }
 
-			}
+            }
 
-			AuthorizationType authorizationType = new AuthorizationType();
-			authorizationType.getAction().add(AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL);
-			Authorization selfServiceCredentialsAuthz = new Authorization(authorizationType);
-			authz.add(selfServiceCredentialsAuthz);
-			SecurityContextHolder.getContext().setAuthentication(token);
-			setResponsePage(PageResetPassword.class);
-		}
+            AuthorizationType authorizationType = new AuthorizationType();
+            authorizationType.getAction().add(AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL);
+            Authorization selfServiceCredentialsAuthz = new Authorization(authorizationType);
+            authz.add(selfServiceCredentialsAuthz);
+            SecurityContextHolder.getContext().setAuthentication(token);
+            setResponsePage(PageResetPassword.class);
+        }
 
-		initLayout(result);
-	}
+        initLayout(result);
+    }
 
-	private UsernamePasswordAuthenticationToken authenticateUser(String username, String nonce, OperationResult result) {
-		ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
-		try {
-			return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext(username,
-					nonce, getResetPasswordPolicy().getNoncePolicy()));
-		} catch (AuthenticationException ex) {
-			getSession()
-					.error(getString(ex.getMessage()));
-			result.recordFatalError(getString("PageResetPasswordConfirmation.message.authenticateUser.fatalError"));
-			LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
-			 return null;
-		} catch (Exception ex) {
-			getSession()
-			.error(createStringResource("PageResetPasswordConfirmation.authnetication.failed").getString());
-			LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
-			return null;
-		}
-	}
-
-
+    private UsernamePasswordAuthenticationToken authenticateUser(String username, String nonce, OperationResult result) {
+        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+        try {
+            return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext(username,
+                    nonce, getResetPasswordPolicy().getNoncePolicy()));
+        } catch (AuthenticationException ex) {
+            getSession()
+                    .error(getString(ex.getMessage()));
+            result.recordFatalError(getString("PageResetPasswordConfirmation.message.authenticateUser.fatalError"));
+            LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
+             return null;
+        } catch (Exception ex) {
+            getSession()
+            .error(createStringResource("PageResetPasswordConfirmation.authnetication.failed").getString());
+            LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
+            return null;
+        }
+    }
 
 
-	private void initLayout(final OperationResult result) {
 
-		WebMarkupContainer errorPanel = new WebMarkupContainer(ID_ERROR_PANEL);
-		add(errorPanel);
-		errorPanel.add(new VisibleEnableBehaviour() {
 
-			private static final long serialVersionUID = 1L;
+    private void initLayout(final OperationResult result) {
 
-			@Override
-			public boolean isEnabled() {
-				return result.getStatus() == OperationResultStatus.FATAL_ERROR;
-			}
+        WebMarkupContainer errorPanel = new WebMarkupContainer(ID_ERROR_PANEL);
+        add(errorPanel);
+        errorPanel.add(new VisibleEnableBehaviour() {
 
-			@Override
-			public boolean isVisible() {
-				return result.getStatus() == OperationResultStatus.FATAL_ERROR;
-			}
-		});
-		Label errorMessage = new Label(ID_LABEL_ERROR,
-				createStringResource("PageResetPasswordConfirmation.confirmation.error"));
-		errorPanel.add(errorMessage);
+            private static final long serialVersionUID = 1L;
 
-	}
+            @Override
+            public boolean isEnabled() {
+                return result.getStatus() == OperationResultStatus.FATAL_ERROR;
+            }
 
-	@Override
-	protected void createBreadcrumb() {
-		// don't create breadcrumb for registration confirmation page
-	}
+            @Override
+            public boolean isVisible() {
+                return result.getStatus() == OperationResultStatus.FATAL_ERROR;
+            }
+        });
+        Label errorMessage = new Label(ID_LABEL_ERROR,
+                createStringResource("PageResetPasswordConfirmation.confirmation.error"));
+        errorPanel.add(errorMessage);
+
+    }
+
+    @Override
+    protected void createBreadcrumb() {
+        // don't create breadcrumb for registration confirmation page
+    }
 }

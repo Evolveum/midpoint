@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -63,11 +63,11 @@ public class SingleButtonPanel<T> extends BasePanel<T> {
     }
 
     public String getButtonCssSizeClass(){
-        return DoubleButtonColumn.BUTTON_SIZE_CLASS.DEFAULT.toString();
+        return DoubleButtonColumn.ButtonSizeClass.DEFAULT.toString();
     }
 
     public String getButtonCssColorClass(){
-        return DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString();
+        return DoubleButtonColumn.ButtonColorClass.DEFAULT.toString();
     }
 
     public String getCaption(){

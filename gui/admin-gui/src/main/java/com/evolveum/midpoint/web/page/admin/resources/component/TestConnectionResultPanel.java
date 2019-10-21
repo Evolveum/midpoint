@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.resources.component;
@@ -63,17 +63,17 @@ public class TestConnectionResultPanel extends BasePanel<List<OpResult>> impleme
         AjaxLazyLoadPanel resultsPanel = new AjaxLazyLoadPanel(ID_RESULT) {
             @Override
             public Component getLazyLoadComponent(String id) {
-            	return new TestConnectionMessagesPanel(id, resourceOid, (PageBase) parentPage);
+                return new TestConnectionMessagesPanel(id, resourceOid, (PageBase) parentPage);
             }
 
             @Override
             protected void onContentLoaded(Component content, Optional optionalTarget) {
-            	isLoaded = true;
-            	AjaxRequestTarget target = (AjaxRequestTarget) optionalTarget.get();
+                isLoaded = true;
+                AjaxRequestTarget target = (AjaxRequestTarget) optionalTarget.get();
                 target.add(content);
                 target.add(messageLabel);
             }
-            
+
         };
         contentPanel.add(resultsPanel);
 

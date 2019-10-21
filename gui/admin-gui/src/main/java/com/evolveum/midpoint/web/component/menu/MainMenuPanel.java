@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.menu;
@@ -39,7 +39,7 @@ import java.util.List;
  * @author Viliam Repan (lazyman)
  */
 public class MainMenuPanel extends BasePanel<MainMenuItem> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private static final String ID_ITEM = "item";
     private static final String ID_LINK = "link";
@@ -78,9 +78,9 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
         WebMarkupContainer item = new WebMarkupContainer(ID_ITEM);
         item.add(AttributeModifier.replace("class", new IModel<String>() {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public String getObject() {
                 if (menu.isMenuActive((WebPage) getPage())) {
                     return "active";
@@ -100,7 +100,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         WebMarkupContainer link;
         if (menu.getPageClass() != null) {
             link = new AjaxLink<Void>(ID_LINK) {
-            	private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
@@ -132,35 +132,35 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
         Label bubble = new Label(ID_BUBBLE, bubbleModel);
         bubble.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return bubbleModel.getObject() != null;
-			}
+            @Override
+            public boolean isVisible() {
+                return bubbleModel.getObject() != null;
+            }
         });
         link.add(bubble);
 
         WebMarkupContainer arrow = new WebMarkupContainer(ID_ARROW);
         arrow.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-		    public boolean isVisible() {
-		        return !menu.getItems().isEmpty() && bubbleModel.getObject() == null;
-		    }
-		});
+            @Override
+            public boolean isVisible() {
+                return !menu.getItems().isEmpty() && bubbleModel.getObject() == null;
+            }
+        });
         link.add(arrow);
 
         WebMarkupContainer submenu = new WebMarkupContainer(ID_SUBMENU);
         submenu.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-		    public boolean isVisible() {
-		        return !menu.getItems().isEmpty();
-		    }
-		});
+            @Override
+            public boolean isVisible() {
+                return !menu.getItems().isEmpty();
+            }
+        });
         item.add(submenu);
 
         ListView<MenuItem> subItem = new ListView<MenuItem>(ID_SUB_ITEM, new Model((Serializable) menu.getItems())) {
@@ -177,7 +177,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         final MenuItem menuItem = listItem.getModelObject();
 
         listItem.add(AttributeModifier.replace("class", new IModel<String>() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -186,7 +186,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         }));
 
         Link<String> subLink = new Link<String>(ID_SUB_LINK) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick() {
@@ -207,7 +207,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         subLink.add(subLabel);
 
         listItem.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -235,7 +235,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     }
 
     private void menuItemPerformed(MenuItem menu) {
-    	LOGGER.trace("menuItemPerformed: {}", menu);
+        LOGGER.trace("menuItemPerformed: {}", menu);
 
         IPageFactory pFactory = Session.get().getPageFactory();
         WebPage page = pFactory.newPage(menu.getPageClass(), menu.getParams());
@@ -274,7 +274,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     }
 
     private void mainMenuPerformed(MainMenuItem menu) {
-    	LOGGER.trace("mainMenuPerformed: {}", menu);
+        LOGGER.trace("mainMenuPerformed: {}", menu);
 
         if (menu.getParams() == null) {
             setResponsePage(menu.getPageClass());
@@ -284,7 +284,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     }
 
     private void additionalMenuPerformed(MainMenuItem menu) {
-    	LOGGER.trace("additionalMenuPerformed: {}", menu);
+        LOGGER.trace("additionalMenuPerformed: {}", menu);
 
         if (menu.getPageClass() != null) {
             setResponsePage(menu.getPageClass());

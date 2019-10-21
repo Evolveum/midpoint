@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,59 +25,59 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval {
 
-	private static final File SYSTEM_CONFIGURATION_GLOBAL_FILE = new File(TEST_RESOURCE_DIR, "system-configuration-global.xml");
+    private static final File SYSTEM_CONFIGURATION_GLOBAL_FILE = new File(TEST_RESOURCE_DIR, "system-configuration-global.xml");
 
-	@Override
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_GLOBAL_FILE;
-	}
+    @Override
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_GLOBAL_FILE;
+    }
 
-	@SuppressWarnings("Duplicates")
-	@Override
-	protected String getRoleOid(int number) {
-		switch (number) {
-			case 1: return roleRole1Oid;
-			case 2: return roleRole2Oid;
-			case 3: return roleRole3Oid;
-			case 4: return roleRole4Oid;
-			case 10: return roleRole10Oid;
-			default: throw new IllegalArgumentException("Wrong role number: " + number);
-		}
-	}
+    @SuppressWarnings("Duplicates")
+    @Override
+    protected String getRoleOid(int number) {
+        switch (number) {
+            case 1: return roleRole1Oid;
+            case 2: return roleRole2Oid;
+            case 3: return roleRole3Oid;
+            case 4: return roleRole4Oid;
+            case 10: return roleRole10Oid;
+            default: throw new IllegalArgumentException("Wrong role number: " + number);
+        }
+    }
 
-	@SuppressWarnings("Duplicates")
-	@Override
-	protected String getRoleName(int number) {
-		switch (number) {
-			case 1: return "Role1";
-			case 2: return "Role2";
-			case 3: return "Role3";
-			case 4: return "Role4";
-			case 10: return "Role10";
-			default: throw new IllegalArgumentException("Wrong role number: " + number);
-		}
-	}
+    @SuppressWarnings("Duplicates")
+    @Override
+    protected String getRoleName(int number) {
+        switch (number) {
+            case 1: return "Role1";
+            case 2: return "Role2";
+            case 3: return "Role3";
+            case 4: return "Role4";
+            case 10: return "Role10";
+            default: throw new IllegalArgumentException("Wrong role number: " + number);
+        }
+    }
 
-	/**
-	 * MID-3836
-	 */
-	public void test300ApprovalAndEnforce() throws Exception {
-		final String TEST_NAME = "test300ApprovalAndEnforce";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(userAdministrator);
-		Task task = createTask(TEST_NAME);
-		task.setOwner(userAdministrator);
-		OperationResult result = task.getResult();
+    /**
+     * MID-3836
+     */
+    public void test300ApprovalAndEnforce() throws Exception {
+        final String TEST_NAME = "test300ApprovalAndEnforce";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator);
+        Task task = createTask(TEST_NAME);
+        task.setOwner(userAdministrator);
+        OperationResult result = task.getResult();
 
-		try {
-			assignRole(userJackOid, roleRole15Oid, task, result);
-		} catch (PolicyViolationException e) {
-			// ok
-			System.out.println("Got expected exception: " + e);
-		}
-		List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
-		display("current work items", currentWorkItems);
-		assertEquals("Wrong # of current work items", 0, currentWorkItems.size());
-	}
+        try {
+            assignRole(userJackOid, roleRole15Oid, task, result);
+        } catch (PolicyViolationException e) {
+            // ok
+            System.out.println("Got expected exception: " + e);
+        }
+        List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
+        display("current work items", currentWorkItems);
+        assertEquals("Wrong # of current work items", 0, currentWorkItems.size());
+    }
 
 }

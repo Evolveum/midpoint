@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000222"
@@ -13,35 +13,35 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
     <name>User Template</name>
-    
-    
+
+
     <mapping>
     <trace>true</trace>
               <name>Administrative Status</name>
-              <strength>strong</strength>                          
+              <strength>strong</strength>
              <!-- Prevents the value from being removed should the condition resolve to false -->
 <!--               <authoritative>false</authoritative> -->
               <source>
                      <path>$focus/activation/effectiveStatus</path>
               </source>
               <expression>
-              		<trace>true</trace>
+                      <trace>true</trace>
                      <script>
-                     	<code>
-	                     	return null
-                     	</code>
+                         <code>
+                             return null
+                         </code>
                      </script>
               </expression>
               <target>
                      <path>$focus/activation/administrativeStatus</path>
                      <set>
-                     	<condition>
-                     		<script>
-                     			<code>
-                     				return true
-                     			</code>
-                     		</script>
-                     	</condition>
+                         <condition>
+                             <script>
+                                 <code>
+                                     return true
+                                 </code>
+                             </script>
+                         </condition>
                      </set>
               </target>
               <!-- If archived then set to undefined, otherwise ignore -->
@@ -49,11 +49,11 @@
                      <script>
                            <code>
                                   import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
-                                 
+
                                   return ActivationStatusType.ARCHIVED == effectiveStatus
                            </code>
-                     </script>                 
+                     </script>
               </condition>
        </mapping>
-    
+
 </objectTemplate>

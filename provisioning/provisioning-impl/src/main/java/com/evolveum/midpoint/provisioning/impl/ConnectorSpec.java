@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl;
@@ -17,44 +17,44 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  */
 public class ConnectorSpec {
 
-	private PrismObject<ResourceType> resource;
-	private String connectorName;
-	private String connectorOid;
-	private PrismContainer<ConnectorConfigurationType> connectorConfiguration;
+    private PrismObject<ResourceType> resource;
+    private String connectorName;
+    private String connectorOid;
+    private PrismContainer<ConnectorConfigurationType> connectorConfiguration;
 
-	public ConnectorSpec(PrismObject<ResourceType> resource, String connectorName, String connectorOid,
-			PrismContainer<ConnectorConfigurationType> connectorConfiguration) {
-		super();
-		this.resource = resource;
-		this.connectorName = connectorName;
-		this.connectorOid = connectorOid;
-		this.connectorConfiguration = connectorConfiguration;
-	}
+    public ConnectorSpec(PrismObject<ResourceType> resource, String connectorName, String connectorOid,
+            PrismContainer<ConnectorConfigurationType> connectorConfiguration) {
+        super();
+        this.resource = resource;
+        this.connectorName = connectorName;
+        this.connectorOid = connectorOid;
+        this.connectorConfiguration = connectorConfiguration;
+    }
 
-	public PrismObject<ResourceType> getResource() {
-		return resource;
-	}
+    public PrismObject<ResourceType> getResource() {
+        return resource;
+    }
 
-	public String getConnectorName() {
-		return connectorName;
-	}
+    public String getConnectorName() {
+        return connectorName;
+    }
 
-	public String getConnectorOid() {
-		return connectorOid;
-	}
+    public String getConnectorOid() {
+        return connectorOid;
+    }
 
-	public PrismContainer<ConnectorConfigurationType> getConnectorConfiguration() {
-		return connectorConfiguration;
-	}
+    public PrismContainer<ConnectorConfigurationType> getConnectorConfiguration() {
+        return connectorConfiguration;
+    }
 
-	public ConfiguredConnectorCacheKey getCacheKey() {
-		return new ConfiguredConnectorCacheKey(resource.getOid(), connectorName);
-	}
+    public ConfiguredConnectorCacheKey getCacheKey() {
+        return new ConfiguredConnectorCacheKey(resource.getOid(), connectorName);
+    }
 
-	@Override
-	public String toString() {
-		return "ConnectorSpec(" + resource + ", name=" + connectorName + ", oid="
-				+ connectorOid + ")";
-	}
+    @Override
+    public String toString() {
+        return "ConnectorSpec(" + resource + ", name=" + connectorName + ", oid="
+                + connectorOid + ")";
+    }
 
 }

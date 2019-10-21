@@ -2,50 +2,50 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
-	<globalPolicyRule>
-		<name>exclusion-global-sod-approval</name>
-		<policyConstraints>
-			<situation>
-				<situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
-			</situation>
-		</policyConstraints>
-		<policyActions>
-			<approval>
-				<compositionStrategy>
-					<order>30</order>
-				</compositionStrategy>
-				<approvalSchema>
-					<level>
-						<name>SoD</name>
-						<approverRef type="OrgType">
-							<filter>
-								<q:equal>
-									<q:path>name</q:path>
-									<q:value>SoD Approvers</q:value>
-								</q:equal>
-							</filter>
-							<resolutionTime>run</resolutionTime>
-						</approverRef>
-						<evaluationStrategy>firstDecides</evaluationStrategy>
-						<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
-						<groupExpansion>onWorkItemCreation</groupExpansion>
-					</level>
-				</approvalSchema>
-			</approval>
-		</policyActions>
-		<focusSelector>
-			<type>UserType</type>
-		</focusSelector>
-		<targetSelector>
-			<type>RoleType</type>
-		</targetSelector>
-	</globalPolicyRule>
-	
+    <globalPolicyRule>
+        <name>exclusion-global-sod-approval</name>
+        <policyConstraints>
+            <situation>
+                <situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
+            </situation>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <compositionStrategy>
+                    <order>30</order>
+                </compositionStrategy>
+                <approvalSchema>
+                    <level>
+                        <name>SoD</name>
+                        <approverRef type="OrgType">
+                            <filter>
+                                <q:equal>
+                                    <q:path>name</q:path>
+                                    <q:value>SoD Approvers</q:value>
+                                </q:equal>
+                            </filter>
+                            <resolutionTime>run</resolutionTime>
+                        </approverRef>
+                        <evaluationStrategy>firstDecides</evaluationStrategy>
+                        <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                        <groupExpansion>onWorkItemCreation</groupExpansion>
+                    </level>
+                </approvalSchema>
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+        <targetSelector>
+            <type>RoleType</type>
+        </targetSelector>
+    </globalPolicyRule>
+
 </systemConfiguration>

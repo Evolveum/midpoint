@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
@@ -465,8 +465,8 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
             partialProcessing.setInbound(SKIP);
             partialProcessing.setProjection(SKIP);
-			ModelExecuteOptions recomputeOptions = ModelExecuteOptions.createPartialProcessing(partialProcessing);
-			modelContext = getModelInteractionService()
+            ModelExecuteOptions recomputeOptions = ModelExecuteOptions.createPartialProcessing(partialProcessing);
+            modelContext = getModelInteractionService()
                     .previewChanges(WebComponentUtil.createDeltaCollection(delta), recomputeOptions, task, result);
             DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext
                     .getEvaluatedAssignmentTriple();
@@ -508,24 +508,24 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
        });
        return sb.toString();
     }
-    
+
     private void fillInConflictedObjects(EvaluatedAssignment<UserType> evaluatedAssignment, Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean isWarning, Map<String, ConflictDto> conflictsMap) {
-    	
-    	for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
-        	
-       	 if (trigger instanceof EvaluatedExclusionTrigger) {
+
+        for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+
+            if (trigger instanceof EvaluatedExclusionTrigger) {
               fillInFromEvaluatedExclusionTrigger(evaluatedAssignment, (EvaluatedExclusionTrigger) trigger, isWarning, conflictsMap);
            } else if (trigger instanceof EvaluatedCompositeTrigger) {
-        	   EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
-           	   Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
-           	   fillInConflictedObjects(evaluatedAssignment, innerTriggers, isWarning, conflictsMap);
+               EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
+                  Collection<EvaluatedPolicyRuleTrigger<?>> innerTriggers = compositeTrigger.getInnerTriggers();
+                  fillInConflictedObjects(evaluatedAssignment, innerTriggers, isWarning, conflictsMap);
            }
-    	} 
-    	
+        }
+
     }
 
     private void fillInFromEvaluatedExclusionTrigger(EvaluatedAssignment<UserType> evaluatedAssignment, EvaluatedExclusionTrigger exclusionTrigger, boolean isWarning, Map<String, ConflictDto> conflictsMap) {
-//    	 EvaluatedExclusionTrigger exclusionTrigger = (EvaluatedExclusionTrigger) trigger;
+//         EvaluatedExclusionTrigger exclusionTrigger = (EvaluatedExclusionTrigger) trigger;
          EvaluatedAssignment<F> conflictingAssignment = exclusionTrigger.getConflictingAssignment();
          PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>)evaluatedAssignment.getTarget();
          PrismObject<F> exclusionTargetObj = (PrismObject<F>)conflictingAssignment.getTarget();
@@ -574,7 +574,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
         ObjectDelta delta = null;
         try{
             delta = getPrismContext().deltaFactory().object()
-		            .createModificationAddContainer(UserType.class, user == null ? "fakeOid" : user.getOid(),
+                    .createModificationAddContainer(UserType.class, user == null ? "fakeOid" : user.getOid(),
                 FocusType.F_ASSIGNMENT, getAddAssignmentContainerValues(assignmentsModel.getObject()));
             if (!getSessionStorage().getRoleCatalog().isMultiUserRequest()) {
                 delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT,

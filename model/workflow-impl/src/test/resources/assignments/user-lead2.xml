@@ -1,24 +1,24 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user oid="00000001-d34d-b33f-f00d-L00000000002">
-	<name>lead2</name>
-	<assignment> <!-- approver -->
-		<targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
-	</assignment>
-	<assignment> <!-- role2 -->
-		<targetRef oid="00000001-d34d-b33f-f00d-000000000002" type="RoleType" relation="approver"/>
-	</assignment>
-	<assignment> <!-- role2 -->
-		<targetRef oid="00000001-d34d-b33f-f00d-00000000002b" type="RoleType" relation="special-approver"/>
-	</assignment>
-	<!--<assignment> &lt;!&ndash; Role22 (special-approver) &ndash;&gt;-->
-		<!--<targetRef oid="00000001-d34d-b33f-f00d-000000000022" type="RoleType" relation="special-approver"/>-->
-	<!--</assignment>-->
-	<fullName>Lead2</fullName>
-	<familyName>Lead2</familyName>
+    <name>lead2</name>
+    <assignment> <!-- approver -->
+        <targetRef oid="00000000-0000-0000-0000-00000000000a" type="RoleType"/>
+    </assignment>
+    <assignment> <!-- role2 -->
+        <targetRef oid="00000001-d34d-b33f-f00d-000000000002" type="RoleType" relation="approver"/>
+    </assignment>
+    <assignment> <!-- role2 -->
+        <targetRef oid="00000001-d34d-b33f-f00d-00000000002b" type="RoleType" relation="special-approver"/>
+    </assignment>
+    <!--<assignment> &lt;!&ndash; Role22 (special-approver) &ndash;&gt;-->
+        <!--<targetRef oid="00000001-d34d-b33f-f00d-000000000022" type="RoleType" relation="special-approver"/>-->
+    <!--</assignment>-->
+    <fullName>Lead2</fullName>
+    <familyName>Lead2</familyName>
 </user>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -14,8 +14,8 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
  */
 public class RecomputeHandlerDto extends QueryBasedHandlerDto {
 
-	public RecomputeHandlerDto(TaskDto taskDto) {
-		super(taskDto);
-	}
+    public RecomputeHandlerDto(TaskDto taskDto) {
+        super(taskDto);
+    }
 
 }

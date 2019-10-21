@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -108,8 +108,8 @@ public abstract class TemporaryTableDialect {
         @Override
         public String getCreateTemporaryTablePostfix() {
             // actually 2 different options are specified here:
-            //		1) [on commit drop] - says to drop the table on transaction commit
-            //		2) [transactional] - says to not perform an implicit commit of any current transaction
+            //        1) [on commit drop] - says to drop the table on transaction commit
+            //        2) [transactional] - says to not perform an implicit commit of any current transaction
             return "on commit drop transactional";
         }
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -130,7 +130,7 @@ public class TestJaxbParsing {
         account.checkConsistence();
         assertPropertyValue(account, ShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
         assertPropertyValue(account, ShadowType.F_OBJECT_CLASS,
-        		new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", "AccountObjectClass"));
+                new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff", "AccountObjectClass"));
         assertPropertyValue(account, ShadowType.F_INTENT, "default");
 
         // TODO: more asserts
@@ -138,8 +138,8 @@ public class TestJaxbParsing {
 
     @Test
     public void testParseModernRoleFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
-    	System.out.println("\n\n ===[ testParseModernRoleFromJaxb ]===\n");
-    	testParseRoleFromJaxb(new File(TestConstants.COMMON_DIR, "role.xml"));
+        System.out.println("\n\n ===[ testParseModernRoleFromJaxb ]===\n");
+        testParseRoleFromJaxb(new File(TestConstants.COMMON_DIR, "role.xml"));
     }
 
     /**
@@ -147,8 +147,8 @@ public class TestJaxbParsing {
      */
     @Test
     public void testParseLegacyRoleFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
-    	System.out.println("\n\n ===[ testParseLegacyRoleFromJaxb ]===\n");
-    	testParseRoleFromJaxb(new File(TestConstants.COMMON_DIR, "role-legacy.xml"));
+        System.out.println("\n\n ===[ testParseLegacyRoleFromJaxb ]===\n");
+        testParseRoleFromJaxb(new File(TestConstants.COMMON_DIR, "role-legacy.xml"));
     }
 
     public void testParseRoleFromJaxb(File file) throws SchemaException, SAXException, IOException, JAXBException {
@@ -168,11 +168,11 @@ public class TestJaxbParsing {
 
         role.checkConsistence();
         assertPropertyValue(role, RoleType.F_NAME, PrismTestUtil.createPolyString("r3"));
-        
+
         // TODO: more asserts?
     }
 
-    
+
     @Test
     public void testParseGenericObjectFromJaxb() throws Exception {
         System.out.println("\n\n ===[ testParseGenericObjectFromJaxb ]===\n");
@@ -194,11 +194,11 @@ public class TestJaxbParsing {
         assertNotNull(extension);
 
         PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_STRING_TYPE_ELEMENT, "X marks the spot");
-		PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_INT_TYPE_ELEMENT, 1234);
-		PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_DOUBLE_TYPE_ELEMENT, 456.789D);
-		PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT, 567890L);
-		XMLGregorianCalendar calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar("2002-05-30T09:10:11");
-		PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_DATE_TYPE_ELEMENT, calendar);
+        PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_INT_TYPE_ELEMENT, 1234);
+        PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_DOUBLE_TYPE_ELEMENT, 456.789D);
+        PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_LONG_TYPE_ELEMENT, 567890L);
+        XMLGregorianCalendar calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar("2002-05-30T09:10:11");
+        PrismAsserts.assertPropertyValue(extension, SchemaTestConstants.EXTENSION_DATE_TYPE_ELEMENT, calendar);
 
         //todo locations ????? how to test DOM ??????
     }

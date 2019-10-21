@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -34,53 +34,53 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  */
 public abstract class AbstractItemWrapperColumn<C extends Containerable, VW extends PrismValueWrapper> extends AbstractColumn<PrismContainerValueWrapper<C>, String> implements IExportableColumn<PrismContainerValueWrapper<C>, String>{
 
-	public enum ColumnType {
-		LINK,
-		STRING,
-		VALUE;
-	}
-	
-	private static final long serialVersionUID = 1L;
-	protected ItemPath itemName;
-	
-	private ColumnType columnType;
-	
-	private static final String ID_VALUE = "value";
-	
-	
-	private IModel<? extends PrismContainerDefinition<C>> mainModel = null;
-	
-	AbstractItemWrapperColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, ItemPath itemName, ColumnType columnType) {
-		super(null);
-		Validate.notNull(mainModel, "no model");
-		Validate.notNull(mainModel.getObject(), "no ContainerWrappe from model");
-		Validate.notNull(itemName, "no qName");
-		this.mainModel = mainModel;
-		this.itemName = itemName;
-		this.columnType = columnType;
-	}
-	
-	
-	@Override
-	public Component getHeader(String componentId) {
-		return createHeader(componentId, mainModel);
-	}
+    public enum ColumnType {
+        LINK,
+        STRING,
+        VALUE;
+    }
 
-	@Override
-	public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId,
-			IModel<PrismContainerValueWrapper<C>> rowModel) {
-		
-		cellItem.add(createColumnPanel(componentId, (IModel) getDataModel(rowModel)));
-		
-	}
-	
-	protected abstract Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel);
-	protected abstract <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel);
-	
-	
-	public ColumnType getColumnType() {
-		return columnType;
-	}
-	
-	
+    private static final long serialVersionUID = 1L;
+    protected ItemPath itemName;
+
+    private ColumnType columnType;
+
+    private static final String ID_VALUE = "value";
+
+
+    private IModel<? extends PrismContainerDefinition<C>> mainModel = null;
+
+    AbstractItemWrapperColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, ItemPath itemName, ColumnType columnType) {
+        super(null);
+        Validate.notNull(mainModel, "no model");
+        Validate.notNull(mainModel.getObject(), "no ContainerWrappe from model");
+        Validate.notNull(itemName, "no qName");
+        this.mainModel = mainModel;
+        this.itemName = itemName;
+        this.columnType = columnType;
+    }
+
+
+    @Override
+    public Component getHeader(String componentId) {
+        return createHeader(componentId, mainModel);
+    }
+
+    @Override
+    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<C>>> cellItem, String componentId,
+            IModel<PrismContainerValueWrapper<C>> rowModel) {
+
+        cellItem.add(createColumnPanel(componentId, (IModel) getDataModel(rowModel)));
+
+    }
+
+    protected abstract Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel);
+    protected abstract <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel);
+
+
+    public ColumnType getColumnType() {
+        return columnType;
+    }
+
+
 }

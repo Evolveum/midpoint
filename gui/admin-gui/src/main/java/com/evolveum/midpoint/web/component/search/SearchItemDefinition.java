@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.search;
@@ -14,28 +14,28 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 public class SearchItemDefinition implements Serializable {
 
-	private ItemPath path;
-	private ItemDefinition def;
-	
-	private List<?> allowedValues; 
-	
-	public SearchItemDefinition(ItemPath path, ItemDefinition def, List<?> allowedValues) {
-		this.path = path;
-		this.def = def;
-		this.allowedValues = allowedValues;
-	}
+    private ItemPath path;
+    private ItemDefinition def;
 
-	public ItemPath getPath() {
-		return path;
-	}
+    private List<?> allowedValues;
 
-	public ItemDefinition getDef() {
-		return def;
-	}
+    public SearchItemDefinition(ItemPath path, ItemDefinition def, List<?> allowedValues) {
+        this.path = path;
+        this.def = def;
+        this.allowedValues = allowedValues;
+    }
 
-	public List<?> getAllowedValues() {
-		return allowedValues;
-	}
-	
-	
+    public ItemPath getPath() {
+        return path;
+    }
+
+    public ItemDefinition getDef() {
+        return def;
+    }
+
+    public List<?> getAllowedValues() {
+        return allowedValues;
+    }
+
+
 }

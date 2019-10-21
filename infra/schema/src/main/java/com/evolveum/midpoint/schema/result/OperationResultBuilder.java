@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,73 +26,73 @@ import java.util.Collection;
  *  can be fixed later.
  */
 public interface OperationResultBuilder {
-	OperationResult build();
+    OperationResult build();
 
-	OperationResult addQualifier(String value);
+    OperationResult addQualifier(String value);
 
-	OperationResultBuilder addParam(String name, String value);
+    OperationResultBuilder addParam(String name, String value);
 
-	OperationResultBuilder addParam(String name, PrismObject<? extends ObjectType> value);
+    OperationResultBuilder addParam(String name, PrismObject<? extends ObjectType> value);
 
-	OperationResultBuilder addParam(String name, ObjectType value);
+    OperationResultBuilder addParam(String name, ObjectType value);
 
-	OperationResultBuilder addParam(String name, boolean value);
+    OperationResultBuilder addParam(String name, boolean value);
 
-	OperationResultBuilder addParam(String name, long value);
+    OperationResultBuilder addParam(String name, long value);
 
-	OperationResultBuilder addParam(String name, int value);
+    OperationResultBuilder addParam(String name, int value);
 
-	OperationResultBuilder addParam(String name, Class<?> value);
+    OperationResultBuilder addParam(String name, Class<?> value);
 
-	OperationResultBuilder addParam(String name, QName value);
+    OperationResultBuilder addParam(String name, QName value);
 
-	OperationResultBuilder addParam(String name, PolyString value);
+    OperationResultBuilder addParam(String name, PolyString value);
 
-	OperationResultBuilder addParam(String name, ObjectQuery value);
+    OperationResultBuilder addParam(String name, ObjectQuery value);
 
-	OperationResultBuilder addParam(String name, ObjectDelta<?> value);
+    OperationResultBuilder addParam(String name, ObjectDelta<?> value);
 
-	OperationResultBuilder addParam(String name, String... values);
+    OperationResultBuilder addParam(String name, String... values);
 
-	OperationResultBuilder addArbitraryObjectAsParam(String paramName, Object paramValue);
+    OperationResultBuilder addArbitraryObjectAsParam(String paramName, Object paramValue);
 
-	OperationResultBuilder addArbitraryObjectCollectionAsParam(String name, Collection<?> value);
+    OperationResultBuilder addArbitraryObjectCollectionAsParam(String name, Collection<?> value);
 
-	OperationResultBuilder addContext(String name, String value);
+    OperationResultBuilder addContext(String name, String value);
 
-	OperationResultBuilder addContext(String name, PrismObject<? extends ObjectType> value);
+    OperationResultBuilder addContext(String name, PrismObject<? extends ObjectType> value);
 
-	OperationResultBuilder addContext(String name, ObjectType value);
+    OperationResultBuilder addContext(String name, ObjectType value);
 
-	OperationResultBuilder addContext(String name, boolean value);
+    OperationResultBuilder addContext(String name, boolean value);
 
-	OperationResultBuilder addContext(String name, long value);
+    OperationResultBuilder addContext(String name, long value);
 
-	OperationResultBuilder addContext(String name, int value);
+    OperationResultBuilder addContext(String name, int value);
 
-	OperationResultBuilder addContext(String name, Class<?> value);
+    OperationResultBuilder addContext(String name, Class<?> value);
 
-	OperationResultBuilder addContext(String name, QName value);
+    OperationResultBuilder addContext(String name, QName value);
 
-	OperationResultBuilder addContext(String name, PolyString value);
+    OperationResultBuilder addContext(String name, PolyString value);
 
-	OperationResultBuilder addContext(String name, ObjectQuery value);
+    OperationResultBuilder addContext(String name, ObjectQuery value);
 
-	OperationResultBuilder addContext(String name, ObjectDelta<?> value);
+    OperationResultBuilder addContext(String name, ObjectDelta<?> value);
 
-	OperationResultBuilder addContext(String name, String... values);
+    OperationResultBuilder addContext(String name, String... values);
 
-	OperationResultBuilder addArbitraryObjectAsContext(String name, Object value);
+    OperationResultBuilder addArbitraryObjectAsContext(String name, Object value);
 
-	@SuppressWarnings("unused")
-	OperationResultBuilder addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue);
+    @SuppressWarnings("unused")
+    OperationResultBuilder addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue);
 
-	@Deprecated
-	OperationResultBuilder setMinor(boolean value);
+    @Deprecated
+    OperationResultBuilder setMinor(boolean value);
 
-	OperationResultBuilder setMinor();
+    OperationResultBuilder setMinor();
 
-	OperationResult setImportance(OperationResultImportanceType value);
+    OperationResult setImportance(OperationResultImportanceType value);
 
-	OperationResultBuilder tracingProfile(CompiledTracingProfile profile);
+    OperationResultBuilder tracingProfile(CompiledTracingProfile profile);
 }

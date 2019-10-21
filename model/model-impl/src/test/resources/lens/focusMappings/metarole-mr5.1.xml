@@ -7,28 +7,28 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="7323da3b-4657-42f7-8e92-0dd27c34f4fd">
-	<name>mr5.1</name>
-	<inducement>
-		<focusMappings>
-			<mapping>
-				<source>
-					<path>description</path>
-				</source>
-				<expression>
-					<script>
-						<code>
-							// source = this metarole
-							description + ':' + basic.stringify(source.name)
-						</code>
-					</script>
-				</expression>
-				<target>
-					<path>extension/p51</path>
-				</target>
-			</mapping>
-		</focusMappings>
-		<order>2</order>
-		<focusType>UserType</focusType>
-	</inducement>
+      oid="7323da3b-4657-42f7-8e92-0dd27c34f4fd">
+    <name>mr5.1</name>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <source>
+                    <path>description</path>
+                </source>
+                <expression>
+                    <script>
+                        <code>
+                            // source = this metarole
+                            description + ':' + basic.stringify(source.name)
+                        </code>
+                    </script>
+                </expression>
+                <target>
+                    <path>extension/p51</path>
+                </target>
+            </mapping>
+        </focusMappings>
+        <order>2</order>
+        <focusType>UserType</focusType>
+    </inducement>
 </role>

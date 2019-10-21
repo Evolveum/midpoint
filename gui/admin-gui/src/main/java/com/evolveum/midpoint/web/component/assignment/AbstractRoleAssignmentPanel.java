@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -97,7 +97,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-        
+
         columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(
                 createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
             @Override
@@ -107,10 +107,10 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         });
 
         if (!OrgType.COMPLEX_TYPE.equals(getAssignmentType())) {
-        	columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getModel(), AssignmentType.F_TENANT_REF, ColumnType.STRING, getPageBase()));
-        	columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getModel(), AssignmentType.F_ORG_REF, ColumnType.STRING, getPageBase()));
+            columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getModel(), AssignmentType.F_TENANT_REF, ColumnType.STRING, getPageBase()));
+            columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getModel(), AssignmentType.F_ORG_REF, ColumnType.STRING, getPageBase()));
         }
-        
+
         columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")){
             private static final long serialVersionUID = 1L;
 
@@ -125,7 +125,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
     private String getRelationLabelValue(PrismContainerValueWrapper<AssignmentType> assignmentWrapper){
-        if (assignmentWrapper == null || assignmentWrapper.getRealValue() == null  
+        if (assignmentWrapper == null || assignmentWrapper.getRealValue() == null
                 || assignmentWrapper.getRealValue().getTargetRef() == null
                 || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null){
             return "";
@@ -135,14 +135,14 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
 
     protected void initCustomPaging(){
-    	getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
-			    .createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
+        getAssignmentsTabStorage().setPaging(getPrismContext().queryFactory()
+                .createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
 
-	@Override
-	protected UserProfileStorage.TableId getTableId() {
-		return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
-	}
+    @Override
+    protected UserProfileStorage.TableId getTableId() {
+        return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
+    }
 
     protected ObjectQuery createObjectQuery() {
         Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
@@ -202,22 +202,22 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return Model.of("");
     }
 
-//	protected List<ObjectTypes> getObjectTypesList(){
+//    protected List<ObjectTypes> getObjectTypesList(){
 //        return WebComponentUtil.createAssignableTypesList();
 //    }
 
-	@Override
-	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-		List<SearchItemDefinition> defs = new ArrayList<>();
+    @Override
+    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+        List<SearchItemDefinition> defs = new ArrayList<>();
 
-		SearchFactory.addSearchRefDef(containerDef, AssignmentType.F_TARGET_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-		SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
-		SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
-		
-		defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
-		
-		return defs;
-	}
-	
+        SearchFactory.addSearchRefDef(containerDef, AssignmentType.F_TARGET_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+        SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
+        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+
+        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+
+        return defs;
+    }
+
 }

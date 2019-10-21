@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -30,11 +30,11 @@ abstract public class WorkflowEvent extends BaseEvent {
     @NotNull protected final CaseType aCase;
 
     WorkflowEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
-		    @Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase, EventHandlerType handler) {
+            @Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase, EventHandlerType handler) {
         super(lightweightIdentifierGenerator, handler);
         this.changeType = changeType;
-		this.approvalContext = approvalContext;
-		this.aCase = aCase;
+        this.approvalContext = approvalContext;
+        this.aCase = aCase;
     }
 
     @NotNull
@@ -50,9 +50,9 @@ abstract public class WorkflowEvent extends BaseEvent {
         return outcomeToStatus(changeType, getOutcome());
     }
 
-	protected abstract String getOutcome();
+    protected abstract String getOutcome();
 
-	@Override
+    @Override
     public boolean isStatusType(EventStatusType eventStatusType) {
         return getOperationStatus().matchesEventStatusType(eventStatusType);
     }
@@ -67,11 +67,11 @@ abstract public class WorkflowEvent extends BaseEvent {
     }
 
     public boolean isApprovalCase() {
-		return ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
+        return ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
     }
 
     public boolean isManualResourceCase() {
-		return ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_MANUAL_CASE.value());
+        return ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_MANUAL_CASE.value());
     }
 
     public boolean isResultKnown() {
@@ -107,10 +107,10 @@ abstract public class WorkflowEvent extends BaseEvent {
         return false;
     }
 
-	@NotNull
-	public ApprovalContextType getApprovalContext() {
-		return approvalContext;
-	}
+    @NotNull
+    public ApprovalContextType getApprovalContext() {
+        return approvalContext;
+    }
 
     @NotNull
     public CaseType getWorkflowTask() {
@@ -130,16 +130,16 @@ abstract public class WorkflowEvent extends BaseEvent {
     // This method is not used. It is here just for maven dependency plugin to detect the
     // dependency on workflow-api
     @SuppressWarnings("unused")
-	private void notUsed() {
-    	ApprovalUtils.approvalBooleanValueFromUri("");
+    private void notUsed() {
+        ApprovalUtils.approvalBooleanValueFromUri("");
     }
 
-	@Override
-	protected void debugDumpCommon(StringBuilder sb, int indent) {
-		super.debugDumpCommon(sb, indent);
-		DebugUtil.debugDumpWithLabelLn(sb, "processInstanceName", getProcessInstanceName(), indent + 1);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "changeType", changeType, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "outcome", getOutcome(), indent + 1);
-	}
+    @Override
+    protected void debugDumpCommon(StringBuilder sb, int indent) {
+        super.debugDumpCommon(sb, indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "processInstanceName", getProcessInstanceName(), indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "changeType", changeType, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "outcome", getOutcome(), indent + 1);
+    }
 
 }

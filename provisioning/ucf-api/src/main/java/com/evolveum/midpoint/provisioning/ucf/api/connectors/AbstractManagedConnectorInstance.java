@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.ucf.api.connectors;
@@ -34,177 +34,177 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @Experimental
 public abstract class AbstractManagedConnectorInstance implements ConnectorInstance {
 
-	private ConnectorType connectorObject;
-	private PrismSchema connectorConfigurationSchema;
-	private String resourceSchemaNamespace;
-	private PrismContext prismContext;
+    private ConnectorType connectorObject;
+    private PrismSchema connectorConfigurationSchema;
+    private String resourceSchemaNamespace;
+    private PrismContext prismContext;
 
-	private PrismContainerValue<?> connectorConfiguration;
-	private ResourceSchema resourceSchema = null;
-	private Collection<Object> capabilities = null;
-	private boolean configured = false;
+    private PrismContainerValue<?> connectorConfiguration;
+    private ResourceSchema resourceSchema = null;
+    private Collection<Object> capabilities = null;
+    private boolean configured = false;
 
-	public ConnectorType getConnectorObject() {
-		return connectorObject;
-	}
+    public ConnectorType getConnectorObject() {
+        return connectorObject;
+    }
 
-	public void setConnectorObject(ConnectorType connectorObject) {
-		this.connectorObject = connectorObject;
-	}
+    public void setConnectorObject(ConnectorType connectorObject) {
+        this.connectorObject = connectorObject;
+    }
 
-	public PrismSchema getConnectorConfigurationSchema() {
-		return connectorConfigurationSchema;
-	}
+    public PrismSchema getConnectorConfigurationSchema() {
+        return connectorConfigurationSchema;
+    }
 
-	public void setConnectorConfigurationSchema(PrismSchema connectorConfigurationSchema) {
-		this.connectorConfigurationSchema = connectorConfigurationSchema;
-	}
+    public void setConnectorConfigurationSchema(PrismSchema connectorConfigurationSchema) {
+        this.connectorConfigurationSchema = connectorConfigurationSchema;
+    }
 
-	public PrismContainerValue<?> getConnectorConfiguration() {
-		return connectorConfiguration;
-	}
+    public PrismContainerValue<?> getConnectorConfiguration() {
+        return connectorConfiguration;
+    }
 
-	public void setConnectorConfiguration(PrismContainerValue<?> connectorConfiguration) {
-		this.connectorConfiguration = connectorConfiguration;
-	}
+    public void setConnectorConfiguration(PrismContainerValue<?> connectorConfiguration) {
+        this.connectorConfiguration = connectorConfiguration;
+    }
 
-	public String getResourceSchemaNamespace() {
-		return resourceSchemaNamespace;
-	}
+    public String getResourceSchemaNamespace() {
+        return resourceSchemaNamespace;
+    }
 
-	public void setResourceSchemaNamespace(String resourceSchemaNamespace) {
-		this.resourceSchemaNamespace = resourceSchemaNamespace;
-	}
+    public void setResourceSchemaNamespace(String resourceSchemaNamespace) {
+        this.resourceSchemaNamespace = resourceSchemaNamespace;
+    }
 
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
 
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+    public void setPrismContext(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
 
-	public ResourceSchema getResourceSchema() {
-		return resourceSchema;
-	}
+    public ResourceSchema getResourceSchema() {
+        return resourceSchema;
+    }
 
-	protected void setResourceSchema(ResourceSchema resourceSchema) {
-		this.resourceSchema = resourceSchema;
-	}
+    protected void setResourceSchema(ResourceSchema resourceSchema) {
+        this.resourceSchema = resourceSchema;
+    }
 
-	protected Collection<Object> getCapabilities() {
-		return capabilities;
-	}
+    protected Collection<Object> getCapabilities() {
+        return capabilities;
+    }
 
-	protected void setCapabilities(Collection<Object> capabilities) {
-		this.capabilities = capabilities;
-	}
-	
-	@Override
-	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities,
-			boolean caseIgnoreAttributeNames, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, ConfigurationException {
+    protected void setCapabilities(Collection<Object> capabilities) {
+        this.capabilities = capabilities;
+    }
 
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
-		result.addContext("connector", getConnectorObject().toString());
-		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, this.getClass());
+    @Override
+    public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities,
+            boolean caseIgnoreAttributeNames, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, ConfigurationException {
 
-		updateSchema(resourceSchema);
-		setCapabilities(capabilities);
+        OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
+        result.addContext("connector", getConnectorObject().toString());
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, this.getClass());
 
-		result.recordSuccessIfUnknown();
-	}
+        updateSchema(resourceSchema);
+        setCapabilities(capabilities);
 
-	@Override
-	public void updateSchema(ResourceSchema resourceSchema) {
-		setResourceSchema(resourceSchema);
-	}
+        result.recordSuccessIfUnknown();
+    }
 
-	@Override
-	public void configure(PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, SchemaException,
-			ConfigurationException {
+    @Override
+    public void updateSchema(ResourceSchema resourceSchema) {
+        setResourceSchema(resourceSchema);
+    }
 
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
+    @Override
+    public void configure(PrismContainerValue<?> configuration, List<QName> generateObjectClasses, OperationResult parentResult)
+            throws CommunicationException, GenericFrameworkException, SchemaException,
+            ConfigurationException {
 
-		boolean immutable = configuration.isImmutable();
-		try {
-			if (immutable) {
-				configuration.setImmutable(false);
-			}
-			configuration.applyDefinition(getConfigurationContainerDefinition());
-		} finally {
-			if (immutable) {
-				configuration.setImmutable(true);
-			}
-		}
+        OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
 
-		setConnectorConfiguration(configuration);
-		applyConfigurationToConfigurationClass(configuration);
+        boolean immutable = configuration.isImmutable();
+        try {
+            if (immutable) {
+                configuration.setImmutable(false);
+            }
+            configuration.applyDefinition(getConfigurationContainerDefinition());
+        } finally {
+            if (immutable) {
+                configuration.setImmutable(true);
+            }
+        }
 
-		// TODO: transform configuration in a subclass
-		
-		if (configured) {
-			disconnect(result);
-		}
+        setConnectorConfiguration(configuration);
+        applyConfigurationToConfigurationClass(configuration);
 
-		connect(result);
-		
-		configured = true;
+        // TODO: transform configuration in a subclass
 
-		result.recordSuccessIfUnknown();
-	}
+        if (configured) {
+            disconnect(result);
+        }
 
-	protected abstract void connect(OperationResult result);
-	
-	protected abstract void disconnect(OperationResult result);
+        connect(result);
 
-	protected PrismContainerDefinition<?> getConfigurationContainerDefinition() throws SchemaException {
-		QName configContainerQName = new QName(getConnectorObject().getNamespace(),
-				ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-		PrismContainerDefinition<?> configContainerDef = getConnectorConfigurationSchema()
-				.findContainerDefinitionByElementName(configContainerQName);
-		if (configContainerDef == null) {
-			throw new SchemaException("No definition of container " + configContainerQName
-					+ " in configuration schema for connector " + this);
-		}
-		return configContainerDef;
-	}
+        configured = true;
 
-	private void applyConfigurationToConfigurationClass(PrismContainerValue<?> configurationContainer) throws ConfigurationException {
-		BeanWrapper connectorBean = new BeanWrapperImpl(this);
-		PropertyDescriptor connectorConfigurationProp = UcfUtil.findAnnotatedProperty(connectorBean, ManagedConnectorConfiguration.class);
-		if (connectorConfigurationProp == null) {
-			return;
-		}
-		Class<?> configurationClass = connectorConfigurationProp.getPropertyType();
-		Object configurationObject;
-		try {
-			configurationObject = configurationClass.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new ConfigurationException("Cannot instantiate configuration "+configurationClass);
-		}
-		BeanWrapper configurationClassBean = new BeanWrapperImpl(configurationObject);
-		for (Item<?, ?> configurationItem: configurationContainer.getItems()) {
-			if (! (configurationItem instanceof PrismProperty<?>)) {
-				throw new ConfigurationException("Only properties are supported for now");
-			}
-			PrismProperty<?> configurationProperty = (PrismProperty<?>)configurationItem;
-			PrismPropertyDefinition<?> configurationPropertyDefinition = configurationProperty.getDefinition();
-			if (configurationPropertyDefinition != null && configurationPropertyDefinition.isMultiValue()) {
-				Object[] realValuesArray = configurationProperty.getRealValuesArray(Object.class);
-				configurationClassBean.setPropertyValue(configurationProperty.getElementName().getLocalPart(), realValuesArray);
-			} else {
-				Object realValue = configurationProperty.getRealValue();
-				configurationClassBean.setPropertyValue(configurationProperty.getElementName().getLocalPart(), realValue);
-			}
-		}
-		connectorBean.setPropertyValue(connectorConfigurationProp.getName(), configurationObject);
-	}
-	
-	@Override
-	public void dispose() {
-		OperationResult result = new OperationResult(ConnectorInstance.OPERATION_DISPOSE);
-		disconnect(result);
-	}
+        result.recordSuccessIfUnknown();
+    }
+
+    protected abstract void connect(OperationResult result);
+
+    protected abstract void disconnect(OperationResult result);
+
+    protected PrismContainerDefinition<?> getConfigurationContainerDefinition() throws SchemaException {
+        QName configContainerQName = new QName(getConnectorObject().getNamespace(),
+                ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
+        PrismContainerDefinition<?> configContainerDef = getConnectorConfigurationSchema()
+                .findContainerDefinitionByElementName(configContainerQName);
+        if (configContainerDef == null) {
+            throw new SchemaException("No definition of container " + configContainerQName
+                    + " in configuration schema for connector " + this);
+        }
+        return configContainerDef;
+    }
+
+    private void applyConfigurationToConfigurationClass(PrismContainerValue<?> configurationContainer) throws ConfigurationException {
+        BeanWrapper connectorBean = new BeanWrapperImpl(this);
+        PropertyDescriptor connectorConfigurationProp = UcfUtil.findAnnotatedProperty(connectorBean, ManagedConnectorConfiguration.class);
+        if (connectorConfigurationProp == null) {
+            return;
+        }
+        Class<?> configurationClass = connectorConfigurationProp.getPropertyType();
+        Object configurationObject;
+        try {
+            configurationObject = configurationClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new ConfigurationException("Cannot instantiate configuration "+configurationClass);
+        }
+        BeanWrapper configurationClassBean = new BeanWrapperImpl(configurationObject);
+        for (Item<?, ?> configurationItem: configurationContainer.getItems()) {
+            if (! (configurationItem instanceof PrismProperty<?>)) {
+                throw new ConfigurationException("Only properties are supported for now");
+            }
+            PrismProperty<?> configurationProperty = (PrismProperty<?>)configurationItem;
+            PrismPropertyDefinition<?> configurationPropertyDefinition = configurationProperty.getDefinition();
+            if (configurationPropertyDefinition != null && configurationPropertyDefinition.isMultiValue()) {
+                Object[] realValuesArray = configurationProperty.getRealValuesArray(Object.class);
+                configurationClassBean.setPropertyValue(configurationProperty.getElementName().getLocalPart(), realValuesArray);
+            } else {
+                Object realValue = configurationProperty.getRealValue();
+                configurationClassBean.setPropertyValue(configurationProperty.getElementName().getLocalPart(), realValue);
+            }
+        }
+        connectorBean.setPropertyValue(connectorConfigurationProp.getName(), configurationObject);
+    }
+
+    @Override
+    public void dispose() {
+        OperationResult result = new OperationResult(ConnectorInstance.OPERATION_DISPOSE);
+        disconnect(result);
+    }
 }

@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="ab0e3dd4-3cdf-4c5e-b349-e7b4904730a1">
-	<name>correct</name>
-	<lifecycleState>draft</lifecycleState>
-	<identifier>10001</identifier>
-	<riskLevel>normal</riskLevel>
+      oid="ab0e3dd4-3cdf-4c5e-b349-e7b4904730a1">
+    <name>correct</name>
+    <lifecycleState>draft</lifecycleState>
+    <identifier>10001</identifier>
+    <riskLevel>normal</riskLevel>
 </role>

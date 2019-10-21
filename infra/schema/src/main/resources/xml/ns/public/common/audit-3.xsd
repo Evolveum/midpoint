@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2015-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -22,13 +22,13 @@
     <xsd:annotation>
         <xsd:documentation>
             Schema for audit event serialization.
-            
+
             Version: 3.7
             Recommended namespace prefix: audit
         </xsd:documentation>
     </xsd:annotation>
 
-	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <xsd:annotation>
             <xsd:documentation>
@@ -38,30 +38,30 @@
     </xsd:import>
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
-    			schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3">
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3">
         <xsd:annotation>
             <xsd:documentation>
                 Common midPoint annotations used in various XSD schemas.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-    
+
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
-    			schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
         <xsd:annotation>
             <xsd:documentation>
                 Prism data types.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
-    
+
      <xsd:complexType name="AuditEventRecordListType">
         <xsd:sequence>
             <xsd:element name="object" type="tns:AuditEventRecordType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="count" type="xsd:int"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="AuditEventRecordType">
         <xsd:annotation>
             <xsd:documentation>
@@ -80,7 +80,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Unique identification of the event.
-			Every record should have unique event identifier.
+            Every record should have unique event identifier.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -91,23 +91,23 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-	    <xsd:element name="requestIdentifier" type="xsd:string" minOccurs="0">
+        <xsd:element name="requestIdentifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-	 		Identifier of a request (operation). All the records that are result of
-	 		processing of a single request should have the same identifier.
-	 		In usual case there should be be a single request-stage record
-	 		and one or more execution-stage records with the same request
-	 		identifier.
-	 		</p>
-	 		<p>
-	 		Please note that this is quite different than task identifier.
-	 		A single task can make many requests. E.g. a typical reconciliation
-	 		task will make thousands of operations. All of the audit records from
-	 		all of those operations will have the same task identifier. But each
-	 		operation will have a separate request identifier.
-			</p>
+             Identifier of a request (operation). All the records that are result of
+             processing of a single request should have the same identifier.
+             In usual case there should be be a single request-stage record
+             and one or more execution-stage records with the same request
+             identifier.
+             </p>
+             <p>
+             Please note that this is quite different than task identifier.
+             A single task can make many requests. E.g. a typical reconciliation
+             task will make thousands of operations. All of the audit records from
+             all of those operations will have the same task identifier. But each
+             operation will have a separate request identifier.
+            </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -115,20 +115,20 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-	 		Task identifier. Operations are executed in a context of a task.
-	 		This field is an identifier of the task. It is not (necessarily) an
-	 		OID of the task, as an operation may be executed in an non-persistent
-	 		(lightweight) task. This field should be populated for all audit records,
-	 		perhaps except very special system-level records that are executed outside
-	 		of a task.
-	 		</p>
-	 		<p>
-	 		Please note that this is quite different than request identifier.
-	 		A single task can make many requests. E.g. a typical reconciliation
-	 		task will make thousands of operations. All of the audit records from
-	 		all of those operations will have the same task identifier. But each
-	 		operation will have a separate request identifier.
-	 		</p>
+             Task identifier. Operations are executed in a context of a task.
+             This field is an identifier of the task. It is not (necessarily) an
+             OID of the task, as an operation may be executed in an non-persistent
+             (lightweight) task. This field should be populated for all audit records,
+             perhaps except very special system-level records that are executed outside
+             of a task.
+             </p>
+             <p>
+             Please note that this is quite different than request identifier.
+             A single task can make many requests. E.g. a typical reconciliation
+             task will make thousands of operations. All of the audit records from
+             all of those operations will have the same task identifier. But each
+             operation will have a separate request identifier.
+             </p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -136,7 +136,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Task OID. This field is used for records that are executed in the context
-	 		of a persistent task.
+             of a persistent task.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -167,13 +167,13 @@
                         Initiator is the (legal) entity on behalf of whom is the action executed.
                         It is the subject of the operation. Authorizations of the initiator are
                         used to evaluate access to the operation. This is the entity who is formally
-                        responsible for the operation. Although initiator is always a user in 
+                        responsible for the operation. Although initiator is always a user in
                         midPoint 3.7 and earlier, the initiator may be an organization in later
                         midPoint versions.
                     </xsd:documentation>
                     <xsd:appinfo>
-            			<a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
-            		</xsd:appinfo>
+                        <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="attorneyRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -186,8 +186,8 @@
                         virtual entity.
                     </xsd:documentation>
                     <xsd:appinfo>
-            			<a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
-            		</xsd:appinfo>
+                        <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -207,8 +207,8 @@
                         is being modified, etc.
                     </xsd:documentation>
                     <xsd:appinfo>
-            			<a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
-            		</xsd:appinfo>
+                        <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="eventType" type="tns:AuditEventTypeType" minOccurs="1">
@@ -281,7 +281,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-	    <xsd:element name="resourceOid" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+        <xsd:element name="resourceOid" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
@@ -291,14 +291,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-	    <xsd:element name="customColumnProperty" type="tns:AuditEventRecordCustomColumnPropertyType" minOccurs="0" maxOccurs="unbounded">
+        <xsd:element name="customColumnProperty" type="tns:AuditEventRecordCustomColumnPropertyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Field of custom column for audit resord table.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
-			<a:experimental>true</a:experimental>
+            <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -329,13 +329,13 @@
                 <a:since>4.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AuditEventRecordItemType">
-				<xsd:sequence>
-					<xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="1" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AuditEventRecordItemType">
+                <xsd:sequence>
+                    <xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="1" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="AuditEventRecordPropertyType">
@@ -347,13 +347,13 @@
                 <a:since>3.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AuditEventRecordItemType">
-				<xsd:sequence>
-					<xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AuditEventRecordItemType">
+                <xsd:sequence>
+                    <xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="AuditEventRecordReferenceType">
@@ -365,13 +365,13 @@
                 <a:since>3.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AuditEventRecordItemType">
-				<xsd:sequence>
-					<xsd:element name="value" type="tns:AuditEventRecordReferenceValueType" minOccurs="0" maxOccurs="unbounded" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AuditEventRecordItemType">
+                <xsd:sequence>
+                    <xsd:element name="value" type="tns:AuditEventRecordReferenceValueType" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="AuditEventRecordReferenceValueType">

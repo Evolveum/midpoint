@@ -2,67 +2,67 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <configuration>
-	
-	<!-- This file is really used to control at least some logging after all. -->
 
-	<appender name="X" class="ch.qos.logback.core.FileAppender">
-		<file>./target/test.log</file>
-		<encoder>
-			<!-- <pattern>%date [%thread] %-5level [%X{subsystem}]\(%logger{46}\): %message%n%caller{16}</pattern>  -->
-			<pattern>%date [%thread] %-5level [%X{subsystem}]\(%logger{46}\): %message%n</pattern>
-		</encoder>
-	</appender>
-	<appender name="TracingAppender" class="com.evolveum.midpoint.util.logging.TracingAppender">
-		<layout>
-			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
-		</layout>
-	</appender>
-	<turboFilter class="com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter"/>
+    <!-- This file is really used to control at least some logging after all. -->
+
+    <appender name="X" class="ch.qos.logback.core.FileAppender">
+        <file>./target/test.log</file>
+        <encoder>
+            <!-- <pattern>%date [%thread] %-5level [%X{subsystem}]\(%logger{46}\): %message%n%caller{16}</pattern>  -->
+            <pattern>%date [%thread] %-5level [%X{subsystem}]\(%logger{46}\): %message%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="TracingAppender" class="com.evolveum.midpoint.util.logging.TracingAppender">
+        <layout>
+            <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+        </layout>
+    </appender>
+    <turboFilter class="com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter"/>
 
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="INFO"/>
-	<logger name="org.springframework" level="WARN" />
-	<logger name="com.evolveum.midpoint" level="INFO" />
-	<logger name="com.evolveum.midpoint.model" level="INFO" />
-	
-	<logger name="org.identityconnectors.ldap" level="INFO" />
-	<logger name="org.apache.directory.api" level="INFO" />
-    
-	<!-- Expression trace -->
-	<logger name="com.evolveum.midpoint.common.expression" level="TRACE" />
-	<logger name="com.evolveum.midpoint.common.expression.MidPointFunctions" level="TRACE" />
-	
-	<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
-	<logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
-	<!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->
-	<!-- <logger name="com.evolveum.midpoint.repo" level="TRACE" />  -->
-	
-	<logger name="com.evolveum.midpoint.test" level="TRACE" />
-	<logger name="com.evolveum.midpoint.testing.conntest" level="TRACE" />
-	
-	<logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="DEBUG" />
-	
-	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="TRACE" />
-	<!-- 
-	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="TRACE" />  -->
-	
-	<logger name="com.evolveum.polygon.connector.ldap" level="TRACE" />
-	<logger name="com.evolveum.polygon.connector.ldap.schema" level="DEBUG" />
-	<!-- <logger name="org.apache.http.impl.auth.CredSspScheme" level="TRACE" /> -->
-	<logger name="org.apache.directory.api" level="INFO" />
-	<logger name="org.apache.directory.api.ldap.model.schema" level="INFO" />
-	
-	<logger name="PROFILING" level="INFO" />
-	
-	<root level="INFO">
-		<appender-ref ref="X" />
-		<appender-ref ref="TracingAppender" />
-	</root>
+    <logger name="org.springframework" level="WARN" />
+    <logger name="com.evolveum.midpoint" level="INFO" />
+    <logger name="com.evolveum.midpoint.model" level="INFO" />
+
+    <logger name="org.identityconnectors.ldap" level="INFO" />
+    <logger name="org.apache.directory.api" level="INFO" />
+
+    <!-- Expression trace -->
+    <logger name="com.evolveum.midpoint.common.expression" level="TRACE" />
+    <logger name="com.evolveum.midpoint.common.expression.MidPointFunctions" level="TRACE" />
+
+    <logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
+    <!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->
+    <!-- <logger name="com.evolveum.midpoint.repo" level="TRACE" />  -->
+
+    <logger name="com.evolveum.midpoint.test" level="TRACE" />
+    <logger name="com.evolveum.midpoint.testing.conntest" level="TRACE" />
+
+    <logger name="com.evolveum.midpoint.model.impl.lens.Clockwork" level="DEBUG" />
+
+    <logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="TRACE" />
+    <!--
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="TRACE" />  -->
+
+    <logger name="com.evolveum.polygon.connector.ldap" level="TRACE" />
+    <logger name="com.evolveum.polygon.connector.ldap.schema" level="DEBUG" />
+    <!-- <logger name="org.apache.http.impl.auth.CredSspScheme" level="TRACE" /> -->
+    <logger name="org.apache.directory.api" level="INFO" />
+    <logger name="org.apache.directory.api.ldap.model.schema" level="INFO" />
+
+    <logger name="PROFILING" level="INFO" />
+
+    <root level="INFO">
+        <appender-ref ref="X" />
+        <appender-ref ref="TracingAppender" />
+    </root>
 </configuration>
 

@@ -2,7 +2,7 @@ package com.evolveum.midpoint.testing.story;
 /*
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -40,99 +40,99 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestNormalizers extends AbstractModelIntegrationTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "normalizers");
-	
-	public static final File SYSTEM_CONFIGURATION_NORMALIZER_ASCII7_FILE = new File(TEST_DIR, "system-configuration-normalizer-ascii7.xml");
-	public static final String SYSTEM_CONFIGURATION_NORMALIZER_ASCII7_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
+    public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "normalizers");
 
-	protected static final File USER_TELEKE_FILE = new File(TEST_DIR, "user-teleke.xml");
-	protected static final String USER_TELEKE_OID = "e1b0b0a4-17c6-11e8-bfc9-efaa710b614a";
-	protected static final String USER_TELEKE_USERNAME = "Téleké";
-	
-	protected PrismObject<UserType> userAdministrator;
-	
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		
-		// System Configuration
-		try {
-			repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
-		} catch (ObjectAlreadyExistsException e) {
-			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
-					"looks like the previous test haven't cleaned it up", e);
-		}
-		
-		modelService.postInit(initResult);
+    public static final File SYSTEM_CONFIGURATION_NORMALIZER_ASCII7_FILE = new File(TEST_DIR, "system-configuration-normalizer-ascii7.xml");
+    public static final String SYSTEM_CONFIGURATION_NORMALIZER_ASCII7_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
-		// User administrator
-		userAdministrator = repoAddObjectFromFile(AbstractStoryTest.USER_ADMINISTRATOR_FILE, initResult);
-		repoAddObjectFromFile(AbstractStoryTest.ROLE_SUPERUSER_FILE, initResult);
-		login(userAdministrator);
-	}
-	
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_NORMALIZER_ASCII7_FILE;
-	}
+    protected static final File USER_TELEKE_FILE = new File(TEST_DIR, "user-teleke.xml");
+    protected static final String USER_TELEKE_OID = "e1b0b0a4-17c6-11e8-bfc9-efaa710b614a";
+    protected static final String USER_TELEKE_USERNAME = "Téleké";
 
-	@Test
-	public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
-		displayTestTitle(TEST_NAME);
-		
-		PolyStringNormalizer prismNormalizer = prismContext.getDefaultPolyStringNormalizer();
-		assertTrue("Wrong normalizer class, expected Ascii7PolyStringNormalizer, but was "+prismNormalizer.getClass(), 
-				prismNormalizer instanceof Ascii7PolyStringNormalizer);
-	}
-	
-	@Test
-	public void test100AddUserJack() throws Exception {
-		final String TEST_NAME = "test100AddUserJack";
-		displayTestTitle(TEST_NAME);
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		
-		// WHEN
-		displayWhen(TEST_NAME);
-		
-		addObject(AbstractStoryTest.USER_JACK_FILE, task, result);
-		
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-		
-		PrismObject<UserType> userAfter = getUserFromRepo(AbstractStoryTest.USER_JACK_OID);
-		display("User after jack (repo)", userAfter);
-		assertPolyString(userAfter, UserType.F_NAME, AbstractStoryTest.USER_JACK_USERNAME, AbstractStoryTest.USER_JACK_USERNAME.toLowerCase());
-	}
-	
-	@Test
-	public void test110AddUserTeleke() throws Exception {
-		final String TEST_NAME = "test110AddUserTeleke";
-		displayTestTitle(TEST_NAME);
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		
-		// WHEN
-		displayWhen(TEST_NAME);
-		
-		addObject(USER_TELEKE_FILE, task, result);
-		
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-		
-		PrismObject<UserType> userAfter = getUserFromRepo(USER_TELEKE_OID);
-		display("User after (repo)", userAfter);
-		assertPolyString(userAfter, UserType.F_NAME, USER_TELEKE_USERNAME, "tlek");
-		assertPolyString(userAfter, UserType.F_FULL_NAME, "Grafula Félix Téleké z Tölökö", "grafula flix tlek z tlk");
-		assertPolyString(userAfter, UserType.F_HONORIFIC_PREFIX, "Grf.", "grf.");
-	}
-	
-	private void assertPolyString(PrismObject<UserType> user, QName propName, String expectedOrig, String expectedNorm) {
-		PrismProperty<PolyString> prop = user.findProperty(ItemName.fromQName(propName));
-		PolyString polyString = prop.getRealValue();
-		assertEquals("Wrong user "+propName.getLocalPart()+".orig", expectedOrig, polyString.getOrig());
-		assertEquals("Wrong user \"+propName.getLocalPart()+\".norm", expectedNorm, polyString.getNorm());
-	}
+    protected PrismObject<UserType> userAdministrator;
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+
+        // System Configuration
+        try {
+            repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
+                    "looks like the previous test haven't cleaned it up", e);
+        }
+
+        modelService.postInit(initResult);
+
+        // User administrator
+        userAdministrator = repoAddObjectFromFile(AbstractStoryTest.USER_ADMINISTRATOR_FILE, initResult);
+        repoAddObjectFromFile(AbstractStoryTest.ROLE_SUPERUSER_FILE, initResult);
+        login(userAdministrator);
+    }
+
+    protected File getSystemConfigurationFile() {
+        return SYSTEM_CONFIGURATION_NORMALIZER_ASCII7_FILE;
+    }
+
+    @Test
+    public void test000Sanity() throws Exception {
+        final String TEST_NAME = "test000Sanity";
+        displayTestTitle(TEST_NAME);
+
+        PolyStringNormalizer prismNormalizer = prismContext.getDefaultPolyStringNormalizer();
+        assertTrue("Wrong normalizer class, expected Ascii7PolyStringNormalizer, but was "+prismNormalizer.getClass(),
+                prismNormalizer instanceof Ascii7PolyStringNormalizer);
+    }
+
+    @Test
+    public void test100AddUserJack() throws Exception {
+        final String TEST_NAME = "test100AddUserJack";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        addObject(AbstractStoryTest.USER_JACK_FILE, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUserFromRepo(AbstractStoryTest.USER_JACK_OID);
+        display("User after jack (repo)", userAfter);
+        assertPolyString(userAfter, UserType.F_NAME, AbstractStoryTest.USER_JACK_USERNAME, AbstractStoryTest.USER_JACK_USERNAME.toLowerCase());
+    }
+
+    @Test
+    public void test110AddUserTeleke() throws Exception {
+        final String TEST_NAME = "test110AddUserTeleke";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        addObject(USER_TELEKE_FILE, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUserFromRepo(USER_TELEKE_OID);
+        display("User after (repo)", userAfter);
+        assertPolyString(userAfter, UserType.F_NAME, USER_TELEKE_USERNAME, "tlek");
+        assertPolyString(userAfter, UserType.F_FULL_NAME, "Grafula Félix Téleké z Tölökö", "grafula flix tlek z tlk");
+        assertPolyString(userAfter, UserType.F_HONORIFIC_PREFIX, "Grf.", "grf.");
+    }
+
+    private void assertPolyString(PrismObject<UserType> user, QName propName, String expectedOrig, String expectedNorm) {
+        PrismProperty<PolyString> prop = user.findProperty(ItemName.fromQName(propName));
+        PolyString polyString = prop.getRealValue();
+        assertEquals("Wrong user "+propName.getLocalPart()+".orig", expectedOrig, polyString.getOrig());
+        assertEquals("Wrong user \"+propName.getLocalPart()+\".norm", expectedNorm, polyString.getNorm());
+    }
 }

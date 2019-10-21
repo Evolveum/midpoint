@@ -2,31 +2,31 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<name>Complex stuff</name>
-	<source>
-		<name>name</name>
-    	<path>$user/additionalName</path>
+    <name>Complex stuff</name>
+    <source>
+        <name>name</name>
+        <path>$user/additionalName</path>
     </source>
     <source>
-    	<path>employeeType</path>
+        <path>employeeType</path>
     </source>
     <source>
-    	<path>employeeNumber</path>
+        <path>employeeNumber</path>
     </source>
-	<expression>
-		<script>
-			<code>'Pirate '+ name + ' (#'+employeeNumber+')'</code>
-		</script>
-	</expression>
-	<condition>
-		<script>
-			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-			<code>employeeType == 'PIRATE'</code>
-		</script>
-	</condition>
+    <expression>
+        <script>
+            <code>'Pirate '+ name + ' (#'+employeeNumber+')'</code>
+        </script>
+    </expression>
+    <condition>
+        <script>
+            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+            <code>employeeType == 'PIRATE'</code>
+        </script>
+    </condition>
 </mapping>

@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="ef638872-cc69-11e8-8ee2-333f3bf7747f"
@@ -13,23 +13,23 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
     <name>User Template: Group Role</name>
-    
-	<item>
-		<ref>assignment</ref>
-		<description>
-			Group metarole assignment
-		</description>
-		<mapping>
-	    	<name>role-template-group-assignment</name>
-	    	<strength>strong</strength>
-	    	<trace>true</trace>
-	    	<expression>
-	    		<trace>true</trace>
-	            <value>
-	            	<targetRef oid="471a49a2-d8fe-11e8-9b6b-730d02c33833" type="RoleType"/>
-	            </value>
-	    	</expression>
-	    </mapping>
-	</item>
-    
+
+    <item>
+        <ref>assignment</ref>
+        <description>
+            Group metarole assignment
+        </description>
+        <mapping>
+            <name>role-template-group-assignment</name>
+            <strength>strong</strength>
+            <trace>true</trace>
+            <expression>
+                <trace>true</trace>
+                <value>
+                    <targetRef oid="471a49a2-d8fe-11e8-9b6b-730d02c33833" type="RoleType"/>
+                </value>
+            </expression>
+        </mapping>
+    </item>
+
 </objectTemplate>

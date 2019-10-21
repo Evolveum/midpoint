@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,8 +19,8 @@ import java.util.List;
  * Created by Viliam Repan (lazyman).
  */
 public class MidPointWarLauncher extends WarLauncher {
-	
-	private static volatile MidPointWarLauncher warlauncher = null;
+
+    private static volatile MidPointWarLauncher warlauncher = null;
     private static volatile ClassLoader classLoader = null;
 
     public MidPointWarLauncher() {
@@ -31,17 +31,17 @@ public class MidPointWarLauncher extends WarLauncher {
     }
 
     public static void main(String[] args) throws Exception {
-    	String mode = args != null && args.length > 0 ? args[0] : null;
-    	
-    	 if ("start".equals(mode)) {
+        String mode = args != null && args.length > 0 ? args[0] : null;
+
+         if ("start".equals(mode)) {
              MidPointWarLauncher.start(args);
          } else if ("stop".equals(mode)) {
              MidPointWarLauncher.stop(args);
          } else {
-        	 new MidPointWarLauncher().launch(args);        
+             new MidPointWarLauncher().launch(args);
          }
     }
-    
+
     public static synchronized void start(String[] args) throws Exception {
         warlauncher = new MidPointWarLauncher();
 
@@ -55,7 +55,7 @@ public class MidPointWarLauncher extends WarLauncher {
             throw new Exception(sb.toString(), ex);
         }
     }
-    
+
     public static synchronized void stop(String[] args) throws Exception {
 
         try {
@@ -64,14 +64,14 @@ public class MidPointWarLauncher extends WarLauncher {
                 warlauncher = null;
                 classLoader = null;
             }
-        } catch (Exception ex) {            
+        } catch (Exception ex) {
             StringBuilder sb = new StringBuilder();
             sb.append("Could not stop MidPoint application").append(";").append(ex.getLocalizedMessage());
             throw new Exception(sb.toString(), ex);
-            
+
         }
     }
-    
+
     protected void launch(String[] args, String mainClass, ClassLoader classLoader, boolean wait) throws Exception {
 
         Thread.currentThread().setContextClassLoader(classLoader);
@@ -80,7 +80,7 @@ public class MidPointWarLauncher extends WarLauncher {
             try {
                 createMainMethodRunner(mainClass, args, classLoader).run();
             } catch (Exception ex) {
-                
+
             }
         });
         runnerThread.setContextClassLoader(classLoader);

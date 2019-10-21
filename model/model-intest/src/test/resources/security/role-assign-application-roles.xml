@@ -1,81 +1,81 @@
 <!--
   ~ Copyright (c) 2014-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-00000000aa0c"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>Assign Application Roles</name>    
+    <name>Assign Application Roles</name>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<phase>request</phase>
-    	<object>
-    		<type>RoleType</type>
-    	</object>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <phase>request</phase>
+        <object>
+            <type>RoleType</type>
+        </object>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<phase>request</phase>
-    	<object>
-    		<type>UserType</type>
-    	</object>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <phase>request</phase>
+        <object>
+            <type>UserType</type>
+        </object>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<phase>execution</phase>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <phase>execution</phase>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
-    	<phase>request</phase>
-    	<target>
-    		<type>RoleType</type>
-    		<filter>
-    			<q:or>
-	    			<q:equal>
-	    				<q:path>subtype</q:path>
-	    				<q:value>application</q:value>
-	    			</q:equal>
-	    			<q:equal>
-	    				<!-- This role does not even exists. 
-	    				     But it does not change the result and it replicates MID-2549 -->
-	    				<q:path>name</q:path>
-	    				<q:value>nonexistent</q:value>
-	    			</q:equal>
-	    			<q:equal>
-	    				<!-- This role type does not even exists. 
-	    				     But it does not change the result and it replicates MID-2549 -->
-	    				<q:path>subtype</q:path>
-	    				<q:value>nonexistent</q:value>
-	    			</q:equal>
-    			</q:or>
-    		</filter>
-    	</target>
-    	<item>assignment/targetRef</item>
-    	<item>assignment/activation/validFrom</item>
-    	<item>assignment/activation/validTo</item>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+        <phase>request</phase>
+        <target>
+            <type>RoleType</type>
+            <filter>
+                <q:or>
+                    <q:equal>
+                        <q:path>subtype</q:path>
+                        <q:value>application</q:value>
+                    </q:equal>
+                    <q:equal>
+                        <!-- This role does not even exists.
+                             But it does not change the result and it replicates MID-2549 -->
+                        <q:path>name</q:path>
+                        <q:value>nonexistent</q:value>
+                    </q:equal>
+                    <q:equal>
+                        <!-- This role type does not even exists.
+                             But it does not change the result and it replicates MID-2549 -->
+                        <q:path>subtype</q:path>
+                        <q:value>nonexistent</q:value>
+                    </q:equal>
+                </q:or>
+            </filter>
+        </target>
+        <item>assignment/targetRef</item>
+        <item>assignment/activation/validFrom</item>
+        <item>assignment/activation/validTo</item>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
-    	<phase>request</phase>
-    	<target>
-    		<type>RoleType</type>
-    		<filter>
-    			<q:or>
-	    			<q:equal>
-	    				<q:path>subtype</q:path>
-	    				<q:value>application</q:value>
-	    			</q:equal>
-    			</q:or>
-    		</filter>
-    	</target>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+        <phase>request</phase>
+        <target>
+            <type>RoleType</type>
+            <filter>
+                <q:or>
+                    <q:equal>
+                        <q:path>subtype</q:path>
+                        <q:value>application</q:value>
+                    </q:equal>
+                </q:or>
+            </filter>
+        </target>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
-    	<phase>execution</phase>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+        <phase>execution</phase>
     </authorization>
 </role>

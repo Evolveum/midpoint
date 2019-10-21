@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -42,367 +42,367 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Service(value = "syncServiceMock")
 public class SynchronizationServiceMock implements ResourceObjectChangeListener, ResourceOperationListener {
 
-	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceMock.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceMock.class);
 
-	private int callCountNotifyChange = 0;
-	private int callCountNotifyOperation = 0;
-	private boolean wasSuccess = false;
-	private boolean wasFailure = false;
-	private boolean wasInProgress = false;
-	private ResourceObjectShadowChangeDescription lastChange = null;
-	private ResourceOperationDescription lastOperationDescription = null;
-	private ObjectChecker changeChecker;
-	private boolean supportActivation = true;
+    private int callCountNotifyChange = 0;
+    private int callCountNotifyOperation = 0;
+    private boolean wasSuccess = false;
+    private boolean wasFailure = false;
+    private boolean wasInProgress = false;
+    private ResourceObjectShadowChangeDescription lastChange = null;
+    private ResourceOperationDescription lastOperationDescription = null;
+    private ObjectChecker changeChecker;
+    private boolean supportActivation = true;
 
-	@Autowired(required=true)
-	ChangeNotificationDispatcher notificationManager;
-	
-	@Autowired(required=true)
-	RepositoryService repositoryService;
-	
-	@PostConstruct
-	public void register() {
-		notificationManager.registerNotificationListener((ResourceObjectChangeListener)this);
-		notificationManager.registerNotificationListener((ResourceOperationListener)this);
-	}
+    @Autowired(required=true)
+    ChangeNotificationDispatcher notificationManager;
 
-	@PreDestroy
-	public void unregister() {
-		notificationManager.unregisterNotificationListener((ResourceObjectChangeListener)this);
-		notificationManager.unregisterNotificationListener((ResourceOperationListener)this);
-	}
-	
-	public ObjectChecker getChangeChecker() {
-		return changeChecker;
-	}
+    @Autowired(required=true)
+    RepositoryService repositoryService;
 
-	public void setChangeChecker(ObjectChecker changeChecker) {
-		this.changeChecker = changeChecker;
-	}
+    @PostConstruct
+    public void register() {
+        notificationManager.registerNotificationListener((ResourceObjectChangeListener)this);
+        notificationManager.registerNotificationListener((ResourceOperationListener)this);
+    }
 
-	public boolean isSupportActivation() {
-		return supportActivation;
-	}
+    @PreDestroy
+    public void unregister() {
+        notificationManager.unregisterNotificationListener((ResourceObjectChangeListener)this);
+        notificationManager.unregisterNotificationListener((ResourceOperationListener)this);
+    }
 
-	public void setSupportActivation(boolean supportActivation) {
-		this.supportActivation = supportActivation;
-	}
+    public ObjectChecker getChangeChecker() {
+        return changeChecker;
+    }
 
-	@Override
-	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task,
-			OperationResult parentResult) {
-		LOGGER.debug("Notify change mock called with {}", change);
+    public void setChangeChecker(ObjectChecker changeChecker) {
+        this.changeChecker = changeChecker;
+    }
 
-		// Some basic sanity checks
-		assertNotNull("No change", change);
-		assertNotNull("No task", task);
-		assertNotNull("No resource", change.getResource());
-		assertNotNull("No parent result", parentResult);
+    public boolean isSupportActivation() {
+        return supportActivation;
+    }
 
-		assertTrue("Either current shadow or delta must be present", change.getCurrentShadow() != null
-				|| change.getObjectDelta() != null);
-		
-		if (change.isUnrelatedChange() || isDryRun(task) || (change.getCurrentShadow() != null && change.getCurrentShadow().asObjectable().isProtectedObject() == Boolean.TRUE)){
-			return;
-		}
-		
-		if (change.getCurrentShadow() != null) {
-			ShadowType currentShadowType = change.getCurrentShadow().asObjectable();
-			if (currentShadowType != null) {
-				// not a useful check..the current shadow could be null
-				assertNotNull("Current shadow does not have an OID", change.getCurrentShadow().getOid());
-				assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
-				assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
-				assertFalse("Current shadow has empty attributes", ShadowUtil
-						.getAttributesContainer(currentShadowType).isEmpty());
+    public void setSupportActivation(boolean supportActivation) {
+        this.supportActivation = supportActivation;
+    }
 
-				// Check if the shadow is already present in repo
-				try {
-					repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), null, new OperationResult("mockSyncService.notifyChange"));
-				} catch (Exception e) {
-					AssertJUnit.fail("Got exception while trying to read current shadow "+currentShadowType+
-							": "+e.getCause()+": "+e.getMessage());
-				}			
-				// Check resource
-				String resourceOid = ShadowUtil.getResourceOid(currentShadowType);
-				assertFalse("No resource OID in current shadow "+currentShadowType, StringUtils.isBlank(resourceOid));
-				try {
-					repositoryService.getObject(ResourceType.class, resourceOid, null, new OperationResult("mockSyncService.notifyChange"));
-				} catch (Exception e) {
-					AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+currentShadowType+
-							": "+e.getCause()+": "+e.getMessage());
-				}
+    @Override
+    public void notifyChange(ResourceObjectShadowChangeDescription change, Task task,
+            OperationResult parentResult) {
+        LOGGER.debug("Notify change mock called with {}", change);
 
-				if (change.getCurrentShadow().asObjectable().getKind() == ShadowKindType.ACCOUNT) {
-					ShadowType account = change.getCurrentShadow().asObjectable();
-					if (ShadowUtil.isExists(account)) {
-						if (supportActivation) {
-							assertNotNull("Current shadow does not have activation", account.getActivation());
-							assertNotNull("Current shadow activation status is null", account.getActivation()
-									.getAdministrativeStatus());
-						} else {
-							assertNull("Activation sneaked into current shadow", account.getActivation());
-						}
-					}
-				}
-			}
-		}
-		if (change.getOldShadow() != null) {
-			assertNotNull("Old shadow does not have an OID", change.getOldShadow().getOid());
-			assertNotNull("Old shadow does not have an resourceRef", change.getOldShadow().asObjectable()
-					.getResourceRef());
-		}
-		if (change.getObjectDelta() != null) {
-			assertNotNull("Delta has null OID", change.getObjectDelta().getOid());
-		}
-		
-		if (changeChecker != null) {
-			changeChecker.check(change);
-		}
+        // Some basic sanity checks
+        assertNotNull("No change", change);
+        assertNotNull("No task", task);
+        assertNotNull("No resource", change.getResource());
+        assertNotNull("No parent result", parentResult);
 
-		// remember ...
-		callCountNotifyChange++;
-		lastChange = change;
-	}
-	
-	 private static boolean isDryRun(Task task){
-	    	
-	    	Validate.notNull(task, "Task must not be null.");
-	    	
-	    	if (!task.hasExtension()) {
-	    		return false;
-	    	}
-			
-	    	PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-			if (item == null || item.isEmpty()){
-				return false;
-			}
-			
-			if (item.getValues().size() > 1){
-				return false;
-//				throw new SchemaException("Unexpected number of values for option 'dry run'.");
-			}
-					
-			Boolean dryRun = item.getValues().iterator().next().getValue();
-			
-			if (dryRun == null){
-				return false;
-			}
-	    	
-			return dryRun.booleanValue(); 
-	    }
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
-	@Override
-	public void notifySuccess(ResourceOperationDescription opDescription,
-			Task task, OperationResult parentResult) {
-		notifyOp("success", opDescription, task, parentResult, false);
-		wasSuccess = true;
-	}
+        assertTrue("Either current shadow or delta must be present", change.getCurrentShadow() != null
+                || change.getObjectDelta() != null);
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
-	@Override
-	public void notifyFailure(ResourceOperationDescription opDescription,
-			Task task, OperationResult parentResult) {
-		notifyOp("failure", opDescription, task, parentResult, true);
-		wasFailure = true;
-	}
+        if (change.isUnrelatedChange() || isDryRun(task) || (change.getCurrentShadow() != null && change.getCurrentShadow().asObjectable().isProtectedObject() == Boolean.TRUE)){
+            return;
+        }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
-	@Override
-	public void notifyInProgress(ResourceOperationDescription opDescription,
-			Task task, OperationResult parentResult) {
-		notifyOp("in-progress", opDescription, task, parentResult, false);
-		wasInProgress = true;
-	}
+        if (change.getCurrentShadow() != null) {
+            ShadowType currentShadowType = change.getCurrentShadow().asObjectable();
+            if (currentShadowType != null) {
+                // not a useful check..the current shadow could be null
+                assertNotNull("Current shadow does not have an OID", change.getCurrentShadow().getOid());
+                assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
+                assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
+                assertFalse("Current shadow has empty attributes", ShadowUtil
+                        .getAttributesContainer(currentShadowType).isEmpty());
 
-		
-	private void notifyOp(String notificationDesc, ResourceOperationDescription opDescription,
-			Task task, OperationResult parentResult, boolean failure) {
-		LOGGER.debug("Notify "+notificationDesc+" mock called with:\n{}", opDescription.debugDump());
+                // Check if the shadow is already present in repo
+                try {
+                    repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), null, new OperationResult("mockSyncService.notifyChange"));
+                } catch (Exception e) {
+                    AssertJUnit.fail("Got exception while trying to read current shadow "+currentShadowType+
+                            ": "+e.getCause()+": "+e.getMessage());
+                }
+                // Check resource
+                String resourceOid = ShadowUtil.getResourceOid(currentShadowType);
+                assertFalse("No resource OID in current shadow "+currentShadowType, StringUtils.isBlank(resourceOid));
+                try {
+                    repositoryService.getObject(ResourceType.class, resourceOid, null, new OperationResult("mockSyncService.notifyChange"));
+                } catch (Exception e) {
+                    AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+currentShadowType+
+                            ": "+e.getCause()+": "+e.getMessage());
+                }
 
-		// Some basic sanity checks
-		assertNotNull("No op description", opDescription);
-		assertNotNull("No task", task);
-		assertNotNull("No result", opDescription.getResult());
-		assertNotNull("No resource", opDescription.getResource());
-		assertNotNull("No parent result", parentResult);
+                if (change.getCurrentShadow().asObjectable().getKind() == ShadowKindType.ACCOUNT) {
+                    ShadowType account = change.getCurrentShadow().asObjectable();
+                    if (ShadowUtil.isExists(account)) {
+                        if (supportActivation) {
+                            assertNotNull("Current shadow does not have activation", account.getActivation());
+                            assertNotNull("Current shadow activation status is null", account.getActivation()
+                                    .getAdministrativeStatus());
+                        } else {
+                            assertNull("Activation sneaked into current shadow", account.getActivation());
+                        }
+                    }
+                }
+            }
+        }
+        if (change.getOldShadow() != null) {
+            assertNotNull("Old shadow does not have an OID", change.getOldShadow().getOid());
+            assertNotNull("Old shadow does not have an resourceRef", change.getOldShadow().asObjectable()
+                    .getResourceRef());
+        }
+        if (change.getObjectDelta() != null) {
+            assertNotNull("Delta has null OID", change.getObjectDelta().getOid());
+        }
 
-		assertNotNull("Current shadow not present", opDescription.getCurrentShadow());
-		if (!failure) {
-			assertNotNull("Delta not present", opDescription.getObjectDelta());
-		}
-		if (opDescription.getCurrentShadow() != null) {
-			ShadowType currentShadowType = opDescription.getCurrentShadow().asObjectable();
-			if (currentShadowType != null) {
-				// not a useful check..the current shadow could be null
-				if (!failure){
-				assertNotNull("Current shadow does not have an OID", opDescription.getCurrentShadow().getOid());
-				assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
-				assertFalse("Current shadow has empty attributes", ShadowUtil
-						.getAttributesContainer(currentShadowType).isEmpty());
-				}
-				assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
-				
-				// Check if the shadow is already present in repo (if it is not a delete case)
-				if (!opDescription.getObjectDelta().isDelete() && !failure){
-				try {
-					repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), null, new OperationResult("mockSyncService."+notificationDesc));
-				} catch (Exception e) {
-					AssertJUnit.fail("Got exception while trying to read current shadow "+currentShadowType+
-							": "+e.getCause()+": "+e.getMessage());
-				}			
-				}
-				// Check resource
-				String resourceOid = ShadowUtil.getResourceOid(currentShadowType);
-				assertFalse("No resource OID in current shadow "+currentShadowType, StringUtils.isBlank(resourceOid));
-				try {
-					repositoryService.getObject(ResourceType.class, resourceOid, null, new OperationResult("mockSyncService."+notificationDesc));
-				} catch (Exception e) {
-					AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+currentShadowType+
-							": "+e.getCause()+": "+e.getMessage());
-				}
+        if (changeChecker != null) {
+            changeChecker.check(change);
+        }
 
-				// FIXME: enable this check later..but for example, opendj
-				// resource does not have native capability and if the reosurce
-				// does not have sprecified simulated capability, this will
-				// produce an error
-//				if (opDescription.getCurrentShadow().asObjectable() instanceof AccountShadowType) {
-//					AccountShadowType account = (AccountShadowType) opDescription.getCurrentShadow().asObjectable();
-//					assertNotNull("Current shadow does not have activation", account.getActivation());
-//					assertNotNull("Current shadow activation/enabled is null", account.getActivation()
-//							.isEnabled());
-//				} else {
-//					// We don't support other types now
-//					AssertJUnit.fail("Unexpected type of shadow " + opDescription.getCurrentShadow().getClass());
-//				}
-			}
-		}
-		if (opDescription.getObjectDelta() != null && !failure) {
-			assertNotNull("Delta has null OID", opDescription.getObjectDelta().getOid());
-		}
-		
-		if (changeChecker != null) {
-			changeChecker.check(opDescription);
-		}
+        // remember ...
+        callCountNotifyChange++;
+        lastChange = change;
+    }
 
-		// remember ...
-		callCountNotifyOperation++;
-		lastOperationDescription = opDescription;
-	}
+     private static boolean isDryRun(Task task){
 
-	public boolean wasCalledNotifyChange() {
-		return (callCountNotifyChange > 0);
-	}
+            Validate.notNull(task, "Task must not be null.");
 
-	public void reset() {
-		callCountNotifyChange = 0;
-		callCountNotifyOperation = 0;
-		lastChange = null;
-		wasSuccess = false;
-		wasFailure = false;
-		wasInProgress = false;
-	}
+            if (!task.hasExtension()) {
+                return false;
+            }
 
-	public ResourceObjectShadowChangeDescription getLastChange() {
-		return lastChange;
-	}
+            PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+            if (item == null || item.isEmpty()){
+                return false;
+            }
 
-	public void setLastChange(ResourceObjectShadowChangeDescription lastChange) {
-		this.lastChange = lastChange;
-	}
+            if (item.getValues().size() > 1){
+                return false;
+//                throw new SchemaException("Unexpected number of values for option 'dry run'.");
+            }
 
-	public int getCallCount() {
-		return callCountNotifyChange;
-	}
+            Boolean dryRun = item.getValues().iterator().next().getValue();
 
-	public void setCallCount(int callCount) {
-		this.callCountNotifyChange = callCount;
-	}
+            if (dryRun == null){
+                return false;
+            }
 
-	public SynchronizationServiceMock assertNotifyChange() {
-		assert wasCalledNotifyChange() : "Expected that notifyChange will be called but it was not";
-		return this;
-	}
+            return dryRun.booleanValue();
+        }
 
-	public SynchronizationServiceMock assertNoNotifyChange() {
-		assert !wasCalledNotifyChange() : "Expected that no notifyChange will be called but it was";
-		return this;
-	}
-	
-	public ResourceObjectShadowChangeDescriptionAsserter lastNotifyChange() {
-		return new ResourceObjectShadowChangeDescriptionAsserter(lastChange);
-	}
-	
-	public SynchronizationServiceMock assertNotifySuccessOnly() {
-		assert wasSuccess : "Expected that notifySuccess will be called but it was not";		
-		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
-		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
-		assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
-		return this;
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+     */
+    @Override
+    public void notifySuccess(ResourceOperationDescription opDescription,
+            Task task, OperationResult parentResult) {
+        notifyOp("success", opDescription, task, parentResult, false);
+        wasSuccess = true;
+    }
 
-	public SynchronizationServiceMock assertNotifyFailureOnly() {
-		assert wasFailure : "Expected that notifyFailure will be called but it was not";				
-		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
-		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
-		assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
-		return this;
-	}
-	
-	public SynchronizationServiceMock assertNotifyFailure() {
-		assert wasFailure : "Expected that notifyFailure will be called but it was not";
-		return this;
-	}
-	
-	public SynchronizationServiceMock assertNotifyOperations(int expected) {
-		assert callCountNotifyOperation == expected : "Expected " + expected + " notify operations, but was " + callCountNotifyOperation;
-		return this;
-	}
-	
-	public SynchronizationServiceMock assertNotifyChangeCalls(int expected) {
-		assert callCountNotifyChange == expected : "Expected " + expected + " notify change calls, but was " + callCountNotifyOperation;
-		return this;
-	}
-	
-	public SynchronizationServiceMock assertNotifyInProgressOnly() {
-		assert wasInProgress : "Expected that notifyInProgress will be called but it was not";				
-		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
-		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
-		assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
-		return this;
-	}
-	
-	public SynchronizationServiceMock assertNoNotifcations() {
-		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";				
-		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
-		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
-		assert callCountNotifyOperation == 0 : "Expected no notification call but there was "+callCountNotifyOperation+" calls";
-		return this;
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+     */
+    @Override
+    public void notifyFailure(ResourceOperationDescription opDescription,
+            Task task, OperationResult parentResult) {
+        notifyOp("failure", opDescription, task, parentResult, true);
+        wasFailure = true;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#getName()
-	 */
-	@Override
-	public String getName() {
-		return "synchronization service mock";
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
+     */
+    @Override
+    public void notifyInProgress(ResourceOperationDescription opDescription,
+            Task task, OperationResult parentResult) {
+        notifyOp("in-progress", opDescription, task, parentResult, false);
+        wasInProgress = true;
+    }
 
-	public void waitForNotifyChange(long timeout) throws InterruptedException {
-		long stop = System.currentTimeMillis() + timeout;
-		while (System.currentTimeMillis() < stop) {
-			if (wasCalledNotifyChange()) {
-				return;
-			}
-			Thread.sleep(100);
-		}
-		throw new AssertionError("notifyChange has not arrived within " + timeout + " ms");
-	}
+
+    private void notifyOp(String notificationDesc, ResourceOperationDescription opDescription,
+            Task task, OperationResult parentResult, boolean failure) {
+        LOGGER.debug("Notify "+notificationDesc+" mock called with:\n{}", opDescription.debugDump());
+
+        // Some basic sanity checks
+        assertNotNull("No op description", opDescription);
+        assertNotNull("No task", task);
+        assertNotNull("No result", opDescription.getResult());
+        assertNotNull("No resource", opDescription.getResource());
+        assertNotNull("No parent result", parentResult);
+
+        assertNotNull("Current shadow not present", opDescription.getCurrentShadow());
+        if (!failure) {
+            assertNotNull("Delta not present", opDescription.getObjectDelta());
+        }
+        if (opDescription.getCurrentShadow() != null) {
+            ShadowType currentShadowType = opDescription.getCurrentShadow().asObjectable();
+            if (currentShadowType != null) {
+                // not a useful check..the current shadow could be null
+                if (!failure){
+                assertNotNull("Current shadow does not have an OID", opDescription.getCurrentShadow().getOid());
+                assertNotNull("Current shadow has null attributes", currentShadowType.getAttributes());
+                assertFalse("Current shadow has empty attributes", ShadowUtil
+                        .getAttributesContainer(currentShadowType).isEmpty());
+                }
+                assertNotNull("Current shadow does not have resourceRef", currentShadowType.getResourceRef());
+
+                // Check if the shadow is already present in repo (if it is not a delete case)
+                if (!opDescription.getObjectDelta().isDelete() && !failure){
+                try {
+                    repositoryService.getObject(currentShadowType.getClass(), currentShadowType.getOid(), null, new OperationResult("mockSyncService."+notificationDesc));
+                } catch (Exception e) {
+                    AssertJUnit.fail("Got exception while trying to read current shadow "+currentShadowType+
+                            ": "+e.getCause()+": "+e.getMessage());
+                }
+                }
+                // Check resource
+                String resourceOid = ShadowUtil.getResourceOid(currentShadowType);
+                assertFalse("No resource OID in current shadow "+currentShadowType, StringUtils.isBlank(resourceOid));
+                try {
+                    repositoryService.getObject(ResourceType.class, resourceOid, null, new OperationResult("mockSyncService."+notificationDesc));
+                } catch (Exception e) {
+                    AssertJUnit.fail("Got exception while trying to read resource "+resourceOid+" as specified in current shadow "+currentShadowType+
+                            ": "+e.getCause()+": "+e.getMessage());
+                }
+
+                // FIXME: enable this check later..but for example, opendj
+                // resource does not have native capability and if the reosurce
+                // does not have sprecified simulated capability, this will
+                // produce an error
+//                if (opDescription.getCurrentShadow().asObjectable() instanceof AccountShadowType) {
+//                    AccountShadowType account = (AccountShadowType) opDescription.getCurrentShadow().asObjectable();
+//                    assertNotNull("Current shadow does not have activation", account.getActivation());
+//                    assertNotNull("Current shadow activation/enabled is null", account.getActivation()
+//                            .isEnabled());
+//                } else {
+//                    // We don't support other types now
+//                    AssertJUnit.fail("Unexpected type of shadow " + opDescription.getCurrentShadow().getClass());
+//                }
+            }
+        }
+        if (opDescription.getObjectDelta() != null && !failure) {
+            assertNotNull("Delta has null OID", opDescription.getObjectDelta().getOid());
+        }
+
+        if (changeChecker != null) {
+            changeChecker.check(opDescription);
+        }
+
+        // remember ...
+        callCountNotifyOperation++;
+        lastOperationDescription = opDescription;
+    }
+
+    public boolean wasCalledNotifyChange() {
+        return (callCountNotifyChange > 0);
+    }
+
+    public void reset() {
+        callCountNotifyChange = 0;
+        callCountNotifyOperation = 0;
+        lastChange = null;
+        wasSuccess = false;
+        wasFailure = false;
+        wasInProgress = false;
+    }
+
+    public ResourceObjectShadowChangeDescription getLastChange() {
+        return lastChange;
+    }
+
+    public void setLastChange(ResourceObjectShadowChangeDescription lastChange) {
+        this.lastChange = lastChange;
+    }
+
+    public int getCallCount() {
+        return callCountNotifyChange;
+    }
+
+    public void setCallCount(int callCount) {
+        this.callCountNotifyChange = callCount;
+    }
+
+    public SynchronizationServiceMock assertNotifyChange() {
+        assert wasCalledNotifyChange() : "Expected that notifyChange will be called but it was not";
+        return this;
+    }
+
+    public SynchronizationServiceMock assertNoNotifyChange() {
+        assert !wasCalledNotifyChange() : "Expected that no notifyChange will be called but it was";
+        return this;
+    }
+
+    public ResourceObjectShadowChangeDescriptionAsserter lastNotifyChange() {
+        return new ResourceObjectShadowChangeDescriptionAsserter(lastChange);
+    }
+
+    public SynchronizationServiceMock assertNotifySuccessOnly() {
+        assert wasSuccess : "Expected that notifySuccess will be called but it was not";
+        assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
+        assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
+        assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
+        return this;
+    }
+
+    public SynchronizationServiceMock assertNotifyFailureOnly() {
+        assert wasFailure : "Expected that notifyFailure will be called but it was not";
+        assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
+        assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
+        assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
+        return this;
+    }
+
+    public SynchronizationServiceMock assertNotifyFailure() {
+        assert wasFailure : "Expected that notifyFailure will be called but it was not";
+        return this;
+    }
+
+    public SynchronizationServiceMock assertNotifyOperations(int expected) {
+        assert callCountNotifyOperation == expected : "Expected " + expected + " notify operations, but was " + callCountNotifyOperation;
+        return this;
+    }
+
+    public SynchronizationServiceMock assertNotifyChangeCalls(int expected) {
+        assert callCountNotifyChange == expected : "Expected " + expected + " notify change calls, but was " + callCountNotifyOperation;
+        return this;
+    }
+
+    public SynchronizationServiceMock assertNotifyInProgressOnly() {
+        assert wasInProgress : "Expected that notifyInProgress will be called but it was not";
+        assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
+        assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
+        assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
+        return this;
+    }
+
+    public SynchronizationServiceMock assertNoNotifcations() {
+        assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
+        assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
+        assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
+        assert callCountNotifyOperation == 0 : "Expected no notification call but there was "+callCountNotifyOperation+" calls";
+        return this;
+    }
+
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#getName()
+     */
+    @Override
+    public String getName() {
+        return "synchronization service mock";
+    }
+
+    public void waitForNotifyChange(long timeout) throws InterruptedException {
+        long stop = System.currentTimeMillis() + timeout;
+        while (System.currentTimeMillis() < stop) {
+            if (wasCalledNotifyChange()) {
+                return;
+            }
+            Thread.sleep(100);
+        }
+        throw new AssertionError("notifyChange has not arrived within " + timeout + " ms");
+    }
 }

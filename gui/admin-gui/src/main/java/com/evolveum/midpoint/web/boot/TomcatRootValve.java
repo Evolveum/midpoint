@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.boot;
@@ -30,34 +30,34 @@ import java.io.IOException;
  */
 public class TomcatRootValve extends ValveBase {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TomcatRootValve.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TomcatRootValve.class);
 
-	private String servletPath;
+    private String servletPath;
 
-	public TomcatRootValve(String serlvetPath) {
-		super();
+    public TomcatRootValve(String serlvetPath) {
+        super();
 
-		this.servletPath = serlvetPath == null ? "" : serlvetPath;
-	}
+        this.servletPath = serlvetPath == null ? "" : serlvetPath;
+    }
 
-	@Override
-	public void invoke(Request request, Response response) throws IOException, ServletException {
+    @Override
+    public void invoke(Request request, Response response) throws IOException, ServletException {
 
-		Context context = request.getContext();
-		if (context instanceof RootRootContext) {
-			String uri = request.getDecodedRequestURI();
-			if (uri.endsWith("favicon.ico")) {
-				LOGGER.trace("Redirecting favicon request to real application (URI={})", request.getDecodedRequestURI());
-				response.sendRedirect(servletPath + "/favicon.ico");
-				return;
-			} else {
-				LOGGER.trace("Redirecting request to real application root (URI={})", request.getDecodedRequestURI());
-				response.sendRedirect(servletPath + "/");
-				return;
-			}
-		}
+        Context context = request.getContext();
+        if (context instanceof RootRootContext) {
+            String uri = request.getDecodedRequestURI();
+            if (uri.endsWith("favicon.ico")) {
+                LOGGER.trace("Redirecting favicon request to real application (URI={})", request.getDecodedRequestURI());
+                response.sendRedirect(servletPath + "/favicon.ico");
+                return;
+            } else {
+                LOGGER.trace("Redirecting request to real application root (URI={})", request.getDecodedRequestURI());
+                response.sendRedirect(servletPath + "/");
+                return;
+            }
+        }
 
-		getNext().invoke(request, response);
-	}
+        getNext().invoke(request, response);
+    }
 
 }

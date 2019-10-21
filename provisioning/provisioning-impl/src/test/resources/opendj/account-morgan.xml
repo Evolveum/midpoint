@@ -2,29 +2,29 @@
 <!--
   ~ Copyright (c) 2014-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 
 <shadow oid="8dfcf05e-c571-11e3-abbd-001e8c717e5b"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<name>uid=morgan,ou=People,dc=example,dc=com</name>
-	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<objectClass>ri:inetOrgPerson</objectClass>
-	<kind>account</kind>
-	<attributes>
-		<ri:dn>uid=morgan,ou=People,dc=example,dc=com</ri:dn>
-		<ri:uid>morgan</ri:uid>
-		<ri:cn>Henry Morgan</ri:cn>
-		<ri:givenName>Henry</ri:givenName>
-		<ri:sn>Morgan</ri:sn>
-	</attributes>
-	<association>
-		<name>ri:group</name>
-		<shadowRef oid="3d96846e-c570-11e3-a80f-001e8c717e5b"/>
-	</association>
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+    <name>uid=morgan,ou=People,dc=example,dc=com</name>
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+    <objectClass>ri:inetOrgPerson</objectClass>
+    <kind>account</kind>
+    <attributes>
+        <ri:dn>uid=morgan,ou=People,dc=example,dc=com</ri:dn>
+        <ri:uid>morgan</ri:uid>
+        <ri:cn>Henry Morgan</ri:cn>
+        <ri:givenName>Henry</ri:givenName>
+        <ri:sn>Morgan</ri:sn>
+    </attributes>
+    <association>
+        <name>ri:group</name>
+        <shadowRef oid="3d96846e-c570-11e3-a80f-001e8c717e5b"/>
+    </association>
 </shadow>

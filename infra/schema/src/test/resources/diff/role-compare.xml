@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="4671874e-5822-11e7-a571-8b43dc7d2876"
@@ -13,36 +13,36 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Compare</name>
     <inducement id="1">
-    	<targetRef>
-    		<filter>
-				<q:equal>
-					<q:path>roleType</q:path>
-					<q:value>treasure</q:value>
-				</q:equal>
-			</filter>
-			<resolutionTime>run</resolutionTime>
-    	</targetRef>
+        <targetRef>
+            <filter>
+                <q:equal>
+                    <q:path>roleType</q:path>
+                    <q:value>treasure</q:value>
+                </q:equal>
+            </filter>
+            <resolutionTime>run</resolutionTime>
+        </targetRef>
     </inducement>
     <inducement id="2"> <!-- Same as id="1" -->
-    	<targetRef>
-    		<filter>
-				<q:equal>
-					<q:path>roleType</q:path>
-					<q:value>treasure</q:value>
-				</q:equal>
-			</filter>
-			<resolutionTime>run</resolutionTime>
-    	</targetRef>
+        <targetRef>
+            <filter>
+                <q:equal>
+                    <q:path>roleType</q:path>
+                    <q:value>treasure</q:value>
+                </q:equal>
+            </filter>
+            <resolutionTime>run</resolutionTime>
+        </targetRef>
     </inducement>
     <inducement id="3"> <!-- different -->
-    	<targetRef>
-    		<filter>
-				<q:equal>
-					<q:path>roleType</q:path>
-					<q:value>loot</q:value>
-				</q:equal>
-			</filter>
-			<resolutionTime>run</resolutionTime>
-    	</targetRef>
+        <targetRef>
+            <filter>
+                <q:equal>
+                    <q:path>roleType</q:path>
+                    <q:value>loot</q:value>
+                </q:equal>
+            </filter>
+            <resolutionTime>run</resolutionTime>
+        </targetRef>
     </inducement>
 </role>

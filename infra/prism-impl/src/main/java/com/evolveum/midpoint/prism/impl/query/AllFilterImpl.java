@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -15,61 +15,61 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Filter designed to explicitly match everything. It is used in some special cases, e.g.
- * a security component explicitly indicating that all objects should be returned. 
- * 
+ * a security component explicitly indicating that all objects should be returned.
+ *
  * @author Radovan Semancik
  */
 public class AllFilterImpl extends ObjectFilterImpl implements AllFilter {
 
-	public AllFilterImpl() {
-		super();
-	}
+    public AllFilterImpl() {
+        super();
+    }
 
-	public static AllFilter createAll() {
-		return new AllFilterImpl();
-	}
-	
-	@SuppressWarnings("CloneDoesntCallSuperClone")
-	@Override
-	public AllFilterImpl clone() {
-		return new AllFilterImpl();
-	}
+    public static AllFilter createAll() {
+        return new AllFilterImpl();
+    }
 
-	@Override
-	public void checkConsistence(boolean requireDefinitions) {
-		// nothing to do
-	}
+    @SuppressWarnings("CloneDoesntCallSuperClone")
+    @Override
+    public AllFilterImpl clone() {
+        return new AllFilterImpl();
+    }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public void checkConsistence(boolean requireDefinitions) {
+        // nothing to do
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ALL");
-		return sb.toString();
-	}
-	
-	@Override
-	public String toString() {
-		return "ALL";
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		return true;
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("ALL");
+        return sb.toString();
+    }
 
-	@Override
-	public boolean equals(Object obj, boolean exact) {
-		return obj instanceof AllFilter;
-	}
+    @Override
+    public String toString() {
+        return "ALL";
+    }
 
-	@Override
-	public int hashCode() {
-		return 0;
-	}
+    @Override
+    public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object obj, boolean exact) {
+        return obj instanceof AllFilter;
+    }
+
+    @Override
+    public int hashCode() {
+        return 0;
+    }
 }

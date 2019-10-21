@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.sync;
@@ -34,34 +34,34 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		dummyResourceEmerald.setSyncStyle(DummySyncStyle.SMART);
-	}
+        dummyResourceEmerald.setSyncStyle(DummySyncStyle.SMART);
+    }
 
-	@Override
-	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
-		if (resource == resourceDummyEmerald) {
-			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_EMERALD_FILE);
-		} else {
-			throw new IllegalArgumentException("Unknown resource "+resource);
-		}
-	}
+    @Override
+    protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
+        if (resource == resourceDummyEmerald) {
+            importObjectFromFile(TASK_LIVE_SYNC_DUMMY_EMERALD_FILE);
+        } else {
+            throw new IllegalArgumentException("Unknown resource "+resource);
+        }
+    }
 
-	@Override
-	protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
-		if (resource == resourceDummyEmerald) {
-			return TASK_LIVE_SYNC_DUMMY_EMERALD_OID;
-		} else {
-			throw new IllegalArgumentException("Unknown resource "+resource);
-		}
-	}
+    @Override
+    protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
+        if (resource == resourceDummyEmerald) {
+            return TASK_LIVE_SYNC_DUMMY_EMERALD_OID;
+        } else {
+            throw new IllegalArgumentException("Unknown resource "+resource);
+        }
+    }
 
-	@Override
-	public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
-		final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
+    @Override
+    public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
+        final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -73,10 +73,10 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
         // Preconditions
         assertUsers(7);
 
-		/// WHEN
+        /// WHEN
         displayWhen(TEST_NAME);
 
-		dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
@@ -88,18 +88,18 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
         assertNull("Account shadow mancomb not gone", accountMancomb);
 
         assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
-        	.displayWithProjections()
-        		.activation()
-	        	// Disabled by sync reaction
-	        	.assertAdministrativeStatus(ActivationStatusType.DISABLED)
-	        	.assertValidFrom(ACCOUNT_MANCOMB_VALID_FROM_DATE)
-	        	.assertValidTo(ACCOUNT_MANCOMB_VALID_TO_DATE)
-	        	.end()
-        	.links()
-        		.single()
-        			.resolveTarget()
-        				.assertTombstone()
-        				.assertSynchronizationSituation(SynchronizationSituationType.DELETED);
+            .displayWithProjections()
+                .activation()
+                // Disabled by sync reaction
+                .assertAdministrativeStatus(ActivationStatusType.DISABLED)
+                .assertValidFrom(ACCOUNT_MANCOMB_VALID_FROM_DATE)
+                .assertValidTo(ACCOUNT_MANCOMB_VALID_TO_DATE)
+                .end()
+            .links()
+                .single()
+                    .resolveTarget()
+                        .assertTombstone()
+                        .assertSynchronizationSituation(SynchronizationSituationType.DELETED);
 
         assertNoDummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
@@ -108,6 +108,6 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
         // notifications
         notificationManager.setDisabled(true);
 
-	}
+    }
 
 }

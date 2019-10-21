@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.story;
@@ -44,92 +44,92 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestOperationPerf extends AbstractStoryTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "operation-perf");
-	
-	protected static final File USER_ALICE_FILE = new File(TEST_DIR, "user-alice.xml");
-	protected static final String USER_ALICE_OID = "a077357a-1c5f-11e8-ad16-af1b03cecee9";
-	
-	protected static final File USER_BOB_FILE = new File(TEST_DIR, "user-bob.xml");
-	protected static final String USER_BOB_OID = "ab43445c-1c83-11e8-a669-331e1f2cbbac";
-	
-	protected static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
-	protected static final String OBJECT_TEMPLATE_USER_OID = "995aa1a6-1c5e-11e8-8d2f-6784dbc320a9";
+    public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "operation-perf");
 
-	private static final int NUMBER_OF_ORDINARY_ROLES = 1; // including superuser role
-	private static final int NUMBER_OF_GENERATED_EMPTY_ROLES = 1000;
-	private static final String GENERATED_EMPTY_ROLE_OID_FORMAT = "00000000-0000-ffff-2000-e0000000%04d";
-	private static final String GENERATED_EMPTY_ROLE_NAME_FORMAT = "Empty Role %04d";
-	
-	private static final int NUMBER_OF_USER_EXTENSION_PROPERTIES = 30;
-	private static final String USER_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/samples/gen";
-	private static final String USER_EXTENSION_PROPERTY_NAME_FORMAT = "prop%04d";
+    protected static final File USER_ALICE_FILE = new File(TEST_DIR, "user-alice.xml");
+    protected static final String USER_ALICE_OID = "a077357a-1c5f-11e8-ad16-af1b03cecee9";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestOperationPerf.class);
-	
-	@Autowired ClockworkMedic clockworkMedic;
-	@Autowired RepositoryCache repositoryCache;
-	@Autowired protected MappingFactory mappingFactory;
+    protected static final File USER_BOB_FILE = new File(TEST_DIR, "user-bob.xml");
+    protected static final String USER_BOB_OID = "ab43445c-1c83-11e8-a669-331e1f2cbbac";
 
-	private CountingInspector internalInspector;
-	private ProfilingModelInspectorManager profilingModelInspectorManager;
+    protected static final File OBJECT_TEMPLATE_USER_FILE = new File(TEST_DIR, "object-template-user.xml");
+    protected static final String OBJECT_TEMPLATE_USER_OID = "995aa1a6-1c5e-11e8-8d2f-6784dbc320a9";
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    private static final int NUMBER_OF_ORDINARY_ROLES = 1; // including superuser role
+    private static final int NUMBER_OF_GENERATED_EMPTY_ROLES = 1000;
+    private static final String GENERATED_EMPTY_ROLE_OID_FORMAT = "00000000-0000-ffff-2000-e0000000%04d";
+    private static final String GENERATED_EMPTY_ROLE_NAME_FORMAT = "Empty Role %04d";
 
-		generateRoles(NUMBER_OF_GENERATED_EMPTY_ROLES, GENERATED_EMPTY_ROLE_NAME_FORMAT, GENERATED_EMPTY_ROLE_OID_FORMAT, null, initResult);
+    private static final int NUMBER_OF_USER_EXTENSION_PROPERTIES = 30;
+    private static final String USER_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/samples/gen";
+    private static final String USER_EXTENSION_PROPERTY_NAME_FORMAT = "prop%04d";
 
-		repoAddObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
-		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, OBJECT_TEMPLATE_USER_OID, initResult);
-		
-		internalInspector = new CountingInspector();
-		InternalMonitor.setInspector(internalInspector);
-		
-		mappingFactory.setProfiling(true);
-		profilingModelInspectorManager = new ProfilingModelInspectorManager();
-		clockworkMedic.setDiagnosticContextManager(profilingModelInspectorManager);
-		
-		InternalMonitor.setCloneTimingEnabled(true);
-		
-		extendUserSchema(NUMBER_OF_USER_EXTENSION_PROPERTIES);
-	}
+    private static final Trace LOGGER = TraceManager.getTrace(TestOperationPerf.class);
 
-	private void extendUserSchema(int numberOfProperties) {
-		PrismObjectDefinition<UserType> userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-		MutablePrismContainerDefinition<?> userExtensionDefinition = userDefinition.getExtensionDefinition().toMutable();
-		
-		for (int i=0; i<numberOfProperties; i++) {
-			String propName = String.format(USER_EXTENSION_PROPERTY_NAME_FORMAT, i);
-			userExtensionDefinition.createPropertyDefinition(
-					new QName(USER_EXTENSION_NS, propName), DOMUtil.XSD_STRING);
-		}
-		
-		display("User extension definition", userExtensionDefinition);
-	}
+    @Autowired ClockworkMedic clockworkMedic;
+    @Autowired RepositoryCache repositoryCache;
+    @Autowired protected MappingFactory mappingFactory;
 
-	@Test
+    private CountingInspector internalInspector;
+    private ProfilingModelInspectorManager profilingModelInspectorManager;
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+
+        generateRoles(NUMBER_OF_GENERATED_EMPTY_ROLES, GENERATED_EMPTY_ROLE_NAME_FORMAT, GENERATED_EMPTY_ROLE_OID_FORMAT, null, initResult);
+
+        repoAddObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, OBJECT_TEMPLATE_USER_OID, initResult);
+
+        internalInspector = new CountingInspector();
+        InternalMonitor.setInspector(internalInspector);
+
+        mappingFactory.setProfiling(true);
+        profilingModelInspectorManager = new ProfilingModelInspectorManager();
+        clockworkMedic.setDiagnosticContextManager(profilingModelInspectorManager);
+
+        InternalMonitor.setCloneTimingEnabled(true);
+
+        extendUserSchema(NUMBER_OF_USER_EXTENSION_PROPERTIES);
+    }
+
+    private void extendUserSchema(int numberOfProperties) {
+        PrismObjectDefinition<UserType> userDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        MutablePrismContainerDefinition<?> userExtensionDefinition = userDefinition.getExtensionDefinition().toMutable();
+
+        for (int i=0; i<numberOfProperties; i++) {
+            String propName = String.format(USER_EXTENSION_PROPERTY_NAME_FORMAT, i);
+            userExtensionDefinition.createPropertyDefinition(
+                    new QName(USER_EXTENSION_NS, propName), DOMUtil.XSD_STRING);
+        }
+
+        display("User extension definition", userExtensionDefinition);
+    }
+
+    @Test
     public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
+        final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
 
         assertObjects(RoleType.class, NUMBER_OF_GENERATED_EMPTY_ROLES + NUMBER_OF_ORDINARY_ROLES);
 
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
-	}
+    }
 
-	@Test
+    @Test
     public void test100AddAlice() throws Exception {
-		final String TEST_NAME = "test100AddAlice";
-		testAddUser(TEST_NAME, USER_ALICE_FILE, USER_ALICE_OID, 1);
-	}
-	
-	@Test
+        final String TEST_NAME = "test100AddAlice";
+        testAddUser(TEST_NAME, USER_ALICE_FILE, USER_ALICE_OID, 1);
+    }
+
+    @Test
     public void test110AddBob() throws Exception {
-		final String TEST_NAME = "test110AddBob";
-		testAddUser(TEST_NAME, USER_BOB_FILE, USER_BOB_OID, 1);
-	}
-	
+        final String TEST_NAME = "test110AddBob";
+        testAddUser(TEST_NAME, USER_BOB_FILE, USER_BOB_OID, 1);
+    }
+
     public void testAddUser(final String TEST_NAME, File userFile, String userOid, int roles) throws Exception {
         displayTestTitle(TEST_NAME);
 
@@ -158,13 +158,13 @@ public class TestOperationPerf extends AbstractStoryTest {
         displayThen(TEST_NAME);
         long endMillis = System.currentTimeMillis();
         assertSuccess(result);
-        
+
         display("Added user in "+(endMillis - startMillis)+" ms");
 
         display("Model diagnostics", profilingModelInspectorManager);
         display("Internal inspector", internalInspector);
         display("Internal counters", InternalMonitor.debugDumpStatic(1));
-        
+
         PrismObject<UserType> userAfter = getUser(userOid);
         display("User after", userAfter);
         assertAssignments(userAfter, 1);
@@ -173,30 +173,30 @@ public class TestOperationPerf extends AbstractStoryTest {
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
-	}
+    }
 
-	private void populateUserExtension(PrismObject<UserType> user,
-			int numberOfProperties) throws SchemaException {
-		PrismContainer<?> extension = user.getExtension();
-		if (extension == null) {
-			extension = user.createExtension();
-		}
-		for (int i=0; i<numberOfProperties; i++) {
-			String propName = String.format(USER_EXTENSION_PROPERTY_NAME_FORMAT, i);
-			PrismProperty<String> prop = extension.findOrCreateProperty(new ItemName(USER_EXTENSION_NS, propName));
-			prop.setRealValue("val "+i);
-		}
-		
-	}
+    private void populateUserExtension(PrismObject<UserType> user,
+            int numberOfProperties) throws SchemaException {
+        PrismContainer<?> extension = user.getExtension();
+        if (extension == null) {
+            extension = user.createExtension();
+        }
+        for (int i=0; i<numberOfProperties; i++) {
+            String propName = String.format(USER_EXTENSION_PROPERTY_NAME_FORMAT, i);
+            PrismProperty<String> prop = extension.findOrCreateProperty(new ItemName(USER_EXTENSION_NS, propName));
+            prop.setRealValue("val "+i);
+        }
 
-	private void setRandomOrganizations(PrismObject<UserType> userBefore, int numberOfOrganizations) {
-		List<PolyStringType> organizations = userBefore.asObjectable().getOrganization();
-		for (int i=0; i<numberOfOrganizations; i++) {
-			organizations.add(
-					createPolyStringType(
-							String.format(GENERATED_EMPTY_ROLE_NAME_FORMAT, RND.nextInt(NUMBER_OF_GENERATED_EMPTY_ROLES))));
-		}
-	}
+    }
+
+    private void setRandomOrganizations(PrismObject<UserType> userBefore, int numberOfOrganizations) {
+        List<PolyStringType> organizations = userBefore.asObjectable().getOrganization();
+        for (int i=0; i<numberOfOrganizations; i++) {
+            organizations.add(
+                    createPolyStringType(
+                            String.format(GENERATED_EMPTY_ROLE_NAME_FORMAT, RND.nextInt(NUMBER_OF_GENERATED_EMPTY_ROLES))));
+        }
+    }
 
 
 }

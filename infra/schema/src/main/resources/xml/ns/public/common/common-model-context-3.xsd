@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -44,13 +44,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="requestIdentifier" type="xsd:string">
+            <xsd:element name="requestIdentifier" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
                         Unique identifier of a request (operation).
                     </xsd:documentation>
                     <xsd:appinfo>
-                    	<a:since>4.0</a:since>
+                        <a:since>4.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -107,9 +107,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         If set to true then all operations are considered to be
-						in execution phase - for the purpose of authorizations and auditing.
-						This is used in case that the whole operation (context) is a
-						secondary change, e.g. in case that persona is provisioned. 
+                        in execution phase - for the purpose of authorizations and auditing.
+                        This is used in case that the whole operation (context) is a
+                        secondary change, e.g. in case that persona is provisioned.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -137,7 +137,7 @@
             <xsd:element name="lazyAuditRequest" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="requestAudited" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="executionAudited" type="xsd:boolean" minOccurs="0"/>
-			<xsd:element name="requestAuthorized" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="requestAuthorized" type="xsd:boolean" minOccurs="0"/>
             <xsd:element name="stats" type="tns:LensContextStatsType" minOccurs="0"/>
             <xsd:element name="rottenExecutedDeltas" type="tns:LensObjectDeltaOperationType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -150,8 +150,8 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Metadata of the request. Metadata recorded when the operation has started.
-						Currently only the requestTimestamp and requestorRef are meaningful. But
-						later other metadata may be used.
+                        Currently only the requestTimestamp and requestorRef are meaningful. But
+                        later other metadata may be used.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -519,39 +519,39 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:complexType name="LensContextStatsType">
-    	<xsd:sequence>
-    		<xsd:element name="requestTimestamp" type="xsd:dateTime" minOccurs="0"/>
-    	</xsd:sequence>
+        <xsd:sequence>
+            <xsd:element name="requestTimestamp" type="xsd:dateTime" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
 
-	<!-- IMPORTANT: when adding attributes here, update also PolicyRuleTypeUtil.triggerCollectionsEqual -->
+    <!-- IMPORTANT: when adding attributes here, update also PolicyRuleTypeUtil.triggerCollectionsEqual -->
     <xsd:complexType name="EvaluatedPolicyRuleTriggerType">
-    	<xsd:annotation>
-    		<xsd:appinfo>
-    			<a:schemaMigration>
-            		<a:element>tns:constraint</a:element>
-            		<a:version>4.0</a:version>
-            		<a:operation>removed</a:operation>
-            	</a:schemaMigration>
-            	<a:schemaMigration>
-            		<a:element>tns:assignmentPath</a:element>
-            		<a:version>4.0</a:version>
-            		<a:operation>removed</a:operation>
-            	</a:schemaMigration>
-            	<a:schemaMigration>
-            		<a:element>tns:directOwnerRef</a:element>
-            		<a:version>4.0</a:version>
-            		<a:operation>removed</a:operation>
-            	</a:schemaMigration>
-            	<a:schemaMigration>
-            		<a:element>tns:directOwnerDisplayName</a:element>
-            		<a:version>4.0</a:version>
-            		<a:operation>removed</a:operation>
-            	</a:schemaMigration>
-    		</xsd:appinfo>
-    	</xsd:annotation>
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:constraint</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:assignmentPath</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:directOwnerRef</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:directOwnerDisplayName</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="ref" type="xsd:int" minOccurs="0" />
             <xsd:element name="triggerId" type="xsd:int" minOccurs="0" />       <!-- not 'id' to avoid collisions with container identifiers -->
@@ -565,134 +565,134 @@
             <xsd:element name="hidden" type="xsd:boolean" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
-	<xsd:element name="evaluatedPolicyRuleTrigger" type="tns:EvaluatedPolicyRuleTriggerType" />
+    <xsd:element name="evaluatedPolicyRuleTrigger" type="tns:EvaluatedPolicyRuleTriggerType" />
 
-	<xsd:complexType name="EvaluatedStateTriggerType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
-				<xsd:sequence>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="evaluatedStateTrigger" type="tns:EvaluatedStateTriggerType" />
+    <xsd:complexType name="EvaluatedStateTriggerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluatedStateTrigger" type="tns:EvaluatedStateTriggerType" />
 
-	<xsd:complexType name="EvaluatedHasAssignmentTriggerType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
-				<xsd:sequence>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="evaluatedHasAssignmentTrigger" type="tns:EvaluatedHasAssignmentTriggerType" />
+    <xsd:complexType name="EvaluatedHasAssignmentTriggerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluatedHasAssignmentTrigger" type="tns:EvaluatedHasAssignmentTriggerType" />
 
-	<xsd:complexType name="EvaluatedMultiplicityTriggerType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
-				<xsd:sequence>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="evaluatedMultiplicityTrigger" type="tns:EvaluatedMultiplicityTriggerType" />
+    <xsd:complexType name="EvaluatedMultiplicityTriggerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluatedMultiplicityTrigger" type="tns:EvaluatedMultiplicityTriggerType" />
 
-	<xsd:complexType name="EvaluatedTimeValidityTriggerType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
-				<xsd:sequence>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="evaluatedTimeValidityTrigger" type="tns:EvaluatedTimeValidityTriggerType" />
+    <xsd:complexType name="EvaluatedTimeValidityTriggerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluatedTimeValidityTrigger" type="tns:EvaluatedTimeValidityTriggerType" />
 
-	<xsd:complexType name="EvaluatedModificationTriggerType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
-				<xsd:sequence>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="evaluatedModificationTrigger" type="tns:EvaluatedModificationTriggerType" />
+    <xsd:complexType name="EvaluatedModificationTriggerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluatedModificationTrigger" type="tns:EvaluatedModificationTriggerType" />
 
-	<xsd:complexType name="EvaluatedEmbeddingTriggerType">  <!-- TODO name -->
-		<xsd:complexContent>
-			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
-				<xsd:sequence>
+    <xsd:complexType name="EvaluatedEmbeddingTriggerType">  <!-- TODO name -->
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+                <xsd:sequence>
                     <xsd:element name="embedded" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded"/>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
-	<xsd:complexType name="EvaluatedTransitionTriggerType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:EvaluatedEmbeddingTriggerType">
-				<xsd:sequence>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="evaluatedTransitionTrigger" type="tns:EvaluatedTransitionTriggerType" />
+    <xsd:complexType name="EvaluatedTransitionTriggerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedEmbeddingTriggerType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluatedTransitionTrigger" type="tns:EvaluatedTransitionTriggerType" />
 
-	<xsd:complexType name="EvaluatedLogicalTriggerType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:EvaluatedEmbeddingTriggerType">
-				<xsd:sequence>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="evaluatedLogicalTrigger" type="tns:EvaluatedLogicalTriggerType" />
+    <xsd:complexType name="EvaluatedLogicalTriggerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedEmbeddingTriggerType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluatedLogicalTrigger" type="tns:EvaluatedLogicalTriggerType" />
 
-	<xsd:complexType name="EvaluatedExclusionTriggerType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
-				<xsd:sequence>
-					<xsd:element name="conflictingObjectRef" type="c:ObjectReferenceType" minOccurs="0" />
-					<xsd:element name="conflictingObjectDisplayName" type="t:PolyStringType" minOccurs="0" />
-					<xsd:element name="conflictingObjectPath" type="tns:AssignmentPathType" minOccurs="0" />
-					<xsd:element name="conflictingAssignment" type="tns:AssignmentType" minOccurs="0" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="evaluatedExclusionTrigger" type="tns:EvaluatedExclusionTriggerType" />
+    <xsd:complexType name="EvaluatedExclusionTriggerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+                <xsd:sequence>
+                    <xsd:element name="conflictingObjectRef" type="c:ObjectReferenceType" minOccurs="0" />
+                    <xsd:element name="conflictingObjectDisplayName" type="t:PolyStringType" minOccurs="0" />
+                    <xsd:element name="conflictingObjectPath" type="tns:AssignmentPathType" minOccurs="0" />
+                    <xsd:element name="conflictingAssignment" type="tns:AssignmentType" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluatedExclusionTrigger" type="tns:EvaluatedExclusionTriggerType" />
 
-	<!-- IMPORTANT: when adding attributes here, update also PolicyRuleTypeUtil.triggerCollectionsEqual -->
-	<xsd:complexType name="EvaluatedSituationTriggerType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
-				<xsd:sequence>
-					<xsd:element name="sourceRule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded" />	 <!-- TODO -->
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="evaluatedSituationTrigger" type="tns:EvaluatedSituationTriggerType" />
-	
-	<xsd:complexType name="EvaluatedCollectionStatsTriggerType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
-				<xsd:sequence>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="evaluatedCollectionStatsTrigger" type="tns:EvaluatedCollectionStatsTriggerType" />
+    <!-- IMPORTANT: when adding attributes here, update also PolicyRuleTypeUtil.triggerCollectionsEqual -->
+    <xsd:complexType name="EvaluatedSituationTriggerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+                <xsd:sequence>
+                    <xsd:element name="sourceRule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded" />     <!-- TODO -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluatedSituationTrigger" type="tns:EvaluatedSituationTriggerType" />
 
-	<xsd:complexType name="EvaluatedPolicyRuleType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:schemaMigration>
-            		<a:element>tns:policyRule</a:element>
-            		<a:version>4.0</a:version>
-            		<a:operation>removed</a:operation>
-            	</a:schemaMigration>
-			</xsd:appinfo>
-		</xsd:annotation>
+    <xsd:complexType name="EvaluatedCollectionStatsTriggerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="evaluatedCollectionStatsTrigger" type="tns:EvaluatedCollectionStatsTriggerType" />
+
+    <xsd:complexType name="EvaluatedPolicyRuleType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:schemaMigration>
+                    <a:element>tns:policyRule</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <!-- TODO use some kind of pointer here (otherwise it produces very long data e.g. in trigger info in assignments) -->
             <xsd:element name="ruleName" type="xsd:string" minOccurs="0">
@@ -736,29 +736,29 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded" />
-		</xsd:sequence>
-	</xsd:complexType>
-	<xsd:element name="evaluatedPolicyRule" type="tns:EvaluatedPolicyRuleType" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="evaluatedPolicyRule" type="tns:EvaluatedPolicyRuleType" />
 
     <xsd:complexType name="AssignmentPathType">
         <xsd:sequence>
-			<xsd:element name="segment" type="tns:AssignmentPathSegmentType" minOccurs="0" maxOccurs="unbounded" />
-		</xsd:sequence>
+            <xsd:element name="segment" type="tns:AssignmentPathSegmentType" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
     </xsd:complexType>
 
-	<xsd:complexType name="AssignmentPathSegmentType">
-		<xsd:sequence>
-			<xsd:element name="sourceRef" type="c:ObjectReferenceType" minOccurs="0" />
-			<xsd:element name="sourceDisplayName" type="t:PolyStringType" minOccurs="0" />
-			<xsd:element name="assignment" type="c:AssignmentType" minOccurs="0" />
-			<xsd:element name="assignmentId" type="xsd:long" minOccurs="0" />
-			<xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0" />
-			<xsd:element name="targetDisplayName" type="t:PolyStringType" minOccurs="0" />
-			<xsd:element name="matchingOrder" type="xsd:boolean" minOccurs="0" />
-			<xsd:element name="isAssignment" type="xsd:boolean" minOccurs="0" />
-			<!-- TODO maybe also evaluation order -->
-		</xsd:sequence>
-	</xsd:complexType>
+    <xsd:complexType name="AssignmentPathSegmentType">
+        <xsd:sequence>
+            <xsd:element name="sourceRef" type="c:ObjectReferenceType" minOccurs="0" />
+            <xsd:element name="sourceDisplayName" type="t:PolyStringType" minOccurs="0" />
+            <xsd:element name="assignment" type="c:AssignmentType" minOccurs="0" />
+            <xsd:element name="assignmentId" type="xsd:long" minOccurs="0" />
+            <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0" />
+            <xsd:element name="targetDisplayName" type="t:PolyStringType" minOccurs="0" />
+            <xsd:element name="matchingOrder" type="xsd:boolean" minOccurs="0" />
+            <xsd:element name="isAssignment" type="xsd:boolean" minOccurs="0" />
+            <!-- TODO maybe also evaluation order -->
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="TraceType">
         <xsd:annotation>
@@ -1080,10 +1080,10 @@
                             <xsd:documentation>
                                 Object to be added.
                             </xsd:documentation>
-							<xsd:appinfo>
-								<a:composite>true</a:composite>
-							</xsd:appinfo>
-						</xsd:annotation>
+                            <xsd:appinfo>
+                                <a:composite>true</a:composite>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="options" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
@@ -1227,10 +1227,10 @@
                             <xsd:documentation>
                                 Object that was retrieved.
                             </xsd:documentation>
-							<xsd:appinfo>
-								<a:composite>true</a:composite>
-							</xsd:appinfo>
-						</xsd:annotation>
+                            <xsd:appinfo>
+                                <a:composite>true</a:composite>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
@@ -1369,10 +1369,10 @@
                             <xsd:documentation>
                                 Objects that were retrieved.
                             </xsd:documentation>
-							<xsd:appinfo>
-								<a:composite>true</a:composite>
-							</xsd:appinfo>
-						</xsd:annotation>
+                            <xsd:appinfo>
+                                <a:composite>true</a:composite>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>

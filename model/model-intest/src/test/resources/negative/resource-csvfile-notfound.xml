@@ -2,50 +2,50 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<resource 	oid="ef2bc95b-76e0-48e2-86d6-f0f002d3f0f0"
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-         	xmlns:my="http://whatever.com/my"
-		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-        	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+<resource     oid="ef2bc95b-76e0-48e2-86d6-f0f002d3f0f0"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+             xmlns:my="http://whatever.com/my"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	<name>Localhost CSVfile NotFound</name>
-     
-	<connectorRef type="ConnectorType">
-		<filter>
-	        <q:equal>
-			<q:path>c:connectorType</q:path>
-	          <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
-	        </q:equal>
-	      </filter>
-	</connectorRef>
+    <name>Localhost CSVfile NotFound</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+            <q:path>c:connectorType</q:path>
+              <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+            </q:equal>
+          </filter>
+    </connectorRef>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-	<connectorConfiguration>
-	
-            <!-- Configuration specific for the CSVfile connector -->
-		<icfc:configurationProperties
-					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
-				<icfccsvfile:filePath>tH1s-F1le-d03s-nOt-3xist--it-i5-a-F1ct1ON</icfccsvfile:filePath>
-				<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
-				<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
-				<icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
-				<icfccsvfile:uniqueAttribute>username</icfccsvfile:uniqueAttribute>
-				<icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
-			</icfc:configurationProperties>
-		
-			<!-- Generic ICF configuration -->
+    <connectorConfiguration>
 
-	</connectorConfiguration>
+            <!-- Configuration specific for the CSVfile connector -->
+        <icfc:configurationProperties
+                    xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+                <icfccsvfile:filePath>tH1s-F1le-d03s-nOt-3xist--it-i5-a-F1ct1ON</icfccsvfile:filePath>
+                <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
+                <icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
+                <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
+                <icfccsvfile:uniqueAttribute>username</icfccsvfile:uniqueAttribute>
+                <icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
+            </icfc:configurationProperties>
+
+            <!-- Generic ICF configuration -->
+
+    </connectorConfiguration>
 
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
@@ -57,85 +57,85 @@
 
              This is the part where most of the customization takes place.
         -->
-		<schemaHandling>
+        <schemaHandling>
 
             <!-- Definition of default account type.
                  This is now the only account type that midPoint can work with. -->
-			<objectType>
-				<displayName>Default Account</displayName>
-				<default>true</default>
-				<objectClass>ri:AccountObjectClass</objectClass>
-				<attribute>
-					<ref>ri:username</ref>
-					<displayName>Name</displayName>
-					<outbound>
-						<strength>weak</strength>
-						<source>
-							<path>$user/name</path>
-						</source>
-					</outbound>
-				</attribute>
+            <objectType>
+                <displayName>Default Account</displayName>
+                <default>true</default>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <attribute>
+                    <ref>ri:username</ref>
+                    <displayName>Name</displayName>
+                    <outbound>
+                        <strength>weak</strength>
+                        <source>
+                            <path>$user/name</path>
+                        </source>
+                    </outbound>
+                </attribute>
 
-				<attribute>
-					<ref>ri:firstname</ref>
-					<displayName>First name</displayName>
-					<description>Definition of Firstname attribute handling.</description>
-					<outbound>
-						<strength>weak</strength>
-						<source>
-							<path>$user/givenName</path>
-						</source>
-					</outbound>
-				</attribute>
-				<attribute>
-					<ref>ri:lastname</ref>
-					<displayName>Last name</displayName>
-					<description>Definition of Lastname attribute handling.</description>
-					<outbound>
-						<strength>weak</strength>
-						<source>
-							<path>$user/familyName</path>
-						</source>
-					</outbound>
-				</attribute>
+                <attribute>
+                    <ref>ri:firstname</ref>
+                    <displayName>First name</displayName>
+                    <description>Definition of Firstname attribute handling.</description>
+                    <outbound>
+                        <strength>weak</strength>
+                        <source>
+                            <path>$user/givenName</path>
+                        </source>
+                    </outbound>
+                </attribute>
+                <attribute>
+                    <ref>ri:lastname</ref>
+                    <displayName>Last name</displayName>
+                    <description>Definition of Lastname attribute handling.</description>
+                    <outbound>
+                        <strength>weak</strength>
+                        <source>
+                            <path>$user/familyName</path>
+                        </source>
+                    </outbound>
+                </attribute>
 <!--
-				<attribute ref="ri:disabled">
-					<c:name>disabled</c:name>
-					<c:description>Definition of disabled attribute handling. True = disabled, False = enabled.</c:description>
-					<access>read</access>
-					<outbound default="true">
-						<c:value>false</c:value>
-					</outbound>
-				</attribute>-->
-				
-				<activation>
-					<administrativeStatus>
-						<outbound/>
-					</administrativeStatus>
-				</activation>
-				
-				<credentials>
-					<password>
-						<outbound>
-							<strength>weak</strength>
-						</outbound>
-					</password>
-				</credentials>
+                <attribute ref="ri:disabled">
+                    <c:name>disabled</c:name>
+                    <c:description>Definition of disabled attribute handling. True = disabled, False = enabled.</c:description>
+                    <access>read</access>
+                    <outbound default="true">
+                        <c:value>false</c:value>
+                    </outbound>
+                </attribute>-->
 
-			</objectType>
-		</schemaHandling>
+                <activation>
+                    <administrativeStatus>
+                        <outbound/>
+                    </administrativeStatus>
+                </activation>
 
-		<!-- Resource capabilities. It defines a simulated enableDisable capability. -->
-		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-			<configured>
-				<cap:activation>
-					<cap:status>
-						<cap:attribute>ri:disabled</cap:attribute>
-						<cap:enableValue>false</cap:enableValue>
-						<cap:disableValue>true</cap:disableValue>
-					</cap:status>
-				</cap:activation>
-			</configured>
-		</capabilities>
+                <credentials>
+                    <password>
+                        <outbound>
+                            <strength>weak</strength>
+                        </outbound>
+                    </password>
+                </credentials>
+
+            </objectType>
+        </schemaHandling>
+
+        <!-- Resource capabilities. It defines a simulated enableDisable capability. -->
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <configured>
+                <cap:activation>
+                    <cap:status>
+                        <cap:attribute>ri:disabled</cap:attribute>
+                        <cap:enableValue>false</cap:enableValue>
+                        <cap:disableValue>true</cap:disableValue>
+                    </cap:status>
+                </cap:activation>
+            </configured>
+        </capabilities>
 </resource>
 

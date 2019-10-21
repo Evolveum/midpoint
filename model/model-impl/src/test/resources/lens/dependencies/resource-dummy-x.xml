@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2013 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- Depends on Y (circular dependency) -->
 
 <resource oid="14440000-0000-0000-000x-000000000000"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -18,77 +18,77 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource X</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>X</icfi:instanceId>
-		</icfc:configurationProperties>
+    <name>Dummy Resource X</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	</connectorConfiguration>
-	
-	<schemaHandling>
-		<objectType>
-			<intent>default</intent>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<outbound>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<outbound>
-					<name>fullname outbound mapping</name>
-					<source>
-						<path>$user/fullName</path>
-					</source>
-				</outbound>
-			</attribute>
-			
-			<dependency>
-				<resourceRef oid="14440000-0000-0000-000y-000000000000"/>
-				<strictness>strict</strictness>
-			</dependency>
+        <icfc:configurationProperties>
+            <icfi:instanceId>X</icfi:instanceId>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <name>fullname outbound mapping</name>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <dependency>
+                <resourceRef oid="14440000-0000-0000-000y-000000000000"/>
+                <strictness>strict</strictness>
+            </dependency>
 
             <activation>
-            	<existence>
-            		<outbound/>
-            	</existence>
-            	<administrativeStatus>
-            		<outbound/>
-            	</administrativeStatus>
+                <existence>
+                    <outbound/>
+                </existence>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
             </activation>
-			
-			<credentials>
+
+            <credentials>
                 <password>
                     <outbound/>
                 </password>
             </credentials>
-            
-		</objectType>
-		
-	</schemaHandling>
-	
+
+        </objectType>
+
+    </schemaHandling>
+
 </resource>

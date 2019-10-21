@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -42,11 +42,11 @@ public class MidPointLdapAuthenticationProvider extends LdapAuthenticationProvid
         try {
             return super.doAuthentication(authentication);
         } catch (InternalAuthenticationServiceException e) {
-        	// This sometimes happens ... for unknown reasons the underlying libraries cannot
-        	// figure out correct exception. Which results to wrong error message (MID-4518)
-        	// So, be smart here and try to figure out correct error.
-        	throw processInternalAuthenticationException(e, e);
-        	
+            // This sometimes happens ... for unknown reasons the underlying libraries cannot
+            // figure out correct exception. Which results to wrong error message (MID-4518)
+            // So, be smart here and try to figure out correct error.
+            throw processInternalAuthenticationException(e, e);
+
         } catch (IncorrectResultSizeDataAccessException e) {
             LOGGER.error("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
             throw new BadCredentialsException("LdapAuthentication.bad.user", e);
@@ -58,22 +58,22 @@ public class MidPointLdapAuthenticationProvider extends LdapAuthenticationProvid
     }
 
     private RuntimeException processInternalAuthenticationException(InternalAuthenticationServiceException rootExeption, Throwable currentException) {
-    	if (currentException instanceof javax.naming.AuthenticationException) {
-    		String message = ((javax.naming.AuthenticationException)currentException).getMessage();
-    		if (message.contains("error code 49")) {
-    			// JNDI and Active Directory strike again
-    			return new BadCredentialsException("Invalid username and/or password.", rootExeption);
-    		}
-    	}
-    	Throwable cause = currentException.getCause();
-    	if (cause == null) {
-    		return rootExeption;
-    	} else {
-    		return processInternalAuthenticationException(rootExeption, cause);
-    	}
-	}
+        if (currentException instanceof javax.naming.AuthenticationException) {
+            String message = ((javax.naming.AuthenticationException)currentException).getMessage();
+            if (message.contains("error code 49")) {
+                // JNDI and Active Directory strike again
+                return new BadCredentialsException("Invalid username and/or password.", rootExeption);
+            }
+        }
+        Throwable cause = currentException.getCause();
+        if (cause == null) {
+            return rootExeption;
+        } else {
+            return processInternalAuthenticationException(rootExeption, cause);
+        }
+    }
 
-	@Override
+    @Override
     protected Authentication createSuccessfulAuthentication(UsernamePasswordAuthenticationToken authentication,
                                                             UserDetails user) {
         Authentication authNCtx = super.createSuccessfulAuthentication(authentication, user);

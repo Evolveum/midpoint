@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.script;
@@ -21,17 +21,17 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
  */
 public interface ScriptEvaluator {
 
-	<T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context)
+    <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluationContext context)
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * Returns human readable name of the language that this evaluator supports
      */
-	String getLanguageName();
+    String getLanguageName();
 
-	/**
-	 * Returns URL of the language that this evaluator can handle
-	 */
-	String getLanguageUrl();
+    /**
+     * Returns URL of the language that this evaluator can handle
+     */
+    String getLanguageUrl();
 
 }

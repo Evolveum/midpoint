@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -36,9 +36,9 @@ public enum EvaluationTimeType {
      *
      * <pre>
      * &lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;p xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
-     *                 			Import-time. Evaluation happens when the object is imported
-     *                 			into midPoint repository.
-     *                 		&lt;/p&gt;
+     *                             Import-time. Evaluation happens when the object is imported
+     *                             into midPoint repository.
+     *                         &lt;/p&gt;
      * </pre>
      *
      *
@@ -50,8 +50,8 @@ public enum EvaluationTimeType {
      *
      * <pre>
      * &lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;p xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
-     * 	                		Run-time. Evaluation happens every time when the object is used.
-     *                 		&lt;/p&gt;
+     *                             Run-time. Evaluation happens every time when the object is used.
+     *                         &lt;/p&gt;
      * </pre>
      *
      *

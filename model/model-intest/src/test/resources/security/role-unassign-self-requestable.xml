@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="7c903f28-04ed-11e8-bb7a-df31e8679d27"
@@ -10,29 +10,29 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
     <name>Unassign self requestable</name>
-    <description>Unassign any requestable roles assigned to myself</description>    
+    <description>Unassign any requestable roles assigned to myself</description>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
     <authorization>
-    	<name>unassign-self-requestable</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
-    	<phase>request</phase>
-    	<object>
-    		<special>self</special>
-    	</object>
-    	<target>
-    		<type>RoleType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>requestable</q:path>
-    				<q:value>true</q:value>
-    			</q:equal>
-    		</filter>
-    	</target>
+        <name>unassign-self-requestable</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+        <phase>request</phase>
+        <object>
+            <special>self</special>
+        </object>
+        <target>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>requestable</q:path>
+                    <q:value>true</q:value>
+                </q:equal>
+            </filter>
+        </target>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<phase>execution</phase>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
     </authorization>
 </role>

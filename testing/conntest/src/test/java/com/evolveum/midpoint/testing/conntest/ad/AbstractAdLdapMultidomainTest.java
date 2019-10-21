@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.conntest.ad;
@@ -86,252 +86,252 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @Listeners({com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class})
 public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
-	protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ad-ldap-multidomain");
+    protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ad-ldap-multidomain");
 
-	protected static final File ROLE_PIRATES_FILE = new File(TEST_DIR, "role-pirate.xml");
-	protected static final String ROLE_PIRATES_OID = "5dd034e8-41d2-11e5-a123-001e8c717e5b";
+    protected static final File ROLE_PIRATES_FILE = new File(TEST_DIR, "role-pirate.xml");
+    protected static final String ROLE_PIRATES_OID = "5dd034e8-41d2-11e5-a123-001e8c717e5b";
 
-	protected static final File ROLE_SUBMISSIVE_FILE = new File(TEST_DIR, "role-submissive.xml");
-	protected static final String ROLE_SUBMISSIVE_OID = "0c0c81b2-d0a1-11e5-b51e-0309a826745e";
+    protected static final File ROLE_SUBMISSIVE_FILE = new File(TEST_DIR, "role-submissive.xml");
+    protected static final String ROLE_SUBMISSIVE_OID = "0c0c81b2-d0a1-11e5-b51e-0309a826745e";
 
-	protected static final File ROLE_META_ORG_FILE = new File(TEST_DIR, "role-meta-org.xml");
-	protected static final String ROLE_META_ORG_OID = "f2ad0ace-45d7-11e5-af54-001e8c717e5b";
+    protected static final File ROLE_META_ORG_FILE = new File(TEST_DIR, "role-meta-org.xml");
+    protected static final String ROLE_META_ORG_OID = "f2ad0ace-45d7-11e5-af54-001e8c717e5b";
 
-	protected static final File ROLE_META_ORG_GROUP_FILE = new File(TEST_DIR, "role-meta-org-group.xml");
-	protected static final String ROLE_META_ORG_GROUP_OID = "c5d3294a-0d8e-11e7-bd9d-ff848c2e7e3f";
+    protected static final File ROLE_META_ORG_GROUP_FILE = new File(TEST_DIR, "role-meta-org-group.xml");
+    protected static final String ROLE_META_ORG_GROUP_OID = "c5d3294a-0d8e-11e7-bd9d-ff848c2e7e3f";
 
-	protected static final String ACCOUNT_JACK_SAM_ACCOUNT_NAME = "jack";
-	protected static final String ACCOUNT_JACK_SID = "S-1-5-21-3305462238-3617280118-659738602-4878";
-	protected static final String ACCOUNT_JACK_FULL_NAME = "Jack Sparrow";
-	protected static final String ACCOUNT_JACK_PASSWORD = "qwe.123";
+    protected static final String ACCOUNT_JACK_SAM_ACCOUNT_NAME = "jack";
+    protected static final String ACCOUNT_JACK_SID = "S-1-5-21-3305462238-3617280118-659738602-4878";
+    protected static final String ACCOUNT_JACK_FULL_NAME = "Jack Sparrow";
+    protected static final String ACCOUNT_JACK_PASSWORD = "qwe.123";
 
-	protected static final String USER_CPTBARBOSSA_FULL_NAME = "Captain Hector Barbossa";
+    protected static final String USER_CPTBARBOSSA_FULL_NAME = "Captain Hector Barbossa";
 
-	private static final String GROUP_PIRATES_NAME = "pirates";
-	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
-	private static final String GROUP_MELEE_ISLAND_ALT_NAME = "Alternative Mêlée Island";
-	private static final String GROUP_MELEE_ISLAND_PIRATES_NAME = "Mêlée Island Pirates";
-	private static final String GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION = "swashbuckle and loot";
+    private static final String GROUP_PIRATES_NAME = "pirates";
+    private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
+    private static final String GROUP_MELEE_ISLAND_ALT_NAME = "Alternative Mêlée Island";
+    private static final String GROUP_MELEE_ISLAND_PIRATES_NAME = "Mêlée Island Pirates";
+    private static final String GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION = "swashbuckle and loot";
 
-	protected static final int NUMBER_OF_ACCOUNTS = 18;
-	private static final String ASSOCIATION_GROUP_NAME = "group";
+    protected static final int NUMBER_OF_ACCOUNTS = 18;
+    private static final String ASSOCIATION_GROUP_NAME = "group";
 
-	private static final String NS_EXTENSION = "http://whatever.com/my";
-	private static final QName EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME = new QName(NS_EXTENSION, "showInAdvancedViewOnly");
+    private static final String NS_EXTENSION = "http://whatever.com/my";
+    private static final QName EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME = new QName(NS_EXTENSION, "showInAdvancedViewOnly");
 
-	protected static final File USER_SUBMAN_FILE = new File(TEST_DIR, "user-subman.xml");
-	private static final String USER_SUBMAN_OID ="910ac45a-8bd6-11e6-9122-ef88d95095f0";
-	private static final String USER_SUBMAN_USERNAME = "subman";
-	private static final String USER_SUBMAN_GIVEN_NAME = "Sub";
-	private static final String USER_SUBMAN_FAMILY_NAME = "Man";
-	private static final String USER_SUBMAN_FULL_NAME = "Sub Man";
-	private static final String USER_SUBMAN_PASSWORD = "sub.123";
+    protected static final File USER_SUBMAN_FILE = new File(TEST_DIR, "user-subman.xml");
+    private static final String USER_SUBMAN_OID ="910ac45a-8bd6-11e6-9122-ef88d95095f0";
+    private static final String USER_SUBMAN_USERNAME = "subman";
+    private static final String USER_SUBMAN_GIVEN_NAME = "Sub";
+    private static final String USER_SUBMAN_FAMILY_NAME = "Man";
+    private static final String USER_SUBMAN_FULL_NAME = "Sub Man";
+    private static final String USER_SUBMAN_PASSWORD = "sub.123";
 
-	private static final String USER_SUBDOG_USERNAME = "subdog";
-	private static final String USER_SUBDOG_GIVEN_NAME = "Sub";
-	private static final String USER_SUBDOG_FAMILY_NAME = "Dog";
-	private static final String USER_SUBDOG_FULL_NAME = "Sub Dog";
+    private static final String USER_SUBDOG_USERNAME = "subdog";
+    private static final String USER_SUBDOG_GIVEN_NAME = "Sub";
+    private static final String USER_SUBDOG_FAMILY_NAME = "Dog";
+    private static final String USER_SUBDOG_FULL_NAME = "Sub Dog";
 
-	protected static final File USER_SUBMARINE_FILE = new File(TEST_DIR, "user-submarine.xml");
-	private static final String USER_SUBMARINE_OID ="c4377f86-8be9-11e6-8ef5-c3c56ff64b09";
-	private static final String USER_SUBMARINE_USERNAME = "submarine";
-	private static final String USER_SUBMARINE_GIVEN_NAME = "Sub";
-	private static final String USER_SUBMARINE_FAMILY_NAME = "Marine";
-	private static final String USER_SUBMARINE_FULL_NAME = "Sub Marine";
+    protected static final File USER_SUBMARINE_FILE = new File(TEST_DIR, "user-submarine.xml");
+    private static final String USER_SUBMARINE_OID ="c4377f86-8be9-11e6-8ef5-c3c56ff64b09";
+    private static final String USER_SUBMARINE_USERNAME = "submarine";
+    private static final String USER_SUBMARINE_GIVEN_NAME = "Sub";
+    private static final String USER_SUBMARINE_FAMILY_NAME = "Marine";
+    private static final String USER_SUBMARINE_FULL_NAME = "Sub Marine";
 
-	private static final String INTENT_GROUP = "group";
-	private static final String INTENT_OU_TOP = "ou-top";
+    private static final String INTENT_GROUP = "group";
+    private static final String INTENT_OU_TOP = "ou-top";
 
-	private static final String USER_EMPTYHEAD_NAME = "emptyhead";
+    private static final String USER_EMPTYHEAD_NAME = "emptyhead";
 
-	private static final String PROXY_ADDRES_ADDR_UPCASE = "smpt:ADDR";
-	private static final String PROXY_ADDRES_ADDR_LOWCASE = "smpt:addr";
+    private static final String PROXY_ADDRES_ADDR_UPCASE = "smpt:ADDR";
+    private static final String PROXY_ADDRES_ADDR_LOWCASE = "smpt:addr";
 
-	private static final String OBJECT_CATEGORY_PERSON = "CN=Person,CN=Schema,CN=Configuration,DC=ad,DC=evolveum,DC=com";
-	private static final String OBJECT_CATEGORY_GROUP = "CN=Group,CN=Schema,CN=Configuration,DC=ad,DC=evolveum,DC=com";
+    private static final String OBJECT_CATEGORY_PERSON = "CN=Person,CN=Schema,CN=Configuration,DC=ad,DC=evolveum,DC=com";
+    private static final String OBJECT_CATEGORY_GROUP = "CN=Group,CN=Schema,CN=Configuration,DC=ad,DC=evolveum,DC=com";
 
-	private static final String USER_GUYBRUSH_PASSWORD_123 = "wanna.be.a.123";
-	private static final String USER_GUYBRUSH_PASSWORD_333 = "wanna.be.a.333";
+    private static final String USER_GUYBRUSH_PASSWORD_123 = "wanna.be.a.123";
+    private static final String USER_GUYBRUSH_PASSWORD_333 = "wanna.be.a.333";
 
-	private boolean allowDuplicateSearchResults = false;
+    private boolean allowDuplicateSearchResults = false;
 
-	protected String jackAccountOid;
-	protected String groupPiratesOid;
-	protected long jackLockoutTimestamp;
-	protected String accountBarbossaOid;
-	protected String orgMeleeIslandOid;
-	protected String groupMeleeIslandOid;
-	protected String ouMeleeIslandOid;
-	protected String roleMeleeIslandPiratesOid;
-	protected String groupMeleeIslandPiratesOid;
+    protected String jackAccountOid;
+    protected String groupPiratesOid;
+    protected long jackLockoutTimestamp;
+    protected String accountBarbossaOid;
+    protected String orgMeleeIslandOid;
+    protected String groupMeleeIslandOid;
+    protected String ouMeleeIslandOid;
+    protected String roleMeleeIslandPiratesOid;
+    protected String groupMeleeIslandPiratesOid;
 
-	private String accountSubmanOid;
+    private String accountSubmanOid;
 
-	private String accountSubmarineOid;
+    private String accountSubmarineOid;
 
-	@Override
-	public String getStartSystemCommand() {
-		return null;
-	}
+    @Override
+    public String getStartSystemCommand() {
+        return null;
+    }
 
-	@Override
-	public String getStopSystemCommand() {
-		return null;
-	}
+    @Override
+    public String getStopSystemCommand() {
+        return null;
+    }
 
-	@Override
-	protected File getBaseDir() {
-		return TEST_DIR;
-	}
+    @Override
+    protected File getBaseDir() {
+        return TEST_DIR;
+    }
 
-	@Override
-	protected String getSyncTaskOid() {
-		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
-	}
+    @Override
+    protected String getSyncTaskOid() {
+        return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
+    }
 
-	@Override
-	protected boolean useSsl() {
-		return true;
-	}
+    @Override
+    protected boolean useSsl() {
+        return true;
+    }
 
-	@Override
-	protected String getLdapSuffix() {
-		return "DC=ad,DC=evolveum,DC=com";
-	}
+    @Override
+    protected String getLdapSuffix() {
+        return "DC=ad,DC=evolveum,DC=com";
+    }
 
-	@Override
-	protected String getLdapBindDn() {
-		return "CN=midpoint,CN=Users,DC=ad,DC=evolveum,DC=com";
-	}
+    @Override
+    protected String getLdapBindDn() {
+        return "CN=midpoint,CN=Users,DC=ad,DC=evolveum,DC=com";
+    }
 
-	@Override
-	protected String getLdapBindPassword() {
-		return "qwe.123";
-	}
+    @Override
+    protected String getLdapBindPassword() {
+        return "qwe.123";
+    }
 
-	@Override
-	protected int getSearchSizeLimit() {
-		return -1;
-	}
+    @Override
+    protected int getSearchSizeLimit() {
+        return -1;
+    }
 
-	@Override
-	public String getPrimaryIdentifierAttributeName() {
-		return "objectGUID";
-	}
+    @Override
+    public String getPrimaryIdentifierAttributeName() {
+        return "objectGUID";
+    }
 
-	@Override
-	protected String getPeopleLdapSuffix() {
-		return "CN=Users,"+getLdapSuffix();
-	}
+    @Override
+    protected String getPeopleLdapSuffix() {
+        return "CN=Users,"+getLdapSuffix();
+    }
 
-	@Override
-	protected String getGroupsLdapSuffix() {
-		return "CN=Users,"+getLdapSuffix();
-	}
+    @Override
+    protected String getGroupsLdapSuffix() {
+        return "CN=Users,"+getLdapSuffix();
+    }
 
-	protected String getLdapSubSuffix() {
-		return "DC=sub,DC=ad,DC=evolveum,DC=com";
-	}
+    protected String getLdapSubSuffix() {
+        return "DC=sub,DC=ad,DC=evolveum,DC=com";
+    }
 
-	protected String getPeopleLdapSubSuffix() {
-		return "CN=Users,"+getLdapSubSuffix();
-	}
+    protected String getPeopleLdapSubSuffix() {
+        return "CN=Users,"+getLdapSubSuffix();
+    }
 
-	@Override
-	protected String getLdapAccountObjectClass() {
-		return "user";
-	}
+    @Override
+    protected String getLdapAccountObjectClass() {
+        return "user";
+    }
 
-	@Override
-	protected String getLdapGroupObjectClass() {
-		return "group";
-	}
+    @Override
+    protected String getLdapGroupObjectClass() {
+        return "group";
+    }
 
-	@Override
-	protected String getLdapGroupMemberAttribute() {
-		return "member";
-	}
+    @Override
+    protected String getLdapGroupMemberAttribute() {
+        return "member";
+    }
 
-	private QName getAssociationGroupQName() {
-		return new QName(MidPointConstants.NS_RI, ASSOCIATION_GROUP_NAME);
-	}
+    private QName getAssociationGroupQName() {
+        return new QName(MidPointConstants.NS_RI, ASSOCIATION_GROUP_NAME);
+    }
 
-	@Override
-	protected boolean allowDuplicateSearchResults() {
-		return allowDuplicateSearchResults;
-	}
+    @Override
+    protected boolean allowDuplicateSearchResults() {
+        return allowDuplicateSearchResults;
+    }
 
-	@Override
-	protected boolean isGroupMemberMandatory() {
-		return false;
-	}
+    @Override
+    protected boolean isGroupMemberMandatory() {
+        return false;
+    }
 
-	protected String getOrgsLdapSuffix() {
-		return "OU=Org,"+getLdapSuffix();
-	}
+    protected String getOrgsLdapSuffix() {
+        return "OU=Org,"+getLdapSuffix();
+    }
 
-	private UserLdapConnectionConfig getSubLdapConnectionConfig() {
-		UserLdapConnectionConfig config = new UserLdapConnectionConfig();
-		config.setLdapHost("hydra.ad.evolveum.com");
-		config.setLdapPort(getLdapServerPort());
-		config.setBindDn("CN=midpoint,CN=Users,DC=sub,DC=ad,DC=evolveum,DC=com");
-		config.setBindPassword(getLdapBindPassword());
-		config.setBaseContext(getLdapSubSuffix());
-		return config;
-	}
-	
-	protected abstract File getReconciliationTaskFile();
+    private UserLdapConnectionConfig getSubLdapConnectionConfig() {
+        UserLdapConnectionConfig config = new UserLdapConnectionConfig();
+        config.setLdapHost("hydra.ad.evolveum.com");
+        config.setLdapPort(getLdapServerPort());
+        config.setBindDn("CN=midpoint,CN=Users,DC=sub,DC=ad,DC=evolveum,DC=com");
+        config.setBindPassword(getLdapBindPassword());
+        config.setBaseContext(getLdapSubSuffix());
+        return config;
+    }
 
-	protected abstract String getReconciliationTaskOid();
+    protected abstract File getReconciliationTaskFile();
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    protected abstract String getReconciliationTaskOid();
 
-		binaryAttributeDetector.addBinaryAttribute(AdUtils.ATTRIBUTE_OBJECT_GUID_NAME);
-		binaryAttributeDetector.addBinaryAttribute(AdUtils.ATTRIBUTE_UNICODE_PWD_NAME);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		// Users
-		repoAddObjectFromFile(USER_BARBOSSA_FILE, initResult);
-		repoAddObjectFromFile(USER_GUYBRUSH_FILE, initResult);
-		repoAddObjectFromFile(USER_SUBMAN_FILE, initResult);
-		repoAddObjectFromFile(USER_SUBMARINE_FILE, initResult);
+        binaryAttributeDetector.addBinaryAttribute(AdUtils.ATTRIBUTE_OBJECT_GUID_NAME);
+        binaryAttributeDetector.addBinaryAttribute(AdUtils.ATTRIBUTE_UNICODE_PWD_NAME);
 
-		// Roles
-		repoAddObjectFromFile(ROLE_END_USER_FILE, initResult);
-		repoAddObjectFromFile(ROLE_PIRATES_FILE, initResult);
-		repoAddObjectFromFile(ROLE_SUBMISSIVE_FILE, initResult);
-		repoAddObjectFromFile(ROLE_META_ORG_FILE, initResult);
-		repoAddObjectFromFile(ROLE_META_ORG_GROUP_FILE, initResult);
-		
-		assignRole(USER_BARBOSSA_OID, ROLE_END_USER_OID);
+        // Users
+        repoAddObjectFromFile(USER_BARBOSSA_FILE, initResult);
+        repoAddObjectFromFile(USER_GUYBRUSH_FILE, initResult);
+        repoAddObjectFromFile(USER_SUBMAN_FILE, initResult);
+        repoAddObjectFromFile(USER_SUBMARINE_FILE, initResult);
 
-	}
+        // Roles
+        repoAddObjectFromFile(ROLE_END_USER_FILE, initResult);
+        repoAddObjectFromFile(ROLE_PIRATES_FILE, initResult);
+        repoAddObjectFromFile(ROLE_SUBMISSIVE_FILE, initResult);
+        repoAddObjectFromFile(ROLE_META_ORG_FILE, initResult);
+        repoAddObjectFromFile(ROLE_META_ORG_GROUP_FILE, initResult);
 
-	@Test
+        assignRole(USER_BARBOSSA_OID, ROLE_END_USER_OID);
+
+    }
+
+    @Test
     public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
+        final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
 
-		assertLdapPassword(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME, ACCOUNT_JACK_PASSWORD);
-		cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME));
-		cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME));
-		cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME));
-		cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME));
-		cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBDOG_USERNAME, USER_SUBDOG_FULL_NAME));
-		cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBMARINE_USERNAME, USER_SUBMARINE_FULL_NAME));
-		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
-		cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_ALT_NAME));
-		cleanupDelete(toOrgGroupDn(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME));
-		cleanupDelete(toOrgGroupDn(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_ALT_NAME));
-		cleanupDelete(toOrgDn(GROUP_MELEE_ISLAND_NAME));
-		cleanupDelete(toOrgDn(GROUP_MELEE_ISLAND_ALT_NAME));
-	}
+        assertLdapPassword(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME, ACCOUNT_JACK_PASSWORD);
+        cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME));
+        cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME));
+        cleanupDelete(toAccountDn(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME));
+        cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME));
+        cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBDOG_USERNAME, USER_SUBDOG_FULL_NAME));
+        cleanupDelete(getSubLdapConnectionConfig(), toAccountSubDn(USER_SUBMARINE_USERNAME, USER_SUBMARINE_FULL_NAME));
+        cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_NAME));
+        cleanupDelete(toGroupDn(GROUP_MELEE_ISLAND_ALT_NAME));
+        cleanupDelete(toOrgGroupDn(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME));
+        cleanupDelete(toOrgGroupDn(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_ALT_NAME));
+        cleanupDelete(toOrgDn(GROUP_MELEE_ISLAND_NAME));
+        cleanupDelete(toOrgDn(GROUP_MELEE_ISLAND_ALT_NAME));
+    }
 
-	@Test
-	@Override
+    @Test
+    @Override
     public void test020Schema() throws Exception {
-		final String TEST_NAME = "test020Schema";
+        final String TEST_NAME = "test020Schema";
         displayTestTitle(TEST_NAME);
 
 //        IntegrationTestTools.displayXml("Resource XML", resource);
@@ -343,11 +343,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertEquals("Unexpected number of schema definitions (limited by generation constraints)", 5, resourceSchema.getDefinitions().size());
 
         assertLdapConnectorInstances(1);
-	}
+    }
 
-	@Test
+    @Test
     public void test100SeachJackBySamAccountName() throws Exception {
-		final String TEST_NAME = "test100SeachJackBySamAccountName";
+        final String TEST_NAME = "test100SeachJackBySamAccountName";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -356,16 +356,16 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         ObjectQuery query = createSamAccountNameQuery(ACCOUNT_JACK_SAM_ACCOUNT_NAME);
 
-		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
-		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
         displayWhen(TEST_NAME);
-		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+        SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
 
@@ -381,19 +381,19 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
-        	assertFalse(metadata.isPartialResults());
+            assertFalse(metadata.isPartialResults());
         }
 
         assertLdapConnectorInstances(1);
-	}
-	
+    }
 
-	/**
-	 * MID-3730
-	 */
-	@Test
+
+    /**
+     * MID-3730
+     */
+    @Test
     public void test101SeachJackByDn() throws Exception {
-		final String TEST_NAME = "test101SeachJackByDn";
+        final String TEST_NAME = "test101SeachJackByDn";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -403,16 +403,16 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         String jackDn = toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME);
         ObjectQuery query = createAccountShadowQueryByAttribute("dn", jackDn, resource);
 
-		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
-		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
         displayWhen(TEST_NAME);
-		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+        SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
 
@@ -427,21 +427,21 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
-        	assertFalse(metadata.isPartialResults());
+            assertFalse(metadata.isPartialResults());
         }
 
         assertLdapConnectorInstances(1);
-	}
+    }
 
-	/**
-	 * Search for non-existent DN should return no results. It should NOT
-	 * throw an error.
-	 *
-	 * MID-3730
-	 */
-	@Test
+    /**
+     * Search for non-existent DN should return no results. It should NOT
+     * throw an error.
+     *
+     * MID-3730
+     */
+    @Test
     public void test102SeachNotExistByDn() throws Exception {
-		final String TEST_NAME = "test102SeachNotExistByDn";
+        final String TEST_NAME = "test102SeachNotExistByDn";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -451,16 +451,16 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         String dn = toAccountDn("idonoexist", "I am a Fiction");
         ObjectQuery query = createAccountShadowQueryByAttribute("dn", dn, resource);
 
-		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
-		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
         displayWhen(TEST_NAME);
-		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+        SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertEquals("Unexpected search result: "+shadows, 0, shadows.size());
 
@@ -468,11 +468,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         assertLdapConnectorInstances(1);
-	}
+    }
 
-	@Test
+    @Test
     public void test105SeachPiratesByCn() throws Exception {
-		final String TEST_NAME = "test105SeachPiratesByCn";
+        final String TEST_NAME = "test105SeachPiratesByCn";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -480,18 +480,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getGroupObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME), prismContext);
+        ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter("cn", GROUP_PIRATES_NAME), prismContext);
 
-		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
-		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
         displayWhen(TEST_NAME);
-		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
+        SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
 
@@ -505,33 +505,33 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
-        	assertFalse(metadata.isPartialResults());
+            assertFalse(metadata.isPartialResults());
         }
 
         assertLdapConnectorInstances(1);
-	}
+    }
 
-	@Test
+    @Test
     public void test110GetJack() throws Exception {
-		final String TEST_NAME = "test110GetJack";
+        final String TEST_NAME = "test110GetJack";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
-		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
-		long startOfTestMsTimestamp = AdUtils.getWin32Filetime(System.currentTimeMillis());
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
+        long startOfTestMsTimestamp = AdUtils.getWin32Filetime(System.currentTimeMillis());
 
         // WHEN
         displayWhen(TEST_NAME);
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, jackAccountOid, null, task, result);
 
-		// THEN
+        // THEN
         displayThen(TEST_NAME);
-		assertSuccess(result);
-		
+        assertSuccess(result);
+
         display("Shadow", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME));
         jackAccountOid = shadow.getOid();
@@ -547,22 +547,22 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         List<Long> lastLogonValues = ShadowUtil.getAttributeValues(shadow, new QName(getResourceNamespace(),"lastLogon"));
         assertEquals("Wrong number of lastLong values: "+lastLogonValues, 1, lastLogonValues.size());
         if (lastLogonValues.get(0) > startOfTestMsTimestamp) {
-        	fail("Wrong lastLogon, expected it to be less than "+startOfTestMsTimestamp+", but was "+lastLogonValues.get(0));
+            fail("Wrong lastLogon, expected it to be less than "+startOfTestMsTimestamp+", but was "+lastLogonValues.get(0));
         }
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         assertLdapConnectorInstances(1);
-	}
+    }
 
 
-	/**
-	 * No paging. It should return all accounts.
-	 */
-	@Test
+    /**
+     * No paging. It should return all accounts.
+     */
+    @Test
     public void test150SeachAllAccounts() throws Exception {
-		final String TEST_NAME = "test150SeachAllAccounts";
+        final String TEST_NAME = "test150SeachAllAccounts";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -572,11 +572,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
-		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query,
-        		NUMBER_OF_ACCOUNTS, task, result);
+                NUMBER_OF_ACCOUNTS, task, result);
 
         // TODO: Why 14? Why not 1?
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 14);
@@ -584,18 +584,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
-        	assertFalse(metadata.isPartialResults());
+            assertFalse(metadata.isPartialResults());
         }
 
         assertLdapConnectorInstances(2);
     }
 
-	/**
-	 * This is in one block.
-	 */
-	@Test
+    /**
+     * This is in one block.
+     */
+    @Test
     public void test152SeachFirst2Accounts() throws Exception {
-		final String TEST_NAME = "test152SeachFirst2Accounts";
+        final String TEST_NAME = "test152SeachFirst2Accounts";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -606,26 +606,26 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(2);
-		query.setPaging(paging);
+        query.setPaging(paging);
 
-		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
+        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
 
-		// TODO: Why 2? Why not 1?
+        // TODO: Why 2? Why not 1?
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
-        	assertFalse(metadata.isPartialResults());
+            assertFalse(metadata.isPartialResults());
         }
 
         assertLdapConnectorInstances(2);
     }
 
-	@Test
+    @Test
     public void test154SeachFirst11Accounts() throws Exception {
-		final String TEST_NAME = "test154SeachFirst11Accounts";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test154SeachFirst11Accounts";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -635,26 +635,26 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setMaxSize(11);
-		query.setPaging(paging);
+        query.setPaging(paging);
 
-		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 11, task, result);
+        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 11, task, result);
 
-		// TODO: Why 2? Why not 1?
+        // TODO: Why 2? Why not 1?
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
-        	assertFalse(metadata.isPartialResults());
+            assertFalse(metadata.isPartialResults());
         }
 
         assertLdapConnectorInstances(2);
     }
 
-	@Test
+    @Test
     public void test162SeachFirst2AccountsOffset0() throws Exception {
-		final String TEST_NAME = "test162SeachFirst2AccountsOffset0";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test162SeachFirst2AccountsOffset0";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -665,30 +665,30 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         ObjectPaging paging = prismContext.queryFactory().createPaging();
         paging.setOffset(0);
         paging.setMaxSize(2);
-		query.setPaging(paging);
+        query.setPaging(paging);
 
-		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
+        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
 
-		// TODO: Why 2? Why not 1?
+        // TODO: Why 2? Why not 1?
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
-        	assertFalse(metadata.isPartialResults());
+            assertFalse(metadata.isPartialResults());
         }
 
         assertLdapConnectorInstances(2);
     }
 
-	/**
-	 * There is offset, so VLV should be used.
-	 * No explicit sorting.
-	 */
-	@Test
+    /**
+     * There is offset, so VLV should be used.
+     * No explicit sorting.
+     */
+    @Test
     public void test172Search2AccountsOffset1() throws Exception {
-		final String TEST_NAME = "test172Search2AccountsOffset1";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test172Search2AccountsOffset1";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -697,30 +697,30 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(1, 2);
-		query.setPaging(paging);
+        query.setPaging(paging);
 
-		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
+        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
 
-		// TODO: Why 2? Why not 1?
+        // TODO: Why 2? Why not 1?
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
-        	assertFalse(metadata.isPartialResults());
+            assertFalse(metadata.isPartialResults());
         }
 
         assertLdapConnectorInstances(2);
     }
 
-	/**
-	 * There is offset, so VLV should be used.
-	 * No explicit sorting.
-	 */
-	@Test
+    /**
+     * There is offset, so VLV should be used.
+     * No explicit sorting.
+     */
+    @Test
     public void test174SeachFirst11AccountsOffset2() throws Exception {
-		final String TEST_NAME = "test174SeachFirst11AccountsOffset2";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test174SeachFirst11AccountsOffset2";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -729,36 +729,36 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(2, 11);
-		query.setPaging(paging);
+        query.setPaging(paging);
 
-		allowDuplicateSearchResults = true;
+        allowDuplicateSearchResults = true;
 
-		// WHEN
-		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 11, task, result);
+        // WHEN
+        SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 11, task, result);
 
-		// THEN
-		allowDuplicateSearchResults = false;
+        // THEN
+        allowDuplicateSearchResults = false;
 
-		// TODO: Why 2? Why not 1?
+        // TODO: Why 2? Why not 1?
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
         if (metadata != null) {
-        	assertFalse(metadata.isPartialResults());
+            assertFalse(metadata.isPartialResults());
         }
 
         assertLdapConnectorInstances(2);
     }
 
-	/**
-	 * There is offset, so VLV should be used.
-	 * Explicit sorting.
-	 */
-	@Test
+    /**
+     * There is offset, so VLV should be used.
+     * Explicit sorting.
+     */
+    @Test
     public void test182Search2AccountsOffset1SortCn() throws Exception {
-		final String TEST_NAME = "test182Search2AccountsOffset1SortCn";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test182Search2AccountsOffset1SortCn";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
@@ -768,9 +768,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         ObjectPaging paging = prismContext.queryFactory().createPaging(1, 2);
         paging.setOrdering(getAttributePath(resource, "cn"), OrderDirection.ASCENDING);
-		query.setPaging(paging);
+        query.setPaging(paging);
 
-		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 2, task, result);
+        SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 2, task, result);
 
         assertAccountShadow(shadows.get(0), "CN=Adolf Supperior,CN=Users,DC=ad,DC=evolveum,DC=com");
 //        assertAccountShadow(shadows.get(1), "CN=DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852},CN=Users,DC=ad,DC=evolveum,DC=com");
@@ -781,15 +781,15 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         SearchResultMetadata metadata = shadows.getMetadata();
         if (metadata != null) {
-        	assertFalse(metadata.isPartialResults());
+            assertFalse(metadata.isPartialResults());
         }
 
         assertLdapConnectorInstances(2);
     }
 
-	@Test
+    @Test
     public void test200AssignAccountBarbossa() throws Exception {
-		final String TEST_NAME = "test200AssignAccountBarbossa";
+        final String TEST_NAME = "test200AssignAccountBarbossa";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -820,8 +820,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNotNull("No identifier in "+shadow, accountBarbossaIcfUid);
 
         assertEquals("Wrong ICFS UID",
-        		AdUtils.formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
-        		accountBarbossaIcfUid);
+                AdUtils.formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
+                accountBarbossaIcfUid);
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
 
@@ -832,18 +832,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
         XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
-		long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);
+        long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);
         // LDAP server may be on a different host. Allow for some clock offset.
         TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestampMillis);
-        
+
         assertObjectCategory(shadow, OBJECT_CATEGORY_PERSON);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test210ModifyAccountBarbossaTitle() throws Exception {
-		final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
+        final String TEST_NAME = "test210ModifyAccountBarbossaTitle";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -851,11 +851,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
+                .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, AdUtils.ATTRIBUTE_TITLE_NAME);
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
-		       ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
+               ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
         delta.addModification(attrDelta);
 
         // WHEN
@@ -877,11 +877,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test212ModifyAccountBarbossaShowInAdvancedViewOnlyTrue() throws Exception {
-		final String TEST_NAME = "test212ModifyAccountBarbossaShowInAdvancedViewOnlyTrue";
+        final String TEST_NAME = "test212ModifyAccountBarbossaShowInAdvancedViewOnlyTrue";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -889,12 +889,12 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
+                .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
-		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
-		delta.addModification(attrDelta);
+                ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
+        delta.addModification(attrDelta);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -915,14 +915,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         assertLdapConnectorInstances(2);
-	}
+    }
 
-	/**
-	 * Modify USER, test boolean value mapping.
-	 */
-	@Test
+    /**
+     * Modify USER, test boolean value mapping.
+     */
+    @Test
     public void test213ModifyUserBarbossaShowInAdvancedViewOnlyFalse() throws Exception {
-		final String TEST_NAME = "test213ModifyUserBarbossaShowInAdvancedViewOnlyFalse";
+        final String TEST_NAME = "test213ModifyUserBarbossaShowInAdvancedViewOnlyFalse";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -931,17 +931,17 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
+                .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, "showInAdvancedViewOnly");
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<Boolean> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
-		        ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
+                ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, Boolean.TRUE);
         delta.addModification(attrDelta);
 
         // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID, ItemPath.create(UserType.F_EXTENSION, EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME),
-        		task, result, Boolean.FALSE);
+                task, result, Boolean.FALSE);
 
         // THEN
         displayThen(TEST_NAME);
@@ -958,17 +958,17 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         assertLdapConnectorInstances(2);
-	}
-	
-	/**
-	 * Just normal modification of proxyAddress, directly on the account.
-	 * As proxyAddress is multivalue, this is ADD and not REPLACE. This is what GUI would do.
-	 * No previous value for proxyAddress is set in the AD account.
-	 * MID-5330
-	 */
-	@Test
+    }
+
+    /**
+     * Just normal modification of proxyAddress, directly on the account.
+     * As proxyAddress is multivalue, this is ADD and not REPLACE. This is what GUI would do.
+     * No previous value for proxyAddress is set in the AD account.
+     * MID-5330
+     */
+    @Test
     public void test214ModifyAccountBarbossaProxyAddressesSimple() throws Exception {
-		final String TEST_NAME = "test214ModifyAccountBarbossaProxyAddressesSimple";
+        final String TEST_NAME = "test214ModifyAccountBarbossaProxyAddressesSimple";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -976,12 +976,12 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
-		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
+                .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
         QName attrQName = new QName(MidPointConstants.NS_RI, AdUtils.ATTRIBUTE_PROXY_ADDRESSES_NAME);
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         assertNotNull("No definition for attribute "+attrQName, attrDef);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
-		       ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, PROXY_ADDRES_ADDR_UPCASE);
+               ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, PROXY_ADDRES_ADDR_UPCASE);
         delta.addModification(attrDelta);
 
         // WHEN
@@ -1003,61 +1003,61 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test220ModifyUserBarbossaPasswordSelfServicePassword1() throws Exception {
-		final String TEST_NAME = "test220ModifyUserBarbossaPasswordSelfServicePassword1";
-		testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD, USER_BARBOSSA_PASSWORD_AD_1);
-	}
-	
-	/**
-	 * Try to set the same password again. If this is "admin mode" (no runAs capability)
-	 * the such change should be successful. In "selfservice mode" (runAs capability - in subclass)
-	 * this change should fail.
-	 */
-	@Test
+        final String TEST_NAME = "test220ModifyUserBarbossaPasswordSelfServicePassword1";
+        testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD, USER_BARBOSSA_PASSWORD_AD_1);
+    }
+
+    /**
+     * Try to set the same password again. If this is "admin mode" (no runAs capability)
+     * the such change should be successful. In "selfservice mode" (runAs capability - in subclass)
+     * this change should fail.
+     */
+    @Test
     public void test222ModifyUserBarbossaPasswordSelfServicePassword1Again() throws Exception {
-		final String TEST_NAME = "test222ModifyUserBarbossaPasswordSelfServicePassword1Again";
-		testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_1);
-	}
-	
-	/**
-	 * Change to different password. This should go well for both admin and self-service.
-	 * MID-5242
-	 */
-	@Test
+        final String TEST_NAME = "test222ModifyUserBarbossaPasswordSelfServicePassword1Again";
+        testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_1);
+    }
+
+    /**
+     * Change to different password. This should go well for both admin and self-service.
+     * MID-5242
+     */
+    @Test
     public void test224ModifyUserBarbossaPasswordSelfServicePassword2() throws Exception {
-		final String TEST_NAME = "test220ModifyUserBarbossaPasswordSelfServicePassword1";
-		testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_2);
-	}
-	
-	/**
-	 * Change password back to the first password. This password was used before.
-	 * In admin mode this should go well. Admin can set password to anything.
-	 * But in self-service mode (in subclass) this should fail due to password history check.
-	 */
-	@Test
+        final String TEST_NAME = "test220ModifyUserBarbossaPasswordSelfServicePassword1";
+        testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_2);
+    }
+
+    /**
+     * Change password back to the first password. This password was used before.
+     * In admin mode this should go well. Admin can set password to anything.
+     * But in self-service mode (in subclass) this should fail due to password history check.
+     */
+    @Test
     public void test226ModifyUserBarbossaPasswordSelfServicePassword1AgainAgain() throws Exception {
-		final String TEST_NAME = "test226ModifyUserBarbossaPasswordSelfServicePassword1AgainAgain";
-		testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_2, USER_BARBOSSA_PASSWORD_AD_1);
-	}
-	
-	protected void testModifyUserBarbossaPasswordSelfServiceSuccess(final String TEST_NAME, String oldPassword, String newPassword) throws Exception {
+        final String TEST_NAME = "test226ModifyUserBarbossaPasswordSelfServicePassword1AgainAgain";
+        testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_2, USER_BARBOSSA_PASSWORD_AD_1);
+    }
+
+    protected void testModifyUserBarbossaPasswordSelfServiceSuccess(final String TEST_NAME, String oldPassword, String newPassword) throws Exception {
         displayTestTitle(TEST_NAME);
         // GIVEN
-        
+
         // precondition
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, oldPassword);
-        
+
         login(USER_BARBOSSA_USERNAME);
-        
+
         Task task = createTask(TEST_NAME);
         task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID, 
-        		oldPassword, newPassword);
+        ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID,
+                oldPassword, newPassword);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -1069,24 +1069,24 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertSuccess(result);
 
         assertBarbossaEnabled(newPassword);
-        
+
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, newPassword);
 
         assertLdapConnectorInstances(2);
-	}
-	
-	protected void testModifyUserBarbossaPasswordSelfServiceFailure(final String TEST_NAME, String oldPassword, String newPassword) throws Exception {
+    }
+
+    protected void testModifyUserBarbossaPasswordSelfServiceFailure(final String TEST_NAME, String oldPassword, String newPassword) throws Exception {
         displayTestTitle(TEST_NAME);
         // GIVEN
-        
+
         login(USER_BARBOSSA_USERNAME);
-        
+
         Task task = createTask(TEST_NAME);
         task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
         OperationResult result = task.getResult();
 
-        ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID, 
-        		oldPassword, newPassword);
+        ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID,
+                oldPassword, newPassword);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -1099,19 +1099,19 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         assertBarbossaEnabled(newPassword);
         assertUserAfter(USER_BARBOSSA_OID)
-			.assertPassword(newPassword);
-        
+            .assertPassword(newPassword);
+
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, oldPassword);
 
         assertLdapConnectorInstances(2);
-	}
-	
+    }
 
-	@Test
+
+    @Test
     public void test230DisableUserBarbossa() throws Exception {
-		final String TEST_NAME = "test230DisableUserBarbossa";
+        final String TEST_NAME = "test230DisableUserBarbossa";
         displayTestTitle(TEST_NAME);
-        
+
         // precondition
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
 
@@ -1122,22 +1122,22 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID,
-        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-        		task, result, ActivationStatusType.DISABLED);
+                SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                task, result, ActivationStatusType.DISABLED);
 
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
 
         assertBarbossaDisabled(USER_BARBOSSA_PASSWORD_AD_1);
-	}
+    }
 
-	/**
-	 * MID-4041
-	 */
-	@Test
+    /**
+     * MID-4041
+     */
+    @Test
     public void test232ReconcileBarbossa() throws Exception {
-		final String TEST_NAME = "test232ReconcileBarbossa";
+        final String TEST_NAME = "test232ReconcileBarbossa";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1153,14 +1153,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertSuccess(result);
 
         assertBarbossaDisabled(USER_BARBOSSA_PASSWORD_AD_1);
-	}
+    }
 
-	/**
-	 * MID-4041
-	 */
-	@Test
+    /**
+     * MID-4041
+     */
+    @Test
     public void test236EnableUserBarbossa() throws Exception {
-		final String TEST_NAME = "test236EnableUserBarbossa";
+        final String TEST_NAME = "test236EnableUserBarbossa";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1170,8 +1170,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID,
-        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-        		task, result, ActivationStatusType.ENABLED);
+                SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                task, result, ActivationStatusType.ENABLED);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1180,14 +1180,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
 
         assertLdapConnectorInstances(2);
-	}
+    }
 
-	/**
-	 * MID-4041
-	 */
-	@Test
+    /**
+     * MID-4041
+     */
+    @Test
     public void test237ReconcileBarbossa() throws Exception {
-		final String TEST_NAME = "test237ReconcileBarbossa";
+        final String TEST_NAME = "test237ReconcileBarbossa";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1205,14 +1205,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
 
         assertLdapConnectorInstances(2);
-	}
+    }
 
-	/**
-	 * MID-4041
-	 */
-	@Test
+    /**
+     * MID-4041
+     */
+    @Test
     public void test238DisableUserBarbossaRawAndReconcile() throws Exception {
-		final String TEST_NAME = "test238DisableUserBarbossaRawAndReconcile";
+        final String TEST_NAME = "test238DisableUserBarbossaRawAndReconcile";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1220,7 +1220,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_BARBOSSA_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-        		ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.DISABLED);
+                ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.DISABLED);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -1233,14 +1233,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertBarbossaDisabled(USER_BARBOSSA_PASSWORD_AD_1);
 
         assertLdapConnectorInstances(2);
-	}
+    }
 
-	/**
-	 * MID-4041
-	 */
-	@Test
+    /**
+     * MID-4041
+     */
+    @Test
     public void test239EnableUserBarbossaRawAndReconcile() throws Exception {
-		final String TEST_NAME = "test239EnableUserBarbossaRawAndReconcile";
+        final String TEST_NAME = "test239EnableUserBarbossaRawAndReconcile";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1248,7 +1248,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         modifyUserReplace(USER_BARBOSSA_OID, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-        		ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.ENABLED);
+                ModelExecuteOptions.createRaw(), task, result, ActivationStatusType.ENABLED);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -1261,13 +1261,13 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
 
         assertLdapConnectorInstances(2);
-	}
+    }
 
-	protected PrismObject<UserType> assertBarbossaEnabled(String ldapPassword) throws Exception {
-		PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+    protected PrismObject<UserType> assertBarbossaEnabled(String ldapPassword) throws Exception {
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
 
-		Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
         assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         assertAttribute(entry, AdUtils.ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "FALSE");
@@ -1277,14 +1277,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAccountEnabled(shadow);
 
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
-        
+
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, ldapPassword);
 
         return user;
-	}
+    }
 
-	private void assertBarbossaDisabled(String password) throws Exception {
-		assertLdapConnectorInstances(2);
+    private void assertBarbossaDisabled(String password) throws Exception {
+        assertLdapConnectorInstances(2);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
@@ -1300,21 +1300,21 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAccountDisabled(shadow);
 
         try {
-        	assertLdapPassword(null, entry, password);
-        	AssertJUnit.fail("Password authentication works, but it should fail");
+            assertLdapPassword(null, entry, password);
+            AssertJUnit.fail("Password authentication works, but it should fail");
         } catch (SecurityException e) {
-        	// this is expected
+            // this is expected
         }
 
         assertLdapConnectorInstances(2);
-	}
+    }
 
-	/**
-	 * This should create account with a group. And the account shoudl be disabled.
-	 */
-	@Test
+    /**
+     * This should create account with a group. And the account shoudl be disabled.
+     */
+    @Test
     public void test250AssignGuybrushPirates() throws Exception {
-		final String TEST_NAME = "test250AssignGuybrushPirates";
+        final String TEST_NAME = "test250AssignGuybrushPirates";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1325,8 +1325,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 //        userPasswordPs.setClearValue(USER_GUYBRUSH_PASSWORD_333);
 //        modifyUserReplace(USER_GUYBRUSH_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
         modifyUserReplace(USER_GUYBRUSH_OID,
-        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-        		task, result, ActivationStatusType.DISABLED);
+                SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                task, result, ActivationStatusType.DISABLED);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -1349,20 +1349,20 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
         assertAccountDisabled(shadow);
-        
+
 //        try {
-//        	assertLdapPassword(null, entry, USER_GUYBRUSH_PASSWORD_333);
-//        	AssertJUnit.fail("Password authentication works, but it should fail");
+//            assertLdapPassword(null, entry, USER_GUYBRUSH_PASSWORD_333);
+//            AssertJUnit.fail("Password authentication works, but it should fail");
 //        } catch (SecurityException e) {
-//        	// this is expected, account is disabled
+//            // this is expected, account is disabled
 //        }
 
         assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test255ModifyUserGuybrushPassword() throws Exception {
-		final String TEST_NAME = "test255ModifyUserGuybrushPassword";
+        final String TEST_NAME = "test255ModifyUserGuybrushPassword";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1385,18 +1385,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
         try {
-        	assertLdapPassword(null, entry, USER_GUYBRUSH_PASSWORD_123);
-        	AssertJUnit.fail("Password authentication works, but it should fail");
+            assertLdapPassword(null, entry, USER_GUYBRUSH_PASSWORD_123);
+            AssertJUnit.fail("Password authentication works, but it should fail");
         } catch (SecurityException e) {
-        	// this is expected, account is disabled
+            // this is expected, account is disabled
         }
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test260EnableGyubrush() throws Exception {
-		final String TEST_NAME = "test260EnableGyubrush";
+        final String TEST_NAME = "test260EnableGyubrush";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1406,8 +1406,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID,
-        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-        		task, result, ActivationStatusType.ENABLED);
+                SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                task, result, ActivationStatusType.ENABLED);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1426,16 +1426,16 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
 
         assertLdapConnectorInstances(2);
-	}
+    }
 
-	/**
-	 * Try to create an account without password. This should end up with an error.
-	 * A reasonable error.
-	 * MID-4046
-	 */
-	@Test
+    /**
+     * Try to create an account without password. This should end up with an error.
+     * A reasonable error.
+     * MID-4046
+     */
+    @Test
     public void test270AssignAccountToEmptyhead() throws Exception {
-		final String TEST_NAME = "test270AssignAccountToEmptyhead";
+        final String TEST_NAME = "test270AssignAccountToEmptyhead";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1458,15 +1458,15 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertMessageContains(result.getMessage(), "does not meet the length, complexity, or history requirement");
 
         assertLdapConnectorInstances(2);
-	}
+    }
 
-	/**
-	 * Just make random test connection between the tests. Make sure that the
-	 * test does not break anything. If it does the next tests will simply fail.
-	 */
-	@Test
+    /**
+     * Just make random test connection between the tests. Make sure that the
+     * test does not break anything. If it does the next tests will simply fail.
+     */
+    @Test
     public void test295TestConnection() throws Exception {
-		final String TEST_NAME = "test295TestConnection";
+        final String TEST_NAME = "test295TestConnection";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1485,11 +1485,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // Test is disposing connector facade and the entire connector pool.
         // Therefore we are back at 1 instance.
         assertLdapConnectorInstances(1);
-	}
+    }
 
-	@Test
+    @Test
     public void test300AssignBarbossaPirates() throws Exception {
-		final String TEST_NAME = "test300AssignBarbossaPirates";
+        final String TEST_NAME = "test300AssignBarbossaPirates";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1519,11 +1519,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
 
         assertLdapConnectorInstances(1);
-	}
+    }
 
-	@Test
+    @Test
     public void test390ModifyUserBarbossaRename() throws Exception {
-		final String TEST_NAME = "test390ModifyUserBarbossaRename";
+        final String TEST_NAME = "test390ModifyUserBarbossaRename";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1531,10 +1531,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_BARBOSSA_OID, UserType.F_NAME,
-        		PrismTestUtil.createPolyString(USER_CPTBARBOSSA_USERNAME));
+                PrismTestUtil.createPolyString(USER_CPTBARBOSSA_USERNAME));
         objectDelta.addModificationReplaceProperty(UserType.F_FULL_NAME,
-        		PrismTestUtil.createPolyString(USER_CPTBARBOSSA_FULL_NAME));
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+                PrismTestUtil.createPolyString(USER_CPTBARBOSSA_FULL_NAME));
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 
 
         // WHEN
@@ -1561,14 +1561,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNoLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	// TODO: create account with a group membership
+    // TODO: create account with a group membership
 
 
-	@Test
+    @Test
     public void test395UnAssignBarbossaPirates() throws Exception {
-		final String TEST_NAME = "test395UnAssignBarbossaPirates";
+        final String TEST_NAME = "test395UnAssignBarbossaPirates";
         displayTestTitle(TEST_NAME);
 
         // TODO: do this on another account. There is a bad interference with rename.
@@ -1600,11 +1600,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         IntegrationTestTools.assertNoAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test399UnAssignAccountBarbossa() throws Exception {
-		final String TEST_NAME = "test399UnAssignAccountBarbossa";
+        final String TEST_NAME = "test399UnAssignAccountBarbossa";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1627,11 +1627,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNoLinkedAccount(user);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test500AddOrgMeleeIsland() throws Exception {
-		final String TEST_NAME = "test500AddOrgMeleeIsland";
+        final String TEST_NAME = "test500AddOrgMeleeIsland";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1645,8 +1645,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         ObjectReferenceType metaroleRef = new ObjectReferenceType();
         metaroleRef.setOid(ROLE_META_ORG_OID);
         metaroleRef.setType(RoleType.COMPLEX_TYPE);
-		metaroleAssignment.setTargetRef(metaroleRef);
-		orgType.getAssignment().add(metaroleAssignment);
+        metaroleAssignment.setTargetRef(metaroleRef);
+        orgType.getAssignment().add(metaroleAssignment);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -1673,11 +1673,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         display("Shadow: ou (model)", shadowOu);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test510AssignGuybrushMeleeIsland() throws Exception {
-		final String TEST_NAME = "test510AssignGuybrushMeleeIsland";
+        final String TEST_NAME = "test510AssignGuybrushMeleeIsland";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1705,14 +1705,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupMeleeIslandOid);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	/**
-	 * Create role under the Melee Island org. This creates group in the orgstruct.
-	 */
-	@Test
+    /**
+     * Create role under the Melee Island org. This creates group in the orgstruct.
+     */
+    @Test
     public void test515AddOrgGroupMeleeIslandPirates() throws Exception {
-		final String TEST_NAME = "test515AddOrgGroupMeleeIslandPirates";
+        final String TEST_NAME = "test515AddOrgGroupMeleeIslandPirates";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1727,15 +1727,15 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         ObjectReferenceType metaroleRef = new ObjectReferenceType();
         metaroleRef.setOid(ROLE_META_ORG_GROUP_OID);
         metaroleRef.setType(RoleType.COMPLEX_TYPE);
-		metaroleAssignment.setTargetRef(metaroleRef);
-		roleType.getAssignment().add(metaroleAssignment);
+        metaroleAssignment.setTargetRef(metaroleRef);
+        roleType.getAssignment().add(metaroleAssignment);
 
-		AssignmentType orgAssignment = new AssignmentType();
+        AssignmentType orgAssignment = new AssignmentType();
         ObjectReferenceType orgRef = new ObjectReferenceType();
         orgRef.setOid(orgMeleeIslandOid);
         orgRef.setType(OrgType.COMPLEX_TYPE);
-		orgAssignment.setTargetRef(orgRef);
-		roleType.getAssignment().add(orgAssignment);
+        orgAssignment.setTargetRef(orgRef);
+        roleType.getAssignment().add(orgAssignment);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -1758,16 +1758,16 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         display("Shadow (model)", shadow);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	/**
-	 * Rename org unit. MidPoint should rename OU and ordinary group.
-	 * AD will rename the group in the orgstruct automatically. We need to
-	 * make sure that we can still access that group.
-	 */
-	@Test
+    /**
+     * Rename org unit. MidPoint should rename OU and ordinary group.
+     * AD will rename the group in the orgstruct automatically. We need to
+     * make sure that we can still access that group.
+     */
+    @Test
     public void test520RenameMeleeIsland() throws Exception {
-		final String TEST_NAME = "test520RenameMeleeIsland";
+        final String TEST_NAME = "test520RenameMeleeIsland";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1815,19 +1815,19 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         IntegrationTestTools.assertAssociation(shadowAccount, getAssociationGroupQName(), groupMeleeIslandOid);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	/**
-	 * AD renamed the pirate groups by itself. MidPoint does not know about it.
-	 * The GUID that is stored in the shadow is still OK. But the DN is now out
-	 * of date. Try to update the group. Make sure it works.
-	 * It is expected that the GUI will be used as a primary identifier.
-	 * Note: just reading the group will NOT work. MidPoint is too smart
-	 * for that. It will transparently fix the situation.
-	 */
-	@Test
+    /**
+     * AD renamed the pirate groups by itself. MidPoint does not know about it.
+     * The GUID that is stored in the shadow is still OK. But the DN is now out
+     * of date. Try to update the group. Make sure it works.
+     * It is expected that the GUI will be used as a primary identifier.
+     * Note: just reading the group will NOT work. MidPoint is too smart
+     * for that. It will transparently fix the situation.
+     */
+    @Test
     public void test522ModifyMeleeIslandPirates() throws Exception {
-		final String TEST_NAME = "test522GetMeleeIslandPirates";
+        final String TEST_NAME = "test522GetMeleeIslandPirates";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1837,8 +1837,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyObjectReplaceProperty(ShadowType.class, groupMeleeIslandPiratesOid,
-		        ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "description")),
-        		task, result, GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION);
+                ItemPath.create(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "description")),
+                task, result, GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1851,11 +1851,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNoLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test524GetMeleeIslandPirates() throws Exception {
-		final String TEST_NAME = "test524GetMeleeIslandPirates";
+        final String TEST_NAME = "test524GetMeleeIslandPirates";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1882,11 +1882,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNoLdapOrgGroup(GROUP_MELEE_ISLAND_PIRATES_NAME, GROUP_MELEE_ISLAND_NAME);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test595DeleteOrgGroupMeleeIslandPirates() throws Exception {
-		final String TEST_NAME = "test595DeleteOrgGroupMeleeIslandPirates";
+        final String TEST_NAME = "test595DeleteOrgGroupMeleeIslandPirates";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1908,11 +1908,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNoObject(ShadowType.class, groupMeleeIslandPiratesOid);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test599DeleteOrgMeleeIsland() throws Exception {
-		final String TEST_NAME = "test599DeleteOrgMeleeIsland";
+        final String TEST_NAME = "test599DeleteOrgMeleeIsland";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1937,11 +1937,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNoObject(ShadowType.class, ouMeleeIslandOid);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test600AssignAccountSubman() throws Exception {
-		final String TEST_NAME = "test600AssignAccountSubman";
+        final String TEST_NAME = "test600AssignAccountSubman";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1975,8 +1975,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNotNull("No identifier in "+shadow, accountBarbossaIcfUid);
 
         assertEquals("Wrong ICFS UID",
-        		AdUtils.formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
-        		accountBarbossaIcfUid);
+                AdUtils.formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
+                accountBarbossaIcfUid);
 
         assertLdapPassword(getSubLdapConnectionConfig(), USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME, USER_SUBMAN_PASSWORD);
 
@@ -1986,16 +1986,16 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
         XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
-		long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);
+        long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);
         // LDAP server may be on a different host. Allow for some clock offset.
         TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestampMillis);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test610ModifyUserSubmanTitle() throws Exception {
-		final String TEST_NAME = "test610ModifyUserSubmanTitle";
+        final String TEST_NAME = "test610ModifyUserSubmanTitle";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2005,7 +2005,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_SUBMAN_OID, UserType.F_TITLE, task, result,
-        		createPolyString("Underdog"));
+                createPolyString("Underdog"));
 
         // THEN
         displayThen(TEST_NAME);
@@ -2021,11 +2021,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertEquals("Shadows have moved", accountSubmanOid, shadowOid);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test620ModifyUserSubmanPassword() throws Exception {
-		final String TEST_NAME = "test620ModifyUserSubmanPassword";
+        final String TEST_NAME = "test620ModifyUserSubmanPassword";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2053,11 +2053,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertEquals("Shadows have moved", accountSubmanOid, shadowOid);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test630DisableUserSubman() throws Exception {
-		final String TEST_NAME = "test630DisableUserSubman";
+        final String TEST_NAME = "test630DisableUserSubman";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2067,8 +2067,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_SUBMAN_OID,
-        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-        		task, result, ActivationStatusType.DISABLED);
+                SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                task, result, ActivationStatusType.DISABLED);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2087,18 +2087,18 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAccountDisabled(shadow);
 
         try {
-        	assertLdapPassword(getSubLdapConnectionConfig(), USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME, "SuB.321");
-        	AssertJUnit.fail("Password authentication works, but it should fail");
+            assertLdapPassword(getSubLdapConnectionConfig(), USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME, "SuB.321");
+            AssertJUnit.fail("Password authentication works, but it should fail");
         } catch (SecurityException e) {
-        	// this is expected
+            // this is expected
         }
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test639EnableUserSubman() throws Exception {
-		final String TEST_NAME = "test639EnableUserBarbossa";
+        final String TEST_NAME = "test639EnableUserBarbossa";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2108,8 +2108,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_SUBMAN_OID,
-        		SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-        		task, result, ActivationStatusType.ENABLED);
+                SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                task, result, ActivationStatusType.ENABLED);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2126,11 +2126,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAccountEnabled(shadow);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test690ModifyUserSubmanRename() throws Exception {
-		final String TEST_NAME = "test690ModifyUserSubmanRename";
+        final String TEST_NAME = "test690ModifyUserSubmanRename";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2138,9 +2138,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_SUBMAN_OID, UserType.F_NAME,
-        		createPolyString(USER_SUBDOG_USERNAME));
+                createPolyString(USER_SUBDOG_USERNAME));
         objectDelta.addModificationReplaceProperty(UserType.F_FULL_NAME,
-        		createPolyString(USER_SUBDOG_FULL_NAME));
+                createPolyString(USER_SUBDOG_FULL_NAME));
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -2165,11 +2165,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNoLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test699UnAssignAccountSubdog() throws Exception {
-		final String TEST_NAME = "test699UnAssignAccountSubdog";
+        final String TEST_NAME = "test699UnAssignAccountSubdog";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2191,17 +2191,17 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNoLinkedAccount(user);
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	/**
-	 * Create account and modify it in a very quick succession.
-	 * This test is designed to check if we can live with a long
-	 * global catalog update delay.
-	 * MID-2926
-	 */
-	@Test
+    /**
+     * Create account and modify it in a very quick succession.
+     * This test is designed to check if we can live with a long
+     * global catalog update delay.
+     * MID-2926
+     */
+    @Test
     public void test700AssignAccountSubmarineAndModify() throws Exception {
-		final String TEST_NAME = "test700AssignAccountSubmarineAndModify";
+        final String TEST_NAME = "test700AssignAccountSubmarineAndModify";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2215,7 +2215,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assignRole(USER_SUBMARINE_OID, ROLE_SUBMISSIVE_OID, task, result);
 
         modifyUserReplace(USER_SUBMARINE_OID, UserType.F_TITLE, task, result,
-        		PrismTestUtil.createPolyString("Underseadog"));
+                PrismTestUtil.createPolyString("Underseadog"));
 
         // THEN
         displayThen(TEST_NAME);
@@ -2237,17 +2237,17 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNotNull("No identifier in "+shadow, accountIcfUid);
 
         assertEquals("Wrong ICFS UID",
-        		AdUtils.formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
-        		accountIcfUid);
+                AdUtils.formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
+                accountIcfUid);
 
         assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Test
+    @Test
     public void test809UnAssignAccountSubmarine() throws Exception {
-		final String TEST_NAME = "test809UnAssignAccountSubmarine";
+        final String TEST_NAME = "test809UnAssignAccountSubmarine";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2268,214 +2268,214 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertNoLinkedAccount(user);
 
 //        assertLdapConnectorInstances(2);
-	}
-	
-	@Test
+    }
+
+    @Test
     public void test850ReconcileAccounts() throws Exception {
-		final String TEST_NAME = "test850ReconcileAccounts";
+        final String TEST_NAME = "test850ReconcileAccounts";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         assertUsers(6);
 
         // WHEN
         displayWhen(TEST_NAME);
         addTask(getReconciliationTaskFile());
-        
+
         waitForTaskFinish(getReconciliationTaskOid(), true);
 
         // THEN
         displayThen(TEST_NAME);
-        
+
         assertUsers(15);
         // TODO
 
 //        assertLdapConnectorInstances(2);
-	}
+    }
 
-	@Override
-	protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
-		super.assertAccountShadow(shadow, dn);
-		ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
-		assertNotNull("No primary identifier ("+getPrimaryIdentifierAttributeQName()+" in "+shadow, primaryIdAttr);
-		String primaryId = primaryIdAttr.getRealValue();
-		assertTrue("Unexpected chars in primary ID: '"+primaryId+"'", primaryId.matches("[a-z0-9\\-]+"));
-		
-		ResourceAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI,AdUtils.ATTRIBUTE_OBJECT_SID_NAME));
-		assertNotNull("No SID in "+shadow, objectSidAttr);
-		display("SID of " + dn + ": " + objectSidAttr);
-	}
-	
-	protected void assertSid(PrismObject<ShadowType> shadow, String expectedSid) throws SchemaException {
-		ResourceAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI,AdUtils.ATTRIBUTE_OBJECT_SID_NAME));
-		assertNotNull("No SID in "+shadow, objectSidAttr);
-		display("SID of " + shadow + ": " + objectSidAttr);
-		assertEquals("Wrong SID in "+shadow, expectedSid, objectSidAttr.getRealValue());
-	}
-	
-	private void assertObjectCategory(PrismObject<ShadowType> shadow, String expectedObjectCategory) {
-		ResourceAttribute<String> objectCategoryAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI,AdUtils.ATTRIBUTE_OBJECT_CATEGORY_NAME));
-		assertNotNull("No objectCategory in "+shadow, objectCategoryAttr);
-		display("objectCategory of " + shadow + ": " + objectCategoryAttr);
-		assertEquals("Wrong objectCategory in "+shadow, expectedObjectCategory, objectCategoryAttr.getRealValue());
-	}
+    @Override
+    protected void assertAccountShadow(PrismObject<ShadowType> shadow, String dn) throws SchemaException {
+        super.assertAccountShadow(shadow, dn);
+        ResourceAttribute<String> primaryIdAttr = ShadowUtil.getAttribute(shadow, getPrimaryIdentifierAttributeQName());
+        assertNotNull("No primary identifier ("+getPrimaryIdentifierAttributeQName()+" in "+shadow, primaryIdAttr);
+        String primaryId = primaryIdAttr.getRealValue();
+        assertTrue("Unexpected chars in primary ID: '"+primaryId+"'", primaryId.matches("[a-z0-9\\-]+"));
 
-	@Override
-	protected Entry assertLdapAccount(String samAccountName, String cn) throws LdapException, IOException, CursorException {
-		Entry entry = searchLdapAccount("(cn="+cn+")");
-		assertAttribute(entry, "cn", cn);
-		assertAttribute(entry, AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName);
-		return entry;
-	}
+        ResourceAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI,AdUtils.ATTRIBUTE_OBJECT_SID_NAME));
+        assertNotNull("No SID in "+shadow, objectSidAttr);
+        display("SID of " + dn + ": " + objectSidAttr);
+    }
 
-	protected Entry assertLdapSubAccount(String samAccountName, String cn) throws LdapException, IOException, CursorException {
-		Entry entry = searchLdapAccount(getSubLdapConnectionConfig(), "(cn="+cn+")");
-		assertAttribute(entry, "cn", cn);
-		assertAttribute(entry, AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName);
-		return entry;
-	}
+    protected void assertSid(PrismObject<ShadowType> shadow, String expectedSid) throws SchemaException {
+        ResourceAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI,AdUtils.ATTRIBUTE_OBJECT_SID_NAME));
+        assertNotNull("No SID in "+shadow, objectSidAttr);
+        display("SID of " + shadow + ": " + objectSidAttr);
+        assertEquals("Wrong SID in "+shadow, expectedSid, objectSidAttr.getRealValue());
+    }
 
-	@Override
-	protected void assertNoLdapAccount(String uid) throws LdapException, IOException, CursorException {
-		throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
-	}
+    private void assertObjectCategory(PrismObject<ShadowType> shadow, String expectedObjectCategory) {
+        ResourceAttribute<String> objectCategoryAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI,AdUtils.ATTRIBUTE_OBJECT_CATEGORY_NAME));
+        assertNotNull("No objectCategory in "+shadow, objectCategoryAttr);
+        display("objectCategory of " + shadow + ": " + objectCategoryAttr);
+        assertEquals("Wrong objectCategory in "+shadow, expectedObjectCategory, objectCategoryAttr.getRealValue());
+    }
 
-	protected void assertNoLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
-		assertNoLdapAccount(null, uid, cn);
-	}
+    @Override
+    protected Entry assertLdapAccount(String samAccountName, String cn) throws LdapException, IOException, CursorException {
+        Entry entry = searchLdapAccount("(cn="+cn+")");
+        assertAttribute(entry, "cn", cn);
+        assertAttribute(entry, AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName);
+        return entry;
+    }
 
-	protected void assertNoLdapSubAccount(String uid, String cn) throws LdapException, IOException, CursorException {
-		assertNoLdapAccount(getSubLdapConnectionConfig(), uid, cn);
-	}
+    protected Entry assertLdapSubAccount(String samAccountName, String cn) throws LdapException, IOException, CursorException {
+        Entry entry = searchLdapAccount(getSubLdapConnectionConfig(), "(cn="+cn+")");
+        assertAttribute(entry, "cn", cn);
+        assertAttribute(entry, AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName);
+        return entry;
+    }
 
-	protected void assertNoLdapAccount(UserLdapConnectionConfig config, String uid, String cn) throws LdapException, IOException, CursorException {
-		LdapNetworkConnection connection = ldapConnect(config);
-		List<Entry> entriesCn = ldapSearch(config, connection, "(cn="+cn+")");
-		List<Entry> entriesSamAccountName = ldapSearch(config, connection, "(sAMAccountName="+uid+")");
-		ldapDisconnect(connection);
+    @Override
+    protected void assertNoLdapAccount(String uid) throws LdapException, IOException, CursorException {
+        throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
+    }
 
-		assertEquals("Unexpected number of entries for cn="+cn+": "+entriesCn, 0, entriesCn.size());
-		assertEquals("Unexpected number of entries for sAMAccountName="+uid+": "+entriesSamAccountName, 0, entriesSamAccountName.size());
-	}
+    protected void assertNoLdapAccount(String uid, String cn) throws LdapException, IOException, CursorException {
+        assertNoLdapAccount(null, uid, cn);
+    }
 
-	@Override
-	protected String toAccountDn(String username) {
-		throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
-	}
+    protected void assertNoLdapSubAccount(String uid, String cn) throws LdapException, IOException, CursorException {
+        assertNoLdapAccount(getSubLdapConnectionConfig(), uid, cn);
+    }
 
-	@Override
-	protected String toAccountDn(String username, String fullName) {
-		return ("CN="+fullName+","+getPeopleLdapSuffix());
-	}
+    protected void assertNoLdapAccount(UserLdapConnectionConfig config, String uid, String cn) throws LdapException, IOException, CursorException {
+        LdapNetworkConnection connection = ldapConnect(config);
+        List<Entry> entriesCn = ldapSearch(config, connection, "(cn="+cn+")");
+        List<Entry> entriesSamAccountName = ldapSearch(config, connection, "(sAMAccountName="+uid+")");
+        ldapDisconnect(connection);
 
-	protected String toAccountSubDn(String username, String fullName) {
-		return ("CN="+fullName+","+getPeopleLdapSubSuffix());
-	}
+        assertEquals("Unexpected number of entries for cn="+cn+": "+entriesCn, 0, entriesCn.size());
+        assertEquals("Unexpected number of entries for sAMAccountName="+uid+": "+entriesSamAccountName, 0, entriesSamAccountName.size());
+    }
 
-	@Override
-	protected Rdn toAccountRdn(String username, String fullName) {
-		try {
-			return new Rdn(new Ava("CN", fullName));
-		} catch (LdapInvalidDnException e) {
-			throw new IllegalStateException(e.getMessage(),e);
-		}
-	}
+    @Override
+    protected String toAccountDn(String username) {
+        throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
+    }
 
-	protected String toOrgDn(String cn) {
-		return "ou="+cn+","+getOrgsLdapSuffix();
-	}
+    @Override
+    protected String toAccountDn(String username, String fullName) {
+        return ("CN="+fullName+","+getPeopleLdapSuffix());
+    }
 
-	protected String toOrgGroupDn(String groupCn, String orgName) {
-		return "cn="+groupCn+","+toOrgDn(orgName);
-	}
+    protected String toAccountSubDn(String username, String fullName) {
+        return ("CN="+fullName+","+getPeopleLdapSubSuffix());
+    }
 
-	protected Entry assertLdapOrg(String orgName) throws LdapException, IOException, CursorException {
-		String dn = toOrgDn(orgName);
-		Entry entry = getLdapEntry(dn);
-		assertNotNull("No entry "+dn, entry);
-		assertAttribute(entry, "ou", orgName);
-		return entry;
-	}
+    @Override
+    protected Rdn toAccountRdn(String username, String fullName) {
+        try {
+            return new Rdn(new Ava("CN", fullName));
+        } catch (LdapInvalidDnException e) {
+            throw new IllegalStateException(e.getMessage(),e);
+        }
+    }
 
-	protected Entry assertNoLdapOrg(String orgName) throws LdapException, IOException, CursorException {
-		String dn = toOrgDn(orgName);
-		Entry entry = getLdapEntry(dn);
-		assertNull("Unexpected org entry "+entry, entry);
-		return entry;
-	}
+    protected String toOrgDn(String cn) {
+        return "ou="+cn+","+getOrgsLdapSuffix();
+    }
 
-	protected Entry assertLdapOrgGroup(String groupCn, String orgName) throws LdapException, IOException, CursorException {
-		String dn = toOrgGroupDn(groupCn, orgName);
-		Entry entry = getLdapEntry(dn);
-		assertNotNull("No entry "+dn, entry);
-		assertAttribute(entry, "cn", groupCn);
-		return entry;
-	}
+    protected String toOrgGroupDn(String groupCn, String orgName) {
+        return "cn="+groupCn+","+toOrgDn(orgName);
+    }
 
-	protected Entry assertNoLdapOrgGroup(String groupCn, String orgName) throws LdapException, IOException, CursorException {
-		String dn = toOrgGroupDn(groupCn, orgName);
-		Entry entry = getLdapEntry(dn);
-		assertNull("Unexpected org group entry "+entry, entry);
-		return entry;
-	}
+    protected Entry assertLdapOrg(String orgName) throws LdapException, IOException, CursorException {
+        String dn = toOrgDn(orgName);
+        Entry entry = getLdapEntry(dn);
+        assertNotNull("No entry "+dn, entry);
+        assertAttribute(entry, "ou", orgName);
+        return entry;
+    }
 
-	protected void assertLdapPassword(String uid, String fullName, String password) throws LdapException, IOException, CursorException {
-		assertLdapPassword(null, uid, fullName, password);
-	}
+    protected Entry assertNoLdapOrg(String orgName) throws LdapException, IOException, CursorException {
+        String dn = toOrgDn(orgName);
+        Entry entry = getLdapEntry(dn);
+        assertNull("Unexpected org entry "+entry, entry);
+        return entry;
+    }
 
-	protected void assertLdapPassword(UserLdapConnectionConfig config, String uid, String fullName, String password) throws LdapException, IOException, CursorException {
-		Entry entry = getLdapAccountByCn(config, fullName);
-		assertLdapPassword(config, entry, password);
-	}
+    protected Entry assertLdapOrgGroup(String groupCn, String orgName) throws LdapException, IOException, CursorException {
+        String dn = toOrgGroupDn(groupCn, orgName);
+        Entry entry = getLdapEntry(dn);
+        assertNotNull("No entry "+dn, entry);
+        assertAttribute(entry, "cn", groupCn);
+        return entry;
+    }
 
-	protected void assertLdapPassword(String uid, String password) throws LdapException, IOException, CursorException {
-		throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
-	}
+    protected Entry assertNoLdapOrgGroup(String groupCn, String orgName) throws LdapException, IOException, CursorException {
+        String dn = toOrgGroupDn(groupCn, orgName);
+        Entry entry = getLdapEntry(dn);
+        assertNull("Unexpected org group entry "+entry, entry);
+        return entry;
+    }
 
-	protected ObjectQuery createSamAccountNameQuery(String samAccountName) throws SchemaException {
-		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName),
-				prismContext);
-		return query;
-	}
+    protected void assertLdapPassword(String uid, String fullName, String password) throws LdapException, IOException, CursorException {
+        assertLdapPassword(null, uid, fullName, password);
+    }
 
-	@Override
-	protected Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
-		byte[] password = encodePassword("Secret.123");
-		Entry entry = new DefaultEntry(toAccountDn(uid, cn),
-				"objectclass", getLdapAccountObjectClass(),
-				AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, uid,
-				"cn", cn,
-				"givenName", givenName,
-				"sn", sn,
-				AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512",
-				AdUtils.ATTRIBUTE_UNICODE_PWD_NAME, password);
-		return entry;
-	}
+    protected void assertLdapPassword(UserLdapConnectionConfig config, String uid, String fullName, String password) throws LdapException, IOException, CursorException {
+        Entry entry = getLdapAccountByCn(config, fullName);
+        assertLdapPassword(config, entry, password);
+    }
 
-	private byte[] encodePassword(String password) {
-		String quotedPassword = "\"" + password + "\"";
-		try {
-			return quotedPassword.getBytes("UTF-16LE");
-		} catch (UnsupportedEncodingException e) {
-			throw new SystemException(e.getMessage(), e);
-		}
-	}
+    protected void assertLdapPassword(String uid, String password) throws LdapException, IOException, CursorException {
+        throw new UnsupportedOperationException("Boom! Cannot do this here. This is bloody AD! We need full name!");
+    }
 
-	public <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
-		assertAttribute(shadow, new QName(getResourceNamespace(), attrName), expectedValues);
-	}
+    protected ObjectQuery createSamAccountNameQuery(String samAccountName) throws SchemaException {
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+        ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName),
+                prismContext);
+        return query;
+    }
 
-	public <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
-		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
-	}
+    @Override
+    protected Entry createAccountEntry(String uid, String cn, String givenName, String sn) throws LdapException {
+        byte[] password = encodePassword("Secret.123");
+        Entry entry = new DefaultEntry(toAccountDn(uid, cn),
+                "objectclass", getLdapAccountObjectClass(),
+                AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, uid,
+                "cn", cn,
+                "givenName", givenName,
+                "sn", sn,
+                AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512",
+                AdUtils.ATTRIBUTE_UNICODE_PWD_NAME, password);
+        return entry;
+    }
 
-	protected abstract void assertAccountDisabled(PrismObject<ShadowType> shadow);
+    private byte[] encodePassword(String password) {
+        String quotedPassword = "\"" + password + "\"";
+        try {
+            return quotedPassword.getBytes("UTF-16LE");
+        } catch (UnsupportedEncodingException e) {
+            throw new SystemException(e.getMessage(), e);
+        }
+    }
 
-	protected abstract void assertAccountEnabled(PrismObject<ShadowType> shadow);
+    public <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
+        assertAttribute(shadow, new QName(getResourceNamespace(), attrName), expectedValues);
+    }
+
+    public <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
+        List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
+        PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
+    }
+
+    protected abstract void assertAccountDisabled(PrismObject<ShadowType> shadow);
+
+    protected abstract void assertAccountEnabled(PrismObject<ShadowType> shadow);
 
 }

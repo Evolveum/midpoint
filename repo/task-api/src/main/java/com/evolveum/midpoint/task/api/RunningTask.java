@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,96 +28,96 @@ import java.util.Collection;
  */
 public interface RunningTask extends Task {
 
-	/**
-	 * Returns true if the task can run (was not interrupted).
-	 *
-	 * Will return false e.g. if shutdown was signaled.
-	 *
-	 * BEWARE: this flag is present only on the instance of the task that is being "executed", i.e. passed to
-	 * task execution routine and task handler(s).
-	 *
-	 * @return true if the task can run
-	 */
-	boolean canRun();
+    /**
+     * Returns true if the task can run (was not interrupted).
+     *
+     * Will return false e.g. if shutdown was signaled.
+     *
+     * BEWARE: this flag is present only on the instance of the task that is being "executed", i.e. passed to
+     * task execution routine and task handler(s).
+     *
+     * @return true if the task can run
+     */
+    boolean canRun();
 
-	/**
-	 * Creates a transient subtask, ready to execute a given LightweightTaskHandler.
-	 *
-	 * Owner is inherited from parent task to subtask.
-	 *
-	 * @return
-	 */
-	RunningTask createSubtask(LightweightTaskHandler handler);
+    /**
+     * Creates a transient subtask, ready to execute a given LightweightTaskHandler.
+     *
+     * Owner is inherited from parent task to subtask.
+     *
+     * @return
+     */
+    RunningTask createSubtask(LightweightTaskHandler handler);
 
 
-	/**
-	 * Returns the in-memory version of the parent task. Applicable only to lightweight subtasks.
-	 * EXPERIMENTAL (use with care)
-	 */
-	RunningTask getParentForLightweightAsynchronousTask();
+    /**
+     * Returns the in-memory version of the parent task. Applicable only to lightweight subtasks.
+     * EXPERIMENTAL (use with care)
+     */
+    RunningTask getParentForLightweightAsynchronousTask();
 
-	LightweightTaskHandler getLightweightTaskHandler();
+    LightweightTaskHandler getLightweightTaskHandler();
 
-	boolean isLightweightAsynchronousTask();
+    boolean isLightweightAsynchronousTask();
 
-	Collection<? extends RunningTask> getLightweightAsynchronousSubtasks();
+    Collection<? extends RunningTask> getLightweightAsynchronousSubtasks();
 
-	Collection<? extends RunningTask> getRunningLightweightAsynchronousSubtasks();
+    Collection<? extends RunningTask> getRunningLightweightAsynchronousSubtasks();
 
-	boolean lightweightHandlerStartRequested();
+    boolean lightweightHandlerStartRequested();
 
-	/**
-	 * Starts execution of a transient task carrying a LightweightTaskHandler.
-	 * (just a shortcut to analogous call in TaskManager)
-	 */
-	void startLightweightHandler();
+    /**
+     * Starts execution of a transient task carrying a LightweightTaskHandler.
+     * (just a shortcut to analogous call in TaskManager)
+     */
+    void startLightweightHandler();
 
-	void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution);
+    void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution);
 
-	void storeOperationStatsDeferred();
+    void storeOperationStatsDeferred();
 
-	/**
-	 * Call from the thread that executes the task ONLY! Otherwise wrong data might be recorded.
-	 */
-	void refreshLowLevelStatistics();
+    /**
+     * Call from the thread that executes the task ONLY! Otherwise wrong data might be recorded.
+     */
+    void refreshLowLevelStatistics();
 
-	void storeOperationStats();
+    void storeOperationStats();
 
-	// CALL ONLY FROM THE THREAD EXECUTING THE TASK!
-	// stores operation statistics if the time has come
-	void storeOperationStatsIfNeeded();
+    // CALL ONLY FROM THE THREAD EXECUTING THE TASK!
+    // stores operation statistics if the time has come
+    void storeOperationStatsIfNeeded();
 
-	Long getLastOperationStatsUpdateTimestamp();
+    Long getLastOperationStatsUpdateTimestamp();
 
-	void setOperationStatsUpdateInterval(long interval);
+    void setOperationStatsUpdateInterval(long interval);
 
-	long getOperationStatsUpdateInterval();
+    long getOperationStatsUpdateInterval();
 
-	void incrementProgressAndStoreStatsIfNeeded();
+    void incrementProgressAndStoreStatsIfNeeded();
 
-	void deleteLightweightAsynchronousSubtasks();
+    void deleteLightweightAsynchronousSubtasks();
 
-	// EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
-	int getAndIncrementObjectsSeen();
+    // EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
+    int getAndIncrementObjectsSeen();
 
-	/**
-	 * Must be called from the thread that executes the task.
-	 * EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
-	 */
-	void startDynamicProfilingIfNeeded(RunningTask coordinatorTask, int objectsSeen);
+    /**
+     * Must be called from the thread that executes the task.
+     * EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
+     */
+    void startDynamicProfilingIfNeeded(RunningTask coordinatorTask, int objectsSeen);
 
-	/**
-	 * Must be called from the thread that executes the task.
-	 */
-	void stopDynamicProfiling();
+    /**
+     * Must be called from the thread that executes the task.
+     */
+    void stopDynamicProfiling();
 
-	/**
-	 * EXPERIMENTAL
-	 */
-	boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingRootType defaultTracingRoot);
+    /**
+     * EXPERIMENTAL
+     */
+    boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingRootType defaultTracingRoot);
 
-	/**
-	 * EXPERIMENTAL
-	 */
-	void stopTracing();
+    /**
+     * EXPERIMENTAL
+     */
+    void stopTracing();
 }

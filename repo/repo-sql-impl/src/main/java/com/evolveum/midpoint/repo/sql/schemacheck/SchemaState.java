@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -16,26 +16,26 @@ import org.jetbrains.annotations.NotNull;
  */
 class SchemaState {
 
-	/**
-	 * Compliance of the data structure. (Not regarding schema version in the metadata.)
-	 */
-	@NotNull final DataStructureCompliance dataStructureCompliance;
+    /**
+     * Compliance of the data structure. (Not regarding schema version in the metadata.)
+     */
+    @NotNull final DataStructureCompliance dataStructureCompliance;
 
-	/**
-	 * Version as declared in the metadata.
-	 */
-	@NotNull final DeclaredVersion declaredVersion;
+    /**
+     * Version as declared in the metadata.
+     */
+    @NotNull final DeclaredVersion declaredVersion;
 
-	SchemaState(@NotNull DataStructureCompliance dataStructureCompliance, @NotNull DeclaredVersion declaredVersion) {
-		this.dataStructureCompliance = dataStructureCompliance;
-		this.declaredVersion = declaredVersion;
-	}
+    SchemaState(@NotNull DataStructureCompliance dataStructureCompliance, @NotNull DeclaredVersion declaredVersion) {
+        this.dataStructureCompliance = dataStructureCompliance;
+        this.declaredVersion = declaredVersion;
+    }
 
-	@Override
-	public String toString() {
-		return "SchemaState{" +
-				"dataStructureCompliance=" + dataStructureCompliance +
-				", declaredVersion=" + declaredVersion +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "SchemaState{" +
+                "dataStructureCompliance=" + dataStructureCompliance +
+                ", declaredVersion=" + declaredVersion +
+                '}';
+    }
 }

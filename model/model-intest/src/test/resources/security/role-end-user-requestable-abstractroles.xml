@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role  oid="9434bf5b-c088-456f-9286-84a1e5a0223c"
@@ -16,16 +16,16 @@
    <authorization id="1">
       <name>gui-self-service-access</name>
       <description>
-    		Allow access to all self-service operations in GUI.
-    	</description>
+            Allow access to all self-service operations in GUI.
+        </description>
       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
    </authorization>
    <authorization id="2">
       <name>self-read</name>
       <description>
-    		Allow to read all the properties of "self" object. I.e. every logged-in user can read
-    		object that represent his own identity.
-    	</description>
+            Allow to read all the properties of "self" object. I.e. every logged-in user can read
+            object that represent his own identity.
+        </description>
       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
       <object>
          <special>self</special>
@@ -34,9 +34,9 @@
    <authorization id="3">
       <name>self-shadow-read</name>
       <description>
-    		Allow to read all the properties of all the shadows that belong to "self" object. 
-    		I.e. every logged-in user can read all his accounts.
-    	</description>
+            Allow to read all the properties of all the shadows that belong to "self" object.
+            I.e. every logged-in user can read all his accounts.
+        </description>
       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
       <object>
          <type>ShadowType</type>
@@ -48,9 +48,9 @@
    <authorization id="4">
       <name>self-credentials-request</name>
       <description>
-    		Allow to modify user's own credentials.
-    		Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
-    	</description>
+            Allow to modify user's own credentials.
+            Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
+        </description>
       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
       <phase>request</phase>
       <object>
@@ -61,9 +61,9 @@
    <authorization id="5">
       <name>self-shadow-credentials-request</name>
       <description>
-    		Allow to modify credentials of all users accounts.
-    		Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
-    	</description>
+            Allow to modify credentials of all users accounts.
+            Note that this is a request phase authorization. It also requires corresponding execution-phase authorization.
+        </description>
       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#changeCredentials</action>
       <phase>request</phase>
       <object>
@@ -77,11 +77,11 @@
    <authorization id="6">
       <name>assign-requestable-roles</name>
       <description>
-    		Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
-    	    The requestable roles will be displayed in the role request dialog by default.
-    	    Please note that the roles also need an approved definition to go through the approval process.
-    	    Otherwise they will be assigned automatically wihout any approval. 
-    	</description>
+            Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
+            The requestable roles will be displayed in the role request dialog by default.
+            Please note that the roles also need an approved definition to go through the approval process.
+            Otherwise they will be assigned automatically wihout any approval.
+        </description>
       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
       <phase>request</phase>
       <object>
@@ -100,11 +100,11 @@
    <authorization id="7">
       <name>assignment-target-read</name>
       <description>
-    		Authorization that allows to read all the object that are possible assignment targets. We want that
-    		to display the targets in the selection windows.
-    		Note that this authorization may be too broad for production use. Normally it should be limited to just
-    		selected properties such as name and description.
-    	</description>
+            Authorization that allows to read all the object that are possible assignment targets. We want that
+            to display the targets in the selection windows.
+            Note that this authorization may be too broad for production use. Normally it should be limited to just
+            selected properties such as name and description.
+        </description>
       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
       <object>
          <type>OrgType</type>
@@ -127,13 +127,13 @@
    <authorization id="9">
       <name>assign-requestable-orgs</name>
       <description>
-    		Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
-    	    The requestable roles will be displayed in the role request dialog by default.
-    	    Please note that the roles also need an approved definition to go through the approval process.
-    	    Otherwise they will be assigned automatically wihout any approval. 
-    	</description>
+            Allow to assign requestable roles. This allows to request roles in a request-and-approve process.
+            The requestable roles will be displayed in the role request dialog by default.
+            Please note that the roles also need an approved definition to go through the approval process.
+            Otherwise they will be assigned automatically wihout any approval.
+        </description>
       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
-	   <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
       <phase>request</phase>
       <object>
          <special>self</special>

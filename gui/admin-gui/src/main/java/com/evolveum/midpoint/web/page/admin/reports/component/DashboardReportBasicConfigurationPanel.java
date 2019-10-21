@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
@@ -52,7 +52,7 @@ public class DashboardReportBasicConfigurationPanel extends BasePanel<ReportDto>
 
     public DashboardReportBasicConfigurationPanel(String id, IModel<ReportDto> model) {
         super(id, model);
-		initLayout();
+        initLayout();
     }
 
     protected void initLayout() {
@@ -66,24 +66,24 @@ public class DashboardReportBasicConfigurationPanel extends BasePanel<ReportDto>
         add(description);
 
         ValueChoosePanel<ObjectReferenceType> panel =
-        		new ValueChoosePanel<ObjectReferenceType>(ID_DASHBOARD,
-        				new PropertyModel<ObjectReferenceType>(getModel(), ReportDto.F_DASHBOARD_REF)) {
+                new ValueChoosePanel<ObjectReferenceType>(ID_DASHBOARD,
+                        new PropertyModel<ObjectReferenceType>(getModel(), ReportDto.F_DASHBOARD_REF)) {
 
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public List<QName> getSupportedTypes() {
-				return Arrays.asList(DashboardType.COMPLEX_TYPE);
-			}
-			
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {
-				return (Class<O>) DashboardType.class;
-			}
+            @Override
+            public List<QName> getSupportedTypes() {
+                return Arrays.asList(DashboardType.COMPLEX_TYPE);
+            }
 
-		};
-		add(panel);
-        
+
+            @Override
+            protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {
+                return (Class<O>) DashboardType.class;
+            }
+
+        };
+        add(panel);
+
     }
 }

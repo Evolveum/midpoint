@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.input;
@@ -17,22 +17,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ObjectTypeChoiceRenderer<T extends ObjectType> implements IChoiceRenderer<T>  {
 
-	@Override
-	public Object getDisplayValue(T object) {
-		return WebComponentUtil.getName(object);
-	}
+    @Override
+    public Object getDisplayValue(T object) {
+        return WebComponentUtil.getName(object);
+    }
 
-	@Override
-	public String getIdValue(T object, int index) {
-		return Integer.toString(index);
-	}
+    @Override
+    public String getIdValue(T object, int index) {
+        return Integer.toString(index);
+    }
 
-	@Override
-	public T getObject(String id, IModel<? extends List<? extends T>> choices) {
-		if (StringUtils.isBlank(id)){
-			return null;
-		}
-		return choices.getObject().get(Integer.parseInt(id));
-	}
+    @Override
+    public T getObject(String id, IModel<? extends List<? extends T>> choices) {
+        if (StringUtils.isBlank(id)){
+            return null;
+        }
+        return choices.getObject().get(Integer.parseInt(id));
+    }
 
 }

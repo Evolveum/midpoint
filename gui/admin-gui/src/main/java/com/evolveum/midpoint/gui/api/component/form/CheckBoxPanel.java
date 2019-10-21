@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,30 +21,30 @@ import org.apache.wicket.model.IModel;
 
 /**
  * Checkbox that is supposed to be used in forms - checkbox with label.
- * 
+ *
  * @author lazyman
  * @author Radovan Semancik
  */
 public class CheckBoxPanel extends Panel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_CONTAINER = "container";
-	private static final String ID_CHECK = "check";
-	private static final String ID_LABEL = "label";
+    private static final String ID_CONTAINER = "container";
+    private static final String ID_CHECK = "check";
+    private static final String ID_LABEL = "label";
 
-	public CheckBoxPanel(String id, IModel<Boolean> checkboxModel) {
-	    this(id, checkboxModel, null, null, null);
+    public CheckBoxPanel(String id, IModel<Boolean> checkboxModel) {
+        this(id, checkboxModel, null, null, null);
     }
 
-    public CheckBoxPanel(String id, IModel<Boolean> checkboxModel, final IModel<Boolean> visibilityModel, 
-    		IModel<String> labelModel, IModel<String> tooltipModel) {
+    public CheckBoxPanel(String id, IModel<Boolean> checkboxModel, final IModel<Boolean> visibilityModel,
+            IModel<String> labelModel, IModel<String> tooltipModel) {
         super(id);
-        
+
         WebMarkupContainer container = new WebMarkupContainer(ID_CONTAINER);
         add(container);
 
         AjaxCheckBox check = new AjaxCheckBox(ID_CHECK, checkboxModel) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -59,22 +59,22 @@ public class CheckBoxPanel extends Panel {
         check.setOutputMarkupId(true);
 
         if (visibilityModel != null) {
-	        check.add(new VisibleEnableBehaviour() {
-	        	private static final long serialVersionUID = 1L;
-	
-	            @Override
-	            public boolean isEnabled() {
-	                return visibilityModel.getObject();
-	            }
-	        });
+            check.add(new VisibleEnableBehaviour() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isEnabled() {
+                    return visibilityModel.getObject();
+                }
+            });
         }
         container.add(check);
-        
-		Label label = new Label(ID_LABEL, labelModel);
-		label.add(new VisibleBehaviour(() -> labelModel != null));
-		label.setRenderBodyOnly(true);
-		container.add(label);
-        
+
+        Label label = new Label(ID_LABEL, labelModel);
+        label.add(new VisibleBehaviour(() -> labelModel != null));
+        label.setRenderBodyOnly(true);
+        container.add(label);
+
         if (tooltipModel != null) {
             container.add(new AttributeModifier("title", tooltipModel));
         }
@@ -91,11 +91,11 @@ public class CheckBoxPanel extends Panel {
     }
 
     public boolean getValue() {
-    	Boolean val = getPanelComponent().getModelObject();
-    	if (val == null) {
-    		return false;
-    	}
+        Boolean val = getPanelComponent().getModelObject();
+        if (val == null) {
+            return false;
+        }
 
-    	return val.booleanValue();
+        return val.booleanValue();
     }
 }

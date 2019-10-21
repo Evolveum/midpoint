@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -34,9 +34,9 @@ public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDu
     @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(HqlDataInstance.class);
 
-	@NotNull final String hqlPath;                         // concrete path for accessing this item
-	@NotNull final D jpaDefinition;                        // definition of this item
-    final HqlDataInstance<?> parentDataItem;         	   // how we got here - optional
+    @NotNull final String hqlPath;                         // concrete path for accessing this item
+    @NotNull final D jpaDefinition;                        // definition of this item
+    final HqlDataInstance<?> parentDataItem;                // how we got here - optional
 
     HqlDataInstance(@NotNull String hqlPath, @NotNull D jpaDefinition, HqlDataInstance<?> parentDataItem) {
         this.hqlPath = hqlPath;
@@ -54,7 +54,7 @@ public class HqlDataInstance<D extends JpaDataNodeDefinition> implements DebugDu
         }
     }
 
-	@NotNull
+    @NotNull
     public D getJpaDefinition() {
         return jpaDefinition;
     }

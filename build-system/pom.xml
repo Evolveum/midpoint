@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -82,45 +82,46 @@
         <reflections.version>0.9.11</reflections.version>
         <guava.version>28.1-jre</guava.version>
         <jcommander.version>1.72</jcommander.version>
-		<failsafe.version>3.0.0-M3</failsafe.version>
-		<antrun.version>1.8</antrun.version>
-		<javax.xml.soap.version>1.4.0</javax.xml.soap.version>
+        <failsafe.version>3.0.0-M3</failsafe.version>
+        <antrun.version>1.8</antrun.version>
+        <javax.xml.soap.version>1.4.0</javax.xml.soap.version>
         <qpid-broker.version>7.1.1</qpid-broker.version>
         <jakarta.jaxb.version>2.3.2</jakarta.jaxb.version>
         <asm.version>7.0</asm.version>
-		<jaxws-api.version>2.3.1</jaxws-api.version>
-		<stax-api.version>1.0-2</stax-api.version>
-		<geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
-		<activation.version>1.2.0</activation.version>
-		<jetty.version>9.4.20.v20190813</jetty.version>
+        <jaxws-api.version>2.3.1</jaxws-api.version>
+        <stax-api.version>1.0-2</stax-api.version>
+        <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
+        <activation.version>1.2.0</activation.version>
+        <jetty.version>9.4.20.v20190813</jetty.version>
         <maven.api.version>3.6.2</maven.api.version>
+        <checkstyle.version>3.1.0</checkstyle.version>
     </properties>
     <dependencyManagement>
         <dependencies>
-		
-			<!-- Upgrade to Java 11 -->
-			<dependency>
-				<groupId>javax.xml.soap</groupId>
-				<artifactId>javax.xml.soap-api</artifactId>
-				<version>${javax.xml.soap.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>javax.xml.ws</groupId>
-				<artifactId>jaxws-api</artifactId>
-				<version>${jaxws-api.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.geronimo.specs</groupId>
-				<artifactId>geronimo-ws-metadata_2.0_spec</artifactId>
-				<version>${geronimo-ws-metadata_2.0_spec.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.sun.activation</groupId>
-				<artifactId>javax.activation</artifactId>
-				<version>${activation.version}</version>
-			</dependency>
-		
-			<dependency>
+
+            <!-- Upgrade to Java 11 -->
+            <dependency>
+                <groupId>javax.xml.soap</groupId>
+                <artifactId>javax.xml.soap-api</artifactId>
+                <version>${javax.xml.soap.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.xml.ws</groupId>
+                <artifactId>jaxws-api</artifactId>
+                <version>${jaxws-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.geronimo.specs</groupId>
+                <artifactId>geronimo-ws-metadata_2.0_spec</artifactId>
+                <version>${geronimo-ws-metadata_2.0_spec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.activation</groupId>
+                <artifactId>javax.activation</artifactId>
+                <version>${activation.version}</version>
+            </dependency>
+
+            <dependency>
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -157,13 +158,13 @@
                 <artifactId>wicket-ioc</artifactId>
                 <version>${wicket.version}</version>
                 <exclusions>
-					<exclusion> <!-- Conflicting version with CXF -->
+                    <exclusion> <!-- Conflicting version with CXF -->
                         <groupId>org.ow2.asm</groupId>
                         <artifactId>asm</artifactId>
                     </exclusion>
-					<exclusion>
+                    <exclusion>
                         <groupId>org.apache.ant</groupId>
-						<artifactId>ant</artifactId>
+                        <artifactId>ant</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -203,7 +204,7 @@
                 <artifactId>wicket-datetime</artifactId>
                 <version>8.0.0-M7</version>
                 <!--<exclusions>-->
-					<!--<exclusion> &lt;!&ndash; Conflicting version with activiti &ndash;&gt;-->
+                    <!--<exclusion> &lt;!&ndash; Conflicting version with activiti &ndash;&gt;-->
                         <!--<groupId>joda-time</groupId>-->
                         <!--<artifactId>joda-time</artifactId>-->
                     <!--</exclusion>-->
@@ -219,28 +220,28 @@
                 <artifactId>commons-email</artifactId>
                 <version>${commons-email.version}</version>
                 <exclusions>
-					<exclusion> <!-- Conflicting version with itself! -->
+                    <exclusion> <!-- Conflicting version with itself! -->
                         <groupId>javax.activation</groupId>
                         <artifactId>activation</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
-				<groupId>org.codehaus.groovy</groupId>
-				<artifactId>groovy-all</artifactId>
-				<version>${groovy.version}</version>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-all</artifactId>
+                <version>${groovy.version}</version>
                 <type>pom</type>
-			</dependency>
+            </dependency>
             <dependency>
                 <groupId>org.codehaus.groovy</groupId>
                 <artifactId>groovy</artifactId>
                 <version>${groovy.version}</version>
             </dependency>
-			<dependency>
-				<groupId>org.python</groupId>
-				<artifactId>jython</artifactId>
-				<version>2.5.3</version>
-			</dependency>
+            <dependency>
+                <groupId>org.python</groupId>
+                <artifactId>jython</artifactId>
+                <version>2.5.3</version>
+            </dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
@@ -251,7 +252,7 @@
                 <artifactId>hibernate-core</artifactId>
                 <version>${hibernate.version}</version>
                 <exclusions>
-					<exclusion> <!-- Version conflict with xalan -->
+                    <exclusion> <!-- Version conflict with xalan -->
                         <groupId>xml-apis</groupId>
                         <artifactId>xml-apis</artifactId>
                     </exclusion>
@@ -262,25 +263,25 @@
                 </exclusions>
             </dependency>
             <dependency>
-	            <groupId>org.hibernate.javax.persistence</groupId>
-	            <artifactId>hibernate-jpa-2.1-api</artifactId>
-	            <version>1.0.0.Final</version>
-	        </dependency>
+                <groupId>org.hibernate.javax.persistence</groupId>
+                <artifactId>hibernate-jpa-2.1-api</artifactId>
+                <version>1.0.0.Final</version>
+            </dependency>
             <dependency>
                 <groupId>org.javassist</groupId>
                 <artifactId>javassist</artifactId>
                 <version>3.25.0-GA</version> <!-- Version compatible with JDK 11. Transitive dependency from hibernate. Hibernate has older version. -->
             </dependency>
-	        <dependency>
+            <dependency>
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
                 <version>3.3.1</version>
             </dependency>
             <dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>jul-to-slf4j</artifactId>
-				<version>${slf4j.version}</version>
-			</dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
@@ -301,26 +302,26 @@
                 <artifactId>je</artifactId>
                 <version>5.0.103</version>
             </dependency>
-			<dependency>
-				<groupId>xerces</groupId>
-				<artifactId>xercesImpl</artifactId>
-				<version>2.12.0</version>
-			</dependency>
-			<dependency>
-				<groupId>xalan</groupId>
-				<artifactId>xalan</artifactId>
-				<version>2.7.2</version>
-			</dependency>
-			<dependency>
-				<groupId>xml-apis</groupId>
-				<artifactId>xml-apis</artifactId>
-				<version>1.4.01</version>
-			</dependency>
-			<dependency>
-				<groupId>javax.xml.stream</groupId>
-				<artifactId>stax-api</artifactId>
-				<version>1.0-2</version>
-			</dependency>
+            <dependency>
+                <groupId>xerces</groupId>
+                <artifactId>xercesImpl</artifactId>
+                <version>2.12.0</version>
+            </dependency>
+            <dependency>
+                <groupId>xalan</groupId>
+                <artifactId>xalan</artifactId>
+                <version>2.7.2</version>
+            </dependency>
+            <dependency>
+                <groupId>xml-apis</groupId>
+                <artifactId>xml-apis</artifactId>
+                <version>1.4.01</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.xml.stream</groupId>
+                <artifactId>stax-api</artifactId>
+                <version>1.0-2</version>
+            </dependency>
             <dependency>
                 <groupId>org.codehaus.staxmate</groupId>
                 <artifactId>staxmate</artifactId>
@@ -332,10 +333,10 @@
                 <version>1.0.1</version>
             </dependency>
             <dependency>
-				<groupId>javax.xml.bind</groupId>
-				<artifactId>jaxb-api</artifactId>
-				<version>${jaxb-api.version}</version>
-			</dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxb-api.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.sun.xml.bind</groupId>
                 <artifactId>jaxb-impl</artifactId>
@@ -352,10 +353,10 @@
                 <version>${jaxb-xjc.version}</version>
             </dependency>
             <dependency>
-	            <groupId>net.sourceforge.ccxjc</groupId>
-	            <artifactId>cc-xjc-plugin</artifactId>
-	            <version>2.0</version>
-	        </dependency>
+                <groupId>net.sourceforge.ccxjc</groupId>
+                <artifactId>cc-xjc-plugin</artifactId>
+                <version>2.0</version>
+            </dependency>
             <dependency>
                 <groupId>com.sun.xsom</groupId>
                 <artifactId>xsom</artifactId>
@@ -397,7 +398,7 @@
                 <artifactId>commons-configuration</artifactId>
                 <version>1.6</version>
                 <exclusions>
-					<exclusion> <!-- Conflicting version with Spring core -->
+                    <exclusion> <!-- Conflicting version with Spring core -->
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
@@ -432,15 +433,15 @@
                 <version>1.5.6</version>
             </dependency>
             <dependency> <!-- used in task-quartz-impl. Should not be. TODO: cleanup -->
-				<groupId>commons-logging</groupId>
-				<artifactId>commons-logging</artifactId>
-				<version>1.1.3</version>
-			</dependency>
-			<dependency>
-				<groupId>commons-javaflow</groupId>
-				<artifactId>commons-javaflow</artifactId>
-				<version>20060411</version>
-			</dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>1.1.3</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-javaflow</groupId>
+                <artifactId>commons-javaflow</artifactId>
+                <version>20060411</version>
+            </dependency>
             <dependency>
                 <groupId>org.jetbrains</groupId>
                 <artifactId>annotations-java5</artifactId>
@@ -457,10 +458,10 @@
                 <version>1.2</version>
             </dependency>
             <dependency>
-				<groupId>javax.jws</groupId>
-				<artifactId>jsr181-api</artifactId>
-				<version>1.0-MR1</version>
-			</dependency>
+                <groupId>javax.jws</groupId>
+                <artifactId>jsr181-api</artifactId>
+                <version>1.0-MR1</version>
+            </dependency>
             <dependency>
                 <groupId>javax.inject</groupId>
                 <artifactId>javax.inject</artifactId>
@@ -484,20 +485,20 @@
                 <version>2.1</version>
             </dependency>
             <dependency>
-	            <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-                  	 As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-	                 Therefore explicitly use the custom version. -->
-	            <groupId>org.apache.httpcomponents</groupId>
-	            <artifactId>httpclient</artifactId>
-	            <version>4.5.3.e3</version>
+                <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+                       As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+                     Therefore explicitly use the custom version. -->
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.3.e3</version>
             </dependency>
             <dependency>
-	            <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-                  	 As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-	                 Therefore explicitly use the custom version. -->
-	            <groupId>org.apache.httpcomponents</groupId>
-	            <artifactId>httpcore</artifactId>
-	            <version>4.4.6</version>
+                <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+                       As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+                     Therefore explicitly use the custom version. -->
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>4.4.6</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -524,21 +525,21 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-core</artifactId>
                 <version>${cxf.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.jvnet.staxex</groupId>
-					<artifactId>stax-ex</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.xml.soap</groupId>
-					<artifactId>javax.xml.soap-api</artifactId>
-				</exclusion>
-				<!-- Conflicting version with sun jaxb-xjc -->
-                        	<exclusion>
-                            		<groupId>org.glassfish.jaxb</groupId>
-                            		<artifactId>jaxb-xjc</artifactId>
-                        	</exclusion>
-			</exclusions>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jvnet.staxex</groupId>
+                    <artifactId>stax-ex</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.soap</groupId>
+                    <artifactId>javax.xml.soap-api</artifactId>
+                </exclusion>
+                <!-- Conflicting version with sun jaxb-xjc -->
+                            <exclusion>
+                                    <groupId>org.glassfish.jaxb</groupId>
+                                    <artifactId>jaxb-xjc</artifactId>
+                            </exclusion>
+            </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -560,16 +561,16 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-tools-common</artifactId>
                 <version>${cxf.version}</version>
-				<exclusions>
-				<exclusion>
-					<groupId>org.jvnet.staxex</groupId>
-					<artifactId>stax-ex</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.xml.soap</groupId>
-					<artifactId>javax.xml.soap-api</artifactId>
-				</exclusion>
-			</exclusions>
+                <exclusions>
+                <exclusion>
+                    <groupId>org.jvnet.staxex</groupId>
+                    <artifactId>stax-ex</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.soap</groupId>
+                    <artifactId>javax.xml.soap-api</artifactId>
+                </exclusion>
+            </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -592,16 +593,16 @@
                 <version>${cxf.version}</version>
                 <exclusions>
                     <exclusion>
-                    	<!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-                    	     As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-	                         Therefore explicitly use the custom version. -->
+                        <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+                             As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+                             Therefore explicitly use the custom version. -->
                         <groupId>org.apache.httpcomponents</groupId>
                         <artifactId>httpclient</artifactId>
                     </exclusion>
                     <exclusion>
-                    	<!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-                    	     As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-	                         Therefore explicitly use the custom version. -->
+                        <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+                             As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+                             Therefore explicitly use the custom version. -->
                         <groupId>org.apache.httpcomponents</groupId>
                         <artifactId>httpcore</artifactId>
                     </exclusion>
@@ -637,7 +638,7 @@
                 <artifactId>cxf-rt-ws-security</artifactId>
                 <version>${cxf.version}</version>
                 <exclusions>
-					<exclusion> <!-- Version in dependency of org.apache.neethi:neethi conflicts with cxf-core -->
+                    <exclusion> <!-- Version in dependency of org.apache.neethi:neethi conflicts with cxf-core -->
                         <groupId>org.codehaus.woodstox</groupId>
                         <artifactId>woodstox-core-asl</artifactId>
                     </exclusion>
@@ -648,55 +649,55 @@
                 </exclusions>
             </dependency>
             <dependency>
-	  			<groupId>org.apache.cxf</groupId>
-				<artifactId>cxf-rt-frontend-jaxrs</artifactId>
-				<version>${cxf.version}</version>
+                  <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+                <version>${cxf.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>jakarta.ws.rs</groupId>
                         <artifactId>jakarta.ws.rs-api</artifactId>
                     </exclusion>
                 </exclusions>
-			</dependency>
-			<dependency>
-			   <groupId>org.apache.cxf</groupId>
-			   <artifactId>cxf-rt-rs-client</artifactId>
-			   <version>${cxf.version}</version>
-			   <exclusions>
-				<exclusion>
-					<groupId>org.jvnet.staxex</groupId>
-					<artifactId>stax-ex</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.xml.soap</groupId>
-					<artifactId>javax.xml.soap-api</artifactId>
-				</exclusion>
-			</exclusions>
-			</dependency>
-			<dependency>
-			   <groupId>org.apache.cxf</groupId>
-			   <artifactId>cxf-rt-rs-extension-providers</artifactId>
-			   <version>${cxf.version}</version>
-			</dependency>
-	        <dependency>
-	            <groupId>org.apache.cxf.xjc-utils</groupId>
-	            <artifactId>cxf-xjc-runtime</artifactId>
-		        <version>${cxf-xjc.version}</version>
+            </dependency>
+            <dependency>
+               <groupId>org.apache.cxf</groupId>
+               <artifactId>cxf-rt-rs-client</artifactId>
+               <version>${cxf.version}</version>
+               <exclusions>
+                <exclusion>
+                    <groupId>org.jvnet.staxex</groupId>
+                    <artifactId>stax-ex</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.soap</groupId>
+                    <artifactId>javax.xml.soap-api</artifactId>
+                </exclusion>
+            </exclusions>
+            </dependency>
+            <dependency>
+               <groupId>org.apache.cxf</groupId>
+               <artifactId>cxf-rt-rs-extension-providers</artifactId>
+               <version>${cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf.xjc-utils</groupId>
+                <artifactId>cxf-xjc-runtime</artifactId>
+                <version>${cxf-xjc.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.activation</groupId>
                         <artifactId>activation</artifactId>
                     </exclusion>
                 </exclusions>
-        	</dependency>
-        	<dependency>
-	            <groupId>org.apache.wss4j</groupId>
-	            <artifactId>wss4j-ws-security-common</artifactId>
-	            <version>${wss4j.version}</version>
-	            <exclusions>
-	            	<exclusion> <!-- conflict with javax.mail:mail -->
+            </dependency>
+            <dependency>
+                <groupId>org.apache.wss4j</groupId>
+                <artifactId>wss4j-ws-security-common</artifactId>
+                <version>${wss4j.version}</version>
+                <exclusions>
+                    <exclusion> <!-- conflict with javax.mail:mail -->
                         <groupId>org.apache.geronimo.javamail</groupId>
-	            		<artifactId>geronimo-javamail_1.4_mail</artifactId>
+                        <artifactId>geronimo-javamail_1.4_mail</artifactId>
                     </exclusion>
                     <exclusion> <!-- conflict with jasper -->
                         <groupId>org.bouncycastle</groupId>
@@ -707,29 +708,29 @@
                         <artifactId>guava</artifactId>
                     </exclusion>
                 </exclusions>
-	        </dependency>
+            </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
             </dependency>
-	        <dependency>
-	            <groupId>org.apache.wss4j</groupId>
-	            <artifactId>wss4j-ws-security-dom</artifactId>
-	            <version>${wss4j.version}</version>
+            <dependency>
+                <groupId>org.apache.wss4j</groupId>
+                <artifactId>wss4j-ws-security-dom</artifactId>
+                <version>${wss4j.version}</version>
                 <exclusions>
                     <exclusion> <!-- conflict with jasper -->
                         <groupId>org.bouncycastle</groupId>
                         <artifactId>bcprov-jdk15on</artifactId>
                     </exclusion>
                 </exclusions>
-	        </dependency>
-	        <dependency>
-				<!-- make this dependency explicit to detect conflicts with older versions -->
-			  <groupId>org.codehaus.woodstox</groupId>
-			  <artifactId>stax2-api</artifactId>
-			  <version>3.1.4</version>
-			</dependency>
+            </dependency>
+            <dependency>
+                <!-- make this dependency explicit to detect conflicts with older versions -->
+              <groupId>org.codehaus.woodstox</groupId>
+              <artifactId>stax2-api</artifactId>
+              <version>3.1.4</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.osgi.core</artifactId>
@@ -752,7 +753,7 @@
                 <version>${connid.version}</version>
             </dependency>
             <dependency>
-            	<groupId>com.evolveum.polygon</groupId>
+                <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-databasetable</artifactId>
                 <version>1.4.3.0</version>
             </dependency>
@@ -812,12 +813,12 @@
                 </exclusions>
             </dependency>
             <dependency>
-            	<!-- Need to explicitly specify this, because there seems to be three different xmlsec
-            	     dependencies in CXF (three versions). Once the CXF is gone, xmlsec can go as well. MID-5714 -->
-				<groupId>org.apache.santuario</groupId>
-				<artifactId>xmlsec</artifactId>
-				<version>${xmlsec.version}</version>
-				<exclusions>
+                <!-- Need to explicitly specify this, because there seems to be three different xmlsec
+                     dependencies in CXF (three versions). Once the CXF is gone, xmlsec can go as well. MID-5714 -->
+                <groupId>org.apache.santuario</groupId>
+                <artifactId>xmlsec</artifactId>
+                <version>${xmlsec.version}</version>
+                <exclusions>
                     <exclusion>
                         <groupId>javax.xml.stream</groupId> <!-- Other packages use stax:stax-api -->
                         <artifactId>stax-api</artifactId>
@@ -827,7 +828,7 @@
                         <artifactId>woodstox-core-asl</artifactId>
                     </exclusion>
                 </exclusions>
-			</dependency>
+            </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-beans</artifactId>
@@ -878,21 +879,21 @@
                 <artifactId>spring-orm</artifactId>
                 <version>${spring.version}</version>
             </dependency>
-            <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
-				<groupId>org.springframework</groupId> 
-				<artifactId>spring-aspects</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
-	        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
-				<groupId>org.springframework</groupId> 
-				<artifactId>spring-aop</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-jcl</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
+            <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aspects</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-aop</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-jcl</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-config</artifactId>
@@ -924,10 +925,10 @@
                 <version>${cache2k.version}</version>
             </dependency>
             <dependency> <!-- Needed for MethodInvocation object in security-impl, used by Spring Security -->
-	            <groupId>aopalliance</groupId>
-	            <artifactId>aopalliance</artifactId>
-	            <version>1.0</version>
-	        </dependency>
+                <groupId>aopalliance</groupId>
+                <artifactId>aopalliance</artifactId>
+                <version>1.0</version>
+            </dependency>
             <dependency>
                 <groupId>org.testng</groupId>
                 <artifactId>testng</artifactId>
@@ -974,30 +975,30 @@
                 <version>${commons.cli}</version>
             </dependency>
             <dependency>
-			    <groupId>org.forgerock.opendj</groupId>
-			    <artifactId>opendj-ldap-sdk</artifactId>
-			    <version>${opendj.version}</version>
-			</dependency>
+                <groupId>org.forgerock.opendj</groupId>
+                <artifactId>opendj-ldap-sdk</artifactId>
+                <version>${opendj.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.velocity</groupId>
                 <artifactId>velocity</artifactId>
                 <version>1.7</version>
             </dependency>
             <dependency>
-				<groupId>org.apache.derby</groupId>
-				<artifactId>derby</artifactId>
-				<version>${derby.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.derby</groupId>
-				<artifactId>derbynet</artifactId>
-				<version>${derby.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.derby</groupId>
-				<artifactId>derbyclient</artifactId>
-				<version>${derby.version}</version>
-			</dependency>
+                <groupId>org.apache.derby</groupId>
+                <artifactId>derby</artifactId>
+                <version>${derby.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.derby</groupId>
+                <artifactId>derbynet</artifactId>
+                <version>${derby.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.derby</groupId>
+                <artifactId>derbyclient</artifactId>
+                <version>${derby.version}</version>
+            </dependency>
             <!-- Jasper reports -->
             <dependency>
                 <groupId>net.sf.jasperreports</groupId>
@@ -1044,7 +1045,7 @@
                         <groupId>org.bouncycastle</groupId>
                         <artifactId>bctsp-jdk14</artifactId>
                     </exclusion>
-                    <exclusion> <!-- Pulled in by castor-xml. Conflicts with itself (depends both on stax-api 1.0-2 and 1.0.1) 
+                    <exclusion> <!-- Pulled in by castor-xml. Conflicts with itself (depends both on stax-api 1.0-2 and 1.0.1)
                                      Note: the 1.0-2 and 1.0.1 have differeng group IDs (but same java packages),
                                            so dependency convergence will not detect this. -->
                         <groupId>javax.xml.stream</groupId>
@@ -1069,63 +1070,63 @@
                     </exclusion> -->
                 </exclusions>
             </dependency>
- 			<!-- report dependency (needed for microsoft office formats) -->
+             <!-- report dependency (needed for microsoft office formats) -->
             <dependency>
-				<groupId>org.apache.poi</groupId>
-				<artifactId>poi</artifactId>
-				<version>3.17</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-core</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-annotations</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.jaxrs</groupId>
-				<artifactId>jackson-jaxrs-base</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>3.17</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-base</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
                 <version>${snakeyaml.version}</version>
             </dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-databind</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.module</groupId>
-				<artifactId>jackson-module-jaxb-annotations</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.dataformat</groupId>
-				<artifactId>jackson-dataformat-yaml</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
-			<dependency>
-	            <groupId>org.apache.ws.xmlschema</groupId>
-	            <artifactId>xmlschema-core</artifactId>
-	            <version>2.1.0</version>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.jvnet.jaxb2_commons</groupId>
-	            <artifactId>jaxb2-basics-runtime</artifactId>
-	            <version>0.6.3</version>
-	        </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-jaxb-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.ws.xmlschema</groupId>
+                <artifactId>xmlschema-core</artifactId>
+                <version>2.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jvnet.jaxb2_commons</groupId>
+                <artifactId>jaxb2-basics-runtime</artifactId>
+                <version>0.6.3</version>
+            </dependency>
 
             <!-- Maven plugins -->
-			<dependency>
-				<groupId>org.apache.maven</groupId>
-				<artifactId>maven-plugin-api</artifactId>
-				<version>${maven.api.version}</version>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-plugin-api</artifactId>
+                <version>${maven.api.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.codehaus.plexus</groupId>
@@ -1136,30 +1137,30 @@
                         <artifactId>plexus-classworlds</artifactId>
                     </exclusion>
                 </exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven</groupId>
-				<artifactId>maven-model</artifactId>
-				<version>${maven.api.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.maven</groupId>
-				<artifactId>maven-artifact</artifactId>
-				<version>${maven.api.version}</version>
-			</dependency>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-model</artifactId>
+                <version>${maven.api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-artifact</artifactId>
+                <version>${maven.api.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.maven</groupId>
                 <artifactId>maven-core</artifactId>
                 <version>${maven.api.version}</version>
             </dependency>
-			<dependency>
-				<groupId>org.apache.maven</groupId>
-				<artifactId>maven-archiver</artifactId>
-				<version>3.4.0</version>
-				<exclusions>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-archiver</artifactId>
+                <version>3.4.0</version>
+                <exclusions>
                     <exclusion>
                         <groupId>org.codehaus.plexus</groupId>
-						<artifactId>plexus-container-default</artifactId>
+                        <artifactId>plexus-container-default</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>org.codehaus.plexus</groupId>
@@ -1167,182 +1168,182 @@
                     </exclusion>
                     <exclusion>
                         <groupId>org.slf4j</groupId> <!-- We do not want multiple SLF4J implementations -->
-						<artifactId>slf4j-jdk14</artifactId>
+                        <artifactId>slf4j-jdk14</artifactId>
                     </exclusion>
                 </exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.plexus</groupId>
-				<artifactId>plexus-archiver</artifactId>
-				<version>4.1.0</version>
-				<exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-archiver</artifactId>
+                <version>4.1.0</version>
+                <exclusions>
                     <exclusion>
                         <groupId>org.slf4j</groupId> <!-- We do not want multiple SLF4J implementations -->
-						<artifactId>slf4j-jdk14</artifactId>
+                        <artifactId>slf4j-jdk14</artifactId>
                     </exclusion>
                 </exclusions>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.plexus</groupId>
-				<artifactId>plexus-utils</artifactId>
-				<version>3.1.0</version>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.plexus</groupId>
-				<artifactId>plexus-io</artifactId>
-				<version>3.1.1</version>
-			</dependency>
-			<dependency>
-				<groupId>org.codehaus.plexus</groupId>
-				<artifactId>plexus-interactivity-api</artifactId>
-				<version>1.0</version>
-				<exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-utils</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-io</artifactId>
+                <version>3.1.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.plexus</groupId>
+                <artifactId>plexus-interactivity-api</artifactId>
+                <version>1.0</version>
+                <exclusions>
                     <exclusion>
                         <groupId>org.codehaus.plexus</groupId>
-						<artifactId>plexus-classworlds</artifactId>
+                        <artifactId>plexus-classworlds</artifactId>
                     </exclusion>
                 </exclusions>
-			</dependency>
+            </dependency>
 
-	        <dependency>
-	            <groupId>ro.isdc.wro4j</groupId>
-	            <artifactId>wro4j-core</artifactId>
-	            <version>${wro4j.version}</version>
-	            <exclusions>
-	                <exclusion>
-	                    <artifactId>slf4j-api</artifactId>
-	                    <groupId>org.slf4j</groupId>
-	                </exclusion>
-	                <exclusion> <!-- Version conflict with direct dependency -->
-					    <groupId>org.webjars</groupId>
-	    				<artifactId>webjars-locator</artifactId>
-	                </exclusion>
-	            </exclusions>
-	        </dependency>
-	        <dependency>
-	            <groupId>ro.isdc.wro4j</groupId>
-	            <artifactId>wro4j-extensions</artifactId>
-	            <version>${wro4j.version}</version>
-	            <exclusions>
-	                <exclusion>
-	                    <groupId>org.slf4j</groupId>
-	                    <artifactId>slf4j-api</artifactId>
-	                </exclusion>
-	                <exclusion>
-	                    <groupId>org.slf4j</groupId>
-	                    <artifactId>slf4j-log4j12</artifactId>
-	                </exclusion>
-	            </exclusions>
-	        </dependency>
-			<dependency>
-				<groupId>joda-time</groupId>
-				<artifactId>joda-time</artifactId>
-				<version>2.6</version>
-			</dependency>
+            <dependency>
+                <groupId>ro.isdc.wro4j</groupId>
+                <artifactId>wro4j-core</artifactId>
+                <version>${wro4j.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>slf4j-api</artifactId>
+                        <groupId>org.slf4j</groupId>
+                    </exclusion>
+                    <exclusion> <!-- Version conflict with direct dependency -->
+                        <groupId>org.webjars</groupId>
+                        <artifactId>webjars-locator</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>ro.isdc.wro4j</groupId>
+                <artifactId>wro4j-extensions</artifactId>
+                <version>${wro4j.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-log4j12</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>2.6</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
                 <version>4.1</version>
             </dependency>
             <dependency>
-				<groupId>org.apache.directory.api</groupId>
-				<artifactId>api-all</artifactId>
-				<version>1.0.0</version>
-				<exclusions>
-	                <exclusion>
-	                    <artifactId>slf4j-api</artifactId>
-	                    <groupId>org.slf4j</groupId>
-	                </exclusion>
-	                <exclusion> <!-- Version conflict with xalan -->
-					    <groupId>xml-apis</groupId>
-	    				<artifactId>xml-apis</artifactId>
-	                </exclusion>
-	            </exclusions>
-			</dependency>
-			<dependency>
-	            <groupId>javax.mail</groupId>
-	            <artifactId>mail</artifactId>
-	            <version>1.4.5</version>
-	        </dependency>
-			<dependency>
-				<groupId>javax.mail</groupId>
-				<artifactId>javax.mail-api </artifactId>
-				<version>1.5.4</version>
-			</dependency>
-			<dependency>
-	            <groupId>org.ocpsoft.prettytime</groupId>
-	            <artifactId>prettytime</artifactId>
-	            <version>4.0.0.Final</version>
-	        </dependency>
+                <groupId>org.apache.directory.api</groupId>
+                <artifactId>api-all</artifactId>
+                <version>1.0.0</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>slf4j-api</artifactId>
+                        <groupId>org.slf4j</groupId>
+                    </exclusion>
+                    <exclusion> <!-- Version conflict with xalan -->
+                        <groupId>xml-apis</groupId>
+                        <artifactId>xml-apis</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>mail</artifactId>
+                <version>1.4.5</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>javax.mail-api </artifactId>
+                <version>1.5.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ocpsoft.prettytime</groupId>
+                <artifactId>prettytime</artifactId>
+                <version>4.0.0.Final</version>
+            </dependency>
 
-			<!-- webjars -->
-	        <dependency>
-	            <groupId>org.webjars.bower</groupId>
-	            <artifactId>adminlte</artifactId>
-	            <version>2.3.11</version>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.webjars</groupId>
-	            <artifactId>respond</artifactId>
-	            <version>1.4.2</version>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.webjars</groupId>
-	            <artifactId>html5shiv</artifactId>
-	            <version>3.7.3</version>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.webjars</groupId>
-	            <artifactId>font-awesome</artifactId>
-	            <version>4.7.0</version>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.webjars.npm</groupId>
-	            <artifactId>ionicons</artifactId>
-	            <version>3.0.0</version>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.webjars</groupId>
-	            <artifactId>webjars-locator-core</artifactId>
-	            <version>0.35</version>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.webjars</groupId>
-	            <artifactId>less</artifactId>
-	            <version>2.5.3</version>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.webjars</groupId>
-	            <artifactId>swagger-ui</artifactId>
-	            <version>2.2.5</version>
-	        </dependency>
+            <!-- webjars -->
+            <dependency>
+                <groupId>org.webjars.bower</groupId>
+                <artifactId>adminlte</artifactId>
+                <version>2.3.11</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>respond</artifactId>
+                <version>1.4.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>html5shiv</artifactId>
+                <version>3.7.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>font-awesome</artifactId>
+                <version>4.7.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars.npm</groupId>
+                <artifactId>ionicons</artifactId>
+                <version>3.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>webjars-locator-core</artifactId>
+                <version>0.35</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>less</artifactId>
+                <version>2.5.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>swagger-ui</artifactId>
+                <version>2.2.5</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.beust</groupId>
                 <artifactId>jcommander</artifactId>
                 <version>${jcommander.version}</version>
             </dependency>
-            
+
             <dependency>
-				<groupId>org.eclipse.jetty</groupId>
-		       	<artifactId>jetty-server</artifactId>
-				<version>${jetty.version}</version>
-			</dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                   <artifactId>jetty-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
             <dependency>
-				<groupId>org.eclipse.jetty</groupId>
-		       	<artifactId>jetty-http</artifactId>
-				<version>${jetty.version}</version>
-			</dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                   <artifactId>jetty-http</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
             <dependency>
-				<groupId>org.eclipse.jetty</groupId>
-		       	<artifactId>jetty-io</artifactId>
-				<version>${jetty.version}</version>
-			</dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                   <artifactId>jetty-io</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
             <dependency>
-				<groupId>org.eclipse.jetty</groupId>
-		       	<artifactId>jetty-util</artifactId>
-				<version>${jetty.version}</version>
-			</dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                   <artifactId>jetty-util</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.qpid</groupId>
                 <artifactId>qpid-broker-core</artifactId>
@@ -1358,17 +1359,17 @@
                 <artifactId>qpid-broker-plugins-memory-store</artifactId>
                 <version>${qpid-broker.version}</version>
             </dependency>
-            
+
             <dependency>
-	            <groupId>org.jasig.cas.client</groupId>
-	            <artifactId>cas-client-core</artifactId>
-	            <version>3.5.1</version>
-	        </dependency>
-	        <dependency>
-	            <groupId>org.springframework.security</groupId>
-	            <artifactId>spring-security-cas</artifactId>
-	            <version>${spring.security.version}</version>
-	        </dependency>
+                <groupId>org.jasig.cas.client</groupId>
+                <artifactId>cas-client-core</artifactId>
+                <version>3.5.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-cas</artifactId>
+                <version>${spring.security.version}</version>
+            </dependency>
 
             <!-- Schroedinger -->
             <dependency>
@@ -1463,83 +1464,83 @@
         <url>bamboo.evolveum.com</url>
     </ciManagement>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
-				<configuration>
-					<source>${project.source.version}</source>
-					<target>${project.source.version}</target>
-					<fork>true</fork>
-					<meminitial>1024m</meminitial>
-					<maxmem>2048m</maxmem>
- 					<showDeprecation>false</showDeprecation>
- 					<showWarnings>false</showWarnings>
-					<verbose>false</verbose>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.1.0</version>
-				<configuration>
-					<encoding>${project.build.sourceEncoding}</encoding>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>package</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>com.lukegb.mojo</groupId>
-				<artifactId>gitdescribe-maven-plugin</artifactId>
-				<version>3.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>gitdescribe</goal>
-						</goals>
-						<id>git-describe</id>
-						<phase>initialize</phase>
-						<configuration>
-							<outputPrefix></outputPrefix>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.1.1</version>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.1.2</version>
-				<configuration>
-					<archive>
-						<manifestEntries>
-							<Version-Number>${project.version}</Version-Number>
-							<SCM-Revision>${git.describe}</SCM-Revision>
-							<Organization>Evolveum</Organization>
-							<Organization-URL>http://www.evolveum.com</Organization-URL>
-							<Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
-							<License>Apache License 2.0</License>
-							<License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
-						</manifestEntries>
-					</archive>
-				</configuration>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <source>${project.source.version}</source>
+                    <target>${project.source.version}</target>
+                    <fork>true</fork>
+                    <meminitial>1024m</meminitial>
+                    <maxmem>2048m</maxmem>
+                     <showDeprecation>false</showDeprecation>
+                     <showWarnings>false</showWarnings>
+                    <verbose>false</verbose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.lukegb.mojo</groupId>
+                <artifactId>gitdescribe-maven-plugin</artifactId>
+                <version>3.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>gitdescribe</goal>
+                        </goals>
+                        <id>git-describe</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <outputPrefix></outputPrefix>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Version-Number>${project.version}</Version-Number>
+                            <SCM-Revision>${git.describe}</SCM-Revision>
+                            <Organization>Evolveum</Organization>
+                            <Organization-URL>http://www.evolveum.com</Organization-URL>
+                            <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+                            <License>Apache License 2.0</License>
+                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -1547,31 +1548,27 @@
                         </goals>
                     </execution>
                 </executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>3.2.3</version>
-				<configuration>
-					<archive>
-						<manifestEntries>
-							<Version-Number>${project.version}</Version-Number>
-							<SCM-Revision>${git.describe}</SCM-Revision>
-							<Organization>Evolveum</Organization>
-							<Organization-URL>http://www.evolveum.com</Organization-URL>
-							<Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
-							<License>Apache License 2.0</License>
-							<License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
-						</manifestEntries>
-					</archive>
-					<attachClasses>true</attachClasses>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.2.3</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Version-Number>${project.version}</Version-Number>
+                            <SCM-Revision>${git.describe}</SCM-Revision>
+                            <Organization>Evolveum</Organization>
+                            <Organization-URL>http://www.evolveum.com</Organization-URL>
+                            <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+                            <License>Apache License 2.0</License>
+                            <License-URL>http://www.apache.org/licenses/LICENSE-2.0.txt</License-URL>
+                        </manifestEntries>
+                    </archive>
+                    <attachClasses>true</attachClasses>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
-				</configuration>
-			</plugin>
-			<!--plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-checkstyle-plugin</artifactId> 
-				<version>2.4</version> <configuration> <configLocation>http:///svn/coding-rules/CheckStyle-rules.xml</configLocation> 
-				<includeTestSourceDirectory>false</includeTestSourceDirectory> </configuration> 
-				</plugin -->
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
@@ -1594,104 +1591,104 @@
                 </configuration>
             </plugin>
 
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.5</version>
-				<configuration>
-					<effort>Max</effort>
-					<threshold>Low</threshold>
-					<xmlOutput>true</xmlOutput>
-					<htmlOutput>true</htmlOutput>
-					<onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>pl.project13.maven</groupId>
-				<artifactId>git-commit-id-plugin</artifactId>
-				<version>3.0.1</version>
-				<!-- Used in system-init module. -->
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.3</version>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-enforcer-plugin</artifactId>
-				<version>3.0.0-M2</version>
-				<executions>
-					<execution>
-						<id>enforce</id>
-						<configuration>
-							<rules>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.5</version>
+                <configuration>
+                    <effort>Max</effort>
+                    <threshold>Low</threshold>
+                    <xmlOutput>true</xmlOutput>
+                    <htmlOutput>true</htmlOutput>
+                    <onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>3.0.1</version>
+                <!-- Used in system-init module. -->
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0-M2</version>
+                <executions>
+                    <execution>
+                        <id>enforce</id>
+                        <configuration>
+                            <rules>
                                 <requireMavenVersion>
                                     <version>3.6</version>
                                 </requireMavenVersion>
-								<dependencyConvergence />
-							</rules>
-						</configuration>
-						<goals>
-							<goal>enforce</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- maven-dependency-plugin wait for 3.1.2 version because MDEP-613 Analyze failed: Unsupported class file major version 55 (Java 11) -->
-			<plugin> 
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>3.1.1e1</version>
-				<executions>
-					<execution>
-						<id>analyze</id>
-						<goals>
-							<goal>analyze-only</goal>
-						</goals>
-						<configuration>
-							<failOnWarning>true</failOnWarning>
-							<ignoreNonCompile>true</ignoreNonCompile>
-							<ignoredUnusedDeclaredDependencies>
+                                <dependencyConvergence />
+                            </rules>
+                        </configuration>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- maven-dependency-plugin wait for 3.1.2 version because MDEP-613 Analyze failed: Unsupported class file major version 55 (Java 11) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.1e1</version>
+                <executions>
+                    <execution>
+                        <id>analyze</id>
+                        <goals>
+                            <goal>analyze-only</goal>
+                        </goals>
+                        <configuration>
+                            <failOnWarning>true</failOnWarning>
+                            <ignoreNonCompile>true</ignoreNonCompile>
+                            <ignoredUnusedDeclaredDependencies>
                                 <!-- Unreliable detection -->
                                 <ignoredUnusedDeclaredDependency>javax.xml.bind:jaxb-api</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>com.sun.activation:javax.activation</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>javax.activation:activation</ignoredUnusedDeclaredDependency>
 
-								<!-- There are dependencies in this master POM. So they are projected
-									everywhere, used or unused. -->
-								<ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
+                                <!-- There are dependencies in this master POM. So they are projected
+                                    everywhere, used or unused. -->
+                                <ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
                                 <ignoredUnusedDeclaredDependency>org.springframework.boot</ignoredUnusedDeclaredDependency>
 
-								<!-- Common "drill" for all modules. -->
-								<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
-								<ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
-								<ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
+                                <!-- Common "drill" for all modules. -->
+                                <ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>org.testng:testng</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>commons-lang:commons-lang</ignoredUnusedDeclaredDependency>
 
-								<!-- There is some kind of conflict between these. TODO: clean up -->
-								<ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
-								<ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
-								<ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>
+                                <!-- There is some kind of conflict between these. TODO: clean up -->
+                                <ignoredUnusedDeclaredDependency>xml-apis:xml-apis</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>stax:stax-api</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUnusedDeclaredDependency>
 
-								<!-- We are making this dependency explicit to detect conflicts early -->
-								<ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
+                                <!-- We are making this dependency explicit to detect conflicts early -->
+                                <ignoredUnusedDeclaredDependency>org.codehaus.woodstox:stax2-api</ignoredUnusedDeclaredDependency>
 
-								<!-- The xjc-plugin does not compile without dependency on this -->
-								<ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
+                                <!-- The xjc-plugin does not compile without dependency on this -->
+                                <ignoredUnusedDeclaredDependency>org.apache.cxf:cxf-tools-common</ignoredUnusedDeclaredDependency>
 
-								<!-- Cannot help myself with this one (commons-configuration 1.6 causes this) TODO: revisit -->
-								<ignoredUnusedDeclaredDependency>commons-beanutils:commons-beanutils-core</ignoredUnusedDeclaredDependency>
-							</ignoredUnusedDeclaredDependencies>
-							<ignoredUsedUndeclaredDependencies>
+                                <!-- Cannot help myself with this one (commons-configuration 1.6 causes this) TODO: revisit -->
+                                <ignoredUnusedDeclaredDependency>commons-beanutils:commons-beanutils-core</ignoredUnusedDeclaredDependency>
+                            </ignoredUnusedDeclaredDependencies>
+                            <ignoredUsedUndeclaredDependencies>
                                 <!-- Unreliable detection -->
                                 <ignoredUsedUndeclaredDependency>javax.xml.bind:jaxb-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>com.sun.activation:javax.activation</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>javax.activation:activation</ignoredUsedUndeclaredDependency>
 
-								<!-- There is some kind of conflict between these. TODO: clean up -->
-								<ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
-								<ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
-								<ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUsedUndeclaredDependency>
+                                <!-- There is some kind of conflict between these. TODO: clean up -->
+                                <ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUsedUndeclaredDependency>
 
                                 <!-- needs to much exclusions, used by apache-cxf (xjc plugin, prism-impl, schema, ..) -->
                                 <ignoredUsedUndeclaredDependency>jakarta.activation:jakarta.activation-api</ignoredUsedUndeclaredDependency>
@@ -1701,16 +1698,45 @@
 
                                 <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot-test</ignoredUsedUndeclaredDependency>
-							</ignoredUsedUndeclaredDependencies>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-javadoc-plugin</artifactId>
+                            </ignoredUsedUndeclaredDependencies>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.1.1</version>
-			</plugin>
-		</plugins>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${checkstyle.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.evolveum.midpoint</groupId>
+                        <artifactId>build-tools</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>midpoint-build/checkstyle.xml</configLocation>
+                    <suppressionsLocation>midpoint-build/checkstyle-suppressions.xml</suppressionsLocation>
+                    <encoding>UTF-8</encoding>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <linkXRef>false</linkXRef>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
 
         <pluginManagement>
             <plugins>
@@ -1814,7 +1840,7 @@
                                     </property>
                                 </properties>
                                 <!-- it's used for bamboo build to load jdbc libraries which can not
-															be installed to public maven repository (MS SQL, ORACLE) -->
+                                                            be installed to public maven repository (MS SQL, ORACLE) -->
                                 <additionalClasspathElements>
                                     <additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
                                     <!-- used running tests on windows machines -->
@@ -1826,43 +1852,58 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-	</build>
+    </build>
 
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>3.0.5</version>
-				<configuration>
-					<effort>Max</effort>
-					<threshold>Low</threshold>
-					<xmlOutput>true</xmlOutput>
-					<htmlOutput>true</htmlOutput>
-					<onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
-				</configuration>
-			</plugin>
-			<!--plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-checkstyle-plugin</artifactId> 
-				<version>2.4</version> <configuration> <configLocation>http://svn/coding-rules/CheckStyle-rules.xml</configLocation> 
-				<includeTestSourceDirectory>false</includeTestSourceDirectory> </configuration> 
-				</plugin -->
-		</plugins>
-	</reporting>
-    
-    
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.5</version>
+                <configuration>
+                    <effort>Max</effort>
+                    <threshold>Low</threshold>
+                    <xmlOutput>true</xmlOutput>
+                    <htmlOutput>true</htmlOutput>
+                    <onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${checkstyle.version}</version>
+                <configuration>
+                    <configLocation>midpoint-build/checkstyle.xml</configLocation>
+                    <encoding>UTF-8</encoding>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <linkXRef>false</linkXRef>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>checkstyle</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+
+
     <profiles>
         <profile>
-			<id>extratest</id>
-			<build>
-				<plugins>
-					<plugin>
-					  <!-- Skip all tests by default. We only want selected tests to run. -->
-					  <artifactId>maven-surefire-plugin</artifactId>
-					  <version>${surefire.version}</version>
-					  <configuration>
-					    <skip>true</skip>
-					  </configuration>
-					</plugin>
+            <id>extratest</id>
+            <build>
+                <plugins>
+                    <plugin>
+                      <!-- Skip all tests by default. We only want selected tests to run. -->
+                      <artifactId>maven-surefire-plugin</artifactId>
+                      <version>${surefire.version}</version>
+                      <configuration>
+                        <skip>true</skip>
+                      </configuration>
+                    </plugin>
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <version>${failsafe.version}</version>
@@ -1870,21 +1911,21 @@
                             <skip>true</skip>
                         </configuration>
                     </plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>conntest</id>
-			<build>
-				<plugins>
-					<plugin>
-					  <!-- Skip all tests by default. We only want selected tests to run. -->
-					  <artifactId>maven-surefire-plugin</artifactId>
-					  <version>${surefire.version}</version>
-					  <configuration>
-					    <skip>true</skip>
-					  </configuration>
-					</plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>conntest</id>
+            <build>
+                <plugins>
+                    <plugin>
+                      <!-- Skip all tests by default. We only want selected tests to run. -->
+                      <artifactId>maven-surefire-plugin</artifactId>
+                      <version>${surefire.version}</version>
+                      <configuration>
+                        <skip>true</skip>
+                      </configuration>
+                    </plugin>
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <version>${failsafe.version}</version>
@@ -1892,21 +1933,21 @@
                             <skip>true</skip>
                         </configuration>
                     </plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>wstest</id>
-			<build>
-				<plugins>
-					<plugin>
-					  <!-- Skip all tests by default. We only want selected tests to run. -->
-					  <artifactId>maven-surefire-plugin</artifactId>
-					  <version>${surefire.version}</version>
-					  <configuration>
-					    <skip>true</skip>
-					  </configuration>
-					</plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>wstest</id>
+            <build>
+                <plugins>
+                    <plugin>
+                      <!-- Skip all tests by default. We only want selected tests to run. -->
+                      <artifactId>maven-surefire-plugin</artifactId>
+                      <version>${surefire.version}</version>
+                      <configuration>
+                        <skip>true</skip>
+                      </configuration>
+                    </plugin>
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <version>${failsafe.version}</version>
@@ -1914,21 +1955,21 @@
                             <skip>true</skip>
                         </configuration>
                     </plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>guitest</id>
-			<build>
-				<plugins>
-					<plugin>
-					  <!-- Skip all tests by default. We only want selected tests to run. -->
-					  <artifactId>maven-surefire-plugin</artifactId>
-					  <version>${surefire.version}</version>
-					  <configuration>
-					    <skip>true</skip>
-					  </configuration>
-					</plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>guitest</id>
+            <build>
+                <plugins>
+                    <plugin>
+                      <!-- Skip all tests by default. We only want selected tests to run. -->
+                      <artifactId>maven-surefire-plugin</artifactId>
+                      <version>${surefire.version}</version>
+                      <configuration>
+                        <skip>true</skip>
+                      </configuration>
+                    </plugin>
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <version>${failsafe.version}</version>
@@ -1936,12 +1977,12 @@
                             <skip>true</skip>
                         </configuration>
                     </plugin>
-				</plugins>
-			</build>
-		</profile>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
     <dependencies>
-    	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
+        <dependency> <!-- Not used, but required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>

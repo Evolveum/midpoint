@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism;
@@ -31,100 +31,100 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainerWrapperImpl<O> implements PrismObjectWrapper<O> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public PrismObjectWrapperImpl(PrismObject<O> item, ItemStatus status) {
-		super(null, item, status);
-	}
+    public PrismObjectWrapperImpl(PrismObject<O> item, ItemStatus status) {
+        super(null, item, status);
+    }
 
-	@Override
-	public ObjectDelta<O> getObjectDelta() throws SchemaException {
-		ObjectDelta<O> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass())
-				.asObjectDelta(getObject().getOid());
+    @Override
+    public ObjectDelta<O> getObjectDelta() throws SchemaException {
+        ObjectDelta<O> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass())
+                .asObjectDelta(getObject().getOid());
 
-		Collection<ItemDelta> deltas = new ArrayList<>();
-		for (ItemWrapper<?, ?, ?, ?> itemWrapper : getValue().getItems()) {
-			Collection<ItemDelta> delta = itemWrapper.getDelta();
-			if (delta == null || delta.isEmpty()) {
-				continue;
-			}
-			// objectDelta.addModification(delta);
-			deltas.addAll(delta);
-		}
+        Collection<ItemDelta> deltas = new ArrayList<>();
+        for (ItemWrapper<?, ?, ?, ?> itemWrapper : getValue().getItems()) {
+            Collection<ItemDelta> delta = itemWrapper.getDelta();
+            if (delta == null || delta.isEmpty()) {
+                continue;
+            }
+            // objectDelta.addModification(delta);
+            deltas.addAll(delta);
+        }
 
-		switch (getStatus()) {
-			case ADDED:
-				objectDelta.setChangeType(ChangeType.ADD);
-				PrismObject<O> clone = (PrismObject<O>) getOldItem().clone();
-				// cleanupEmptyContainers(clone);
-				for (ItemDelta d : deltas) {
-					d.applyTo(clone);
-				}
-				objectDelta.setObjectToAdd(clone);
-				break;
-			case NOT_CHANGED:
-				objectDelta.mergeModifications(deltas);
-				break;
-			case DELETED:
-				objectDelta.setChangeType(ChangeType.DELETE);
-				break;
-		}
-		// if (ItemStatus.ADDED == getStatus()) {
-		// objectDelta.setObjectToAdd(getObject());
-		// }
+        switch (getStatus()) {
+            case ADDED:
+                objectDelta.setChangeType(ChangeType.ADD);
+                PrismObject<O> clone = (PrismObject<O>) getOldItem().clone();
+                // cleanupEmptyContainers(clone);
+                for (ItemDelta d : deltas) {
+                    d.applyTo(clone);
+                }
+                objectDelta.setObjectToAdd(clone);
+                break;
+            case NOT_CHANGED:
+                objectDelta.mergeModifications(deltas);
+                break;
+            case DELETED:
+                objectDelta.setChangeType(ChangeType.DELETE);
+                break;
+        }
+        // if (ItemStatus.ADDED == getStatus()) {
+        // objectDelta.setObjectToAdd(getObject());
+        // }
 
-//		if (objectDelta.isEmpty()) {
-//			return null;
-//		}
+//        if (objectDelta.isEmpty()) {
+//            return null;
+//        }
 
-		return objectDelta;
-	}
+        return objectDelta;
+    }
 
-	@Override
-	@Deprecated
-	public String getOid() {
-		return ((PrismObject<O>) getItem()).getOid();
-	}
+    @Override
+    @Deprecated
+    public String getOid() {
+        return ((PrismObject<O>) getItem()).getOid();
+    }
 
-	@Override
-	public PrismObject<O> getObject() {
-		return (PrismObject<O>) getItem();
-	}
-	
-	@Override
-	public PrismObject<O> getObjectOld() {
-		return (PrismObject<O>) getOldItem();
-	}
+    @Override
+    public PrismObject<O> getObject() {
+        return (PrismObject<O>) getItem();
+    }
 
-	@Override
-	public PrismObjectValueWrapper<O> getValue() {
-		return (PrismObjectValueWrapper<O>) getValues().iterator().next();
-	}
+    @Override
+    public PrismObject<O> getObjectOld() {
+        return (PrismObject<O>) getOldItem();
+    }
 
-	@Override
-	public String getDisplayName() {
-		return "properties";
-	}
+    @Override
+    public PrismObjectValueWrapper<O> getValue() {
+        return (PrismObjectValueWrapper<O>) getValues().iterator().next();
+    }
 
-	@Override
-	public PrismObject<O> getObjectApplyDelta() throws SchemaException {
-		PrismObject<O> oldObject = getObjectOld().clone();
-		
-		Collection<ItemDelta> deltas = new ArrayList<>();
-		for (ItemWrapper<?, ?, ?, ?> itemWrapper : getValue().getItems()) {
-			Collection<ItemDelta> delta = itemWrapper.getDelta();
-			if (delta == null || delta.isEmpty()) {
-				continue;
-			}
-			// objectDelta.addModification(delta);
-			deltas.addAll(delta);
-		}
-		
-		for (ItemDelta delta : deltas) {
-			delta.applyTo(oldObject);
-		}
-		
-		return oldObject;
-	}
+    @Override
+    public String getDisplayName() {
+        return "properties";
+    }
+
+    @Override
+    public PrismObject<O> getObjectApplyDelta() throws SchemaException {
+        PrismObject<O> oldObject = getObjectOld().clone();
+
+        Collection<ItemDelta> deltas = new ArrayList<>();
+        for (ItemWrapper<?, ?, ?, ?> itemWrapper : getValue().getItems()) {
+            Collection<ItemDelta> delta = itemWrapper.getDelta();
+            if (delta == null || delta.isEmpty()) {
+                continue;
+            }
+            // objectDelta.addModification(delta);
+            deltas.addAll(delta);
+        }
+
+        for (ItemDelta delta : deltas) {
+            delta.applyTo(oldObject);
+        }
+
+        return oldObject;
+    }
 
 }

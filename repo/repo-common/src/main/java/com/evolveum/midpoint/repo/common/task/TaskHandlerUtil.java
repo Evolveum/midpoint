@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,28 +25,28 @@ public class TaskHandlerUtil {
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskHandlerUtil.class);
 
     public static void appendLastFailuresInformation(String operationNamePrefix, RunningTask task, OperationResult result) {
-    	appendLastFailuresInformation(operationNamePrefix, task, false, result);
-    	for (Task subtask : task.getLightweightAsynchronousSubtasks()) {
-			appendLastFailuresInformation(operationNamePrefix, subtask, true, result);
-		}
-	}
+        appendLastFailuresInformation(operationNamePrefix, task, false, result);
+        for (Task subtask : task.getLightweightAsynchronousSubtasks()) {
+            appendLastFailuresInformation(operationNamePrefix, subtask, true, result);
+        }
+    }
     private static void appendLastFailuresInformation(String operationNamePrefix, Task task, boolean subtask, OperationResult result) {
-		List<String> failures = task.getLastFailures();
-		if (!failures.isEmpty()) {
-			StringBuilder sb = new StringBuilder();
-			if (failures.size() < IterativeTaskInformation.LAST_FAILURES_KEPT) {
-				sb.append("Failures (").append(failures.size()).append(")");
-			} else {
-				sb.append("Last ").append(IterativeTaskInformation.LAST_FAILURES_KEPT).append(" failures");
-			}
-			if (subtask) {
-				sb.append(" in subtask ").append(task.getName());
-			}
-			sb.append(":\n");
-			failures.forEach(f -> sb.append(f).append("\n"));
-			result.createSubresult(operationNamePrefix + ".errors")
-					.recordStatus(OperationResultStatus.NOT_APPLICABLE, sb.toString());
-		}
-	}
+        List<String> failures = task.getLastFailures();
+        if (!failures.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            if (failures.size() < IterativeTaskInformation.LAST_FAILURES_KEPT) {
+                sb.append("Failures (").append(failures.size()).append(")");
+            } else {
+                sb.append("Last ").append(IterativeTaskInformation.LAST_FAILURES_KEPT).append(" failures");
+            }
+            if (subtask) {
+                sb.append(" in subtask ").append(task.getName());
+            }
+            sb.append(":\n");
+            failures.forEach(f -> sb.append(f).append("\n"));
+            result.createSubresult(operationNamePrefix + ".errors")
+                    .recordStatus(OperationResultStatus.NOT_APPLICABLE, sb.toString());
+        }
+    }
 
 }
