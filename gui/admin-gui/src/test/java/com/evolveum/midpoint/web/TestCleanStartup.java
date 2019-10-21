@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web;
@@ -34,58 +34,58 @@ import com.evolveum.midpoint.test.util.TestUtil;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestCleanStartup extends AbstractModelIntegrationTest {
 
-	public TestCleanStartup() {
-		super();
-		InternalsConfig.setAvoidLoggingChange(true);
-	}
+    public TestCleanStartup() {
+        super();
+        InternalsConfig.setAvoidLoggingChange(true);
+    }
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		// The rest of the initialization happens as part of the spring context init
-	}
+        // The rest of the initialization happens as part of the spring context init
+    }
 
-	// work in progress
-	@Test
-	public void test001Logfiles() throws Exception {
-		TestUtil.displayTestTitle("test001Logfiles");
-		// GIVEN - system startup and initialization that has already happened
-		LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME, false);
+    // work in progress
+    @Test
+    public void test001Logfiles() throws Exception {
+        TestUtil.displayTestTitle("test001Logfiles");
+        // GIVEN - system startup and initialization that has already happened
+        LogfileTestTailer tailer = new LogfileTestTailer(LoggingConfigurationManager.AUDIT_LOGGER_NAME, false);
 
-		// THEN
-		display("Tailing ...");
-		tailer.tail();
-		display("... done");
+        // THEN
+        display("Tailing ...");
+        tailer.tail();
+        display("... done");
 
-		display("Errors", tailer.getErrors());
-		display("Warnings", tailer.getWarnings());
+        display("Errors", tailer.getErrors());
+        display("Warnings", tailer.getWarnings());
 
-		assertMessages("Error", tailer.getErrors(),
-				"Unable to find file com/../../keystore.jceks",
-				"Provided Icf connector path /C:/tmp is not a directory",
+        assertMessages("Error", tailer.getErrors(),
+                "Unable to find file com/../../keystore.jceks",
+                "Provided Icf connector path /C:/tmp is not a directory",
                 "Provided Icf connector path C:\\tmp is not a directory",
                 "Provided Icf connector path C:\\var\\tmp is not a directory",
                 "Provided Icf connector path D:\\var\\tmp is not a directory");
 
-		assertMessages("Warning", tailer.getWarnings());
+        assertMessages("Warning", tailer.getWarnings());
 
-		tailer.close();
-	}
+        tailer.close();
+    }
 
-	private void assertMessages(String desc, Collection<String> actualMessages, String... expectedSubstrings) {
-		for(String actualMessage: actualMessages) {
-			boolean found = false;
-			for (String expectedSubstring: expectedSubstrings) {
-				if (actualMessage.contains(expectedSubstring)) {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				AssertJUnit.fail(desc+" \""+actualMessage+"\" was not expected ("+actualMessages.size()+" messages total)");
-			}
-		}
-	}
+    private void assertMessages(String desc, Collection<String> actualMessages, String... expectedSubstrings) {
+        for(String actualMessage: actualMessages) {
+            boolean found = false;
+            for (String expectedSubstring: expectedSubstrings) {
+                if (actualMessage.contains(expectedSubstring)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                AssertJUnit.fail(desc+" \""+actualMessage+"\" was not expected ("+actualMessages.size()+" messages total)");
+            }
+        }
+    }
 
 }

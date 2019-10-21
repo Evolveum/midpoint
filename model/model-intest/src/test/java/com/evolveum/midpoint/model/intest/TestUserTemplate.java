@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest;
@@ -65,41 +65,41 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
-	public static final File TEST_DIR = new File("src/test/resources/object-template");
+    public static final File TEST_DIR = new File("src/test/resources/object-template");
 
-	protected static final File ROLE_RASTAMAN_FILE = new File(TEST_DIR, "role-rastaman.xml");
-	protected static final String ROLE_RASTAMAN_OID = "81ac6b8c-225c-11e6-ab0f-87a169c85cca";
+    protected static final File ROLE_RASTAMAN_FILE = new File(TEST_DIR, "role-rastaman.xml");
+    protected static final String ROLE_RASTAMAN_OID = "81ac6b8c-225c-11e6-ab0f-87a169c85cca";
 
-	protected static final File USER_TEMPLATE_MAROONED_FILE = new File(TEST_DIR, "user-template-marooned.xml");
-	protected static final String USER_TEMPLATE_MAROONED_OID = "766215e8-5f1e-11e6-94bb-c3b21af53235";
+    protected static final File USER_TEMPLATE_MAROONED_FILE = new File(TEST_DIR, "user-template-marooned.xml");
+    protected static final String USER_TEMPLATE_MAROONED_OID = "766215e8-5f1e-11e6-94bb-c3b21af53235";
 
-	protected static final File USER_TEMPLATE_USELESS_FILE = new File(TEST_DIR, "user-template-useless.xml");
-	protected static final String USER_TEMPLATE_USELESS_OID = "29b2936a-d1f6-4942-8e44-9ba44fc27423";
+    protected static final File USER_TEMPLATE_USELESS_FILE = new File(TEST_DIR, "user-template-useless.xml");
+    protected static final String USER_TEMPLATE_USELESS_OID = "29b2936a-d1f6-4942-8e44-9ba44fc27423";
 
 
-	private static final String ACCOUNT_STAN_USERNAME = "stan";
-	private static final String ACCOUNT_STAN_FULLNAME = "Stan the Salesman";
+    private static final String ACCOUNT_STAN_USERNAME = "stan";
+    private static final String ACCOUNT_STAN_FULLNAME = "Stan the Salesman";
 
-	private static final String SUBTYPE_MAROONED = "marooned";
-	private static final String SUBTYPE_USELESS = "useless";
+    private static final String SUBTYPE_MAROONED = "marooned";
+    private static final String SUBTYPE_USELESS = "useless";
 
-	private static final int NUMBER_OF_IMPORTED_ROLES = 5;
+    private static final int NUMBER_OF_IMPORTED_ROLES = 5;
 
-	private static final String CANNIBAL_LEMONHEAD_USERNAME = "lemonhead";
-	private static final String CANNIBAL_REDSKULL_USERNAME = "redskull";
-	private static final String CANNIBAL_SHARPTOOTH_USERNAME = "sharptooth";
-	private static final String CANNIBAL_ORANGESKIN_USERNAME = "orangeskin";
-	private static final String CANNIBAL_CHERRYBRAIN_USERNAME = "cherrybrain";
-	private static final String CANNIBAL_PINEAPPLENOSE_USERNAME = "pineapplenose";
-	private static final String CANNIBAL_POTATOLEG_USERNAME = "potatoleg";
+    private static final String CANNIBAL_LEMONHEAD_USERNAME = "lemonhead";
+    private static final String CANNIBAL_REDSKULL_USERNAME = "redskull";
+    private static final String CANNIBAL_SHARPTOOTH_USERNAME = "sharptooth";
+    private static final String CANNIBAL_ORANGESKIN_USERNAME = "orangeskin";
+    private static final String CANNIBAL_CHERRYBRAIN_USERNAME = "cherrybrain";
+    private static final String CANNIBAL_PINEAPPLENOSE_USERNAME = "pineapplenose";
+    private static final String CANNIBAL_POTATOLEG_USERNAME = "potatoleg";
 
-	private static String jackEmployeeNumber;
+    private static String jackEmployeeNumber;
 
-	private XMLGregorianCalendar funeralTimestamp;
+    private XMLGregorianCalendar funeralTimestamp;
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         repoAddObjectFromFile(ROLE_RASTAMAN_FILE, initResult);
@@ -110,18 +110,18 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         repoAddObjectFromFile(USER_TEMPLATE_MAROONED_FILE, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_USELESS_FILE, initResult);
-		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
-		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
-		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_USELESS, USER_TEMPLATE_USELESS_OID, initResult);
-	}
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_COMPLEX_OID, initResult);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_MAROONED, USER_TEMPLATE_MAROONED_OID, initResult);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, SUBTYPE_USELESS, USER_TEMPLATE_USELESS_OID, initResult);
+    }
 
-	protected int getNumberOfRoles() {
-		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
-	}
+    protected int getNumberOfRoles() {
+        return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
+    }
 
-	@Test
+    @Test
     public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
+        final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -130,7 +130,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // WHEN
         displayWhen(TEST_NAME);
         PrismObject<SystemConfigurationType> systemConfiguration = modelService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-        		null, task, result);
+                null, task, result);
 
         // THEN
         result.computeStatus();
@@ -146,23 +146,23 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertObjectTemplate(defaultObjectPolicyConfiguration, UserType.COMPLEX_TYPE, SUBTYPE_USELESS, USER_TEMPLATE_USELESS_OID);
 
         assertRoles(getNumberOfRoles());
-	}
+    }
 
-	private void assertObjectTemplate(List<ObjectPolicyConfigurationType> defaultObjectPolicyConfigurations,
-			QName objectType, String subtype, String userTemplateOid) {
-		for (ObjectPolicyConfigurationType objectPolicyConfiguration: defaultObjectPolicyConfigurations) {
-			if (MiscUtil.equals(objectPolicyConfiguration.getType(), objectType) &&
-					MiscUtil.equals(objectPolicyConfiguration.getSubtype(), subtype) &&
-					MiscUtil.equals(objectPolicyConfiguration.getObjectTemplateRef().getOid(), userTemplateOid)) {
-				return;
-			}
-		}
-		AssertJUnit.fail("Object template for "+objectType+":"+subtype+"="+userTemplateOid+" not found");
-	}
+    private void assertObjectTemplate(List<ObjectPolicyConfigurationType> defaultObjectPolicyConfigurations,
+            QName objectType, String subtype, String userTemplateOid) {
+        for (ObjectPolicyConfigurationType objectPolicyConfiguration: defaultObjectPolicyConfigurations) {
+            if (MiscUtil.equals(objectPolicyConfiguration.getType(), objectType) &&
+                    MiscUtil.equals(objectPolicyConfiguration.getSubtype(), subtype) &&
+                    MiscUtil.equals(objectPolicyConfiguration.getObjectTemplateRef().getOid(), userTemplateOid)) {
+                return;
+            }
+        }
+        AssertJUnit.fail("Object template for "+objectType+":"+subtype+"="+userTemplateOid+" not found");
+    }
 
-	@Test
+    @Test
     public void test100ModifyUserGivenName() throws Exception {
-		final String TEST_NAME = "test100ModifyUserGivenName";
+        final String TEST_NAME = "test100ModifyUserGivenName";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -171,17 +171,17 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
-        		USER_JACK_OID, UserType.F_GIVEN_NAME, new PolyString("Jackie"));
+                USER_JACK_OID, UserType.F_GIVEN_NAME, new PolyString("Jackie"));
         deltas.add(userDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		result.computeStatus();
+        // THEN
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack, "Jackie Sparrow", "Jackie", "Sparrow");
         PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
 
@@ -203,11 +203,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // timezone mapping is normal-strength. The source (locality) has not changed.
         // The mapping should not be activated (MID-3040)
         PrismAsserts.assertNoItem(userJack, UserType.F_TIMEZONE);
-	}
+    }
 
     @Test
     public void test101ModifyUserEmployeeTypePirate() throws Exception {
-		final String TEST_NAME = "test101ModifyUserEmployeeTypePirate";
+        final String TEST_NAME = "test101ModifyUserEmployeeTypePirate";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -216,28 +216,28 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
-        		USER_JACK_OID, UserType.F_SUBTYPE, "PIRATE");
+                USER_JACK_OID, UserType.F_SUBTYPE, "PIRATE");
         // Make sure that the user has no employeeNumber so it will be generated by userTemplate
         userDelta.addModificationReplaceProperty(UserType.F_EMPLOYEE_NUMBER);
         deltas.add(userDelta);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-	    AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_OID);
-	    assertEquals("Wrong originMappingName", "assignment-from-subtype", pirateAssignment.getMetadata().getOriginMappingName());
-	    assertAssignments(userJack, 2);
+        AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertEquals("Wrong originMappingName", "assignment-from-subtype", pirateAssignment.getMetadata().getOriginMappingName());
+        assertAssignments(userJack, 2);
 
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 2, userJackType.getLinkRef().size());
@@ -250,15 +250,15 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         jackEmployeeNumber = userJackType.getEmployeeNumber();
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?",
                 GenerateExpressionEvaluator.DEFAULT_LENGTH, jackEmployeeNumber.length());
-	}
+    }
 
-	/**
-	 * Switch employeeType from PIRATE to BUCCANEER. This makes one condition to go false and the other to go
-	 * true. For the same role assignement value. So nothing should be changed.
-	 */
-	@Test
+    /**
+     * Switch employeeType from PIRATE to BUCCANEER. This makes one condition to go false and the other to go
+     * true. For the same role assignement value. So nothing should be changed.
+     */
+    @Test
     public void test102ModifyUserEmployeeTypeBuccaneer() throws Exception {
-		final String TEST_NAME = "test102ModifyUserEmployeeTypeBuccaneer";
+        final String TEST_NAME = "test102ModifyUserEmployeeTypeBuccaneer";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -267,24 +267,24 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
-        		USER_JACK_OID, UserType.F_SUBTYPE, "BUCCANEER");
+                USER_JACK_OID, UserType.F_SUBTYPE, "BUCCANEER");
         deltas.add(userDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		result.computeStatus();
+        // THEN
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-		AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_OID);
-		// the value was already there; so the identifier should remain intact
-		assertEquals("Wrong originMappingName", "assignment-from-subtype", pirateAssignment.getMetadata().getOriginMappingName());
+        AssignmentType pirateAssignment = assertAssignedRole(userJack, ROLE_PIRATE_OID);
+        // the value was already there; so the identifier should remain intact
+        assertEquals("Wrong originMappingName", "assignment-from-subtype", pirateAssignment.getMetadata().getOriginMappingName());
         assertAssignments(userJack, 2);
 
         UserType userJackType = userJack.asObjectable();
@@ -295,11 +295,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Wrong costCenter", "B666", userJackType.getCostCenter());
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
-	}
+    }
 
-	@Test
+    @Test
     public void test103ModifyUserEmployeeTypeBartender() throws Exception {
-		final String TEST_NAME = "test103ModifyUserEmployeeTypeBartender";
+        final String TEST_NAME = "test103ModifyUserEmployeeTypeBartender";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -308,20 +308,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
-        		USER_JACK_OID, UserType.F_SUBTYPE, "BARTENDER");
+                USER_JACK_OID, UserType.F_SUBTYPE, "BARTENDER");
         deltas.add(userDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		result.computeStatus();
+        // THEN
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -334,15 +334,15 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Wrong costCenter", "G001", userJackType.getCostCenter());
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
-	}
+    }
 
-	/**
-	 * Cost center has two mappings. Strong mapping should not be applied here as the condition is false.
-	 * The weak mapping should be overridden by the change we try here.
-	 */
-	@Test
+    /**
+     * Cost center has two mappings. Strong mapping should not be applied here as the condition is false.
+     * The weak mapping should be overridden by the change we try here.
+     */
+    @Test
     public void test104ModifyUserCostCenter() throws Exception {
-		final String TEST_NAME = "test104ModifyUserCostCenter";
+        final String TEST_NAME = "test104ModifyUserCostCenter";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -351,20 +351,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
-        		USER_JACK_OID, UserType.F_COST_CENTER, "X000");
+                USER_JACK_OID, UserType.F_COST_CENTER, "X000");
         deltas.add(userDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		result.computeStatus();
+        // THEN
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -377,11 +377,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
         assertEquals("Employee number has changed", jackEmployeeNumber, userJackType.getEmployeeNumber());
-	}
+    }
 
-	@Test
+    @Test
     public void test105ModifyUserTelephoneNumber() throws Exception {
-		final String TEST_NAME = "test105ModifyUserTelephoneNumber";
+        final String TEST_NAME = "test105ModifyUserTelephoneNumber";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -390,20 +390,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
-        		USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, "1234");
+                USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, "1234");
         deltas.add(userDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		result.computeStatus();
+        // THEN
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -418,11 +418,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
         assertEquals("Wrong telephone number", "1234", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
-	}
+    }
 
-	@Test
+    @Test
     public void test106ModifyUserRemoveTelephoneNumber() throws Exception {
-		final String TEST_NAME = "test106ModifyUserRemoveTelephoneNumber";
+        final String TEST_NAME = "test106ModifyUserRemoveTelephoneNumber";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -431,20 +431,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(UserType.class,
-        		USER_JACK_OID, UserType.F_TELEPHONE_NUMBER);
+                USER_JACK_OID, UserType.F_TELEPHONE_NUMBER);
         deltas.add(userDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		result.computeStatus();
+        // THEN
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -459,28 +459,28 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
         assertNull("Unexpected telephone number: " + userJackType.getTelephoneNumber(), userJackType.getTelephoneNumber());
         assertEquals("Wrong Title", PrismTestUtil.createPolyStringType("Happy Pirate"), userJackType.getTitle());
-	}
+    }
 
-	@Test
+    @Test
     public void test107ModifyUserSetTelephoneNumber() throws Exception {
-		final String TEST_NAME = "test107ModifyUserSetTelephoneNumber";
+        final String TEST_NAME = "test107ModifyUserSetTelephoneNumber";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_TELEPHONE_NUMBER, task, result, "1 222 3456789");
 
-		// THEN
+        // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -495,15 +495,15 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
-	}
+    }
 
-	/**
-	 * Reconcile the user. Check that nothing really changes.
-	 * MID-3040
-	 */
-	@Test
+    /**
+     * Reconcile the user. Check that nothing really changes.
+     * MID-3040
+     */
+    @Test
     public void test120ReconcileUser() throws Exception {
-		final String TEST_NAME = "test121ModifyUserReplaceLocality";
+        final String TEST_NAME = "test121ModifyUserReplaceLocality";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -518,9 +518,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -539,31 +539,31 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // timezone mapping is normal-strength. This is reconciliation.
         // The mapping should not be activated (MID-3040)
         PrismAsserts.assertNoItem(userJack, UserType.F_TIMEZONE);
-	}
+    }
 
-	/**
-	 * MID-3040
-	 */
-	@Test
+    /**
+     * MID-3040
+     */
+    @Test
     public void test121ModifyUserReplaceLocality() throws Exception {
-		final String TEST_NAME = "test121ModifyUserReplaceLocality";
+        final String TEST_NAME = "test121ModifyUserReplaceLocality";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Tortuga"));
 
-		// THEN
+        // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -581,25 +581,25 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
-	}
+    }
 
-	@Test
+    @Test
     public void test140AssignDummy() throws Exception {
-		final String TEST_NAME = "test140AssignDummy";
+        final String TEST_NAME = "test140AssignDummy";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
-		// THEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedAccount(userJack, RESOURCE_DUMMY_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
@@ -616,25 +616,25 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
         IntegrationTestTools.assertExtensionProperty(userJack, PIRACY_COLORS, "none");
-	}
+    }
 
-	@Test
+    @Test
     public void test149UnAssignDummy() throws Exception {
-		final String TEST_NAME = "test149UnAssignDummy";
+        final String TEST_NAME = "test149UnAssignDummy";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
-		// THEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignments(userJack, 1);
@@ -650,30 +650,30 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
         IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-	}
+    }
 
-	@Test
+    @Test
     public void test150ModifyJackOrganizationalUnitRum() throws Exception {
-		final String TEST_NAME = "test150ModifyJackOrganizationalUnitRum";
+        final String TEST_NAME = "test150ModifyJackOrganizationalUnitRum";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0004"));
 
-		// THEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-		AssignmentType rumAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-		assertEquals("Wrong originMappingName", "Org mapping", rumAssignment.getMetadata().getOriginMappingName());
-		assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        AssignmentType rumAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        assertEquals("Wrong originMappingName", "Org mapping", rumAssignment.getMetadata().getOriginMappingName());
+        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
         assertAssignments(userJack, 2);
 
         UserType userJackType = userJack.asObjectable();
@@ -687,30 +687,30 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
 //        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-	}
+    }
 
-	@Test
+    @Test
     public void test151ModifyJackOrganizationalUnitOffense() throws Exception {
-		final String TEST_NAME = "test151ModifyJackOrganizationalUnitOffense";
+        final String TEST_NAME = "test151ModifyJackOrganizationalUnitOffense";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0003"));
 
-		// THEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-		AssignmentType offenseAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-		assertEquals("Wrong originMappingName", "Org mapping", offenseAssignment.getMetadata().getOriginMappingName());
-		assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        AssignmentType offenseAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertEquals("Wrong originMappingName", "Org mapping", offenseAssignment.getMetadata().getOriginMappingName());
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignments(userJack, 2);
 
         UserType userJackType = userJack.asObjectable();
@@ -724,32 +724,32 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
 //        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-	}
+    }
 
-	@Test
+    @Test
     public void test152ModifyJackOrganizationalUnitAddRum() throws Exception {
-		final String TEST_NAME = "test152ModifyJackOrganizationalUnitAddRum";
+        final String TEST_NAME = "test152ModifyJackOrganizationalUnitAddRum";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0004"));
 
-		// THEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
-		AssignmentType rumAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-		assertEquals("Wrong originMappingName", "Org mapping", rumAssignment.getMetadata().getOriginMappingName());
-		AssignmentType offenseAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-		assertEquals("Wrong originMappingName", "Org mapping", offenseAssignment.getMetadata().getOriginMappingName());
-		assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        AssignmentType rumAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        assertEquals("Wrong originMappingName", "Org mapping", rumAssignment.getMetadata().getOriginMappingName());
+        AssignmentType offenseAssignment = assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertEquals("Wrong originMappingName", "Org mapping", offenseAssignment.getMetadata().getOriginMappingName());
+        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignments(userJack, 3);
 
@@ -764,25 +764,25 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: " + userJackType.getTitle(), userJackType.getTitle());
 //        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-	}
+    }
 
-	@Test
+    @Test
     public void test153ModifyJackOrganizationalUnitDeleteOffense() throws Exception {
-		final String TEST_NAME = "test153ModifyJackOrganizationalUnitDeleteOffense";
+        final String TEST_NAME = "test153ModifyJackOrganizationalUnitDeleteOffense";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0003"));
 
-		// THEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
@@ -800,28 +800,28 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
 //        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-	}
+    }
 
-	/**
-	 * Creates org on demand.
-	 */
-	@Test
+    /**
+     * Creates org on demand.
+     */
+    @Test
     public void test155ModifyJackOrganizationalUnitFD001() throws Exception {
-		final String TEST_NAME = "test155ModifyJackOrganizationalUnitFD001";
+        final String TEST_NAME = "test155ModifyJackOrganizationalUnitFD001";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD001"));
 
-		// THEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
@@ -842,28 +842,28 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
 //        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-	}
+    }
 
-	/**
-	 * Reconcile user Jack, see that everything is OK.
-	 */
-	@Test
+    /**
+     * Reconcile user Jack, see that everything is OK.
+     */
+    @Test
     public void test156ReconcileJack() throws Exception {
-		final String TEST_NAME = "test156ReconcileJack";
+        final String TEST_NAME = "test156ReconcileJack";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         reconcileUser(USER_JACK_OID, task, result);
 
-		// THEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
@@ -883,29 +883,29 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
-	}
+    }
 
-	/**
-	 * Creates two orgs on demand.
-	 */
-	@Test
+    /**
+     * Creates two orgs on demand.
+     */
+    @Test
     public void test157ModifyJackOrganizationalUnitFD0023() throws Exception {
-		final String TEST_NAME = "test157ModifyJackOrganizationalUnitFD0023";
+        final String TEST_NAME = "test157ModifyJackOrganizationalUnitFD0023";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
-        		PrismTestUtil.createPolyString("FD002"), PrismTestUtil.createPolyString("FD003"));
+                PrismTestUtil.createPolyString("FD002"), PrismTestUtil.createPolyString("FD003"));
 
-		// THEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
 
@@ -929,26 +929,26 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
 //        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-	}
+    }
 
-	@Test
+    @Test
     public void test159ModifyJackDeleteOrganizationalUnitFD002() throws Exception {
-		final String TEST_NAME = "test159ModifyJackDeleteOrganizationalUnitFD002";
+        final String TEST_NAME = "test159ModifyJackDeleteOrganizationalUnitFD002";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result,
                 PrismTestUtil.createPolyString("FD002"));
 
-		// THEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
 
@@ -973,7 +973,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
         assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
 //        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
-	}
+    }
 
     @Test
     public void test160ModifyUserGivenNameAgain() throws Exception {
@@ -1010,18 +1010,18 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         ObjectDeltaOperation<?> objectDeltaOperation = dummyAuditService.getExecutionDelta(0, ChangeType.MODIFY, UserType.class);
         assertEquals("unexpected number of modifications in audited delta", 10, objectDeltaOperation.getObjectDelta().getModifications().size());   // givenName + badLuck + modifyTimestamp
         PropertyDelta badLuckDelta = objectDeltaOperation.getObjectDelta().findPropertyDelta(
-		        ItemPath.create(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
+                ItemPath.create(UserType.F_EXTENSION, PIRACY_BAD_LUCK));
         assertNotNull("badLuck delta was not found", badLuckDelta);
         List<PrismValue> oldValues = (List<PrismValue>) badLuckDelta.getEstimatedOldValues();
         assertNotNull("badLuck delta has null estimatedOldValues field", oldValues);
-	    ItemFactory factory = prismContext.itemFactory();
-	    PrismAsserts.assertEqualsCollectionUnordered("badLuck delta has wrong estimatedOldValues", oldValues,
-			    factory.createPropertyValue(123L), factory.createPropertyValue(456L));
+        ItemFactory factory = prismContext.itemFactory();
+        PrismAsserts.assertEqualsCollectionUnordered("badLuck delta has wrong estimatedOldValues", oldValues,
+                factory.createPropertyValue(123L), factory.createPropertyValue(456L));
     }
 
     @Test
     public void test162ModifyUserGivenNameAgainPhantomChange() throws Exception {
-    	final String TEST_NAME = "test162ModifyUserGivenNameAgainPhantomChange";
+        final String TEST_NAME = "test162ModifyUserGivenNameAgainPhantomChange";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1062,7 +1062,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
     @Test
     public void test165ModifyUserGivenNameAgainAgain() throws Exception {
-    	final String TEST_NAME = "test165ModifyUserGivenNameAgainAgain";
+        final String TEST_NAME = "test165ModifyUserGivenNameAgainAgain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1092,27 +1092,27 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
     }
 
     private PrismObject<OrgType> assertOnDemandOrgExists(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
-		assertNotNull("The org "+orgName+" is missing!", org);
-		display("Org "+orgName, org);
-		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
-		return org;
-	}
+        PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
+        assertNotNull("The org "+orgName+" is missing!", org);
+        display("Org "+orgName, org);
+        PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
+        return org;
+    }
 
-	private void assertOnDemandOrgAssigned(String orgName, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		PrismObject<OrgType> org = assertOnDemandOrgExists(orgName);
-		PrismAsserts.assertPropertyValue(org, OrgType.F_DESCRIPTION, "Created on demand from user "+user.asObjectable().getName());
-		assertAssignedOrg(user, org.getOid());
+    private void assertOnDemandOrgAssigned(String orgName, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        PrismObject<OrgType> org = assertOnDemandOrgExists(orgName);
+        PrismAsserts.assertPropertyValue(org, OrgType.F_DESCRIPTION, "Created on demand from user "+user.asObjectable().getName());
+        assertAssignedOrg(user, org.getOid());
         assertHasOrg(user, org.getOid());
-	}
+    }
 
-	/**
-	 * Setting employee type to THIEF is just one part of the condition to assign
-	 * the Thief role. The role should not be assigned now.
-	 */
-	@Test
+    /**
+     * Setting employee type to THIEF is just one part of the condition to assign
+     * the Thief role. The role should not be assigned now.
+     */
+    @Test
     public void test170ModifyUserGuybrushEmployeeTypeThief() throws Exception {
-		final String TEST_NAME = "test170ModifyUserGuybrushEmployeeTypeThief";
+        final String TEST_NAME = "test170ModifyUserGuybrushEmployeeTypeThief";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1123,27 +1123,27 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, "THIEF");
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		assertAssignedNoRole(userAfter);
-	}
+        assertAssignedNoRole(userAfter);
+    }
 
-	/**
-	 * Setting honorificPrefix satisfies the condition to assign
-	 * the Thief role.
-	 */
-	@Test
+    /**
+     * Setting honorificPrefix satisfies the condition to assign
+     * the Thief role.
+     */
+    @Test
     public void test172ModifyUserGuybrushHonorificPrefix() throws Exception {
-		final String TEST_NAME = "test172ModifyUserGuybrushHonorificPrefix";
+        final String TEST_NAME = "test172ModifyUserGuybrushHonorificPrefix";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1154,29 +1154,29 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result,
-        		PrismTestUtil.createPolyString("Thf."));
+                PrismTestUtil.createPolyString("Thf."));
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		AssignmentType thiefAssignment = assertAssignedRole(userAfter, ROLE_THIEF_OID);
-		assertEquals("Wrong originMappingName", "assignment-from-subtype-thief", thiefAssignment.getMetadata().getOriginMappingName());
-	}
+        AssignmentType thiefAssignment = assertAssignedRole(userAfter, ROLE_THIEF_OID);
+        assertEquals("Wrong originMappingName", "assignment-from-subtype-thief", thiefAssignment.getMetadata().getOriginMappingName());
+    }
 
-	/**
-	 * Removing honorificPrefix should make the condition false again, which should cause
-	 * that Thief role is unassigned.
-	 */
-	@Test
+    /**
+     * Removing honorificPrefix should make the condition false again, which should cause
+     * that Thief role is unassigned.
+     */
+    @Test
     public void test174ModifyUserGuybrushHonorificPrefixNone() throws Exception {
-		final String TEST_NAME = "test174ModifyUserGuybrushHonorificPrefixNone";
+        final String TEST_NAME = "test174ModifyUserGuybrushHonorificPrefixNone";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1187,28 +1187,28 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignedRole(userBefore, ROLE_THIEF_OID);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		assertAssignedNoRole(userAfter);
-	}
+        assertAssignedNoRole(userAfter);
+    }
 
-	/**
-	 * Setting employee type to marooned. This should cause switch to different user template.
-	 * Almost same as test185ModifyUserGuybrushSubtypeMarooned.
-	 * employeeType is deprecated, but it should still work for compatibility.
-	 */
-	@Test
+    /**
+     * Setting employee type to marooned. This should cause switch to different user template.
+     * Almost same as test185ModifyUserGuybrushSubtypeMarooned.
+     * employeeType is deprecated, but it should still work for compatibility.
+     */
+    @Test
     public void test180ModifyUserGuybrushEmployeeTypeMarooned() throws Exception {
-		final String TEST_NAME = "test180ModifyUserGuybrushEmployeeTypeMarooned";
+        final String TEST_NAME = "test180ModifyUserGuybrushEmployeeTypeMarooned";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1220,28 +1220,28 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong costCenter", "G001", userBefore.asObjectable().getCostCenter());
         assertAssignedNoRole(userBefore);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_MAROONED);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		assertEquals("Wrong costCenter", "NOCOST", userAfter.asObjectable().getCostCenter());
+        assertEquals("Wrong costCenter", "NOCOST", userAfter.asObjectable().getCostCenter());
 
-		assertAssignedNoRole(userAfter);
-	}
+        assertAssignedNoRole(userAfter);
+    }
 
-	/**
-	 * employeeType is deprecated, but it should still work for compatibility.
-	 */
-	@Test
+    /**
+     * employeeType is deprecated, but it should still work for compatibility.
+     */
+    @Test
     public void test184ModifyUserGuybrushEmployeeTypeNone() throws Exception {
-		final String TEST_NAME = "test184ModifyUserGuybrushEmployeeTypeNone";
+        final String TEST_NAME = "test184ModifyUserGuybrushEmployeeTypeNone";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1252,31 +1252,31 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_COST_CENTER, task, result, "S321");
-		
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_COST_CENTER, task, result, "S321");
 
-		assertEquals("Wrong costCenter", "S321", userAfter.asObjectable().getCostCenter());
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
+
+        assertEquals("Wrong costCenter", "S321", userAfter.asObjectable().getCostCenter());
 
 
-		assertAssignedNoRole(userAfter);
-	}
-	
-	/**
-	 * Setting subtype to marooned. This should cause switch to different user template.
-	 */
-	@Test
+        assertAssignedNoRole(userAfter);
+    }
+
+    /**
+     * Setting subtype to marooned. This should cause switch to different user template.
+     */
+    @Test
     public void test185ModifyUserGuybrushSubtypeMarooned() throws Exception {
-		final String TEST_NAME = "test185ModifyUserGuybrushSubtypeMarooned";
+        final String TEST_NAME = "test185ModifyUserGuybrushSubtypeMarooned";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1287,25 +1287,25 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_MAROONED);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		assertEquals("Wrong costCenter", "NOCOST", userAfter.asObjectable().getCostCenter());
+        assertEquals("Wrong costCenter", "NOCOST", userAfter.asObjectable().getCostCenter());
 
-		assertAssignedNoRole(userAfter);
-	}
-	
-	@Test
+        assertAssignedNoRole(userAfter);
+    }
+
+    @Test
     public void test189ModifyUserGuybrushSubtypeNone() throws Exception {
-		final String TEST_NAME = "test189ModifyUserGuybrushSubtypeNone";
+        final String TEST_NAME = "test189ModifyUserGuybrushSubtypeNone";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1316,33 +1316,33 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_COST_CENTER, task, result, "S321");
-		
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_COST_CENTER, task, result, "S321");
 
-		assertEquals("Wrong costCenter", "S321", userAfter.asObjectable().getCostCenter());
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		assertAssignedNoRole(userAfter);
-	}
-	
+        assertEquals("Wrong costCenter", "S321", userAfter.asObjectable().getCostCenter());
+
+        assertAssignedNoRole(userAfter);
+    }
 
 
-	/**
-	 * Assignment mapping with domain. Control: nothing should happen.
-	 * MID-3692
-	 */
-	@Test
+
+    /**
+     * Assignment mapping with domain. Control: nothing should happen.
+     * MID-3692
+     */
+    @Test
     public void test190ModifyUserGuybrushOrganizationWhateveric() throws Exception {
-		final String TEST_NAME = "test190ModifyUserGuybrushOrganizationWhateveric";
+        final String TEST_NAME = "test190ModifyUserGuybrushOrganizationWhateveric";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1354,29 +1354,29 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertAssignedNoRole(userBefore);
         assertAssignments(userBefore, 1);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, createPolyString("Whateveric"));
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, createPolyString("Whateveric"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION, createPolyString("Whateveric"));
 
-		assertAssignedNoRole(userAfter);
-		assertAssignments(userAfter, 1);
-	}
+        assertAssignedNoRole(userAfter);
+        assertAssignments(userAfter, 1);
+    }
 
-	/**
-	 * MID-3692
-	 */
-	@Test
+    /**
+     * MID-3692
+     */
+    @Test
     public void test191ModifyUserGuybrushOrganizationAutomatic() throws Exception {
-		final String TEST_NAME = "test191ModifyUserGuybrushOrganizationAutomatic";
+        final String TEST_NAME = "test191ModifyUserGuybrushOrganizationAutomatic";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1387,35 +1387,35 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignedNoRole(userBefore);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result, createPolyString("AUTO-matic"));
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-				createPolyString("Whateveric"),
-				createPolyString("AUTO-matic"));
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
+                createPolyString("Whateveric"),
+                createPolyString("AUTO-matic"));
 
-		AssignmentType autoAssignment = assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
-		assertEquals("Wrong originMappingName", "automappic", autoAssignment.getMetadata().getOriginMappingName());
-		assertAssignments(userAfter, 2);
+        AssignmentType autoAssignment = assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+        assertEquals("Wrong originMappingName", "automappic", autoAssignment.getMetadata().getOriginMappingName());
+        assertAssignments(userAfter, 2);
 
-		assertRoles(getNumberOfRoles());
-	}
+        assertRoles(getNumberOfRoles());
+    }
 
-	/**
-	 * MID-3692
-	 */
-	@Test
+    /**
+     * MID-3692
+     */
+    @Test
     public void test192ModifyUserGuybrushOrganizationAddMixed() throws Exception {
-		final String TEST_NAME = "test192ModifyUserGuybrushOrganizationAddMixed";
+        final String TEST_NAME = "test192ModifyUserGuybrushOrganizationAddMixed";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1426,47 +1426,47 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 2);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-        		createPolyString("DEMO-cratic"),
-        		createPolyString("AUTO-cratic"),
-        		createPolyString("plutocratic"),
-        		createPolyString("AUTO-didactic")
-        	);
+                createPolyString("DEMO-cratic"),
+                createPolyString("AUTO-cratic"),
+                createPolyString("plutocratic"),
+                createPolyString("AUTO-didactic")
+            );
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-				createPolyString("Whateveric"),
-				createPolyString("AUTO-matic"),
-				createPolyString("DEMO-cratic"),
-        		createPolyString("AUTO-cratic"),
-        		createPolyString("plutocratic"),
-        		createPolyString("AUTO-didactic")
-			);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
+                createPolyString("Whateveric"),
+                createPolyString("AUTO-matic"),
+                createPolyString("DEMO-cratic"),
+                createPolyString("AUTO-cratic"),
+                createPolyString("plutocratic"),
+                createPolyString("AUTO-didactic")
+            );
 
-		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
-		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
-		assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
-		assertAssignments(userAfter, 4);
+        assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
+        assertAssignments(userAfter, 4);
 
-		// Make sure nothing was created on demand
-		assertRoles(getNumberOfRoles());
-	}
+        // Make sure nothing was created on demand
+        assertRoles(getNumberOfRoles());
+    }
 
-	/**
-	 * MID-3692
-	 */
-	@Test
+    /**
+     * MID-3692
+     */
+    @Test
     public void test193ModifyUserGuybrushOrganizationAddOutOfDomain() throws Exception {
-		final String TEST_NAME = "test193ModifyUserGuybrushOrganizationAddOutOfDomain";
+        final String TEST_NAME = "test193ModifyUserGuybrushOrganizationAddOutOfDomain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1477,47 +1477,47 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 4);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-        		createPolyString("meritocratic"),
-        		createPolyString("piratocratic")
-        	);
+                createPolyString("meritocratic"),
+                createPolyString("piratocratic")
+            );
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-				createPolyString("Whateveric"),
-				createPolyString("AUTO-matic"),
-				createPolyString("DEMO-cratic"),
-        		createPolyString("AUTO-cratic"),
-        		createPolyString("plutocratic"),
-        		createPolyString("AUTO-didactic"),
-        		createPolyString("meritocratic"),
-        		createPolyString("piratocratic")
-			);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
+                createPolyString("Whateveric"),
+                createPolyString("AUTO-matic"),
+                createPolyString("DEMO-cratic"),
+                createPolyString("AUTO-cratic"),
+                createPolyString("plutocratic"),
+                createPolyString("AUTO-didactic"),
+                createPolyString("meritocratic"),
+                createPolyString("piratocratic")
+            );
 
-		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
-		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
-		assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
-		assertAssignments(userAfter, 4);
+        assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTODIDACTIC_OID);
+        assertAssignments(userAfter, 4);
 
-		// Make sure nothing was created on demand
-		assertRoles(getNumberOfRoles());
-	}
+        // Make sure nothing was created on demand
+        assertRoles(getNumberOfRoles());
+    }
 
-	/**
-	 * MID-3692
-	 */
-	@Test
+    /**
+     * MID-3692
+     */
+    @Test
     public void test194ModifyUserGuybrushOrganizationDeleteMixed() throws Exception {
-		final String TEST_NAME = "test194ModifyUserGuybrushOrganizationDeleteMixed";
+        final String TEST_NAME = "test194ModifyUserGuybrushOrganizationDeleteMixed";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1528,43 +1528,43 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 4);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-        		createPolyString("AUTO-matic"),
-        		createPolyString("plutocratic"),
-        		createPolyString("meritocratic"),
-        		createPolyString("AUTO-didactic")
-        	);
+                createPolyString("AUTO-matic"),
+                createPolyString("plutocratic"),
+                createPolyString("meritocratic"),
+                createPolyString("AUTO-didactic")
+            );
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-				createPolyString("Whateveric"),
-				createPolyString("DEMO-cratic"),
-        		createPolyString("AUTO-cratic"),
-        		createPolyString("piratocratic")
-			);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
+                createPolyString("Whateveric"),
+                createPolyString("DEMO-cratic"),
+                createPolyString("AUTO-cratic"),
+                createPolyString("piratocratic")
+            );
 
-		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
-		assertAssignments(userAfter, 2);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignments(userAfter, 2);
 
-		// Make sure nothing was created on demand
-		assertRoles(getNumberOfRoles());
-	}
+        // Make sure nothing was created on demand
+        assertRoles(getNumberOfRoles());
+    }
 
-	/**
-	 * MID-3692
-	 */
-	@Test
+    /**
+     * MID-3692
+     */
+    @Test
     public void test195ModifyUserGuybrushOrganizationDeleteOutOfDomain() throws Exception {
-		final String TEST_NAME = "test195ModifyUserGuybrushOrganizationDeleteOutOfDomain";
+        final String TEST_NAME = "test195ModifyUserGuybrushOrganizationDeleteOutOfDomain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1575,40 +1575,40 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 2);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-        		createPolyString("piratocratic"),
-        		createPolyString("DEMO-cratic")
-        	);
+                createPolyString("piratocratic"),
+                createPolyString("DEMO-cratic")
+            );
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-				createPolyString("Whateveric"),
-        		createPolyString("AUTO-cratic")
-			);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
+                createPolyString("Whateveric"),
+                createPolyString("AUTO-cratic")
+            );
 
-		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
-		assertAssignments(userAfter, 2);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignments(userAfter, 2);
 
-		// Make sure nothing was created on demand
-		assertRoles(getNumberOfRoles());
-	}
+        // Make sure nothing was created on demand
+        assertRoles(getNumberOfRoles());
+    }
 
-	/**
-	 * Make sure that the manually assigned roles will not mess with the mapping.
-	 * MID-3692
-	 */
-	@Test
+    /**
+     * Make sure that the manually assigned roles will not mess with the mapping.
+     * MID-3692
+     */
+    @Test
     public void test196GuybrushAssignCaptain() throws Exception {
-		final String TEST_NAME = "test196GuybrushAssignCaptain";
+        final String TEST_NAME = "test196GuybrushAssignCaptain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1619,77 +1619,77 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 2);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-				createPolyString("Whateveric"),
-        		createPolyString("AUTO-cratic")
-			);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
+                createPolyString("Whateveric"),
+                createPolyString("AUTO-cratic")
+            );
 
-		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
-		assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
-		assertAssignments(userAfter, 3);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+        assertAssignments(userAfter, 3);
 
-		// Make sure nothing was created on demand
-		assertRoles(getNumberOfRoles());
-	}
+        // Make sure nothing was created on demand
+        assertRoles(getNumberOfRoles());
+    }
 
-	/**
-	 * Make sure that a role automatically assigned by a different mapping will not mess with this mapping.
-	 * MID-3692
-	 */
-	@Test
+    /**
+     * Make sure that a role automatically assigned by a different mapping will not mess with this mapping.
+     * MID-3692
+     */
+    @Test
     public void test197ModifyGuybrushEmployeeTypePirate() throws Exception {
-		final String TEST_NAME = "test197ModifyGuybrushEmployeeTypePirate";
+        final String TEST_NAME = "test197ModifyGuybrushEmployeeTypePirate";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID,  UserType.F_SUBTYPE, task, result, "PIRATE");
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-				createPolyString("Whateveric"),
-        		createPolyString("AUTO-cratic")
-			);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
+                createPolyString("Whateveric"),
+                createPolyString("AUTO-cratic")
+            );
 
-		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
-		assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
-		assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-		assertAssignments(userAfter, 4);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        assertAssignments(userAfter, 4);
 
-		// Make sure nothing was created on demand
-		assertRoles(getNumberOfRoles());
-	}
+        // Make sure nothing was created on demand
+        assertRoles(getNumberOfRoles());
+    }
 
-	/**
-	 * Make sure that changes in this mapping will not influence other assigned roles.
-	 * MID-3692
-	 */
-	@Test
+    /**
+     * Make sure that changes in this mapping will not influence other assigned roles.
+     * MID-3692
+     */
+    @Test
     public void test198AModifyUserGuybrushOrganizationAddInDomain() throws Exception {
-		final String TEST_NAME = "test198AModifyUserGuybrushOrganizationAddInDomain";
+        final String TEST_NAME = "test198AModifyUserGuybrushOrganizationAddInDomain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1700,46 +1700,46 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 4);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserAdd(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-        		createPolyString("AUTO-graphic"),
-        		createPolyString("AUTO-matic")
-        	);
+                createPolyString("AUTO-graphic"),
+                createPolyString("AUTO-matic")
+            );
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-				createPolyString("Whateveric"),
-        		createPolyString("AUTO-cratic"),
-        		createPolyString("AUTO-graphic"),
-        		createPolyString("AUTO-matic")
-			);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
+                createPolyString("Whateveric"),
+                createPolyString("AUTO-cratic"),
+                createPolyString("AUTO-graphic"),
+                createPolyString("AUTO-matic")
+            );
 
-		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
-		assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
-		assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
-		assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
-		assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-		assertAssignments(userAfter, 6);
+        assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOCRATIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+        assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        assertAssignments(userAfter, 6);
 
-		// Make sure nothing was created on demand
-		assertRoles(getNumberOfRoles());
-	}
+        // Make sure nothing was created on demand
+        assertRoles(getNumberOfRoles());
+    }
 
-	/**
-	 * Make sure that changes in this mapping will not influence other assigned roles.
-	 * MID-3692
-	 */
-	@Test
+    /**
+     * Make sure that changes in this mapping will not influence other assigned roles.
+     * MID-3692
+     */
+    @Test
     public void test198BModifyUserGuybrushOrganizationDeleteMixed() throws Exception {
-		final String TEST_NAME = "test198BModifyUserGuybrushOrganizationDeleteMixed";
+        final String TEST_NAME = "test198BModifyUserGuybrushOrganizationDeleteMixed";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1750,42 +1750,42 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 6);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserDelete(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result,
-        		createPolyString("AUTO-cratic"),
-        		createPolyString("Whateveric")
-        	);
+                createPolyString("AUTO-cratic"),
+                createPolyString("Whateveric")
+            );
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-        		createPolyString("AUTO-graphic"),
-        		createPolyString("AUTO-matic")
-			);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
+                createPolyString("AUTO-graphic"),
+                createPolyString("AUTO-matic")
+            );
 
-		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
-		assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
-		assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
-		assertAssignedRole(userAfter, ROLE_PIRATE_OID);
-		assertAssignments(userAfter, 5);
+        assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+        assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+        assertAssignedRole(userAfter, ROLE_PIRATE_OID);
+        assertAssignments(userAfter, 5);
 
-		// Make sure nothing was created on demand
-		assertRoles(getNumberOfRoles());
-	}
+        // Make sure nothing was created on demand
+        assertRoles(getNumberOfRoles());
+    }
 
-	/**
-	 * MID-3692
-	 */
-	@Test
+    /**
+     * MID-3692
+     */
+    @Test
     public void test199AGuyBrushModifyEmployeeTypeWannabe() throws Exception {
-		final String TEST_NAME = "test199AGuyBrushModifyEmployeeTypeWannabe";
+        final String TEST_NAME = "test199AGuyBrushModifyEmployeeTypeWannabe";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1796,38 +1796,38 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 5);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID,  UserType.F_SUBTYPE, task, result, "wannabe");
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-        		createPolyString("AUTO-graphic"),
-        		createPolyString("AUTO-matic")
-			);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
+                createPolyString("AUTO-graphic"),
+                createPolyString("AUTO-matic")
+            );
 
-		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
-		assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
-		assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
-		assertAssignments(userAfter, 4);
+        assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+        assertAssignedRole(userAfter, ROLE_CAPTAIN_OID);
+        assertAssignments(userAfter, 4);
 
-		// Make sure nothing was created on demand
-		assertRoles(getNumberOfRoles());
-	}
+        // Make sure nothing was created on demand
+        assertRoles(getNumberOfRoles());
+    }
 
-	/**
-	 * MID-3692
-	 */
-	@Test
+    /**
+     * MID-3692
+     */
+    @Test
     public void test199BGuyBrushUnassignCaptain() throws Exception {
-		final String TEST_NAME = "test199BGuyBrushUnassignCaptain";
+        final String TEST_NAME = "test199BGuyBrushUnassignCaptain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1838,37 +1838,37 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         display("User before", userBefore);
         assertAssignments(userBefore, 4);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         unassignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
-        		createPolyString("AUTO-graphic"),
-        		createPolyString("AUTO-matic")
-			);
+        PrismAsserts.assertPropertyValue(userAfter, UserType.F_ORGANIZATION,
+                createPolyString("AUTO-graphic"),
+                createPolyString("AUTO-matic")
+            );
 
-		assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
-		assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
-		assertAssignments(userAfter, 3);
+        assertAssignedRole(userAfter, ROLE_AUTOMATIC_OID);
+        assertAssignedRole(userAfter, ROLE_AUTOGRAPHIC_OID);
+        assertAssignments(userAfter, 3);
 
-		// Make sure nothing was created on demand
-		assertRoles(getNumberOfRoles());
-	}
+        // Make sure nothing was created on demand
+        assertRoles(getNumberOfRoles());
+    }
 
-	/**
-	 * MID-3692, MID-3700
-	 */
-	@Test
+    /**
+     * MID-3692, MID-3700
+     */
+    @Test
     public void test199CModifyUserGuybrushOrganizationCleanup() throws Exception {
-		final String TEST_NAME = "test199CModifyUserGuybrushOrganizationCleanup";
+        final String TEST_NAME = "test199CModifyUserGuybrushOrganizationCleanup";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1878,28 +1878,28 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
         display("User before", userBefore);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_ORGANIZATION, task, result);
 
-		// THEN
-		displayThen(TEST_NAME);
-		result.computeStatus();
+        // THEN
+        displayThen(TEST_NAME);
+        result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		PrismAsserts.assertNoItem(userAfter, UserType.F_ORGANIZATION);
+        PrismAsserts.assertNoItem(userAfter, UserType.F_ORGANIZATION);
 
-		assertAssignedNoRole(userAfter);
+        assertAssignedNoRole(userAfter);
 
-		assertRoles(getNumberOfRoles());
-	}
+        assertRoles(getNumberOfRoles());
+    }
 
-	@Test
+    @Test
     public void test200AddUserRapp() throws Exception {
-		final String TEST_NAME = "test200AddUserRapp";
+        final String TEST_NAME = "test200AddUserRapp";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -1911,11 +1911,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         deltas.add(userDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        // THEN
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
         PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
 
@@ -1930,11 +1930,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         assertEquals("Unexpected value of employeeNumber, maybe it was generated and should not be?",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
-	}
+    }
 
-	@Test
+    @Test
     public void test201AddUserLargo() throws Exception {
         TestUtil.displayTestTitle(this, "test201AddUserLargo");
 
@@ -1949,12 +1949,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         deltas.add(userDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_LARGO_OID, null, task, result);
-		display("Largo after", userAfter);
+        // THEN
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_LARGO_OID, null, task, result);
+        display("Largo after", userAfter);
         assertUser(userAfter, USER_LARGO_OID, "largo", "Largo LaGrande", "Largo", "LaGrande");
 
         // locality is null; the description comes from inbound mapping on dummy resource
@@ -1978,10 +1978,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?",
-        		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
-	}
+                GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
+    }
 
-	@Test
+    @Test
     public void test202AddUserMonkey() throws Exception {
         TestUtil.displayTestTitle(this, "test202AddUserMonkey");
 
@@ -1994,12 +1994,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         deltas.add(userDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_THREE_HEADED_MONKEY_OID, null, task, result);
-		display("User after", userAfter);
+        // THEN
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_THREE_HEADED_MONKEY_OID, null, task, result);
+        display("User after", userAfter);
 //        assertUser(userAfter, USER_THREE_HEADED_MONKEY_OID, "monkey", " Monkey", null, "Monkey");
         assertUser(userAfter, USER_THREE_HEADED_MONKEY_OID, "monkey", "Three-Headed Monkey", null, "Monkey");
         PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
@@ -2015,15 +2015,15 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?",
-        		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
-	}
+                GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
+    }
 
-	/**
-	 * MID-3186
-	 */
-	@Test
+    /**
+     * MID-3186
+     */
+    @Test
     public void test204AddUserHerman() throws Exception {
-		final String TEST_NAME = "test204AddUserHerman";
+        final String TEST_NAME = "test204AddUserHerman";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2035,11 +2035,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         deltas.add(userDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_HERMAN_OID, null, task, result);
+        // THEN
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_HERMAN_OID, null, task, result);
         assertUser(userAfter, USER_HERMAN_OID, USER_HERMAN_USERNAME, USER_HERMAN_FULL_NAME, "Herman", "Toothrot");
         PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_TIMEZONE, "High Seas/Monkey Island");
@@ -2055,22 +2055,22 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
-	}
+    }
 
-	@Test
+    @Test
     public void test220AssignRoleSailorToUserRapp() throws Exception {
-		final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
+        final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
-		assignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
+        // WHEN
+        assignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
 
-		// THEN
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        // THEN
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
         PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
 
@@ -2085,27 +2085,27 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "CC-TITANIC", userAfterType.getCostCenter());
-	}
+    }
 
-	/**
-	 * MID-3028
-	 */
-	@Test
+    /**
+     * MID-3028
+     */
+    @Test
     public void test229UnassignRoleSailorFromUserRapp() throws Exception {
-		final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
+        final String TEST_NAME = "test220AssignRoleSailorToUserRapp";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
-		unassignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
+        // WHEN
+        unassignRole(USER_RAPP_OID, ROLE_SAILOR_OID, task, result);
 
-		// THEN
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        // THEN
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
         PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
 
@@ -2120,29 +2120,29 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
-	}
+    }
 
 
-	/**
-	 * Role Captains has focus mapping for the same costCenter as is given
-	 * by the user template.
-	 */
-	@Test
+    /**
+     * Role Captains has focus mapping for the same costCenter as is given
+     * by the user template.
+     */
+    @Test
     public void test230AssignRoleCaptainToUserRapp() throws Exception {
-		final String TEST_NAME = "test230AssignRoleCaptainToUserRapp";
+        final String TEST_NAME = "test230AssignRoleCaptainToUserRapp";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
-		assignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
+        // WHEN
+        assignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
 
-		// THEN
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        // THEN
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
@@ -2156,28 +2156,28 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "G001", userAfterType.getCostCenter());
-	}
+    }
 
-	/**
-	 * Object template mapping for cost center is weak, role mapping is normal.
-	 * Direct modification should override both.
-	 */
-	@Test
+    /**
+     * Object template mapping for cost center is weak, role mapping is normal.
+     * Direct modification should override both.
+     */
+    @Test
     public void test232ModifyUserRappCostCenter() throws Exception {
-		final String TEST_NAME = "test232ModifyUserRappCostCenter";
+        final String TEST_NAME = "test232ModifyUserRappCostCenter";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         modifyUserReplace(USER_RAPP_OID, UserType.F_COST_CENTER, task, result, "CC-RAPP");
 
-		// THEN
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        // THEN
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
@@ -2191,30 +2191,30 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
-	}
+    }
 
-	/**
-	 * Role Captains has focus mapping for the same costCenter as is given
-	 * by the user template.
-	 * MID-3028
-	 */
-	@Test
+    /**
+     * Role Captains has focus mapping for the same costCenter as is given
+     * by the user template.
+     * MID-3028
+     */
+    @Test
     public void test239UnassignRoleCaptainFromUserRapp() throws Exception {
-		final String TEST_NAME = "test239UnassignRoleCaptainFromUserRapp";
+        final String TEST_NAME = "test239UnassignRoleCaptainFromUserRapp";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
-		unassignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
+        // WHEN
+        unassignRole(USER_RAPP_OID, ROLE_CAPTAIN_OID, task, result);
 
-		// THEN
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-		display("User after", userAfter);
+        // THEN
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        display("User after", userAfter);
         assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
@@ -2228,13 +2228,13 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
-	}
+    }
 
-	@Test
+    @Test
     public void test240ModifyUserRappLocalityScabb() throws Exception {
-		final String TEST_NAME = "test240ModifyUserRappLocalityScabb";
+        final String TEST_NAME = "test240ModifyUserRappLocalityScabb";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2242,22 +2242,22 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-		display("User before", userBefore);
+        display("User before", userBefore);
 
-		assertEquals("Wrong timezone", "High Seas/null", userBefore.asObjectable().getTimezone());
-		assertEquals("Wrong locale", null, userBefore.asObjectable().getLocale());
+        assertEquals("Wrong timezone", "High Seas/null", userBefore.asObjectable().getTimezone());
+        assertEquals("Wrong locale", null, userBefore.asObjectable().getLocale());
 
-		// WHEN
+        // WHEN
         modifyUserReplace(USER_RAPP_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Scabb Island"));
 
-		// THEN
+        // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        display("User after", userAfter);
 
-		assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedNoRole(userAfter);
         assertAssignments(userAfter, 1);
 
@@ -2268,35 +2268,35 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong locale", "SC", userAfterType.getLocale());
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
-	}
+    }
 
 
-	/**
-	 * Role Rastaman has focus mapping for the same timezone as is given
-	 * by the user template. This mapping is normal strength. Even though
-	 * it is evaluated after the template the mapping, role assignment is an
-	 * explicit delta and the mapping should be applied.
-	 * MID-3040
-	 */
-	@Test
+    /**
+     * Role Rastaman has focus mapping for the same timezone as is given
+     * by the user template. This mapping is normal strength. Even though
+     * it is evaluated after the template the mapping, role assignment is an
+     * explicit delta and the mapping should be applied.
+     * MID-3040
+     */
+    @Test
     public void test242AssignRoleRastamanToUserRapp() throws Exception {
-		final String TEST_NAME = "test242AssignRoleRastamanToUserRapp";
+        final String TEST_NAME = "test242AssignRoleRastamanToUserRapp";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
-		assignRole(USER_RAPP_OID, ROLE_RASTAMAN_OID, task, result);
+        // WHEN
+        assignRole(USER_RAPP_OID, ROLE_RASTAMAN_OID, task, result);
 
-		// THEN
+        // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
 
         assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
@@ -2310,20 +2310,20 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong locale", "WE", userAfterType.getLocale());
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
-	}
+    }
 
-	/**
-	 * Role Rastaman has focus mapping for the same timezone as is given
-	 * by the user template. This mapping is normal strength. It is evaluated
-	 * after the template the mapping, so it should not be applied because
-	 * there is already a-priori delta from the template.
-	 * MID-3040
-	 */
-	@Test
+    /**
+     * Role Rastaman has focus mapping for the same timezone as is given
+     * by the user template. This mapping is normal strength. It is evaluated
+     * after the template the mapping, so it should not be applied because
+     * there is already a-priori delta from the template.
+     * MID-3040
+     */
+    @Test
     public void test244ModifyUserRappLocalityCoffin() throws Exception {
-		final String TEST_NAME = "test244ModifyUserRappLocalityCoffin";
+        final String TEST_NAME = "test244ModifyUserRappLocalityCoffin";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2331,19 +2331,19 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-		display("User before", userBefore);
+        display("User before", userBefore);
 
-		// WHEN
+        // WHEN
         modifyUserReplace(USER_RAPP_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("Coffin"));
 
-		// THEN
+        // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        display("User after", userAfter);
 
-		assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userAfter, ROLE_RASTAMAN_OID);
         assertAssignments(userAfter, 2);
 
@@ -2354,17 +2354,17 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong locale", "WE", userAfterType.getLocale());
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
-	}
+    }
 
-	/**
-	 * Similar to test244, but also use reconcile option.
-	 * MID-3040
-	 */
-	@Test
+    /**
+     * Similar to test244, but also use reconcile option.
+     * MID-3040
+     */
+    @Test
     public void test245ModifyUserRappLocalityUnderReconcile() throws Exception {
-		final String TEST_NAME = "test245ModifyUserRappLocalityUnderReconcile";
+        final String TEST_NAME = "test245ModifyUserRappLocalityUnderReconcile";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2372,24 +2372,24 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-		display("User before", userBefore);
+        display("User before", userBefore);
 
-		ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_RAPP_OID, UserType.F_LOCALITY,
-				PrismTestUtil.createPolyString("Six feet under"));
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
+        ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_RAPP_OID, UserType.F_LOCALITY,
+                PrismTestUtil.createPolyString("Six feet under"));
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+        ModelExecuteOptions options = ModelExecuteOptions.createReconcile();
 
-		// WHEN
-		modelService.executeChanges(deltas, options, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, options, task, result);
 
-		// THEN
+        // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        display("User after", userAfter);
 
-		assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userAfter, ROLE_RASTAMAN_OID);
         assertAssignments(userAfter, 2);
 
@@ -2400,19 +2400,19 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong locale", "WE", userAfterType.getLocale());
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
-	}
+    }
 
-	/**
-	 * Changing timezone. timezone is a target of (normal) object template mapping and
-	 * (normal) role mapping. But as this is primary delta none of the mappings should
-	 * be applied.
-	 * MID-3040
-	 */
-	@Test
+    /**
+     * Changing timezone. timezone is a target of (normal) object template mapping and
+     * (normal) role mapping. But as this is primary delta none of the mappings should
+     * be applied.
+     * MID-3040
+     */
+    @Test
     public void test246ModifyUserRappTimezoneMonkey() throws Exception {
-		final String TEST_NAME = "test246ModifyUserRappTimezoneMonkey";
+        final String TEST_NAME = "test246ModifyUserRappTimezoneMonkey";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2420,19 +2420,19 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-		display("User before", userBefore);
+        display("User before", userBefore);
 
-		// WHEN
+        // WHEN
         modifyUserReplace(USER_RAPP_OID, UserType.F_TIMEZONE, task, result, "Monkey Island");
 
-		// THEN
+        // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        display("User after", userAfter);
 
-		assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userAfter, ROLE_RASTAMAN_OID);
         assertAssignments(userAfter, 2);
 
@@ -2443,19 +2443,19 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong locale", "WE", userAfterType.getLocale());
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
-	}
+    }
 
-	/**
-	 * Changing locale. Locale is a target of (weak) object template mapping and
-	 * (normal) role mapping. But as this is primary delta none of the mappings should
-	 * be applied.
-	 * MID-3040
-	 */
-	@Test
+    /**
+     * Changing locale. Locale is a target of (weak) object template mapping and
+     * (normal) role mapping. But as this is primary delta none of the mappings should
+     * be applied.
+     * MID-3040
+     */
+    @Test
     public void test247ModifyUserRappLocaleMI() throws Exception {
-		final String TEST_NAME = "test247ModifyUserRappLocaleMI";
+        final String TEST_NAME = "test247ModifyUserRappLocaleMI";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2463,19 +2463,19 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-		display("User before", userBefore);
+        display("User before", userBefore);
 
-		// WHEN
+        // WHEN
         modifyUserReplace(USER_RAPP_OID, UserType.F_LOCALE, task, result, "MI");
 
-		// THEN
+        // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        display("User after", userAfter);
 
-		assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
+        assertAssignedAccount(userAfter, RESOURCE_DUMMY_BLUE_OID);
         assertAssignedRole(userAfter, ROLE_RASTAMAN_OID);
         assertAssignments(userAfter, 2);
 
@@ -2489,27 +2489,27 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong locale", "MI", userAfterType.getLocale());
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
-	}
+    }
 
-	@Test
+    @Test
     public void test249UnassignRoleRastamanFromUserRapp() throws Exception {
-		final String TEST_NAME = "test249UnassignRoleRastamanFromUserRapp";
+        final String TEST_NAME = "test249UnassignRoleRastamanFromUserRapp";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
-		unassignRole(USER_RAPP_OID, ROLE_RASTAMAN_OID, task, result);
+        // WHEN
+        unassignRole(USER_RAPP_OID, ROLE_RASTAMAN_OID, task, result);
 
-		// THEN
+        // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_RAPP_OID, null, task, result);
         assertUser(userAfter, USER_RAPP_OID, "rapp", "Rapp Scallion", "Rapp", "Scallion");
         PrismAsserts.assertNoItem(userAfter, UserType.F_DESCRIPTION);
 
@@ -2526,16 +2526,16 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong locale", "MI", userAfterType.getLocale());
 
         assertEquals("Unexpected value of employeeNumber",
-        		"D3ADB33F", userAfterType.getEmployeeNumber());
+                "D3ADB33F", userAfterType.getEmployeeNumber());
         assertEquals("Wrong costCenter", "CC-RAPP", userAfterType.getCostCenter());
-	}
+    }
 
-	/**
-	 * MID-3186
-	 */
-	@Test
+    /**
+     * MID-3186
+     */
+    @Test
     public void test300ImportStanFromEmeraldResource() throws Exception {
-		final String TEST_NAME = "test300ImportStanFromEmeraldResource";
+        final String TEST_NAME = "test300ImportStanFromEmeraldResource";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2545,15 +2545,15 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         DummyAccount dummyAccountBefore = new DummyAccount(ACCOUNT_STAN_USERNAME);
         dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
-        		ACCOUNT_STAN_FULLNAME);
+                ACCOUNT_STAN_FULLNAME);
         dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
-        		"Melee Island");
+                "Melee Island");
         dummyResourceEmerald.addAccount(dummyAccountBefore);
 
         PrismObject<ShadowType> shadowBefore = findAccountByUsername(ACCOUNT_STAN_USERNAME, resourceDummyEmerald);
         display("Shadow before", shadowBefore);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modelService.importFromResource(shadowBefore.getOid(), task, result);
 
@@ -2570,17 +2570,17 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(ACCOUNT_STAN_FULLNAME));
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Melee Island"));
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_TIMEZONE, "High Seas/Melee Island");
-	}
+    }
 
-	/**
-	 * Modify stan accoutn and reimport from the emerald resource. Make sure that
-	 * the normal mapping for locality in the object template is properly activated (as there is
-	 * an delta from inbound mapping in the emerald resource).
-	 * MID-3186
-	 */
-	@Test
+    /**
+     * Modify stan accoutn and reimport from the emerald resource. Make sure that
+     * the normal mapping for locality in the object template is properly activated (as there is
+     * an delta from inbound mapping in the emerald resource).
+     * MID-3186
+     */
+    @Test
     public void test302ModifyStanAccountAndReimport() throws Exception {
-		final String TEST_NAME = "test302ModifyStanAccountAndReimport";
+        final String TEST_NAME = "test302ModifyStanAccountAndReimport";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2590,12 +2590,12 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         DummyAccount dummyAccountBefore = dummyResourceEmerald.getAccountByUsername(ACCOUNT_STAN_USERNAME);
         dummyAccountBefore.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME,
-        		"Booty Island");
+                "Booty Island");
 
         PrismObject<ShadowType> shadowBefore = findAccountByUsername(ACCOUNT_STAN_USERNAME, resourceDummyEmerald);
         display("Shadow before", shadowBefore);
 
-		// WHEN
+        // WHEN
         displayWhen(TEST_NAME);
         modelService.importFromResource(shadowBefore.getOid(), task, result);
 
@@ -2612,24 +2612,24 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(ACCOUNT_STAN_FULLNAME));
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("Booty Island"));
         PrismAsserts.assertPropertyValue(userAfter, UserType.F_TIMEZONE, "High Seas/Booty Island");
-	}
+    }
 
-	/**
-	 * There is no funeralTimestamp. But there is user template mapping ("time bomb")
-	 * that is using funeralTimestamp as timeFrom. Make sure that it will not die with
-	 * null value.
-	 * MID-5603
-	 */
-	@Test
+    /**
+     * There is no funeralTimestamp. But there is user template mapping ("time bomb")
+     * that is using funeralTimestamp as timeFrom. Make sure that it will not die with
+     * null value.
+     * MID-5603
+     */
+    @Test
     public void test800NullTimeFrom() throws Exception {
-		final String TEST_NAME = "test800Kaboom";
+        final String TEST_NAME = "test800Kaboom";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
+
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
 
@@ -2638,26 +2638,26 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-	    	.assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
-	    	.extension()
-	    		.assertNoItem(PIRACY_TALES)
-	    		.assertNoItem(PIRACY_LOOT)
-	    		.end()
-	    	.assertNoTrigger();
-	}
+            .assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
+            .extension()
+                .assertNoItem(PIRACY_TALES)
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .assertNoTrigger();
+    }
 
-	/**
-	 * Set funeral timestamp. But the time-based mapping should not trigger yet.
-	 */
-	@Test
+    /**
+     * Set funeral timestamp. But the time-based mapping should not trigger yet.
+     */
+    @Test
     public void test802FuneralTimestamp() throws Exception {
-		final String TEST_NAME = "test802FuneralTimestamp";
+        final String TEST_NAME = "test802FuneralTimestamp";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         funeralTimestamp = clock.currentTimeXMLGregorianCalendar();
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, funeralTimestamp);
 
@@ -2666,23 +2666,23 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
-        	.extension()
-	    		.assertNoItem(PIRACY_TALES)
-	    		.assertNoItem(PIRACY_LOOT)
-	    		.end()
-	    	.triggers()
-	    		.single()
-	    			.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-	    			.assertTimestampFuture(funeralTimestamp, "P1M", 10*1000L);
-	}
-	
-	/**
-	 * Move the time to the future a bit. But not far enough to cause an explosion.
-	 */
-	@Test
+            .assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
+            .extension()
+                .assertNoItem(PIRACY_TALES)
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .single()
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture(funeralTimestamp, "P1M", 10*1000L);
+    }
+
+    /**
+     * Move the time to the future a bit. But not far enough to cause an explosion.
+     */
+    @Test
     public void test804PreKaboom() throws Exception {
-		final String TEST_NAME = "test804PreKaboom";
+        final String TEST_NAME = "test804PreKaboom";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2693,19 +2693,19 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
-        	.triggers()
-	    		.single()
-	    			.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-	    			.assertTimestampFuture("P30D", 5*24*60*60*1000L);
-	}
-	
-	/**
-	 * Move the time to the future. See if the time-based mapping in user template is properly recomputed.
-	 */
-	@Test
+            .assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
+            .triggers()
+                .single()
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture("P30D", 5*24*60*60*1000L);
+    }
+
+    /**
+     * Move the time to the future. See if the time-based mapping in user template is properly recomputed.
+     */
+    @Test
     public void test808Kaboom() throws Exception {
-		final String TEST_NAME = "test808Kaboom";
+        final String TEST_NAME = "test808Kaboom";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2716,26 +2716,26 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-	    	.assertAdditionalName("Kaboom!")
-	    	.extension()
-	    		.assertNoItem(PIRACY_TALES)
-	    		.end()
-    		.triggers()
-	    		.single()
-	    			// Trigger for "tales bomb" mapping (see below)
-	    			.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-	    			.assertTimestampFuture("P2M", 5*24*60*60*1000L);
-	}
-	
-	/**
-	 * Move the time to the future a bit further.
-	 * There is another time-sensitive mapping (tales bomb).
-	 * This should get it prepared, creating trigger.
-	 * MID-4630
-	 */
-	@Test
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertNoItem(PIRACY_TALES)
+                .end()
+            .triggers()
+                .single()
+                    // Trigger for "tales bomb" mapping (see below)
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture("P2M", 5*24*60*60*1000L);
+    }
+
+    /**
+     * Move the time to the future a bit further.
+     * There is another time-sensitive mapping (tales bomb).
+     * This should get it prepared, creating trigger.
+     * MID-4630
+     */
+    @Test
     public void test810PreTalesBomb() throws Exception {
-		final String TEST_NAME = "test810PreTalesBomb";
+        final String TEST_NAME = "test810PreTalesBomb";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2743,27 +2743,27 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
-        
+
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertNoItem(PIRACY_TALES)
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-	    		.single()
-	    			.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-	    			.assertTimestampFuture("P2M", 5*24*60*60*1000L);
-	}
-	
-	/**
-	 * Move the time 3M the future. Tales bomb should explode.
-	 * MID-4630
-	 */
-	@Test
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertNoItem(PIRACY_TALES)
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .single()
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture("P2M", 5*24*60*60*1000L);
+    }
+
+    /**
+     * Move the time 3M the future. Tales bomb should explode.
+     * MID-4630
+     */
+    @Test
     public void test812TalesBoom() throws Exception {
-		final String TEST_NAME = "test812TalesBoom";
+        final String TEST_NAME = "test812TalesBoom";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2774,21 +2774,21 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		.end()
-        	.triggers()
-	    		.assertNone();
-	}
-	
-	/**
-	 * Recompute. Make sure situation is stable.
-	 * MID-4630
-	 */
-	@Test
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .end()
+            .triggers()
+                .assertNone();
+    }
+
+    /**
+     * Recompute. Make sure situation is stable.
+     * MID-4630
+     */
+    @Test
     public void test813TalesBoomRecompute() throws Exception {
-		final String TEST_NAME = "test813TalesBoomRecompute";
+        final String TEST_NAME = "test813TalesBoomRecompute";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2798,50 +2798,50 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		.end()
-        	.triggers()
-	    		.assertNone();
-        
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .end()
+            .triggers()
+                .assertNone();
+
         // WHEN
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		.end()
-        	.triggers()
-	    		.assertNone();
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .end()
+            .triggers()
+                .assertNone();
 
-	}
-	
-	/**
-	 * Remove tales and recompute. The mapping should kick in and re-set the tales.
-	 * MID-4630
-	 */
-	@Test
+    }
+
+    /**
+     * Remove tales and recompute. The mapping should kick in and re-set the tales.
+     * MID-4630
+     */
+    @Test
     public void test820TalesUnBoom() throws Exception {
-		final String TEST_NAME = "test820TalesUnBoom";
+        final String TEST_NAME = "test820TalesUnBoom";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_TALES), task, result /* no value */);
-        
+
         // The tales mapping is normal. Therefore primary delta will override it.
         assertUserBefore(USER_JACK_OID)
-	        .assertAdditionalName("Kaboom!")
-	    	.extension()
-	    		.assertNoItem(PIRACY_TALES)
-	    		.end()
-	    	.triggers()
-	    		.assertNone();
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertNoItem(PIRACY_TALES)
+                .end()
+            .triggers()
+                .assertNone();
 
         // WHEN
         // No delta here. The normal tales mapping will fire again.
@@ -2849,55 +2849,55 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		.end()
-        	.triggers()
-	    		.assertNone();
-        
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .end()
+            .triggers()
+                .assertNone();
+
         // WHEN
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		.end()
-        	.triggers()
-	    		.assertNone();
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .end()
+            .triggers()
+                .assertNone();
 
-	}
-	
-	/**
-	 * Changing description will prepare the "loot bomb" mapping.
-	 * But it is not yet the time to fire it. Only a trigger should be set.
-	 * MID-4630
-	 */
-	@Test
+    }
+
+    /**
+     * Changing description will prepare the "loot bomb" mapping.
+     * But it is not yet the time to fire it. Only a trigger should be set.
+     * MID-4630
+     */
+    @Test
     public void test830PreLootBoom() throws Exception {
-		final String TEST_NAME = "test830PreLootBoom";
+        final String TEST_NAME = "test830PreLootBoom";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         modifyUserReplace(USER_JACK_OID, UserType.F_DESCRIPTION, task, result, "Rum is gone");
-        
+
         // The tales mapping is normal. Therefore primary delta will override it.
         assertUserBefore(USER_JACK_OID)
-	        .assertAdditionalName("Kaboom!")
-	    	.extension()
-	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-	    		.assertNoItem(PIRACY_LOOT)
-	    		.end()
-	    	.triggers()
-	    		.single()
-		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-	    			.assertTimestampFuture(funeralTimestamp, "P1Y", 2*24*60*60*1000L);
-	    			
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .single()
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture(funeralTimestamp, "P1Y", 2*24*60*60*1000L);
+
 
         // WHEN
         // No delta here. The normal tales mapping will fire again.
@@ -2905,41 +2905,41 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-	        	.single()
-		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-					.assertTimestampFuture(funeralTimestamp, "P1Y", 2*24*60*60*1000L);
-        
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .single()
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture(funeralTimestamp, "P1Y", 2*24*60*60*1000L);
+
         // WHEN
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-	        	.single()
-		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-					.assertTimestampFuture(funeralTimestamp, "P1Y", 2*24*60*60*1000L);
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .single()
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture(funeralTimestamp, "P1Y", 2*24*60*60*1000L);
 
-	}
-	
-	/**
-	 * Move the time 9M the future. Loot bomb could explode.
-	 * But loot property is not set yet. The condition is still false.
-	 * MID-4630
-	 */
-	@Test
+    }
+
+    /**
+     * Move the time 9M the future. Loot bomb could explode.
+     * But loot property is not set yet. The condition is still false.
+     * MID-4630
+     */
+    @Test
     public void test832LootBoomConditionFalse() throws Exception {
-		final String TEST_NAME = "test832LootBoomConditionFalse";
+        final String TEST_NAME = "test832LootBoomConditionFalse";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2950,33 +2950,33 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-	    		.assertNone();
-        
-        recomputeUser(USER_JACK_OID);
-        
-        assertUserAfter(USER_JACK_OID)
-	    	.assertAdditionalName("Kaboom!")
-	    	.extension()
-	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-	    		.assertNoItem(PIRACY_LOOT)
-	    		.end()
-	    	.triggers()
-	    		.assertNone();
-	}
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .assertNone();
 
-	/**
-	 * Loot bomb is over its timeFrom. Now make condition true. And it should explode.
-	 * MID-4630
-	 */
-	@Test
+        recomputeUser(USER_JACK_OID);
+
+        assertUserAfter(USER_JACK_OID)
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .assertNone();
+    }
+
+    /**
+     * Loot bomb is over its timeFrom. Now make condition true. And it should explode.
+     * MID-4630
+     */
+    @Test
     public void test835LootBoom() throws Exception {
-		final String TEST_NAME = "test835LootBoom";
+        final String TEST_NAME = "test835LootBoom";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2988,38 +2988,38 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
-        		.end()
-        	.triggers()
-	    		.assertNone();
-        
-        recomputeUser(USER_JACK_OID);
-        
-        assertUserAfter(USER_JACK_OID)
-	    	.assertAdditionalName("Kaboom!")
-	    	.extension()
-	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-	    		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
-	    		.end()
-	    	.triggers()
-	    		.assertNone();
-	}
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+                .end()
+            .triggers()
+                .assertNone();
 
-	/**
-	 * Reset funeral timestamp. Prepare for subsequent tests.
-	 */
-	@Test
+        recomputeUser(USER_JACK_OID);
+
+        assertUserAfter(USER_JACK_OID)
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+                .end()
+            .triggers()
+                .assertNone();
+    }
+
+    /**
+     * Reset funeral timestamp. Prepare for subsequent tests.
+     */
+    @Test
     public void test840ResetFuneralTimestamp() throws Exception {
-		final String TEST_NAME = "test840ResetFuneralTimestamp";
+        final String TEST_NAME = "test840ResetFuneralTimestamp";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
+
         modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result /* no value */);
 
         // WHEN
@@ -3027,24 +3027,24 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		// We have Kaboom. And no funeral timestamp. Tales mapping should be applied.
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		// All conditions are satisfied. And no funeral timestamp. Loot mapping should be applied.
-        		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
-	    		.end()
-	    	.triggers()
-	    		.assertNone();
-	}
-	
-	/**
-	 * Turn off condition on loot mapping
-	 * MID-4630
-	 */
-	@Test
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                // We have Kaboom. And no funeral timestamp. Tales mapping should be applied.
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                // All conditions are satisfied. And no funeral timestamp. Loot mapping should be applied.
+                .assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+                .end()
+            .triggers()
+                .assertNone();
+    }
+
+    /**
+     * Turn off condition on loot mapping
+     * MID-4630
+     */
+    @Test
     public void test843UnLoot() throws Exception {
-		final String TEST_NAME = "test843UnLoot";
+        final String TEST_NAME = "test843UnLoot";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3056,33 +3056,33 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-	    		.assertNone();
-        
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .assertNone();
+
         recomputeUser(USER_JACK_OID);
-        
+
         assertUserAfter(USER_JACK_OID)
-	    	.assertAdditionalName("Kaboom!")
-	    	.extension()
-	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-	    		.assertNoItem(PIRACY_LOOT)
-	    		.end()
-	    	.triggers()
-	    		.assertNone();
-	}
-	
-	/**
-	 * Turn no condition on loot mapping
-	 * MID-4630
-	 */
-	@Test
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .assertNone();
+    }
+
+    /**
+     * Turn no condition on loot mapping
+     * MID-4630
+     */
+    @Test
     public void test845ReLoot() throws Exception {
-		final String TEST_NAME = "test845ReLoot";
+        final String TEST_NAME = "test845ReLoot";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3094,33 +3094,33 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertUserAfter(USER_JACK_OID)
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
-        		.end()
-        	.triggers()
-	    		.assertNone();
-        
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+                .end()
+            .triggers()
+                .assertNone();
+
         recomputeUser(USER_JACK_OID);
-        
+
         assertUserAfter(USER_JACK_OID)
-	    	.assertAdditionalName("Kaboom!")
-	    	.extension()
-	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-	    		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
-	    		.end()
-	    	.triggers()
-	    		.assertNone();
-	}
-	
-	/**
-	 * Lemonhead: no funeralDate, no description, no additional name
-	 * MID-4630
-	 */
-	@Test
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                .assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+                .end()
+            .triggers()
+                .assertNone();
+    }
+
+    /**
+     * Lemonhead: no funeralDate, no description, no additional name
+     * MID-4630
+     */
+    @Test
     public void test850AddCannibalLemonhead() throws Exception {
-		final String TEST_NAME = "test850AddCannibalLemonhead";
+        final String TEST_NAME = "test850AddCannibalLemonhead";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3132,26 +3132,26 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertSuccess(result);
-        
-        assertUserAfter(userOid)
-        	.assertNoAdditionalName()
-        	.extension()
-        		// Additional name is not Kaboom!, tales are not there
-        		.assertNoItem(PIRACY_TALES)
-        		// Description does not match, condition is false. No loot.
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-	    		.assertNone();        
-	}
 
-	/**
-	 * Redskull: funeralDate=+0, no description, no additional name
-	 * MID-4630
-	 */
-	@Test
+        assertUserAfter(userOid)
+            .assertNoAdditionalName()
+            .extension()
+                // Additional name is not Kaboom!, tales are not there
+                .assertNoItem(PIRACY_TALES)
+                // Description does not match, condition is false. No loot.
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .assertNone();
+    }
+
+    /**
+     * Redskull: funeralDate=+0, no description, no additional name
+     * MID-4630
+     */
+    @Test
     public void test852AddCanibalRedSkull() throws Exception {
-		final String TEST_NAME = "test852AddCanibalRedSkull";
+        final String TEST_NAME = "test852AddCanibalRedSkull";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3163,30 +3163,30 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertSuccess(result);
-        
+
         assertUserAfter(userOid)
-        	.assertNoAdditionalName()
-        	.extension()
-        		// Additional name is not Kaboom!, tales are not there
-        		.assertNoItem(PIRACY_TALES)
-        		// Description does not match, condition is false. No loot.
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-	    		.single()
-	    			// Trigger from time bomb. There is no condition and the reference time is set.
-		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-					.assertTimestampFuture(funeralTimestamp, "P1M", 1*24*60*60*1000L);
-	}
-	
-	/**
-	 * Shaprtooth: funeralDate=-1M1D, no description, no additional name
-	 * Time bomb should explode
-	 * MID-4630
-	 */
-	@Test
+            .assertNoAdditionalName()
+            .extension()
+                // Additional name is not Kaboom!, tales are not there
+                .assertNoItem(PIRACY_TALES)
+                // Description does not match, condition is false. No loot.
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .single()
+                    // Trigger from time bomb. There is no condition and the reference time is set.
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture(funeralTimestamp, "P1M", 1*24*60*60*1000L);
+    }
+
+    /**
+     * Shaprtooth: funeralDate=-1M1D, no description, no additional name
+     * Time bomb should explode
+     * MID-4630
+     */
+    @Test
     public void test854AddCanibalShaprtooth() throws Exception {
-		final String TEST_NAME = "test854AddCanibalShaprtooth";
+        final String TEST_NAME = "test854AddCanibalShaprtooth";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3198,31 +3198,31 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertSuccess(result);
-        
+
         assertUserAfter(userOid)
-        	// Time bomb exploded
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		// Time is not up for tales bomb to explode.
-        		.assertNoItem(PIRACY_TALES)
-        		// Description does not match, condition is false. No loot.
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-	        	.single()
-					// Trigger from tales bomb. We have Kaboomed, the time constraint has activated
-		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-					.assertTimestampFuture(funeralTimestamp, "P3M", 1*24*60*60*1000L);
-	}
-	
-	/**
-	 * Orangeskin: funeralDate=-3M1D, no description, no additional name
-	 * Time bomb should explode, tales bomb should explode
-	 * MID-4630
-	 */
-	@Test
+            // Time bomb exploded
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                // Time is not up for tales bomb to explode.
+                .assertNoItem(PIRACY_TALES)
+                // Description does not match, condition is false. No loot.
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .single()
+                    // Trigger from tales bomb. We have Kaboomed, the time constraint has activated
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture(funeralTimestamp, "P3M", 1*24*60*60*1000L);
+    }
+
+    /**
+     * Orangeskin: funeralDate=-3M1D, no description, no additional name
+     * Time bomb should explode, tales bomb should explode
+     * MID-4630
+     */
+    @Test
     public void test856AddCanibalOrangeskin() throws Exception {
-		final String TEST_NAME = "test856AddCanibalOrangeskin";
+        final String TEST_NAME = "test856AddCanibalOrangeskin";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3234,29 +3234,29 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertSuccess(result);
-        
+
         assertUserAfter(userOid)
-        	// Time bomb exploded
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		// Additional name is Kaboom! and time is up
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		// Description does not match, condition is false. No loot.
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-        		// No trigger for loot bomb. Description does not match.
-	    		.assertNone();        
-	}
-	
-	/**
-	 * Cherrybrain: funeralDate=-1Y1D, no description, no additional name
-	 * Time bomb should explode, tales bomb should explode, but not loot bomb
-	 * MID-4630
-	 */
-	@Test
+            // Time bomb exploded
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                // Additional name is Kaboom! and time is up
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                // Description does not match, condition is false. No loot.
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                // No trigger for loot bomb. Description does not match.
+                .assertNone();
+    }
+
+    /**
+     * Cherrybrain: funeralDate=-1Y1D, no description, no additional name
+     * Time bomb should explode, tales bomb should explode, but not loot bomb
+     * MID-4630
+     */
+    @Test
     public void test858AddCanibalCherrybrain() throws Exception {
-		final String TEST_NAME = "test858AddCanibalCherrybrain";
+        final String TEST_NAME = "test858AddCanibalCherrybrain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3268,31 +3268,31 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertSuccess(result);
-        
+
         assertUserAfter(userOid)
-        	// Time bomb exploded
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-	        	// Additional name is Kaboom! and time is up
-	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		// Time is up. But description does not match and condition is false. No loot.
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-        		// No trigger for loot bomb. Description does not match.
-        		// And we are already after timeFrom anyway.
-	    		.assertNone();        
-	}
-	
-	/**
-	 * Pineapplenose: funeralDate=-1Y1D, no description, no additional name, givenName=Lootjack
-	 * Time bomb should explode, tales bomb should explode
-	 * But not loot bomb, as the description does not match. 
-	 * MID-4630
-	 */
-	@Test
+            // Time bomb exploded
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                // Additional name is Kaboom! and time is up
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                // Time is up. But description does not match and condition is false. No loot.
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                // No trigger for loot bomb. Description does not match.
+                // And we are already after timeFrom anyway.
+                .assertNone();
+    }
+
+    /**
+     * Pineapplenose: funeralDate=-1Y1D, no description, no additional name, givenName=Lootjack
+     * Time bomb should explode, tales bomb should explode
+     * But not loot bomb, as the description does not match.
+     * MID-4630
+     */
+    @Test
     public void test859AddCanibalPineapplenose() throws Exception {
-		final String TEST_NAME = "test858AddCanibalCherrybrain";
+        final String TEST_NAME = "test858AddCanibalCherrybrain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3301,35 +3301,35 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         String userOid = addObject(
-        		createCannibal(CANNIBAL_PINEAPPLENOSE_USERNAME, "-P1Y1D", false)
-        			.asObjectable().givenName("Lootjack").asPrismObject(),
-        		task, result);
+                createCannibal(CANNIBAL_PINEAPPLENOSE_USERNAME, "-P1Y1D", false)
+                    .asObjectable().givenName("Lootjack").asPrismObject(),
+                task, result);
 
         // THEN
         assertSuccess(result);
-        
-        assertUserAfter(userOid)
-        	// Time bomb exploded
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-	        	// Additional name is Kaboom! and time is up
-	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		// Time is up. But description does not match and condition is false. No loot.
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-        		// No trigger for loot bomb. Description does not match.
-        		// And we are already after timeFrom anyway.
-	    		.assertNone();        
-	}
 
-	/**
-	 * Rotten Lemonhead: no funeralDate, description=gone, no additional name
-	 * MID-4630
-	 */
-	@Test
+        assertUserAfter(userOid)
+            // Time bomb exploded
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                // Additional name is Kaboom! and time is up
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                // Time is up. But description does not match and condition is false. No loot.
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                // No trigger for loot bomb. Description does not match.
+                // And we are already after timeFrom anyway.
+                .assertNone();
+    }
+
+    /**
+     * Rotten Lemonhead: no funeralDate, description=gone, no additional name
+     * MID-4630
+     */
+    @Test
     public void test860AddCannibalRottenLemonhead() throws Exception {
-		final String TEST_NAME = "test860AddCannibalRottenLemonhead";
+        final String TEST_NAME = "test860AddCannibalRottenLemonhead";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3341,26 +3341,26 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertSuccess(result);
-        
-        assertUserAfter(userOid)
-        	.assertNoAdditionalName()
-        	.extension()
-        		// Additional name is not Kaboom!, tales are not there
-        		.assertNoItem(PIRACY_TALES)
-        		// Description does not match, condition is false. No loot.
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-	    		.assertNone();        
-	}
 
-	/**
-	 * Rotten Redskull: funeralDate=+0, description=gone, no additional name
-	 * MID-4630
-	 */
-	@Test
+        assertUserAfter(userOid)
+            .assertNoAdditionalName()
+            .extension()
+                // Additional name is not Kaboom!, tales are not there
+                .assertNoItem(PIRACY_TALES)
+                // Description does not match, condition is false. No loot.
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .assertNone();
+    }
+
+    /**
+     * Rotten Redskull: funeralDate=+0, description=gone, no additional name
+     * MID-4630
+     */
+    @Test
     public void test862AddCanibalRottenRedSkull() throws Exception {
-		final String TEST_NAME = "test862AddCanibalRottenRedSkull";
+        final String TEST_NAME = "test862AddCanibalRottenRedSkull";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3372,30 +3372,30 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertSuccess(result);
-        
+
         assertUserAfter(userOid)
-        	.assertNoAdditionalName()
-        	.extension()
-        		// Additional name is not Kaboom!, tales are not there
-        		.assertNoItem(PIRACY_TALES)
-        		// Description does not match, condition is false. No loot.
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-	    		.single()
-	    			// Trigger from time bomb. There is no condition and the reference time is set.
-		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-					.assertTimestampFuture(funeralTimestamp, "P1M", 1*24*60*60*1000L);
-	}
-	
-	/**
-	 * Rotten Shaprtooth: funeralDate=-1M1D, description=gone, no additional name
-	 * Time bomb should explode
-	 * MID-4630
-	 */
-	@Test
+            .assertNoAdditionalName()
+            .extension()
+                // Additional name is not Kaboom!, tales are not there
+                .assertNoItem(PIRACY_TALES)
+                // Description does not match, condition is false. No loot.
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .single()
+                    // Trigger from time bomb. There is no condition and the reference time is set.
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture(funeralTimestamp, "P1M", 1*24*60*60*1000L);
+    }
+
+    /**
+     * Rotten Shaprtooth: funeralDate=-1M1D, description=gone, no additional name
+     * Time bomb should explode
+     * MID-4630
+     */
+    @Test
     public void test864AddCanibalRottenShaprtooth() throws Exception {
-		final String TEST_NAME = "test864AddCanibalRottenShaprtooth";
+        final String TEST_NAME = "test864AddCanibalRottenShaprtooth";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3407,41 +3407,41 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertSuccess(result);
-        
+
         assertUserAfter(userOid)
-        	// Time bomb exploded
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		// Time is not up for tales bomb to explode.
-        		.assertNoItem(PIRACY_TALES)
-        		// Description does not match, condition is false. No loot.
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-        		.assertTriggers(2)
-        		.by()
-        			.originDescription("tales bomb")
-    			.find()
-	    			// Trigger from tales bomb. We have Kaboomed, the time constraint has activated
-		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-		    		.assertTimestampFuture(funeralTimestamp, "P3M", 1*24*60*60*1000L)
-		    		.end()
-	    		.by()
-        			.originDescription("loot bomb")
-    			.find()
-	    			// Trigger from loot bomb. We have Kaboomed and we have the right description, the time constraint has activated
-		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-		    		.assertTimestampFuture(funeralTimestamp, "P1Y", 1*24*60*60*1000L);
-	}
-	
-	/**
-	 * Rotten Orangeskin: funeralDate=-3M1D, description=gone, no additional name
-	 * Time bomb should explode, tales bomb should explode
-	 * MID-4630
-	 */
-	@Test
+            // Time bomb exploded
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                // Time is not up for tales bomb to explode.
+                .assertNoItem(PIRACY_TALES)
+                // Description does not match, condition is false. No loot.
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .assertTriggers(2)
+                .by()
+                    .originDescription("tales bomb")
+                .find()
+                    // Trigger from tales bomb. We have Kaboomed, the time constraint has activated
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture(funeralTimestamp, "P3M", 1*24*60*60*1000L)
+                    .end()
+                .by()
+                    .originDescription("loot bomb")
+                .find()
+                    // Trigger from loot bomb. We have Kaboomed and we have the right description, the time constraint has activated
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture(funeralTimestamp, "P1Y", 1*24*60*60*1000L);
+    }
+
+    /**
+     * Rotten Orangeskin: funeralDate=-3M1D, description=gone, no additional name
+     * Time bomb should explode, tales bomb should explode
+     * MID-4630
+     */
+    @Test
     public void test866AddCanibalRottenOrangeskin() throws Exception {
-		final String TEST_NAME = "test866AddCanibalRottenOrangeskin";
+        final String TEST_NAME = "test866AddCanibalRottenOrangeskin";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3453,32 +3453,32 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertSuccess(result);
-        
+
         assertUserAfter(userOid)
-        	// Time bomb exploded
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-        		// Additional name is Kaboom! and time is up
-        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		// Description does not match, condition is false. No loot.
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-	    		.single()
-		    		// Trigger from loot bomb. We have Kaboomed and we have the right description, the time constraint has activated
-		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-		    		.assertTimestampFuture(funeralTimestamp, "P1Y", 1*24*60*60*1000L);
-	}
-	
-	/**
-	 * Rotten Cherrybrain: funeralDate=-1Y1D, description=gone, no additional name
-	 * Time bomb should explode, tales bomb should explode
-	 * but not loot bomb, the condition is not satisfied
-	 * MID-4630
-	 */
-	@Test
+            // Time bomb exploded
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                // Additional name is Kaboom! and time is up
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                // Description does not match, condition is false. No loot.
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                .single()
+                    // Trigger from loot bomb. We have Kaboomed and we have the right description, the time constraint has activated
+                    .assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+                    .assertTimestampFuture(funeralTimestamp, "P1Y", 1*24*60*60*1000L);
+    }
+
+    /**
+     * Rotten Cherrybrain: funeralDate=-1Y1D, description=gone, no additional name
+     * Time bomb should explode, tales bomb should explode
+     * but not loot bomb, the condition is not satisfied
+     * MID-4630
+     */
+    @Test
     public void test868AddCanibalRottenCherrybrain() throws Exception {
-		final String TEST_NAME = "test868AddCanibalRottenCherrybrain";
+        final String TEST_NAME = "test868AddCanibalRottenCherrybrain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3490,29 +3490,29 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         assertSuccess(result);
-        
+
         assertUserAfter(userOid)
-        	// Time bomb exploded
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-	        	// Additional name is Kaboom! and time is up
-	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		// Time is up. But description does not match and condition is false. No loot.
-        		.assertNoItem(PIRACY_LOOT)
-        		.end()
-        	.triggers()
-        		// No trigger for loot bomb. We are already after timeFrom.
-	    		.assertNone();        
-	}
-	
-	/**
-	 * Rotten Pineapplenose: funeralDate=-1Y1D, no description, no additional name, givenName=Lootjack
-	 * Time bomb should explode, tales bomb should explode, loot bomb should explode
-	 * MID-4630
-	 */
-	@Test
+            // Time bomb exploded
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                // Additional name is Kaboom! and time is up
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                // Time is up. But description does not match and condition is false. No loot.
+                .assertNoItem(PIRACY_LOOT)
+                .end()
+            .triggers()
+                // No trigger for loot bomb. We are already after timeFrom.
+                .assertNone();
+    }
+
+    /**
+     * Rotten Pineapplenose: funeralDate=-1Y1D, no description, no additional name, givenName=Lootjack
+     * Time bomb should explode, tales bomb should explode, loot bomb should explode
+     * MID-4630
+     */
+    @Test
     public void test869AddCanibalRottenPineapplenose() throws Exception {
-		final String TEST_NAME = "test869AddCanibalRottenPineapplenose";
+        final String TEST_NAME = "test869AddCanibalRottenPineapplenose";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3521,36 +3521,36 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         String userOid = addObject(
-        		createCannibal(CANNIBAL_PINEAPPLENOSE_USERNAME, "-P1Y1D", true)
-        			.asObjectable().givenName("Lootjack").asPrismObject(),
-        		task, result);
+                createCannibal(CANNIBAL_PINEAPPLENOSE_USERNAME, "-P1Y1D", true)
+                    .asObjectable().givenName("Lootjack").asPrismObject(),
+                task, result);
 
         // THEN
         assertSuccess(result);
-        
+
         assertUserAfter(userOid)
-        	// Time bomb exploded
-        	.assertAdditionalName("Kaboom!")
-        	.extension()
-	        	// Additional name is Kaboom! and time is up
-	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
-        		// Time is up. Description matches and condition is true.
-        		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
-        		.end()
-        	.triggers()
-        		// No trigger for loot bomb. Description does not match.
-        		// And we are already after timeFrom anyway.
-	    		.assertNone();        
-	}
-	
-	/**
-	 * Rotten Potatoleg: no funeralDate, rotten description, no additional name, givenName=Lootjack
-	 * Time bomb does not explode, tales bomb does not explode, loot bomb should explode
-	 * MID-4630
-	 */
-	@Test
+            // Time bomb exploded
+            .assertAdditionalName("Kaboom!")
+            .extension()
+                // Additional name is Kaboom! and time is up
+                .assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+                // Time is up. Description matches and condition is true.
+                .assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+                .end()
+            .triggers()
+                // No trigger for loot bomb. Description does not match.
+                // And we are already after timeFrom anyway.
+                .assertNone();
+    }
+
+    /**
+     * Rotten Potatoleg: no funeralDate, rotten description, no additional name, givenName=Lootjack
+     * Time bomb does not explode, tales bomb does not explode, loot bomb should explode
+     * MID-4630
+     */
+    @Test
     public void test870AddCanibalRottenPotatoleg() throws Exception {
-		final String TEST_NAME = "test870AddCanibalRottenPotatoleg";
+        final String TEST_NAME = "test870AddCanibalRottenPotatoleg";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3559,53 +3559,53 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         String userOid = addObject(
-        		createCannibal(CANNIBAL_POTATOLEG_USERNAME, null, true)
-        			.asObjectable().givenName("Lootjack").asPrismObject(),
-        		task, result);
+                createCannibal(CANNIBAL_POTATOLEG_USERNAME, null, true)
+                    .asObjectable().givenName("Lootjack").asPrismObject(),
+                task, result);
 
         // THEN
         assertSuccess(result);
-        
-        assertUserAfter(userOid)
-        	// No funeralTime, no explosion
-        	.assertNoAdditionalName()
-        	.extension()
-	        	// No kaboom, no explosion
-	    		.assertNoItem(PIRACY_TALES)
-        		// No funeral time, description matches and condition is true.
-        		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
-        		.end()
-        	.triggers()
-        		// No trigger for loot bomb. Description does not match.
-        		// And we are already after timeFrom anyway.
-	    		.assertNone();        
-	}
-	
-	private PrismObject<UserType> createCannibal(String name, String funeralDateOffset, boolean rotten) throws SchemaException {
-		String username = rotten ? "rotten-" + name : name;
-		String fullname = (rotten ? "Cannibal Rotten " : "Cannibal ") + StringUtils.capitalize(name);
-		PrismObject<UserType> user = createUser(username, fullname);
-		user.asObjectable().givenName(StringUtils.capitalize(name));
-		if (rotten) {
-			user.asObjectable().setDescription("The fruit is gone");
-		}
-		if (funeralDateOffset != null) {
-			XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-			XMLGregorianCalendar funeralDate;
-			if (funeralDateOffset.isEmpty()) {
-				funeralDate = now;
-			} else {
-				funeralDate = XmlTypeConverter.addDuration(now, funeralDateOffset);
-			}
-			funeralTimestamp = funeralDate;
-			user.createExtension().setPropertyRealValue(PIRACY_FUNERAL_TIMESTAMP, funeralDate);
-		}
-		return user;
-	}
 
-	@Test
+        assertUserAfter(userOid)
+            // No funeralTime, no explosion
+            .assertNoAdditionalName()
+            .extension()
+                // No kaboom, no explosion
+                .assertNoItem(PIRACY_TALES)
+                // No funeral time, description matches and condition is true.
+                .assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+                .end()
+            .triggers()
+                // No trigger for loot bomb. Description does not match.
+                // And we are already after timeFrom anyway.
+                .assertNone();
+    }
+
+    private PrismObject<UserType> createCannibal(String name, String funeralDateOffset, boolean rotten) throws SchemaException {
+        String username = rotten ? "rotten-" + name : name;
+        String fullname = (rotten ? "Cannibal Rotten " : "Cannibal ") + StringUtils.capitalize(name);
+        PrismObject<UserType> user = createUser(username, fullname);
+        user.asObjectable().givenName(StringUtils.capitalize(name));
+        if (rotten) {
+            user.asObjectable().setDescription("The fruit is gone");
+        }
+        if (funeralDateOffset != null) {
+            XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+            XMLGregorianCalendar funeralDate;
+            if (funeralDateOffset.isEmpty()) {
+                funeralDate = now;
+            } else {
+                funeralDate = XmlTypeConverter.addDuration(now, funeralDateOffset);
+            }
+            funeralTimestamp = funeralDate;
+            user.createExtension().setPropertyRealValue(PIRACY_FUNERAL_TIMESTAMP, funeralDate);
+        }
+        return user;
+    }
+
+    @Test
     public void test900DeleteUser() throws Exception {
-		final String TEST_NAME = "test900DeleteUser";
+        final String TEST_NAME = "test900DeleteUser";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3615,30 +3615,30 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createDeleteDelta(UserType.class,
-        		USER_JACK_OID);
+                USER_JACK_OID);
         deltas.add(userDelta);
 
-		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
 
-		// THEN
-		try {
-			PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-			display("User after", userJack);
-			assert false : "User was not deleted: "+userJack;
-		} catch (ObjectNotFoundException e) {
-			// This is expected
-		}
+        // THEN
+        try {
+            PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+            display("User after", userJack);
+            assert false : "User was not deleted: "+userJack;
+        } catch (ObjectNotFoundException e) {
+            // This is expected
+        }
 
-		// TODO: check on resource
+        // TODO: check on resource
 
-		result.computeStatus();
+        result.computeStatus();
         TestUtil.assertFailure(result);
-	}
+    }
 
-	@Test
+    @Test
     public void test950CreateUserJackWithoutTemplate() throws Exception {
-		final String TEST_NAME = "test950CreateUserJackWithoutTemplate";
+        final String TEST_NAME = "test950CreateUserJackWithoutTemplate";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3656,39 +3656,39 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignments(userJack, 0);
 
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
 
-		PrismAsserts.assertNoItem(userJack, UserType.F_ORGANIZATIONAL_UNIT);
+        PrismAsserts.assertNoItem(userJack, UserType.F_ORGANIZATIONAL_UNIT);
 
-	}
+    }
 
-	/**
-	 * Would creates org on demand if the template would be active. But it is not.
-	 */
-	@Test
+    /**
+     * Would creates org on demand if the template would be active. But it is not.
+     */
+    @Test
     public void test952ModifyJackOrganizationalUnitFD004() throws Exception {
-		final String TEST_NAME = "test952ModifyJackOrganizationalUnitFD004";
+        final String TEST_NAME = "test952ModifyJackOrganizationalUnitFD004";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-		// WHEN
+        // WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD004"));
 
-		// THEN
-		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-		display("User after", userJack);
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        display("User after", userJack);
 
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-		PrismAsserts.assertPropertyValue(userJack, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("FD004"));
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("FD004"));
 
         assertAssignments(userJack, 0);
 
@@ -3697,15 +3697,15 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
         PrismObject<OrgType> org = findObjectByName(OrgType.class, "FD004");
         assertNull("Found org "+org+" but not expecting it", org);
-	}
+    }
 
-	/**
-	 * Set the template. Reconcile the user that should have org created on demand (but does not).
-	 * The org should be created.
-	 */
-	@Test
+    /**
+     * Set the template. Reconcile the user that should have org created on demand (but does not).
+     * The org should be created.
+     */
+    @Test
     public void test960ReconcileUserJackWithTemplate() throws Exception {
-		final String TEST_NAME = "test960ModifyUserJackWithTemplate";
+        final String TEST_NAME = "test960ModifyUserJackWithTemplate";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3715,52 +3715,52 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
-		// WHEN
+        // WHEN
         reconcileUser(USER_JACK_OID, task, result);
 
         // THEN
         result.computeStatus();
         TestUtil.assertSuccess(result);
- 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
- 		display("User after", userJack);
+         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+         display("User after", userJack);
 
- 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
-		assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-		assertOnDemandOrgAssigned("FD004", userJack);
+         PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertOnDemandOrgAssigned("FD004", userJack);
 
-		assertAssignments(userJack, 2);
-		assertLinks(userJack, 1);
-	}
+        assertAssignments(userJack, 2);
+        assertLinks(userJack, 1);
+    }
 
-	/**
-	 * Setting employee type to useless. This should cause switch to different user template.
-	 */
-	@Test
-	public void test970ModifyUserGuybrushEmployeeTypeUseless() throws Exception {
-		final String TEST_NAME = "test970ModifyUserGuybrushEmployeeTypeUseless";
-		displayTestTitle(TEST_NAME);
+    /**
+     * Setting employee type to useless. This should cause switch to different user template.
+     */
+    @Test
+    public void test970ModifyUserGuybrushEmployeeTypeUseless() throws Exception {
+        final String TEST_NAME = "test970ModifyUserGuybrushEmployeeTypeUseless";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
-		display("User before", userBefore);
-		assertAssignedNoRole(userBefore);
+        PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
+        display("User before", userBefore);
+        assertAssignedNoRole(userBefore);
 
-		// WHEN
-		displayWhen(TEST_NAME);
-		modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_USELESS);
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_SUBTYPE, task, result, SUBTYPE_USELESS);
 
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-		PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
-		display("User after", userAfter);
+        PrismObject<UserType> userAfter = modelService.getObject(UserType.class, USER_GUYBRUSH_OID, null, task, result);
+        display("User after", userAfter);
 
-		AssignmentType uselessAssignment = assertAssignedRole(userAfter, ROLE_USELESS_OID);
-		assertEquals("Wrong originMappingName", "assignment-for-useless-role", uselessAssignment.getMetadata().getOriginMappingName());
-	}
+        AssignmentType uselessAssignment = assertAssignedRole(userAfter, ROLE_USELESS_OID);
+        assertEquals("Wrong originMappingName", "assignment-for-useless-role", uselessAssignment.getMetadata().getOriginMappingName());
+    }
 
 }

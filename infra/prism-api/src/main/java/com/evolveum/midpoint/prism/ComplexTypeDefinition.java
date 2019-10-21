@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,123 +28,123 @@ import java.util.function.Consumer;
  */
 public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionStore, Visitable {
 
-	/**
-	 * Returns definitions for all inner items.
-	 *
-	 * These are of type ItemDefinition. However, very often subtypes of this type are used,
-	 * e.g. ResourceAttributeDefinition, RefinedAttributeDefinition, LayerRefinedAttributeDefinition, and so on.
-	 *
-	 * Although returned as a list, the order of definitions is insignificant. (TODO change to set?)
-	 *
-	 * The list is unmodifiable.
-	 */
-	@NotNull
-	List<? extends ItemDefinition> getDefinitions();
+    /**
+     * Returns definitions for all inner items.
+     *
+     * These are of type ItemDefinition. However, very often subtypes of this type are used,
+     * e.g. ResourceAttributeDefinition, RefinedAttributeDefinition, LayerRefinedAttributeDefinition, and so on.
+     *
+     * Although returned as a list, the order of definitions is insignificant. (TODO change to set?)
+     *
+     * The list is unmodifiable.
+     */
+    @NotNull
+    List<? extends ItemDefinition> getDefinitions();
 
-	/**
-	 * Is this definition shared, i.e. used by more than one prism object?
-	 * If so, it should not be e.g. trimmed.
-	 *
-	 * EXPERIMENTAL
- 	 */
-	boolean isShared();
+    /**
+     * Is this definition shared, i.e. used by more than one prism object?
+     * If so, it should not be e.g. trimmed.
+     *
+     * EXPERIMENTAL
+      */
+    boolean isShared();
 
-	/**
-	 * If not null, indicates that this type defines the structure of 'extension' element of a given type.
-	 * E.g. getExtensionForType() == c:UserType means that this complex type defines structure of
-	 * 'extension' elements of UserType objects.
-	 */
-	@Nullable
-	QName getExtensionForType();
+    /**
+     * If not null, indicates that this type defines the structure of 'extension' element of a given type.
+     * E.g. getExtensionForType() == c:UserType means that this complex type defines structure of
+     * 'extension' elements of UserType objects.
+     */
+    @Nullable
+    QName getExtensionForType();
 
-	/**
-	 * Flag indicating whether this type was marked as "objectReference"
-	 * in the original schema.
-	 */
-	boolean isReferenceMarker();
+    /**
+     * Flag indicating whether this type was marked as "objectReference"
+     * in the original schema.
+     */
+    boolean isReferenceMarker();
 
-	/**
-	 * Flag indicating whether this type was marked as "container"
-	 * in the original schema. Does not provide any information to
-	 * schema processing logic, just conveys the marker from original
-	 * schema so we can serialize and deserialize the schema without
-	 * loss of information.
-	 */
-	boolean isContainerMarker();
+    /**
+     * Flag indicating whether this type was marked as "container"
+     * in the original schema. Does not provide any information to
+     * schema processing logic, just conveys the marker from original
+     * schema so we can serialize and deserialize the schema without
+     * loss of information.
+     */
+    boolean isContainerMarker();
 
-	/**
-	 * Flag indicating whether this type was marked as "object"
-	 * in the original schema. Does not provide any information to
-	 * schema processing logic, just conveys the marker from original
-	 * schema so we can serialized and deserialize the schema without
-	 * loss of information.
-	 */
-	boolean isObjectMarker();
+    /**
+     * Flag indicating whether this type was marked as "object"
+     * in the original schema. Does not provide any information to
+     * schema processing logic, just conveys the marker from original
+     * schema so we can serialized and deserialize the schema without
+     * loss of information.
+     */
+    boolean isObjectMarker();
 
-	/**
-	 * True if the complex type definition contains xsd:any (directly or indirectly).
-	 */
-	boolean isXsdAnyMarker();
+    /**
+     * True if the complex type definition contains xsd:any (directly or indirectly).
+     */
+    boolean isXsdAnyMarker();
 
-	// TODO. EXPERIMENTAL.
-	boolean isListMarker();
+    // TODO. EXPERIMENTAL.
+    boolean isListMarker();
 
-	/**
-	 * When resolving unqualified names for items contained in this CTD, what should be the default namespace
-	 * to look into at first. Currently does NOT apply recursively (to inner CTDs).
-	 */
-	@Nullable
-	String getDefaultNamespace();
+    /**
+     * When resolving unqualified names for items contained in this CTD, what should be the default namespace
+     * to look into at first. Currently does NOT apply recursively (to inner CTDs).
+     */
+    @Nullable
+    String getDefaultNamespace();
 
-	/**
-	 * When resolving unqualified names for items contained in this CTD, what namespace(s) should be ignored.
-	 * Names in this list are interpreted as a namespace prefixes.
-	 * Currently does NOT apply recursively (to inner CTDs).
-	 */
-	@NotNull
-	List<String> getIgnoredNamespaces();
+    /**
+     * When resolving unqualified names for items contained in this CTD, what namespace(s) should be ignored.
+     * Names in this list are interpreted as a namespace prefixes.
+     * Currently does NOT apply recursively (to inner CTDs).
+     */
+    @NotNull
+    List<String> getIgnoredNamespaces();
 
-	/**
-	 * Copies cloned definitions from the other type definition into this one.
-	 * (TODO remove from the interface?)
-	 */
-	void merge(ComplexTypeDefinition otherComplexTypeDef);
+    /**
+     * Copies cloned definitions from the other type definition into this one.
+     * (TODO remove from the interface?)
+     */
+    void merge(ComplexTypeDefinition otherComplexTypeDef);
 
-	@Override
-	void revive(PrismContext prismContext);
+    @Override
+    void revive(PrismContext prismContext);
 
-	/**
-	 * Returns true if there are no item definitions.
-	 */
-	boolean isEmpty();
+    /**
+     * Returns true if there are no item definitions.
+     */
+    boolean isEmpty();
 
-	/**
-	 * Does a shallow clone of this definition (i.e. item definitions themselves are NOT cloned).
-	 */
-	@NotNull
-	ComplexTypeDefinition clone();
+    /**
+     * Does a shallow clone of this definition (i.e. item definitions themselves are NOT cloned).
+     */
+    @NotNull
+    ComplexTypeDefinition clone();
 
-	/**
-	 * Does a deep clone of this definition.
-	 *
-	 * @param ctdMap Keeps already cloned definitions when 'ultra deep cloning' is not requested.
-	 *               Each definition is then cloned only once.
-	 * @param onThisPath Keeps already cloned definitions on the path from root to current node;
-	 *                   in order to prevent infinite loops when doing ultra deep cloning.
-	 */
-	@NotNull
-	ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
+    /**
+     * Does a deep clone of this definition.
+     *
+     * @param ctdMap Keeps already cloned definitions when 'ultra deep cloning' is not requested.
+     *               Each definition is then cloned only once.
+     * @param onThisPath Keeps already cloned definitions on the path from root to current node;
+     *                   in order to prevent infinite loops when doing ultra deep cloning.
+     */
+    @NotNull
+    ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
 
-	/**
-	 * Trims the definition (and any definitions it refers to) to contain only items related to given paths.
-	 * USE WITH CARE. Be sure no shared definitions would be affected by this operation!
-	 */
-	void trimTo(@NotNull Collection<ItemPath> paths);
+    /**
+     * Trims the definition (and any definitions it refers to) to contain only items related to given paths.
+     * USE WITH CARE. Be sure no shared definitions would be affected by this operation!
+     */
+    void trimTo(@NotNull Collection<ItemPath> paths);
 
-	default boolean containsItemDefinition(QName itemName) {
-		return findItemDefinition(ItemName.fromQName(itemName)) != null;
-	}
+    default boolean containsItemDefinition(QName itemName) {
+        return findItemDefinition(ItemName.fromQName(itemName)) != null;
+    }
 
-	MutableComplexTypeDefinition toMutable();
+    MutableComplexTypeDefinition toMutable();
 
 }

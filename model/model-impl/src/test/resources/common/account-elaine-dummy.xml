@@ -2,21 +2,21 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <shadow oid="c0c010c0-d34d-b33f-f00d-22220004000e"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-	<name>elaine</name>
-	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<attributes>
-		<icfs:name>elaine</icfs:name>
-		<icfs:uid>elaine</icfs:uid>
-	</attributes>
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>elaine</name>
+    <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <attributes>
+        <icfs:name>elaine</icfs:name>
+        <icfs:uid>elaine</icfs:uid>
+    </attributes>
 </shadow>

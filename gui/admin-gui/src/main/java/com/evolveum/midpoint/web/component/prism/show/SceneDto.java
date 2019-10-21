@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,153 +26,153 @@ import java.util.List;
  */
 public class SceneDto implements Serializable {
 
-	public static final java.lang.String F_CHANGE_TYPE = "changeType";
-	public static final java.lang.String F_OBJECT_TYPE = "objectType";
-	public static final java.lang.String F_DESCRIPTION = "description";
-	public static final java.lang.String F_ITEMS = "items";
-	public static final java.lang.String F_PARTIAL_SCENES = "partialScenes";
+    public static final java.lang.String F_CHANGE_TYPE = "changeType";
+    public static final java.lang.String F_OBJECT_TYPE = "objectType";
+    public static final java.lang.String F_DESCRIPTION = "description";
+    public static final java.lang.String F_ITEMS = "items";
+    public static final java.lang.String F_PARTIAL_SCENES = "partialScenes";
 
-	@NotNull private final Scene scene;
-	private boolean minimized;
+    @NotNull private final Scene scene;
+    private boolean minimized;
 
-	private String boxClassOverride;
+    private String boxClassOverride;
 
-	private final List<SceneItemDto> items = new ArrayList<>();
-	private final List<SceneDto> partialScenes = new ArrayList<>();
+    private final List<SceneItemDto> items = new ArrayList<>();
+    private final List<SceneDto> partialScenes = new ArrayList<>();
 
-	public SceneDto(@NotNull Scene scene) {
-		this.scene = scene;
-		for (SceneItem item : scene.getItems()) {
-			if (item != null) {
-				items.add(new SceneItemDto(this, item));
-			}
-		}
-		for (Scene sub : scene.getPartialScenes()) {
-			if (sub != null) {
-				partialScenes.add(new SceneDto(sub));
-			}
-		}
-	}
+    public SceneDto(@NotNull Scene scene) {
+        this.scene = scene;
+        for (SceneItem item : scene.getItems()) {
+            if (item != null) {
+                items.add(new SceneItemDto(this, item));
+            }
+        }
+        for (Scene sub : scene.getPartialScenes()) {
+            if (sub != null) {
+                partialScenes.add(new SceneDto(sub));
+            }
+        }
+    }
 
-	public Scene getScene() {
-		return scene;
-	}
+    public Scene getScene() {
+        return scene;
+    }
 
-	public boolean isMinimized() {
-		return minimized;
-	}
+    public boolean isMinimized() {
+        return minimized;
+    }
 
-	public void setMinimized(boolean minimized) {
-		this.minimized = minimized;
-	}
+    public void setMinimized(boolean minimized) {
+        this.minimized = minimized;
+    }
 
-	public List<SceneDto> getPartialScenes() {
-		return partialScenes;
-	}
+    public List<SceneDto> getPartialScenes() {
+        return partialScenes;
+    }
 
-	public List<SceneItemDto> getItems() {
-		return items;
-	}
+    public List<SceneItemDto> getItems() {
+        return items;
+    }
 
-	public String getName(Component component) {
-		if (scene.getName() != null) {
-			if (scene.getName().getDisplayName() != null) {
-				String name = resolve(scene.getName().getDisplayName(), component, scene.getName().namesAreResourceKeys());
-				if (scene.getSourceAbsPath() != null && scene.getSourceAbsPath().size() > 1) {
-					name = name + " (" + scene.getSourceAbsPath().toString() + ")";
-				}
-				return name;
-			} else {
-				return resolve(scene.getName().getSimpleName(), component, scene.getName().namesAreResourceKeys());
-			}
-		} else {
-			return resolve("SceneDto.unnamed", component, true);
-		}
-	}
+    public String getName(Component component) {
+        if (scene.getName() != null) {
+            if (scene.getName().getDisplayName() != null) {
+                String name = resolve(scene.getName().getDisplayName(), component, scene.getName().namesAreResourceKeys());
+                if (scene.getSourceAbsPath() != null && scene.getSourceAbsPath().size() > 1) {
+                    name = name + " (" + scene.getSourceAbsPath().toString() + ")";
+                }
+                return name;
+            } else {
+                return resolve(scene.getName().getSimpleName(), component, scene.getName().namesAreResourceKeys());
+            }
+        } else {
+            return resolve("SceneDto.unnamed", component, true);
+        }
+    }
 
-	private String resolve(String name, Component component, boolean namesAreResourceKeys) {
-		if (namesAreResourceKeys) {
-			return PageBase.createStringResourceStatic(component, name).getString();
-		} else {
-			return name;
-		}
-	}
+    private String resolve(String name, Component component, boolean namesAreResourceKeys) {
+        if (namesAreResourceKeys) {
+            return PageBase.createStringResourceStatic(component, name).getString();
+        } else {
+            return name;
+        }
+    }
 
-	public String getDescription(Component component) {
-		Name name = scene.getName();
-		if (name == null) {
-			return "";
-		}
-		if (scene.getSourceDefinition() != null && !(scene.getSourceDefinition() instanceof PrismObjectDefinition)) {
-			return "";
-		}
-		if (name.getSimpleName() != null && !name.getSimpleName().equals(getName(component))) {
-			return "(" + name.getSimpleName() + ")";
-		}
-		return "";
-	}
+    public String getDescription(Component component) {
+        Name name = scene.getName();
+        if (name == null) {
+            return "";
+        }
+        if (scene.getSourceDefinition() != null && !(scene.getSourceDefinition() instanceof PrismObjectDefinition)) {
+            return "";
+        }
+        if (name.getSimpleName() != null && !name.getSimpleName().equals(getName(component))) {
+            return "(" + name.getSimpleName() + ")";
+        }
+        return "";
+    }
 
-	public ChangeType getChangeType() {
-		return scene.getChangeType();
-	}
+    public ChangeType getChangeType() {
+        return scene.getChangeType();
+    }
 
-	public boolean containsDeltaItems() {
-		for (SceneItem item : scene.getItems()) {
-			if (item instanceof SceneDeltaItem) {
-				return true;
-			}
-		}
-		return false;
-	}
+    public boolean containsDeltaItems() {
+        for (SceneItem item : scene.getItems()) {
+            if (item instanceof SceneDeltaItem) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	public boolean isWrapper() {
-		return scene instanceof WrapperScene;
-	}
+    public boolean isWrapper() {
+        return scene instanceof WrapperScene;
+    }
 
-	public String getBoxClassOverride() {
-		return boxClassOverride;
-	}
+    public String getBoxClassOverride() {
+        return boxClassOverride;
+    }
 
-	public void setBoxClassOverride(String boxClassOverride) {
-		this.boxClassOverride = boxClassOverride;
-	}
+    public void setBoxClassOverride(String boxClassOverride) {
+        this.boxClassOverride = boxClassOverride;
+    }
 
-	// minimized is NOT included in equality check - because the SceneDto's are compared in order to determine
-	// whether they should be redrawn (i.e. their content is important, not the presentation)
+    // minimized is NOT included in equality check - because the SceneDto's are compared in order to determine
+    // whether they should be redrawn (i.e. their content is important, not the presentation)
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-		SceneDto sceneDto = (SceneDto) o;
+        SceneDto sceneDto = (SceneDto) o;
 
-		if (scene != null ? !scene.equals(sceneDto.scene) : sceneDto.scene != null) return false;
-		if (boxClassOverride != null ? !boxClassOverride.equals(sceneDto.boxClassOverride) : sceneDto.boxClassOverride != null)
-			return false;
-		if (items != null ? !items.equals(sceneDto.items) : sceneDto.items != null) return false;
-		return !(partialScenes != null ? !partialScenes.equals(sceneDto.partialScenes) : sceneDto.partialScenes != null);
+        if (scene != null ? !scene.equals(sceneDto.scene) : sceneDto.scene != null) return false;
+        if (boxClassOverride != null ? !boxClassOverride.equals(sceneDto.boxClassOverride) : sceneDto.boxClassOverride != null)
+            return false;
+        if (items != null ? !items.equals(sceneDto.items) : sceneDto.items != null) return false;
+        return !(partialScenes != null ? !partialScenes.equals(sceneDto.partialScenes) : sceneDto.partialScenes != null);
 
-	}
+    }
 
-	@Override
-	public int hashCode() {
-		int result = scene != null ? scene.hashCode() : 0;
-		result = 31 * result + (boxClassOverride != null ? boxClassOverride.hashCode() : 0);
-		result = 31 * result + (items != null ? items.hashCode() : 0);
-		result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = scene != null ? scene.hashCode() : 0;
+        result = 31 * result + (boxClassOverride != null ? boxClassOverride.hashCode() : 0);
+        result = 31 * result + (items != null ? items.hashCode() : 0);
+        result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
+        return result;
+    }
 
-	public void applyFoldingFrom(@NotNull SceneDto source) {
-		minimized = source.minimized;
-		int partialDst = partialScenes.size();
-		int partialSrc = source.getPartialScenes().size();
-		if (partialDst != partialSrc) {
-			return;	// shouldn't occur
-		}
-		for (int i = 0; i < partialDst; i++) {
-			partialScenes.get(i).applyFoldingFrom(source.getPartialScenes().get(i));
-		}
-	}
+    public void applyFoldingFrom(@NotNull SceneDto source) {
+        minimized = source.minimized;
+        int partialDst = partialScenes.size();
+        int partialSrc = source.getPartialScenes().size();
+        if (partialDst != partialSrc) {
+            return;    // shouldn't occur
+        }
+        for (int i = 0; i < partialDst; i++) {
+            partialScenes.get(i).applyFoldingFrom(source.getPartialScenes().get(i));
+        }
+    }
 }

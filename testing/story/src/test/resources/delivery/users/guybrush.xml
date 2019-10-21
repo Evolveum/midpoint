@@ -2,31 +2,31 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user oid="47f403ae-5a22-4226-aab9-cd321a62d6d3"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
-	<name>guybrush</name>
-	<!-- Member of Scumm Bar but manager of Ministry of Rum (where he is NOT member) -->
-	<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
-	<parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType" relation="org:manager"/>
-	<assignment>
-		<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
-	</assignment>
-	<assignment>
-		<targetRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType" relation="org:manager"/>
-	</assignment>
-	<fullName>Guybrush Threepwood</fullName>
-	<givenName>Guybrush</givenName>
-	<familyName>Threepwood</familyName>
-	<emailAddress>guybrush@evolveum.com</emailAddress>
-	<credentials>
-		<password>
-			<value>a123456</value>
-		</password>
-	</credentials>  
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>guybrush</name>
+    <!-- Member of Scumm Bar but manager of Ministry of Rum (where he is NOT member) -->
+    <parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+    <parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType" relation="org:manager"/>
+    <assignment>
+        <targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+    </assignment>
+    <assignment>
+        <targetRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType" relation="org:manager"/>
+    </assignment>
+    <fullName>Guybrush Threepwood</fullName>
+    <givenName>Guybrush</givenName>
+    <familyName>Threepwood</familyName>
+    <emailAddress>guybrush@evolveum.com</emailAddress>
+    <credentials>
+        <password>
+            <value>a123456</value>
+        </password>
+    </credentials>
 </user>

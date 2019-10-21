@@ -1,25 +1,25 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="00000000-role-0000-0000-999111111223">
-    <name>Metarole stop on activation change (3)</name>   
+    <name>Metarole stop on activation change (3)</name>
     <inducement>
         <policyRule>
             <name>Change activation</name>
             <policyConstraints>
-            	<modification>
-            		<operation>add</operation>
-            		<item>activation/administrativeStatus</item>
-            	</modification>
+                <modification>
+                    <operation>add</operation>
+                    <item>activation/administrativeStatus</item>
+                </modification>
             </policyConstraints>
             <policyThreshold>
-            	<lowWaterMark>
-            		<count>3</count>
-            	</lowWaterMark>
+                <lowWaterMark>
+                    <count>3</count>
+                </lowWaterMark>
             </policyThreshold>
             <policyActions>
                 <suspendTask/>

@@ -2,7 +2,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -79,7 +79,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     protected MapXNode filterClauseXNode;           // single-subnode map node (key = filter element qname, value = contents)
 
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "SearchFilterType");
-	public static final QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
+    public static final QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
 
     /**
      * Creates a new {@code QueryType} instance.
@@ -109,20 +109,20 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     }
 
     public String getDescription() {
-		return description;
-	}
+        return description;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public boolean containsFilterClause() {
         return filterClauseXNode != null && !filterClauseXNode.isEmpty();
     }
 
-	public void setFilterClauseXNode(MapXNode filterClauseXNode) {
-		this.filterClauseXNode = filterClauseXNode;
-	}
+    public void setFilterClauseXNode(MapXNode filterClauseXNode) {
+        this.filterClauseXNode = filterClauseXNode;
+    }
 
     public void setFilterClauseXNode(RootXNode filterClauseNode) {
         if (filterClauseNode == null) {
@@ -166,20 +166,20 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     }
 
     public void parseFromXNode(XNode xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
-    	if (xnode == null || xnode.isEmpty()) {
-    		this.filterClauseXNode = null;
-    		this.description = null;
-    	} else {
-    		if (!(xnode instanceof MapXNode)) {
-    			throw new SchemaException("Cannot parse filter from "+xnode);
-    		}
-    		MapXNode xmap = (MapXNode)xnode;
-    		XNode xdesc = xmap.get(SearchFilterType.F_DESCRIPTION);
-    		if (xdesc != null) {
-    			if (xdesc instanceof PrimitiveXNode<?>) {
-    				String desc = ((PrimitiveXNode<String>)xdesc).getParsedValue(DOMUtil.XSD_STRING, String.class);
-    				setDescription(desc);
-    			} else {
+        if (xnode == null || xnode.isEmpty()) {
+            this.filterClauseXNode = null;
+            this.description = null;
+        } else {
+            if (!(xnode instanceof MapXNode)) {
+                throw new SchemaException("Cannot parse filter from "+xnode);
+            }
+            MapXNode xmap = (MapXNode)xnode;
+            XNode xdesc = xmap.get(SearchFilterType.F_DESCRIPTION);
+            if (xdesc != null) {
+                if (xdesc instanceof PrimitiveXNode<?>) {
+                    String desc = ((PrimitiveXNode<String>)xdesc).getParsedValue(DOMUtil.XSD_STRING, String.class);
+                    setDescription(desc);
+                } else {
                     throw new SchemaException("Description must have a primitive value");
                 }
             }
@@ -192,25 +192,25 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
             if (filterMap.size() > 1) {
                 throw new SchemaException("Filter clause has more than one item: " + filterMap);
             }
-    		this.filterClauseXNode = prismContext.xnodeFactory().map(filterMap);
+            this.filterClauseXNode = prismContext.xnodeFactory().map(filterMap);
             prismContext.getQueryConverter().parseFilterPreliminarily(this.filterClauseXNode, pc);
-    	}
+        }
     }
 
     public MapXNode serializeToXNode(PrismContext prismContext) throws SchemaException {
         MapXNode xmap = getFilterClauseXNode();
-    	if (description == null) {
-    		return xmap;
-    	} else {
+        if (description == null) {
+            return xmap;
+        } else {
             // we have to serialize the map in correct order (see MID-1847): description first, filter clause next
             Map<QName, XNode> newXMap = new HashMap<>();
-    		newXMap.put(SearchFilterType.F_DESCRIPTION, prismContext.xnodeFactory().primitive(description));
+            newXMap.put(SearchFilterType.F_DESCRIPTION, prismContext.xnodeFactory().primitive(description));
             if (xmap != null && !xmap.isEmpty()) {
                 Map.Entry<QName, ? extends XNode> filter = xmap.getSingleSubEntry("search filter");
                 newXMap.put(filter.getKey(), filter.getValue());
             }
             return prismContext.xnodeFactory().map(newXMap);
-    	}
+        }
     }
 
     /**
@@ -248,10 +248,10 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         final SearchFilterType that = ((SearchFilterType) object);
 
         if (filterClauseXNode == null) {
-			if (that.filterClauseXNode != null)
-				return false;
-		} else if (!filterClauseXNode.equals(that.filterClauseXNode))
-			return false;
+            if (that.filterClauseXNode != null)
+                return false;
+        } else if (!filterClauseXNode.equals(that.filterClauseXNode))
+            return false;
 
         return true;
     }
@@ -670,25 +670,25 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         return clone;
     }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("SearchFilterType");
-		if (description != null) {
-			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "description", description, indent + 1);
-		}
-		if (filterClauseXNode != null) {
-			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "filterClauseXNode", (DebugDumpable) filterClauseXNode, indent + 1);
-		}
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("SearchFilterType");
+        if (description != null) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "description", description, indent + 1);
+        }
+        if (filterClauseXNode != null) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "filterClauseXNode", (DebugDumpable) filterClauseXNode, indent + 1);
+        }
+        return sb.toString();
+    }
 
 }

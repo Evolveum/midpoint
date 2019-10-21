@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -40,25 +40,25 @@ public class JpaAnyContainerDefinition extends JpaDataNodeDefinition {
         }
 
         CollectionSpecification collSpec = itemDefinition.isSingleValue() ? null : new CollectionSpecification();
-		String jpaName;        // longs, strings, ...
-		JpaDataNodeDefinition jpaNodeDefinition;
+        String jpaName;        // longs, strings, ...
+        JpaDataNodeDefinition jpaNodeDefinition;
         if (itemDefinition instanceof PrismPropertyDefinition) {
             try {
                 jpaName = RAnyConverter.getAnySetType(itemDefinition, prismContext);
             } catch (SchemaException e) {
                 throw new QueryException(e.getMessage(), e);
             }
-			jpaNodeDefinition = new JpaAnyPropertyDefinition(Object.class, null);      // TODO
+            jpaNodeDefinition = new JpaAnyPropertyDefinition(Object.class, null);      // TODO
         } else if (itemDefinition instanceof PrismReferenceDefinition) {
-        	jpaName = "references";
-			jpaNodeDefinition = new JpaAnyReferenceDefinition(Object.class, RObject.class);
+            jpaName = "references";
+            jpaNodeDefinition = new JpaAnyReferenceDefinition(Object.class, RObject.class);
         } else {
             throw new QueryException("Unsupported 'any' item: " + itemDefinition);
         }
-		JpaLinkDefinition<?> linkDefinition = new JpaAnyItemLinkDefinition(itemDefinition, jpaName, collSpec, getOwnerType(), jpaNodeDefinition);
-		return new DataSearchResult<>(linkDefinition, ItemPath.EMPTY_PATH);
+        JpaLinkDefinition<?> linkDefinition = new JpaAnyItemLinkDefinition(itemDefinition, jpaName, collSpec, getOwnerType(), jpaNodeDefinition);
+        return new DataSearchResult<>(linkDefinition, ItemPath.EMPTY_PATH);
 
-	}
+    }
 
     // assignment extension has no ownerType, but virtual (object extension / shadow attributes) do have
     protected RObjectExtensionType getOwnerType() {

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -33,46 +33,46 @@ import java.io.File;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestEvents extends AbstractWfTestPolicy {
 
-	@Override
-	protected PrismObject<UserType> getDefaultActor() {
-		return userAdministrator;
-	}
+    @Override
+    protected PrismObject<UserType> getDefaultActor() {
+        return userAdministrator;
+    }
 
-	protected static final File TEST_EVENTS_RESOURCE_DIR = new File("src/test/resources/events");
-	protected static final File ROLE_NO_APPROVERS_FILE = new File(TEST_EVENTS_RESOURCE_DIR, "role-no-approvers.xml");
+    protected static final File TEST_EVENTS_RESOURCE_DIR = new File("src/test/resources/events");
+    protected static final File ROLE_NO_APPROVERS_FILE = new File(TEST_EVENTS_RESOURCE_DIR, "role-no-approvers.xml");
 
-	protected String roleNoApproversOid;
-	private WorkItemId workItemId;
-	private String approvalCaseOid;
+    protected String roleNoApproversOid;
+    private WorkItemId workItemId;
+    private String approvalCaseOid;
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+        DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 
-		roleNoApproversOid = repoAddObjectFromFile(ROLE_NO_APPROVERS_FILE, initResult).getOid();
-	}
+        roleNoApproversOid = repoAddObjectFromFile(ROLE_NO_APPROVERS_FILE, initResult).getOid();
+    }
 
-	@Test
-	public void test100CreateTask() throws Exception {
-		final String TEST_NAME = "test100CreateTask";
-		TestUtil.displayTestTitle(this, TEST_NAME);
-		login(userAdministrator);
+    @Test
+    public void test100CreateTask() throws Exception {
+        final String TEST_NAME = "test100CreateTask";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator);
 
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
-		assignRole(userJackOid, roleNoApproversOid, task, result);				// should start approval process
-		assertNotAssignedRole(userJackOid, roleNoApproversOid, task, result);
+        assignRole(userJackOid, roleNoApproversOid, task, result);                // should start approval process
+        assertNotAssignedRole(userJackOid, roleNoApproversOid, task, result);
 
-		CaseWorkItemType workItem = getWorkItem(task, result);
-		workItemId = WorkItemId.of(workItem);
+        CaseWorkItemType workItem = getWorkItem(task, result);
+        workItemId = WorkItemId.of(workItem);
 
-		display("work item", workItem);
-		display("Case", CaseWorkItemUtil.getCase(workItem));
+        display("work item", workItem);
+        display("Case", CaseWorkItemUtil.getCase(workItem));
 
-		// TODO check events
-	}
+        // TODO check events
+    }
 
 }

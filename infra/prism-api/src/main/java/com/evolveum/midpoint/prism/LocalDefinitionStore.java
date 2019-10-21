@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,53 +27,53 @@ import javax.xml.namespace.QName;
  */
 public interface LocalDefinitionStore {
 
-	// (1) single-name resolution
+    // (1) single-name resolution
 
-	// (1a) core
-	<ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive);
+    // (1a) core
+    <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive);
 
-	// (1b) derived
-	@SuppressWarnings("unchecked")
-	default <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name) {
-		return (ID) findLocalItemDefinition(name, ItemDefinition.class, false);
-	};
+    // (1b) derived
+    @SuppressWarnings("unchecked")
+    default <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name) {
+        return (ID) findLocalItemDefinition(name, ItemDefinition.class, false);
+    };
 
-	@SuppressWarnings("unchecked")
-	default <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path) {
-		return (ID) findItemDefinition(path, ItemDefinition.class);
-	}
+    @SuppressWarnings("unchecked")
+    default <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path) {
+        return (ID) findItemDefinition(path, ItemDefinition.class);
+    }
 
-	@SuppressWarnings("unchecked")
-	default PrismReferenceDefinition findReferenceDefinition(@NotNull ItemName name) {
-		return findItemDefinition(name, PrismReferenceDefinition.class);
-	}
+    @SuppressWarnings("unchecked")
+    default PrismReferenceDefinition findReferenceDefinition(@NotNull ItemName name) {
+        return findItemDefinition(name, PrismReferenceDefinition.class);
+    }
 
-	@SuppressWarnings("unchecked")
-	default <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(@NotNull String name) {
-		return findItemDefinition(new ItemName(name), PrismContainerDefinition.class);
-	}
+    @SuppressWarnings("unchecked")
+    default <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(@NotNull String name) {
+        return findItemDefinition(new ItemName(name), PrismContainerDefinition.class);
+    }
 
-	// (2) path resolution
-	// (2a) core
+    // (2) path resolution
+    // (2a) core
 
-	<ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz);
+    <ID extends ItemDefinition> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz);
 
-	<ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest, @NotNull Class<ID> clazz);
+    <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest, @NotNull Class<ID> clazz);
 
-	// (2b) derived
+    // (2b) derived
 
-	@SuppressWarnings("unchecked")
-	default <T> PrismPropertyDefinition<T> findPropertyDefinition(@NotNull ItemPath path) {
-		return findItemDefinition(path, PrismPropertyDefinition.class);
-	}
+    @SuppressWarnings("unchecked")
+    default <T> PrismPropertyDefinition<T> findPropertyDefinition(@NotNull ItemPath path) {
+        return findItemDefinition(path, PrismPropertyDefinition.class);
+    }
 
-	default PrismReferenceDefinition findReferenceDefinition(@NotNull ItemPath path) {
-		return findItemDefinition(path, PrismReferenceDefinition.class);
-	}
+    default PrismReferenceDefinition findReferenceDefinition(@NotNull ItemPath path) {
+        return findItemDefinition(path, PrismReferenceDefinition.class);
+    }
 
-	@SuppressWarnings("unchecked")
-	default <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(@NotNull ItemPath path) {
-		return findItemDefinition(path, PrismContainerDefinition.class);
-	}
+    @SuppressWarnings("unchecked")
+    default <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(@NotNull ItemPath path) {
+        return findItemDefinition(path, PrismContainerDefinition.class);
+    }
 
 }

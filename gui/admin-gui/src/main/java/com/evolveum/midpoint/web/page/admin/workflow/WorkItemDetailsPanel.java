@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.workflow;
@@ -120,7 +120,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         LinkedReferencePanel requestedFor;
         AssignmentHolderType object = WebComponentUtil.getObjectFromAddDeltyForCase(CaseTypeUtil.getCase(getModelObject()));
         if (object == null) {
-        	requestedFor = new LinkedReferencePanel(ID_REQUESTED_FOR,
+            requestedFor = new LinkedReferencePanel(ID_REQUESTED_FOR,
                     Model.of(WorkItemTypeUtil.getObjectReference(getModelObject())));
         } else {
             ObjectReferenceType ort = new ObjectReferenceType();
@@ -134,7 +134,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
 
             ort.setupReferenceValue(referenceValue);
 
-        	requestedFor = new LinkedReferencePanel(ID_REQUESTED_FOR, Model.of(ort));
+            requestedFor = new LinkedReferencePanel(ID_REQUESTED_FOR, Model.of(ort));
         }
         requestedFor.setOutputMarkupId(true);
         add(requestedFor);
@@ -210,7 +210,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
             String formOid = level.getFormRef().getOid();
             ObjectType focus = getCaseFocusObject(parentCase);
             if (focus == null) {
-                focus = new UserType(getPageBase().getPrismContext());		// TODO (this should not occur anyway)
+                focus = new UserType(getPageBase().getPrismContext());        // TODO (this should not occur anyway)
             }
             Task task = getPageBase().createSimpleTask(OPERATION_LOAD_CUSTOM_FORM);
             DynamicFormPanel<?> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,

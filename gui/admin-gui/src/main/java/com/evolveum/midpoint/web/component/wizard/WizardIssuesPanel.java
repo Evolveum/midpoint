@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,68 +27,68 @@ import java.util.List;
  */
 public class WizardIssuesPanel extends BasePanel<WizardIssuesDto> {
 
-	private static final String ID_PANEL = "panel";
-	private static final String ID_TITLE = "title";
-	private static final String ID_TABLE = "table";
-	private static final String ID_ROW = "row";
-	private static final String ID_SEVERITY = "severity";
-	private static final String ID_TEXT = "text";
+    private static final String ID_PANEL = "panel";
+    private static final String ID_TITLE = "title";
+    private static final String ID_TABLE = "table";
+    private static final String ID_ROW = "row";
+    private static final String ID_SEVERITY = "severity";
+    private static final String ID_TEXT = "text";
 
-	public WizardIssuesPanel(String id, @NotNull NonEmptyModel<WizardIssuesDto> model) {
-		super(id, model);
-		initLayout();
-	}
+    public WizardIssuesPanel(String id, @NotNull NonEmptyModel<WizardIssuesDto> model) {
+        super(id, model);
+        initLayout();
+    }
 
-	private void initLayout() {
-		WebMarkupContainer panel = new WebMarkupContainer(ID_PANEL);
-		panel.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return getModelObject().hasIssues();
-			}
-		});
-		panel.add(AttributeAppender.append("class", new IModel<String>() {
-			@Override
-			public String getObject() {
-				WizardIssuesDto issuesDto = WizardIssuesPanel.this.getModelObject();
-				WizardIssuesDto.Severity severity = issuesDto.getSeverity();
-				return severity != null ? "box-" + severity.getColorStyle() : null;
-			}
-		}));
-		add(panel);
+    private void initLayout() {
+        WebMarkupContainer panel = new WebMarkupContainer(ID_PANEL);
+        panel.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return getModelObject().hasIssues();
+            }
+        });
+        panel.add(AttributeAppender.append("class", new IModel<String>() {
+            @Override
+            public String getObject() {
+                WizardIssuesDto issuesDto = WizardIssuesPanel.this.getModelObject();
+                WizardIssuesDto.Severity severity = issuesDto.getSeverity();
+                return severity != null ? "box-" + severity.getColorStyle() : null;
+            }
+        }));
+        add(panel);
 
-		Label title = new Label(ID_TITLE, new IModel<String>() {
-			@Override
-			public String getObject() {
-				WizardIssuesDto issuesDto = WizardIssuesPanel.this.getModelObject();
-				WizardIssuesDto.Severity severity = issuesDto.getSeverity();
-				if (severity == null) {
-					return "";
-				} else if (severity == WizardIssuesDto.Severity.INFO) {
-					return getString("Wizard.Notes");
-				} else {
-					return getString("Wizard.Issues");
-				}
-			}
-		});
-		panel.add(title);
+        Label title = new Label(ID_TITLE, new IModel<String>() {
+            @Override
+            public String getObject() {
+                WizardIssuesDto issuesDto = WizardIssuesPanel.this.getModelObject();
+                WizardIssuesDto.Severity severity = issuesDto.getSeverity();
+                if (severity == null) {
+                    return "";
+                } else if (severity == WizardIssuesDto.Severity.INFO) {
+                    return getString("Wizard.Notes");
+                } else {
+                    return getString("Wizard.Issues");
+                }
+            }
+        });
+        panel.add(title);
 
-		WebMarkupContainer table = new WebMarkupContainer(ID_TABLE);
-		panel.add(table);
+        WebMarkupContainer table = new WebMarkupContainer(ID_TABLE);
+        panel.add(table);
 
-		ListView<WizardIssuesDto.Issue> issues = new ListView<WizardIssuesDto.Issue>(ID_ROW,
+        ListView<WizardIssuesDto.Issue> issues = new ListView<WizardIssuesDto.Issue>(ID_ROW,
             new PropertyModel<>(getModel(), WizardIssuesDto.F_ISSUES)) {
-			@Override
-			protected void populateItem(ListItem<WizardIssuesDto.Issue> item) {
-				WizardIssuesDto.Issue issue = item.getModelObject();
-				Label severityLabel = new Label(ID_SEVERITY, "");
-				severityLabel.add(AttributeAppender.replace("class", issue.getSeverityClass()));
-				item.add(severityLabel);
-				item.add(new Label(ID_TEXT, issue.getText()));
-			}
-		};
-		table.add(issues);
+            @Override
+            protected void populateItem(ListItem<WizardIssuesDto.Issue> item) {
+                WizardIssuesDto.Issue issue = item.getModelObject();
+                Label severityLabel = new Label(ID_SEVERITY, "");
+                severityLabel.add(AttributeAppender.replace("class", issue.getSeverityClass()));
+                item.add(severityLabel);
+                item.add(new Label(ID_TEXT, issue.getText()));
+            }
+        };
+        table.add(issues);
 
-	}
+    }
 
 }

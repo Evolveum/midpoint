@@ -2,15 +2,15 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111111" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+<user oid="c0c010c0-d34d-b33f-f00d-111111111111"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
     <name>jack</name>
     <description>Where's the rum?</description>
     <fullName>Jack Sparrow</fullName>
@@ -27,14 +27,14 @@
 
     <credentials>
         <password>
-        	<!-- Simple value. No metadata. -->
-        	<value>
-	            <clearValue>deadmentellnotales</clearValue>
+            <!-- Simple value. No metadata. -->
+            <value>
+                <clearValue>deadmentellnotales</clearValue>
             </value>
         </password>
     </credentials>
-    
+
     <activation>
-    	<administrativeStatus>enabled</administrativeStatus>
+        <administrativeStatus>enabled</administrativeStatus>
     </activation>
 </user>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
@@ -117,7 +117,7 @@ public class PageSelfDashboard extends PageSelf {
         initLayout();
     }
 
-	private transient Application application;
+    private transient Application application;
 
     @Override
     protected void createBreadcrumb() {
@@ -154,31 +154,31 @@ public class PageSelfDashboard extends PageSelf {
         });
         add(linksPanel);
 
-		// TODO is this correct? [med]
-		application = getApplication();
-		final Session session = Session.get();
+        // TODO is this correct? [med]
+        application = getApplication();
+        final Session session = Session.get();
 
-		AsyncDashboardPanel<Object, List<CaseWorkItemType>> workItemsPanel = new AsyncDashboardPanel<Object, List<CaseWorkItemType>>(
+        AsyncDashboardPanel<Object, List<CaseWorkItemType>> workItemsPanel = new AsyncDashboardPanel<Object, List<CaseWorkItemType>>(
                 ID_WORK_ITEMS_PANEL,
                 createStringResource("PageSelfDashboard.workItems"),
                 GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON,
                 GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES,
                 true) {
 
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
+                    @Override
                     protected SecurityContextAwareCallable<CallableResult<List<CaseWorkItemType>>> createCallable(
                             Authentication auth, IModel callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<CaseWorkItemType>>>(
-                        		getSecurityContextManager(), auth) {
+                                getSecurityContextManager(), auth) {
 
-                        	private static final long serialVersionUID = 1L;
+                            private static final long serialVersionUID = 1L;
 
                             @Override
                             public CallableResult<List<CaseWorkItemType>> callWithContextPrepared() throws Exception {
-								setupContext(application, session);	// TODO is this correct? [med]
+                                setupContext(application, session);    // TODO is this correct? [med]
                                 return loadWorkItems();
                             }
                         };
@@ -186,7 +186,7 @@ public class PageSelfDashboard extends PageSelf {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-						CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, CaseWorkItemsPanel.View.DASHBOARD){
+                        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, CaseWorkItemsPanel.View.DASHBOARD){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -215,22 +215,22 @@ public class PageSelfDashboard extends PageSelf {
         AsyncDashboardPanel<Object, List<CaseType>> myRequestsPanel =
                 new AsyncDashboardPanel<Object, List<CaseType>>(ID_REQUESTS_PANEL,
                         createStringResource("PageSelfDashboard.myRequests"),
-                		 GuiStyleConstants.CLASS_SHADOW_ICON_REQUEST,
+                         GuiStyleConstants.CLASS_SHADOW_ICON_REQUEST,
                         GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES, true) {
 
-        			private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected SecurityContextAwareCallable<CallableResult<List<CaseType>>> createCallable(
                             Authentication auth, IModel callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<CaseType>>>(
-                        		getSecurityContextManager(), auth) {
-                        	private static final long serialVersionUID = 1L;
+                                getSecurityContextManager(), auth) {
+                            private static final long serialVersionUID = 1L;
 
                             @Override
                             public CallableResult<List<CaseType>> callWithContextPrepared() throws Exception {
-								setupContext(application, session);
+                                setupContext(application, session);
                                 return loadMyRequests();
                             }
                         };
@@ -259,7 +259,7 @@ public class PageSelfDashboard extends PageSelf {
                 };
 
         myRequestsPanel.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -403,19 +403,19 @@ public class PageSelfDashboard extends PageSelf {
                         GuiStyleConstants.CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES,
                         true) {
 
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
+                    @Override
                     protected SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>> createCallable(
                             Authentication auth, IModel<Object> callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>>(
-                        		getSecurityContextManager(), auth) {
+                                getSecurityContextManager(), auth) {
 
                             @Override
                             public AccountCallableResult<List<SimpleAccountDto>> callWithContextPrepared()
                                     throws Exception {
-                                setupContext(application, session);	// TODO is this correct? [med]
+                                setupContext(application, session);    // TODO is this correct? [med]
                                 return loadAccounts();
                             }
                         };
@@ -515,7 +515,7 @@ public class PageSelfDashboard extends PageSelf {
                 GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES,
                 true) {
 
-        			private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>> createCallable(
@@ -587,60 +587,60 @@ public class PageSelfDashboard extends PageSelf {
         return callableResult;
     }
 
-	private AssignmentItemDto createAssignmentItem(PrismObject<UserType> user,
+    private AssignmentItemDto createAssignmentItem(PrismObject<UserType> user,
                                                    PrismContainerValue<AssignmentType> assignment,
-			Task task, OperationResult result) {
+            Task task, OperationResult result) {
         ActivationType activation = assignment.asContainerable().getActivation();
         if (activation != null && activation.getAdministrativeStatus() != null
                 && !activation.getAdministrativeStatus().equals(ActivationStatusType.ENABLED)) {
             return null;
         }
         PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
-		if (targetRef == null || targetRef.isEmpty()) {
-			// account construction
-			PrismContainer construction = assignment.findContainer(AssignmentType.F_CONSTRUCTION);
-			String name = null;
+        if (targetRef == null || targetRef.isEmpty()) {
+            // account construction
+            PrismContainer construction = assignment.findContainer(AssignmentType.F_CONSTRUCTION);
+            String name = null;
             String description = "";
-			if (construction.getRealValue() != null && !construction.isEmpty()) {
-				ConstructionType constr = (ConstructionType) construction.getRealValue();
+            if (construction.getRealValue() != null && !construction.isEmpty()) {
+                ConstructionType constr = (ConstructionType) construction.getRealValue();
 
-				if (constr.getResourceRef() != null) {
-					ObjectReferenceType resourceRef = constr.getResourceRef();
+                if (constr.getResourceRef() != null) {
+                    ObjectReferenceType resourceRef = constr.getResourceRef();
 
-					PrismObject resource = WebModelServiceUtils.loadObject(ResourceType.class,
-							resourceRef.getOid(), this, task, result);
-					name = WebComponentUtil.getName(resource);
+                    PrismObject resource = WebModelServiceUtils.loadObject(ResourceType.class,
+                            resourceRef.getOid(), this, task, result);
+                    name = WebComponentUtil.getName(resource);
                     description = constr.getDescription();
-				}
-			}
+                }
+            }
 
-			return new AssignmentItemDto(AssignmentEditorDtoType.CONSTRUCTION, name, description, null);
-		}
-
-		if (RelationTypes.APPROVER.getRelation().equals(assignment.getValue().getTargetRef().getRelation()) ||
-                RelationTypes.OWNER.getRelation().equals(assignment.getValue().getTargetRef().getRelation())){
-		    return null;
+            return new AssignmentItemDto(AssignmentEditorDtoType.CONSTRUCTION, name, description, null);
         }
-		PrismReferenceValue refValue = targetRef.getValue();
-		PrismObject value = refValue.getObject();
-		if (value == null) {
-			// resolve reference
-			value = WebModelServiceUtils.loadObject(ObjectType.class, refValue.getOid(), this, task, result);
-		}
 
-		if (value == null) {
-			// we couldn't resolve assignment details
-			return new AssignmentItemDto(null, null, null, null);
-		}
+        if (RelationTypes.APPROVER.getRelation().equals(assignment.getValue().getTargetRef().getRelation()) ||
+                RelationTypes.OWNER.getRelation().equals(assignment.getValue().getTargetRef().getRelation())){
+            return null;
+        }
+        PrismReferenceValue refValue = targetRef.getValue();
+        PrismObject value = refValue.getObject();
+        if (value == null) {
+            // resolve reference
+            value = WebModelServiceUtils.loadObject(ObjectType.class, refValue.getOid(), this, task, result);
+        }
 
-		String name = WebComponentUtil.getDisplayNameOrName(value);
-		AssignmentEditorDtoType type = AssignmentEditorDtoType.getType(value.getCompileTimeClass());
-		String relation = refValue.getRelation() != null ? refValue.getRelation().getLocalPart() : null;
+        if (value == null) {
+            // we couldn't resolve assignment details
+            return new AssignmentItemDto(null, null, null, null);
+        }
 
-		return new AssignmentItemDto(type, name, getAssignmentDescription(value), relation);
-	}
+        String name = WebComponentUtil.getDisplayNameOrName(value);
+        AssignmentEditorDtoType type = AssignmentEditorDtoType.getType(value.getCompileTimeClass());
+        String relation = refValue.getRelation() != null ? refValue.getRelation().getLocalPart() : null;
 
-	private String getAssignmentDescription(PrismObject value){
+        return new AssignmentItemDto(type, name, getAssignmentDescription(value), relation);
+    }
+
+    private String getAssignmentDescription(PrismObject value){
         Object orgIdentifier = null;
         if (OrgType.class.isAssignableFrom(value.getCompileTimeClass())) {
             orgIdentifier = value.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
@@ -651,7 +651,7 @@ public class PageSelfDashboard extends PageSelf {
         return description;
     }
 
-	private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
+    private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
         if (compiledUserProfile == null || compiledUserProfile.getUserDashboard() == null) {
             return UserInterfaceElementVisibilityType.AUTOMATIC;
         }

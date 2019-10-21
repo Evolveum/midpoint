@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -50,51 +50,49 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
  */
 public class ReportTypeUtil {
 
-	public static String FILENAMEPARAMETER = "fname";
-	public static final String HEADER_USERAGENT = "mp-cluster-peer-client";
-	public static String URLENCODING = "UTF-8";
-	
-	public static final String REPORT_LANGUAGE = "midPoint";
-	
-	
-	public static final String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
-	public static final String PARAMETER_REPORT_OID = "midpointReportOid";
-	public static final String PARAMETER_REPORT_OBJECT = "midpointReportObject";
-	public static final String PARAMETER_TASK = "midpointTask";
-	public static final String PARAMETER_OPERATION_RESULT = "midpointOperationResult";
-	
-	private static final Trace LOGGER = TraceManager.getTrace(ReportTypeUtil.class);
-	
-	
-	 public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
-	    	try	 {
-	    	byte[] reportTemplate;
-	    		
-	    	if(Base64.isBase64(template)) {
-	    		reportTemplate = Base64.decodeBase64(template);
-	    	} else {
-	    		reportTemplate = template;
-	    	}
-		
-		 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
-		 	JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
-//		 	LOGGER.trace("load jasper design : {}", jasperDesign);
-		 	return jasperDesign;
-	    	} catch (JRException ex){
-	    		throw new SchemaException(ex.getMessage(), ex.getCause());
-	    	}
-	    }
+    public static final String FILENAMEPARAMETER = "fname";
+    public static final String HEADER_USERAGENT = "mp-cluster-peer-client";
+    public static final String URLENCODING = "UTF-8";
+
+    public static final String REPORT_LANGUAGE = "midPoint";
+
+    public static final String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
+    public static final String PARAMETER_REPORT_OID = "midpointReportOid";
+    public static final String PARAMETER_REPORT_OBJECT = "midpointReportObject";
+    public static final String PARAMETER_TASK = "midpointTask";
+    public static final String PARAMETER_OPERATION_RESULT = "midpointOperationResult";
+
+    private static final Trace LOGGER = TraceManager.getTrace(ReportTypeUtil.class);
+
+     public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
+         try {
+             byte[] reportTemplate;
+
+             if (Base64.isBase64(template)) {
+                 reportTemplate = Base64.decodeBase64(template);
+             } else {
+                 reportTemplate = template;
+             }
+
+             InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
+             JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+//             LOGGER.trace("load jasper design : {}", jasperDesign);
+             return jasperDesign;
+         } catch (JRException ex) {
+             throw new SchemaException(ex.getMessage(), ex.getCause());
+         }
+     }
 
     public static PrismSchema parseReportConfigurationSchema(PrismObject<ReportType> report, PrismContext context)
             throws SchemaException {
 
-    	PrismContainer xmlSchema;
-    	PrismContainer<JasperReportEngineConfigurationType> jasper = report.findContainer(ReportType.F_JASPER);
-    	if (jasper != null) {
-    		xmlSchema = jasper.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
-    	} else {
-    		xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
-    	}
+        PrismContainer xmlSchema;
+        PrismContainer<JasperReportEngineConfigurationType> jasper = report.findContainer(ReportType.F_JASPER);
+        if (jasper != null) {
+            xmlSchema = jasper.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+        } else {
+            xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+        }
         Element xmlSchemaElement = ObjectTypeUtil.findXsdElement(xmlSchema);
         if (xmlSchemaElement == null) {
             //no schema definition available
@@ -115,14 +113,14 @@ public class ReportTypeUtil {
 
     public static void applyDefinition(PrismObject<ReportType> report, PrismContext prismContext)
             throws SchemaException {
-    	
-    	PrismContainer<ReportConfigurationType> configuration;
-    	PrismContainer<JasperReportEngineConfigurationType> jasper = report.findContainer(ReportType.F_JASPER);
-    	if (jasper != null) {
-    		configuration = jasper.findContainer(ReportType.F_CONFIGURATION);
-    	} else {
-    		configuration = report.findContainer(ReportType.F_CONFIGURATION);
-    	}
+
+        PrismContainer<ReportConfigurationType> configuration;
+        PrismContainer<JasperReportEngineConfigurationType> jasper = report.findContainer(ReportType.F_JASPER);
+        if (jasper != null) {
+            configuration = jasper.findContainer(ReportType.F_CONFIGURATION);
+        } else {
+            configuration = report.findContainer(ReportType.F_CONFIGURATION);
+        }
         if (configuration == null) {
             //nothing to apply definitions on
             return;
@@ -148,7 +146,7 @@ public class ReportTypeUtil {
     public static void applyConfigurationDefinition(PrismObject<ReportType> report, ObjectDelta delta, PrismContext prismContext)
             throws SchemaException {
 
-    	PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema(report, prismContext);
+        PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema(report, prismContext);
         PrismContainerDefinition<ReportConfigurationType> definition =  ReportTypeUtil.findReportConfigurationDefinition(schema);
         if (definition == null) {
             //no definition found for container
@@ -156,13 +154,13 @@ public class ReportTypeUtil {
         }
         Collection<ItemDelta> modifications = delta.getModifications();
         for (ItemDelta itemDelta : modifications){
-        	if (itemDelta.hasCompleteDefinition()){
-        		continue;
-        	}
-        	ItemDefinition def = definition.findItemDefinition(itemDelta.getPath().rest());
-        	if (def != null){
-        		itemDelta.applyDefinition(def);
-        	}
+            if (itemDelta.hasCompleteDefinition()){
+                continue;
+            }
+            ItemDefinition def = definition.findItemDefinition(itemDelta.getPath().rest());
+            if (def != null){
+                itemDelta.applyDefinition(def);
+            }
         }
 
 

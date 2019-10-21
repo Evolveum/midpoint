@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -43,9 +43,9 @@
         <module>common</module>
         <module>test-util</module>
         <module>prism-maven-plugin</module>
-		<module>prism-api</module>
+        <module>prism-api</module>
         <module>prism-impl</module>
-	</modules>
+    </modules>
     <build>
         <plugins>
             <!-- reference failsafe and surefire from build-system plugin management in order for tests to be running -->
@@ -59,8 +59,8 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies> 
-    	<dependency> <!-- Not used, but required for surefire plugin not to complain -->
+    <dependencies>
+        <dependency> <!-- Not used, but required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>

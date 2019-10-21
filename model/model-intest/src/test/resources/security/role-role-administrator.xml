@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="b63ee91e-020c-11e9-a7c2-df4b9f00f209"
@@ -9,36 +9,36 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <name>Role Administrator</name>    
+    <name>Role Administrator</name>
     <authorization>
-    	<name>self-read</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<special>self</special>
-    	</object>
+        <name>self-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <special>self</special>
+        </object>
     </authorization>
     <authorization>
-    	<name>read roles</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>RoleType</type>
-    	</object>
+        <name>read roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+        </object>
     </authorization>
     <authorization>
-    	<name>write roles</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
-    	<object>
-    		<type>RoleType</type>
-    	</object>
-		<item>name</item>
-    	<item>description</item>
-    	<item>subtype</item>
-    	<item>lifecycleState</item>
-    	<item>requestable</item>
-    	<item>delegable</item>
-    	<item>inducement</item>
-    	<item>assignment</item>
+        <name>write roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+        <item>description</item>
+        <item>subtype</item>
+        <item>lifecycleState</item>
+        <item>requestable</item>
+        <item>delegable</item>
+        <item>inducement</item>
+        <item>assignment</item>
     </authorization>
 </role>

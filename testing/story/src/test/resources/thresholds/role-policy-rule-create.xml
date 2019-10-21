@@ -1,27 +1,27 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="00000000-role-0000-0000-999111111112">
-    <name>Stop on create user (4)</name>   
+    <name>Stop on create user (4)</name>
     <inducement>
         <policyRule>
             <name>Add user</name>
             <policyConstraints>
-            	<modification>
-            		<operation>add</operation>
-            	</modification>
+                <modification>
+                    <operation>add</operation>
+                </modification>
             </policyConstraints>
             <policyThreshold>
-<!--             	<timeInterval> -->
-<!--             		<interval>PT1H</interval> -->
-<!--             	</timeInterval> -->
-            	<lowWaterMark>
-            		<count>5</count>
-            	</lowWaterMark>
+<!--                 <timeInterval> -->
+<!--                     <interval>PT1H</interval> -->
+<!--                 </timeInterval> -->
+                <lowWaterMark>
+                    <count>5</count>
+                </lowWaterMark>
             </policyThreshold>
             <policyActions>
                 <suspendTask/>

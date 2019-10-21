@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.model;
@@ -22,19 +22,19 @@ import org.apache.wicket.model.AbstractPropertyModel;
  *
  */
 public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
-	/**
-	 * @param modelObject
-	 */
-	public LookupPropertyModel(Object modelObject) {
-		super(modelObject);
-		// TODO Auto-generated constructor stub
-	}
+    /**
+     * @param modelObject
+     */
+    public LookupPropertyModel(Object modelObject) {
+        super(modelObject);
+        // TODO Auto-generated constructor stub
+    }
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	protected final String expression = null;
-	protected final LookupTableType lookupTable = null;
-	protected boolean isStrict = true; // if true, allow only values found in lookupTable, false - allow also input that is not in the lookupTable
+    protected final String expression = null;
+    protected final LookupTableType lookupTable = null;
+    protected boolean isStrict = true; // if true, allow only values found in lookupTable, false - allow also input that is not in the lookupTable
 
 //    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable) {
 //        super(modelObject);
@@ -50,8 +50,8 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
 //    }
 
     public boolean isSupportsDisplayName() {
-		return false;
-	}
+        return false;
+    }
 
     /**
      * @see org.apache.wicket.model.AbstractPropertyModel#propertyExpression()
@@ -68,18 +68,18 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
         final Object target = getInnermostModelOrObject();
         if (target != null) {
 
-        	Object value = null;
-        	if (isSupportsDisplayName()) {
-        		 value = PropertyResolver.getValue("displayName", target);
-        		 if (value != null) {
-        			 return (T) value;
-        		 }
-        	}
+            Object value = null;
+            if (isSupportsDisplayName()) {
+                 value = PropertyResolver.getValue("displayName", target);
+                 if (value != null) {
+                     return (T) value;
+                 }
+            }
 
-        	value = PropertyResolver.getValue(expression, target);
-        	if (value == null) {
-        		return null;
-        	}
+            value = PropertyResolver.getValue(expression, target);
+            if (value == null) {
+                return null;
+            }
             String key = value.toString();
 
             if (lookupTable != null) {
@@ -91,7 +91,7 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
             }
             return (T) key;
         }
-    	return null;
+        return null;
     }
 
     @Override
@@ -112,15 +112,15 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
                     PropertyResolver.setValue(expression, getInnermostModelOrObject(), label, prc);
                 }
                 if (lookupTable != null) {
-	                for (LookupTableRowType row : lookupTable.getRow()) {
-	                    if (label.equals(WebComponentUtil.getOrigStringFromPoly(row.getLabel()))) {
-	                        key = row.getKey();
-	                        PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
-	                        if (isSupportsDisplayName()) {
-	                        	PropertyResolver.setValue("displayName", getInnermostModelOrObject(), label, prc);
-	                        }
-	                    }
-	                }
+                    for (LookupTableRowType row : lookupTable.getRow()) {
+                        if (label.equals(WebComponentUtil.getOrigStringFromPoly(row.getLabel()))) {
+                            key = row.getKey();
+                            PropertyResolver.setValue(expression, getInnermostModelOrObject(), key, prc);
+                            if (isSupportsDisplayName()) {
+                                PropertyResolver.setValue("displayName", getInnermostModelOrObject(), label, prc);
+                            }
+                        }
+                    }
                 }
             }
         } else if (object == null) {

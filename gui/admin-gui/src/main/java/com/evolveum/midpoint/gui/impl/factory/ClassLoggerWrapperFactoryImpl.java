@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -21,23 +21,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
  */
 @Component
 public class ClassLoggerWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C>{
-	
-	private static final transient Trace LOGGER = TraceManager.getTrace(ClassLoggerWrapperFactoryImpl.class);
-	
-	@Override
-	public boolean match(ItemDefinition<?> def) {
-		return false;
-	}
 
-	@Override
-	protected boolean canCreateValueWrapper(PrismContainerValue<C> value) {
-		if(value == null || value.getRealValue() == null) {
-			return true;
-		}
-		String loggerPackage = ((ClassLoggerConfigurationType)value.getRealValue()).getPackage();
-		if(loggerPackage == null) {
-			return true;
-		}
-		return !loggerPackage.equals(ProfilingClassLoggerWrapperFactoryImpl.LOGGER_PROFILING);
-	}
+    private static final transient Trace LOGGER = TraceManager.getTrace(ClassLoggerWrapperFactoryImpl.class);
+
+    @Override
+    public boolean match(ItemDefinition<?> def) {
+        return false;
+    }
+
+    @Override
+    protected boolean canCreateValueWrapper(PrismContainerValue<C> value) {
+        if(value == null || value.getRealValue() == null) {
+            return true;
+        }
+        String loggerPackage = ((ClassLoggerConfigurationType)value.getRealValue()).getPackage();
+        if(loggerPackage == null) {
+            return true;
+        }
+        return !loggerPackage.equals(ProfilingClassLoggerWrapperFactoryImpl.LOGGER_PROFILING);
+    }
 }

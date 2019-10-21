@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,10 +17,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
  */
 public interface CaseEventDispatcher {
 
-	void registerCaseCreationEventListener(CaseEventListener listener);
+    void registerCaseCreationEventListener(CaseEventListener listener);
 
-	void unregisterCaseCreationEventListener(CaseEventListener listener);
+    void unregisterCaseCreationEventListener(CaseEventListener listener);
 
-	void dispatchCaseEvent(CaseType aCase, OperationResult result);
+    void dispatchCaseEvent(CaseType aCase, OperationResult result);
 
 }

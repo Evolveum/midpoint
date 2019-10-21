@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -32,32 +32,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 @Component
 public class DatePanelFactory extends AbstractGuiComponentFactory<XMLGregorianCalendar> {
 
-	private static final long serialVersionUID = 1L;
-	
-	@Autowired GuiComponentRegistry registry;
-	
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
-	@Override
-	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return DOMUtil.XSD_DATETIME.equals(wrapper.getTypeName());
-	}
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	protected Panel getPanel(PrismPropertyPanelContext<XMLGregorianCalendar> panelCtx) {
-		DatePanel panel = new DatePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
-		
-		DateValidator validator = WebComponentUtil.getRangeValidator(panelCtx.getForm(), SchemaConstants.PATH_ACTIVATION);
-		if (ActivationType.F_VALID_FROM.equals(panelCtx.getDefinitionName())) {
-			validator.setDateFrom((DateTimeField) panel.getBaseFormComponent());
-		} else if (ActivationType.F_VALID_TO.equals(panelCtx.getDefinitionName())) {
-			validator.setDateTo((DateTimeField) panel.getBaseFormComponent());
-		} 
-		
-		return panel;
-	}
-	
-	
+    @Autowired GuiComponentRegistry registry;
+
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
+    @Override
+    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+        return DOMUtil.XSD_DATETIME.equals(wrapper.getTypeName());
+    }
+
+    @Override
+    protected Panel getPanel(PrismPropertyPanelContext<XMLGregorianCalendar> panelCtx) {
+        DatePanel panel = new DatePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
+
+        DateValidator validator = WebComponentUtil.getRangeValidator(panelCtx.getForm(), SchemaConstants.PATH_ACTIVATION);
+        if (ActivationType.F_VALID_FROM.equals(panelCtx.getDefinitionName())) {
+            validator.setDateFrom((DateTimeField) panel.getBaseFormComponent());
+        } else if (ActivationType.F_VALID_TO.equals(panelCtx.getDefinitionName())) {
+            validator.setDateTo((DateTimeField) panel.getBaseFormComponent());
+        }
+
+        return panel;
+    }
+
+
 }

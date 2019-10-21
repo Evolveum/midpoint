@@ -2,7 +2,7 @@
  * Copyright (c) 2010-2017 Evolveum and contributors
 
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.objectdetails;
@@ -19,9 +19,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
  * Created by honchar
  */
 public class AbstractRoleInducementPanel<R extends AbstractRoleType> extends AbstractObjectTabPanel<R> {
-   
+
     private static final String ID_INDUCEMENT_PANEL = "inducementPanel";
-   
+
     public AbstractRoleInducementPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<R>> focusWrapperModel,
                                     PageBase page) {
         super(id, mainForm, focusWrapperModel);
@@ -30,7 +30,7 @@ public class AbstractRoleInducementPanel<R extends AbstractRoleType> extends Abs
 
     private void initLayout() {
         InducementsPanel inducementsPanel = new InducementsPanel(ID_INDUCEMENT_PANEL,
-        		PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), AbstractRoleType.F_INDUCEMENT));
+                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), AbstractRoleType.F_INDUCEMENT));
 //                new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), AbstractRoleType.F_INDUCEMENT));
 
         add(inducementsPanel);

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
@@ -34,44 +34,44 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
                 description = "PageSelfProfile.auth.profile.description")})
 public class PageSelfProfile extends PageUser {
 
-	
-	public PageSelfProfile() {
-		super();
-	}
 
-	public PageSelfProfile(PageParameters parameters) {
-		super(parameters);
-	}
+    public PageSelfProfile() {
+        super();
+    }
 
-	public PageSelfProfile(PrismObject<UserType> user) {
-		super(user);
-	}
+    public PageSelfProfile(PageParameters parameters) {
+        super(parameters);
+    }
 
-	private static final long serialVersionUID = 1L;
-	private static final Trace LOGGER = TraceManager.getTrace(PageSelfProfile.class);
+    public PageSelfProfile(PrismObject<UserType> user) {
+        super(user);
+    }
 
-	@Override
-	protected String getObjectOidParameter() {
-		return WebModelServiceUtils.getLoggedInUserOid();
-	}
+    private static final long serialVersionUID = 1L;
+    private static final Trace LOGGER = TraceManager.getTrace(PageSelfProfile.class);
 
-
-	@Override
-	protected boolean isSelfProfile(){
-		return true;
-	}
+    @Override
+    protected String getObjectOidParameter() {
+        return WebModelServiceUtils.getLoggedInUserOid();
+    }
 
 
-	@Override
-	protected void createBreadcrumb() {
-		super.createBreadcrumb();
+    @Override
+    protected boolean isSelfProfile(){
+        return true;
+    }
 
-		Breadcrumb bc = getLastBreadcrumb();
-		bc.setIcon(new Model("fa fa-user"));
-	}
 
-	@Override
-	protected IModel<String> createPageTitleModel() {
-		return createStringResource("PageSelfProfile.title");
-	}
+    @Override
+    protected void createBreadcrumb() {
+        super.createBreadcrumb();
+
+        Breadcrumb bc = getLastBreadcrumb();
+        bc.setIcon(new Model("fa fa-user"));
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return createStringResource("PageSelfProfile.title");
+    }
 }

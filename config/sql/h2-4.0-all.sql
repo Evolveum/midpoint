@@ -265,7 +265,7 @@ CREATE TABLE m_audit_ref_value (
   PRIMARY KEY (id)
 );
 CREATE TABLE m_audit_resource (
-  resourceOid 	  VARCHAR(255) NOT NULL,
+  resourceOid       VARCHAR(255) NOT NULL,
   record_id       BIGINT       NOT NULL,
   PRIMARY KEY (record_id, resourceOid)
 );

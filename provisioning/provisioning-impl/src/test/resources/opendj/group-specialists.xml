@@ -2,23 +2,23 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 
 <shadow oid="3da6ddca-cc0b-11e5-9b3f-2b7f453dbfb3"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<name>cn=specialists,ou=specialgroups,dc=example,dc=com</name>
-	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
-	<objectClass>ri:groupOfUniqueNames</objectClass>
-	<kind>entitlement</kind>
-	<intent>specialGroup</intent>
-	<attributes>
-		<ri:dn>cn=specialists,ou=specialgroups,dc=example,dc=COM</ri:dn>
-		<ri:cn>specialists</ri:cn>
-	</attributes>
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+    <name>cn=specialists,ou=specialgroups,dc=example,dc=com</name>
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
+    <objectClass>ri:groupOfUniqueNames</objectClass>
+    <kind>entitlement</kind>
+    <intent>specialGroup</intent>
+    <attributes>
+        <ri:dn>cn=specialists,ou=specialgroups,dc=example,dc=COM</ri:dn>
+        <ri:cn>specialists</ri:cn>
+    </attributes>
 </shadow>

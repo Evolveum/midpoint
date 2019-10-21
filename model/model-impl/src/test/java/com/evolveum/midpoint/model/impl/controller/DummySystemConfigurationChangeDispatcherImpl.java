@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -16,15 +16,15 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  */
 public class DummySystemConfigurationChangeDispatcherImpl implements SystemConfigurationChangeDispatcher {
 
-	@Override
-	public void dispatch(boolean ignoreVersion, boolean allowNotFound, OperationResult result) {
-	}
+    @Override
+    public void dispatch(boolean ignoreVersion, boolean allowNotFound, OperationResult result) {
+    }
 
-	@Override
-	public void registerListener(SystemConfigurationChangeListener listener) {
-	}
+    @Override
+    public void registerListener(SystemConfigurationChangeListener listener) {
+    }
 
-	@Override
-	public void unregisterListener(SystemConfigurationChangeListener listener) {
-	}
+    @Override
+    public void unregisterListener(SystemConfigurationChangeListener listener) {
+    }
 }

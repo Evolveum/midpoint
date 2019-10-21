@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,129 +26,129 @@ import static org.apache.commons.lang.Validate.notNull;
  */
 public class SceneItemImpl implements SceneItem, DebugDumpable {
 
-	protected final NameImpl name;
-	protected List<SceneItemValueImpl> newValues;
-	protected boolean operational;
-	protected Item<?,?> sourceItem;
-	protected ItemPath sourceRelPath;
-	protected boolean descriptive;					// added only as a description of container value being changed
+    protected final NameImpl name;
+    protected List<SceneItemValueImpl> newValues;
+    protected boolean operational;
+    protected Item<?,?> sourceItem;
+    protected ItemPath sourceRelPath;
+    protected boolean descriptive;                    // added only as a description of container value being changed
 
-	public SceneItemImpl(NameImpl name) {
-		notNull(name);
-		this.name = name;
-	}
+    public SceneItemImpl(NameImpl name) {
+        notNull(name);
+        this.name = name;
+    }
 
-	@Override
-	public Name getName() {
-		return name;
-	}
+    @Override
+    public Name getName() {
+        return name;
+    }
 
-	@Override
-	public List<? extends SceneItemValue> getNewValues() {
-		return newValues;
-	}
+    @Override
+    public List<? extends SceneItemValue> getNewValues() {
+        return newValues;
+    }
 
-	public void setNewValues(List<SceneItemValueImpl> newValues) {
-		this.newValues = newValues;
-	}
+    public void setNewValues(List<SceneItemValueImpl> newValues) {
+        this.newValues = newValues;
+    }
 
-	@Override
-	public boolean isOperational() {
-		return operational;
-	}
+    @Override
+    public boolean isOperational() {
+        return operational;
+    }
 
-	public void setOperational(boolean operational) {
-		this.operational = operational;
-	}
+    public void setOperational(boolean operational) {
+        this.operational = operational;
+    }
 
-	public boolean isDescriptive() {
-		return descriptive;
-	}
+    public boolean isDescriptive() {
+        return descriptive;
+    }
 
-	public void setDescriptive(boolean descriptive) {
-		this.descriptive = descriptive;
-	}
+    public void setDescriptive(boolean descriptive) {
+        this.descriptive = descriptive;
+    }
 
-	@Override
-	public Item<?, ?> getSourceItem() {
-		return sourceItem;
-	}
+    @Override
+    public Item<?, ?> getSourceItem() {
+        return sourceItem;
+    }
 
-	public void setSourceItem(Item<?, ?> sourceItem) {
-		this.sourceItem = sourceItem;
-	}
+    public void setSourceItem(Item<?, ?> sourceItem) {
+        this.sourceItem = sourceItem;
+    }
 
-	public ItemPath getSourceRelPath() {
-		return sourceRelPath;
-	}
+    public ItemPath getSourceRelPath() {
+        return sourceRelPath;
+    }
 
-	public void setSourceRelPath(ItemPath sourceRelPath) {
-		this.sourceRelPath = sourceRelPath;
-	}
+    public void setSourceRelPath(ItemPath sourceRelPath) {
+        this.sourceRelPath = sourceRelPath;
+    }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = debugDumpCommon(indent);
-		if (descriptive) {
-			sb.append(" DESC");
-		}
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("VALUES: ").append(newValues);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = debugDumpCommon(indent);
+        if (descriptive) {
+            sb.append(" DESC");
+        }
+        sb.append("\n");
+        DebugUtil.indentDebugDump(sb, indent+1);
+        sb.append("VALUES: ").append(newValues);
+        return sb.toString();
+    }
 
-	@NotNull
-	protected StringBuilder debugDumpCommon(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("Item: ").append(name).append(" [rel-path: ").append(sourceRelPath).append("]");
-		if (sourceItem != null) {
-			sb.append(" ITEM");
-			final ItemDefinition def = sourceItem.getDefinition();
-			if (def != null) {
-				sb.append(" DEF(").append(def.getItemName().getLocalPart()).append("/").append(def.getDisplayName()).append(":").append(def.getDisplayOrder()).append(")");
-			}
-		}
-		if (operational) {
-			sb.append(" OPER");
-		}
-		return sb;
-	}
+    @NotNull
+    protected StringBuilder debugDumpCommon(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("Item: ").append(name).append(" [rel-path: ").append(sourceRelPath).append("]");
+        if (sourceItem != null) {
+            sb.append(" ITEM");
+            final ItemDefinition def = sourceItem.getDefinition();
+            if (def != null) {
+                sb.append(" DEF(").append(def.getItemName().getLocalPart()).append("/").append(def.getDisplayName()).append(":").append(def.getDisplayOrder()).append(")");
+            }
+        }
+        if (operational) {
+            sb.append(" OPER");
+        }
+        return sb;
+    }
 
-	public ItemDefinition<?> getSourceDefinition() {
-		return sourceItem != null ? sourceItem.getDefinition() : null;
-	}
+    public ItemDefinition<?> getSourceDefinition() {
+        return sourceItem != null ? sourceItem.getDefinition() : null;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-		SceneItemImpl sceneItem = (SceneItemImpl) o;
+        SceneItemImpl sceneItem = (SceneItemImpl) o;
 
-		if (operational != sceneItem.operational) return false;
-		if (descriptive != sceneItem.descriptive) return false;
-		if (name != null ? !name.equals(sceneItem.name) : sceneItem.name != null) return false;
-		if (newValues != null ? !newValues.equals(sceneItem.newValues) : sceneItem.newValues != null) return false;
-		if (sourceItem != null ? !sourceItem.equals(sceneItem.sourceItem) : sceneItem.sourceItem != null) return false;
-		return !(sourceRelPath != null ? !sourceRelPath.equals(sceneItem.sourceRelPath) : sceneItem.sourceRelPath != null);
+        if (operational != sceneItem.operational) return false;
+        if (descriptive != sceneItem.descriptive) return false;
+        if (name != null ? !name.equals(sceneItem.name) : sceneItem.name != null) return false;
+        if (newValues != null ? !newValues.equals(sceneItem.newValues) : sceneItem.newValues != null) return false;
+        if (sourceItem != null ? !sourceItem.equals(sceneItem.sourceItem) : sceneItem.sourceItem != null) return false;
+        return !(sourceRelPath != null ? !sourceRelPath.equals(sceneItem.sourceRelPath) : sceneItem.sourceRelPath != null);
 
-	}
+    }
 
-	@Override
-	public int hashCode() {
-		int result = name != null ? name.hashCode() : 0;
-		result = 31 * result + (newValues != null ? newValues.hashCode() : 0);
-		result = 31 * result + (operational ? 1 : 0);
-		result = 31 * result + (sourceItem != null ? sourceItem.hashCode() : 0);
-		result = 31 * result + (sourceRelPath != null ? sourceRelPath.hashCode() : 0);
-		result = 31 * result + (descriptive ? 1 : 0);
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (newValues != null ? newValues.hashCode() : 0);
+        result = 31 * result + (operational ? 1 : 0);
+        result = 31 * result + (sourceItem != null ? sourceItem.hashCode() : 0);
+        result = 31 * result + (sourceRelPath != null ? sourceRelPath.hashCode() : 0);
+        result = 31 * result + (descriptive ? 1 : 0);
+        return result;
+    }
 }

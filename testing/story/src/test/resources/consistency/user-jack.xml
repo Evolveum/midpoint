@@ -2,10 +2,10 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<i:user oid="c0c010c0-d34d-b33f-f00d-111111111111" 
+<i:user oid="c0c010c0-d34d-b33f-f00d-111111111111"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:xsd='http://www.w3.org/2001/XMLSchema'
    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
@@ -20,7 +20,7 @@
     <i:familyName>Sparrow</i:familyName>
 <!--     <i:additionalNames>Jackie</i:additionalNames> -->
     <i:honorificPrefix>Cpt.</i:honorificPrefix>
-    
+
     <i:honorificSuffix>PhD.</i:honorificSuffix>
     <i:emailAddress>jack.sparrow@evolveum.com</i:emailAddress>
     <i:telephoneNumber>555-1234</i:telephoneNumber>
@@ -31,8 +31,8 @@
 
     <i:credentials>
         <i:password>
-        	<i:value>
-	            <i:clearValue>deadmentellnotales</i:clearValue>
+            <i:value>
+                <i:clearValue>deadmentellnotales</i:clearValue>
             </i:value>
         </i:password>
     </i:credentials>

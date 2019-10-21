@@ -2,26 +2,26 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <shadow
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    
-	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<attributes>
-		<icfs:name>jack</icfs:name>
-		<icfs:uid>jack</icfs:uid>
-		<ri:fullname xsi:type="xsd:string">Jack Sparrow</ri:fullname>
-		<ri:weapon xsi:type="xsd:string">rum</ri:weapon>
-		<ri:weapon xsi:type="xsd:string">smell</ri:weapon>
-	</attributes>
+
+    <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <attributes>
+        <icfs:name>jack</icfs:name>
+        <icfs:uid>jack</icfs:uid>
+        <ri:fullname xsi:type="xsd:string">Jack Sparrow</ri:fullname>
+        <ri:weapon xsi:type="xsd:string">rum</ri:weapon>
+        <ri:weapon xsi:type="xsd:string">smell</ri:weapon>
+    </attributes>
 </shadow>

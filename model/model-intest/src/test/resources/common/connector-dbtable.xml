@@ -2,18 +2,18 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- Sample file to test connector import -->
 
 <connector oid="7d3ebd6f-6113-4833-8a6a-596b73a5e434"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:ns2="http://www.w3.org/2001/04/xmlenc#"
-	
-	xmlns:ns3="http://www.w3.org/2000/09/xmldsig#">
-	
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:ns2="http://www.w3.org/2001/04/xmlenc#"
+
+    xmlns:ns3="http://www.w3.org/2000/09/xmldsig#">
+
    <name>ICF org.identityconnectors.databasetable.DatabaseTableConnector</name>
    <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
    <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
@@ -22,209 +22,209 @@
    <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector</namespace>
    <schema>
      <definition>
-		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
-	            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	            xmlns:qn342="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-	            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-	            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	            elementFormDefault="qualified"
-	            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
-	        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
-	        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-	        <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-	        <xsd:complexType name="ConfigurationType">
-	          <xsd:sequence>
-	            <xsd:element minOccurs="0" ref="qn342:connectorPoolConfiguration">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:type>qn342:ConnectorPoolConfigurationType</a:type>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" ref="qn342:producerBufferSize"/>
-	            <xsd:element minOccurs="0" ref="qn342:timeouts">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:type>qn342:TimeoutsType</a:type>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element ref="qn342:configurationProperties">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:type>tns:ConfigurationPropertiesType</a:type>
-	                  <a:container/>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	          </xsd:sequence>
-				</xsd:complexType>
-	        <xsd:complexType name="ConfigurationPropertiesType">
-	          <xsd:sequence>
-	            <xsd:element minOccurs="0" name="quoting" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Name Quoting</a:displayName>
-	                  <a:help>Name Quoting</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="host" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Host</a:displayName>
-	                  <a:help>Host</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="port" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Port</a:displayName>
-	                  <a:help>Port</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="user" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>User</a:displayName>
-	                  <a:help>User</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-				<xsd:element minOccurs="0" name="password" type="t:ProtectedStringType">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>User Password</a:displayName>
-	                  <a:help>User Password</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="database" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Database</a:displayName>
-	                  <a:help>Database</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element name="table" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Table</a:displayName>
-	                  <a:help>Table</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element name="keyColumn" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Key Column</a:displayName>
-	                  <a:help>Key Column</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-				<xsd:element minOccurs="0" name="passwordColumn" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Password Column</a:displayName>
-	                  <a:help>Password Column</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="jdbcDriver" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>JDBC Driver</a:displayName>
-	                  <a:help>JDBC Driver</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="jdbcUrlTemplate" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>JDBC Connection URL</a:displayName>
-	                  <a:help>JDBC Connection URL</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="enableEmptyString" type="xsd:boolean">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Enable writing empty string</a:displayName>
-	                  <a:help>Enable writing empty string</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="rethrowAllSQLExceptions" type="xsd:boolean">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Rethrow all SQLExceptions</a:displayName>
-	                  <a:help>Rethrow all SQLExceptions</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="nativeTimestamps" type="xsd:boolean">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Native Timestamps </a:displayName>
-	                  <a:help>Native Timestamps </a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="allNative" type="xsd:boolean">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>All native</a:displayName>
-	                  <a:help>All native</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="validConnectionQuery" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Validate Connection Query</a:displayName>
-	                  <a:help>Validate Connection Query</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="changeLogColumn" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Change Log Column (Sync)</a:displayName>
-	                  <a:help>Change Log Column (Sync)</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element minOccurs="0" name="datasource" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Datasource Path</a:displayName>
-	                  <a:help>Datasource Path</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	            <xsd:element maxOccurs="unbounded" minOccurs="0" name="jndiProperties" type="xsd:string">
-	              <xsd:annotation>
-	                <xsd:appinfo>
-	                  <a:displayName>Initial JNDI Properties</a:displayName>
-	                  <a:help>Initial JNDI Properties</a:help>
-	                </xsd:appinfo>
-	              </xsd:annotation>
-	            </xsd:element>
-	          </xsd:sequence>
-	        </xsd:complexType>
-	        <xsd:element name="connectorConfiguration" type="tns:ConfigurationType">
-	          <xsd:annotation>
-	            <xsd:appinfo>
-	              <a:container/>
-	            </xsd:appinfo>
-	          </xsd:annotation>
-	        </xsd:element>
-	      </xsd:schema>
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:qn342="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+                xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                elementFormDefault="qualified"
+                targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+            <xsd:complexType name="ConfigurationType">
+              <xsd:sequence>
+                <xsd:element minOccurs="0" ref="qn342:connectorPoolConfiguration">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:type>qn342:ConnectorPoolConfigurationType</a:type>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" ref="qn342:producerBufferSize"/>
+                <xsd:element minOccurs="0" ref="qn342:timeouts">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:type>qn342:TimeoutsType</a:type>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element ref="qn342:configurationProperties">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:type>tns:ConfigurationPropertiesType</a:type>
+                      <a:container/>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+              </xsd:sequence>
+                </xsd:complexType>
+            <xsd:complexType name="ConfigurationPropertiesType">
+              <xsd:sequence>
+                <xsd:element minOccurs="0" name="quoting" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Name Quoting</a:displayName>
+                      <a:help>Name Quoting</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="host" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Host</a:displayName>
+                      <a:help>Host</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="port" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Port</a:displayName>
+                      <a:help>Port</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="user" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>User</a:displayName>
+                      <a:help>User</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="password" type="t:ProtectedStringType">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>User Password</a:displayName>
+                      <a:help>User Password</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="database" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Database</a:displayName>
+                      <a:help>Database</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="table" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Table</a:displayName>
+                      <a:help>Table</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="keyColumn" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Key Column</a:displayName>
+                      <a:help>Key Column</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="passwordColumn" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Password Column</a:displayName>
+                      <a:help>Password Column</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="jdbcDriver" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>JDBC Driver</a:displayName>
+                      <a:help>JDBC Driver</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="jdbcUrlTemplate" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>JDBC Connection URL</a:displayName>
+                      <a:help>JDBC Connection URL</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="enableEmptyString" type="xsd:boolean">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Enable writing empty string</a:displayName>
+                      <a:help>Enable writing empty string</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="rethrowAllSQLExceptions" type="xsd:boolean">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Rethrow all SQLExceptions</a:displayName>
+                      <a:help>Rethrow all SQLExceptions</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="nativeTimestamps" type="xsd:boolean">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Native Timestamps </a:displayName>
+                      <a:help>Native Timestamps </a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="allNative" type="xsd:boolean">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>All native</a:displayName>
+                      <a:help>All native</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="validConnectionQuery" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Validate Connection Query</a:displayName>
+                      <a:help>Validate Connection Query</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="changeLogColumn" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Change Log Column (Sync)</a:displayName>
+                      <a:help>Change Log Column (Sync)</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element minOccurs="0" name="datasource" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Datasource Path</a:displayName>
+                      <a:help>Datasource Path</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+                <xsd:element maxOccurs="unbounded" minOccurs="0" name="jndiProperties" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:appinfo>
+                      <a:displayName>Initial JNDI Properties</a:displayName>
+                      <a:help>Initial JNDI Properties</a:help>
+                    </xsd:appinfo>
+                  </xsd:annotation>
+                </xsd:element>
+              </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="connectorConfiguration" type="tns:ConfigurationType">
+              <xsd:annotation>
+                <xsd:appinfo>
+                  <a:container/>
+                </xsd:appinfo>
+              </xsd:annotation>
+            </xsd:element>
+          </xsd:schema>
        </definition>
    </schema>
 </connector>

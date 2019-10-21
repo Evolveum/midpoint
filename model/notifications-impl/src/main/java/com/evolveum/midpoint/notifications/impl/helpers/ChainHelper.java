@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,7 +26,7 @@ public class ChainHelper extends BaseHelper {
     private static final Trace LOGGER = TraceManager.getTrace(ChainHelper.class);
 
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
-    		Task task, OperationResult result) {
+            Task task, OperationResult result) {
 
         if (eventHandlerType.getChained().isEmpty()) {
             return true;

@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -11,7 +11,7 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
  -->
 
 <resource oid="10000000-0000-0000-0000-00000000c404"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -20,217 +20,217 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Tea Green</name>
-	
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-		<icfc:configurationProperties>
-			<icfi:instanceId>tea-green</icfi:instanceId>
-			<icfi:supportValidity>true</icfi:supportValidity>
-		</icfc:configurationProperties>
-	</connectorConfiguration>
+    <name>Dummy Resource Tea Green</name>
+
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>tea-green</icfi:instanceId>
+            <icfi:supportValidity>true</icfi:supportValidity>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
 
 
-	<schemaHandling>
-		<objectType>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<inbound>
-					<target>
-						<path>name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<tolerant>true</tolerant>
-				<inbound>
-					<authoritative>true</authoritative>
-					<strength>strong</strength>
-					<target>
-						<path>fullName</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:location</ref>
-				<displayName>Location</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:ship</ref>
-				<displayName>Ship</displayName>
-				<inbound>
-					<strength>strong</strength>
-					<expression>
-						<script>
-							<code>'The crew of ' + input</code>
-						</script>
-					</expression>
-					<target>
-						<path>organizationalUnit</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:loot</ref>
-				<displayName>Loot</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:weapon</ref>
-				<displayName>Weapon</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:drink</ref>
-				<displayName>Drink</displayName>
-				<tolerant>false</tolerant>
-			</attribute>
-			<attribute>
-				<ref>ri:proof</ref>
-				<inbound>
-					<strength>strong</strength>
-					<target>
-						<path>description</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:locker</ref>
-				<inbound>
-					<strength>strong</strength>
-					<target>
-						<path>extension/locker</path>
-					</target>
-				</inbound>
-			</attribute>
-			
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-            
+    <schemaHandling>
+        <objectType>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <inbound>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <tolerant>true</tolerant>
+                <inbound>
+                    <authoritative>true</authoritative>
+                    <strength>strong</strength>
+                    <target>
+                        <path>fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <displayName>Location</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>'The crew of ' + input</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>organizationalUnit</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:loot</ref>
+                <displayName>Loot</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <displayName>Weapon</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <displayName>Drink</displayName>
+                <tolerant>false</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:proof</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>description</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:locker</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>extension/locker</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+
             <protected>
-				<filter>
-					<q:equal>
-						<q:path>attributes/name</q:path>
-						<q:value>daviejones</q:value>
-					</q:equal>
-				</filter>
-			</protected>
-			<protected>
-				<filter>
-					<q:equal>
-						<q:path>attributes/name</q:path>
-						<q:value>calypso</q:value>
-					</q:equal>
-				</filter>
-			</protected>
-			
-			<activation>
-            	<administrativeStatus>
-            		<inbound/>
-            	</administrativeStatus>
-            	<validFrom>
-            		<inbound/>
-            	</validFrom>
-            	<validTo>
-            		<inbound/>
-            	</validTo>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/name</q:path>
+                        <q:value>daviejones</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/name</q:path>
+                        <q:value>calypso</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
+
+            <activation>
+                <administrativeStatus>
+                    <inbound/>
+                </administrativeStatus>
+                <validFrom>
+                    <inbound/>
+                </validFrom>
+                <validTo>
+                    <inbound/>
+                </validTo>
             </activation>
-			
-			<credentials>
+
+            <credentials>
                 <password>
                     <inbound>
-                    	<strength>weak</strength>
+                        <strength>weak</strength>
                         <expression>
                             <generate/>
                         </expression>
                     </inbound>
                 </password>
             </credentials>
-            
-		</objectType>
-	</schemaHandling>
-	
-	<projection>
-		<!--<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>-->
-	</projection>
-	
-	<consistency>
-		<avoidDuplicateValues>true</avoidDuplicateValues>
-	</consistency>
-	
-	<synchronization>
-		<objectSynchronization>
-			<name>default account type</name>
-			<enabled>true</enabled>
-			<condition>
-				<script>
-					<code>
-						import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
-						name = basic.getAttributeValue(shadow, ICFS_NAME);
-						log.info("name: {}", name)
-						!(name ==~ /X.*/)
-					</code>
-				</script>
-			</condition>
-			<correlation>
-				<q:equal>
-					<q:path>c:name</q:path>
-					<expression>
-						<path>$account/attributes/icfs:name</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus</handlerUri>
-				</action>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-	            </action>
-	        </reaction>
+
+        </objectType>
+    </schemaHandling>
+
+    <projection>
+        <!--<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>-->
+    </projection>
+
+    <consistency>
+        <avoidDuplicateValues>true</avoidDuplicateValues>
+    </consistency>
+
+    <synchronization>
+        <objectSynchronization>
+            <name>default account type</name>
+            <enabled>true</enabled>
+            <condition>
+                <script>
+                    <code>
+                        import static com.evolveum.midpoint.schema.constants.SchemaConstants.*
+                        name = basic.getAttributeValue(shadow, ICFS_NAME);
+                        log.info("name: {}", name)
+                        !(name ==~ /X.*/)
+                    </code>
+                </script>
+            </condition>
+            <correlation>
+                <q:equal>
+                    <q:path>c:name</q:path>
+                    <expression>
+                        <path>$account/attributes/icfs:name</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
         </objectSynchronization>
-        
-	</synchronization>
+
+    </synchronization>
 
 </resource>

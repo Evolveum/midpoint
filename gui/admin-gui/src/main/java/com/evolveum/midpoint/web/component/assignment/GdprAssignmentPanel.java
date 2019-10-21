@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.assignment;
@@ -24,67 +24,67 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public GdprAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
-		super(id, assignmentContainerWrapperModel);
-	}
+    public GdprAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
+        super(id, assignmentContainerWrapperModel);
+    }
 
 
-	@Override
-	protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
-		List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-		
-		columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), AssignmentType.F_LIFECYCLE_STATE, ColumnType.STRING, getPageBase()));
+    @Override
+    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-		columns.add(new CheckBoxColumn<PrismContainerValueWrapper<AssignmentType>>(createStringResource("AssignmentType.accepted")) {
+        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), AssignmentType.F_LIFECYCLE_STATE, ColumnType.STRING, getPageBase()));
 
-			private static final long serialVersionUID = 1L;
+        columns.add(new CheckBoxColumn<PrismContainerValueWrapper<AssignmentType>>(createStringResource("AssignmentType.accepted")) {
 
-			@Override
-			protected IModel<Boolean> getEnabled(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-				return Model.of(Boolean.FALSE);
-			}
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected IModel<Boolean> getCheckBoxValueModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-				return new IModel<Boolean>() {
+            @Override
+            protected IModel<Boolean> getEnabled(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                return Model.of(Boolean.FALSE);
+            }
 
-					private static final long serialVersionUID = 1L;
+            @Override
+            protected IModel<Boolean> getCheckBoxValueModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                return new IModel<Boolean>() {
 
-					@Override
-					public Boolean getObject() {
-						AssignmentType assignmentType = rowModel.getObject().getRealValue();
-						if (assignmentType.getLifecycleState() == null) {
-							return Boolean.FALSE;
-						}
+                    private static final long serialVersionUID = 1L;
 
-						if (assignmentType.getLifecycleState().equals(SchemaConstants.LIFECYCLE_ACTIVE)) {
-							return Boolean.TRUE;
-						}
+                    @Override
+                    public Boolean getObject() {
+                        AssignmentType assignmentType = rowModel.getObject().getRealValue();
+                        if (assignmentType.getLifecycleState() == null) {
+                            return Boolean.FALSE;
+                        }
 
-						return Boolean.FALSE;
-					}
-				};
-			}
+                        if (assignmentType.getLifecycleState().equals(SchemaConstants.LIFECYCLE_ACTIVE)) {
+                            return Boolean.TRUE;
+                        }
 
-		});
+                        return Boolean.FALSE;
+                    }
+                };
+            }
 
-		return columns;
-	}
+        });
 
-//	@Override
-//	protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList,
-//			QName relation, ShadowKindType kind, String intent) {
-//		super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT, kind, intent);
-//	}
+        return columns;
+    }
 
-	protected ObjectQuery createObjectQuery() {
-		return getParentPage().getPrismContext().queryFor(AssignmentType.class)
-				.block()
-				.item(AssignmentType.F_TARGET_REF)
-				.ref(SchemaConstants.ORG_CONSENT)
-				.endBlock()
-				.build();
-	}
+//    @Override
+//    protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList,
+//            QName relation, ShadowKindType kind, String intent) {
+//        super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT, kind, intent);
+//    }
+
+    protected ObjectQuery createObjectQuery() {
+        return getParentPage().getPrismContext().queryFor(AssignmentType.class)
+                .block()
+                .item(AssignmentType.F_TARGET_REF)
+                .ref(SchemaConstants.ORG_CONSENT)
+                .endBlock()
+                .build();
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,8 +20,8 @@ public class JpaPropertyDefinition extends JpaDataNodeDefinition {
 
     private final boolean lob;
     private final boolean enumerated;
-	private final boolean indexed;			// unused now (true if @Index-ed)
-	private final boolean count;			// "count"-type variable, like RShadow.pendingOperationCount
+    private final boolean indexed;            // unused now (true if @Index-ed)
+    private final boolean count;            // "count"-type variable, like RShadow.pendingOperationCount
 
     JpaPropertyDefinition(Class jpaClass, Class jaxbClass, boolean lob, boolean enumerated, boolean indexed, boolean count) {
         super(jpaClass, jaxbClass);
@@ -43,11 +43,11 @@ public class JpaPropertyDefinition extends JpaDataNodeDefinition {
         return indexed;
     }
 
-	public boolean isCount() {
-		return count;
-	}
+    public boolean isCount() {
+        return count;
+    }
 
-	@Override
+    @Override
     protected String getDebugDumpClassName() {
         return "Prop";
     }

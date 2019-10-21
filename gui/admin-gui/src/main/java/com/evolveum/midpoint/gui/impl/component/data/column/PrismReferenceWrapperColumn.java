@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -31,45 +31,45 @@ import com.evolveum.midpoint.web.model.PrismReferenceWrapperModel;
  */
 public class PrismReferenceWrapperColumn<C extends Containerable, R extends Referencable> extends AbstractItemWrapperColumn<C, PrismValueWrapper<R, PrismReferenceValue>> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final String ID_HEADER = "header";
-	private static final String ID_INPUT = "input";
+    private static final long serialVersionUID = 1L;
 
-	private PageBase pageBase;
-	
-	public PrismReferenceWrapperColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, ItemPath itemName, ColumnType columnType, PageBase pageBase) {
-		super(mainModel, itemName, columnType);
-		this.pageBase = pageBase;
-	}
+    private static final String ID_HEADER = "header";
+    private static final String ID_INPUT = "input";
 
-	
-	@Override
-	public IModel<?> getDataModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
-		return PrismReferenceWrapperModel.fromContainerValueWrapper(rowModel, itemName);
-	}
+    private PageBase pageBase;
 
-	@Override
-	protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel) {
-		return new PrismReferenceHeaderPanel<>(componentId, new PrismReferenceWrapperHeaderModel(mainModel, itemName, pageBase));
-	}
+    public PrismReferenceWrapperColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, ItemPath itemName, ColumnType columnType, PageBase pageBase) {
+        super(mainModel, itemName, columnType);
+        this.pageBase = pageBase;
+    }
 
 
-	@Override
-	protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
-		return new PrismReferenceWrapperColumnPanel<R>(componentId, (IModel<PrismReferenceWrapper<R>>)rowModel, getColumnType()) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			protected void onClick(AjaxRequestTarget target, PrismContainerValueWrapper<?> rowModel) {
-				PrismReferenceWrapperColumn.this.onClick(target, (IModel) Model.of(rowModel));
-			}
-		};
-	}
+    @Override
+    public IModel<?> getDataModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
+        return PrismReferenceWrapperModel.fromContainerValueWrapper(rowModel, itemName);
+    }
 
-	protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> model) {
-		
-	}
+    @Override
+    protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel) {
+        return new PrismReferenceHeaderPanel<>(componentId, new PrismReferenceWrapperHeaderModel(mainModel, itemName, pageBase));
+    }
+
+
+    @Override
+    protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+        return new PrismReferenceWrapperColumnPanel<R>(componentId, (IModel<PrismReferenceWrapper<R>>)rowModel, getColumnType()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onClick(AjaxRequestTarget target, PrismContainerValueWrapper<?> rowModel) {
+                PrismReferenceWrapperColumn.this.onClick(target, (IModel) Model.of(rowModel));
+            }
+        };
+    }
+
+    protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> model) {
+
+    }
 }
 
 

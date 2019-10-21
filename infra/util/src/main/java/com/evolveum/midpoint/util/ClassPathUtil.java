@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -38,7 +38,7 @@ import java.util.jar.JarFile;
  */
 public class ClassPathUtil {
 
-    public static Trace LOGGER = TraceManager.getTrace(ClassPathUtil.class);
+    public static final Trace LOGGER = TraceManager.getTrace(ClassPathUtil.class);
 
     public static Set<Class> listClasses(Package pkg) {
         return listClasses(pkg.getName());

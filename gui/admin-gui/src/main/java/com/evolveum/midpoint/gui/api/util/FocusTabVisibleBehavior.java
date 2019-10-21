@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -38,9 +38,9 @@ import java.util.List;
  * Created by Viliam Repan (lazyman).
  */
 public class FocusTabVisibleBehavior<O extends ObjectType> extends VisibleEnableBehaviour {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String OPERATION_LOAD_GUI_CONFIGURATION = FocusTabVisibleBehavior.class.getName() + ".loadGuiConfiguration";
+    private static final String OPERATION_LOAD_GUI_CONFIGURATION = FocusTabVisibleBehavior.class.getName() + ".loadGuiConfiguration";
 
     private IModel<PrismObject<O>> objectModel;
     private String uiAuthorizationUrl;
@@ -126,20 +126,20 @@ public class FocusTabVisibleBehavior<O extends ObjectType> extends VisibleEnable
 
         return result;
     }
-    
+
     private boolean isApplicable(ObjectFormType form, PrismObject<O> object) {
-    	QName objectType = object.getDefinition().getTypeName();
-    	if (!objectType.equals(form.getType())) {
-    		return false;
-    	}
-    	RoleRelationObjectSpecificationType roleRelation = form.getRoleRelation();
-    	if (roleRelation != null) {
-    		List<QName> subjectRelations = roleRelation.getSubjectRelation();
-    		if (!pageBase.hasSubjectRoleRelation(object.getOid(), subjectRelations)) {
-    			return false;
-    		}
-    	}
-    	// TODO: roleRelation
-    	return true;
+        QName objectType = object.getDefinition().getTypeName();
+        if (!objectType.equals(form.getType())) {
+            return false;
+        }
+        RoleRelationObjectSpecificationType roleRelation = form.getRoleRelation();
+        if (roleRelation != null) {
+            List<QName> subjectRelations = roleRelation.getSubjectRelation();
+            if (!pageBase.hasSubjectRoleRelation(object.getOid(), subjectRelations)) {
+                return false;
+            }
+        }
+        // TODO: roleRelation
+        return true;
     }
 }

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 //
@@ -26,11 +26,11 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  *
- * 				TODO
+ *                 TODO
  *
- * 				Loosely based on XML digital signature standard. But we cannot use full
- * 				standard as we are not bound to XML. We need this to work also for
- * 				JSON and YAML and other languages.
+ *                 Loosely based on XML digital signature standard. But we cannot use full
+ *                 standard as we are not bound to XML. We need this to work also for
+ *                 JSON and YAML and other languages.
  *
  *
  * <p>Java class for KeyInfoType complex type.
@@ -81,35 +81,35 @@ public class KeyInfoType implements Serializable, Cloneable, JaxbVisitable {
         this.keyName = value;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((keyName == null) ? 0 : keyName.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((keyName == null) ? 0 : keyName.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		KeyInfoType other = (KeyInfoType) obj;
-		if (keyName == null) {
-			if (other.keyName != null)
-				return false;
-		} else if (!keyName.equals(other.keyName))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        KeyInfoType other = (KeyInfoType) obj;
+        if (keyName == null) {
+            if (other.keyName != null)
+                return false;
+        } else if (!keyName.equals(other.keyName))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "KeyInfoType(keyName=" + keyName + ")";
-	}
+    @Override
+    public String toString() {
+        return "KeyInfoType(keyName=" + keyName + ")";
+    }
 
     @Override
     public KeyInfoType clone() {
@@ -118,8 +118,8 @@ public class KeyInfoType implements Serializable, Cloneable, JaxbVisitable {
         return cloned;
     }
 
-	@Override
-	public void accept(JaxbVisitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+    }
 }

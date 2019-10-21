@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -40,7 +40,7 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
     //todo create subclasses
     private String resourceName;
     private String resourceType;
-    private OperationResultStatusType status;			// TODO store full operation result here
+    private OperationResultStatusType status;            // TODO store full operation result here
 
     private Class<? extends ObjectType> type;
     private String fullName;
@@ -94,11 +94,11 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
 
     public static DebugObjectItem createDebugObjectItem(PrismObject<? extends ObjectType> object) {
         DebugObjectItem item = new DebugObjectItem(object.getOid(), WebComponentUtil.getName(object),
-				object.getPropertyRealValue(ObjectType.F_DESCRIPTION, String.class), object.getCompileTimeClass());
+                object.getPropertyRealValue(ObjectType.F_DESCRIPTION, String.class), object.getCompileTimeClass());
 
         if (object.asObjectable().getFetchResult() != null) {
-        	item.setStatus(object.asObjectable().getFetchResult().getStatus());
-		}
+            item.setStatus(object.asObjectable().getFetchResult().getStatus());
+        }
 
         if (UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
             PolyString fullName = WebComponentUtil.getValue(object, UserType.F_FULL_NAME, PolyString.class);
@@ -108,15 +108,15 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
         return item;
     }
 
-	public OperationResultStatusType getStatus() {
-		return status;
-	}
+    public OperationResultStatusType getStatus() {
+        return status;
+    }
 
-	public void setStatus(OperationResultStatusType status) {
-		this.status = status;
-	}
+    public void setStatus(OperationResultStatusType status) {
+        this.status = status;
+    }
 
-	@Override
+    @Override
     public List<InlineMenuItem> getMenuItems() {
         return new ArrayList<>();
     }

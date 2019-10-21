@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -13,302 +13,302 @@
  -->
 
 <resource oid="10000000-0000-0000-0000-000000000104"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-								  
-	<name>Dummy Resource Red</name>
-	
-	<connectorRef type="ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>red</icfi:instanceId>
-			<icfi:supportRunAs>false</icfi:supportRunAs>
-			<icfi:uselessString>
-				<expression>
-					<const>useless</const>
-				</expression>
-			</icfi:uselessString>
-		</icfc:configurationProperties>
 
-	</connectorConfiguration>
-	
-	<schemaHandling>
-		<objectType>
-			<kind>account</kind>
-			<intent>default</intent>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<outbound>
-				    <strength>weak</strength>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>name + iterationToken</code>
-						</script>
-					</expression>
-				</outbound>
-				<inbound>
-					<strength>weak</strength>
-					<target>
-						<path>$user/name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>fullName</path>
-					</source>
-				</outbound>
-				<inbound>
-					<strength>weak</strength>
-					<target>
-						<path>fullName</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:weapon</ref>
-				<limitations>
-					<maxOccurs>unbounded</maxOccurs>
-				</limitations>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>
+    <name>Dummy Resource Red</name>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>red</icfi:instanceId>
+            <icfi:supportRunAs>false</icfi:supportRunAs>
+            <icfi:uselessString>
+                <expression>
+                    <const>useless</const>
+                </expression>
+            </icfi:uselessString>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>name + iterationToken</code>
+                        </script>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>$user/name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <strength>weak</strength>
+                    <target>
+                        <path>fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:weapon</ref>
+                <limitations>
+                    <maxOccurs>unbounded</maxOccurs>
+                </limitations>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>
                             declare namespace piracy = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
-							extension/piracy:weapon
-						</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:location</ref>
-				<displayName>Location</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>
-							$user/locality
-						</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:ship</ref>
-				<displayName>Ship</displayName>
-				<outbound>
-					<strength>strong</strength>
-					<!-- organization is NOT a source here - by purpose -->
-					<source>
-						<path>$user/organizationalUnit</path>
-					</source>
-					<expression>
-						<script>
-							<code>
+                            extension/piracy:weapon
+                        </path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <displayName>Location</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>
+                            $user/locality
+                        </path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+                <outbound>
+                    <strength>strong</strength>
+                    <!-- organization is NOT a source here - by purpose -->
+                    <source>
+                        <path>$user/organizationalUnit</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
 if (focus == null) {
-	return null;
+    return null;
 }
 if (focus.getOrganization().size() == 0) {
-	return organizationalUnit;
+    return organizationalUnit;
 } else {
-	return focus.getOrganization().get(0).getOrig()+' / '+organizationalUnit;
+    return focus.getOrganization().get(0).getOrig()+' / '+organizationalUnit;
 }
-							</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:quote</ref>
-				<displayName>Quote</displayName>
-				<tolerant>true</tolerant>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>$user/description</path>
-					</source>
-					<expression>
-						<script>
-							<code>description + " -- " + basic.getResourceIcfConfigurationPropertyValue(resource, 'instanceId') + ' resource'</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <displayName>Quote</displayName>
+                <tolerant>true</tolerant>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$user/description</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>description + " -- " + basic.getResourceIcfConfigurationPropertyValue(resource, 'instanceId') + ' resource'</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
                 <ref>ri:gossip</ref>
                 <displayName>Gossip</displayName>
                 <description>Non-readable attribute, the inbound mapping should be ignored</description>
                 <limitations>
-					<access>
-						<read>false</read>
-						<add>true</add>
-						<modify>true</modify>
-					</access>
-				</limitations>
-				<inbound>
-                	<!-- Make sure this mapping is really ignored -->
-					<expression>
-						<value>Dead men tell no tales</value>
-					</expression>
-					<target>
-						<path>$user/fullName</path>
-					</target>
-				</inbound>
+                    <access>
+                        <read>false</read>
+                        <add>true</add>
+                        <modify>true</modify>
+                    </access>
+                </limitations>
+                <inbound>
+                    <!-- Make sure this mapping is really ignored -->
+                    <expression>
+                        <value>Dead men tell no tales</value>
+                    </expression>
+                    <target>
+                        <path>$user/fullName</path>
+                    </target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:water</ref>
                 <description>Non-readable and non-writable attribute, all mappings should be ignored</description>
                 <limitations>
-					<ignore>true</ignore>           <!-- limiting access without setting "ignore" to true is not enough (leads to an error on modification attempt) -->
-					<access>
-						<read>false</read>
-						<add>false</add>
-						<modify>false</modify>
-					</access>
-				</limitations>
+                    <ignore>true</ignore>           <!-- limiting access without setting "ignore" to true is not enough (leads to an error on modification attempt) -->
+                    <access>
+                        <read>false</read>
+                        <add>false</add>
+                        <modify>false</modify>
+                    </access>
+                </limitations>
                 <outbound>
-                	<!-- Make sure this mapping is really ignored -->
-					<expression>
-						<value>fishy</value>
-					</expression>
-				</outbound>
-				<inbound>
-                	<!-- Make sure this mapping is really ignored -->
-					<expression>
-						<value>very FISHY</value>
-					</expression>
-					<target>
-						<path>$user/fullName</path>
-					</target>
-				</inbound>
+                    <!-- Make sure this mapping is really ignored -->
+                    <expression>
+                        <value>fishy</value>
+                    </expression>
+                </outbound>
+                <inbound>
+                    <!-- Make sure this mapping is really ignored -->
+                    <expression>
+                        <value>very FISHY</value>
+                    </expression>
+                    <target>
+                        <path>$user/fullName</path>
+                    </target>
+                </inbound>
             </attribute>
 
-			<activation>
-				<!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted.
-				     The accounts are deleted after 1 month -->
-            	<existence>
-            		<outbound>
-            			<name>default existence</name>
-            			<strength>weak</strength>
-            			<expression>
-            				<path>$focusExists</path>
-            			</expression>
-            		</outbound>
-            		<outbound>
-            			<name>pre-create</name>
-            			<timeTo>
-            				<referenceTime>
-            					<path>$focus/activation/validFrom</path>
-            				</referenceTime>
-            				<offset>-P5D</offset>
-            			</timeTo>
-            			<source>
-            				<path>$focus/activation/validFrom</path>
-            			</source>
-            			<expression>
-            				<value>false</value>
-            			</expression>
-            			<condition>
-            				<script>
-            					<code>validFrom != null</code>
-            				</script>
-            			</condition>
-            		</outbound>
-            		<outbound>
-            			<name>delayed delete</name>
-            			<timeFrom>
-            				<referenceTime>
-            					<path>$shadow/activation/disableTimestamp</path>
-            				</referenceTime>
-            				<offset>P1M</offset>
-            			</timeFrom>
-            			<source>
-            				<path>$shadow/activation/administrativeStatus</path>
-            			</source>
-            			<source>
-            				<path>$shadow/activation/disableReason</path>
-            			</source>
-            			<expression>
-            				<value>false</value>
-            			</expression>
-            			<condition>
-            				<script>
-            					<code>
-		            				import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-		            				import com.evolveum.midpoint.schema.constants.SchemaConstants;
-		            				administrativeStatus == ActivationStatusType.DISABLED &amp;&amp; 
-		            					// do not delete explicitly disabled accounts
-		            					(disableReason == SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION ||
-		            					 disableReason == SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
-            					</code>
-            				</script>
-            			</condition>
-            		</outbound>
-            	</existence>
-            	<administrativeStatus>
+            <activation>
+                <!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted.
+                     The accounts are deleted after 1 month -->
+                <existence>
                     <outbound>
-                    	<strength>strong</strength>
-                    	<expression>
-                        	<script>
-                        		<code>
-                        			import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-                        			if (legal) {
-                        				input;
-                        			} else {
-                        				ActivationStatusType.DISABLED;
-                        			}
-                        		</code>
-                        	</script>
+                        <name>default existence</name>
+                        <strength>weak</strength>
+                        <expression>
+                            <path>$focusExists</path>
                         </expression>
-                    </outbound>            	
-            	</administrativeStatus>
+                    </outbound>
+                    <outbound>
+                        <name>pre-create</name>
+                        <timeTo>
+                            <referenceTime>
+                                <path>$focus/activation/validFrom</path>
+                            </referenceTime>
+                            <offset>-P5D</offset>
+                        </timeTo>
+                        <source>
+                            <path>$focus/activation/validFrom</path>
+                        </source>
+                        <expression>
+                            <value>false</value>
+                        </expression>
+                        <condition>
+                            <script>
+                                <code>validFrom != null</code>
+                            </script>
+                        </condition>
+                    </outbound>
+                    <outbound>
+                        <name>delayed delete</name>
+                        <timeFrom>
+                            <referenceTime>
+                                <path>$shadow/activation/disableTimestamp</path>
+                            </referenceTime>
+                            <offset>P1M</offset>
+                        </timeFrom>
+                        <source>
+                            <path>$shadow/activation/administrativeStatus</path>
+                        </source>
+                        <source>
+                            <path>$shadow/activation/disableReason</path>
+                        </source>
+                        <expression>
+                            <value>false</value>
+                        </expression>
+                        <condition>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    import com.evolveum.midpoint.schema.constants.SchemaConstants;
+                                    administrativeStatus == ActivationStatusType.DISABLED &amp;&amp;
+                                        // do not delete explicitly disabled accounts
+                                        (disableReason == SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION ||
+                                         disableReason == SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+                                </code>
+                            </script>
+                        </condition>
+                    </outbound>
+                </existence>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                                    if (legal) {
+                                        input;
+                                    } else {
+                                        ActivationStatusType.DISABLED;
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
             </activation>
-			<credentials>
+            <credentials>
                 <password>
                     <outbound>
-                    	<strength>strong</strength>
-                    	<expression>
-                        	<asIs/>
+                        <strength>strong</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
                     </outbound>
                 </password>
             </credentials>
-		</objectType>
-	</schemaHandling>
-	
+        </objectType>
+    </schemaHandling>
+
 </resource>

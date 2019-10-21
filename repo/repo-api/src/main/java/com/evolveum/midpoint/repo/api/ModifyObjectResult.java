@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,43 +26,43 @@ import java.util.Collection;
  */
 public class ModifyObjectResult<T extends ObjectType> {
 
-	private final PrismObject<T> objectBefore;
-	private final PrismObject<T> objectAfter;
-	private final Collection<? extends ItemDelta> modifications;
+    private final PrismObject<T> objectBefore;
+    private final PrismObject<T> objectAfter;
+    private final Collection<? extends ItemDelta> modifications;
 
-	public ModifyObjectResult(Collection<? extends ItemDelta> modifications) {
-		this(null, null, modifications);
-	}
+    public ModifyObjectResult(Collection<? extends ItemDelta> modifications) {
+        this(null, null, modifications);
+    }
 
-	public ModifyObjectResult(PrismObject<T> objectBefore, PrismObject<T> objectAfter, Collection<? extends ItemDelta> modifications) {
-		this.objectBefore = objectBefore;
-		this.objectAfter = objectAfter;
-		this.modifications = modifications;
-	}
+    public ModifyObjectResult(PrismObject<T> objectBefore, PrismObject<T> objectAfter, Collection<? extends ItemDelta> modifications) {
+        this.objectBefore = objectBefore;
+        this.objectAfter = objectAfter;
+        this.modifications = modifications;
+    }
 
-	public PrismObject<T> getObjectBefore() {
-		return objectBefore;
-	}
+    public PrismObject<T> getObjectBefore() {
+        return objectBefore;
+    }
 
-	public PrismObject<T> getObjectAfter() {
-		return objectAfter;
-	}
+    public PrismObject<T> getObjectAfter() {
+        return objectAfter;
+    }
 
-	@Override
-	public String toString() {
-		return "ModifyObjectResult{" +
-				"objectBefore=" + objectBefore +
-				", objectAfter=" + objectAfter +
-				", modifications=" + modifications +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "ModifyObjectResult{" +
+                "objectBefore=" + objectBefore +
+                ", objectAfter=" + objectAfter +
+                ", modifications=" + modifications +
+                '}';
+    }
 
-//	private String getDeltaDump() {
-//		if (objectBefore != null && objectAfter != null) {
-//			ObjectDelta<T> diff = objectBefore.diff(objectAfter);
-//			return diff.debugDump();
-//		} else {
-//			return "";
-//		}
-//	}
+//    private String getDeltaDump() {
+//        if (objectBefore != null && objectAfter != null) {
+//            ObjectDelta<T> diff = objectBefore.diff(objectAfter);
+//            return diff.debugDump();
+//        } else {
+//            return "";
+//        }
+//    }
 }

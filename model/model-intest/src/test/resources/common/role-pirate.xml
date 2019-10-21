@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="12345678-d34d-b33f-f00d-555555556666"
@@ -13,143 +13,143 @@
     <name>Pirate</name>
     <description>Scurvy Pirates</description>
     <inducement id="1111">
-    	<extension>
-    		<piracy:sea>The Seven Seas</piracy:sea>
-    	</extension>
-    	<!-- This role is always assigned to users. Therefore this should not be needed.
-    	     But, there are some attempts in security tests to assign this role to another role.
-    	     This attempt fails on gossip attribute mapping not getting fullName. We do not want
-    	     that failure, we want to check whether security properly denies the operation.
-    	     Hence the focusType definition. -->
-    	<focusType>UserType</focusType>
-    	<construction id="60004">
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <extension>
+            <piracy:sea>The Seven Seas</piracy:sea>
+        </extension>
+        <!-- This role is always assigned to users. Therefore this should not be needed.
+             But, there are some attempts in security tests to assign this role to another role.
+             This attempt fails on gossip attribute mapping not getting fullName. We do not want
+             that failure, we want to check whether security properly denies the operation.
+             Hence the focusType definition. -->
+        <focusType>UserType</focusType>
+        <construction id="60004">
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-						<value>Bloody Pirate</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>Bloody Pirate</value>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:location</ref>
                 <outbound>
-                	<source>
-						<path>locality</path>
-					</source>
-					<condition>
-						<script>
-							<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-							<code>
-								assert resource != null
-								locality?.getNorm() != "hidden"
-							</code>
-						</script>
-					</condition>
-				</outbound>
+                    <source>
+                        <path>locality</path>
+                    </source>
+                    <condition>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                assert resource != null
+                                locality?.getNorm() != "hidden"
+                            </code>
+                        </script>
+                    </condition>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:weapon</ref>
                 <outbound>
-                	<strength>weak</strength>
-                	<expression>
-						<value>cutlass</value>
-					</expression>
-				</outbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <value>cutlass</value>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:gossip</ref>
                 <outbound>
-                	<source>
-                		<path>$user/fullName</path>
-                	</source>
-                	<source>
-                		<path>$user/locality</path>
-                	</source>
-                	<expression>
-						<script>
-							<code>fullName + ' is the best pirate ' + ( locality == null ? 'the world' : locality ) + ' has ever seen'</code>
-						</script>
-					</expression>
-				</outbound>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                    <source>
+                        <path>$user/locality</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>fullName + ' is the best pirate ' + ( locality == null ? 'the world' : locality ) + ' has ever seen'</code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
             <attribute>
                 <ref>ri:sea</ref>
                 <outbound>
-                	<source>
-                		<path>$focus/name</path>
-                	</source>
-                	<source>
-                		<path>$assignment/extension/piracy:sea</path>
-                		<name>magicSea</name>
-                	</source>
-                	<source>
-                		<path>$focusAssignment/extension/piracy:sea</path>
-                		<name>focusSea</name>
-                	</source>
-                	<source>
-                		<path>$immediateAssignment/extension/piracy:sea</path>
-                		<name>immediateSea</name>
-                	</source>
-                	<source>
-                		<path>$immediateRole/extension/piracy:sea</path>
-                		<name>immediateRoleSea</name>
-                	</source>
-                	<source>
-                		<path>$thisAssignment/extension/piracy:sea</path>
-                		<name>thisSea</name>
-                	</source>
-                	<expression>
-						<script>
-							<code>name + " sailed " + magicSea + ", immediately " + immediateSea + ", role " + immediateRoleSea + ", with this " + thisSea + " while focused on " + focusSea + " (in "+source.getName()+")"</code>
-						</script>
-					</expression>
-					<condition>
-						<script>
-							<code>
-								assert resource != null
-								!magicSea?.isAllWhitespace()
-							</code>
-						</script>
-					</condition>
-				</outbound>
+                    <source>
+                        <path>$focus/name</path>
+                    </source>
+                    <source>
+                        <path>$assignment/extension/piracy:sea</path>
+                        <name>magicSea</name>
+                    </source>
+                    <source>
+                        <path>$focusAssignment/extension/piracy:sea</path>
+                        <name>focusSea</name>
+                    </source>
+                    <source>
+                        <path>$immediateAssignment/extension/piracy:sea</path>
+                        <name>immediateSea</name>
+                    </source>
+                    <source>
+                        <path>$immediateRole/extension/piracy:sea</path>
+                        <name>immediateRoleSea</name>
+                    </source>
+                    <source>
+                        <path>$thisAssignment/extension/piracy:sea</path>
+                        <name>thisSea</name>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>name + " sailed " + magicSea + ", immediately " + immediateSea + ", role " + immediateRoleSea + ", with this " + thisSea + " while focused on " + focusSea + " (in "+source.getName()+")"</code>
+                        </script>
+                    </expression>
+                    <condition>
+                        <script>
+                            <code>
+                                assert resource != null
+                                !magicSea?.isAllWhitespace()
+                            </code>
+                        </script>
+                    </condition>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>
-    	<phase>execution</phase>
+        <action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>
+        <phase>execution</phase>
     </authorization>
     <requestable>true</requestable>
     <delegable>true</delegable>
     <adminGuiConfiguration>
-    	<additionalMenuLink>
-    		<targetUrl>http://piracy.com/plunder</targetUrl>
-    		<label>Plunder</label>
-    	</additionalMenuLink>
-    	<userDashboardLink>
-    		<targetUrl>http://example.com/swashbuckle</targetUrl>
-    		<label>Swashbuckle</label>
-    	</userDashboardLink>
-    	<objectForms>
-    		<objectForm>
-    			<type>UserType</type>
-    			<formSpecification>
-    				<panelClass>com.piracy.form.PirateUserPanel</panelClass>
-    			</formSpecification>
-    		</objectForm>
-    	</objectForms>
-    	<userDashboard>
-    		<widget>
-    			<identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#search</identifier>
-    			<visibility>automatic</visibility>
-    		</widget>
-    		<widget>
-    			<identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#myWorkItems</identifier>
-    			<visibility>vacant</visibility>
-    		</widget>
-    	</userDashboard>
+        <additionalMenuLink>
+            <targetUrl>http://piracy.com/plunder</targetUrl>
+            <label>Plunder</label>
+        </additionalMenuLink>
+        <userDashboardLink>
+            <targetUrl>http://example.com/swashbuckle</targetUrl>
+            <label>Swashbuckle</label>
+        </userDashboardLink>
+        <objectForms>
+            <objectForm>
+                <type>UserType</type>
+                <formSpecification>
+                    <panelClass>com.piracy.form.PirateUserPanel</panelClass>
+                </formSpecification>
+            </objectForm>
+        </objectForms>
+        <userDashboard>
+            <widget>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#search</identifier>
+                <visibility>automatic</visibility>
+            </widget>
+            <widget>
+                <identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#myWorkItems</identifier>
+                <visibility>vacant</visibility>
+            </widget>
+        </userDashboard>
     </adminGuiConfiguration>
 </role>

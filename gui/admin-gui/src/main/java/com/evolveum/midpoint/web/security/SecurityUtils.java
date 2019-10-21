@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -53,11 +53,11 @@ public class SecurityUtils {
 
         Object principal = authentication.getPrincipal();
         if (principal instanceof MidPointUserProfilePrincipal) {
-        	return (MidPointUserProfilePrincipal) principal;
+            return (MidPointUserProfilePrincipal) principal;
         }
         if (AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principal)) {
-        	// silently ignore to avoid filling the logs
-        	return null;
+            // silently ignore to avoid filling the logs
+            return null;
         }
         LOGGER.debug("Principal user in security context holder is {} ({}) but not type of {}",
                 principal, principal.getClass(), MidPointUserProfilePrincipal.class.getName());

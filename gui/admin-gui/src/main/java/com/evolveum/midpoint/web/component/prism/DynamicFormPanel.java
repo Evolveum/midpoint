@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.prism;
@@ -47,152 +47,152 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(DynamicFormPanel.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(DynamicFormPanel.class);
 
-	private static final String DOT_CLASS = DynamicFormPanel.class.getName() + ".";
+    private static final String DOT_CLASS = DynamicFormPanel.class.getName() + ".";
 
-	private static final String ID_FORM_FIELDS = "formFields";
+    private static final String ID_FORM_FIELDS = "formFields";
 
-	private LoadableModel<PrismObjectWrapper<O>> wrapperModel;
-	private FormType form;
+    private LoadableModel<PrismObjectWrapper<O>> wrapperModel;
+    private FormType form;
 
-	public DynamicFormPanel(String id, final IModel<O> model, String formOid, Form<?> mainForm,
-			Task task, final PageBase parentPage, boolean enforceRequiredFields) {
-		this(id, (PrismObject<O>) model.getObject().asPrismObject(), formOid, mainForm, task, parentPage, enforceRequiredFields);
-	}
+    public DynamicFormPanel(String id, final IModel<O> model, String formOid, Form<?> mainForm,
+            Task task, final PageBase parentPage, boolean enforceRequiredFields) {
+        this(id, (PrismObject<O>) model.getObject().asPrismObject(), formOid, mainForm, task, parentPage, enforceRequiredFields);
+    }
 
-	public DynamicFormPanel(String id, final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-			Task task, final PageBase parentPage, boolean enforceRequiredFields) {
-		super(id);
-		initialize(prismObject, formOid, mainForm, task, parentPage, enforceRequiredFields);
-	}
+    public DynamicFormPanel(String id, final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
+            Task task, final PageBase parentPage, boolean enforceRequiredFields) {
+        super(id);
+        initialize(prismObject, formOid, mainForm, task, parentPage, enforceRequiredFields);
+    }
 
-	public DynamicFormPanel(String id, final QName objectType, String formOid, Form<?> mainForm,
-			Task task, final PageBase parentPage, boolean enforceRequiredFields) {
-		super(id);
-		PrismObject<O> prismObject = instantiateObject(objectType, parentPage);
-		initialize(prismObject, formOid, mainForm, task, parentPage, enforceRequiredFields);
-	}
+    public DynamicFormPanel(String id, final QName objectType, String formOid, Form<?> mainForm,
+            Task task, final PageBase parentPage, boolean enforceRequiredFields) {
+        super(id);
+        PrismObject<O> prismObject = instantiateObject(objectType, parentPage);
+        initialize(prismObject, formOid, mainForm, task, parentPage, enforceRequiredFields);
+    }
 
-	private PrismObject<O> instantiateObject(QName objectType, PageBase parentPage) {
-		PrismObjectDefinition<O> objectDef = parentPage.getPrismContext().getSchemaRegistry()
-				.findObjectDefinitionByType(objectType);
-		PrismObject<O> prismObject;
-		try {
-			prismObject = objectDef.instantiate();
-		} catch (SchemaException e) {
-			LoggingUtils.logException(LOGGER, "Could not initialize model for forgot password", e);
-			throw new RestartResponseException(parentPage);
-		}
-		return prismObject;
-	}
+    private PrismObject<O> instantiateObject(QName objectType, PageBase parentPage) {
+        PrismObjectDefinition<O> objectDef = parentPage.getPrismContext().getSchemaRegistry()
+                .findObjectDefinitionByType(objectType);
+        PrismObject<O> prismObject;
+        try {
+            prismObject = objectDef.instantiate();
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Could not initialize model for forgot password", e);
+            throw new RestartResponseException(parentPage);
+        }
+        return prismObject;
+    }
 
-	private void initialize(final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
-			final Task task, final PageBase parentPage, boolean enforceRequiredFields) {
+    private void initialize(final PrismObject<O> prismObject, String formOid, Form<?> mainForm,
+            final Task task, final PageBase parentPage, boolean enforceRequiredFields) {
 
-		if (prismObject == null) {
-			getSession().error(getString("DynamicFormPanel.object.must.not.be.null"));
-			throw new RestartResponseException(parentPage);
-		}
+        if (prismObject == null) {
+            getSession().error(getString("DynamicFormPanel.object.must.not.be.null"));
+            throw new RestartResponseException(parentPage);
+        }
 
-//		setParent(parentPage);
-		form = loadForm(formOid, task, parentPage);
-		if (form == null || form.getFormDefinition() == null) {
-			LOGGER.debug("No form or form definition; form OID = {}", formOid);
-			add(new Label(ID_FORM_FIELDS));			// to avoid wicket exceptions
-			return;
-		}
+//        setParent(parentPage);
+        form = loadForm(formOid, task, parentPage);
+        if (form == null || form.getFormDefinition() == null) {
+            LOGGER.debug("No form or form definition; form OID = {}", formOid);
+            add(new Label(ID_FORM_FIELDS));            // to avoid wicket exceptions
+            return;
+        }
 
-		PrismObjectWrapperFactory<O> factory = parentPage.findObjectWrapperFactory(prismObject.getDefinition());
-		PrismObjectWrapper<O> objectWrapper = createObjectWrapper(factory, task, prismObject, enforceRequiredFields);
-		wrapperModel = LoadableModel.create(() -> objectWrapper, true);
-		initLayout(mainForm, parentPage);
-	}
+        PrismObjectWrapperFactory<O> factory = parentPage.findObjectWrapperFactory(prismObject.getDefinition());
+        PrismObjectWrapper<O> objectWrapper = createObjectWrapper(factory, task, prismObject, enforceRequiredFields);
+        wrapperModel = LoadableModel.create(() -> objectWrapper, true);
+        initLayout(mainForm, parentPage);
+    }
 
-	private PrismObjectWrapper<O> createObjectWrapper(PrismObjectWrapperFactory<O> factory, Task task, PrismObject<O> prismObject,
-			boolean enforceRequiredFields) {
-		
-		FormAuthorizationType formAuthorization = form.getFormDefinition().getAuthorization();
-		AuthorizationPhaseType authorizationPhase = formAuthorization != null && formAuthorization.getPhase() != null
-				? formAuthorization.getPhase()
-				: AuthorizationPhaseType.REQUEST;
-				
-		OperationResult result = task.getResult();
-		WrapperContext context = new WrapperContext(task, result);
-		context.setShowEmpty(true);
-		context.setAuthzPhase(authorizationPhase);
-		//TODO: enforce required fields???? what is it?
-		PrismObjectWrapper<O> objectWrapper = null;
-		try {
-			objectWrapper = factory.createObjectWrapper(prismObject, prismObject.getOid() == null ? ItemStatus.ADDED : ItemStatus.NOT_CHANGED,
-					context);
-			result.recordSuccess();
-		} catch (SchemaException e) {
-			result.recordFatalError(createStringResource("DynamicFormPanel.message.createObjectWrapper.fatalError", e.getMessage()).getString());
-			getPageBase().showResult(result);
-			
-		}
-		return objectWrapper;
-	}
+    private PrismObjectWrapper<O> createObjectWrapper(PrismObjectWrapperFactory<O> factory, Task task, PrismObject<O> prismObject,
+            boolean enforceRequiredFields) {
 
-	@Override
-	public IModel<PrismObjectWrapper<O>> getModel() {
-		return wrapperModel;
-	}
+        FormAuthorizationType formAuthorization = form.getFormDefinition().getAuthorization();
+        AuthorizationPhaseType authorizationPhase = formAuthorization != null && formAuthorization.getPhase() != null
+                ? formAuthorization.getPhase()
+                : AuthorizationPhaseType.REQUEST;
 
-	private void initLayout(Form<?> mainForm, PageBase parenPage) {
-		DynamicFieldGroupPanel<O> formFields = new DynamicFieldGroupPanel<O>(ID_FORM_FIELDS, getModel(),
-				form.getFormDefinition(), mainForm, parenPage);
-		formFields.setOutputMarkupId(true);
-		add(formFields);
-	}
+        OperationResult result = task.getResult();
+        WrapperContext context = new WrapperContext(task, result);
+        context.setShowEmpty(true);
+        context.setAuthzPhase(authorizationPhase);
+        //TODO: enforce required fields???? what is it?
+        PrismObjectWrapper<O> objectWrapper = null;
+        try {
+            objectWrapper = factory.createObjectWrapper(prismObject, prismObject.getOid() == null ? ItemStatus.ADDED : ItemStatus.NOT_CHANGED,
+                    context);
+            result.recordSuccess();
+        } catch (SchemaException e) {
+            result.recordFatalError(createStringResource("DynamicFormPanel.message.createObjectWrapper.fatalError", e.getMessage()).getString());
+            getPageBase().showResult(result);
 
-	private FormType loadForm(String formOid, Task task, PageBase parentPage) {
-		OperationResult result = new OperationResult("some some operation");
-		return asObjectable(WebModelServiceUtils.loadObject(FormType.class, formOid, null, false,
-				parentPage, task, result));
-	}
+        }
+        return objectWrapper;
+    }
 
-	public ObjectDelta<O> getObjectDelta() throws SchemaException {
-		return wrapperModel.getObject().getObjectDelta();
-	}
+    @Override
+    public IModel<PrismObjectWrapper<O>> getModel() {
+        return wrapperModel;
+    }
 
-	public boolean checkRequiredFields(PageBase pageBase) {
-		return getFormFields().checkRequiredFields(pageBase);
-	}
+    private void initLayout(Form<?> mainForm, PageBase parenPage) {
+        DynamicFieldGroupPanel<O> formFields = new DynamicFieldGroupPanel<O>(ID_FORM_FIELDS, getModel(),
+                form.getFormDefinition(), mainForm, parenPage);
+        formFields.setOutputMarkupId(true);
+        add(formFields);
+    }
 
-	@SuppressWarnings("unchecked")
-	public DynamicFieldGroupPanel<O> getFormFields() {
-		return (DynamicFieldGroupPanel<O>) get(ID_FORM_FIELDS);
-	}
+    private FormType loadForm(String formOid, Task task, PageBase parentPage) {
+        OperationResult result = new OperationResult("some some operation");
+        return asObjectable(WebModelServiceUtils.loadObject(FormType.class, formOid, null, false,
+                parentPage, task, result));
+    }
 
-	public PrismObject<O> getObject() throws SchemaException {
-		ObjectDelta<O> delta = wrapperModel.getObject().getObjectDelta();
-		if (delta != null && delta.isAdd()) {
-			return delta.getObjectToAdd();
-		}
-		return wrapperModel.getObject().getObject();
-	}
+    public ObjectDelta<O> getObjectDelta() throws SchemaException {
+        return wrapperModel.getObject().getObjectDelta();
+    }
 
-	public List<ItemPath> getChangedItems() {
-		DynamicFieldGroupPanel<O> formFields = (DynamicFieldGroupPanel<O>) get(ID_FORM_FIELDS);
-		List<AbstractFormItemType> items = formFields.getFormItems();
-		List<ItemPath> paths = new ArrayList<>();
-		collectItemPaths(items, paths);
-		return paths;
-	}
+    public boolean checkRequiredFields(PageBase pageBase) {
+        return getFormFields().checkRequiredFields(pageBase);
+    }
 
-	private void collectItemPaths(List<AbstractFormItemType> items, List<ItemPath> paths) {
-		for (AbstractFormItemType aItem : items) {
-			ItemPath itemPath = GuiImplUtil.getItemPath(aItem);
-			if (itemPath != null) {
-				paths.add(itemPath);
-			}
-			if (aItem instanceof FormFieldGroupType) {
-				collectItemPaths(FormTypeUtil.getFormItems(((FormFieldGroupType) aItem).getFormItems()), paths);
-			}
-		}
-	}
+    @SuppressWarnings("unchecked")
+    public DynamicFieldGroupPanel<O> getFormFields() {
+        return (DynamicFieldGroupPanel<O>) get(ID_FORM_FIELDS);
+    }
+
+    public PrismObject<O> getObject() throws SchemaException {
+        ObjectDelta<O> delta = wrapperModel.getObject().getObjectDelta();
+        if (delta != null && delta.isAdd()) {
+            return delta.getObjectToAdd();
+        }
+        return wrapperModel.getObject().getObject();
+    }
+
+    public List<ItemPath> getChangedItems() {
+        DynamicFieldGroupPanel<O> formFields = (DynamicFieldGroupPanel<O>) get(ID_FORM_FIELDS);
+        List<AbstractFormItemType> items = formFields.getFormItems();
+        List<ItemPath> paths = new ArrayList<>();
+        collectItemPaths(items, paths);
+        return paths;
+    }
+
+    private void collectItemPaths(List<AbstractFormItemType> items, List<ItemPath> paths) {
+        for (AbstractFormItemType aItem : items) {
+            ItemPath itemPath = GuiImplUtil.getItemPath(aItem);
+            if (itemPath != null) {
+                paths.add(itemPath);
+            }
+            if (aItem instanceof FormFieldGroupType) {
+                collectItemPaths(FormTypeUtil.getFormItems(((FormFieldGroupType) aItem).getFormItems()), paths);
+            }
+        }
+    }
 }

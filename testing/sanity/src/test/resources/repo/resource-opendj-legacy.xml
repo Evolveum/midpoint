@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <!-- Resource definition for an embedded OpenDJ instance.
      It is used in internal midPoint tests, mostly in "integration"
-     tests. 
-     
+     tests.
+
      THIS IS LEGACY VERSION. It tests with legacy LDAP connector. -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
@@ -31,10 +31,10 @@
     <!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
           OID during import. -->
     <connectorRef type="ConnectorType">
-    	<description>Dummy description, just for the test</description>
-		<filter>
+        <description>Dummy description, just for the test</description>
+        <filter>
             <q:equal>
-            	<q:path>c:connectorType</q:path>
+                <q:path>c:connectorType</q:path>
                 <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
             </q:equal>
         </filter>
@@ -91,7 +91,7 @@
 
     </connectorConfiguration>
 
-	<!-- Resource namespace -->
+    <!-- Resource namespace -->
     <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
     <!-- No schema. It will be generated from the resource. -->
 
@@ -101,7 +101,7 @@
 This is now the only account type that midPoint can work with. -->
 
         <objectType>
-			<kind>account</kind>
+            <kind>account</kind>
             <intent>default</intent>
             <!-- Readable name for the account type -->
             <displayName>Default Account</displayName>
@@ -135,16 +135,16 @@ This is now the only account type that midPoint can work with. -->
       It is an XPath expression, similar to BPEL assignment expressions. -->
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
-					<source>
-						<path>declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";$user/name</path>
-					</source>
+                    <source>
+                        <path>declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";$user/name</path>
+                    </source>
                     <expression>
-                    	<script>
-                    		<language>http://www.w3.org/TR/xpath/</language>
-	                        <code>
-	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	                            concat('uid=', $i:name, ',ou=people,dc=example,dc=com')
-	                        </code>
+                        <script>
+                            <language>http://www.w3.org/TR/xpath/</language>
+                            <code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                concat('uid=', $i:name, ',ou=people,dc=example,dc=com')
+                            </code>
                         </script>
                     </expression>
                 </outbound>
@@ -169,7 +169,7 @@ This is now the only account type that midPoint can work with. -->
            do anything with this attribute. -->
 
                 <!-- No inbound expression here. Does not make sense to sync UUID as it is supposed to be immutable -->
-                
+
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
 
             </attribute>
@@ -191,11 +191,11 @@ This is now the only account type that midPoint can work with. -->
                 -->
 
                 <outbound>
-                	<source>
-	                    <path>
-	                    declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	                    	$user/fullName
-	                    </path>
+                    <source>
+                        <path>
+                        declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            $user/fullName
+                        </path>
                     </source>
                 </outbound>
 
@@ -205,21 +205,21 @@ This is now the only account type that midPoint can work with. -->
                     from the account to the fullName property of the user.
                 -->
                 <inbound>
-					<expression>
-						<script>
-							<relativityMode>absolute</relativityMode>
-							<language>http://www.w3.org/TR/xpath/</language>
-							<code>
-								declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'cn', $c:input)
-	 						</code>
-						</script>
-					</expression>
+                    <expression>
+                        <script>
+                            <relativityMode>absolute</relativityMode>
+                            <language>http://www.w3.org/TR/xpath/</language>
+                            <code>
+                                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                 declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+                                 func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'cn', $c:input)
+                             </code>
+                        </script>
+                    </expression>
                     <target>
-                    	<path>
-	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	                        $i:user/i:fullName
+                        <path>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            $i:user/i:fullName
                         </path>
                     </target>
                 </inbound>
@@ -231,41 +231,41 @@ This is now the only account type that midPoint can work with. -->
                 <ref>ri:sn</ref>
 
                 <displayName>Surname</displayName>
-                
+
                 <outbound>
-                	<source>
-                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$c:user/c:familyName</path>
-                	</source>
+                    <source>
+                        <path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$c:user/c:familyName</path>
+                    </source>
                     <expression>
-                    	<script>
-	                    	<description>
-	                    		The expression is using "c" and "t" prefixes without declaring it. The prefix is taken from
-	                    		the enclosing XML definition.
-	                    	</description>
-	                    	<language>http://www.w3.org/TR/xpath/</language>
-	                        <code>
-	                        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	                            $c:familyName
-	                        </code>
+                        <script>
+                            <description>
+                                The expression is using "c" and "t" prefixes without declaring it. The prefix is taken from
+                                the enclosing XML definition.
+                            </description>
+                            <language>http://www.w3.org/TR/xpath/</language>
+                            <code>
+                            declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                $c:familyName
+                            </code>
                         </script>
                     </expression>
                 </outbound>
                 <!-- sn will be synchronized to user's familyName -->
                 <inbound>
-                	<expression>
-						<script>
-							<relativityMode>absolute</relativityMode>
-							<language>http://www.w3.org/TR/xpath/</language>
-							<code>
-								declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'sn', $c:input)
- 							</code>
-						</script>
-					</expression>
+                    <expression>
+                        <script>
+                            <relativityMode>absolute</relativityMode>
+                            <language>http://www.w3.org/TR/xpath/</language>
+                            <code>
+                                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                 declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+                                 func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'sn', $c:input)
+                             </code>
+                        </script>
+                    </expression>
                     <target>
-                    	<!-- Relative path, we want to test the default target context which is $user -->
-                    	<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";familyName</path>
+                        <!-- Relative path, we want to test the default target context which is $user -->
+                        <path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";familyName</path>
                     </target>
                 </inbound>
 
@@ -276,32 +276,32 @@ This is now the only account type that midPoint can work with. -->
                 <ref>ri:givenName</ref>
                 <displayName>Given Name</displayName>
                 <outbound>
-                	<description>
-                    	The mapping is using relative path in default source context (which is $user)
-                    	and default expression (which is asIs).
+                    <description>
+                        The mapping is using relative path in default source context (which is $user)
+                        and default expression (which is asIs).
                     </description>
-                	<source>
-                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";givenName</path>
-                	</source>
+                    <source>
+                        <path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";givenName</path>
+                    </source>
                 </outbound>
                 <!-- givenName will be synchronized to user's givenName -->
 
                 <inbound>
-                	<expression>
-						<script>
-							<relativityMode>absolute</relativityMode>
-							<language>http://www.w3.org/TR/xpath/</language>
- 							<code>
-	 							declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code>  
-<!--							<code>func:logDebug($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code> -->
-						</script>
-					</expression>
+                    <expression>
+                        <script>
+                            <relativityMode>absolute</relativityMode>
+                            <language>http://www.w3.org/TR/xpath/</language>
+                             <code>
+                                 declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                 declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+                                 func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code>
+<!--                            <code>func:logDebug($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code> -->
+                        </script>
+                    </expression>
                     <target>
-                    	<path>
-                        	declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-                        	$user/givenName
+                        <path>
+                            declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            $user/givenName
                         </path>
                     </target>
                 </inbound>
@@ -313,47 +313,47 @@ This is now the only account type that midPoint can work with. -->
                 <ref>ri:uid</ref>
 
                 <displayName>Login Name</displayName>
-                
+
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
-                
+
                 <outbound>
-                	<description>
-                		It is mapped from (and also to) "name" property of user. It is essentially a login name.
-                		This outbound construction is using a Groovy expression.
-                	</description>
-                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
-                	     as a side-effect as it is a naming attribute. -->
-                	<strength>weak</strength>
-                	<source>
-                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$user/name</path>
-                	</source>
+                    <description>
+                        It is mapped from (and also to) "name" property of user. It is essentially a login name.
+                        This outbound construction is using a Groovy expression.
+                    </description>
+                    <!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                         as a side-effect as it is a naming attribute. -->
+                    <strength>weak</strength>
+                    <source>
+                        <path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$user/name</path>
+                    </source>
                     <expression>
-	                    <script>
-	                    	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-	                        <code>
-	                        	name;
-	                        </code>
-	                    </script>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                name;
+                            </code>
+                        </script>
                     </expression>
                 </outbound>
                 <inbound>
-                	<description>
-                		It is mapped to (and also from) "name" property of user. It is essentially a login name	
-                	</description>
-                	<strength>weak</strength>
-                	<expression>                		
-                		<script>
-                			<relativityMode>absolute</relativityMode>
-                			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                			<code>
-                				basic.determineLdapSingleAttributeValue(
-                					basic.getAttributeStringValues(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name'),
-                					'uid', (java.util.Collection) input)
-                			</code>
-                		</script>
-               		</expression>
+                    <description>
+                        It is mapped to (and also from) "name" property of user. It is essentially a login name
+                    </description>
+                    <strength>weak</strength>
+                    <expression>
+                        <script>
+                            <relativityMode>absolute</relativityMode>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                            <code>
+                                basic.determineLdapSingleAttributeValue(
+                                    basic.getAttributeStringValues(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name'),
+                                    'uid', (java.util.Collection) input)
+                            </code>
+                        </script>
+                       </expression>
                     <target>
-                    	<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$user/name</path>
+                        <path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$user/name</path>
                     </target>
                 </inbound>
 
@@ -369,16 +369,16 @@ This is now the only account type that midPoint can work with. -->
                 <outbound>
                     <strength>weak</strength>
                     <expression>
-                    	<value>Created by IDM</value>
+                        <value>Created by IDM</value>
                     </expression>
                 </outbound>
 
                 <inbound>
                     <target>
-                    	<path>
-	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	                        declare namespace my="http://whatever.com/my";
-	                        $i:user/i:extension/my:description
+                        <path>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            declare namespace my="http://whatever.com/my";
+                            $i:user/i:extension/my:description
                         </path>
                     </target>
                 </inbound>
@@ -389,105 +389,105 @@ This is now the only account type that midPoint can work with. -->
             <attribute>
                 <ref>ri:carLicense</ref>
 
-				<description>
-					This attibute definition is used to test tolerance of empty values.
-				</description>
-				
+                <description>
+                    This attibute definition is used to test tolerance of empty values.
+                </description>
+
                 <outbound>
                     <description>
-                    	The expression will produce empty value. OpenDJ will die if empty value
-                    	is provided for an attribute. midPoint should filter out the empty value
-                    	and do not sent it to OpenDJ.
+                        The expression will produce empty value. OpenDJ will die if empty value
+                        is provided for an attribute. midPoint should filter out the empty value
+                        and do not sent it to OpenDJ.
                     </description>
-					<strength>weak</strength>
+                    <strength>weak</strength>
                     <expression>
-                    	<script>
-                    		<language>http://www.w3.org/TR/xpath/</language>
-	                    	<returnType>scalar</returnType>
-	                    	<c:code>
-	                    		concat('','')
-	                    	</c:code>
-                    	</script>
+                        <script>
+                            <language>http://www.w3.org/TR/xpath/</language>
+                            <returnType>scalar</returnType>
+                            <c:code>
+                                concat('','')
+                            </c:code>
+                        </script>
                     </expression>
                 </outbound>
 
                 <inbound>
                     <target>
-                    	<path>
-	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	                        declare namespace my="http://whatever.com/my";
-	                        $i:user/i:extension/my:description
+                        <path>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            declare namespace my="http://whatever.com/my";
+                            $i:user/i:extension/my:description
                         </path>
                     </target>
                 </inbound>
                 <!-- No inbound expression for description. We don't want to synchronize that -->
             </attribute>
-            
+
             <attribute>
                 <ref>ri:employeeType</ref>
 
-				<description>
-					This attibute definition is used to test inboud mapping when deleting the value from attribute.
-				</description>
-				
+                <description>
+                    This attibute definition is used to test inboud mapping when deleting the value from attribute.
+                </description>
+
                <inbound>
 <!--                <strength>strong</strength> -->
                     <target>
-                    	  <path>declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";$user/employeeType</path>
+                          <path>declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";$user/employeeType</path>
                     </target>
                 </inbound>
                 <!-- No inbound expression for description. We don't want to synchronize that -->
             </attribute>
-            
+
             <attribute>
                 <ref>ri:displayName</ref>
                 <displayName>Display Name</displayName>
                 <outbound>
-                	<description>
-                		It is mapped from "fullName" property of user using ECMAScript (JavaScript) expression.
-                	</description>
-                	<source>
-                		<path>$user/fullName</path>
-                	</source>
+                    <description>
+                        It is mapped from "fullName" property of user using ECMAScript (JavaScript) expression.
+                    </description>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
                     <expression>
-                    	<script>
-	                    	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript</language>
-	                        <code>
-	                        	user == null ? null : user.getFullName();
-	                        </code>
+                        <script>
+                            <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript</language>
+                            <code>
+                                user == null ? null : user.getFullName();
+                            </code>
                         </script>
                     </expression>
                 </outbound>
             </attribute>
-            
+
             <attribute>
                 <ref>ri:postalAddress</ref>
                 <displayName>Display Name</displayName>
                 <outbound>
-                	<description>
-                		Conditional expression. It will be evaluated only if user's employee number is set.
-                	</description>
-                	<source>
-                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$c:user/c:employeeNumber</path>
-                	</source>
+                    <description>
+                        Conditional expression. It will be evaluated only if user's employee number is set.
+                    </description>
+                    <source>
+                        <path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$c:user/c:employeeNumber</path>
+                    </source>
                     <expression>
-                    	<script>
-	                    	<language>http://www.w3.org/TR/xpath/</language>
-	                    	<returnType>scalar</returnType>
-	                        <code>
-	                        	declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	                        	concat('Number ',$c:employeeNumber)
-	                        </code>
+                        <script>
+                            <language>http://www.w3.org/TR/xpath/</language>
+                            <returnType>scalar</returnType>
+                            <code>
+                                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                concat('Number ',$c:employeeNumber)
+                            </code>
                         </script>
                     </expression>
                     <condition>
-                    	<script>
-                    		<language>http://www.w3.org/TR/xpath/</language>
-	                    	<code>
-	                    	declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	                    		$c:user/c:employeeNumber
-	                    	</code>
-                    	</script>
+                        <script>
+                            <language>http://www.w3.org/TR/xpath/</language>
+                            <code>
+                            declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                $c:user/c:employeeNumber
+                            </code>
+                        </script>
                     </condition>
                 </outbound>
             </attribute>
@@ -503,23 +503,23 @@ This is now the only account type that midPoint can work with. -->
               a configuration object (set into an XPath variable) to
               translate values. -->
                 <outbound>
-                	<strength>strong</strength>
-                	<source>
-                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$c:user/c:locality</path>
-                	</source>
-                	<expression>
-                		<script>
-                			<c:language>http://www.w3.org/TR/xpath/</c:language>
-                			<c:returnType>scalar</c:returnType>
-                			<code>
-                				declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-                				if (empty($c:user/c:locality)) then
-                					"middle of nowhere"
-                				else
-                					$c:user/c:locality
-                			</code>
-                		</script>
-                	</expression>
+                    <strength>strong</strength>
+                    <source>
+                        <path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$c:user/c:locality</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <c:language>http://www.w3.org/TR/xpath/</c:language>
+                            <c:returnType>scalar</c:returnType>
+                            <code>
+                                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                if (empty($c:user/c:locality)) then
+                                    "middle of nowhere"
+                                else
+                                    $c:user/c:locality
+                            </code>
+                        </script>
+                    </expression>
                     <!-- <expression xmlns:my="http://whatever.com/my"> -->
                         <!-- Definition of extra variable for the XPath expression.
                              The variable will appear as "$my:config" in the Xpath
@@ -534,95 +534,95 @@ This is now the only account type that midPoint can work with. -->
                             <name>my:defaultLocation</name>
                             <value>middle of nowhere</value>
                         </variable>
-                    	<script>
-                    		<c:relativityMode>absolute</c:relativityMode>
-                    		<language>http://www.w3.org/TR/xpath/</language>
-	                        <returnType>scalar</returnType> -->
-	                        <!-- The expression itself. It translates the value of
-	                             user's attribute "locality" (expressed as $i:user/i:locality)
-	                             using a lookup table defined in the configuration object
-	                             in the $my:config variable specified above. -->
-	                        <!-- <c:code>
-	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	                            declare namespace t="http://prism.evolveum.com/xml/ns/public/types-3";
-	                            declare namespace my="http://whatever.com/my";
-	
-	                            if ($my:config/i:extension/my:locations/my:location[@key=$i:locality/t:orig]) then
-	                            	$my:config/i:extension/my:locations/my:location[@key=$i:locality/t:orig]
-	                            else
-	                            	$my:defaultLocation
-	                        </c:code>
-                        </script> 
+                        <script>
+                            <c:relativityMode>absolute</c:relativityMode>
+                            <language>http://www.w3.org/TR/xpath/</language>
+                            <returnType>scalar</returnType> -->
+                            <!-- The expression itself. It translates the value of
+                                 user's attribute "locality" (expressed as $i:user/i:locality)
+                                 using a lookup table defined in the configuration object
+                                 in the $my:config variable specified above. -->
+                            <!-- <c:code>
+                                declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                declare namespace t="http://prism.evolveum.com/xml/ns/public/types-3";
+                                declare namespace my="http://whatever.com/my";
+
+                                if ($my:config/i:extension/my:locations/my:location[@key=$i:locality/t:orig]) then
+                                    $my:config/i:extension/my:locations/my:location[@key=$i:locality/t:orig]
+                                else
+                                    $my:defaultLocation
+                            </c:code>
+                        </script>
                     </expression>-->
 
                 </outbound>
             </attribute>
-            
+
             <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>icfs:name</valueAttribute>
+                <ref>ri:group</ref>
+                <displayName>LDAP Group Membership</displayName>
+                <kind>entitlement</kind>
+                <intent>ldapGroup</intent>
+                <direction>objectToSubject</direction>
+                <associationAttribute>ri:uniqueMember</associationAttribute>
+                <valueAttribute>icfs:name</valueAttribute>
             </association>
-            
+
             <activation>
                 <administrativeStatus>
-                	<!-- Empty outbound and inbound should do just fine in this case -->
+                    <!-- Empty outbound and inbound should do just fine in this case -->
                     <outbound/>
                     <inbound/>
                 </administrativeStatus>
             </activation>
-            
+
             <credentials>
                 <password>
                     <outbound>
-                    	<expression>
-                        	<asIs/>
+                        <expression>
+                            <asIs/>
                         </expression>
                     </outbound>
                     <inbound>
                     <channel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#webService</channel>
-<!--                     	<strength>weak</strength>  -->
-                    	<expression>
-<!--                      		<generate/>  -->
-							<asIs/>
-                    	</expression>
+<!--                         <strength>weak</strength>  -->
+                        <expression>
+<!--                              <generate/>  -->
+                            <asIs/>
+                        </expression>
                     </inbound>
                     <inbound>
                     <strength>weak</strength>
                     <exceptChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#webService</exceptChannel>
-                    	<expression>
-                    		<generate/>
-<!-- 							<asIs/> -->
-                    	</expression>
+                        <expression>
+                            <generate/>
+<!--                             <asIs/> -->
+                        </expression>
                     </inbound>
                 </password>
             </credentials>
 
         </objectType>
-        
+
         <objectType>
-        	<kind>entitlement</kind>
+            <kind>entitlement</kind>
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:GroupObjectClass</objectClass>
         </objectType>
-        
+
     </schemaHandling>
 
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-    	<configured>
-	        <cap:activation>
-	            <cap:status>
-	                <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-	                <cap:enableValue/>
-	                <cap:disableValue>true</cap:disableValue>
-	            </cap:status>
-	        </cap:activation>
-		</configured>
+        <configured>
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+                    <cap:enableValue/>
+                    <cap:disableValue>true</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
     </capabilities>
 
     <!--
@@ -630,78 +630,78 @@ This is now the only account type that midPoint can work with. -->
         reactions and similar synchronization settings.
     -->
     <c:synchronization>
-    	<objectSynchronization>
-	        <!--
-	    The synchronization for this resource is enabled.
-	    It means that the synchronization will poll for changes once
-	    per interval specified below. -->
-	        <c:enabled>true</c:enabled>
-	
-	        <!-- Correlation expression.
-	           It will be used to find appropriate user entry for an account.
-	        -->
-	        <c:correlation> <!-- Correlation rule is a search query -->
-	
-	            <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"/> is implicit in correlation rules -->
-	            <!-- Following search query will look for users that have "name"
-	equal to the "uid" attribute of the account. Simply speaking,
-	it will look for match in usernames in the IDM and the resource. -->
-	            <q:equal>
-	                <q:path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";c:name</q:path>
-	                <expression>
-	                	<script>
-	                		<language>http://www.w3.org/TR/xpath/</language>
-		                    <code>
-			                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-			                    declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-			                    $c:account/c:attributes/dj:uid
-		                    </code>
-						</script>
-	                </expression>
-	            </q:equal>
-	        </c:correlation>
-	
-	        <!-- Confirmation rule may be here, but as the search above will
-	always return at most one match, the confirmation rule is not needed. -->
+        <objectSynchronization>
+            <!--
+        The synchronization for this resource is enabled.
+        It means that the synchronization will poll for changes once
+        per interval specified below. -->
+            <c:enabled>true</c:enabled>
+
+            <!-- Correlation expression.
+               It will be used to find appropriate user entry for an account.
+            -->
+            <c:correlation> <!-- Correlation rule is a search query -->
+
+                <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"/> is implicit in correlation rules -->
+                <!-- Following search query will look for users that have "name"
+    equal to the "uid" attribute of the account. Simply speaking,
+    it will look for match in usernames in the IDM and the resource. -->
+                <q:equal>
+                    <q:path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";c:name</q:path>
+                    <expression>
+                        <script>
+                            <language>http://www.w3.org/TR/xpath/</language>
+                            <code>
+                                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+                                $c:account/c:attributes/dj:uid
+                            </code>
+                        </script>
+                    </expression>
+                </q:equal>
+            </c:correlation>
+
+            <!-- Confirmation rule may be here, but as the search above will
+    always return at most one match, the confirmation rule is not needed. -->
 
             <!-- Reference to the User Template is here. If the user would be
                  created as a result of this action, it will be created according
                  to this template. -->
             <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
 
-	
-	        <!-- Following section describes reactions to a situations.
-	            The setting here assumes that this resource is authoritative,
-	            therefore all accounts created on the resource should be
-	            reflected as new users in IDM.
-	            See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
-	        -->
-	        <reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-	            </action>
-	        </reaction>
-		</objectSynchronization>
+
+            <!-- Following section describes reactions to a situations.
+                The setting here assumes that this resource is authoritative,
+                therefore all accounts created on the resource should be
+                reflected as new users in IDM.
+                See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+            -->
+            <reaction>
+                <situation>linked</situation>
+                <synchronize>true</synchronize>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <synchronize>true</synchronize>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
     </c:synchronization>
 
 </resource>

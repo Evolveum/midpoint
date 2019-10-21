@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,47 +25,47 @@ import javax.xml.namespace.QName;
  */
 public interface PrismObjectValue<O extends Objectable> extends PrismContainerValue<O> {
 
-	String getOid();
+    String getOid();
 
-	void setOid(String oid);
+    void setOid(String oid);
 
-	String getVersion();
+    String getVersion();
 
-	void setVersion(String version);
+    void setVersion(String version);
 
-	O asObjectable();
+    O asObjectable();
 
-	PrismObject<O> asPrismObject();
+    PrismObject<O> asPrismObject();
 
-	PolyString getName();
+    PolyString getName();
 
-	PrismContainer<?> getExtension();
+    PrismContainer<?> getExtension();
 
-	@Override
-	PrismObjectValue<O> clone();
+    @Override
+    PrismObjectValue<O> clone();
 
-	@Override
-	PrismObjectValue<O> cloneComplex(CloneStrategy strategy);
+    @Override
+    PrismObjectValue<O> cloneComplex(CloneStrategy strategy);
 
-	@Override
-	boolean equals(Object o);
+    @Override
+    boolean equals(Object o);
 
-	@Override
-	int hashCode();
+    @Override
+    int hashCode();
 
-	@Override
-	boolean equivalent(PrismContainerValue<?> other);
+    @Override
+    boolean equivalent(PrismContainerValue<?> other);
 
-	@Override
-	String toString();
+    @Override
+    String toString();
 
-	@Override
-	String toHumanReadableString();
+    @Override
+    String toHumanReadableString();
 
-	@Override
-	PrismContainer<O> asSingleValuedContainer(@NotNull QName itemName) throws SchemaException;
+    @Override
+    PrismContainer<O> asSingleValuedContainer(@NotNull QName itemName) throws SchemaException;
 
-	static <T extends Objectable> T asObjectable(PrismObject<T> object) {
-		return object != null ? object.asObjectable() : null;
-	}
+    static <T extends Objectable> T asObjectable(PrismObject<T> object) {
+        return object != null ? object.asObjectable() : null;
+    }
 }

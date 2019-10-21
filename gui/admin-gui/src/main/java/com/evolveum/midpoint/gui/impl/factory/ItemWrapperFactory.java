@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -22,10 +22,10 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  */
 public interface ItemWrapperFactory<IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> extends WrapperFactory {
 
-	
-	IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException;
-	IW createWrapper(Item childContainer, ItemStatus status, WrapperContext context) throws SchemaException;
-	VW createValueWrapper(IW parent, PV value, ValueStatus status, WrapperContext context) throws SchemaException;
 
-	
+    IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException;
+    IW createWrapper(Item childContainer, ItemStatus status, WrapperContext context) throws SchemaException;
+    VW createValueWrapper(IW parent, PV value, ValueStatus status, WrapperContext context) throws SchemaException;
+
+
 }

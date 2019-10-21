@@ -1,7 +1,7 @@
 --# thanks to George Papastamatopoulos for submitting this ... and Marko Lahma for
 --# updating it.
 --#
---# In your Quartz properties file, you'll need to set 
+--# In your Quartz properties file, you'll need to set
 --# org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.MSSQLDelegate
 --#
 --# you shouse enter your DB instance's name on the next line in place of "enter_db_name_here"
@@ -9,18 +9,18 @@
 --#
 --# From a helpful (but anonymous) Quartz user:
 --#
---# Regarding this error message:  
+--# Regarding this error message:
 --#
 --#     [Microsoft][SQLServer 2000 Driver for JDBC]Can't start a cloned connection while in manual transaction mode.
 --#
 --#
---#     I added "SelectMethod=cursor;" to my Connection URL in the config file. 
+--#     I added "SelectMethod=cursor;" to my Connection URL in the config file.
 --#     It Seems to work, hopefully no side effects.
 --#
---#		example:
---#		"jdbc:microsoft:sqlserver://dbmachine:1433;SelectMethod=cursor"; 
+--#        example:
+--#        "jdbc:microsoft:sqlserver://dbmachine:1433;SelectMethod=cursor";
 --#
---# Another user has pointed out that you will probably need to use the 
+--# Another user has pointed out that you will probably need to use the
 --# JTDS driver
 --#
 --#

@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -11,7 +11,7 @@
      target resource (outbound-only). -->
 
 <resource oid="10000000-0000-0000-0000-00000000c204"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -20,168 +20,168 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Cyan</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>cyan</icfi:instanceId>
-			<icfi:supportValidity>true</icfi:supportValidity>
-		</icfc:configurationProperties>
+    <name>Dummy Resource Cyan</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	</connectorConfiguration>
-	
-	<schemaHandling>
-		<objectType>
-			<kind>account</kind>
-			<intent>default</intent>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<outbound>
-				    <strength>weak</strength>
-				    <source>
-				    	<path>name</path>
-				    </source>
-					<expression>
-						<script>
-							<code>name + iterationToken</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-				<displayName>UID</displayName>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<displayName>Full Name</displayName>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>$user/fullName</path>
-					</source>
-					<expression>
-						<script>
-							<!-- It is important to have script here, not just asIs.
-							     The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
-							<code>fullName?.toString()</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:ship</ref>
-				<displayName>Ship</displayName>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>$user/organizationalUnit</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:location</ref>
-				<displayName>Location</displayName>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>
-							$user/locality
-						</path>
-					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:drink</ref>
-				<outbound>
-					<strength>weak</strength>
-					<expression>
-						<generate>
-							<mode>uuid</mode>
-						</generate>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:quote</ref>
-				<displayName>Quote</displayName>
-				<tolerant>false</tolerant>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>$user/description</path>
-					</source>
-					<source>
-						<path>$user/fullName</path>
-					</source>
-					<expression>
-						<script>
-							<!-- It is important to have script here, not just asIs.
-							     The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
-							<code>description + ' -- ' + fullName</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:gossip</ref>
-				<tolerant>true</tolerant>
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>$configuration/name</path>
-					</source>
-				</outbound>
-			</attribute>
-			<iteration>
-				<maxIterations>5</maxIterations>
-			</iteration>
-			<activation>
-            	<administrativeStatus>
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+        <icfc:configurationProperties>
+            <icfi:instanceId>cyan</icfi:instanceId>
+            <icfi:supportValidity>true</icfi:supportValidity>
+        </icfc:configurationProperties>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <displayName>Username</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>name + iterationToken</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+                <displayName>UID</displayName>
+            </attribute>
+            <attribute>
+                <ref>ri:fullname</ref>
+                <displayName>Full Name</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <!-- It is important to have script here, not just asIs.
+                                 The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
+                            <code>fullName?.toString()</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ship</ref>
+                <displayName>Ship</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/organizationalUnit</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:location</ref>
+                <displayName>Location</displayName>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>
+                            $user/locality
+                        </path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:drink</ref>
+                <outbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <generate>
+                            <mode>uuid</mode>
+                        </generate>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:quote</ref>
+                <displayName>Quote</displayName>
+                <tolerant>false</tolerant>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$user/description</path>
+                    </source>
+                    <source>
+                        <path>$user/fullName</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <!-- It is important to have script here, not just asIs.
+                                 The script will process the delta differently (ADD/DELETE instead of REPLACE) -->
+                            <code>description + ' -- ' + fullName</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:gossip</ref>
+                <tolerant>true</tolerant>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$configuration/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <iteration>
+                <maxIterations>5</maxIterations>
+            </iteration>
+            <activation>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            	</administrativeStatus>
-            	<validFrom>
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                    </outbound>
+                </administrativeStatus>
+                <validFrom>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            	</validFrom>
-            	<validTo>
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
+                    </outbound>
+                </validFrom>
+                <validTo>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <asIs/>
                         </expression>
-            		</outbound>
-            	</validTo>
+                    </outbound>
+                </validTo>
             </activation>
-		</objectType>
-	</schemaHandling>
-		
+        </objectType>
+    </schemaHandling>
+
 </resource>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism;
@@ -22,36 +22,36 @@ import java.util.List;
  */
 public class PrismObjectValuePanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final String ID_VALUE = "value";
-	private static final String ID_VIRTUAL_CONTAINERS = "virtualContainers";
+    private static final long serialVersionUID = 1L;
 
-	private ItemPanelSettings settings;
+    private static final String ID_VALUE = "value";
+    private static final String ID_VIRTUAL_CONTAINERS = "virtualContainers";
 
-	public PrismObjectValuePanel(String id, IModel<PrismObjectWrapper<O>> model, ItemPanelSettings settings) {
-		super(id, model);
-		this.settings = settings;
-	}
-	
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		initLayout();
-		setOutputMarkupId(true);
-	}
-	
-	private void initLayout() {
-		createValuePanel(ID_VALUE, new PropertyModel<>(getModel(), "value"));
-	}
+    private ItemPanelSettings settings;
 
-	protected void createValuePanel(String panelId, IModel<PrismObjectValueWrapper<O>> valueModel) {
-		
-		PrismContainerValuePanel<O, PrismObjectValueWrapper<O>> valueWrapper = new PrismContainerValuePanel<>(panelId, valueModel, settings.getVisibilityHandler());
-		valueWrapper.setOutputMarkupId(true);
-		add(valueWrapper);
+    public PrismObjectValuePanel(String id, IModel<PrismObjectWrapper<O>> model, ItemPanelSettings settings) {
+        super(id, model);
+        this.settings = settings;
+    }
 
-	}
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+        setOutputMarkupId(true);
+    }
+
+    private void initLayout() {
+        createValuePanel(ID_VALUE, new PropertyModel<>(getModel(), "value"));
+    }
+
+    protected void createValuePanel(String panelId, IModel<PrismObjectValueWrapper<O>> valueModel) {
+
+        PrismContainerValuePanel<O, PrismObjectValueWrapper<O>> valueWrapper = new PrismContainerValuePanel<>(panelId, valueModel, settings.getVisibilityHandler());
+        valueWrapper.setOutputMarkupId(true);
+        add(valueWrapper);
+
+    }
 
 
 

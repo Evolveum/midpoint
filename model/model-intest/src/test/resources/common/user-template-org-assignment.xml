@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000444"
@@ -38,7 +38,7 @@
             <c:path>assignment</c:path>
         </target>
     </mapping>
-    
+
     <!-- MID-3545 -->
     <mapping>
         <name>autorole</name>
@@ -48,17 +48,17 @@
             <c:path>$user/subtype</c:path>
         </source>
         <expression>
-        	<trace>true</trace>
+            <trace>true</trace>
             <assignmentTargetSearch>
                 <targetType>RoleType</targetType>
                 <filter>
                     <q:equal>
                         <q:path>name</q:path>
                         <expression>
-                        	<trace>true</trace>
+                            <trace>true</trace>
                             <script>
-                            	<trace>true</trace>
-                            	<code>subtype.substring(5,subtype.length())</code>
+                                <trace>true</trace>
+                                <code>subtype.substring(5,subtype.length())</code>
                             </script>
                         </expression>
                     </q:equal>
@@ -70,11 +70,11 @@
             <c:path>assignment</c:path>
         </target>
         <condition>
-        	<trace>true</trace>
-        	<script>
-        		<code>subtype?.startsWith('ROLE:')</code>
-        	</script>
+            <trace>true</trace>
+            <script>
+                <code>subtype?.startsWith('ROLE:')</code>
+            </script>
         </condition>
     </mapping>
-    
+
 </objectTemplate>

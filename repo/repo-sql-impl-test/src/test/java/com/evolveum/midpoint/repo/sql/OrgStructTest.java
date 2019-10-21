@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -539,8 +539,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         PrismReferenceValue prv = itemFactory().createReferenceValue(MODIFY_USER_DELETE_REF_OID);
         prv.setTargetType(OrgType.COMPLEX_TYPE);
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object()
-		        .createModificationDeleteReference(UserType.class, ELAINE_OID, UserType.F_PARENT_ORG_REF,
-				        prv);
+                .createModificationDeleteReference(UserType.class, ELAINE_OID, UserType.F_PARENT_ORG_REF,
+                        prv);
 
         repositoryService.modifyObject(UserType.class, ELAINE_OID, delta.getModifications(), opResult);
 
@@ -556,8 +556,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test011OrgFilter() throws Exception {
-    	final String TEST_NAME = "test011OrgFilter";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test011OrgFilter";
+        TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -574,8 +574,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test100ParentOrgRefFilterNullRelation() throws Exception {
-    	final String TEST_NAME = "test100ParentOrgRefFilterNullRelation";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test100ParentOrgRefFilterNullRelation";
+        TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -591,8 +591,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test101ParentOrgRefFilterManagerRelation() throws Exception {
-    	final String TEST_NAME = "test101ParentOrgRefFilterManagerRelation";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test101ParentOrgRefFilterManagerRelation";
+        TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         PrismReferenceValue refVal = itemFactory().createReferenceValue(ORG_F001_OID);
@@ -610,8 +610,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test102ParentOrgRefFilterAnyRelation() throws Exception {
-    	final String TEST_NAME = "test102ParentOrgRefFilterAnyRelation";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "test102ParentOrgRefFilterAnyRelation";
+        TestUtil.displayTestTitle(TEST_NAME);
         OperationResult opResult = new OperationResult(TEST_NAME);
 
         PrismReferenceValue refVal = itemFactory().createReferenceValue(ORG_F001_OID);

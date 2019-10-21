@@ -2,7 +2,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -59,13 +59,13 @@ public abstract class ObjectType
     implements Serializable, Objectable
 {
 
-	// This is NOT GENERATED. It is supplied here manually for the testing.
-	static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
+    // This is NOT GENERATED. It is supplied here manually for the testing.
+    static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
 
-	// This is NOT GENERATED. It is supplied here manually for the testing.
-	public final static ItemName F_NAME = new ItemName(NS_FOO, "name");
-	public final static ItemName F_DESCRIPTION = new ItemName(NS_FOO, "description");
-	public final static ItemName F_EXTENSION = new ItemName(NS_FOO, "extension");
+    // This is NOT GENERATED. It is supplied here manually for the testing.
+    public final static ItemName F_NAME = new ItemName(NS_FOO, "name");
+    public final static ItemName F_DESCRIPTION = new ItemName(NS_FOO, "description");
+    public final static ItemName F_EXTENSION = new ItemName(NS_FOO, "extension");
     public final static ItemName F_PARENT_ORG_REF = new ItemName(NS_FOO, "parentOrgRef");
 
     private final static long serialVersionUID = 201202081233L;
@@ -198,17 +198,17 @@ public abstract class ObjectType
         this.version = value;
     }
 
-	@Override
-	public String toDebugName() {
-		return toDebugType()+":"+getOid()+"("+getName()+")";
-	}
+    @Override
+    public String toDebugName() {
+        return toDebugType()+":"+getOid()+"("+getName()+")";
+    }
 
-	@Override
-	public String toDebugType() {
-		return "object";
-	}
+    @Override
+    public String toDebugType() {
+        return "object";
+    }
 
-	@Override
+    @Override
     public PrismObject asPrismObject() {
         throw new UnsupportedOperationException("not implemented yet");
     }
@@ -218,15 +218,15 @@ public abstract class ObjectType
         throw new UnsupportedOperationException("not implemented yet");
     }
 
-	@Override
-	public PrismContainerValue asPrismContainerValue() {
-		 throw new UnsupportedOperationException("not implemented yet");
-	}
+    @Override
+    public PrismContainerValue asPrismContainerValue() {
+         throw new UnsupportedOperationException("not implemented yet");
+    }
 
-	@Override
-	public void setupContainerValue(PrismContainerValue container) {
-		throw new UnsupportedOperationException("not implemented yet");
-	}
+    @Override
+    public void setupContainerValue(PrismContainerValue container) {
+        throw new UnsupportedOperationException("not implemented yet");
+    }
 
     public List<ObjectReferenceType> getParentOrgRef() {
         if (parentOrgRef == null) {

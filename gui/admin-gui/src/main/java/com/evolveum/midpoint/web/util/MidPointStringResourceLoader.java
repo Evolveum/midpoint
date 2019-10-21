@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -32,15 +32,15 @@ public class MidPointStringResourceLoader implements IStringResourceLoader {
 
     @Override
     public String loadStringResource(Component component, String key, Locale locale, String style, String variation) {
-    	if (resourceLoader == null) {
-    		// Just for tests
-    		return key;
-    	}
-    	
+        if (resourceLoader == null) {
+            // Just for tests
+            return key;
+        }
+
         if (locale == null) {
             locale = Session.exists() ? Session.get().getLocale() : Locale.getDefault();
         }
-        
+
         return resourceLoader.translate(key, null, locale);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -37,118 +37,118 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOpera
  */
 public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRequest> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(DelegateWorkItemsAction.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DelegateWorkItemsAction.class);
 
-	private static final String OP_EXECUTE = DelegateWorkItemsAction.class.getName() + ".execute";
+    private static final String OP_EXECUTE = DelegateWorkItemsAction.class.getName() + ".execute";
 
-	public DelegateWorkItemsAction(EngineInvocationContext ctx, DelegateWorkItemsRequest request) {
-		super(ctx, request);
-	}
+    public DelegateWorkItemsAction(EngineInvocationContext ctx, DelegateWorkItemsRequest request) {
+        super(ctx, request);
+    }
 
-	@Override
-	public Action execute(OperationResult parentResult)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-			SecurityViolationException, ExpressionEvaluationException {
-		OperationResult result = parentResult.subresult(OP_EXECUTE)
-				.setMinor()
-				.build();
-		try {
-			traceEnter(LOGGER);
-			XMLGregorianCalendar now =
-					request.getNow() != null ? request.getNow() : XmlTypeConverter.createXMLGregorianCalendar();
-			for (DelegateWorkItemsRequest.SingleDelegation delegation : request.getDelegations()) {
-				executeDelegation(delegation, now, result);
-			}
-			traceExit(LOGGER, null);
-			return null;
-		} catch (Throwable t) {
-			result.recordFatalError(t);
-			throw t;
-		} finally {
-			result.computeStatusIfUnknown();
-		}
-	}
+    @Override
+    public Action execute(OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        OperationResult result = parentResult.subresult(OP_EXECUTE)
+                .setMinor()
+                .build();
+        try {
+            traceEnter(LOGGER);
+            XMLGregorianCalendar now =
+                    request.getNow() != null ? request.getNow() : XmlTypeConverter.createXMLGregorianCalendar();
+            for (DelegateWorkItemsRequest.SingleDelegation delegation : request.getDelegations()) {
+                executeDelegation(delegation, now, result);
+            }
+            traceExit(LOGGER, null);
+            return null;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
 
-	// TODO check work item state;
-	//  check if there are any approvers etc
+    // TODO check work item state;
+    //  check if there are any approvers etc
 
-	private void executeDelegation(DelegateWorkItemsRequest.SingleDelegation delegation,
-			XMLGregorianCalendar now, OperationResult result)
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
-			ConfigurationException, ExpressionEvaluationException {
-		CaseWorkItemType workItem = ctx.findWorkItemById(delegation.getWorkItemId());
+    private void executeDelegation(DelegateWorkItemsRequest.SingleDelegation delegation,
+            XMLGregorianCalendar now, OperationResult result)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
+        CaseWorkItemType workItem = ctx.findWorkItemById(delegation.getWorkItemId());
 
-		if (!engine.authorizationHelper.isAuthorized(workItem, AuthorizationHelper.RequestedOperation.DELEGATE, ctx.getTask(), result)) {
-			throw new SecurityViolationException("You are not authorized to delegate this work item.");
-		}
+        if (!engine.authorizationHelper.isAuthorized(workItem, AuthorizationHelper.RequestedOperation.DELEGATE, ctx.getTask(), result)) {
+            throw new SecurityViolationException("You are not authorized to delegate this work item.");
+        }
 
-		if (workItem.getCloseTimestamp() != null) {
-			LOGGER.debug("Work item {} in {} was already closed, ignoring the delegation request", workItem, ctx.getCurrentCase());
-			result.recordWarning("Work item was already closed");
-			return;
-		}
+        if (workItem.getCloseTimestamp() != null) {
+            LOGGER.debug("Work item {} in {} was already closed, ignoring the delegation request", workItem, ctx.getCurrentCase());
+            result.recordWarning("Work item was already closed");
+            return;
+        }
 
-		List<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
-		List<ObjectReferenceType> assigneesAndDeputiesBefore = engine.miscHelper.getAssigneesAndDeputies(workItem,
-				ctx.getTask(), result);
+        List<ObjectReferenceType> assigneesBefore = CloneUtil.cloneCollectionMembers(workItem.getAssigneeRef());
+        List<ObjectReferenceType> assigneesAndDeputiesBefore = engine.miscHelper.getAssigneesAndDeputies(workItem,
+                ctx.getTask(), result);
 
-		WorkItemOperationKindType operationKind = delegation.getTargetEscalationInfo() != null ? ESCALATE : DELEGATE;
+        WorkItemOperationKindType operationKind = delegation.getTargetEscalationInfo() != null ? ESCALATE : DELEGATE;
 
-		WorkItemAllocationChangeOperationInfo operationInfoBefore =
-				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, null);
+        WorkItemAllocationChangeOperationInfo operationInfoBefore =
+                new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, null);
 
-		WorkItemEventCauseInformationType causeInformation = request.getCauseInformation();
-		ObjectReferenceType initiator =
-				causeInformation == null || causeInformation.getType() == WorkItemEventCauseTypeType.USER_ACTION ?
-						ObjectTypeUtil.createObjectRef(ctx.getPrincipal().getUser(), engine.prismContext) : null;
+        WorkItemEventCauseInformationType causeInformation = request.getCauseInformation();
+        ObjectReferenceType initiator =
+                causeInformation == null || causeInformation.getType() == WorkItemEventCauseTypeType.USER_ACTION ?
+                        ObjectTypeUtil.createObjectRef(ctx.getPrincipal().getUser(), engine.prismContext) : null;
 
-		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);
-		ctx.prepareNotification(new DelayedNotification.AllocationChangeCurrent(ctx.getCurrentCase(), workItem, operationInfoBefore, sourceInfo, null));
+        WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(initiator, causeInformation, null);
+        ctx.prepareNotification(new DelayedNotification.AllocationChangeCurrent(ctx.getCurrentCase(), workItem, operationInfoBefore, sourceInfo, null));
 
-		List<ObjectReferenceType> newAssignees = new ArrayList<>();
-		List<ObjectReferenceType> delegatedTo = new ArrayList<>();
-		ApprovalContextUtil
-				.computeAssignees(newAssignees, delegatedTo, delegation.getDelegates(), delegation.getMethod(), workItem.getAssigneeRef());
+        List<ObjectReferenceType> newAssignees = new ArrayList<>();
+        List<ObjectReferenceType> delegatedTo = new ArrayList<>();
+        ApprovalContextUtil
+                .computeAssignees(newAssignees, delegatedTo, delegation.getDelegates(), delegation.getMethod(), workItem.getAssigneeRef());
 
-		workItem.getAssigneeRef().clear();
-		workItem.getAssigneeRef().addAll(CloneUtil.cloneCollectionMembers(newAssignees));
-		if (delegation.getNewDuration() != null) {
-			XMLGregorianCalendar newDeadline;
-			newDeadline = CloneUtil.clone(now);
-			newDeadline.add(delegation.getNewDuration());
-			workItem.setDeadline(newDeadline);
-		}
+        workItem.getAssigneeRef().clear();
+        workItem.getAssigneeRef().addAll(CloneUtil.cloneCollectionMembers(newAssignees));
+        if (delegation.getNewDuration() != null) {
+            XMLGregorianCalendar newDeadline;
+            newDeadline = CloneUtil.clone(now);
+            newDeadline.add(delegation.getNewDuration());
+            workItem.setDeadline(newDeadline);
+        }
 
-		int escalationLevel = ApprovalContextUtil.getEscalationLevelNumber(workItem);
-		WorkItemEscalationLevelType newEscalationInfo;
-		if (delegation.getTargetEscalationInfo() != null) {
-			newEscalationInfo = delegation.getTargetEscalationInfo().clone();
-			newEscalationInfo.setNumber(++escalationLevel);
-		} else {
-			newEscalationInfo = null;
-		}
+        int escalationLevel = ApprovalContextUtil.getEscalationLevelNumber(workItem);
+        WorkItemEscalationLevelType newEscalationInfo;
+        if (delegation.getTargetEscalationInfo() != null) {
+            newEscalationInfo = delegation.getTargetEscalationInfo().clone();
+            newEscalationInfo.setNumber(++escalationLevel);
+        } else {
+            newEscalationInfo = null;
+        }
 
-		WorkItemDelegationEventType event = ApprovalContextUtil
-				.createDelegationEvent(newEscalationInfo, assigneesBefore, delegatedTo,
-				delegation.getMethod(), causeInformation, engine.prismContext);
-		event.setComment(delegation.getComment());
-		if (newEscalationInfo != null) {
-			workItem.setEscalationLevel(newEscalationInfo);
-		}
+        WorkItemDelegationEventType event = ApprovalContextUtil
+                .createDelegationEvent(newEscalationInfo, assigneesBefore, delegatedTo,
+                delegation.getMethod(), causeInformation, engine.prismContext);
+        event.setComment(delegation.getComment());
+        if (newEscalationInfo != null) {
+            workItem.setEscalationLevel(newEscalationInfo);
+        }
 
-		WorkItemId workItemId = ctx.createWorkItemId(workItem);
+        WorkItemId workItemId = ctx.createWorkItemId(workItem);
 
-		WorkItemHelper.fillInWorkItemEvent(event, ctx.getPrincipal(), workItemId, workItem, engine.prismContext);
-		ctx.addEvent(event);
+        WorkItemHelper.fillInWorkItemEvent(event, ctx.getPrincipal(), workItemId, workItem, engine.prismContext);
+        ctx.addEvent(event);
 
-		ApprovalStageDefinitionType level = ctx.getCurrentStageDefinition();
-		engine.triggerHelper.createTriggersForTimedActions(ctx.getCurrentCase(), workItem.getId(), escalationLevel,
-				XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
-				XmlTypeConverter.toDate(workItem.getDeadline()), level.getTimedActions(), result);
+        ApprovalStageDefinitionType level = ctx.getCurrentStageDefinition();
+        engine.triggerHelper.createTriggersForTimedActions(ctx.getCurrentCase(), workItem.getId(), escalationLevel,
+                XmlTypeConverter.toDate(workItem.getCreateTimestamp()),
+                XmlTypeConverter.toDate(workItem.getDeadline()), level.getTimedActions(), result);
 
-		List<ObjectReferenceType> assigneesAndDeputiesAfter = engine.miscHelper.getAssigneesAndDeputies(workItem, ctx.getTask(), result);
-		WorkItemAllocationChangeOperationInfo operationInfoAfter =
-				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, assigneesAndDeputiesAfter);
-		ctx.prepareNotification(new DelayedNotification.AllocationChangeNew(ctx.getCurrentCase(), workItem, operationInfoAfter, sourceInfo));
-	}
+        List<ObjectReferenceType> assigneesAndDeputiesAfter = engine.miscHelper.getAssigneesAndDeputies(workItem, ctx.getTask(), result);
+        WorkItemAllocationChangeOperationInfo operationInfoAfter =
+                new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputiesBefore, assigneesAndDeputiesAfter);
+        ctx.prepareNotification(new DelayedNotification.AllocationChangeNew(ctx.getCurrentCase(), workItem, operationInfoAfter, sourceInfo));
+    }
 }

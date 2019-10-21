@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -15,7 +15,7 @@ import java.io.Serializable;
 /**
  * TODO: update to better use with DropdownButtonPanel. Move away from depreated com.evolveum.midpoint.web.component.menu.cog.
  * TODO: Create a builder for this.
- * 
+ *
  * @author lazyman
  */
 public abstract class InlineMenuItem implements Serializable {
@@ -26,7 +26,7 @@ public abstract class InlineMenuItem implements Serializable {
     private boolean submit = false;
     private InlineMenuItemAction action;
     private int id = -1;
-    
+
     private VisibilityChecker visibilityChecker;
 
     public InlineMenuItem(IModel<String> label) {
@@ -45,10 +45,10 @@ public abstract class InlineMenuItem implements Serializable {
     public IModel<Boolean> getEnabled() {
         return enabled;
     }
-    
+
     public void setEnabled(IModel<Boolean> enabled) {
-		this.enabled = enabled;
-	}
+        this.enabled = enabled;
+    }
 
     public IModel<String> getLabel() {
         return label;
@@ -111,7 +111,7 @@ public abstract class InlineMenuItem implements Serializable {
    public boolean showConfirmationDialog() {
         return true;
     }
-   
+
     public VisibilityChecker getVisibilityChecker() {
         return visibilityChecker;
     }

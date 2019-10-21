@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.input;
@@ -16,77 +16,77 @@ import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 
 public abstract class StringChoiceRenderer implements IChoiceRenderer<String> {
-	private static final class Simple extends StringChoiceRenderer {
-		private static final long serialVersionUID = 1L;
+    private static final class Simple extends StringChoiceRenderer {
+        private static final long serialVersionUID = 1L;
 
-		@Override
-		public String getDisplayValue(final String object) {
-			return object;
-		}
+        @Override
+        public String getDisplayValue(final String object) {
+            return object;
+        }
 
-		Object readResolve() {
-			return SIMPLE;
-		}
-	}
+        Object readResolve() {
+            return SIMPLE;
+        }
+    }
 
-	public static class Prefixed extends StringChoiceRenderer {
-		private static final long serialVersionUID = 1L;
+    public static class Prefixed extends StringChoiceRenderer {
+        private static final long serialVersionUID = 1L;
 
-		private final String keyPrefix;
+        private final String keyPrefix;
 
-		public Prefixed(final String keyPrefix) {
-			this.keyPrefix = requireNonNull(keyPrefix);
-		}
+        public Prefixed(final String keyPrefix) {
+            this.keyPrefix = requireNonNull(keyPrefix);
+        }
 
-		@Override
-		public String getDisplayValue(final String object) {
-			return Application.get().getResourceSettings().getLocalizer().getString(keyPrefix + object, null);
-		}
-	}
+        @Override
+        public String getDisplayValue(final String object) {
+            return Application.get().getResourceSettings().getLocalizer().getString(keyPrefix + object, null);
+        }
+    }
 
-	private static final class PrefixedSplit extends Prefixed {
-		private static final long serialVersionUID = 1L;
+    private static final class PrefixedSplit extends Prefixed {
+        private static final long serialVersionUID = 1L;
 
-		private final Pattern splitPattern;
+        private final Pattern splitPattern;
 
-		PrefixedSplit(final String keyPrefix, final Pattern splitPattern) {
-			super(keyPrefix);
-			this.splitPattern = requireNonNull(splitPattern);
-		}
+        PrefixedSplit(final String keyPrefix, final Pattern splitPattern) {
+            super(keyPrefix);
+            this.splitPattern = requireNonNull(splitPattern);
+        }
 
-		@Override
-		public String getDisplayValue(final String object) {
-			return super.getDisplayValue(splitPattern.split(object)[1]);
-		}
-	}
+        @Override
+        public String getDisplayValue(final String object) {
+            return super.getDisplayValue(splitPattern.split(object)[1]);
+        }
+    }
 
-	private static final StringChoiceRenderer SIMPLE = new Simple();
+    private static final StringChoiceRenderer SIMPLE = new Simple();
 
-	private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 2L;
 
-	public static StringChoiceRenderer simple() {
-		return SIMPLE;
-	}
+    public static StringChoiceRenderer simple() {
+        return SIMPLE;
+    }
 
-	public static StringChoiceRenderer prefixed(final String keyPrefix) {
-		return StringUtils.isBlank(keyPrefix) ? SIMPLE : new Prefixed(keyPrefix);
-	}
+    public static StringChoiceRenderer prefixed(final String keyPrefix) {
+        return StringUtils.isBlank(keyPrefix) ? SIMPLE : new Prefixed(keyPrefix);
+    }
 
-	public static StringChoiceRenderer prefixedSplit(final String keyPrefix, final String splitPattern) {
-		if (StringUtils.isBlank(splitPattern)) {
-			return prefixed(keyPrefix);
-		}
+    public static StringChoiceRenderer prefixedSplit(final String keyPrefix, final String splitPattern) {
+        if (StringUtils.isBlank(splitPattern)) {
+            return prefixed(keyPrefix);
+        }
 
-		return new PrefixedSplit(StringUtils.isBlank(keyPrefix) ? "" : keyPrefix, Pattern.compile(splitPattern));
-	}
+        return new PrefixedSplit(StringUtils.isBlank(keyPrefix) ? "" : keyPrefix, Pattern.compile(splitPattern));
+    }
 
-	@Override
-	public String getObject(final String id, final IModel<? extends List<? extends String>> choices) {
-		return StringUtils.isBlank(id) ? null : choices.getObject().get(Integer.parseInt(id));
-	}
+    @Override
+    public String getObject(final String id, final IModel<? extends List<? extends String>> choices) {
+        return StringUtils.isBlank(id) ? null : choices.getObject().get(Integer.parseInt(id));
+    }
 
-	@Override
-	public String getIdValue(final String object, final int index) {
-		return Integer.toString(index);
-	}
+    @Override
+    public String getIdValue(final String object, final int index) {
+        return Integer.toString(index);
+    }
 }

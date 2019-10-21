@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,19 +18,19 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ItemPathParserImpl implements ItemPathParser {
 
-	@NotNull private final PrismContextImpl prismContext;
+    @NotNull private final PrismContextImpl prismContext;
 
-	ItemPathParserImpl(@NotNull PrismContextImpl prismContext) {
-		this.prismContext = prismContext;
-	}
+    ItemPathParserImpl(@NotNull PrismContextImpl prismContext) {
+        this.prismContext = prismContext;
+    }
 
-	@Override
-	public ItemPathType asItemPathType(String value) {
-		return new ItemPathType(asItemPath(value));
-	}
+    @Override
+    public ItemPathType asItemPathType(String value) {
+        return new ItemPathType(asItemPath(value));
+    }
 
-	@Override
-	public UniformItemPath asItemPath(String value) {
-		return ItemPathParserTemp.parseFromString(value);
-	}
+    @Override
+    public UniformItemPath asItemPath(String value) {
+        return ItemPathParserTemp.parseFromString(value);
+    }
 }

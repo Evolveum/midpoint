@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="2bb2fb86-034e-11e8-9cf3-77abfc7aafec"
@@ -14,6 +14,6 @@
     <description>This is non-employee role. It does NOT work as data processing basis.</description>
     <!-- No roleType -->
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#gamble</action>
+        <action>http://midpoint.evolveum.com/xml/ns/test/authorization#gamble</action>
     </authorization>
 </role>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens.projector.mappings;
@@ -35,75 +35,75 @@ import java.util.stream.Collectors;
  * @author semancik
  */
 public abstract class FocalMappingEvaluationRequest<MT extends MappingType, OO extends ObjectType> implements ShortDumpable,
-		MappingPreExpression {
+        MappingPreExpression {
 
-	@NotNull protected final MT mapping;
-	@NotNull protected final OO originObject;
+    @NotNull protected final MT mapping;
+    @NotNull protected final OO originObject;
 
-	private String mappingInfo;                           // lazily computed
+    private String mappingInfo;                           // lazily computed
 
-	FocalMappingEvaluationRequest(@NotNull MT mapping, @NotNull OO originObject) {
-		this.mapping = mapping;
-		this.originObject = originObject;
-	}
-
-	@NotNull
-	public MT getMapping() {
-		return mapping;
-	}
-	
-	public <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> Source<V,D> constructDefaultSource(
-			ObjectDeltaObject<AH> focusOdo) throws SchemaException {
-		return null;
-	}
-
-	/**
-	 * Executed before mapping expression is executed. It is used to populate the assignment.
-	 * We need to do that just before mapping expression is executed, because we want all the sources
-	 * and variables set the same way as mapping is set.
-	 */
-	public void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
-	}
-
-	@NotNull
-	public OO getOriginObject() {
-		return originObject;
-	}
-
-	/**
-	 * @return The phase this mapping should be evaluated in. If null, the mapping will be skipped if explicit
-	 *         evaluation phase is requested.
-	 */
-	public abstract ObjectTemplateMappingEvaluationPhaseType getEvaluationPhase();
-
-    public AssignmentPathVariables getAssignmentPathVariables() {
-    	return null;
+    FocalMappingEvaluationRequest(@NotNull MT mapping, @NotNull OO originObject) {
+        this.mapping = mapping;
+        this.originObject = originObject;
     }
 
-	String getMappingInfo() {
-    	if (mappingInfo == null) {
-		    StringBuilder sb = new StringBuilder();
-		    if (mapping.getName() != null) {
-			    sb.append(mapping.getName()).append(" (");
-		    }
-		    String sources = mapping.getSource().stream()
-				    .filter(source -> source != null && source.getPath() != null)
-				    .map(source -> source.getPath().toString())
-				    .collect(Collectors.joining(", "));
-		    if (!sources.isEmpty()) {
-			    sb.append(sources).append(" ");
-		    }
-		    sb.append("->");
-		    if (mapping.getTarget() != null && mapping.getTarget().getPath() != null) {
-			    sb.append(" ").append(mapping.getTarget().getPath().toString());
-		    }
-		    if (mapping.getName() != null) {
-			    sb.append(")");
-		    }
-		    mappingInfo = sb.toString();
-	    }
-		return mappingInfo;
-	}
+    @NotNull
+    public MT getMapping() {
+        return mapping;
+    }
+
+    public <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType> Source<V,D> constructDefaultSource(
+            ObjectDeltaObject<AH> focusOdo) throws SchemaException {
+        return null;
+    }
+
+    /**
+     * Executed before mapping expression is executed. It is used to populate the assignment.
+     * We need to do that just before mapping expression is executed, because we want all the sources
+     * and variables set the same way as mapping is set.
+     */
+    public void mappingPreExpression(ExpressionEvaluationContext context, OperationResult result) throws SchemaException,
+            ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
+    }
+
+    @NotNull
+    public OO getOriginObject() {
+        return originObject;
+    }
+
+    /**
+     * @return The phase this mapping should be evaluated in. If null, the mapping will be skipped if explicit
+     *         evaluation phase is requested.
+     */
+    public abstract ObjectTemplateMappingEvaluationPhaseType getEvaluationPhase();
+
+    public AssignmentPathVariables getAssignmentPathVariables() {
+        return null;
+    }
+
+    String getMappingInfo() {
+        if (mappingInfo == null) {
+            StringBuilder sb = new StringBuilder();
+            if (mapping.getName() != null) {
+                sb.append(mapping.getName()).append(" (");
+            }
+            String sources = mapping.getSource().stream()
+                    .filter(source -> source != null && source.getPath() != null)
+                    .map(source -> source.getPath().toString())
+                    .collect(Collectors.joining(", "));
+            if (!sources.isEmpty()) {
+                sb.append(sources).append(" ");
+            }
+            sb.append("->");
+            if (mapping.getTarget() != null && mapping.getTarget().getPath() != null) {
+                sb.append(" ").append(mapping.getTarget().getPath().toString());
+            }
+            if (mapping.getName() != null) {
+                sb.append(")");
+            }
+            mappingInfo = sb.toString();
+        }
+        return mappingInfo;
+    }
 }

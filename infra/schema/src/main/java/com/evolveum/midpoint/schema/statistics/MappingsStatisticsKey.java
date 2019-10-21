@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,7 +19,7 @@ public class MappingsStatisticsKey {
     public MappingsStatisticsKey(String objectOid, String objectName, String objectType) {
         this.objectOid = objectOid;
         this.objectName = objectName;
-		this.objectType = objectType;
+        this.objectType = objectType;
     }
 
     public String getObjectOid() {
@@ -30,11 +30,11 @@ public class MappingsStatisticsKey {
         return objectName;
     }
 
-	public String getObjectType() {
-		return objectType;
-	}
+    public String getObjectType() {
+        return objectType;
+    }
 
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

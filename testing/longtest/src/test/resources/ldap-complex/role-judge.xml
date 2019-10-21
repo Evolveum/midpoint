@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -14,25 +14,25 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Judge</name>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-    		<kind>account</kind>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+            <kind>account</kind>
             <association>
-            	<ref>ri:group</ref>
-            	<outbound>
-            		<expression>
-            			<associationTargetSearch>
-            				<filter>
-								<q:equal>
-									<q:path>attributes/cn</q:path>
-									<q:value>judges</q:value>
-								</q:equal>
-            				</filter>
-							<searchStrategy>onResource</searchStrategy>
-            			</associationTargetSearch>
-            		</expression>
-            	</outbound>
+                <ref>ri:group</ref>
+                <outbound>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/cn</q:path>
+                                    <q:value>judges</q:value>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResource</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
             </association>
-    	</construction>
+        </construction>
     </inducement>
 </role>

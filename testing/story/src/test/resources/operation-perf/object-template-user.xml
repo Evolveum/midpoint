@@ -2,60 +2,60 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="995aa1a6-1c5e-11e8-8d2f-6784dbc320a9"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
-	<name>Operation perf object template: users</name>
-	
-	<mapping>
-		<strength>weak</strength>
-		<source>
-			<c:path>$user/givenName</c:path>
-		</source>
-		<source>
-			<c:path>$user/familyName</c:path>
-		</source>
-		<expression>
-			<script>
-				<code>
-					givenName + ' ' + familyName
-				</code>
-			</script>
-		</expression>
-		<target>
-			<c:path>fullName</c:path>
-		</target>
-	</mapping>
-	
-	<mapping>
-		<authoritative>true</authoritative>
-		<source>
-			<c:path>organization</c:path>
-		</source>
-		<expression>
-			<assignmentTargetSearch>
-				<targetType>RoleType</targetType>
-				<filter>
-					<q:equal>
-						<q:path>name</q:path>
-						<expression>
-							<script>
-								<code>organization</code>
-							</script>
-						</expression>
-					</q:equal>
-				</filter>
-			</assignmentTargetSearch>
-		</expression>
-		<target>
-			<c:path>assignment</c:path>
-		</target>
-	</mapping>
-	
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>Operation perf object template: users</name>
+
+    <mapping>
+        <strength>weak</strength>
+        <source>
+            <c:path>$user/givenName</c:path>
+        </source>
+        <source>
+            <c:path>$user/familyName</c:path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + ' ' + familyName
+                </code>
+            </script>
+        </expression>
+        <target>
+            <c:path>fullName</c:path>
+        </target>
+    </mapping>
+
+    <mapping>
+        <authoritative>true</authoritative>
+        <source>
+            <c:path>organization</c:path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <script>
+                                <code>organization</code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <c:path>assignment</c:path>
+        </target>
+    </mapping>
+
 </objectTemplate>

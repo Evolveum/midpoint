@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -36,7 +36,7 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
 
    private static final long serialVersionUID = 1L;
 
-	private static final String ID_TEXT_INPUT = "textInput";
+    private static final String ID_TEXT_INPUT = "textInput";
 
     private static final int MAX_ITEMS = 10;
 
@@ -56,14 +56,14 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
 
             private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 //nothing to do, just update model data
             }
         });
         input.add(new Behavior() {
-        	
-        	private static final long serialVersionUID = 1L;
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void bind(Component component) {
@@ -87,22 +87,22 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
         //TODO: displayName
 //        LookupPropertyModel<String> lookupPropertyModel = new LookupPropertyModel<String>(getModel(), SearchValue.F_VALUE, lookup.asObjectable()) {
 //
-//        	private static final long serialVersionUID = 1L;
+//            private static final long serialVersionUID = 1L;
 //
-//			@Override
-//        	public boolean isSupportsDisplayName() {
-//        		return true;
-//        	}
+//            @Override
+//            public boolean isSupportsDisplayName() {
+//                return true;
+//            }
 //        };
 
         AutoCompleteSettings settings = new AutoCompleteSettings();
         settings.setShowListOnEmptyInput(true);
 
-        
+
         //TODO: converter
         return new AutoCompleteTextField<String>(ID_TEXT_INPUT, new PropertyModel<>(getModel(), SearchValue.F_VALUE), settings) {
 
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
             @Override
             protected Iterator<String> getChoices(String input) {
                 return prepareAutoCompleteList(input).iterator();

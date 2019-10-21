@@ -1,146 +1,146 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="12345111-1111-2222-1111-121212111111"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <name>Judge</name>
     <description>Role with role exclusions</description>
     <assignment>
-    	<policyRule>
-    		<name>criminal exclusion</name>
-    		<policyConstraints>
-		    	<exclusion>
-			    	<description>A judge cannot be a pirate at the same time. At least not openly.</description>
-			    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
-		    	</exclusion>
-		    </policyConstraints>
-		    <policyActions>
-		    	<enforcement/>
-		    </policyActions>
-    	</policyRule>
+        <policyRule>
+            <name>criminal exclusion</name>
+            <policyConstraints>
+                <exclusion>
+                    <description>A judge cannot be a pirate at the same time. At least not openly.</description>
+                    <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
     </assignment>
-	<assignment>
-		<policyRule>
-			<name>unassignment</name>
-			<policyConstraints>
-				<assignment>
-					<operation>delete</operation>
-				</assignment>
-			</policyConstraints>
-			<policyActions>
-				<notification/>
-			</policyActions>
-		</policyRule>
-	</assignment>
-	<assignment>
-		<policyRule>
-			<name>all-assignment-operations</name>
-			<policyConstraints>
-				<assignment/>
-			</policyConstraints>
-			<policyActions>
-				<approval/>
-			</policyActions>
-		</policyRule>
-	</assignment>
-	<assignment>
-		<policyRule>
-			<name>all-assignment-additions-on-jack</name>
-			<policyConstraints>
-				<assignment>
-					<operation>add</operation>
-				</assignment>
-				<objectState>
-					<filter>
-						<q:equal>
-							<q:path>name</q:path>
-							<q:value>jack</q:value>
-						</q:equal>
-					</filter>
-				</objectState>
-			</policyConstraints>
-			<policyActions>
-				<certification/>
-			</policyActions>
-		</policyRule>
-	</assignment>
-	<assignment>
-		<policyRule>
-			<name>all-assignment-operations-on-elaine</name>
-			<policyConstraints>
-				<assignment/>
-				<objectState>
-					<filter>
-						<q:equal>
-							<q:path>name</q:path>
-							<q:value>elaine</q:value>
-						</q:equal>
-					</filter>
-				</objectState>
-			</policyConstraints>
-			<policyActions>
-				<certification/>
-			</policyActions>
-		</policyRule>
-	</assignment>
-	<assignment>
-		<policyRule>
-			<name>all-assignment-additions-on-jack-via-script</name>
-			<policyConstraints>
-				<assignment>
-					<operation>add</operation>
-				</assignment>
-				<objectState>
-					<expression>
-						<script>
-							<code>
-								basic.stringify(focus.name) == 'jack'
-							</code>
-						</script>
-					</expression>
-				</objectState>
-			</policyConstraints>
-			<policyActions>
-				<certification/>
-			</policyActions>
-		</policyRule>
-	</assignment>
-	<assignment>
-		<policyRule>
-			<name>all-assignment-operations-disabled</name>
-			<policyConstraints>
-				<assignment/>
-			</policyConstraints>
-			<policyActions>
-				<approval/>
-			</policyActions>
-		</policyRule>
-		<condition>
-			<expression>
-				<value>false</value>
-			</expression>
-		</condition>
-	</assignment>
+    <assignment>
+        <policyRule>
+            <name>unassignment</name>
+            <policyConstraints>
+                <assignment>
+                    <operation>delete</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <notification/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>all-assignment-operations</name>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>all-assignment-additions-on-jack</name>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                </assignment>
+                <objectState>
+                    <filter>
+                        <q:equal>
+                            <q:path>name</q:path>
+                            <q:value>jack</q:value>
+                        </q:equal>
+                    </filter>
+                </objectState>
+            </policyConstraints>
+            <policyActions>
+                <certification/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>all-assignment-operations-on-elaine</name>
+            <policyConstraints>
+                <assignment/>
+                <objectState>
+                    <filter>
+                        <q:equal>
+                            <q:path>name</q:path>
+                            <q:value>elaine</q:value>
+                        </q:equal>
+                    </filter>
+                </objectState>
+            </policyConstraints>
+            <policyActions>
+                <certification/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>all-assignment-additions-on-jack-via-script</name>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                </assignment>
+                <objectState>
+                    <expression>
+                        <script>
+                            <code>
+                                basic.stringify(focus.name) == 'jack'
+                            </code>
+                        </script>
+                    </expression>
+                </objectState>
+            </policyConstraints>
+            <policyActions>
+                <certification/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+    <assignment>
+        <policyRule>
+            <name>all-assignment-operations-disabled</name>
+            <policyConstraints>
+                <assignment/>
+            </policyConstraints>
+            <policyActions>
+                <approval/>
+            </policyActions>
+        </policyRule>
+        <condition>
+            <expression>
+                <value>false</value>
+            </expression>
+        </condition>
+    </assignment>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-						<value>Honorable Justice</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>Honorable Justice</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 </role>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism;
@@ -33,41 +33,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismContainerValueWrapperImpl<O> implements PrismObjectValueWrapper<O>{
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperImpl.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperImpl.class);
 
-	public PrismObjectValueWrapperImpl(PrismObjectWrapper<O> parent, PrismObjectValue<O> pcv, ValueStatus status) {
-		super(parent, pcv, status);
-		setExpanded(true);
-	}
-	
-	@Override
-	public <T extends Containerable> List<PrismContainerWrapper<T>> getContainers() {
-		List<PrismContainerWrapper<T>> containers = new ArrayList<>();
-		for (ItemWrapper<?, ?, ?, ?> container : getItems()) {
+    public PrismObjectValueWrapperImpl(PrismObjectWrapper<O> parent, PrismObjectValue<O> pcv, ValueStatus status) {
+        super(parent, pcv, status);
+        setExpanded(true);
+    }
 
-			collectExtensionItems(container, true, containers);
+    @Override
+    public <T extends Containerable> List<PrismContainerWrapper<T>> getContainers() {
+        List<PrismContainerWrapper<T>> containers = new ArrayList<>();
+        for (ItemWrapper<?, ?, ?, ?> container : getItems()) {
 
-			if (container instanceof  PrismContainerWrapper && ((PrismContainerWrapper) container).isVirtual()) {
-				((List)containers).add(container);
-			}
-			
-			if (ObjectType.F_METADATA.equals(container.getItemName())) {
-				((List)containers).add(container);
-			}
+            collectExtensionItems(container, true, containers);
 
-		}
+            if (container instanceof  PrismContainerWrapper && ((PrismContainerWrapper) container).isVirtual()) {
+                ((List)containers).add(container);
+            }
 
+            if (ObjectType.F_METADATA.equals(container.getItemName())) {
+                ((List)containers).add(container);
+            }
 
-
-		return containers;
-		
-	}
+        }
 
 
-	@Override
-	public String getDisplayName() {
-		return new StringResourceModel("prismContainer.mainPanelDisplayName").getString();
-	}
+
+        return containers;
+
+    }
+
+
+    @Override
+    public String getDisplayName() {
+        return new StringResourceModel("prismContainer.mainPanelDisplayName").getString();
+    }
 }

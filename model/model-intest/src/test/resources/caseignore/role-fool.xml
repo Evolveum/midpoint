@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="97c24f16-e082-11e5-be34-13ace5aaad31"
@@ -13,36 +13,36 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Fool</name>
         <inducement>
-    	<construction>
-    		<!-- Resource Upcase -->
-    		<resourceRef oid="10000000-0000-0000-0000-000000001204" type="ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <!-- Resource Upcase -->
+            <resourceRef oid="10000000-0000-0000-0000-000000001204" type="ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-						<value>FOOL!</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>FOOL!</value>
+                    </expression>
+                </outbound>
             </attribute>
             <association>
-            	<ref>ri:group</ref>
-            	<outbound>
-            		<strength>strong</strength>
-                	<expression>
-						<associationTargetSearch>
-							<filter>
-								<q:equal>
-									<q:path>attributes/icfs:name</q:path>
-									<q:value>FOOLS</q:value>
-								</q:equal>
-							</filter>
-							<searchStrategy>onResourceIfNeeded</searchStrategy>
-						</associationTargetSearch>
-					</expression>
-				</outbound>
+                <ref>ri:group</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/icfs:name</q:path>
+                                    <q:value>FOOLS</q:value>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
             </association>
-    	</construction>
+        </construction>
     </inducement>
 
 </role>

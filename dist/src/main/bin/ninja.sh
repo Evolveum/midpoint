@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# This work is dual-licensed under the Apache License 2.0 
+# This work is dual-licensed under the Apache License 2.0
 # and European Union Public License. See LICENSE file for details.
 #
 # Parts of this file Copyright (c) 2017 Evolveum and contributors
@@ -30,21 +30,21 @@ cd "$SCRIPT_PATH/.."
 
 # honor MIDPOINT_HOME variable if it exists!
 if [ -z "$MIDPOINT_HOME" ]; then
-	if [ ! -d var ] ; then
-		echo "ERROR: midpoint.home directory desn't exist"
-		exit 1
-	else
-		MIDPOINT_HOME=$(cd "$SCRIPT_PATH../var"; pwd)
-	fi
+    if [ ! -d var ] ; then
+        echo "ERROR: midpoint.home directory desn't exist"
+        exit 1
+    else
+        MIDPOINT_HOME=$(cd "$SCRIPT_PATH../var"; pwd)
+    fi
 
-	[ -z "$MIDPOINT_HOME" ] && MIDPOINT_HOME=`cd "$SCRIPT_PATH../var" >/dev/null; pwd`
+    [ -z "$MIDPOINT_HOME" ] && MIDPOINT_HOME=`cd "$SCRIPT_PATH../var" >/dev/null; pwd`
 fi
 #cd "$SCRIPT_PATH../lib"
 
 if [ ! -f lib/ninja.jar ] ; then
-	echo "ERROR: ninja.jar is not in /lib directory"
-	exit 1
-fi 
+    echo "ERROR: ninja.jar is not in /lib directory"
+    exit 1
+fi
 
 # Set UMASK unless it has been overridden
 if [ -z "$UMASK" ]; then

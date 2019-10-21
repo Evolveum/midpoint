@@ -2,12 +2,12 @@
 <!--
   ~ Copyright (c) 2014 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <resource oid="10000000-0000-0000-0000-666600660006"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -15,8 +15,8 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource without configuration</name>
-	<connectorRef oid="cccccccc-cccc-cccc-cccc-000000000004" type="c:ConnectorType">
-	</connectorRef>
-	<!-- No connectorConfiguration here. -->
+    <name>Dummy Resource without configuration</name>
+    <connectorRef oid="cccccccc-cccc-cccc-cccc-000000000004" type="c:ConnectorType">
+    </connectorRef>
+    <!-- No connectorConfiguration here. -->
 </resource>

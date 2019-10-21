@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.objectdetails;
@@ -59,16 +59,16 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
 
     public ObjectHistoryTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
         super(id, mainForm, focusWrapperModel);
-        
+
     }
-    
+
     @Override
     protected void onInitialize() {
-    	super.onInitialize();
-    	
-    	//TODO seriously???
-    	getPageBase().getSessionStorage().setUserHistoryAuditLog(new AuditLogStorage());
-    	
+        super.onInitialize();
+
+        //TODO seriously???
+        getPageBase().getSessionStorage().setUserHistoryAuditLog(new AuditLogStorage());
+
         initLayout();
     }
 
@@ -101,7 +101,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                                     case 0:
                                         btn = buildDefaultButton(componentId, new Model<>("fa fa-circle-o"),
                                                 createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectDataTitle"),
-                                                new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO),
+                                                new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.INFO),
                                                 target ->
                                                         currentStateButtonClicked(target, getReconstructedObject(getObjectWrapper().getOid(),
                                                                 model.getObject().getEventIdentifier(), getObjectWrapper().getCompileTimeClass()),
@@ -110,7 +110,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                                     case 1:
                                         btn = buildDefaultButton(componentId, new Model<>(GuiStyleConstants.CLASS_FILE_TEXT),
                                                 createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectXmlTitle"),
-                                                new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS),
+                                                new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.SUCCESS),
                                                 target ->
                                                         viewObjectXmlButtonClicked(getObjectWrapper().getOid(),
                                                                 model.getObject().getEventIdentifier(),

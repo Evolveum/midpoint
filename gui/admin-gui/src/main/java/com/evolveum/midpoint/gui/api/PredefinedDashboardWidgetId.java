@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api;
@@ -16,27 +16,27 @@ import com.evolveum.midpoint.util.QNameUtil;
  */
 public enum PredefinedDashboardWidgetId {
 
-	SEARCH("search"),
-	SHORTCUTS("shortcuts"),
-	MY_WORKITEMS("myWorkItems"),
-	MY_REQUESTS("myRequests"),
-	MY_ASSIGNMENTS("myAssignments"),
-	MY_ACCOUNTS("myAccounts");
+    SEARCH("search"),
+    SHORTCUTS("shortcuts"),
+    MY_WORKITEMS("myWorkItems"),
+    MY_REQUESTS("myRequests"),
+    MY_ASSIGNMENTS("myAssignments"),
+    MY_ACCOUNTS("myAccounts");
 
-	private final QName qname;
-	private final String uri;
+    private final QName qname;
+    private final String uri;
 
-	private PredefinedDashboardWidgetId(String localPart) {
-		this.qname = new QName(ComponentConstants.NS_DASHBOARD_WIDGET, localPart);
-		this.uri = QNameUtil.qNameToUri(qname);
-	}
+    private PredefinedDashboardWidgetId(String localPart) {
+        this.qname = new QName(ComponentConstants.NS_DASHBOARD_WIDGET, localPart);
+        this.uri = QNameUtil.qNameToUri(qname);
+    }
 
-	public QName getQname() {
-		return qname;
-	}
+    public QName getQname() {
+        return qname;
+    }
 
-	public String getUri() {
-		return uri;
-	}
+    public String getUri() {
+        return uri;
+    }
 
 }

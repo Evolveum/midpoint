@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -54,9 +54,9 @@ import java.util.*;
 })
 public class ItemDeltaType implements Serializable, Cloneable, JaxbVisitable {
 
-	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ItemDeltaType");
-	public static final QName F_PATH = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "path");
-	public static final QName F_VALUE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "value");
+    public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ItemDeltaType");
+    public static final QName F_PATH = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "path");
+    public static final QName F_VALUE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "value");
 
     @XmlElement(required = true)
     protected ModificationTypeType modificationType;
@@ -135,11 +135,11 @@ public class ItemDeltaType implements Serializable, Cloneable, JaxbVisitable {
     }
 
 //    public List<Object> getAnyValues(){
-//    	List<Object> vals = new ArrayList<Object>();
-//    	for (Object raw : value){
-//    		vals.addAll(((RawType) raw).getContent());
-//    	}
-//    	return vals;
+//        List<Object> vals = new ArrayList<Object>();
+//        for (Object raw : value){
+//            vals.addAll(((RawType) raw).getContent());
+//        }
+//        return vals;
 //    }
 
 //    /**
@@ -155,7 +155,7 @@ public class ItemDeltaType implements Serializable, Cloneable, JaxbVisitable {
 //    }
 
 
-	@NotNull
+    @NotNull
     public List<RawType> getEstimatedOldValue() {
         return (List<RawType>) (List) estimatedOldValue;        // brutal hack
     }
@@ -165,11 +165,11 @@ public class ItemDeltaType implements Serializable, Cloneable, JaxbVisitable {
         ItemDeltaType clone = new ItemDeltaType();
         clone.setModificationType(getModificationType());
         clone.setPath(getPath());  //TODO clone path
-		// Proper cloning of inner raw values.
+        // Proper cloning of inner raw values.
         List<RawType> cloneValue = clone.getValue();
-		for (RawType rawType : getValue()) {
-			cloneValue.add(rawType.clone());
-		}
+        for (RawType rawType : getValue()) {
+            cloneValue.add(rawType.clone());
+        }
 //        delta.setValue(value != null ? value.clone() : null);
         clone.getEstimatedOldValue().addAll(getEstimatedOldValue());
         return clone;
@@ -411,62 +411,62 @@ public class ItemDeltaType implements Serializable, Cloneable, JaxbVisitable {
         return null;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime
-				* result
-				+ ((modificationType == null) ? 0 : modificationType.hashCode());
-		result = prime * result + value.hashCode();
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime
+                * result
+                + ((modificationType == null) ? 0 : modificationType.hashCode());
+        result = prime * result + value.hashCode();
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ItemDeltaType other = (ItemDeltaType) obj;
-		if (modificationType != other.modificationType)
-			return false;
-		if (path == null) {
-			if (other.path != null)
-				return false;
-		} else if (!path.equals(other.path))
-			return false;
-		// use of isEmpty is a hack: should be fixed soon!
-		if (!MiscUtil.unorderedCollectionEquals(value, other.value))
-			return false;
-		if (!MiscUtil.unorderedCollectionEquals(estimatedOldValue, other.estimatedOldValue))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ItemDeltaType other = (ItemDeltaType) obj;
+        if (modificationType != other.modificationType)
+            return false;
+        if (path == null) {
+            if (other.path != null)
+                return false;
+        } else if (!path.equals(other.path))
+            return false;
+        // use of isEmpty is a hack: should be fixed soon!
+        if (!MiscUtil.unorderedCollectionEquals(value, other.value))
+            return false;
+        if (!MiscUtil.unorderedCollectionEquals(estimatedOldValue, other.estimatedOldValue))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "ItemDeltaType(modificationType=" + modificationType
-				+ ", path=" + path + ", value=" + value + ", estimatedOldValue=" + estimatedOldValue + ")";
-	}
+    @Override
+    public String toString() {
+        return "ItemDeltaType(modificationType=" + modificationType
+                + ", path=" + path + ", value=" + value + ", estimatedOldValue=" + estimatedOldValue + ")";
+    }
 
-	@Override
-	public void accept(JaxbVisitor visitor) {
-		visitor.visit(this);
-		if (path != null) {
-			path.accept(visitor);
-		}
-		for (Object o : value) {
-			if (o instanceof JaxbVisitable) {
-				((JaxbVisitable) o).accept(visitor);
-			}
-		}
-		for (Object o : estimatedOldValue) {
-			if (o instanceof JaxbVisitable) {
-				((JaxbVisitable) o).accept(visitor);
-			}
-		}
-	}
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+        if (path != null) {
+            path.accept(visitor);
+        }
+        for (Object o : value) {
+            if (o instanceof JaxbVisitable) {
+                ((JaxbVisitable) o).accept(visitor);
+            }
+        }
+        for (Object o : estimatedOldValue) {
+            if (o instanceof JaxbVisitable) {
+                ((JaxbVisitable) o).accept(visitor);
+            }
+        }
+    }
 }

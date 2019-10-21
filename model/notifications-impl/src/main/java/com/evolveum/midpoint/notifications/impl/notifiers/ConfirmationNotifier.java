@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -33,84 +33,84 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component
 public class ConfirmationNotifier extends GeneralNotifier {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ConfirmationNotifier.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ConfirmationNotifier.class);
 
-	@Autowired
-	private MidpointFunctions midpointFunctions;
+    @Autowired
+    private MidpointFunctions midpointFunctions;
 
-	@Autowired
-	private NotificationFunctionsImpl notificationsUtil;
-
-
-	@PostConstruct
-	public void init() {
-		register(ConfirmationNotifierType.class);
-	}
-
-	@Override
-	protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType,
-			OperationResult result) {
-		if (!(event instanceof ModelEvent)) {
-			logNotApplicable(event, "wrong event type");
-			return false;
-		} else {
-			return true;
-		}
-	}
-
-	public String getConfirmationLink(UserType userType) {
-		throw new UnsupportedOperationException("Please implement in concrete notifier");
-	}
-
-	protected String createConfirmationLink(UserType userType, GeneralNotifierType generalNotifierType, OperationResult result) {
+    @Autowired
+    private NotificationFunctionsImpl notificationsUtil;
 
 
-		ConfirmationNotifierType userRegistrationNotifier = (ConfirmationNotifierType) generalNotifierType;
+    @PostConstruct
+    public void init() {
+        register(ConfirmationNotifierType.class);
+    }
 
-		RegistrationConfirmationMethodType confirmationMethod = userRegistrationNotifier.getConfirmationMethod();
+    @Override
+    protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType,
+            OperationResult result) {
+        if (!(event instanceof ModelEvent)) {
+            logNotApplicable(event, "wrong event type");
+            return false;
+        } else {
+            return true;
+        }
+    }
 
-		if (confirmationMethod == null) {
-			return null;
-		}
-		ExpressionEnvironment expressionEnv = new ExpressionEnvironment();
-		expressionEnv.setCurrentResult(result);
-		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(expressionEnv);
+    public String getConfirmationLink(UserType userType) {
+        throw new UnsupportedOperationException("Please implement in concrete notifier");
+    }
 
-		try {
-
-			switch (confirmationMethod) {
-				case LINK:
-					String confirmationLink = getConfirmationLink(userType);
-					return confirmationLink;
-				case PIN:
-					throw new UnsupportedOperationException("PIN confirmation not supported yes");
-	//				return getNonce(userType);
-				default:
-					break;
-			}
-
-		} finally {
-			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-		}
-
-		return null;
-
-	}
-
-	protected UserType getUser(Event event){
-		ModelEvent modelEvent = (ModelEvent) event;
-		//noinspection unchecked
-		PrismObject<UserType> newUser = (PrismObject<UserType>) modelEvent.getFocusContext().getObjectNew();
-		return newUser.asObjectable();
-	}
+    protected String createConfirmationLink(UserType userType, GeneralNotifierType generalNotifierType, OperationResult result) {
 
 
-	@Override
-	protected Trace getLogger() {
-		return LOGGER;
-	}
+        ConfirmationNotifierType userRegistrationNotifier = (ConfirmationNotifierType) generalNotifierType;
 
-	public MidpointFunctions getMidpointFunctions() {
-		return midpointFunctions;
-	}
+        RegistrationConfirmationMethodType confirmationMethod = userRegistrationNotifier.getConfirmationMethod();
+
+        if (confirmationMethod == null) {
+            return null;
+        }
+        ExpressionEnvironment expressionEnv = new ExpressionEnvironment();
+        expressionEnv.setCurrentResult(result);
+        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(expressionEnv);
+
+        try {
+
+            switch (confirmationMethod) {
+                case LINK:
+                    String confirmationLink = getConfirmationLink(userType);
+                    return confirmationLink;
+                case PIN:
+                    throw new UnsupportedOperationException("PIN confirmation not supported yes");
+    //                return getNonce(userType);
+                default:
+                    break;
+            }
+
+        } finally {
+            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+        }
+
+        return null;
+
+    }
+
+    protected UserType getUser(Event event){
+        ModelEvent modelEvent = (ModelEvent) event;
+        //noinspection unchecked
+        PrismObject<UserType> newUser = (PrismObject<UserType>) modelEvent.getFocusContext().getObjectNew();
+        return newUser.asObjectable();
+    }
+
+
+    @Override
+    protected Trace getLogger() {
+        return LOGGER;
+    }
+
+    public MidpointFunctions getMidpointFunctions() {
+        return midpointFunctions;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,25 +17,25 @@ import javax.xml.namespace.QName;
  * @author mederly
  */
 public interface PrismReferenceDefinition extends ItemDefinition<PrismReference> {
-	QName getTargetTypeName();
+    QName getTargetTypeName();
 
-	@Deprecated
-	QName getCompositeObjectElementName();
+    @Deprecated
+    QName getCompositeObjectElementName();
 
-	boolean isComposite();
+    boolean isComposite();
 
-	@NotNull
-	@Override
-	PrismReference instantiate();
+    @NotNull
+    @Override
+    PrismReference instantiate();
 
-	@NotNull
-	@Override
-	PrismReference instantiate(QName name);
+    @NotNull
+    @Override
+    PrismReference instantiate(QName name);
 
-	@Override
-	ItemDelta createEmptyDelta(ItemPath path);
+    @Override
+    ItemDelta createEmptyDelta(ItemPath path);
 
-	@NotNull
-	@Override
-	PrismReferenceDefinition clone();
+    @NotNull
+    @Override
+    PrismReferenceDefinition clone();
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,14 +19,14 @@ import java.util.List;
  */
 public class SchemaDeputyUtil {
 
-	public static boolean limitationsAllow(List<OtherPrivilegesLimitationType> limitations, QName itemName) {
-		for (OtherPrivilegesLimitationType limitation : limitations) {
-			@SuppressWarnings({ "unchecked", "raw" })
-			PrismContainer<WorkItemSelectorType> selector = limitation.asPrismContainerValue().findContainer(itemName);
-			if (selector == null || selector.isEmpty() || !selector.getRealValue().isAll()) {
-				return false;
-			}
-		}
-		return true;
-	}
+    public static boolean limitationsAllow(List<OtherPrivilegesLimitationType> limitations, QName itemName) {
+        for (OtherPrivilegesLimitationType limitation : limitations) {
+            @SuppressWarnings({ "unchecked", "raw" })
+            PrismContainer<WorkItemSelectorType> selector = limitation.asPrismContainerValue().findContainer(itemName);
+            if (selector == null || selector.isEmpty() || !selector.getRealValue().isAll()) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,22 +18,22 @@ import javax.xml.namespace.QName;
  */
 public interface PrimitiveXNode<T> extends XNode {
 
-	String getGuessedFormattedValue() throws SchemaException;
+    String getGuessedFormattedValue() throws SchemaException;
 
-	/**
-	 * Returns the value represented as string - in the best format that we can.
-	 * There is no guarantee that the returned value will be precise.
-	 * This method is used as a "last instance" if everything else fails.
-	 * Invocation of this method will not change the state of this xnode, e.g.
-	 * it will NOT cause it to be parsed.
-	 */
-	String getStringValue();
+    /**
+     * Returns the value represented as string - in the best format that we can.
+     * There is no guarantee that the returned value will be precise.
+     * This method is used as a "last instance" if everything else fails.
+     * Invocation of this method will not change the state of this xnode, e.g.
+     * it will NOT cause it to be parsed.
+     */
+    String getStringValue();
 
-	T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass) throws SchemaException;
+    T getParsedValue(@NotNull QName typeName, @Nullable Class<T> expectedClass) throws SchemaException;
 
-	T getValue();
+    T getValue();
 
-	ValueParser<T> getValueParser();
+    ValueParser<T> getValueParser();
 
-	boolean isParsed();
+    boolean isParsed();
 }

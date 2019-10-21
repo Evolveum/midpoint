@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -78,7 +78,7 @@ public class CapabilityStep extends WizardStep {
     private static final String DOT_CLASS = CapabilityStep.class.getName() + ".";
     private static final String OPERATION_SAVE_CAPABILITIES = DOT_CLASS + "saveCapabilities";
 
-	private static final String ID_CAPABILITY_TABLE = "tableRows";
+    private static final String ID_CAPABILITY_TABLE = "tableRows";
     private static final String ID_CAPABILITY_ROW = "capabilityRow";
     private static final String ID_CAPABILITY_NAME = "capabilityName";
     private static final String ID_CAPABILITY_LINK = "capabilityLink";
@@ -89,48 +89,48 @@ public class CapabilityStep extends WizardStep {
 
     private static final String DIALOG_SELECT_CAPABILITY = "capabilitySelectPopup";
 
-	@NotNull private final PageResourceWizard parentPage;
-	@NotNull private final NonEmptyLoadableModel<CapabilityStepDto> dtoModel;
+    @NotNull private final PageResourceWizard parentPage;
+    @NotNull private final NonEmptyLoadableModel<CapabilityStepDto> dtoModel;
     @NotNull private final NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel;
 
     public CapabilityStep(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModel, @NotNull PageResourceWizard parentPage) {
         super(parentPage);
-		this.parentPage = parentPage;
+        this.parentPage = parentPage;
         this.resourceModel = resourceModel;
         this.dtoModel = new NonEmptyLoadableModel<CapabilityStepDto>(false) {
             @Override
-			@NotNull
+            @NotNull
             protected CapabilityStepDto load() {
                 return loadDtoModel();
             }
         };
-		parentPage.registerDependentModel(dtoModel);
+        parentPage.registerDependentModel(dtoModel);
 
         initLayout();
     }
 
-	@NotNull
-	private CapabilityStepDto loadDtoModel() {
+    @NotNull
+    private CapabilityStepDto loadDtoModel() {
         ResourceType resource = resourceModel.getObject().asObjectable();
-		return new CapabilityStepDto(getCapabilitiesFromResource(resource));
+        return new CapabilityStepDto(getCapabilitiesFromResource(resource));
     }
 
     private List<CapabilityDto<CapabilityType>> getCapabilitiesFromResource(ResourceType resource) {
         List<CapabilityDto<CapabilityType>> capabilityList = new ArrayList<>();
 
         try {
-			Collection<Class<? extends CapabilityType>> nativeClasses = ResourceTypeUtil.getNativeCapabilityClasses(resource);
+            Collection<Class<? extends CapabilityType>> nativeClasses = ResourceTypeUtil.getNativeCapabilityClasses(resource);
             List<Object> objects = ResourceTypeUtil.getAllCapabilities(resource);
 
-			for (Object capabilityObject : objects) {
-				CapabilityType capability = CapabilityUtil.asCapabilityType(capabilityObject);
-				if (Capability.supports(capability.getClass())) {
-					capability = fillDefaults(capability);
-					capabilityList.add(new CapabilityDto<>(capability, nativeClasses.contains(capability.getClass())));
-				} else {
-					LOGGER.warn("Capability unsupported by the Resource Wizard: {}", capability);
-				}
-			}
+            for (Object capabilityObject : objects) {
+                CapabilityType capability = CapabilityUtil.asCapabilityType(capabilityObject);
+                if (Capability.supports(capability.getClass())) {
+                    capability = fillDefaults(capability);
+                    capabilityList.add(new CapabilityDto<>(capability, nativeClasses.contains(capability.getClass())));
+                } else {
+                    LOGGER.warn("Capability unsupported by the Resource Wizard: {}", capability);
+                }
+            }
 
         } catch (SchemaException|RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load capabilities", e);
@@ -140,15 +140,15 @@ public class CapabilityStep extends WizardStep {
         return capabilityList;
     }
 
-	public static CapabilityType fillDefaults(CapabilityType capability) {
-		CapabilityType normalized = CloneUtil.clone(capability);
-		CapabilityUtil.fillDefaults(normalized);
-		return normalized;
-	}
+    public static CapabilityType fillDefaults(CapabilityType capability) {
+        CapabilityType normalized = CloneUtil.clone(capability);
+        CapabilityUtil.fillDefaults(normalized);
+        return normalized;
+    }
 
-	protected void initLayout() {
+    protected void initLayout() {
         final ListDataProvider<CapabilityDto<CapabilityType>> capabilityProvider = new ListDataProvider<>(this,
-				new PropertyModel<List<CapabilityDto<CapabilityType>>>(dtoModel, CapabilityStepDto.F_CAPABILITIES));
+                new PropertyModel<List<CapabilityDto<CapabilityType>>>(dtoModel, CapabilityStepDto.F_CAPABILITIES));
 
         WebMarkupContainer tableBody = new WebMarkupContainer(ID_CAPABILITY_TABLE);
         tableBody.setOutputMarkupId(true);
@@ -165,47 +165,47 @@ public class CapabilityStep extends WizardStep {
                 final CapabilityDto<CapabilityType> dto = capabilityRow.getModelObject();
 
                 AjaxLink<Void> name = new AjaxLink<Void>(ID_CAPABILITY_LINK) {
-                	private static final long serialVersionUID = 1L;    @Override
+                    private static final long serialVersionUID = 1L;    @Override
                     public void onClick(AjaxRequestTarget target) {
                         editCapabilityPerformed(target, dto);
                     }
                 };
                 Label label = new Label(ID_CAPABILITY_NAME, new IModel<String>() {
-					@Override
-					public String getObject() {
-						String rv = dto.getDisplayName();
-						if (Boolean.FALSE.equals(dto.getCapability().isEnabled())) {
-							rv += " " + getString("CapabilityStep.disabled");
-						}
-						return rv;
-					}
-				});
+                    @Override
+                    public String getObject() {
+                        String rv = dto.getDisplayName();
+                        if (Boolean.FALSE.equals(dto.getCapability().isEnabled())) {
+                            rv += " " + getString("CapabilityStep.disabled");
+                        }
+                        return rv;
+                    }
+                });
                 name.add(label);
                 capabilityRow.add(name);
 
                 Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
-				if (dto.getTooltipKey() != null) {
-					tooltipLabel.add(new AttributeAppender("data-original-title", getString(dto.getTooltipKey())));
-					tooltipLabel.add(new InfoTooltipBehavior());
-				} else {
-					tooltipLabel.setVisible(false);
-				}
+                if (dto.getTooltipKey() != null) {
+                    tooltipLabel.add(new AttributeAppender("data-original-title", getString(dto.getTooltipKey())));
+                    tooltipLabel.add(new InfoTooltipBehavior());
+                } else {
+                    tooltipLabel.setVisible(false);
+                }
                 tooltipLabel.setOutputMarkupId(true);
                 tooltipLabel.setOutputMarkupPlaceholderTag(true);
                 name.add(tooltipLabel);
-                
+
                 AjaxLink<Void> deleteLink = new AjaxLink<Void>(ID_CAPABILITY_DELETE) {
-                	private static final long serialVersionUID = 1L;					@Override
+                    private static final long serialVersionUID = 1L;                    @Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteCapabilityPerformed(target, dto);
                     }
                 };
-				deleteLink.add(new VisibleEnableBehaviour() {
-					@Override
-					public boolean isVisible() {
-						return !dto.isAmongNativeCapabilities() && !parentPage.isReadOnly();
-					}
-				});
+                deleteLink.add(new VisibleEnableBehaviour() {
+                    @Override
+                    public boolean isVisible() {
+                        return !dto.isAmongNativeCapabilities() && !parentPage.isReadOnly();
+                    }
+                });
                 name.add(deleteLink);
 
                 capabilityRow.add(AttributeModifier.replace("class", new IModel<Object>() {
@@ -218,14 +218,14 @@ public class CapabilityStep extends WizardStep {
             }
         };
         tableBody.add(capabilityDataView);
-        
+
         AjaxLink<Void> addLink = new AjaxLink<Void>(ID_CAPABILITY_ADD) {
-        	private static final long serialVersionUID = 1L;            @Override
+            private static final long serialVersionUID = 1L;            @Override
             public void onClick(AjaxRequestTarget target) {
                 addCapabilityPerformed(target);
             }
         };
-		parentPage.addEditingVisibleBehavior(addLink);
+        parentPage.addEditingVisibleBehavior(addLink);
         add(addLink);
 
         ModalWindow dialog = new AddCapabilityDialog(DIALOG_SELECT_CAPABILITY, dtoModel) {
@@ -238,11 +238,11 @@ public class CapabilityStep extends WizardStep {
         add(dialog);
     }
 
-	private boolean isSelected(CapabilityDto capabilityDto) {
-		return dtoModel.getObject().getSelectedDto() == capabilityDto;
-	}
+    private boolean isSelected(CapabilityDto capabilityDto) {
+        return dtoModel.getObject().getSelectedDto() == capabilityDto;
+    }
 
-	private WebMarkupContainer getTable(){
+    private WebMarkupContainer getTable(){
         return (WebMarkupContainer)get(ID_CAPABILITY_TABLE);
     }
 
@@ -251,10 +251,10 @@ public class CapabilityStep extends WizardStep {
     }
 
     private void deleteCapabilityPerformed(AjaxRequestTarget target, CapabilityDto rowModel) {
-		if (dtoModel.getObject().getSelectedDto() == rowModel) {
-			dtoModel.getObject().setSelected(null);
-			target.add(getConfigContainer().replaceWith(new WebMarkupContainer(ID_CAPABILITY_CONFIG)));
-		}
+        if (dtoModel.getObject().getSelectedDto() == rowModel) {
+            dtoModel.getObject().setSelected(null);
+            target.add(getConfigContainer().replaceWith(new WebMarkupContainer(ID_CAPABILITY_CONFIG)));
+        }
         dtoModel.getObject().getCapabilities().remove(rowModel);
 
         target.add(getTable());
@@ -275,56 +275,56 @@ public class CapabilityStep extends WizardStep {
         window.show(target);
     }
 
-	@SuppressWarnings("unchecked")
-	private void editCapabilityPerformed(final AjaxRequestTarget target, CapabilityDto<? extends CapabilityType> capability) {
-		dtoModel.getObject().setSelected(capability);
+    @SuppressWarnings("unchecked")
+    private void editCapabilityPerformed(final AjaxRequestTarget target, CapabilityDto<? extends CapabilityType> capability) {
+        dtoModel.getObject().setSelected(capability);
 
         WebMarkupContainer config = getConfigContainer();
         WebMarkupContainer newConfig;
         CapabilityType capType = capability.getCapability();
 
         if (capType instanceof ActivationCapabilityType) {
-			newConfig = new CapabilityActivationPanel(ID_CAPABILITY_CONFIG, new Model<>((CapabilityDto<ActivationCapabilityType>) capability), parentPage) {
+            newConfig = new CapabilityActivationPanel(ID_CAPABILITY_CONFIG, new Model<>((CapabilityDto<ActivationCapabilityType>) capability), parentPage) {
 
                 @Override
                 public IModel<List<QName>> createAttributeChoiceModel(final IChoiceRenderer<QName> renderer) {
-					LoadableModel<List<QName>> attributeChoiceModel = new LoadableModel<List<QName>>(false) {
+                    LoadableModel<List<QName>> attributeChoiceModel = new LoadableModel<List<QName>>(false) {
 
-						@Override
-						protected List<QName> load() {
-							List<QName> choices = new ArrayList<>();
+                        @Override
+                        protected List<QName> load() {
+                            List<QName> choices = new ArrayList<>();
 
-							PrismObject<ResourceType> resourcePrism = resourceModel.getObject();
+                            PrismObject<ResourceType> resourcePrism = resourceModel.getObject();
 
-							try {
-								ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resourcePrism, getPageBase().getPrismContext());
-								if (schema != null) {
-									ObjectClassComplexTypeDefinition def = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-									for (ResourceAttributeDefinition attribute : def.getAttributeDefinitions()) {
-										choices.add(attribute.getItemName());
-									}
-								}
-							} catch (CommonException | RuntimeException e) {
-								LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource schema attributes.", e);
-								getPageBase().error("Couldn't load resource schema attributes" + e);
-							}
+                            try {
+                                ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resourcePrism, getPageBase().getPrismContext());
+                                if (schema != null) {
+                                    ObjectClassComplexTypeDefinition def = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+                                    for (ResourceAttributeDefinition attribute : def.getAttributeDefinitions()) {
+                                        choices.add(attribute.getItemName());
+                                    }
+                                }
+                            } catch (CommonException | RuntimeException e) {
+                                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load resource schema attributes.", e);
+                                getPageBase().error("Couldn't load resource schema attributes" + e);
+                            }
 
-							Collections.sort(choices, new Comparator<QName>() {
+                            Collections.sort(choices, new Comparator<QName>() {
 
-								@Override
-								public int compare(QName o1, QName o2) {
-									String s1 = (String) renderer.getDisplayValue(o1);
-									String s2 = (String) renderer.getDisplayValue(o2);
+                                @Override
+                                public int compare(QName o1, QName o2) {
+                                    String s1 = (String) renderer.getDisplayValue(o1);
+                                    String s2 = (String) renderer.getDisplayValue(o2);
 
-									return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
-								}
-							});
+                                    return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+                                }
+                            });
 
-							return choices;
-						}
-					};
-					parentPage.registerDependentModel(attributeChoiceModel);
-					return attributeChoiceModel;
+                            return choices;
+                        }
+                    };
+                    parentPage.registerDependentModel(attributeChoiceModel);
+                    return attributeChoiceModel;
                 }
             };
         } else if (capType instanceof ScriptCapabilityType) {
@@ -334,7 +334,7 @@ public class CapabilityStep extends WizardStep {
         } else {
             newConfig = new CapabilityValuePanel(ID_CAPABILITY_CONFIG, new Model<>((CapabilityDto<CapabilityType>) capability), getTable(), parentPage);
         }
-		// TODO other specific capabilities (paged, count, ...)
+        // TODO other specific capabilities (paged, count, ...)
 
         newConfig.setOutputMarkupId(true);
         config.replaceWith(newConfig);
@@ -345,11 +345,11 @@ public class CapabilityStep extends WizardStep {
 
     @Override
     public void applyState() {
-		parentPage.refreshIssues(null);
-		if (parentPage.isReadOnly() || !isComplete()) {
-			return;
-		}
-		savePerformed();
+        parentPage.refreshIssues(null);
+        if (parentPage.isReadOnly() || !isComplete()) {
+            return;
+        }
+        savePerformed();
     }
 
     private void savePerformed() {
@@ -357,31 +357,31 @@ public class CapabilityStep extends WizardStep {
         OperationResult result = task.getResult();
         ModelService modelService = getPageBase().getModelService();
 
-		boolean saved = false;
+        boolean saved = false;
 
         try {
-			PrismObject<ResourceType> oldResource;
-			final PrismObject<ResourceType> resourceObject = resourceModel.getObject();
-			ResourceType resource = resourceObject.asObjectable();
+            PrismObject<ResourceType> oldResource;
+            final PrismObject<ResourceType> resourceObject = resourceModel.getObject();
+            ResourceType resource = resourceObject.asObjectable();
 
-			List<Object> unsupportedCapabilities = new ArrayList<>();
-			if (resource.getCapabilities().getConfigured() != null) {
-				for (Object o : resource.getCapabilities().getConfigured().getAny()) {
-					CapabilityType capabilityType = CapabilityUtil.asCapabilityType(o);
-					if (!Capability.supports(capabilityType.getClass())) {
-						unsupportedCapabilities.add(o);
-					}
-				}
-			}
-			// AnyArrayList that is used to implement getAny() is really strange (e.g. doesn't support iterator.remove();
-			// and its support for clear() is questionable) -- so let's recreate it altogether
-			resource.getCapabilities().setConfigured(new CapabilityCollectionType());
-			resource.getCapabilities().getConfigured().getAny().addAll(unsupportedCapabilities);
+            List<Object> unsupportedCapabilities = new ArrayList<>();
+            if (resource.getCapabilities().getConfigured() != null) {
+                for (Object o : resource.getCapabilities().getConfigured().getAny()) {
+                    CapabilityType capabilityType = CapabilityUtil.asCapabilityType(o);
+                    if (!Capability.supports(capabilityType.getClass())) {
+                        unsupportedCapabilities.add(o);
+                    }
+                }
+            }
+            // AnyArrayList that is used to implement getAny() is really strange (e.g. doesn't support iterator.remove();
+            // and its support for clear() is questionable) -- so let's recreate it altogether
+            resource.getCapabilities().setConfigured(new CapabilityCollectionType());
+            resource.getCapabilities().getConfigured().getAny().addAll(unsupportedCapabilities);
 
-			ObjectFactory capabilityFactory = new ObjectFactory();
-			for (CapabilityDto dto : dtoModel.getObject().getCapabilities()) {
-				JAXBElement<? extends CapabilityType> jaxbCapability = createJAXBCapability(dto.getCapability(), capabilityFactory);
-				if (jaxbCapability != null) {
+            ObjectFactory capabilityFactory = new ObjectFactory();
+            for (CapabilityDto dto : dtoModel.getObject().getCapabilities()) {
+                JAXBElement<? extends CapabilityType> jaxbCapability = createJAXBCapability(dto.getCapability(), capabilityFactory);
+                if (jaxbCapability != null) {
                     resource.getCapabilities().getConfigured().getAny().add(jaxbCapability);
                 }
             }
@@ -389,14 +389,14 @@ public class CapabilityStep extends WizardStep {
             oldResource = WebModelServiceUtils.loadObject(ResourceType.class, resource.getOid(), getPageBase(), task, result);
             if (oldResource != null) {
                 ObjectDelta<ResourceType> delta = parentPage.computeDiff(oldResource, resourceObject);
-				if (!delta.isEmpty()) {
-					parentPage.logDelta(delta);
-					@SuppressWarnings("unchecked") Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil
-							.createDeltaCollection(delta);
-					modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_CAPABILITIES), result);
-					parentPage.resetModels();
-					saved = true;
-				}
+                if (!delta.isEmpty()) {
+                    parentPage.logDelta(delta);
+                    @SuppressWarnings("unchecked") Collection<ObjectDelta<? extends ObjectType>> deltas = WebComponentUtil
+                            .createDeltaCollection(delta);
+                    modelService.executeChanges(deltas, null, getPageBase().createSimpleTask(OPERATION_SAVE_CAPABILITIES), result);
+                    parentPage.resetModels();
+                    saved = true;
+                }
             }
         } catch (CommonException|RuntimeException e){
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save capabilities", e);
@@ -411,21 +411,21 @@ public class CapabilityStep extends WizardStep {
         }
     }
 
-	@SuppressWarnings("unchecked")
-	private JAXBElement<? extends CapabilityType> createJAXBCapability(CapabilityType capability, ObjectFactory factory) {
-		for (Method method : factory.getClass().getMethods()) {
-			Type returnType = method.getGenericReturnType();
-			if (returnType instanceof ParameterizedType) {
-				ParameterizedType pt = (ParameterizedType) returnType;
-				if (JAXBElement.class.equals(pt.getRawType()) && pt.getActualTypeArguments().length == 1 && capability.getClass().equals(pt.getActualTypeArguments()[0])) {
-					try {
-						return (JAXBElement<? extends CapabilityType>) method.invoke(factory, capability);
-					} catch (IllegalAccessException|InvocationTargetException e) {
-						throw new SystemException("Couldn't instantiate JAXBElement for capability " + capability);
-					}
-				}
-			}
-		}
-		throw new IllegalStateException("No factory method for creating JAXBElement for capability " + capability);
+    @SuppressWarnings("unchecked")
+    private JAXBElement<? extends CapabilityType> createJAXBCapability(CapabilityType capability, ObjectFactory factory) {
+        for (Method method : factory.getClass().getMethods()) {
+            Type returnType = method.getGenericReturnType();
+            if (returnType instanceof ParameterizedType) {
+                ParameterizedType pt = (ParameterizedType) returnType;
+                if (JAXBElement.class.equals(pt.getRawType()) && pt.getActualTypeArguments().length == 1 && capability.getClass().equals(pt.getActualTypeArguments()[0])) {
+                    try {
+                        return (JAXBElement<? extends CapabilityType>) method.invoke(factory, capability);
+                    } catch (IllegalAccessException|InvocationTargetException e) {
+                        throw new SystemException("Couldn't instantiate JAXBElement for capability " + capability);
+                    }
+                }
+            }
+        }
+        throw new IllegalStateException("No factory method for creating JAXBElement for capability " + capability);
     }
 }

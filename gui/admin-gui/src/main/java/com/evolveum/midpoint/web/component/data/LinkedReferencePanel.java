@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -54,7 +54,7 @@ public class LinkedReferencePanel<AHT extends AssignmentHolderType> extends Base
     }
 
     public void initReferencedObjectModel() {
-    		referencedObjectModel = new LoadableModel<AHT>() {
+            referencedObjectModel = new LoadableModel<AHT>() {
                 @Override
                 protected AHT load() {
                     if (getModelObject() == null || getModelObject().getType() == null){
@@ -65,7 +65,7 @@ public class LinkedReferencePanel<AHT extends AssignmentHolderType> extends Base
                         return (AHT)getModelObject().asReferenceValue().getObject().asObjectable();
                     }
                     if (StringUtils.isNotEmpty(getModelObject().getOid()) && getModelObject().getType() != null) {
-                    	PageBase pageBase = LinkedReferencePanel.this.getPageBase();
+                        PageBase pageBase = LinkedReferencePanel.this.getPageBase();
                         OperationResult result = new OperationResult(OPERATION_LOAD_REFERENCED_OBJECT);
                         PrismObject<AHT> assignmentHolder = WebModelServiceUtils.loadObject(getModelObject(), pageBase,
                                 pageBase.createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT), result);

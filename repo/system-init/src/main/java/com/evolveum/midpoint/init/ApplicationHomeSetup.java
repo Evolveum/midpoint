@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -43,14 +43,14 @@ public class ApplicationHomeSetup {
             System.out.println(message);
         }
     }
-    
+
     /**
      * Creates directory structure under root
      * <p/>
      * Directory information based on: http://wiki.evolveum.com/display/midPoint/midpoint.home+-+directory+structure
      */
     private void createMidpointHomeDirectories(String midpointHomePath) {
-    	if (!checkDirectoryExistence(midpointHomePath)) {
+        if (!checkDirectoryExistence(midpointHomePath)) {
             createDir(midpointHomePath);
         }
 
@@ -77,14 +77,14 @@ public class ApplicationHomeSetup {
             createDir(directory);
         }
     }
-    
+
     private void setupMidpointHomeDirectory(String midpointHomePath) {
-    	try {
-			ClassPathUtil.extractFilesFromClassPath("initial-midpoint-home", midpointHomePath, false);
-		} catch (URISyntaxException | IOException e) {
-			LOGGER.error("Error copying the content of initial-midpoint-home to {}: {}", midpointHomePath, e.getMessage(), e);
-		}
-    	
+        try {
+            ClassPathUtil.extractFilesFromClassPath("initial-midpoint-home", midpointHomePath, false);
+        } catch (URISyntaxException | IOException e) {
+            LOGGER.error("Error copying the content of initial-midpoint-home to {}: {}", midpointHomePath, e.getMessage(), e);
+        }
+
     }
 
     private boolean checkDirectoryExistence(String dir) {

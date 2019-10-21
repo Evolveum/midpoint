@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -67,10 +67,10 @@ public class RootHibernateQuery extends HibernateQuery {
     }
 
     public Map<String, QueryParameterValue> getParameters() {
-		return parameters;
-	}
+        return parameters;
+    }
 
-	private String findFreeName(String prefix) {
+    private String findFreeName(String prefix) {
         int i = 1;
         for (;;) {
             String name = i == 1 ? prefix : prefix+i;
@@ -133,9 +133,9 @@ public class RootHibernateQuery extends HibernateQuery {
         this.resultTransformer = resultTransformer;
     }
 
-	public void setDistinct(boolean distinct) {
-		this.distinct = distinct;
-	}
+    public void setDistinct(boolean distinct) {
+        this.distinct = distinct;
+    }
 
     public boolean isDistinct() {
         return distinct;
@@ -159,12 +159,12 @@ public class RootHibernateQuery extends HibernateQuery {
 
     public Condition createEqOrInOrNull(String propertyPath, Collection<?> values) {
         if (values.isEmpty()) {
-        	return createIsNull(propertyPath);
-		} else if (values.size() == 1) {
-			return createEq(propertyPath, values.iterator().next(), false);
-		} else {
-        	return createIn(propertyPath, values);
-		}
+            return createIsNull(propertyPath);
+        } else if (values.size() == 1) {
+            return createEq(propertyPath, values.iterator().next(), false);
+        } else {
+            return createIn(propertyPath, values);
+        }
     }
 
     public Condition createSimpleComparisonCondition(String propertyPath, Object value, String comparatorSymbol) {

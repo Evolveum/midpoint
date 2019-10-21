@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -17,7 +17,7 @@
       version="11">
    <name>Squirel</name>
    <assignment>
-   		<targetRef oid="7384756g-2545-4123-96ed-8aabda7c3710" type="RoleType" /> <!-- meta role monkey, donkey -->
+           <targetRef oid="7384756g-2545-4123-96ed-8aabda7c3710" type="RoleType" /> <!-- meta role monkey, donkey -->
    </assignment>
    <inducement id="4">
       <construction>

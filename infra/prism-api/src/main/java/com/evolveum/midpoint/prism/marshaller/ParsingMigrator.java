@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,9 +19,9 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
  */
 public interface ParsingMigrator {
 
-	/**
-	 * Tries to unmarshal primitive value into a given bean (if standard ways fail).
-	 * @return non-null if it could be done
-	 */
-	<T> T tryParsingPrimitiveAsBean(PrimitiveXNode<T> primitive, Class<T> beanClass, ParsingContext pc);
+    /**
+     * Tries to unmarshal primitive value into a given bean (if standard ways fail).
+     * @return non-null if it could be done
+     */
+    <T> T tryParsingPrimitiveAsBean(PrimitiveXNode<T> primitive, Class<T> beanClass, ParsingContext pc);
 }

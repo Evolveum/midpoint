@@ -1,36 +1,36 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	  oid="df092a19-68f0-4056-adf8-482f8fd26410">
-	<name>metarole-approval-role-approvers-form</name>
-	<description>Always use along with approvers-all or approvers-first metarole!</description>
-	<displayName>Metarole: approval by the role approver(s) with custom form</displayName>
-	<inducement>
-		<policyRule>
-			<policyConstraints>
-				<assignment>
-					<operation>add</operation>
-					<relation>q:any</relation>
-				</assignment>
-			</policyConstraints>
-			<policyActions>
-				<approval>
-					<compositionStrategy>
-						<mergeIntoOrder>40</mergeIntoOrder>
-					</compositionStrategy>
-					<approvalSchema>
-						<level>
-							<formRef oid="6a1874a7-1e60-43b3-8d67-7f76484dead5" type="FormType"/>
-						</level>
-					</approvalSchema>
-				</approval>
-			</policyActions>
-		</policyRule>
-	</inducement>
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      oid="df092a19-68f0-4056-adf8-482f8fd26410">
+    <name>metarole-approval-role-approvers-form</name>
+    <description>Always use along with approvers-all or approvers-first metarole!</description>
+    <displayName>Metarole: approval by the role approver(s) with custom form</displayName>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <operation>add</operation>
+                    <relation>q:any</relation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <mergeIntoOrder>40</mergeIntoOrder>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <level>
+                            <formRef oid="6a1874a7-1e60-43b3-8d67-7f76484dead5" type="FormType"/>
+                        </level>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
 </role>

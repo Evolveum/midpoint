@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.test;
@@ -29,28 +29,28 @@ import java.util.Collection;
  */
 public class RepoSimpleObjectResolver implements SimpleObjectResolver {
 
-	@Autowired(required = true)
-	private transient PrismContext prismContext;
+    @Autowired(required = true)
+    private transient PrismContext prismContext;
 
-	@Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private transient RepositoryService cacheRepositoryService;
+    @Autowired(required = true)
+    @Qualifier("cacheRepositoryService")
+    private transient RepositoryService cacheRepositoryService;
 
-	
-	@Override
-	public <O extends ObjectType> PrismObject<O> getObject(Class<O> expectedType, String oid,
-			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
-		return cacheRepositoryService.getObject(expectedType, oid, options, parentResult);
-	}
-	
-	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task,
-			OperationResult parentResult)
-			throws SchemaException {
-		cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);
-	}
 
-	
+    @Override
+    public <O extends ObjectType> PrismObject<O> getObject(Class<O> expectedType, String oid,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        return cacheRepositoryService.getObject(expectedType, oid, options, parentResult);
+    }
+
+    public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task,
+            OperationResult parentResult)
+            throws SchemaException {
+        cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);
+    }
+
+
 
 }

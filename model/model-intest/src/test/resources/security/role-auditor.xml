@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="475e37e8-b178-11e6-8339-83e2fa7b9828"
@@ -10,15 +10,15 @@
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Auditor</name>
     <description>Auditor can see everything, but he can change nothing. And most importantly: he has read access to audit log</description>
-    
+
     <authorization>
-    	<name>auditor-object-read</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <name>auditor-object-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
 
     <authorization>
-    	<name>auditor-audit-read</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#auditRead</action>
+        <name>auditor-audit-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#auditRead</action>
     </authorization>
-    
+
 </role>

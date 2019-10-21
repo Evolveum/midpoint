@@ -2,25 +2,25 @@
 <!--
   ~ Copyright (c) 2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="bab2c6a8-5f2a-11e8-97d2-4fc12ba39043" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+<user oid="bab2c6a8-5f2a-11e8-97d2-4fc12ba39043"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>capsize</name>
-    
+
     <assignment>
-    	<targetRef oid="00000000-8888-6666-0000-100000000002">
-    		<!-- ministry of defense -->
-    	</targetRef>
+        <targetRef oid="00000000-8888-6666-0000-100000000002">
+            <!-- ministry of defense -->
+        </targetRef>
     </assignment>
-    
+
     <fullName>Kate Capsize</fullName>
     <givenName>Kate</givenName>
     <familyName>Capsize</familyName>
-    
+
 </user>

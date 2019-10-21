@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,160 +22,160 @@ import java.util.Objects;
 @Entity
 //@IdClass(ROExtStringId.class)
 @Table(name = "m_ext_item", indexes = {
-		@Index(name = "iExtItemDefinition", unique = true, columnList = "itemName, itemType, kind")
+        @Index(name = "iExtItemDefinition", unique = true, columnList = "itemName, itemType, kind")
 })
 public class RExtItem {
 
-	public static final String F_ID = "id";
+    public static final String F_ID = "id";
 
-	private Integer id;
-	//	private boolean dynamic;
-	private String name;
-	private String type;
-	private RItemKind kind;
+    private Integer id;
+    //    private boolean dynamic;
+    private String name;
+    private String type;
+    private RItemKind kind;
 
-	public Key toKey() {
-		return new Key(name, type, kind);
-	}
+    public Key toKey() {
+        return new Key(name, type, kind);
+    }
 
-	public static class Key {
-		public final String name;
-		public final String type;
-		public final RItemKind kind;
+    public static class Key {
+        public final String name;
+        public final String type;
+        public final RItemKind kind;
 
-		public Key(String name, String type, RItemKind kind) {
-			this.name = name;
-			this.type = type;
-			this.kind = kind;
-		}
+        public Key(String name, String type, RItemKind kind) {
+            this.name = name;
+            this.type = type;
+            this.kind = kind;
+        }
 
-		@Override
-		public boolean equals(Object o) {
-			if (this == o)
-				return true;
-			if (!(o instanceof Key))
-				return false;
-			Key key = (Key) o;
-			return Objects.equals(name, key.name) &&
-					Objects.equals(type, key.type) &&
-					kind == key.kind;
-		}
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (!(o instanceof Key))
+                return false;
+            Key key = (Key) o;
+            return Objects.equals(name, key.name) &&
+                    Objects.equals(type, key.type) &&
+                    kind == key.kind;
+        }
 
-		@Override
-		public int hashCode() {
-			return Objects.hash(name, type, kind);
-		}
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, type, kind);
+        }
 
-		@Override
-		public String toString() {
-			return "Key{" +
-					"name='" + name + '\'' +
-					", type='" + type + '\'' +
-					", kind=" + kind +
-					'}';
-		}
-	}
+        @Override
+        public String toString() {
+            return "Key{" +
+                    "name='" + name + '\'' +
+                    ", type='" + type + '\'' +
+                    ", kind=" + kind +
+                    '}';
+        }
+    }
 
-	// required by hibernate
-	@SuppressWarnings("unused")
-	public RExtItem() {
-	}
+    // required by hibernate
+    @SuppressWarnings("unused")
+    public RExtItem() {
+    }
 
-	private RExtItem(Key key) {
-		this.name = key.name;
-		this.type = key.type;
-		this.kind = key.kind;
-	}
+    private RExtItem(Key key) {
+        this.name = key.name;
+        this.type = key.type;
+        this.kind = key.kind;
+    }
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	public Integer getId() {
-		return id;
-	}
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    public Integer getId() {
+        return id;
+    }
 
-	@Column(name = "itemName", length = RUtil.COLUMN_LENGTH_QNAME)
-	public String getName() {
-		return name;
-	}
+    @Column(name = "itemName", length = RUtil.COLUMN_LENGTH_QNAME)
+    public String getName() {
+        return name;
+    }
 
-	@Column(name = "itemType", length = RUtil.COLUMN_LENGTH_QNAME)        // to avoid collisions with reserved words
-	public String getType() {
-		return type;
-	}
+    @Column(name = "itemType", length = RUtil.COLUMN_LENGTH_QNAME)        // to avoid collisions with reserved words
+    public String getType() {
+        return type;
+    }
 
-	@Enumerated(EnumType.ORDINAL)
-	public RItemKind getKind() {
-		return kind;
-	}
+    @Enumerated(EnumType.ORDINAL)
+    public RItemKind getKind() {
+        return kind;
+    }
 
-	//	/**
-	//	 * @return true if this property has dynamic definition
-	//	 */
-	//	@Column(name = "dynamicDef")
-	//	public boolean isDynamic() {
-	//		return dynamic;
-	//	}
+    //    /**
+    //     * @return true if this property has dynamic definition
+    //     */
+    //    @Column(name = "dynamicDef")
+    //    public boolean isDynamic() {
+    //        return dynamic;
+    //    }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public void setKind(RItemKind kind) {
-		this.kind = kind;
-	}
+    public void setKind(RItemKind kind) {
+        this.kind = kind;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public static RExtItem.Key createKeyFromDefinition(ItemDefinition<?> definition) {
-		String name = RUtil.qnameToString(definition.getItemName());
-		String type = RUtil.qnameToString(definition.getTypeName());
-		RItemKind kind = RItemKind.getTypeFromItemDefinitionClass(definition.getClass());
-		return new Key(name, type, kind);
-	}
+    public static RExtItem.Key createKeyFromDefinition(ItemDefinition<?> definition) {
+        String name = RUtil.qnameToString(definition.getItemName());
+        String type = RUtil.qnameToString(definition.getTypeName());
+        RItemKind kind = RItemKind.getTypeFromItemDefinitionClass(definition.getClass());
+        return new Key(name, type, kind);
+    }
 
-	@NotNull
-	public static RExtItem createFromDefinition(ItemDefinition<?> definition) {
-		return new RExtItem(createKeyFromDefinition(definition));
-	}
+    @NotNull
+    public static RExtItem createFromDefinition(ItemDefinition<?> definition) {
+        return new RExtItem(createKeyFromDefinition(definition));
+    }
 
-	@Override
-	public String toString() {
-		return "RExtItem{" +
-				"id=" + id +
-				", name='" + name + '\'' +
-				", type='" + type + '\'' +
-				", kind=" + kind +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "RExtItem{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                ", kind=" + kind +
+                '}';
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof RExtItem)) return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RExtItem)) return false;
 
-		RExtItem rExtItem = (RExtItem) o;
+        RExtItem rExtItem = (RExtItem) o;
 
-		if (name != null ? !name.equals(rExtItem.name) : rExtItem.name != null) return false;
-		if (type != null ? !type.equals(rExtItem.type) : rExtItem.type != null) return false;
-		return kind == rExtItem.kind;
-	}
+        if (name != null ? !name.equals(rExtItem.name) : rExtItem.name != null) return false;
+        if (type != null ? !type.equals(rExtItem.type) : rExtItem.type != null) return false;
+        return kind == rExtItem.kind;
+    }
 
-	@Override
-	public int hashCode() {
-		int result = name != null ? name.hashCode() : 0;
-		result = 31 * result + (type != null ? type.hashCode() : 0);
-		result = 31 * result + (kind != null ? kind.hashCode() : 0);
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (kind != null ? kind.hashCode() : 0);
+        return result;
+    }
 
-	//	public void setDynamic(boolean dynamic) {
-	//		this.dynamic = dynamic;
-	//	}
+    //    public void setDynamic(boolean dynamic) {
+    //        this.dynamic = dynamic;
+    //    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,25 +19,25 @@ import static com.evolveum.midpoint.prism.PrismProperty.getRealValue;
  */
 public interface WorkBucketAwareTaskHandler extends TaskHandler {
 
-	@Override
-	default TaskRunResult run(RunningTask task) {
-		throw new UnsupportedOperationException("run with no work bucket is not supported here");
-	}
-	
-	@Override
-	default TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition) {
-		throw new UnsupportedOperationException("run with no work bucket is not supported here");
-	}
+    @Override
+    default TaskRunResult run(RunningTask task) {
+        throw new UnsupportedOperationException("run with no work bucket is not supported here");
+    }
+
+    @Override
+    default TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition) {
+        throw new UnsupportedOperationException("run with no work bucket is not supported here");
+    }
 
 
-	TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket, TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult);
-	
-	default TaskWorkBucketProcessingResult onNoMoreBuckets(Task task, TaskWorkBucketProcessingResult previousRunResult) {
-		return previousRunResult;
-	}
+    TaskWorkBucketProcessingResult run(RunningTask task, WorkBucketType workBucket, TaskPartitionDefinitionType partitionDefinition, TaskWorkBucketProcessingResult previousRunResult);
 
-	default QueryType getObjectQueryTypeFromTaskExtension(Task task) {
-		return getRealValue(task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
-	}
+    default TaskWorkBucketProcessingResult onNoMoreBuckets(Task task, TaskWorkBucketProcessingResult previousRunResult) {
+        return previousRunResult;
+    }
+
+    default QueryType getObjectQueryTypeFromTaskExtension(Task task) {
+        return getRealValue(task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
+    }
 
 }

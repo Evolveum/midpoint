@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,9 +19,9 @@ import javax.xml.namespace.QName;
  */
 public interface MutableResourceSchema extends ResourceSchema, MutablePrismSchema {
 
-	MutableObjectClassComplexTypeDefinition createObjectClassDefinition(String localTypeName);
+    MutableObjectClassComplexTypeDefinition createObjectClassDefinition(String localTypeName);
 
-	MutableObjectClassComplexTypeDefinition createObjectClassDefinition(QName typeName);
+    MutableObjectClassComplexTypeDefinition createObjectClassDefinition(QName typeName);
 
-	void parseThis(Element xsdSchema, String shortDesc, PrismContext prismContext) throws SchemaException;
+    void parseThis(Element xsdSchema, String shortDesc, PrismContext prismContext) throws SchemaException;
 }

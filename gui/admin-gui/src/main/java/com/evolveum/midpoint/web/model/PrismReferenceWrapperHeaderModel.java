@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.model;
@@ -23,18 +23,18 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  */
 public class PrismReferenceWrapperHeaderModel<C extends Containerable, R extends Referencable> extends ItemWrapperModel<C, PrismReferenceWrapper<R>>{
 
-	private static final long serialVersionUID = 1L;
-	private PageBase pageBase;
-	
-	public PrismReferenceWrapperHeaderModel(IModel<?> parent, ItemPath path, PageBase pageBase) {
-		super(parent, path, false);
-		this.pageBase = pageBase;
-	}
-	
-	@Override
-	public PrismReferenceWrapper<R> getObject() {
-		PrismReferenceWrapper<R> ret = (PrismReferenceWrapper<R>) getItemWrapperForHeader(PrismReferenceDefinition.class, pageBase);
-		return ret;
-	}
+    private static final long serialVersionUID = 1L;
+    private PageBase pageBase;
+
+    public PrismReferenceWrapperHeaderModel(IModel<?> parent, ItemPath path, PageBase pageBase) {
+        super(parent, path, false);
+        this.pageBase = pageBase;
+    }
+
+    @Override
+    public PrismReferenceWrapper<R> getObject() {
+        PrismReferenceWrapper<R> ret = (PrismReferenceWrapper<R>) getItemWrapperForHeader(PrismReferenceDefinition.class, pageBase);
+        return ret;
+    }
 
 }

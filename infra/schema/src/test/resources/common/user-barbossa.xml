@@ -2,70 +2,70 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111112" 
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
+<user oid="c0c010c0-d34d-b33f-f00d-111111111112"
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-		xmlns:foo="http://www.example.com/foo">
+        xmlns:foo="http://www.example.com/foo">
     <name>
-    	<t:orig>barbossa</t:orig>
-    	<t:norm>barbossa</t:norm>
+        <t:orig>barbossa</t:orig>
+        <t:norm>barbossa</t:norm>
     </name>
-    
+
     <extension>
-		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
-		<foo:num xsi:type="xsd:int">42</foo:num>
-		<foo:multi xsi:type="xsd:string">raz</foo:multi>
-		<foo:multi xsi:type="xsd:string">dva</foo:multi>
-		<foo:multi xsi:type="xsd:string">tri</foo:multi>
-		<foo:password xsi:type="t:ProtectedStringType">
-			<t:clearValue>openS3zam3</t:clearValue>
-		</foo:password>
-	</extension>
-    
+        <foo:bar xsi:type="xsd:string">BAR</foo:bar>
+        <foo:num xsi:type="xsd:int">42</foo:num>
+        <foo:multi xsi:type="xsd:string">raz</foo:multi>
+        <foo:multi xsi:type="xsd:string">dva</foo:multi>
+        <foo:multi xsi:type="xsd:string">tri</foo:multi>
+        <foo:password xsi:type="t:ProtectedStringType">
+            <t:clearValue>openS3zam3</t:clearValue>
+        </foo:password>
+    </extension>
+
     <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="ShadowType"/>
 
     <assignment>
-		<construction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-			<attribute>
-				<ref>ri:l</ref>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+            <attribute>
+                <ref>ri:l</ref>
                 <c:outbound>
                     <c:expression>
                         <c:value>Shipwreck cove</c:value>
                     </c:expression>
                 </c:outbound>
-			</attribute>
-		</construction>
-	</assignment>
-    
+            </attribute>
+        </construction>
+    </assignment>
+
     <fullName>
         <t:orig>Hector Barbossa</t:orig>
         <t:norm>hector barbossa</t:norm>
     </fullName>
     <givenName>
-    	<t:orig>Hector</t:orig>
+        <t:orig>Hector</t:orig>
         <t:norm>hector</t:norm>
-	</givenName>
+    </givenName>
     <familyName>
         <t:orig>Barbossa</t:orig>
         <t:norm>barbossa</t:norm>
-	</familyName>
-    
+    </familyName>
+
     <credentials>
         <password>
-        	<value>
-	            <t:clearValue>deadjacktellnotales</t:clearValue>
+            <value>
+                <t:clearValue>deadjacktellnotales</t:clearValue>
             </value>
         </password>
     </credentials>
 
-    
+
 </user>

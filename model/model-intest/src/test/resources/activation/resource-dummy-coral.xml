@@ -2,15 +2,15 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
   <!-- This resource does not support native activation. It has simulated activation instead.
        + unusual validTo and validFrom mappings -->
 
 <resource oid="10000000-0000-0000-0000-0000000b1004"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -19,81 +19,81 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource: Coral</name>
-	<connectorRef type="c:ConnectorType">
-		<filter>
-			<q:and>
-				<q:equal>
-					<q:path>connectorType</q:path>
-					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
-				</q:equal>
-				<q:equal>
-					<q:path>connectorVersion</q:path>
-					<q:value>2.0</q:value>
-				</q:equal>
-			</q:and>
-		</filter>
-	</connectorRef>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>coral</icfi:instanceId>
-			<icfi:requireExplicitEnable>false</icfi:requireExplicitEnable>
-			<icfi:supportActivation>false</icfi:supportActivation>
-		</icfc:configurationProperties>
+    <name>Dummy Resource: Coral</name>
+    <connectorRef type="c:ConnectorType">
+        <filter>
+            <q:and>
+                <q:equal>
+                    <q:path>connectorType</q:path>
+                    <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>connectorVersion</q:path>
+                    <q:value>2.0</q:value>
+                </q:equal>
+            </q:and>
+        </filter>
+    </connectorRef>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
-	</connectorConfiguration>
+        <icfc:configurationProperties>
+            <icfi:instanceId>coral</icfi:instanceId>
+            <icfi:requireExplicitEnable>false</icfi:requireExplicitEnable>
+            <icfi:supportActivation>false</icfi:supportActivation>
+        </icfc:configurationProperties>
 
-	<schemaHandling>
-		<objectType>
-			<kind>account</kind>
-			<intent>default</intent>
-			<displayName>Default Account</displayName>
-			<default>true</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<outbound>
-				    <strength>strong</strength>
-				    <source>
-				    	<path>$user/name</path>
-				    </source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>icfs:uid</ref>
-			</attribute>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>$user/name</path>
+                    </source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+            </attribute>
             <activation>
-            	<administrativeStatus>
-            		<outbound>
-						<strength>strong</strength>
-						<expression>
-							<script>
-								<code>
-									// All these options work
-									//com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED
-									//"disabled"
-									input
-								</code>
-							</script>
-						</expression>
-					</outbound>
-            	</administrativeStatus>
+                <administrativeStatus>
+                    <outbound>
+                        <strength>strong</strength>
+                        <expression>
+                            <script>
+                                <code>
+                                    // All these options work
+                                    //com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED
+                                    //"disabled"
+                                    input
+                                </code>
+                            </script>
+                        </expression>
+                    </outbound>
+                </administrativeStatus>
             </activation>
-		</objectType>
-		
-	</schemaHandling>
-		
+        </objectType>
+
+    </schemaHandling>
+
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-    	<configured>
-	        <cap:activation>
-	            <cap:status>
-	                <cap:attribute>ri:suspended</cap:attribute>
-	                <cap:enableValue>false</cap:enableValue>
-	                <cap:disableValue>true</cap:disableValue>
-	            </cap:status>
-	        </cap:activation>
-		</configured>
+        <configured>
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:suspended</cap:attribute>
+                    <cap:enableValue>false</cap:enableValue>
+                    <cap:disableValue>true</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
     </capabilities>
 </resource>

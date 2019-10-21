@@ -1,37 +1,37 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	  oid="00000001-d34d-b33f-f00d-M00000000002">
-	<name>Metarole 'security'</name>
-	<description>Marks really security-sensitive roles</description>
-	<inducement>
-		<policyRule>
-			<policyConstraints>
-				<assignment/>				<!-- applies to all add/delete assignment operations of this metarole-bearer as the target -->
-			</policyConstraints>
-			<policyActions>
-				<approval>
-					<compositionStrategy>
-						<order>2</order>
-					</compositionStrategy>
-					<!--<approverRelation>security-approver</approverRelation>-->
-					<approverRef type="UserType">
-						<filter>
-							<q:equal>
-								<q:path>name</q:path>
-								<q:value>security-approver</q:value>
-							</q:equal>
-						</filter>
-						<resolutionTime>run</resolutionTime>
-					</approverRef>
-				</approval>
-			</policyActions>
-		</policyRule>
-	</inducement>
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      oid="00000001-d34d-b33f-f00d-M00000000002">
+    <name>Metarole 'security'</name>
+    <description>Marks really security-sensitive roles</description>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <assignment/>                <!-- applies to all add/delete assignment operations of this metarole-bearer as the target -->
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>2</order>
+                    </compositionStrategy>
+                    <!--<approverRelation>security-approver</approverRelation>-->
+                    <approverRef type="UserType">
+                        <filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <q:value>security-approver</q:value>
+                            </q:equal>
+                        </filter>
+                        <resolutionTime>run</resolutionTime>
+                    </approverRef>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
 </role>

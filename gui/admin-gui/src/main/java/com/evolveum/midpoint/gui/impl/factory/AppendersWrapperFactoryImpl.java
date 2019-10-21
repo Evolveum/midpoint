@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -27,25 +27,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfiguratio
 @Component
 public class AppendersWrapperFactoryImpl<C extends Containerable> extends PrismContainerWrapperFactoryImpl<C>{
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(AppendersWrapperFactoryImpl.class);
-	
-	@Override
-	public boolean match(ItemDefinition<?> def) {
-		return QNameUtil.match(def.getTypeName(), AppenderConfigurationType.COMPLEX_TYPE);
-	}
+    private static final transient Trace LOGGER = TraceManager.getTrace(AppendersWrapperFactoryImpl.class);
 
-	@Override
-	public int getOrder() {
-		return 10;
-	}
+    @Override
+    public boolean match(ItemDefinition<?> def) {
+        return QNameUtil.match(def.getTypeName(), AppenderConfigurationType.COMPLEX_TYPE);
+    }
 
-	@Override
-	protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent,
-			PrismContainerValue<C> value) {
-		if(value != null && value.getComplexTypeDefinition() != null
-				&& value.getComplexTypeDefinition().getDefinitions() != null) {
-			return value.getComplexTypeDefinition().getDefinitions();
-		}
-		return parent.getDefinitions();
-	}
+    @Override
+    public int getOrder() {
+        return 10;
+    }
+
+    @Override
+    protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent,
+            PrismContainerValue<C> value) {
+        if(value != null && value.getComplexTypeDefinition() != null
+                && value.getComplexTypeDefinition().getDefinitions() != null) {
+            return value.getComplexTypeDefinition().getDefinitions();
+        }
+        return parent.getDefinitions();
+    }
 }

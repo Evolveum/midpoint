@@ -2,107 +2,107 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
- 
-<object xsi:type="UserType" 
-        oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20" 
+
+<object xsi:type="UserType"
+        oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"  
+        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
         xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
         xmlns:foo="http://www.example.com/foo"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>
-    	<t:orig>jack</t:orig>
-    	<t:norm>jack</t:norm>
+        <t:orig>jack</t:orig>
+        <t:norm>jack</t:norm>
     </name>
-    
+
     <extension>
-		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
-		<foo:num xsi:type="xsd:int">42</foo:num>
-		<foo:multi xsi:type="xsd:string">raz</foo:multi>
-		<foo:multi xsi:type="xsd:string">dva</foo:multi>
-		<foo:multi xsi:type="xsd:string">tri</foo:multi>
-		<foo:password xsi:type="t:ProtectedStringType">
-			<t:clearValue>openS3zam3</t:clearValue>
-		</foo:password>
-	</extension>
-	
-	<assignment id="111">
-    	<extension>
-    		<ext:intType>42</ext:intType>
-    	</extension>
-    	<construction>
-			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="c:ResourceType"/>    		
-    	</construction>
-    	<activation>
-    		<administrativeStatus>enabled</administrativeStatus>
-    	</activation>
+        <foo:bar xsi:type="xsd:string">BAR</foo:bar>
+        <foo:num xsi:type="xsd:int">42</foo:num>
+        <foo:multi xsi:type="xsd:string">raz</foo:multi>
+        <foo:multi xsi:type="xsd:string">dva</foo:multi>
+        <foo:multi xsi:type="xsd:string">tri</foo:multi>
+        <foo:password xsi:type="t:ProtectedStringType">
+            <t:clearValue>openS3zam3</t:clearValue>
+        </foo:password>
+    </extension>
+
+    <assignment id="111">
+        <extension>
+            <ext:intType>42</ext:intType>
+        </extension>
+        <construction>
+            <resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="c:ResourceType"/>
+        </construction>
+        <activation>
+            <administrativeStatus>enabled</administrativeStatus>
+        </activation>
     </assignment>
 
     <linkRef oid="2f9b9299-6f45-498f-aaaa-000000001111"/>
     <linkRef oid="2f9b9299-6f45-498f-aaaa-000000002222"/>
     <linkRef oid="2f9b9299-6f45-498f-aaaa-000000003333" type="ShadowType">
-    	<description>This is third accountRef</description>
-    	<filter>
-    		<!-- Following filter is a logical nonsense. It is there just to test parsing of filters. -->
+        <description>This is third accountRef</description>
+        <filter>
+            <!-- Following filter is a logical nonsense. It is there just to test parsing of filters. -->
             <q:equal>
-            	<q:path>connectorType</q:path>
+                <q:path>connectorType</q:path>
                 <q:value>>org.identityconnectors.ldap.LdapConnector</q:value>
             </q:equal>
-    	</filter>
+        </filter>
     </linkRef>
-    
+
     <activation>
         <administrativeStatus>enabled</administrativeStatus>
     </activation>
 
-	<locality></locality>
-	<emailAddress></emailAddress>
+    <locality></locality>
+    <emailAddress></emailAddress>
 
     <fullName>
         <t:orig>Jack Sparrow</t:orig>
         <t:norm>jack sparrow</t:norm>
     </fullName>
     <givenName>
-    	<t:orig>Jack</t:orig>
+        <t:orig>Jack</t:orig>
         <t:norm>jack</t:norm>
     </givenName>
     <familyName>
         <t:orig>Sparrow</t:orig>
         <t:norm>sparrow</t:norm>
-	</familyName>
+    </familyName>
     <honorificPrefix>
-    	<t:orig>Cpt.</t:orig>
+        <t:orig>Cpt.</t:orig>
         <t:norm>cpt</t:norm>
     </honorificPrefix>
 
     <organizationalUnit>
-    	<t:orig>Brethren of the Coast</t:orig>
-    	<t:norm>brethren of the coast</t:norm>
+        <t:orig>Brethren of the Coast</t:orig>
+        <t:norm>brethren of the coast</t:norm>
     </organizationalUnit>
     <organizationalUnit>
-    	<t:orig>Davie Jones' Locker</t:orig>
-    	<t:norm>davie jones locker</t:norm>
+        <t:orig>Davie Jones' Locker</t:orig>
+        <t:norm>davie jones locker</t:norm>
     </organizationalUnit>
 
     <credentials>
         <password>
-        	<value>
+            <value>
             <t:encryptedData>
-            	<t:encryptionMethod>
-            		<t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc"</t:algorithm>
-            	</t:encryptionMethod>
+                <t:encryptionMethod>
+                    <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc"</t:algorithm>
+                </t:encryptionMethod>
                 <t:keyInfo>
                     <t:keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</t:keyName>
-         		</t:keyInfo>
+                 </t:keyInfo>
                 <t:cipherData>
                     <t:cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</t:cipherValue>
                 </t:cipherData>
@@ -110,5 +110,5 @@
             </value>
         </password>
     </credentials>
-    
+
 </object>

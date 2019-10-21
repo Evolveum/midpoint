@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -54,7 +54,7 @@ public interface CertificationManager {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      * @return Object for the created campaign. It will be stored in the repository as well.
-     * @throws ExpressionEvaluationException 
+     * @throws ExpressionEvaluationException
      */
     AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult)
             throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
@@ -80,7 +80,7 @@ public interface CertificationManager {
      * @param campaignOid Certification campaign OID.
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
-     * 
+     *
      */
     void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
@@ -90,7 +90,7 @@ public interface CertificationManager {
      *
      * @param campaignOid
      * @param task
-     * @param result 
+     * @param result
      */
     void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
@@ -99,7 +99,7 @@ public interface CertificationManager {
      *
      * @param campaignOid
      * @param task
-     * @param result 
+     * @param result
      */
     void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
@@ -146,7 +146,7 @@ public interface CertificationManager {
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      * @return A list of relevant certification cases.
-     * @throws ExpressionEvaluationException 
+     * @throws ExpressionEvaluationException
      *
      */
     List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery caseQuery, boolean notDecidedOnly,
@@ -165,7 +165,7 @@ public interface CertificationManager {
      * @param response The response.
      * @param comment Reviewer's comment.
      * @param task Task in context of which all operations will take place.
-     * @param parentResult Result for the operations. 
+     * @param parentResult Result for the operations.
      */
     void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response,
             String comment,
@@ -180,12 +180,12 @@ public interface CertificationManager {
      * @param currentStageOnly Whether to report on stage outcomes for current-stage cases (if true), or to report on overall outcomes of all cases (if false).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
-     * @return filled-in statistics object 
+     * @return filled-in statistics object
      */
     AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     void registerCertificationEventListener(AccessCertificationEventListener listener);
 
-	void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result);
+    void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result);
 }

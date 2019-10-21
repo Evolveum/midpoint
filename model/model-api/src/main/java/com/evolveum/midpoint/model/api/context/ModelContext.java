@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api.context;
@@ -34,24 +34,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface ModelContext<F extends ObjectType> extends Serializable, DebugDumpable {
 
-	String getRequestIdentifier();
+    String getRequestIdentifier();
 
-	ModelState getState();
+    ModelState getState();
 
-	ModelElementContext<F> getFocusContext();
+    ModelElementContext<F> getFocusContext();
 
-	Collection<? extends ModelProjectionContext> getProjectionContexts();
+    Collection<? extends ModelProjectionContext> getProjectionContexts();
 
-	ModelProjectionContext findProjectionContext(ResourceShadowDiscriminator rat);
+    ModelProjectionContext findProjectionContext(ResourceShadowDiscriminator rat);
 
-	ModelExecuteOptions getOptions();
+    ModelExecuteOptions getOptions();
 
-	@NotNull
-	PartialProcessingOptionsType getPartialProcessingOptions();
+    @NotNull
+    PartialProcessingOptionsType getPartialProcessingOptions();
 
-	Class<F> getFocusClass();
+    Class<F> getFocusClass();
 
-	void reportProgress(ProgressInformation progress);
+    void reportProgress(ProgressInformation progress);
 
     DeltaSetTriple<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentTriple();
 
@@ -60,33 +60,33 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
     PrismObject<SystemConfigurationType> getSystemConfiguration();  // beware, may be null - use only as a performance optimization
 
     String getChannel();
-    
+
     Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException;
 
-	// For diagnostic purposes (this is more detailed than rule-related part of LensContext debugDump,
-	// while less detailed than that part of detailed LensContext debugDump).
-	default String dumpAssignmentPolicyRules(int indent) {
-		return dumpAssignmentPolicyRules(indent, false);
-	}
+    // For diagnostic purposes (this is more detailed than rule-related part of LensContext debugDump,
+    // while less detailed than that part of detailed LensContext debugDump).
+    default String dumpAssignmentPolicyRules(int indent) {
+        return dumpAssignmentPolicyRules(indent, false);
+    }
 
-	String dumpAssignmentPolicyRules(int indent, boolean alsoMessages);
+    String dumpAssignmentPolicyRules(int indent, boolean alsoMessages);
 
-	default String dumpFocusPolicyRules(int indent) {
-		return dumpFocusPolicyRules(indent, false);
-	}
+    default String dumpFocusPolicyRules(int indent) {
+        return dumpFocusPolicyRules(indent, false);
+    }
 
-	String dumpFocusPolicyRules(int indent, boolean alsoMessages);
+    String dumpFocusPolicyRules(int indent, boolean alsoMessages);
 
-	Map<String, Collection<Containerable>> getHookPreviewResultsMap();
+    Map<String, Collection<Containerable>> getHookPreviewResultsMap();
 
-	@NotNull
-	<T> List<T> getHookPreviewResults(@NotNull Class<T> clazz);
+    @NotNull
+    <T> List<T> getHookPreviewResults(@NotNull Class<T> clazz);
 
-	@Nullable
-	<T> T getHookPreviewResult(@NotNull Class<T> clazz);
+    @Nullable
+    <T> T getHookPreviewResult(@NotNull Class<T> clazz);
 
-	boolean isPreview();
+    boolean isPreview();
 
-	@NotNull
-	ObjectTreeDeltas<F> getTreeDeltas();
+    @NotNull
+    ObjectTreeDeltas<F> getTreeDeltas();
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -80,25 +80,25 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         return true;
     }
 
-	public static boolean isEmpty(ObjectTreeDeltasType deltas) {
-		if (deltas == null) {
-			return true;
-		}
-		if (deltas.getFocusPrimaryDelta() != null) {
-			if (!ObjectDeltaUtil.isEmpty(deltas.getFocusPrimaryDelta())) {
-				return false;
-			}
-		}
-		for (ProjectionObjectDeltaType projDelta: deltas.getProjectionPrimaryDelta()) {
-			if (!ObjectDeltaUtil.isEmpty(projDelta.getPrimaryDelta())) {
-				return false;
-			}
-		}
-		return true;
-	}
+    public static boolean isEmpty(ObjectTreeDeltasType deltas) {
+        if (deltas == null) {
+            return true;
+        }
+        if (deltas.getFocusPrimaryDelta() != null) {
+            if (!ObjectDeltaUtil.isEmpty(deltas.getFocusPrimaryDelta())) {
+                return false;
+            }
+        }
+        for (ProjectionObjectDeltaType projDelta: deltas.getProjectionPrimaryDelta()) {
+            if (!ObjectDeltaUtil.isEmpty(projDelta.getPrimaryDelta())) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	@SuppressWarnings("MethodDoesntCallSuperMethod")
-	public ObjectTreeDeltas<T> clone() {
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    public ObjectTreeDeltas<T> clone() {
         ObjectTreeDeltas<T> clone = new ObjectTreeDeltas<>(prismContext);
         if (focusChange != null) {
             clone.setFocusChange(focusChange.clone());
@@ -123,8 +123,8 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         if (getFocusChange() != null) {
             jaxb.setFocusPrimaryDelta(DeltaConvertor.toObjectDeltaType(getFocusChange()));
         }
-	    //noinspection unchecked
-	    Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries =
+        //noinspection unchecked
+        Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries =
                 (Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>>) getProjectionChangeMapEntries();
         for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
             ProjectionObjectDeltaType projChange = new ProjectionObjectDeltaType();
@@ -161,16 +161,16 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         }
         ObjectTreeDeltas deltas = new ObjectTreeDeltas(prismContext);
         if (deltasType.getFocusPrimaryDelta() != null) {
-	        //noinspection unchecked
-	        deltas.setFocusChange(DeltaConvertor.createObjectDelta(deltasType.getFocusPrimaryDelta(), prismContext));
+            //noinspection unchecked
+            deltas.setFocusChange(DeltaConvertor.createObjectDelta(deltasType.getFocusPrimaryDelta(), prismContext));
         }
         for (ProjectionObjectDeltaType projectionObjectDeltaType : deltasType.getProjectionPrimaryDelta()) {
-	        // TODO reconsider providing default intent here
+            // TODO reconsider providing default intent here
             ResourceShadowDiscriminator rsd = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(
                     projectionObjectDeltaType.getResourceShadowDiscriminator(), true);
             ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(projectionObjectDeltaType.getPrimaryDelta(), prismContext);
-	        //noinspection unchecked
-	        deltas.addProjectionChange(rsd, objectDelta);
+            //noinspection unchecked
+            deltas.addProjectionChange(rsd, objectDelta);
         }
         return deltas;
     }
@@ -185,9 +185,9 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
     }
 
     public boolean subtractFromFocusDelta(@NotNull ItemPath itemPath, @NotNull PrismValue value, boolean fromMinus,
-			boolean dryRun) {
-		return focusChange != null && focusChange.subtract(itemPath, value, fromMinus, dryRun);
-	}
+            boolean dryRun) {
+        return focusChange != null && focusChange.subtract(itemPath, value, fromMinus, dryRun);
+    }
 
     @Override
     public String toString() {
@@ -220,70 +220,70 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
         return sb.toString();
     }
 
-	public void merge(ObjectTreeDeltas<T> deltasToMerge) throws SchemaException {
-		if (deltasToMerge == null) {
-			return;
-		}
-		if (focusChange != null) {
-			focusChange.merge(deltasToMerge.focusChange);
-		} else {
-			focusChange = deltasToMerge.focusChange;
-		}
-		for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> projEntry : deltasToMerge.getProjectionChangeMapEntries()) {
-			ResourceShadowDiscriminator rsd = projEntry.getKey();
-			ObjectDelta<ShadowType> existingDelta = projectionChangeMap.get(rsd);
-			ObjectDelta<ShadowType> newDelta = projEntry.getValue();
-			if (existingDelta != null) {
-				existingDelta.merge(newDelta);
-			} else {
-				projectionChangeMap.put(rsd, newDelta);
-			}
-		}
-	}
+    public void merge(ObjectTreeDeltas<T> deltasToMerge) throws SchemaException {
+        if (deltasToMerge == null) {
+            return;
+        }
+        if (focusChange != null) {
+            focusChange.merge(deltasToMerge.focusChange);
+        } else {
+            focusChange = deltasToMerge.focusChange;
+        }
+        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> projEntry : deltasToMerge.getProjectionChangeMapEntries()) {
+            ResourceShadowDiscriminator rsd = projEntry.getKey();
+            ObjectDelta<ShadowType> existingDelta = projectionChangeMap.get(rsd);
+            ObjectDelta<ShadowType> newDelta = projEntry.getValue();
+            if (existingDelta != null) {
+                existingDelta.merge(newDelta);
+            } else {
+                projectionChangeMap.put(rsd, newDelta);
+            }
+        }
+    }
 
-	public void mergeUnordered(ObjectTreeDeltas<T> deltasToMerge) throws SchemaException {
-		if (deltasToMerge == null) {
-			return;
-		}
-		focusChange = mergeInCorrectOrder(focusChange, deltasToMerge.focusChange);
-		for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> projEntry : deltasToMerge.getProjectionChangeMapEntries()) {
-			ResourceShadowDiscriminator rsd = projEntry.getKey();
-			ObjectDelta<ShadowType> existingDelta = projectionChangeMap.get(rsd);
-			ObjectDelta<ShadowType> newDelta = projEntry.getValue();
-			projectionChangeMap.put(rsd, mergeInCorrectOrder(existingDelta, newDelta));
-		}
-	}
+    public void mergeUnordered(ObjectTreeDeltas<T> deltasToMerge) throws SchemaException {
+        if (deltasToMerge == null) {
+            return;
+        }
+        focusChange = mergeInCorrectOrder(focusChange, deltasToMerge.focusChange);
+        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> projEntry : deltasToMerge.getProjectionChangeMapEntries()) {
+            ResourceShadowDiscriminator rsd = projEntry.getKey();
+            ObjectDelta<ShadowType> existingDelta = projectionChangeMap.get(rsd);
+            ObjectDelta<ShadowType> newDelta = projEntry.getValue();
+            projectionChangeMap.put(rsd, mergeInCorrectOrder(existingDelta, newDelta));
+        }
+    }
 
-	private <T1 extends ObjectType> ObjectDelta<T1> mergeInCorrectOrder(ObjectDelta<T1> first, ObjectDelta<T1> second) throws SchemaException {
-		ObjectDelta<T1> rv;
-		if (first == null) {
-			rv = second;
-		} else if (second == null) {
-			rv = first;
-		} else if (second.isAdd() || first.isDelete()) {
-			rv = second.clone();
-			rv.merge(first);
-		} else {
-			rv = first.clone();
-			rv.merge(second);
-		}
-		return rv;
-	}
+    private <T1 extends ObjectType> ObjectDelta<T1> mergeInCorrectOrder(ObjectDelta<T1> first, ObjectDelta<T1> second) throws SchemaException {
+        ObjectDelta<T1> rv;
+        if (first == null) {
+            rv = second;
+        } else if (second == null) {
+            rv = first;
+        } else if (second.isAdd() || first.isDelete()) {
+            rv = second.clone();
+            rv.merge(first);
+        } else {
+            rv = first.clone();
+            rv.merge(second);
+        }
+        return rv;
+    }
 
-	public static ObjectTreeDeltasType mergeDeltas(ObjectTreeDeltasType deltaTree, ObjectDeltaType deltaToMerge,
-			PrismContext prismContext) throws SchemaException {
-    	if (deltaToMerge == null) {
-    		return deltaTree;
-		}
-		ObjectTreeDeltasType deltaTreeToMerge = new ObjectTreeDeltasType();
-		deltaTreeToMerge.setFocusPrimaryDelta(deltaToMerge);
-		if (deltaTree == null) {
-			return deltaTreeToMerge;
-		}
-		ObjectTreeDeltas tree = fromObjectTreeDeltasType(deltaTree, prismContext);
-		ObjectTreeDeltas treeToMerge = fromObjectTreeDeltasType(deltaTreeToMerge, prismContext);
-		//noinspection unchecked
-		tree.merge(treeToMerge);
-		return tree.toObjectTreeDeltasType();
-	}
+    public static ObjectTreeDeltasType mergeDeltas(ObjectTreeDeltasType deltaTree, ObjectDeltaType deltaToMerge,
+            PrismContext prismContext) throws SchemaException {
+        if (deltaToMerge == null) {
+            return deltaTree;
+        }
+        ObjectTreeDeltasType deltaTreeToMerge = new ObjectTreeDeltasType();
+        deltaTreeToMerge.setFocusPrimaryDelta(deltaToMerge);
+        if (deltaTree == null) {
+            return deltaTreeToMerge;
+        }
+        ObjectTreeDeltas tree = fromObjectTreeDeltasType(deltaTree, prismContext);
+        ObjectTreeDeltas treeToMerge = fromObjectTreeDeltasType(deltaTreeToMerge, prismContext);
+        //noinspection unchecked
+        tree.merge(treeToMerge);
+        return tree.toObjectTreeDeltasType();
+    }
 }

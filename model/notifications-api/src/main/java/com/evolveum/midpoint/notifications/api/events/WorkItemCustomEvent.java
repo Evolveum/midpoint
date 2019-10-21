@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,35 +21,35 @@ import org.jetbrains.annotations.Nullable;
  */
 public class WorkItemCustomEvent extends WorkItemEvent {
 
-	public WorkItemCustomEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
-			@NotNull ChangeType changeType,
-			@NotNull CaseWorkItemType workItem,
-			@Nullable SimpleObjectRef assignee, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			@Nullable ApprovalContextType approvalContext, CaseType aCase,
-			@Nullable EventHandlerType handler) {
+    public WorkItemCustomEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
+            @NotNull ChangeType changeType,
+            @NotNull CaseWorkItemType workItem,
+            @Nullable SimpleObjectRef assignee, @Nullable WorkItemOperationSourceInfo sourceInfo,
+            @Nullable ApprovalContextType approvalContext, CaseType aCase,
+            @Nullable EventHandlerType handler) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, null, null,
-				sourceInfo, approvalContext, aCase, handler, null);
-	}
-
-	@Override
-    public boolean isCategoryType(EventCategoryType eventCategoryType) {
-        return eventCategoryType == EventCategoryType.WORK_ITEM_CUSTOM_EVENT
-        		|| eventCategoryType == EventCategoryType.WORK_ITEM_EVENT
-				|| eventCategoryType == EventCategoryType.WORKFLOW_EVENT;
+                sourceInfo, approvalContext, aCase, handler, null);
     }
 
-	@Override
+    @Override
+    public boolean isCategoryType(EventCategoryType eventCategoryType) {
+        return eventCategoryType == EventCategoryType.WORK_ITEM_CUSTOM_EVENT
+                || eventCategoryType == EventCategoryType.WORK_ITEM_EVENT
+                || eventCategoryType == EventCategoryType.WORKFLOW_EVENT;
+    }
+
+    @Override
     public void createExpressionVariables(VariablesMap variables, OperationResult result) {
         super.createExpressionVariables(variables, result);
     }
 
-	public WorkItemNotificationActionType getNotificationAction() {
-		return (WorkItemNotificationActionType) getSource();
-	}
+    public WorkItemNotificationActionType getNotificationAction() {
+        return (WorkItemNotificationActionType) getSource();
+    }
 
-	@Override
-	public String toString() {
-		return "WorkItemCustomEvent:" + super.toString();
-	}
+    @Override
+    public String toString() {
+        return "WorkItemCustomEvent:" + super.toString();
+    }
 
 }

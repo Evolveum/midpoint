@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report.impl;
@@ -32,31 +32,31 @@ import com.evolveum.midpoint.prism.PrismContext;
 
 public class CustomWrappedOutInterceptor extends BareOutInterceptor{
 
-	private PrismContext prismContext;
+    private PrismContext prismContext;
 
-	public CustomWrappedOutInterceptor(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+    public CustomWrappedOutInterceptor(PrismContext prismContext) {
+        this.prismContext = prismContext;
+    }
 
-	@Override
-	public void handleMessage(Message message) {
-		super.handleMessage(message);
-		Interceptor<? extends Message> defaultInterceptor = null;
-    	for (Iterator<Interceptor<? extends Message>> iterator = message.getInterceptorChain().getIterator(); iterator.hasNext();) {
-    		Interceptor<? extends Message> interceptor = iterator.next();
-    		if (interceptor instanceof BareOutInterceptor) {
-    			defaultInterceptor = interceptor;
-		    }
-		}
-    	message.getInterceptorChain().remove(defaultInterceptor);
-	}
+    @Override
+    public void handleMessage(Message message) {
+        super.handleMessage(message);
+        Interceptor<? extends Message> defaultInterceptor = null;
+        for (Iterator<Interceptor<? extends Message>> iterator = message.getInterceptorChain().getIterator(); iterator.hasNext();) {
+            Interceptor<? extends Message> interceptor = iterator.next();
+            if (interceptor instanceof BareOutInterceptor) {
+                defaultInterceptor = interceptor;
+            }
+        }
+        message.getInterceptorChain().remove(defaultInterceptor);
+    }
 
-	@Override
-	protected void writeParts(Message message, Exchange exchange,
+    @Override
+    protected void writeParts(Message message, Exchange exchange,
             BindingOperationInfo operation, MessageContentsList objs,
             List<MessagePartInfo> parts) {
-		// TODO Auto-generated method stub
-		OutputStream out = message.getContent(OutputStream.class);
+        // TODO Auto-generated method stub
+        OutputStream out = message.getContent(OutputStream.class);
         XMLStreamWriter origXmlWriter = message.getContent(XMLStreamWriter.class);
         Service service = exchange.getService();
         XMLStreamWriter xmlWriter = origXmlWriter;
@@ -120,7 +120,7 @@ public class CustomWrappedOutInterceptor extends BareOutInterceptor{
                 throw new Fault(e);
             }
         }
-	}
+    }
 
 
 }

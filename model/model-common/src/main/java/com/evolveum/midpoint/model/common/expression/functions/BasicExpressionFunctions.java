@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.functions;
@@ -76,19 +76,19 @@ import static java.util.Collections.emptyList;
 public class BasicExpressionFunctions {
 
     public static final String NAME_SEPARATOR = " ";
-    private final Charset UTF8_CHARSET = StandardCharsets.UTF_8;
+    private static final Charset UTF8_CHARSET = StandardCharsets.UTF_8;
 
     public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctions.class);
-    
+
     /**
      * Special value that is too far in the past. It can be returned from time-based expressions to
      * make sure that the expression is always executed.
      */
     public static final XMLGregorianCalendar LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(1, 1, 1, 0, 0, 0);
 
-    private static String STRING_PATTERN_WHITESPACE = "\\s+";
-    private static String STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT = "^(\\S+\\.)$";
-    private static Pattern PATTERN_NICK_NAME = Pattern.compile("^([^\"]*)\"([^\"]+)\"([^\"]*)$");
+    private static final String STRING_PATTERN_WHITESPACE = "\\s+";
+    private static final String STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT = "^(\\S+\\.)$";
+    private static final Pattern PATTERN_NICK_NAME = Pattern.compile("^([^\"]*)\"([^\"]+)\"([^\"]*)$");
 
     private final PrismContext prismContext;
     private final Protector protector;
@@ -247,7 +247,7 @@ public class BasicExpressionFunctions {
         polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
         return polyString.getNorm().endsWith(value);
     }
-    
+
     /**
      * Normalize a string value. It follows the default normalization algorithm
      * used for PolyString values.
@@ -431,9 +431,9 @@ public class BasicExpressionFunctions {
         }
         return whateverString.isEmpty();
     }
-    
+
     public PrismContext getPrismContext() {
-    	return prismContext;
+        return prismContext;
     }
 
     public <T> Collection<T> getExtensionPropertyValues(ObjectType object, String namespace, String localPart) {
@@ -452,7 +452,7 @@ public class BasicExpressionFunctions {
     public <T> T getExtensionPropertyValue(ObjectType object, String localPart) throws SchemaException {
         return getExtensionPropertyValue(object, new javax.xml.namespace.QName(null, localPart));
     }
-    
+
     public <T> T getExtensionPropertyValue(ObjectType object, String namespace, String localPart) throws SchemaException {
         return getExtensionPropertyValue(object, new javax.xml.namespace.QName(namespace, localPart));
     }
@@ -788,56 +788,56 @@ public class BasicExpressionFunctions {
     public XMLGregorianCalendar currentDateTime() {
         return clock.currentTimeXMLGregorianCalendar();
     }
-    
+
     public XMLGregorianCalendar fromNow(String timeSpec) {
         return XmlTypeConverter.fromNow(XmlTypeConverter.createDuration(timeSpec));
     }
 
-    
+
     public XMLGregorianCalendar addDuration(XMLGregorianCalendar now, Duration duration) {
-    	if (now == null) {
-    		return null;
-    	}
-    	if (duration == null) {
-    		return now;
-    	}
-    	return XmlTypeConverter.addDuration(now, duration);
+        if (now == null) {
+            return null;
+        }
+        if (duration == null) {
+            return now;
+        }
+        return XmlTypeConverter.addDuration(now, duration);
     }
-    
+
     public XMLGregorianCalendar addDuration(XMLGregorianCalendar now, String duration) {
-    	if (now == null) {
-    		return null;
-    	}
-    	if (duration == null) {
-    		return now;
-    	}
-    	return XmlTypeConverter.addDuration(now, duration);
+        if (now == null) {
+            return null;
+        }
+        if (duration == null) {
+            return now;
+        }
+        return XmlTypeConverter.addDuration(now, duration);
     }
-    
+
     public XMLGregorianCalendar addMillis(XMLGregorianCalendar now, long duration) {
-    	if (now == null) {
-    		return null;
-    	}
-    	if (duration == 0) {
-    		return now;
-    	}
-    	return XmlTypeConverter.addMillis(now, duration);
+        if (now == null) {
+            return null;
+        }
+        if (duration == 0) {
+            return now;
+        }
+        return XmlTypeConverter.addMillis(now, duration);
     }
-    
+
     public XMLGregorianCalendar roundDownToMidnight(XMLGregorianCalendar in) {
-    	XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
-    	out.setTime(0, 0, 0, 0);
-    	return out;
+        XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
+        out.setTime(0, 0, 0, 0);
+        return out;
     }
-    
+
     public XMLGregorianCalendar roundUpToEndOfDay(XMLGregorianCalendar in) {
-    	XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
-    	out.setTime(23, 59, 59, 999);
-    	return out;
+        XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
+        out.setTime(23, 59, 59, 999);
+        return out;
     }
-    
+
     public XMLGregorianCalendar longAgo() {
-    	return LONG_AGO;
+        return LONG_AGO;
     }
 
     private ParsedFullName parseFullName(String fullName) {
@@ -847,20 +847,20 @@ public class BasicExpressionFunctions {
         String root = fullName.trim();
         ParsedFullName p = new ParsedFullName();
 
-//    	LOGGER.trace("(1) root=", root);
+//        LOGGER.trace("(1) root=", root);
 
         Matcher m = PATTERN_NICK_NAME.matcher(root);
         if (m.matches()) {
             String nickName = m.group(2).trim();
             p.setNickName(nickName);
             root = m.group(1) + " " + m.group(3);
-//    		LOGGER.trace("nick={}, root={}", nickName, root);
+//            LOGGER.trace("nick={}, root={}", nickName, root);
         }
 
         String[] words = root.split(STRING_PATTERN_WHITESPACE);
         int i = 0;
 
-//    	LOGGER.trace("(2) i={}, words={}", i, Arrays.toString(words));
+//        LOGGER.trace("(2) i={}, words={}", i, Arrays.toString(words));
 
         StringBuilder honorificPrefixBuilder = new StringBuilder();
         while (i < words.length && words[i].matches(STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT)) {
@@ -873,7 +873,7 @@ public class BasicExpressionFunctions {
             p.setHonorificPrefix(honorificPrefixBuilder.toString());
         }
 
-//    	LOGGER.trace("(3) i={}, words={}", i, Arrays.toString(words));
+//        LOGGER.trace("(3) i={}, words={}", i, Arrays.toString(words));
 
         List<String> rootNameWords = new ArrayList<>();
         while (i < words.length && !words[i].endsWith(",")) {
@@ -890,8 +890,8 @@ public class BasicExpressionFunctions {
             }
         }
 
-//    	LOGGER.trace("(4) i={}, words={}", i, Arrays.toString(words));
-//    	LOGGER.trace("(4) rootNameWords={}", rootNameWords);
+//        LOGGER.trace("(4) i={}, words={}", i, Arrays.toString(words));
+//        LOGGER.trace("(4) rootNameWords={}", rootNameWords);
 
         if (rootNameWords.size() > 1) {
             p.setFamilyName(rootNameWords.get(rootNameWords.size() - 1));
@@ -1092,51 +1092,51 @@ public class BasicExpressionFunctions {
         components[components.length - 1] = suffix;
         return composeDn(components);
     }
-    
+
     /**
      * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
      */
     public String hashLdapPassword(ProtectedStringType protectedString, String alg) throws NoSuchAlgorithmException, EncryptionException {
-    	if (protectedString == null) {
-    		return null;
-    	}
-    	String clearString = protector.decryptString(protectedString);
-    	if (clearString == null) {
-    		return null;
-    	}
-    	return hashLdapPassword(clearString.getBytes(UTF8_CHARSET), alg);
+        if (protectedString == null) {
+            return null;
+        }
+        String clearString = protector.decryptString(protectedString);
+        if (clearString == null) {
+            return null;
+        }
+        return hashLdapPassword(clearString.getBytes(UTF8_CHARSET), alg);
     }
-    
+
     /**
      * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
      */
     public String hashLdapPassword(String clearString, String alg) throws NoSuchAlgorithmException {
-    	if (clearString == null) {
-    		return null;
-    	}
-    	return hashLdapPassword(clearString.getBytes(UTF8_CHARSET), alg);
+        if (clearString == null) {
+            return null;
+        }
+        return hashLdapPassword(clearString.getBytes(UTF8_CHARSET), alg);
     }
 
     /**
      * Hashes cleartext password in an (unofficial) LDAP password format. Supported algorithms: SSHA, SHA and MD5.
      */
     public String hashLdapPassword(byte[] clearBytes, String alg) throws NoSuchAlgorithmException {
-    	if (clearBytes == null) {
-    		return null;
-    	}
-    	
+        if (clearBytes == null) {
+            return null;
+        }
+
         MessageDigest md = null;
-        
-    	try {
+
+        try {
             if (alg.equalsIgnoreCase("SSHA") || alg.equalsIgnoreCase("SHA")) {
-            		md = MessageDigest.getInstance("SHA-1");
+                    md = MessageDigest.getInstance("SHA-1");
             } else if ( alg.equalsIgnoreCase("SMD5") || alg.equalsIgnoreCase("MD5") ) {
                 md = MessageDigest.getInstance("MD5");
             }
-    	} catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new NoSuchAlgorithmException("Could not find MessageDigest algorithm: "+alg, e);
         }
-        
+
         if (md == null) {
             throw new NoSuchAlgorithmException("Unsupported MessageDigest algorithm: " + alg);
         }

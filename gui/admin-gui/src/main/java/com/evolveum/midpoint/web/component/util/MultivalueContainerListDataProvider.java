@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -37,18 +37,18 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
 
     private IModel<List<PrismContainerValueWrapper<C>>> model;
 
-	private boolean sortable;			// just to ensure backward compatibility with existing usages
+    private boolean sortable;            // just to ensure backward compatibility with existing usages
 
     public MultivalueContainerListDataProvider(Component component, IModel<List<PrismContainerValueWrapper<C>>> model) {
-		this(component, model, false);
-	}
+        this(component, model, false);
+    }
 
     public MultivalueContainerListDataProvider(Component component, IModel<List<PrismContainerValueWrapper<C>>> model, boolean sortable) {
         super(component);
 
         Validate.notNull(model);
         this.model = model;
-		this.sortable = sortable;
+        this.sortable = sortable;
     }
 
 
@@ -58,9 +58,9 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
 
         List<PrismContainerValueWrapper<C>> list = searchThroughList();
 
-		if (sortable && getSort() != null) {
-			sort(list);
-		}
+        if (sortable && getSort() != null) {
+            sort(list);
+        }
         if (list != null) {
             for (long i = first; i < first + count; i++) {
                 if (i < 0 || i >= list.size()) {
@@ -75,24 +75,24 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
     }
 
     @SuppressWarnings("unchecked")
-	protected <V extends Comparable<V>> void sort(List<PrismContainerValueWrapper<C>> list) {
-		Collections.sort(list, new Comparator<PrismContainerValueWrapper<C>>() {
-			@Override
-			public int compare(PrismContainerValueWrapper<C> o1, PrismContainerValueWrapper<C> o2) {
-				SortParam<String> sortParam = getSort();
-				String propertyName = sortParam.getProperty();
-				V prop1, prop2;
-				try {
-					prop1 = (V) PropertyUtils.getProperty(o1.getRealValue(), propertyName);
-					prop2 = (V) PropertyUtils.getProperty(o2.getRealValue(), propertyName);
-				} catch (RuntimeException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
-					throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
-				}
-				int comparison = ObjectUtils.compare(prop1, prop2, true);
-				return sortParam.isAscending() ? comparison : -comparison;
-			}
-		});
-	}
+    protected <V extends Comparable<V>> void sort(List<PrismContainerValueWrapper<C>> list) {
+        Collections.sort(list, new Comparator<PrismContainerValueWrapper<C>>() {
+            @Override
+            public int compare(PrismContainerValueWrapper<C> o1, PrismContainerValueWrapper<C> o2) {
+                SortParam<String> sortParam = getSort();
+                String propertyName = sortParam.getProperty();
+                V prop1, prop2;
+                try {
+                    prop1 = (V) PropertyUtils.getProperty(o1.getRealValue(), propertyName);
+                    prop2 = (V) PropertyUtils.getProperty(o2.getRealValue(), propertyName);
+                } catch (RuntimeException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
+                    throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
+                }
+                int comparison = ObjectUtils.compare(prop1, prop2, true);
+                return sortParam.isAscending() ? comparison : -comparison;
+            }
+        });
+    }
 
     @Override
     protected int internalSize() {
@@ -105,28 +105,28 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
     }
 
     public List<PrismContainerValueWrapper<C>> getSelectedData() {
-    	return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
+        return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
     }
 
     protected List<PrismContainerValueWrapper<C>> searchThroughList() {
-    	List<PrismContainerValueWrapper<C>> list = model.getObject();
+        List<PrismContainerValueWrapper<C>> list = model.getObject();
 
-    	if (list == null || list.isEmpty()) {
-    		return null;
-    	}
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
 
-    	if (getQuery() == null || getQuery().getFilter() == null) {
-    		return list;
-    	}
+        if (getQuery() == null || getQuery().getFilter() == null) {
+            return list;
+        }
 
-    	List<PrismContainerValueWrapper<C>> filtered = list.stream().filter(a -> {
-			try {
-				return ObjectQuery.match(a.getRealValue(), getQuery().getFilter(), getPage().getMatchingRuleRegistry());
-			} catch (SchemaException e) {
-				throw new TunnelException(e.getMessage());
-			}
-		}).collect(Collectors.toList());
-    	return filtered;
+        List<PrismContainerValueWrapper<C>> filtered = list.stream().filter(a -> {
+            try {
+                return ObjectQuery.match(a.getRealValue(), getQuery().getFilter(), getPage().getMatchingRuleRegistry());
+            } catch (SchemaException e) {
+                throw new TunnelException(e.getMessage());
+            }
+        }).collect(Collectors.toList());
+        return filtered;
 
     }
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.icf.dummy.connector;
@@ -17,13 +17,13 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
  */
 public class DummyConfiguration extends AbstractConfiguration {
 
-    private static final Log log = Log.getLog(DummyConfiguration.class);
+    private static final Log LOG = Log.getLog(DummyConfiguration.class);
 
     private String instanceId;
     private String fakeName;
 
     @ConfigurationProperty(displayMessageKey = "UI_INSTANCE_ID",
-    		helpMessageKey = "UI_INSTANCE_ID_HELP")
+            helpMessageKey = "UI_INSTANCE_ID_HELP")
     public String getInstanceId() {
         return instanceId;
     }
@@ -33,7 +33,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(displayMessageKey = "UI_FAKE_NAME",
-    		helpMessageKey = "UI_FAKE_NAME_HELP")
+            helpMessageKey = "UI_FAKE_NAME_HELP")
     public String getFakeName() {
         return fakeName;
     }
@@ -42,16 +42,16 @@ public class DummyConfiguration extends AbstractConfiguration {
         this.fakeName = config;
     }
 
-	/**
+    /**
      * {@inheritDoc}
      */
     @Override
     public void validate() {
-        log.info("begin");
+        LOG.info("begin");
 
         //TODO: validate configuration
 
-        log.info("end");
+        LOG.info("end");
     }
 
 

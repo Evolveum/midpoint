@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.test.asserter;
@@ -40,103 +40,103 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType,RA> {
-	
-	public ResourceAsserter(PrismObject<ResourceType> resource) {
-		super(resource);
-	}
-	
-	public ResourceAsserter(PrismObject<ResourceType> resource, String details) {
-		super(resource, details);
-	}
-	
-	public ResourceAsserter(PrismObject<ResourceType> resource, RA returnAsserter, String details) {
-		super(resource, returnAsserter, details);
-	}
-	
-	public static ResourceAsserter<Void> forResource(PrismObject<ResourceType> resource) {
-		return new ResourceAsserter<>(resource);
-	}
-	
-	public static ResourceAsserter<Void> forResource(PrismObject<ResourceType> resource, String details) {
-		return new ResourceAsserter<>(resource, details);
-	}
-	
-	@Override
-	public ResourceAsserter<RA> assertOid() {
-		super.assertOid();
-		return this;
-	}
-	
-	@Override
-	public ResourceAsserter<RA> assertOid(String expected) {
-		super.assertOid(expected);
-		return this;
-	}
-	
-	@Override
-	public ResourceAsserter<RA> assertName() {
-		super.assertName();
-		return this;
-	}
-	
-	@Override
-	public ResourceAsserter<RA> assertName(String expectedOrig) {
-		super.assertName(expectedOrig);
-		return this;
-	}
-	
-	@Override
-	public ResourceAsserter<RA> assertLifecycleState(String expected) {
-		super.assertLifecycleState(expected);
-		return this;
-	}
-	
-	@Override
-	public ResourceAsserter<RA> assertActiveLifecycleState() {
-		super.assertActiveLifecycleState();
-		return this;
-	}
-	
-	public ResourceAsserter<RA> assertHasSchema() {
-		Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(getObject());
-		assertNotNull("No schema in "+desc(), schemaElement);
-		return this;
-	}
-	
-	
-	@Override
-	public ResourceAsserter<RA> display() {
-		super.display();
-		return this;
-	}
-	
-	@Override
-	public ResourceAsserter<RA> display(String message) {
-		super.display(message);
-		return this;
-	}
-	
-	@Override
-	public ResourceAsserter<RA> displayXml() throws SchemaException {
-		super.displayXml();
-		return this;
-	}
-	
-	@Override
-	public ResourceAsserter<RA> displayXml(String message) throws SchemaException {
-		super.displayXml(message);
-		return this;
-	}
 
-	@Override
-	public ResourceAsserter<RA> assertOidDifferentThan(String oid) {
-		super.assertOidDifferentThan(oid);
-		return this;
-	}
+    public ResourceAsserter(PrismObject<ResourceType> resource) {
+        super(resource);
+    }
 
-	@Override
-	public ResourceAsserter<RA> assertNoTrigger() {
-		super.assertNoTrigger();
-		return this;
-	}
+    public ResourceAsserter(PrismObject<ResourceType> resource, String details) {
+        super(resource, details);
+    }
+
+    public ResourceAsserter(PrismObject<ResourceType> resource, RA returnAsserter, String details) {
+        super(resource, returnAsserter, details);
+    }
+
+    public static ResourceAsserter<Void> forResource(PrismObject<ResourceType> resource) {
+        return new ResourceAsserter<>(resource);
+    }
+
+    public static ResourceAsserter<Void> forResource(PrismObject<ResourceType> resource, String details) {
+        return new ResourceAsserter<>(resource, details);
+    }
+
+    @Override
+    public ResourceAsserter<RA> assertOid() {
+        super.assertOid();
+        return this;
+    }
+
+    @Override
+    public ResourceAsserter<RA> assertOid(String expected) {
+        super.assertOid(expected);
+        return this;
+    }
+
+    @Override
+    public ResourceAsserter<RA> assertName() {
+        super.assertName();
+        return this;
+    }
+
+    @Override
+    public ResourceAsserter<RA> assertName(String expectedOrig) {
+        super.assertName(expectedOrig);
+        return this;
+    }
+
+    @Override
+    public ResourceAsserter<RA> assertLifecycleState(String expected) {
+        super.assertLifecycleState(expected);
+        return this;
+    }
+
+    @Override
+    public ResourceAsserter<RA> assertActiveLifecycleState() {
+        super.assertActiveLifecycleState();
+        return this;
+    }
+
+    public ResourceAsserter<RA> assertHasSchema() {
+        Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(getObject());
+        assertNotNull("No schema in "+desc(), schemaElement);
+        return this;
+    }
+
+
+    @Override
+    public ResourceAsserter<RA> display() {
+        super.display();
+        return this;
+    }
+
+    @Override
+    public ResourceAsserter<RA> display(String message) {
+        super.display(message);
+        return this;
+    }
+
+    @Override
+    public ResourceAsserter<RA> displayXml() throws SchemaException {
+        super.displayXml();
+        return this;
+    }
+
+    @Override
+    public ResourceAsserter<RA> displayXml(String message) throws SchemaException {
+        super.displayXml(message);
+        return this;
+    }
+
+    @Override
+    public ResourceAsserter<RA> assertOidDifferentThan(String oid) {
+        super.assertOidDifferentThan(oid);
+        return this;
+    }
+
+    @Override
+    public ResourceAsserter<RA> assertNoTrigger() {
+        super.assertNoTrigger();
+        return this;
+    }
 }

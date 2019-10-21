@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.common.expression.evaluator;
@@ -29,47 +29,47 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvalua
  */
 public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V,D,AsIsExpressionEvaluatorType> {
 
-	public AsIsExpressionEvaluator(QName elementName, AsIsExpressionEvaluatorType asIsExpressionEvaluatorType, D outputDefinition, Protector protector, PrismContext prismContext) {
-		super(elementName, asIsExpressionEvaluatorType, outputDefinition, protector, prismContext);
-	}
-
-	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
-		
-		checkEvaluatorProfile(context);
-
-		Source<V,D> source;
-    	if (context.getSources().isEmpty()) {
-    		throw new ExpressionEvaluationException("asIs evaluator cannot work without a source in "+ context.getContextDescription());
-    	}
-    	if (context.getSources().size() > 1) {
-    		Source<V,D> defaultSource = (Source<V,D>) context.getDefaultSource();
-    		if (defaultSource != null) {
-    			source = defaultSource;
-    		} else {
-    			throw new ExpressionEvaluationException("asIs evaluator cannot work with more than one source ("+ context.getSources().size()
-    				+" sources specified) without specification of a default source, in "+ context.getContextDescription());
-    		}
-    	} else {
-    		source = (Source<V,D>) context.getSources().iterator().next();
-    	}
-        PrismValueDeltaSetTriple<V> sourceTriple = ItemDeltaUtil.toDeltaSetTriple(source.getItemOld(), source.getDelta(),
-		        prismContext);
-
-        if (sourceTriple == null) {
-        	return null;
-        }
-        return ExpressionUtil.toOutputTriple(sourceTriple, outputDefinition, context.getAdditionalConvertor(), source.getResidualPath(),
-        		protector, prismContext);
+    public AsIsExpressionEvaluator(QName elementName, AsIsExpressionEvaluatorType asIsExpressionEvaluatorType, D outputDefinition, Protector protector, PrismContext prismContext) {
+        super(elementName, asIsExpressionEvaluatorType, outputDefinition, protector, prismContext);
     }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
-	 */
-	@Override
-	public String shortDebugDump() {
-		return "asIs";
-	}
+    @Override
+    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
+
+        checkEvaluatorProfile(context);
+
+        Source<V,D> source;
+        if (context.getSources().isEmpty()) {
+            throw new ExpressionEvaluationException("asIs evaluator cannot work without a source in "+ context.getContextDescription());
+        }
+        if (context.getSources().size() > 1) {
+            Source<V,D> defaultSource = (Source<V,D>) context.getDefaultSource();
+            if (defaultSource != null) {
+                source = defaultSource;
+            } else {
+                throw new ExpressionEvaluationException("asIs evaluator cannot work with more than one source ("+ context.getSources().size()
+                    +" sources specified) without specification of a default source, in "+ context.getContextDescription());
+            }
+        } else {
+            source = (Source<V,D>) context.getSources().iterator().next();
+        }
+        PrismValueDeltaSetTriple<V> sourceTriple = ItemDeltaUtil.toDeltaSetTriple(source.getItemOld(), source.getDelta(),
+                prismContext);
+
+        if (sourceTriple == null) {
+            return null;
+        }
+        return ExpressionUtil.toOutputTriple(sourceTriple, outputDefinition, context.getAdditionalConvertor(), source.getResidualPath(),
+                protector, prismContext);
+    }
+
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
+     */
+    @Override
+    public String shortDebugDump() {
+        return "asIs";
+    }
 
 }

@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="ce67b472-e5a6-11e7-98c3-174355334559"
@@ -9,72 +9,72 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <name>Limited Role Administrator</name>    
+    <name>Limited Role Administrator</name>
     <authorization>
-    	<name>self-read</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<special>self</special>
-    	</object>
+        <name>self-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <special>self</special>
+        </object>
     </authorization>
     <authorization>
-    	<name>read roles</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>RoleType</type>
-    	</object>
-    	<item>name</item>
-    	<item>description</item>
-    	<item>subtype</item>
-    	<item>lifecycleState</item>
-    	<item>requestable</item>
-    	<item>delegable</item>
-    	<item>inducement</item>
-    	<item>assignment/policyRule/policyConstraints/exclusion</item>
+        <name>read roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+        <item>description</item>
+        <item>subtype</item>
+        <item>lifecycleState</item>
+        <item>requestable</item>
+        <item>delegable</item>
+        <item>inducement</item>
+        <item>assignment/policyRule/policyConstraints/exclusion</item>
     </authorization>
     <authorization>
-    	<name>add roles</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-    	<object>
-    		<type>RoleType</type>
-    	</object>
-		<item>name</item>
-    	<item>description</item>
-    	<item>subtype</item>
-    	<item>lifecycleState</item>
-    	<item>requestable</item>
-    	<item>delegable</item>
-    	<item>inducement</item>
-    	<item>assignment/policyRule/policyConstraints/exclusion</item>
+        <name>add roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+        <item>description</item>
+        <item>subtype</item>
+        <item>lifecycleState</item>
+        <item>requestable</item>
+        <item>delegable</item>
+        <item>inducement</item>
+        <item>assignment/policyRule/policyConstraints/exclusion</item>
     </authorization>
     <authorization>
-    	<name>modify roles</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<object>
-    		<type>RoleType</type>
-    	</object>
-    	<item>name</item>
-    	<item>description</item>
-    	<item>subtype</item>
-    	<item>lifecycleState</item>
-    	<item>requestable</item>
-    	<item>delegable</item>
-    	<item>inducement</item>
-    	<item>assignment/policyRule/policyConstraints/exclusion</item>
+        <name>modify roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+        <item>description</item>
+        <item>subtype</item>
+        <item>lifecycleState</item>
+        <item>requestable</item>
+        <item>delegable</item>
+        <item>inducement</item>
+        <item>assignment/policyRule/policyConstraints/exclusion</item>
     </authorization>
     <authorization>
-    	<name>lra-ui-autz</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roles</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#role</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
+        <name>lra-ui-autz</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roles</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#role</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#roleDetails</action>
     </authorization>
     <authorization>
-    	<name>lra-ui-assign-autz</name>
-		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssign</action>
-		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassign</action>
-		<description>Assign/unassign in admin GUI (role profile)</description>
-		<c:object>
-			<c:type>RoleType</c:type>
-		</c:object>
-	</authorization>
+        <name>lra-ui-assign-autz</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminAssign</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#adminUnassign</action>
+        <description>Assign/unassign in admin GUI (role profile)</description>
+        <c:object>
+            <c:type>RoleType</c:type>
+        </c:object>
+    </authorization>
 </role>

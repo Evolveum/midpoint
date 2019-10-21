@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.common.expression;
@@ -28,178 +28,178 @@ import com.evolveum.midpoint.task.api.Task;
  */
 public class ExpressionEvaluationContext {
 
-	private Collection<Source<?,?>> sources;
-	private Source<?,?> defaultSource;
-	private ExpressionVariables variables;
-	private boolean skipEvaluationPlus = false;
-	private boolean skipEvaluationMinus = false;
-	private ValuePolicyResolver valuePolicyResolver;
-	private ExpressionFactory expressionFactory;
-	private PrismObjectDefinition<?> defaultTargetContext;
-	private RefinedObjectClassDefinition refinedObjectClassDefinition;
-	private QName mappingQName;
-	private String contextDescription;
-	private Task task;
-	private Function<Object, Object> additionalConvertor;
-	private VariableProducer variableProducer;
+    private Collection<Source<?,?>> sources;
+    private Source<?,?> defaultSource;
+    private ExpressionVariables variables;
+    private boolean skipEvaluationPlus = false;
+    private boolean skipEvaluationMinus = false;
+    private ValuePolicyResolver valuePolicyResolver;
+    private ExpressionFactory expressionFactory;
+    private PrismObjectDefinition<?> defaultTargetContext;
+    private RefinedObjectClassDefinition refinedObjectClassDefinition;
+    private QName mappingQName;
+    private String contextDescription;
+    private Task task;
+    private Function<Object, Object> additionalConvertor;
+    private VariableProducer variableProducer;
 
-	/**
-	 * Optional. If not specified then it will be added at the star of evaluation.
-	 * Might be used to override the profile.
-	 */
-	private ExpressionProfile expressionProfile;
-	private ExpressionEvaluatorProfile expressionEvaluatorProfile;
-	
-	public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
-			ExpressionVariables variables, String contextDescription, Task task) {
-		super();
-		this.sources = sources;
-		this.variables = variables;
-		this.contextDescription = contextDescription;
-		this.task = task;
-	}
+    /**
+     * Optional. If not specified then it will be added at the star of evaluation.
+     * Might be used to override the profile.
+     */
+    private ExpressionProfile expressionProfile;
+    private ExpressionEvaluatorProfile expressionEvaluatorProfile;
 
-	public Collection<Source<?,?>> getSources() {
-		return sources;
-	}
+    public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
+            ExpressionVariables variables, String contextDescription, Task task) {
+        super();
+        this.sources = sources;
+        this.variables = variables;
+        this.contextDescription = contextDescription;
+        this.task = task;
+    }
 
-	public void setSources(Collection<Source<?,?>> sources) {
-		this.sources = sources;
-	}
+    public Collection<Source<?,?>> getSources() {
+        return sources;
+    }
 
-	public Source<?,?> getDefaultSource() {
-		return defaultSource;
-	}
+    public void setSources(Collection<Source<?,?>> sources) {
+        this.sources = sources;
+    }
 
-	public void setDefaultSource(Source<?,?> defaultSource) {
-		this.defaultSource = defaultSource;
-	}
+    public Source<?,?> getDefaultSource() {
+        return defaultSource;
+    }
 
-	public ExpressionVariables getVariables() {
-		return variables;
-	}
+    public void setDefaultSource(Source<?,?> defaultSource) {
+        this.defaultSource = defaultSource;
+    }
 
-	public void setVariables(ExpressionVariables variables) {
-		this.variables = variables;
-	}
+    public ExpressionVariables getVariables() {
+        return variables;
+    }
 
-	public boolean isSkipEvaluationPlus() {
-		return skipEvaluationPlus;
-	}
+    public void setVariables(ExpressionVariables variables) {
+        this.variables = variables;
+    }
 
-	public void setSkipEvaluationPlus(boolean skipEvaluationPlus) {
-		this.skipEvaluationPlus = skipEvaluationPlus;
-	}
+    public boolean isSkipEvaluationPlus() {
+        return skipEvaluationPlus;
+    }
 
-	public boolean isSkipEvaluationMinus() {
-		return skipEvaluationMinus;
-	}
+    public void setSkipEvaluationPlus(boolean skipEvaluationPlus) {
+        this.skipEvaluationPlus = skipEvaluationPlus;
+    }
 
-	public void setSkipEvaluationMinus(boolean skipEvaluationMinus) {
-		this.skipEvaluationMinus = skipEvaluationMinus;
-	}
-	
-	public ExpressionProfile getExpressionProfile() {
-		return expressionProfile;
-	}
+    public boolean isSkipEvaluationMinus() {
+        return skipEvaluationMinus;
+    }
 
-	public void setExpressionProfile(ExpressionProfile expressionProfile) {
-		this.expressionProfile = expressionProfile;
-	}
+    public void setSkipEvaluationMinus(boolean skipEvaluationMinus) {
+        this.skipEvaluationMinus = skipEvaluationMinus;
+    }
 
-	public ExpressionEvaluatorProfile getExpressionEvaluatorProfile() {
-		return expressionEvaluatorProfile;
-	}
+    public ExpressionProfile getExpressionProfile() {
+        return expressionProfile;
+    }
 
-	public void setExpressionEvaluatorProfile(ExpressionEvaluatorProfile expressionEvaluatorProfile) {
-		this.expressionEvaluatorProfile = expressionEvaluatorProfile;
-	}
+    public void setExpressionProfile(ExpressionProfile expressionProfile) {
+        this.expressionProfile = expressionProfile;
+    }
 
-	public ValuePolicyResolver getValuePolicyResolver() {
-		return valuePolicyResolver;
-	}
+    public ExpressionEvaluatorProfile getExpressionEvaluatorProfile() {
+        return expressionEvaluatorProfile;
+    }
 
-	public void setValuePolicyResolver(ValuePolicyResolver valuePolicyResolver) {
-		this.valuePolicyResolver = valuePolicyResolver;
-	}
+    public void setExpressionEvaluatorProfile(ExpressionEvaluatorProfile expressionEvaluatorProfile) {
+        this.expressionEvaluatorProfile = expressionEvaluatorProfile;
+    }
 
-	public ExpressionFactory getExpressionFactory() {
-		return expressionFactory;
-	}
+    public ValuePolicyResolver getValuePolicyResolver() {
+        return valuePolicyResolver;
+    }
 
-	public void setExpressionFactory(ExpressionFactory expressionFactory) {
-		this.expressionFactory = expressionFactory;
-	}
+    public void setValuePolicyResolver(ValuePolicyResolver valuePolicyResolver) {
+        this.valuePolicyResolver = valuePolicyResolver;
+    }
 
-	public PrismObjectDefinition<?> getDefaultTargetContext() {
-		return defaultTargetContext;
-	}
+    public ExpressionFactory getExpressionFactory() {
+        return expressionFactory;
+    }
 
-	public void setDefaultTargetContext(PrismObjectDefinition<?> defaultTargetContext) {
-		this.defaultTargetContext = defaultTargetContext;
-	}
+    public void setExpressionFactory(ExpressionFactory expressionFactory) {
+        this.expressionFactory = expressionFactory;
+    }
 
-	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
-		return refinedObjectClassDefinition;
-	}
+    public PrismObjectDefinition<?> getDefaultTargetContext() {
+        return defaultTargetContext;
+    }
 
-	public void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
-		this.refinedObjectClassDefinition = refinedObjectClassDefinition;
-	}
+    public void setDefaultTargetContext(PrismObjectDefinition<?> defaultTargetContext) {
+        this.defaultTargetContext = defaultTargetContext;
+    }
 
-	public QName getMappingQName() {
-		return mappingQName;
-	}
+    public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
+        return refinedObjectClassDefinition;
+    }
 
-	public void setMappingQName(QName mappingQName) {
-		this.mappingQName = mappingQName;
-	}
+    public void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
+        this.refinedObjectClassDefinition = refinedObjectClassDefinition;
+    }
 
-	public String getContextDescription() {
-		return contextDescription;
-	}
+    public QName getMappingQName() {
+        return mappingQName;
+    }
 
-	public void setContextDescription(String contextDescription) {
-		this.contextDescription = contextDescription;
-	}
+    public void setMappingQName(QName mappingQName) {
+        this.mappingQName = mappingQName;
+    }
 
-	public Task getTask() {
-		return task;
-	}
+    public String getContextDescription() {
+        return contextDescription;
+    }
 
-	public void setTask(Task task) {
-		this.task = task;
-	}
+    public void setContextDescription(String contextDescription) {
+        this.contextDescription = contextDescription;
+    }
 
-	public Function<Object, Object> getAdditionalConvertor() {
-		return additionalConvertor;
-	}
+    public Task getTask() {
+        return task;
+    }
 
-	public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
-		this.additionalConvertor = additionalConvertor;
-	}
-	
-	public VariableProducer getVariableProducer() {
-		return variableProducer;
-	}
-	
-	public void setVariableProducer(VariableProducer variableProducer) {
-		this.variableProducer = variableProducer;
-	}
+    public void setTask(Task task) {
+        this.task = task;
+    }
 
-	public ExpressionEvaluationContext shallowClone() {
-		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, task);
-		clone.skipEvaluationMinus = this.skipEvaluationMinus;
-		clone.skipEvaluationPlus = this.skipEvaluationPlus;
-		clone.expressionProfile = this.expressionProfile;
-		clone.valuePolicyResolver = this.valuePolicyResolver;
-		clone.expressionFactory = this.expressionFactory;
-		clone.defaultSource = this.defaultSource;
-		clone.refinedObjectClassDefinition = this.refinedObjectClassDefinition;
-		clone.mappingQName = this.mappingQName;
-		clone.additionalConvertor = this.additionalConvertor;
-		clone.variableProducer = this.variableProducer;
-		return clone;
-	}
+    public Function<Object, Object> getAdditionalConvertor() {
+        return additionalConvertor;
+    }
+
+    public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
+        this.additionalConvertor = additionalConvertor;
+    }
+
+    public VariableProducer getVariableProducer() {
+        return variableProducer;
+    }
+
+    public void setVariableProducer(VariableProducer variableProducer) {
+        this.variableProducer = variableProducer;
+    }
+
+    public ExpressionEvaluationContext shallowClone() {
+        ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, task);
+        clone.skipEvaluationMinus = this.skipEvaluationMinus;
+        clone.skipEvaluationPlus = this.skipEvaluationPlus;
+        clone.expressionProfile = this.expressionProfile;
+        clone.valuePolicyResolver = this.valuePolicyResolver;
+        clone.expressionFactory = this.expressionFactory;
+        clone.defaultSource = this.defaultSource;
+        clone.refinedObjectClassDefinition = this.refinedObjectClassDefinition;
+        clone.mappingQName = this.mappingQName;
+        clone.additionalConvertor = this.additionalConvertor;
+        clone.variableProducer = this.variableProducer;
+        return clone;
+    }
 
 }

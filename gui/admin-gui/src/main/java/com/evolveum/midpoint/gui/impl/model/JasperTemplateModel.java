@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,15 +27,15 @@ public class JasperTemplateModel implements IModel<String> {
 
     @Override
     public String getObject() {
-    	if (model.getObject() == null) {
+        if (model.getObject() == null) {
             return null;
         }
-    	byte[] obj;
-    	if (Base64.isBase64(model.getObject())) {
-    		obj = Base64.decodeBase64(model.getObject());
-    	} else {
-    		obj = model.getObject();
-    	}
+        byte[] obj;
+        if (Base64.isBase64(model.getObject())) {
+            obj = Base64.decodeBase64(model.getObject());
+        } else {
+            obj = model.getObject();
+        }
 
         try {
             return new String(obj, "utf-8");

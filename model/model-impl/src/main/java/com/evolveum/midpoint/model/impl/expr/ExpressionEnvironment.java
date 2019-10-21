@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.expr;
@@ -21,82 +21,82 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class ExpressionEnvironment<F extends ObjectType,V extends PrismValue, D extends ItemDefinition> {
 
-	private LensContext<F> lensContext;
-	private LensProjectionContext projectionContext;
-	private Mapping<V, D> mapping;
-	private OperationResult currentResult;
-	private Task currentTask;
+    private LensContext<F> lensContext;
+    private LensProjectionContext projectionContext;
+    private Mapping<V, D> mapping;
+    private OperationResult currentResult;
+    private Task currentTask;
 
-	public ExpressionEnvironment() {
-	}
+    public ExpressionEnvironment() {
+    }
 
-	public ExpressionEnvironment(Task currentTask, OperationResult currentResult) {
-		this.currentResult = currentResult;
-		this.currentTask = currentTask;
-	}
-	
-	public ExpressionEnvironment(LensContext<F> lensContext, LensProjectionContext projectionContext,
-			Task currentTask, OperationResult currentResult) {
-		this.lensContext = lensContext;
-		this.projectionContext = projectionContext;
-		this.currentResult = currentResult;
-		this.currentTask = currentTask;
-	}
-	
-	public ExpressionEnvironment(LensContext<F> lensContext, LensProjectionContext projectionContext, Mapping<V, D> mapping,
-			Task currentTask, OperationResult currentResult) {
-		this.lensContext = lensContext;
-		this.projectionContext = projectionContext;
-		this.mapping = mapping;
-		this.currentResult = currentResult;
-		this.currentTask = currentTask;
-	}
+    public ExpressionEnvironment(Task currentTask, OperationResult currentResult) {
+        this.currentResult = currentResult;
+        this.currentTask = currentTask;
+    }
 
-	public LensContext<F> getLensContext() {
-		return lensContext;
-	}
+    public ExpressionEnvironment(LensContext<F> lensContext, LensProjectionContext projectionContext,
+            Task currentTask, OperationResult currentResult) {
+        this.lensContext = lensContext;
+        this.projectionContext = projectionContext;
+        this.currentResult = currentResult;
+        this.currentTask = currentTask;
+    }
 
-	public void setLensContext(LensContext<F> lensContext) {
-		this.lensContext = lensContext;
-	}
+    public ExpressionEnvironment(LensContext<F> lensContext, LensProjectionContext projectionContext, Mapping<V, D> mapping,
+            Task currentTask, OperationResult currentResult) {
+        this.lensContext = lensContext;
+        this.projectionContext = projectionContext;
+        this.mapping = mapping;
+        this.currentResult = currentResult;
+        this.currentTask = currentTask;
+    }
 
-	public LensProjectionContext getProjectionContext() {
-		return projectionContext;
-	}
+    public LensContext<F> getLensContext() {
+        return lensContext;
+    }
 
-	public void setProjectionContext(LensProjectionContext projectionContext) {
-		this.projectionContext = projectionContext;
-	}
+    public void setLensContext(LensContext<F> lensContext) {
+        this.lensContext = lensContext;
+    }
 
-	public Mapping<V, D> getMapping() {
-		return mapping;
-	}
+    public LensProjectionContext getProjectionContext() {
+        return projectionContext;
+    }
 
-	public void setMapping(Mapping<V, D> mapping) {
-		this.mapping = mapping;
-	}
+    public void setProjectionContext(LensProjectionContext projectionContext) {
+        this.projectionContext = projectionContext;
+    }
 
-	public OperationResult getCurrentResult() {
-		return currentResult;
-	}
+    public Mapping<V, D> getMapping() {
+        return mapping;
+    }
 
-	public void setCurrentResult(OperationResult currentResult) {
-		this.currentResult = currentResult;
-	}
+    public void setMapping(Mapping<V, D> mapping) {
+        this.mapping = mapping;
+    }
 
-	public Task getCurrentTask() {
-		return currentTask;
-	}
+    public OperationResult getCurrentResult() {
+        return currentResult;
+    }
 
-	public void setCurrentTask(Task currentTask) {
-		this.currentTask = currentTask;
-	}
+    public void setCurrentResult(OperationResult currentResult) {
+        this.currentResult = currentResult;
+    }
 
-	@Override
-	public String toString() {
-		return "ExpressionEnvironment(lensContext=" + lensContext + ", projectionContext="
-				+ projectionContext + ", currentResult=" + currentResult + ", currentTask=" + currentTask
-				+ ")";
-	}
+    public Task getCurrentTask() {
+        return currentTask;
+    }
+
+    public void setCurrentTask(Task currentTask) {
+        this.currentTask = currentTask;
+    }
+
+    @Override
+    public String toString() {
+        return "ExpressionEnvironment(lensContext=" + lensContext + ", projectionContext="
+                + projectionContext + ", currentResult=" + currentResult + ", currentTask=" + currentTask
+                + ")";
+    }
 
 }

@@ -1,18 +1,18 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
-	oid="0223b993-b8bd-4599-8873-80d04b88a1ce">
-	<name>deputy-2</name>
-	<assignment>
-		<targetRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType" relation="org:deputy"/>	<!-- jack -->
-		<limitOtherPrivileges>
-			<!-- none selected = case management privileges not delegated -->
-		</limitOtherPrivileges>
-	</assignment>
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+    oid="0223b993-b8bd-4599-8873-80d04b88a1ce">
+    <name>deputy-2</name>
+    <assignment>
+        <targetRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType" relation="org:deputy"/>    <!-- jack -->
+        <limitOtherPrivileges>
+            <!-- none selected = case management privileges not delegated -->
+        </limitOtherPrivileges>
+    </assignment>
 </user>

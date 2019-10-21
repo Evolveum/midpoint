@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.script;
@@ -62,33 +62,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
  */
 public class TestScriptCaching {
 
-	private static final File TEST_DIR = new File("src/test/resources/expression/groovy");
-	protected static File OBJECTS_DIR = new File("src/test/resources/objects");
+    private static final File TEST_DIR = new File("src/test/resources/expression/groovy");
+    protected static File OBJECTS_DIR = new File("src/test/resources/objects");
 
-	private static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
-	private static final String NS_WHATEVER = "http://whatever/xml/ns";
+    private static final QName PROPERTY_NAME = new QName(MidPointConstants.NS_MIDPOINT_TEST_PREFIX, "whatever");
+    private static final String NS_WHATEVER = "http://whatever/xml/ns";
 
-	 protected ScriptExpressionFactory scriptExpressionfactory;
-	 protected ScriptEvaluator evaluator;
-	 
+     protected ScriptExpressionFactory scriptExpressionfactory;
+     protected ScriptEvaluator evaluator;
+
     @BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
     @BeforeClass
     public void setupFactory() {
-    	System.out.println("Setting up expression factory and evaluator");
-    	PrismContext prismContext = getPrismContext();
-    	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
-    	Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
-    	Clock clock = new Clock();
+        System.out.println("Setting up expression factory and evaluator");
+        PrismContext prismContext = getPrismContext();
+        ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
+        Protector protector = KeyStoreBasedProtectorBuilder.create(prismContext).buildOnly();
+        Clock clock = new Clock();
         Collection<FunctionLibrary> functions = new ArrayList<>();
-		functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
-		scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector, null);
-		scriptExpressionfactory.setObjectResolver(resolver);
-		scriptExpressionfactory.setFunctions(functions);
+        functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
+        scriptExpressionfactory = new ScriptExpressionFactory(prismContext, protector, null);
+        scriptExpressionfactory.setObjectResolver(resolver);
+        scriptExpressionfactory.setFunctions(functions);
         evaluator = new Jsr223ScriptEvaluator("groovy", prismContext, protector, LocalizationTestUtil.getLocalizationService());
         String languageUrl = evaluator.getLanguageUrl();
         scriptExpressionfactory.registerEvaluator(languageUrl, evaluator);
@@ -96,96 +96,96 @@ public class TestScriptCaching {
 
     @Test
     public void testGetExtensionPropertyValue() throws Exception {
-    	final String TEST_NAME = "testGetExtensionPropertyValue";
-    	TestUtil.displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "testGetExtensionPropertyValue";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-    	// GIVEN
-    	InternalMonitor.reset();
+        // GIVEN
+        InternalMonitor.reset();
 
-    	assertScriptMonitor(0,0, "init");
+        assertScriptMonitor(0,0, "init");
 
-    	// WHEN, THEN
-    	long etimeFirst = executeScript("expression-string-variables.xml", "FOOBAR", "first");
-    	assertScriptMonitor(1,1, "first");
+        // WHEN, THEN
+        long etimeFirst = executeScript("expression-string-variables.xml", "FOOBAR", "first");
+        assertScriptMonitor(1,1, "first");
 
-    	long etimeSecond = executeScript("expression-string-variables.xml", "FOOBAR", "second");
-    	assertScriptMonitor(1,2, "second");
-    	assertTrue("Einstein was wrong! "+etimeFirst+" -> "+etimeSecond, etimeSecond <= etimeFirst);
+        long etimeSecond = executeScript("expression-string-variables.xml", "FOOBAR", "second");
+        assertScriptMonitor(1,2, "second");
+        assertTrue("Einstein was wrong! "+etimeFirst+" -> "+etimeSecond, etimeSecond <= etimeFirst);
 
-    	long etimeThird = executeScript("expression-string-variables.xml", "FOOBAR", "second");
-    	assertScriptMonitor(1,3, "third");
-    	assertTrue("Einstein was wrong again! "+etimeFirst+" -> "+etimeThird, etimeThird <= etimeFirst);
+        long etimeThird = executeScript("expression-string-variables.xml", "FOOBAR", "second");
+        assertScriptMonitor(1,3, "third");
+        assertTrue("Einstein was wrong again! "+etimeFirst+" -> "+etimeThird, etimeThird <= etimeFirst);
 
-    	// Different script. Should compile.
-    	long horatio1Time = executeScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio");
-    	assertScriptMonitor(2,4, "horatio");
+        // Different script. Should compile.
+        long horatio1Time = executeScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio");
+        assertScriptMonitor(2,4, "horatio");
 
-    	// Same script. No compilation.
-    	long etimeFourth = executeScript("expression-string-variables.xml", "FOOBAR", "fourth");
-    	assertScriptMonitor(2,5, "fourth");
-    	assertTrue("Einstein was wrong all the time! "+etimeFirst+" -> "+etimeFourth, etimeFourth <= etimeFirst);
+        // Same script. No compilation.
+        long etimeFourth = executeScript("expression-string-variables.xml", "FOOBAR", "fourth");
+        assertScriptMonitor(2,5, "fourth");
+        assertTrue("Einstein was wrong all the time! "+etimeFirst+" -> "+etimeFourth, etimeFourth <= etimeFirst);
 
-    	// Try this again. No compile.
-    	long horatio2Time = executeScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio2");
-    	assertScriptMonitor(2,6, "horatio2");
-    	assertTrue("Even Horatio was wrong! "+horatio1Time+" -> "+horatio2Time, horatio2Time <= horatio1Time);
+        // Try this again. No compile.
+        long horatio2Time = executeScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio2");
+        assertScriptMonitor(2,6, "horatio2");
+        assertTrue("Even Horatio was wrong! "+horatio1Time+" -> "+horatio2Time, horatio2Time <= horatio1Time);
     }
 
     private void assertScriptMonitor(int expCompilations, int expExecutions, String desc) {
-		assertEquals("Unexpected number of script compilations after "+desc, expCompilations, InternalMonitor.getCount(InternalCounters.SCRIPT_COMPILE_COUNT));
-		assertEquals("Unexpected number of script executions after "+desc, expExecutions, InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT));
-	}
-
-	private long executeScript(String filname, String expectedResult, String desc) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        // GIVEN
-    	OperationResult result = new OperationResult(desc);
-    	ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
-    	ItemDefinition outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
-
-    	ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition, desc);
-
-        ExpressionVariables variables = ExpressionVariables.create(getPrismContext(),
-				"foo", "FOO", PrimitiveType.STRING,
-				"bar", "BAR", PrimitiveType.STRING
-		);
-
-		// WHEN
-        long startTime = System.currentTimeMillis();
-    	List<PrismPropertyValue<String>> scripResults = scriptExpression.evaluate(variables , null, false, desc, null, result);
-    	long endTime = System.currentTimeMillis();
-
-        // THEN
-    	System.out.println("Script results "+desc+", etime: "+(endTime - startTime)+" ms");
-    	System.out.println(scripResults);
-
-    	String scriptResult = asScalarString(scripResults);
-    	assertEquals("Wrong script "+desc+" result", expectedResult, scriptResult);
-
-    	return (endTime - startTime);
+        assertEquals("Unexpected number of script compilations after "+desc, expCompilations, InternalMonitor.getCount(InternalCounters.SCRIPT_COMPILE_COUNT));
+        assertEquals("Unexpected number of script executions after "+desc, expExecutions, InternalMonitor.getCount(InternalCounters.SCRIPT_EXECUTION_COUNT));
     }
 
-	private ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, String shortDesc) throws ExpressionSyntaxException {
-		ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
-		expression.setOutputDefinition(outputDefinition);
-		expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
-		expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getFunctions()));
-		return expression;
-	}
-	
+    private long executeScript(String filname, String expectedResult, String desc) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        // GIVEN
+        OperationResult result = new OperationResult(desc);
+        ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
+        ItemDefinition outputDefinition = getPrismContext().definitionFactory().createPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING);
+
+        ScriptExpression scriptExpression = createScriptExpression(scriptType, outputDefinition, desc);
+
+        ExpressionVariables variables = ExpressionVariables.create(getPrismContext(),
+                "foo", "FOO", PrimitiveType.STRING,
+                "bar", "BAR", PrimitiveType.STRING
+        );
+
+        // WHEN
+        long startTime = System.currentTimeMillis();
+        List<PrismPropertyValue<String>> scripResults = scriptExpression.evaluate(variables , null, false, desc, null, result);
+        long endTime = System.currentTimeMillis();
+
+        // THEN
+        System.out.println("Script results "+desc+", etime: "+(endTime - startTime)+" ms");
+        System.out.println(scripResults);
+
+        String scriptResult = asScalarString(scripResults);
+        assertEquals("Wrong script "+desc+" result", expectedResult, scriptResult);
+
+        return (endTime - startTime);
+    }
+
+    private ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, String shortDesc) throws ExpressionSyntaxException {
+        ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
+        expression.setOutputDefinition(outputDefinition);
+        expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
+        expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getFunctions()));
+        return expression;
+    }
+
     private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException, JAXBException {
-		ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
+        ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
-		return expressionType;
-	}
+        return expressionType;
+    }
 
     private String asScalarString(List<PrismPropertyValue<String>> expressionResultList) {
-		if (expressionResultList.size() > 1) {
-			AssertJUnit.fail("Expression produces a list of "+expressionResultList.size()+" while only expected a single value: "+expressionResultList);
-		}
-		if (expressionResultList.isEmpty()) {
-			return null;
-		}
-		return expressionResultList.iterator().next().getValue();
-	}
+        if (expressionResultList.size() > 1) {
+            AssertJUnit.fail("Expression produces a list of "+expressionResultList.size()+" while only expected a single value: "+expressionResultList);
+        }
+        if (expressionResultList.isEmpty()) {
+            return null;
+        }
+        return expressionResultList.iterator().next().getValue();
+    }
 
 }

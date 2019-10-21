@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -76,7 +76,7 @@ public class DummyTransport implements Transport, DebugDumpable {
     }
 
     public Map<String,List<Message>> getMessages() {
-    	return messages;
+        return messages;
     }
 
     public void clearMessages() {
@@ -93,21 +93,21 @@ public class DummyTransport implements Transport, DebugDumpable {
         return "dummy";
     }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-    	StringBuilder sb = new StringBuilder();
-    	DebugUtil.indentDebugDump(sb, indent);
-    	sb.append("(\n");
-		for (Map.Entry<String, List<Message>> entry : messages.entrySet()) {
-			DebugUtil.debugDumpWithLabelLn(sb, entry.getKey(), entry.getValue(), indent + 1);
-		}
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append(")");
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("(\n");
+        for (Map.Entry<String, List<Message>> entry : messages.entrySet()) {
+            DebugUtil.debugDumpWithLabelLn(sb, entry.getKey(), entry.getValue(), indent + 1);
+        }
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append(")");
+        return sb.toString();
+    }
 }

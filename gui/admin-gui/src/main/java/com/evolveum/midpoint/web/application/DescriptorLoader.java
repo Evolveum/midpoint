@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -37,33 +37,33 @@ public final class DescriptorLoader implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(DescriptorLoader.class);
 
-    private static final String[] PACKAGES_TO_SCAN = { 
-    		"com.evolveum.midpoint.web.page",
-    		"com.evolveum.midpoint.web.page.admin.home",
-    		"com.evolveum.midpoint.web.page.admin.users",
-    		"com.evolveum.midpoint.web.page.admin.services",
-    		"com.evolveum.midpoint.web.page.admin.roles",
-    		"com.evolveum.midpoint.web.page.admin.resources",
-    		"com.evolveum.midpoint.web.page.admin.resources.content",
-    		"com.evolveum.midpoint.web.page.admin.workflow",
-    		"com.evolveum.midpoint.web.page.admin.server",
-    		"com.evolveum.midpoint.web.page.admin.reports",
-    		"com.evolveum.midpoint.web.page.admin.configuration",
-    		"com.evolveum.midpoint.web.page.admin.certification",
-    		"com.evolveum.midpoint.web.page.admin.valuePolicy",
-    		"com.evolveum.midpoint.web.page.admin.cases",
-    		"com.evolveum.midpoint.web.page.admin.archetype",
-    		"com.evolveum.midpoint.web.page.login",
-    		"com.evolveum.midpoint.web.page.error",
-    		"com.evolveum.midpoint.web.page.forgetpassword",
-    		"com.evolveum.midpoint.web.page.self",
-    		"com.evolveum.midpoint.web.component.prism.show"
+    private static final String[] PACKAGES_TO_SCAN = {
+            "com.evolveum.midpoint.web.page",
+            "com.evolveum.midpoint.web.page.admin.home",
+            "com.evolveum.midpoint.web.page.admin.users",
+            "com.evolveum.midpoint.web.page.admin.services",
+            "com.evolveum.midpoint.web.page.admin.roles",
+            "com.evolveum.midpoint.web.page.admin.resources",
+            "com.evolveum.midpoint.web.page.admin.resources.content",
+            "com.evolveum.midpoint.web.page.admin.workflow",
+            "com.evolveum.midpoint.web.page.admin.server",
+            "com.evolveum.midpoint.web.page.admin.reports",
+            "com.evolveum.midpoint.web.page.admin.configuration",
+            "com.evolveum.midpoint.web.page.admin.certification",
+            "com.evolveum.midpoint.web.page.admin.valuePolicy",
+            "com.evolveum.midpoint.web.page.admin.cases",
+            "com.evolveum.midpoint.web.page.admin.archetype",
+            "com.evolveum.midpoint.web.page.login",
+            "com.evolveum.midpoint.web.page.error",
+            "com.evolveum.midpoint.web.page.forgetpassword",
+            "com.evolveum.midpoint.web.page.self",
+            "com.evolveum.midpoint.web.component.prism.show"
     };
-    
+
     private static Map<String, DisplayableValue<String>[]> actions = new HashMap<>();
     private static List<String> permitAllUrls = new ArrayList<>();
     private static Map<String, Class> urlClassMap = new HashMap<>();
-    
+
     public static Map<String, DisplayableValue<String>[]> getActions() {
         return actions;
     }
@@ -72,25 +72,25 @@ public final class DescriptorLoader implements DebugDumpable {
         return urlClassMap;
     }
 
-	public static Collection<String> getPermitAllUrls() {
-		return permitAllUrls;
-	}
+    public static Collection<String> getPermitAllUrls() {
+        return permitAllUrls;
+    }
 
-	public void loadData(MidPointApplication application) {
+    public void loadData(MidPointApplication application) {
         LOGGER.debug("Loading data from descriptor files.");
 
         try {
-			scanPackagesForPages(application);
-			
-			if (LOGGER.isTraceEnabled()) {
-	        	LOGGER.trace("loaded:\n{}", debugDump(1));
-	        }
-		} catch (InstantiationException | IllegalAccessException e) {
-			LOGGER.error("Error scanning packages for pages: {}", e.getMessage(), e);
-			throw new SystemException("Error scanning packages for pages: "+e.getMessage(), e);
-		}
+            scanPackagesForPages(application);
 
-        
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("loaded:\n{}", debugDump(1));
+            }
+        } catch (InstantiationException | IllegalAccessException e) {
+            LOGGER.error("Error scanning packages for pages: {}", e.getMessage(), e);
+            throw new SystemException("Error scanning packages for pages: "+e.getMessage(), e);
+        }
+
+
 
     }
 
@@ -118,12 +118,12 @@ public final class DescriptorLoader implements DebugDumpable {
     }
 
     private void loadActions(PageDescriptor descriptor) {
-    	
-    	if (descriptor.permitAll()) {
-    		foreachUrl(descriptor, url -> permitAllUrls.add(url));
-    		return;
-    	}
-    	
+
+        if (descriptor.permitAll()) {
+            foreachUrl(descriptor, url -> permitAllUrls.add(url));
+            return;
+        }
+
         List<AuthorizationActionValue> actions = new ArrayList<>();
 
         //avoid of setting guiAll authz for "public" pages (e.g. login page)
@@ -149,13 +149,13 @@ public final class DescriptorLoader implements DebugDumpable {
             actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URL,
                     AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
         }
-        
+
         foreachUrl(descriptor, url -> this.actions.put(url, actions.toArray(new DisplayableValue[actions.size()])));
     }
-    
+
     private void foreachUrl(PageDescriptor descriptor, Consumer<String> urlConsumer) {
-    	for (String url : descriptor.url()) {
-    		urlConsumer.accept(buildPrefixUrl(url));
+        for (String url : descriptor.url()) {
+            urlConsumer.accept(buildPrefixUrl(url));
         }
 
         for (Url url : descriptor.urls()) {
@@ -204,18 +204,18 @@ public final class DescriptorLoader implements DebugDumpable {
         }
     }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("DescriptorLoader\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "actions", actions, indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "urlClassMap", urlClassMap, indent + 1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("DescriptorLoader\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "actions", actions, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "urlClassMap", urlClassMap, indent + 1);
+        return sb.toString();
+    }
 }

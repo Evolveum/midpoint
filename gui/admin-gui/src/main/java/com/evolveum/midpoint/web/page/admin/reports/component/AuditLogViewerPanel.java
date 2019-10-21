@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
@@ -86,8 +86,8 @@ import com.fasterxml.jackson.databind.type.CollectionType;
  * Created by honchar.
  */
 public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
-	private static final long serialVersionUID = 1L;
-	
+    private static final long serialVersionUID = 1L;
+
     private static final String ID_PARAMETERS_PANEL = "parametersPanel";
     private static final String ID_TABLE = "table";
     private static final String ID_FROM = "fromField";
@@ -105,12 +105,12 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     private static final String ID_OUTCOME = "outcomeField";
     private static final String ID_CHANGED_ITEM = "changedItem";
     private static final String ID_VALUE_REF_TARGET_NAMES_FIELD = "valueRefTargetNamesField";
-	private static final String ID_VALUE_REF_TARGET_NAMES = "valueRefTargetNames";
-	private static final String ID_USED_QUERY = "usedQueryField";
-	private static final String ID_USED_QUERY_CONTAINER = "usedQueryContainer";
-	private static final String ID_USED_INTERVAL = "usedIntervalField";
-	private static final String ID_USED_INTERVAL_CONTAINER = "usedIntervalContainer";
-	private static final String ID_REQUEST_IDENTIFIER_FIELD = "requestIdentifierField";
+    private static final String ID_VALUE_REF_TARGET_NAMES = "valueRefTargetNames";
+    private static final String ID_USED_QUERY = "usedQueryField";
+    private static final String ID_USED_QUERY_CONTAINER = "usedQueryContainer";
+    private static final String ID_USED_INTERVAL = "usedIntervalField";
+    private static final String ID_USED_INTERVAL_CONTAINER = "usedIntervalContainer";
+    private static final String ID_REQUEST_IDENTIFIER_FIELD = "requestIdentifierField";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_BUTTON = "searchButton";
@@ -125,14 +125,14 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     private static final int DEFAULT_PAGE_SIZE = 10;
 
     private boolean isHistory = false;
-    
-	public <F extends ObjectType> AuditLogViewerPanel(String id, IModel<AuditSearchDto> model, boolean isHistory) {
-		super(id, model);
-		
-		this.isHistory = isHistory;	
-			
-	}
-	
+
+    public <F extends ObjectType> AuditLogViewerPanel(String id, IModel<AuditSearchDto> model, boolean isHistory) {
+        super(id, model);
+
+        this.isHistory = isHistory;
+
+    }
+
     @Override
     protected void onInitialize(){
         super.onInitialize();
@@ -202,18 +202,18 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         usedQueryContainer.add(getVisibleBehaviourForUsedQueryComponent());
         usedQueryContainer.setOutputMarkupId(true);
         parametersPanel.add(usedQueryContainer);
-        
+
         TextPanel<String> usedQuery = new TextPanel<>(ID_USED_QUERY, new PropertyModel<>(getModel(),
                 AuditSearchDto.F_COLLECTION + ".auditSearch.recordQuery"));
         usedQuery.setOutputMarkupId(true);
         usedQuery.setEnabled(false);
         usedQueryContainer.add(usedQuery);
-        
+
         WebMarkupContainer usedIntervalContainer = new WebMarkupContainer(ID_USED_INTERVAL_CONTAINER);
         usedIntervalContainer.setOutputMarkupId(true);
         usedIntervalContainer.add(getVisibleBehaviourForUsedQueryComponent());
         parametersPanel.add(usedIntervalContainer);
-        
+
         TextPanel<String> usedInterval = new TextPanel<>(ID_USED_INTERVAL, new PropertyModel<>(getModel(),
                 AuditSearchDto.F_COLLECTION + ".auditSearch.interval"));
         usedInterval.setOutputMarkupId(true);
@@ -233,15 +233,15 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         WebMarkupContainer eventStage = new WebMarkupContainer(ID_EVENT_STAGE);
         eventStage.setOutputMarkupId(true);
         eventStage.add(new VisibleEnableBehaviour() {
-        	
-        		private static final long serialVersionUID = 1L;
 
-				@Override
-        		public boolean isVisible() {
-        			return !isHistory;
-        		}
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isVisible() {
+                    return !isHistory;
+                }
         });
-        
+
         parametersPanel.add(eventStage);
 
         ListModel<AuditEventStageType> eventStageListModel = new ListModel<>(
@@ -294,13 +294,13 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         WebMarkupContainer targetOwnerName = new WebMarkupContainer(ID_TARGET_OWNER_NAME);
         targetOwnerName.add(new VisibleEnableBehaviour() {
-        	
-        		private static final long serialVersionUID = 1L;
 
-				@Override
-        		public boolean isVisible() {
-        			return !isHistory;
-        		}
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isVisible() {
+                    return !isHistory;
+                }
         });
         parametersPanel.add(targetOwnerName);
 
@@ -311,15 +311,15 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         WebMarkupContainer targetName = new WebMarkupContainer(ID_TARGET_NAME);
         targetName.add(new VisibleEnableBehaviour() {
-        	
-        	private static final long serialVersionUID = 1L;
 
-				@Override
-        		public boolean isVisible() {
-        			return !isHistory;
-        		}
+            private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isVisible() {
+                    return !isHistory;
+                }
         });
-        
+
         parametersPanel.add(targetName);
         List<Class<? extends ObjectType>> allowedClassesAll = new ArrayList<>();
         allowedClassesAll.addAll(ObjectTypes.getAllObjectTypes());
@@ -355,7 +355,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-            		resetAuditSearchStorage();
+                    resetAuditSearchStorage();
                 searchUpdatePerformed(target);
             }
 
@@ -369,12 +369,12 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
         WebMarkupContainer valueRefTargetNameContainer = new WebMarkupContainer(ID_VALUE_REF_TARGET_NAMES);
         valueRefTargetNameContainer.add(new VisibleEnableBehaviour() {
-        	
-        		@Override
-        		public boolean isVisible() {
-        			return !isHistory;
-        		}
-        	
+
+                @Override
+                public boolean isVisible() {
+                    return !isHistory;
+                }
+
         });
         parametersPanel.add(valueRefTargetNameContainer);
 
@@ -386,50 +386,50 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         valueRefTargetNameContainer.add(chooseValueRefTargetNamePanel);
 
     }
-    
+
     private VisibleEnableBehaviour getVisibleBehaviourForUsedQueryComponent() {
-    	return new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public boolean isVisible() {
-				IModel<AuditSearchDto> model = getModel();
-				if(model == null || model.getObject() == null
-						|| model.getObject().getCollection() == null
-						|| model.getObject().getCollection().getAuditSearch() == null
-						|| model.getObject().getCollection().getAuditSearch().getRecordQuery() == null) {
-					return false;
-				}
-				return true;
-			}
-    	};
+        return new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                IModel<AuditSearchDto> model = getModel();
+                if(model == null || model.getObject() == null
+                        || model.getObject().getCollection() == null
+                        || model.getObject().getCollection().getAuditSearch() == null
+                        || model.getObject().getCollection().getAuditSearch().getRecordQuery() == null) {
+                    return false;
+                }
+                return true;
+            }
+        };
     }
 
-	// Serializable as it becomes part of panel which is serialized
+    // Serializable as it becomes part of panel which is serialized
     private Function<ObjectType, ObjectReferenceType> objectReferenceTransformer =
-    		(Function<ObjectType, ObjectReferenceType> & Serializable) (ObjectType o) ->
-        		ObjectTypeUtil.createObjectRef(o, getPageBase().getPrismContext());
+            (Function<ObjectType, ObjectReferenceType> & Serializable) (ObjectType o) ->
+                ObjectTypeUtil.createObjectRef(o, getPageBase().getPrismContext());
 
-	// Serializable as it becomes part of panel which is serialized
+    // Serializable as it becomes part of panel which is serialized
     private Function<ObjectType, String> stringTransformer =
-    		(Function<ObjectType, String> & Serializable) (ObjectType o) ->
-        		o.getName().getOrig();
-        		
+            (Function<ObjectType, String> & Serializable) (ObjectType o) ->
+                o.getName().getOrig();
+
 
     private IModel<ObjectCollectionType> getCollectionFroAuditEventModel() {
-    	return new IModel<ObjectCollectionType>() {
-			private static final long serialVersionUID = 1L;
+        return new IModel<ObjectCollectionType>() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public ObjectCollectionType getObject() {
-				AuditSearchDto search = AuditLogViewerPanel.this.getModelObject();
-		    	ObjectCollectionType collection = search.getCollection();
-				return collection;
-			}
-    		
-    	};
+            @Override
+            public ObjectCollectionType getObject() {
+                AuditSearchDto search = AuditLogViewerPanel.this.getModelObject();
+                ObjectCollectionType collection = search.getCollection();
+                return collection;
+            }
+
+        };
     }
-        		
+
     private Map<String, Object> getAuditEventProviderParameters() {
         Map<String, Object> parameters = new HashMap<>();
 
@@ -438,12 +438,12 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         parameters.put(AuditEventRecordProvider.PARAMETER_TO, search.getTo());
 
         if (search.getChannel() != null) {
-        	Channel channel = search.getChannel();
-        	if (channel.equals(Channel.IMPORT)) {
-        		parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, SchemaConstants.CHANGE_CHANNEL_IMPORT_URI);
-        	} else {
-        		parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, channel.getChannel());
-        	}
+            Channel channel = search.getChannel();
+            if (channel.equals(Channel.IMPORT)) {
+                parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, SchemaConstants.CHANGE_CHANNEL_IMPORT_URI);
+            } else {
+                parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, channel.getChannel());
+            }
         }
         parameters.put(AuditEventRecordProvider.PARAMETER_HOST_IDENTIFIER, search.getHostIdentifier());
         parameters.put(AuditEventRecordProvider.PARAMETER_REQUEST_IDENTIFIER, search.getRequestIdentifier());
@@ -493,10 +493,10 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
             @Override
             protected void saveCurrentPage(long from, long count) {
-            	if (count != 0) {	
-            		updateCurrentPage(from / count);
-            	}
-//            	if (count != 0) {
+                if (count != 0) {
+                    updateCurrentPage(from / count);
+                }
+//                if (count != 0) {
 //                    auditLogStorage.setPageNumber(from / count);
 //                }
             }
@@ -514,20 +514,20 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-            	CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(id) {
+                CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(id) {
 
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					protected String getFilename() {
-						return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
-					}
+                    @Override
+                    protected String getFilename() {
+                        return "AuditLogViewer_" + createStringResource("MainObjectListPanel.exportFileName").getString();
+                    }
 
-					@Override
-					protected DataTable<?, ?> getDataTable() {
-						return getAuditLogViewerTable().getDataTable();
-					}
-				};
+                    @Override
+                    protected DataTable<?, ?> getDataTable() {
+                        return getAuditLogViewerTable().getDataTable();
+                    }
+                };
 
                 return exportDataLink;
             }
@@ -545,12 +545,12 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     }
 
 
-	protected abstract void updateAuditSearchStorage(AuditSearchDto searchDto);
-	protected abstract void resetAuditSearchStorage();
-	protected abstract void updateCurrentPage(long current);
-	protected abstract long getCurrentPage();
+    protected abstract void updateAuditSearchStorage(AuditSearchDto searchDto);
+    protected abstract void resetAuditSearchStorage();
+    protected abstract void updateCurrentPage(long current);
+    protected abstract long getCurrentPage();
 
-	
+
     private BoxedTablePanel getAuditLogViewerTable(){
         return (BoxedTablePanel) get(ID_MAIN_FORM).get(ID_TABLE);
     }
@@ -564,9 +564,9 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             @Override
             protected IModel<String> createLinkModel(final IModel<AuditEventRecordType> rowModel){
                 return new IModel<String>() {
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
+                    @Override
                     public String getObject() {
                         XMLGregorianCalendar time = rowModel.getObject().getTimestamp();
                         return WebComponentUtil.formatDate(time);
@@ -667,7 +667,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                         channelValue = chan;
                         break;
                     } else if(SchemaConstants.CHANGE_CHANNEL_IMPORT_URI.equals(channel)) {
-                    	channelValue = Channel.IMPORT;
+                        channelValue = Channel.IMPORT;
                     }
                 }
                 if (channelValue != null) {

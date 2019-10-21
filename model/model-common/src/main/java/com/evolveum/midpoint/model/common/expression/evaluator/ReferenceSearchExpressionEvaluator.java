@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
@@ -29,32 +29,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpre
  * @author Radovan Semancik
  */
 public class ReferenceSearchExpressionEvaluator
-			extends AbstractSearchExpressionEvaluator<PrismReferenceValue,PrismReferenceDefinition> {
+            extends AbstractSearchExpressionEvaluator<PrismReferenceValue,PrismReferenceDefinition> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ReferenceSearchExpressionEvaluator.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ReferenceSearchExpressionEvaluator.class);
 
-	public ReferenceSearchExpressionEvaluator(QName elementName, ReferenceSearchExpressionEvaluatorType expressionEvaluatorType,
-			PrismReferenceDefinition outputDefinition, Protector protector, PrismContext prismContext,
-			ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager, LocalizationService localizationService, CacheConfigurationManager cacheConfigurationManager) {
-		super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService, cacheConfigurationManager);
-	}
+    public ReferenceSearchExpressionEvaluator(QName elementName, ReferenceSearchExpressionEvaluatorType expressionEvaluatorType,
+            PrismReferenceDefinition outputDefinition, Protector protector, PrismContext prismContext,
+            ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager, LocalizationService localizationService, CacheConfigurationManager cacheConfigurationManager) {
+        super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService, cacheConfigurationManager);
+    }
 
-	protected PrismReferenceValue createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues, ExpressionEvaluationContext params) {
-		PrismReferenceValue refVal = getPrismContext().itemFactory().createReferenceValue();
+    protected PrismReferenceValue createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues, ExpressionEvaluationContext params) {
+        PrismReferenceValue refVal = getPrismContext().itemFactory().createReferenceValue();
 
-		refVal.setOid(oid);
-		refVal.setTargetType(targetTypeQName);
-		refVal.setRelation(((ReferenceSearchExpressionEvaluatorType)getExpressionEvaluatorType()).getRelation());
+        refVal.setOid(oid);
+        refVal.setTargetType(targetTypeQName);
+        refVal.setRelation(((ReferenceSearchExpressionEvaluatorType)getExpressionEvaluatorType()).getRelation());
 
-		return refVal;
-	}
+        return refVal;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
-	 */
-	@Override
-	public String shortDebugDump() {
-		return "referenceSearchExpression";
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#shortDebugDump()
+     */
+    @Override
+    public String shortDebugDump() {
+        return "referenceSearchExpression";
+    }
 
 }

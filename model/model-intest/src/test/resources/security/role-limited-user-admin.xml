@@ -1,12 +1,12 @@
 <!--
   ~ Copyright (c) 2017-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
 <!-- MID-3826 -->
-  
+
 <role oid="66ee3a78-1b8a-11e7-aac6-5f43a0a86116"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -14,63 +14,63 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Limited User Admin</name>
     <description>Limited capability to create new users</description>
-	<authorization>
-		<name>lua-read</name>
-		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-		<object>
-			<type>UserType</type>
-		</object>
-	</authorization>
-	<authorization>
-		<name>lua-add</name>
-		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-		<phase>request</phase>
-		<object>
-			<type>UserType</type>
-		</object>
-		<item>name</item>
-		<item>description</item>
-		<item>givenName</item>
-		<item>fullName</item>
-		<item>familyName</item>
-		<item>title</item>
-		<item>locality</item>
-		<item>employeeNumber</item>
-		<item>jpegPhoto</item>
-		<item>activation/validTo</item>
-		<item>activation/validFrom</item>
-		<item>credentials/password</item>				
+    <authorization>
+        <name>lua-read</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+    </authorization>
+    <authorization>
+        <name>lua-add</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <phase>request</phase>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>name</item>
+        <item>description</item>
+        <item>givenName</item>
+        <item>fullName</item>
+        <item>familyName</item>
+        <item>title</item>
+        <item>locality</item>
+        <item>employeeNumber</item>
+        <item>jpegPhoto</item>
+        <item>activation/validTo</item>
+        <item>activation/validFrom</item>
+        <item>credentials/password</item>
    </authorization>
-	<authorization>
-		<name>lua-add</name>
-		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-		<phase>execution</phase>
-		<object>
-			<type>UserType</type>
-		</object>
-		<item>name</item>
-		<item>description</item>
-		<item>givenName</item>
-		<item>fullName</item>
-		<item>nickName</item> <!-- Set by user template to modifier OID -->
-		<item>familyName</item>
-		<item>title</item>
-		<item>locality</item>
-		<item>employeeNumber</item>
-		<item>jpegPhoto</item>
-		<item>activation</item>
-		<item>credentials</item>				
-		<item>iteration</item>
-		<item>iterationToken</item>
+    <authorization>
+        <name>lua-add</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <phase>execution</phase>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>name</item>
+        <item>description</item>
+        <item>givenName</item>
+        <item>fullName</item>
+        <item>nickName</item> <!-- Set by user template to modifier OID -->
+        <item>familyName</item>
+        <item>title</item>
+        <item>locality</item>
+        <item>employeeNumber</item>
+        <item>jpegPhoto</item>
+        <item>activation</item>
+        <item>credentials</item>
+        <item>iteration</item>
+        <item>iterationToken</item>
    </authorization>
-	<authorization>
-		<name>lua-modify-exec</name>
-		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-		<phase>execution</phase>
-		<object>
-			<type>UserType</type>
-		</object>
-		<item>nickName</item> <!-- Set by user template to modifier OID -->
-	</authorization>
+    <authorization>
+        <name>lua-modify-exec</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>nickName</item> <!-- Set by user template to modifier OID -->
+    </authorization>
 </role>
-  
+

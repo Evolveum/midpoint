@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -20,21 +20,21 @@ import java.util.List;
  */
 public class InformationListPanel extends BasePanel<List<InformationType>> {
 
-	private static final String ID_INFORMATION_LIST = "informationList";
-	private static final String ID_INFORMATION = "information";
+    private static final String ID_INFORMATION_LIST = "informationList";
+    private static final String ID_INFORMATION = "information";
 
-	public InformationListPanel(String id, IModel<List<InformationType>> model) {
-		super(id, model);
-		initLayout();
-	}
+    public InformationListPanel(String id, IModel<List<InformationType>> model) {
+        super(id, model);
+        initLayout();
+    }
 
-	private void initLayout() {
-		ListView<InformationType> list = new ListView<InformationType>(ID_INFORMATION_LIST, getModel()) {
-			@Override
-			protected void populateItem(ListItem<InformationType> item) {
-				item.add(new InformationPanel(ID_INFORMATION, item.getModel()));
-			}
-		};
-		add(list);
-	}
+    private void initLayout() {
+        ListView<InformationType> list = new ListView<InformationType>(ID_INFORMATION_LIST, getModel()) {
+            @Override
+            protected void populateItem(ListItem<InformationType> item) {
+                item.add(new InformationPanel(ID_INFORMATION, item.getModel()));
+            }
+        };
+        add(list);
+    }
 }

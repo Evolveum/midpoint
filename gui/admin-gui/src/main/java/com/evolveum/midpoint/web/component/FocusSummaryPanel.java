@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component;
@@ -46,145 +46,145 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSummaryPanel<O> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String DOT_CLASS = FocusSummaryPanel.class.getName() + ".";
-	private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "activationTag";
+    private static final String DOT_CLASS = FocusSummaryPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_PARENT_ORGS = DOT_CLASS + "activationTag";
 
 
-	public FocusSummaryPanel(String id, Class<O> type, final IModel<O> model, ModelServiceLocator serviceLocator) {
-		super(id, type, model, serviceLocator);
-	}
+    public FocusSummaryPanel(String id, Class<O> type, final IModel<O> model, ModelServiceLocator serviceLocator) {
+        super(id, type, model, serviceLocator);
+    }
 
-	@Override
-	protected List<SummaryTag<O>> getSummaryTagComponentList(){
-		List<SummaryTag<O>> summaryTagList = new ArrayList<>();
+    @Override
+    protected List<SummaryTag<O>> getSummaryTagComponentList(){
+        List<SummaryTag<O>> summaryTagList = new ArrayList<>();
 
-		SummaryTag<O> tagActivation = new SummaryTag<O>(ID_SUMMARY_TAG, getModel()) {
-			private static final long serialVersionUID = 1L;
+        SummaryTag<O> tagActivation = new SummaryTag<O>(ID_SUMMARY_TAG, getModel()) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void initialize(O object) {
-				ActivationType activation = null;
-//				O object = object.asObjectable();
-				if (object instanceof FocusType) {
-					activation = ((FocusType)object).getActivation();
-				}
-				if (activation == null) {
-					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
-					setLabel(getString("ActivationStatusType.ENABLED"));
+            @Override
+            protected void initialize(O object) {
+                ActivationType activation = null;
+//                O object = object.asObjectable();
+                if (object instanceof FocusType) {
+                    activation = ((FocusType)object).getActivation();
+                }
+                if (activation == null) {
+                    setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
+                    setLabel(getString("ActivationStatusType.ENABLED"));
 
-				} else if (activation.getEffectiveStatus() == ActivationStatusType.DISABLED) {
-					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
-					setLabel(getString("ActivationStatusType.DISABLED"));
-					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_DISABLED);
+                } else if (activation.getEffectiveStatus() == ActivationStatusType.DISABLED) {
+                    setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
+                    setLabel(getString("ActivationStatusType.DISABLED"));
+                    setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_DISABLED);
 
-				} else if (activation.getEffectiveStatus() == ActivationStatusType.ARCHIVED) {
-					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
-					setLabel(getString("ActivationStatusType.ARCHIVED"));
-					setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_ARCHIVED);
+                } else if (activation.getEffectiveStatus() == ActivationStatusType.ARCHIVED) {
+                    setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_INACTIVE);
+                    setLabel(getString("ActivationStatusType.ARCHIVED"));
+                    setCssClass(GuiStyleConstants.CLASS_ICON_STYLE_ARCHIVED);
 
-				} else {
-					setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
-					setLabel(getString("ActivationStatusType.ENABLED"));
-				}
-			}
-		};
-		tagActivation.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+                } else {
+                    setIconCssClass(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
+                    setLabel(getString("ActivationStatusType.ENABLED"));
+                }
+            }
+        };
+        tagActivation.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return isActivationVisible();
-			}
-		});
-		summaryTagList.add(tagActivation);
-		return summaryTagList;
-	}
+            @Override
+            public boolean isVisible() {
+                return isActivationVisible();
+            }
+        });
+        summaryTagList.add(tagActivation);
+        return summaryTagList;
+    }
 
-	@Override
-	protected IModel<String> getDefaltParentOrgModel() {
-		return new ReadOnlyModel<String>(() -> {
-			O focusObject = FocusSummaryPanel.this.getModel().getObject();
-			List<OrgType> parentOrgs = focusObject != null ? WebComponentUtil.loadReferencedObjectList(focusObject.getParentOrgRef(),
-					OPERATION_LOAD_PARENT_ORGS, FocusSummaryPanel.this.getPageBase()) : null;
-			if (parentOrgs == null || parentOrgs.isEmpty()) {
-				return "";
-			}
-			// Kinda hack now .. "functional" orgType always has preference
-			// this whole thing should be driven by an expression later on
-			for (OrgType orgType : parentOrgs) {
-				if (FocusTypeUtil.determineSubTypes(orgType).contains("functional")) {
-					return WebComponentUtil.getDisplayNameOrName(orgType.asPrismObject());
-				}
-			}
-			//search for manager org at first
-			for (ObjectReferenceType orgRef : focusObject.getParentOrgRef()) {
-				if (orgRef.getRelation() != null && RelationTypes.MANAGER.equals(orgRef.getRelation())) {
-					for (OrgType orgType : parentOrgs){
-						if (orgType.getOid().equals(orgRef.getOid())){
-							return WebComponentUtil.getDisplayNameOrName(orgType.asPrismObject());
-						}
-					}
-				}
-			}
-			// Just use the first one as a fallback
-			return WebComponentUtil.getDisplayNameOrName(parentOrgs.iterator().next().asPrismObject());
-		});
-	}
+    @Override
+    protected IModel<String> getDefaltParentOrgModel() {
+        return new ReadOnlyModel<String>(() -> {
+            O focusObject = FocusSummaryPanel.this.getModel().getObject();
+            List<OrgType> parentOrgs = focusObject != null ? WebComponentUtil.loadReferencedObjectList(focusObject.getParentOrgRef(),
+                    OPERATION_LOAD_PARENT_ORGS, FocusSummaryPanel.this.getPageBase()) : null;
+            if (parentOrgs == null || parentOrgs.isEmpty()) {
+                return "";
+            }
+            // Kinda hack now .. "functional" orgType always has preference
+            // this whole thing should be driven by an expression later on
+            for (OrgType orgType : parentOrgs) {
+                if (FocusTypeUtil.determineSubTypes(orgType).contains("functional")) {
+                    return WebComponentUtil.getDisplayNameOrName(orgType.asPrismObject());
+                }
+            }
+            //search for manager org at first
+            for (ObjectReferenceType orgRef : focusObject.getParentOrgRef()) {
+                if (orgRef.getRelation() != null && RelationTypes.MANAGER.equals(orgRef.getRelation())) {
+                    for (OrgType orgType : parentOrgs){
+                        if (orgType.getOid().equals(orgRef.getOid())){
+                            return WebComponentUtil.getDisplayNameOrName(orgType.asPrismObject());
+                        }
+                    }
+                }
+            }
+            // Just use the first one as a fallback
+            return WebComponentUtil.getDisplayNameOrName(parentOrgs.iterator().next().asPrismObject());
+        });
+    }
 
-	@Override
-	protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
-		List<OrgType> parentOrgs = new ArrayList<>();
-		for (ObjectReferenceType parentOrgRef : getModelObject().getParentOrgRef()) {
-			if (parentOrgRef != null && parentOrgRef.asReferenceValue().getObject() != null) {
-				parentOrgs.add((OrgType) parentOrgRef.asReferenceValue().getObject().asObjectable());
-			}
-		}
-		variables.putList(ExpressionConstants.VAR_ORGS, parentOrgs);
-	}
+    @Override
+    protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
+        List<OrgType> parentOrgs = new ArrayList<>();
+        for (ObjectReferenceType parentOrgRef : getModelObject().getParentOrgRef()) {
+            if (parentOrgRef != null && parentOrgRef.asReferenceValue().getObject() != null) {
+                parentOrgs.add((OrgType) parentOrgRef.asReferenceValue().getObject().asObjectable());
+            }
+        }
+        variables.putList(ExpressionConstants.VAR_ORGS, parentOrgs);
+    }
 
-	@Override
-	protected IModel<AbstractResource> getPhotoModel() {
-		return new IModel<AbstractResource>() {
-			private static final long serialVersionUID = 1L;
+    @Override
+    protected IModel<AbstractResource> getPhotoModel() {
+        return new IModel<AbstractResource>() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public AbstractResource getObject() {
-				byte[] jpegPhoto = null;
-				O object = getModel().getObject();
-				if (object == null){
-					return null;
-				}
-				if (object instanceof FocusType) {
-					jpegPhoto = ((FocusType) object).getJpegPhoto();
-				}
-				if (jpegPhoto == null) {
-					return null;
-				} else {
-					return new ByteArrayResource("image/jpeg", jpegPhoto);
-				}
-			}
-		};
-	}
+            @Override
+            public AbstractResource getObject() {
+                byte[] jpegPhoto = null;
+                O object = getModel().getObject();
+                if (object == null){
+                    return null;
+                }
+                if (object instanceof FocusType) {
+                    jpegPhoto = ((FocusType) object).getJpegPhoto();
+                }
+                if (jpegPhoto == null) {
+                    return null;
+                } else {
+                    return new ByteArrayResource("image/jpeg", jpegPhoto);
+                }
+            }
+        };
+    }
 
-	protected boolean isActivationVisible() {
-		return true;
-	}
+    protected boolean isActivationVisible() {
+        return true;
+    }
 
-	public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, PrismObjectWrapper<FocusType> focusWrapper, String id, ModelServiceLocator serviceLocator) {
-		if (focus.getCompileTimeClass().equals(UserType.class)) {
-			parentComponent.add(new UserSummaryPanel(id,
+    public static void addSummaryPanel(MarkupContainer parentComponent, PrismObject<FocusType> focus, PrismObjectWrapper<FocusType> focusWrapper, String id, ModelServiceLocator serviceLocator) {
+        if (focus.getCompileTimeClass().equals(UserType.class)) {
+            parentComponent.add(new UserSummaryPanel(id,
                     Model.of((UserType)focus.asObjectable()), serviceLocator));
         } else if (focus.getCompileTimeClass().equals(RoleType.class)) {
-        	parentComponent.add(new RoleSummaryPanel(id,
-					Model.of((RoleType)focus.asObjectable()), serviceLocator));
+            parentComponent.add(new RoleSummaryPanel(id,
+                    Model.of((RoleType)focus.asObjectable()), serviceLocator));
         } else if (focus.getCompileTimeClass().equals(OrgType.class)) {
-        	parentComponent.add(new OrgSummaryPanel(id,
-					Model.of((OrgType)focus.asObjectable()), serviceLocator));
+            parentComponent.add(new OrgSummaryPanel(id,
+                    Model.of((OrgType)focus.asObjectable()), serviceLocator));
         } else if (focus.getCompileTimeClass().equals(ServiceType.class)) {
-        	parentComponent.add(new ServiceSummaryPanel(id,
-					Model.of((ServiceType)focus.asObjectable()), serviceLocator));
+            parentComponent.add(new ServiceSummaryPanel(id,
+                    Model.of((ServiceType)focus.asObjectable()), serviceLocator));
         }
-	}
+    }
 }

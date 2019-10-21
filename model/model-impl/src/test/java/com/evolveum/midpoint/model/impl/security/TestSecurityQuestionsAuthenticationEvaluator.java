@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.security;
@@ -34,82 +34,82 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<Map<String, String>, SecurityQuestionsAuthenticationContext, AuthenticationEvaluator<SecurityQuestionsAuthenticationContext>>{
 
-	private static final String SECURITY_QUESTION_ID = "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001";
-	private static final String SECURITY_QUESTION_GOOD_ANSWER_JACK = "Some generic answer";
-	private static final String SECURITY_QUESTION_BAD_ANSWER ="This isn't correct answer!";
-	private static final String SECURITY_QUESTION_GOOD_ANSWER_GUYBRUSH = "Some some generic answer";
+    private static final String SECURITY_QUESTION_ID = "http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001";
+    private static final String SECURITY_QUESTION_GOOD_ANSWER_JACK = "Some generic answer";
+    private static final String SECURITY_QUESTION_BAD_ANSWER ="This isn't correct answer!";
+    private static final String SECURITY_QUESTION_GOOD_ANSWER_GUYBRUSH = "Some some generic answer";
 
-	@Autowired(required=true)
-	private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> securityQuestionsAuthenticationEvaluator;
+    @Autowired(required=true)
+    private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> securityQuestionsAuthenticationEvaluator;
 
-	@Override
-	public AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> getAuthenticationEvaluator() {
-		return securityQuestionsAuthenticationEvaluator;
-	}
+    @Override
+    public AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> getAuthenticationEvaluator() {
+        return securityQuestionsAuthenticationEvaluator;
+    }
 
-	@Override
-	public SecurityQuestionsAuthenticationContext getAuthenticationContext(String username,
-			Map<String, String> value) {
-		return new SecurityQuestionsAuthenticationContext(username, value);
-	}
+    @Override
+    public SecurityQuestionsAuthenticationContext getAuthenticationContext(String username,
+            Map<String, String> value) {
+        return new SecurityQuestionsAuthenticationContext(username, value);
+    }
 
-	@Override
-	public Map<String, String> getGoodPasswordJack() {
-		return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_GOOD_ANSWER_JACK);
-	}
+    @Override
+    public Map<String, String> getGoodPasswordJack() {
+        return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_GOOD_ANSWER_JACK);
+    }
 
-	@Override
-	public Map<String, String> getBadPasswordJack() {
-		return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_BAD_ANSWER);
-	}
+    @Override
+    public Map<String, String> getBadPasswordJack() {
+        return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_BAD_ANSWER);
+    }
 
-	@Override
-	public Map<String, String> getGoodPasswordGuybrush() {
-		return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_GOOD_ANSWER_GUYBRUSH);
-	}
+    @Override
+    public Map<String, String> getGoodPasswordGuybrush() {
+        return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_GOOD_ANSWER_GUYBRUSH);
+    }
 
-	@Override
-	public Map<String, String> getBadPasswordGuybrush() {
-		return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_BAD_ANSWER);
-	}
+    @Override
+    public Map<String, String> getBadPasswordGuybrush() {
+        return createMap(SECURITY_QUESTION_ID, SECURITY_QUESTION_BAD_ANSWER);
+    }
 
-	@Override
-	public Map<String, String> get103EmptyPasswordJack() {
-		return new HashMap<>();
-	}
+    @Override
+    public Map<String, String> get103EmptyPasswordJack() {
+        return new HashMap<>();
+    }
 
-	@Override
-	public AbstractCredentialType getCredentialUsedForAuthentication(UserType user) {
-		return user.getCredentials().getSecurityQuestions();
-	}
+    @Override
+    public AbstractCredentialType getCredentialUsedForAuthentication(UserType user) {
+        return user.getCredentials().getSecurityQuestions();
+    }
 
-	@Override
-	public QName getCredentialType() {
-		return CredentialsType.F_SECURITY_QUESTIONS;
-	}
+    @Override
+    public QName getCredentialType() {
+        return CredentialsType.F_SECURITY_QUESTIONS;
+    }
 
-	private SecurityQuestionAnswerType getSecurityQuestionAnswer(){
-		SecurityQuestionAnswerType questionAnswer = new SecurityQuestionAnswerType();
-		questionAnswer.setQuestionIdentifier(SECURITY_QUESTION_ID);
-		ProtectedStringType protectedString = new ProtectedStringType();
-		protectedString.setClearValue(SECURITY_QUESTION_GOOD_ANSWER_GUYBRUSH);
-		questionAnswer.setQuestionAnswer(protectedString);
-		return questionAnswer;
-	}
+    private SecurityQuestionAnswerType getSecurityQuestionAnswer(){
+        SecurityQuestionAnswerType questionAnswer = new SecurityQuestionAnswerType();
+        questionAnswer.setQuestionIdentifier(SECURITY_QUESTION_ID);
+        ProtectedStringType protectedString = new ProtectedStringType();
+        protectedString.setClearValue(SECURITY_QUESTION_GOOD_ANSWER_GUYBRUSH);
+        questionAnswer.setQuestionAnswer(protectedString);
+        return questionAnswer;
+    }
 
-	@Override
-	public void modifyUserCredential(Task task, OperationResult result) throws ObjectNotFoundException,
-			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-			ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		modifyObjectReplaceContainer(UserType.class, USER_GUYBRUSH_OID, SchemaConstants.PATH_SECURITY_QUESTIONS_QUESTION_ANSWER, task, result, getSecurityQuestionAnswer());
+    @Override
+    public void modifyUserCredential(Task task, OperationResult result) throws ObjectNotFoundException,
+            SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+        modifyObjectReplaceContainer(UserType.class, USER_GUYBRUSH_OID, SchemaConstants.PATH_SECURITY_QUESTIONS_QUESTION_ANSWER, task, result, getSecurityQuestionAnswer());
 
-	}
+    }
 
-	private Map<String, String> createMap(String id, String value) {
-		Map<String, String> questionAnswers = new HashMap<>();
-		questionAnswers.put(id, value);
-		return questionAnswers;
-	}
+    private Map<String, String> createMap(String id, String value) {
+        Map<String, String> questionAnswers = new HashMap<>();
+        questionAnswers.put(id, value);
+        return questionAnswers;
+    }
 
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,51 +27,51 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public interface PrismReference extends Item<PrismReferenceValue,PrismReferenceDefinition> {
-//	public PrismReference(QName name) {
+//    public PrismReference(QName name) {
 //        super(name);
 //    }
 //
-//	PrismReference(QName name, PrismReferenceDefinition definition, PrismContext prismContext) {
-//		super(name, definition, prismContext);
-//	}
+//    PrismReference(QName name, PrismReferenceDefinition definition, PrismContext prismContext) {
+//        super(name, definition, prismContext);
+//    }
 
-	@Override
-	Referencable getRealValue();
+    @Override
+    Referencable getRealValue();
 
-	@NotNull
-	@Override
-	Collection<Referencable> getRealValues();
+    @NotNull
+    @Override
+    Collection<Referencable> getRealValues();
 
-	boolean merge(PrismReferenceValue value);
+    boolean merge(PrismReferenceValue value);
 
-	String getOid();
+    String getOid();
 
-	PolyString getTargetName();
+    PolyString getTargetName();
 
-	PrismReferenceValue findValueByOid(String oid);
+    PrismReferenceValue findValueByOid(String oid);
 
-	@Override
-	Object find(ItemPath path);
+    @Override
+    Object find(ItemPath path);
 
-	@Override
-	<IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
+    @Override
+    <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path);
 
-	@Override
-	ReferenceDelta createDelta();
+    @Override
+    ReferenceDelta createDelta();
 
-	@Override
-	ReferenceDelta createDelta(ItemPath path);
+    @Override
+    ReferenceDelta createDelta(ItemPath path);
 
-	@Override
-	PrismReference clone();
+    @Override
+    PrismReference clone();
 
-	@Override
-	PrismReference cloneComplex(CloneStrategy strategy);
+    @Override
+    PrismReference cloneComplex(CloneStrategy strategy);
 
-	@Override
-	String toString();
+    @Override
+    String toString();
 
-	@Override
-	String debugDump(int indent);
+    @Override
+    String debugDump(int indent);
 
 }

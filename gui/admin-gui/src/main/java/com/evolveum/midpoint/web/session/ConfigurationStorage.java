@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,9 +17,9 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
  */
 public class ConfigurationStorage implements PageStorage {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private DebugSearchDto debugSearchDto;
+    private DebugSearchDto debugSearchDto;
 
     private ObjectPaging debugSearchPaging;
     private ObjectPaging accountDetailsPaging;
@@ -31,7 +31,7 @@ public class ConfigurationStorage implements PageStorage {
 
     @Override
     public void setSearch(Search search) {
-    	debugSearchDto.setSearch(search);
+        debugSearchDto.setSearch(search);
     }
 
     public void setDebugSearchDto(DebugSearchDto debugSearchDto) {
@@ -39,8 +39,8 @@ public class ConfigurationStorage implements PageStorage {
     }
 
     public DebugSearchDto getDebugSearchDto() {
-		return debugSearchDto;
-	}
+        return debugSearchDto;
+    }
 
     @Override
     public ObjectPaging getPaging() {
@@ -60,19 +60,19 @@ public class ConfigurationStorage implements PageStorage {
         this.accountDetailsPaging = accountDetailsPaging;
     }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ConfigurationStorage\n");
-		DebugUtil.debugDumpWithLabelLn(sb, "debugSearchDto", debugSearchDto, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "debugSearchPaging", debugSearchPaging, indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "accountDetailsPaging", accountDetailsPaging, indent+1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("ConfigurationStorage\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "debugSearchDto", debugSearchDto, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "debugSearchPaging", debugSearchPaging, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "accountDetailsPaging", accountDetailsPaging, indent+1);
+        return sb.toString();
+    }
 }

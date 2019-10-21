@@ -255,10 +255,10 @@ public class ShadowDeltaComputer {
                     pval.setValue(normalizedRealValue);
                 }
                 PropertyDelta<Object> attrDiff = oldRepoAttributeProperty.diff(normalizedCurrentResourceAttrProperty);
-                //							    LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}",
-                //								    	oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1),
-                //									    normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
-                //									    attrDiff==null?null:attrDiff.debugDump(1));
+                //                                LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}",
+                //                                        oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1),
+                //                                        normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
+                //                                        attrDiff==null?null:attrDiff.debugDump(1));
                 if (attrDiff != null && !attrDiff.isEmpty()) {
                     attrDiff.setParentPath(ShadowType.F_ATTRIBUTES);
                     if (attrDiff.getDefinition().getTypeName() == null) {

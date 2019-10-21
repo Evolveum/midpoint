@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<itemDelta>
-		<t:modificationType>add</t:modificationType>
-		<t:path>c:assignment</t:path>
-		<t:value>
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
+    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
+    <itemDelta>
+        <t:modificationType>add</t:modificationType>
+        <t:path>c:assignment</t:path>
+        <t:value>
             <c:targetRef oid="12345678-d34d-b33f-f00d-55555555a002" type="c:RoleType" />
-		</t:value>
-	</itemDelta>
+        </t:value>
+    </itemDelta>
 </objectModification>

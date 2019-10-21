@@ -2,30 +2,30 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <included>
 
-	<define name="altPrefix" class="com.evolveum.midpoint.common.LogbackPropertyDefiner">
-		<propertyName>midpoint.logging.alt.prefix</propertyName>
-	</define>
+    <define name="altPrefix" class="com.evolveum.midpoint.common.LogbackPropertyDefiner">
+        <propertyName>midpoint.logging.alt.prefix</propertyName>
+    </define>
 
-	<if condition='isDefined("midpoint.logging.alt.filename")'>
-		<then>
-			<appender name="ALT_LOG" class="ch.qos.logback.core.FileAppender">
-				<file>${midpoint.logging.alt.filename}</file>
-				<layout class="ch.qos.logback.classic.PatternLayout">
-					<pattern>${altPrefix}%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
-				</layout>
-			</appender>
-		</then>
-		<else>
-			<appender name="ALT_LOG" class="ch.qos.logback.core.ConsoleAppender">
-				<layout class="ch.qos.logback.classic.PatternLayout">
-					<pattern>${altPrefix}%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
-				</layout>
-			</appender>
-		</else>
-	</if>
+    <if condition='isDefined("midpoint.logging.alt.filename")'>
+        <then>
+            <appender name="ALT_LOG" class="ch.qos.logback.core.FileAppender">
+                <file>${midpoint.logging.alt.filename}</file>
+                <layout class="ch.qos.logback.classic.PatternLayout">
+                    <pattern>${altPrefix}%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+                </layout>
+            </appender>
+        </then>
+        <else>
+            <appender name="ALT_LOG" class="ch.qos.logback.core.ConsoleAppender">
+                <layout class="ch.qos.logback.classic.PatternLayout">
+                    <pattern>${altPrefix}%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+                </layout>
+            </appender>
+        </else>
+    </if>
 </included>

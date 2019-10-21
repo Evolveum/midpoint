@@ -2,38 +2,38 @@
 <!--
   ~ Copyright (c) 2017 Evolveum, AMI Praha and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <lookupTable oid="00000000-0000-0000-0000-000000000230"
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
 
-	<name>Lifecycle States</name>
+    <name>Lifecycle States</name>
 
-	<row>
-		<key>draft</key>
-		<label>Draft</label>
-	</row>
-	<row>
-		<key>proposed</key>
-		<label>Proposed</label>
-	</row>
-	<row>
-		<key>active</key>
-		<label>Active</label>
-	</row>
-	<row>
-		<key>deprecated</key>
-		<label>Deprecated</label>
-	</row>
-	<row>
-		<key>archived</key>
-		<label>Archived</label>
-	</row>
-	<row>
-		<key>failed</key>
-		<label>Failed</label>
-	</row>
+    <row>
+        <key>draft</key>
+        <label>Draft</label>
+    </row>
+    <row>
+        <key>proposed</key>
+        <label>Proposed</label>
+    </row>
+    <row>
+        <key>active</key>
+        <label>Active</label>
+    </row>
+    <row>
+        <key>deprecated</key>
+        <label>Deprecated</label>
+    </row>
+    <row>
+        <key>archived</key>
+        <label>Archived</label>
+    </row>
+    <row>
+        <key>failed</key>
+        <label>Failed</label>
+    </row>
 
 </lookupTable>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -30,150 +30,150 @@ import java.util.List;
  */
 public class WrapperScene implements Scene {
 
-	private String displayNameKey;
-	private Object[] displayNameParameters;
-	private List<? extends Scene> partialScenes;
+    private String displayNameKey;
+    private Object[] displayNameParameters;
+    private List<? extends Scene> partialScenes;
 
-	public WrapperScene(List<? extends Scene> partialScenes, String displayNameKey, Object... displayNameParameters) {
-		this.partialScenes = partialScenes;
-		this.displayNameKey = displayNameKey;
-		this.displayNameParameters = displayNameParameters;
-	}
+    public WrapperScene(List<? extends Scene> partialScenes, String displayNameKey, Object... displayNameParameters) {
+        this.partialScenes = partialScenes;
+        this.displayNameKey = displayNameKey;
+        this.displayNameParameters = displayNameParameters;
+    }
 
-	public String getDisplayNameKey() {
-		return displayNameKey;
-	}
+    public String getDisplayNameKey() {
+        return displayNameKey;
+    }
 
-	public Object[] getDisplayNameParameters() {
-		return displayNameParameters;
-	}
+    public Object[] getDisplayNameParameters() {
+        return displayNameParameters;
+    }
 
-	@Override
-	public Name getName() {
-		return new Name() {
+    @Override
+    public Name getName() {
+        return new Name() {
 
-			@Override
-			public String getSimpleName() {
-				return "";
-			}
+            @Override
+            public String getSimpleName() {
+                return "";
+            }
 
-			@Override
-			public String getDisplayName() {
-				return null;
-			}
+            @Override
+            public String getDisplayName() {
+                return null;
+            }
 
-			@Override
-			public String getId() {
-				return null;
-			}
+            @Override
+            public String getId() {
+                return null;
+            }
 
-			@Override
-			public String getDescription() {
-				return null;
-			}
+            @Override
+            public String getDescription() {
+                return null;
+            }
 
-			@Override
-			public boolean namesAreResourceKeys() {
-				return false;
-			}
-		};
-	}
+            @Override
+            public boolean namesAreResourceKeys() {
+                return false;
+            }
+        };
+    }
 
-	@Override
-	public ChangeType getChangeType() {
-		return null;
-	}
+    @Override
+    public ChangeType getChangeType() {
+        return null;
+    }
 
-	@NotNull
-	@Override
-	public List<? extends Scene> getPartialScenes() {
-		return partialScenes;
-	}
+    @NotNull
+    @Override
+    public List<? extends Scene> getPartialScenes() {
+        return partialScenes;
+    }
 
-	@NotNull
-	@Override
-	public List<? extends SceneItem> getItems() {
-		return Collections.emptyList();
-	}
+    @NotNull
+    @Override
+    public List<? extends SceneItem> getItems() {
+        return Collections.emptyList();
+    }
 
-	@Override
-	public boolean isOperational() {
-		return false;
-	}
+    @Override
+    public boolean isOperational() {
+        return false;
+    }
 
-	@Override
-	public Scene getOwner() {
-		return null;
-	}
+    @Override
+    public Scene getOwner() {
+        return null;
+    }
 
-	@Override
-	public ItemPath getSourceRelPath() {
-		return null;
-	}
+    @Override
+    public ItemPath getSourceRelPath() {
+        return null;
+    }
 
-	@Override
-	public ItemPath getSourceAbsPath() {
-		return null;
-	}
+    @Override
+    public ItemPath getSourceAbsPath() {
+        return null;
+    }
 
-	@Override
-	public PrismContainerValue<?> getSourceValue() {
-		return null;
-	}
+    @Override
+    public PrismContainerValue<?> getSourceValue() {
+        return null;
+    }
 
-	@Override
-	public PrismContainerDefinition<?> getSourceDefinition() {
-		return null;
-	}
+    @Override
+    public PrismContainerDefinition<?> getSourceDefinition() {
+        return null;
+    }
 
-	@Override
-	public ObjectDelta<?> getSourceDelta() {
-		return null;
-	}
+    @Override
+    public ObjectDelta<?> getSourceDelta() {
+        return null;
+    }
 
-	@Override
-	public boolean isEmpty() {
-		if (partialScenes == null) {
-			return true;
-		}
-		for (Scene scene : partialScenes) {
-			if (!scene.isEmpty()) {
-				return false;
-			}
-		}
-		return true;
-	}
+    @Override
+    public boolean isEmpty() {
+        if (partialScenes == null) {
+            return true;
+        }
+        for (Scene scene : partialScenes) {
+            if (!scene.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		return DebugUtil.debugDump(partialScenes, indent);
-	}
+    @Override
+    public String debugDump(int indent) {
+        return DebugUtil.debugDump(partialScenes, indent);
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-		WrapperScene that = (WrapperScene) o;
+        WrapperScene that = (WrapperScene) o;
 
-		if (displayNameKey != null ? !displayNameKey.equals(that.displayNameKey) : that.displayNameKey != null)
-			return false;
-		// Probably incorrect - comparing Object[] arrays with Arrays.equals
-		if (!Arrays.equals(displayNameParameters, that.displayNameParameters)) return false;
-		return !(partialScenes != null ? !partialScenes.equals(that.partialScenes) : that.partialScenes != null);
+        if (displayNameKey != null ? !displayNameKey.equals(that.displayNameKey) : that.displayNameKey != null)
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(displayNameParameters, that.displayNameParameters)) return false;
+        return !(partialScenes != null ? !partialScenes.equals(that.partialScenes) : that.partialScenes != null);
 
-	}
+    }
 
-	@Override
-	public int hashCode() {
-		int result = displayNameKey != null ? displayNameKey.hashCode() : 0;
-		result = 31 * result + (displayNameParameters != null ? Arrays.hashCode(displayNameParameters) : 0);
-		result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = displayNameKey != null ? displayNameKey.hashCode() : 0;
+        result = 31 * result + (displayNameParameters != null ? Arrays.hashCode(displayNameParameters) : 0);
+        result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
+        return result;
+    }
 }

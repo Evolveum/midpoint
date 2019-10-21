@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="2fd9e8f4-df29-11e6-9605-cfcedd703b9e"
@@ -10,20 +10,20 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     <name>Color: Green</name>
     <assignment>
-    	<targetRef oid="0b759ce2-df29-11e6-a84c-9b213183a815" type="RoleType"/> <!-- Color metarole -->
+        <targetRef oid="0b759ce2-df29-11e6-a84c-9b213183a815" type="RoleType"/> <!-- Color metarole -->
     </assignment>
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:ship</ref>
                 <outbound>
-                	<expression>
-						<value>Green</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>Green</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 </role>

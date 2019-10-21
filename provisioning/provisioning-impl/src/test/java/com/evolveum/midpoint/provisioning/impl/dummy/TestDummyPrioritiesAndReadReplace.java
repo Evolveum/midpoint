@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -66,301 +66,301 @@ import static org.testng.AssertJUnit.assertTrue;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestDummyPrioritiesAndReadReplace.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestDummyPrioritiesAndReadReplace.class);
 
-	protected String willIcfUid;
+    protected String willIcfUid;
 
-	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-priorities-read-replace");
-	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
+    public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-priorities-read-replace");
+    public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
-	@Override
-	protected File getResourceDummyFile() {
-		return RESOURCE_DUMMY_FILE;
-	}
+    @Override
+    protected File getResourceDummyFile() {
+        return RESOURCE_DUMMY_FILE;
+    }
 
-	protected MatchingRule<String> getUidMatchingRule() {
-		return null;
-	}
+    protected MatchingRule<String> getUidMatchingRule() {
+        return null;
+    }
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		InternalMonitor.setTrace(InternalOperationClasses.CONNECTOR_OPERATIONS, true);
-		// in order to have schema available here
-		resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, taskManager.createTaskInstance(), initResult).asObjectable();
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        InternalMonitor.setTrace(InternalOperationClasses.CONNECTOR_OPERATIONS, true);
+        // in order to have schema available here
+        resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, taskManager.createTaskInstance(), initResult).asObjectable();
+    }
 
-	// copied from TestDummy
-	@Test
-	public void test100AddAccount() throws Exception {
-		final String TEST_NAME = "test100AddAccount";
-		TestUtil.displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ "." + TEST_NAME);
-		syncServiceMock.reset();
+    // copied from TestDummy
+    @Test
+    public void test100AddAccount() throws Exception {
+        final String TEST_NAME = "test100AddAccount";
+        TestUtil.displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+                + "." + TEST_NAME);
+        OperationResult result = new OperationResult(TestDummy.class.getName()
+                + "." + TEST_NAME);
+        syncServiceMock.reset();
 
-		PrismObject<ShadowType> account = prismContext.parseObject(getAccountWillFile());
-		account.checkConsistence();
+        PrismObject<ShadowType> account = prismContext.parseObject(getAccountWillFile());
+        account.checkConsistence();
 
-		display("Adding shadow", account);
+        display("Adding shadow", account);
 
-		// WHEN
-		String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
+        // WHEN
+        String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
-		// THEN
-		result.computeStatus();
-		display("add object result", result);
-		TestUtil.assertSuccess("addObject has failed (result)", result);
-		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
+        // THEN
+        result.computeStatus();
+        display("add object result", result);
+        TestUtil.assertSuccess("addObject has failed (result)", result);
+        assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-		account.checkConsistence();
+        account.checkConsistence();
 
-		PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
-		willIcfUid = getIcfUid(accountRepo);
+        PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+        willIcfUid = getIcfUid(accountRepo);
 
-		ActivationType activationRepo = accountRepo.asObjectable().getActivation();
-		if (supportsActivation()) {
-			assertNotNull("No activation in "+accountRepo+" (repo)", activationRepo);
-			assertEquals("Wrong activation enableTimestamp in "+accountRepo+" (repo)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationRepo.getEnableTimestamp());
-		} else {
-			assertNull("Activation sneaked in (repo)", activationRepo);
-		}
+        ActivationType activationRepo = accountRepo.asObjectable().getActivation();
+        if (supportsActivation()) {
+            assertNotNull("No activation in "+accountRepo+" (repo)", activationRepo);
+            assertEquals("Wrong activation enableTimestamp in "+accountRepo+" (repo)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationRepo.getEnableTimestamp());
+        } else {
+            assertNull("Activation sneaked in (repo)", activationRepo);
+        }
 
-		syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertNotifySuccessOnly();
 
-		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, task, result);
-		display("Account provisioning", accountProvisioning);
-		ShadowType accountTypeProvisioning = accountProvisioning.asObjectable();
-		display("account from provisioning", accountTypeProvisioning);
-		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeProvisioning.getName());
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
-		assertAttribute(accountProvisioning, SchemaConstants.ICFS_NAME, ACCOUNT_WILL_USERNAME);
-		assertAttribute(accountProvisioning, getUidMatchingRule(), SchemaConstants.ICFS_UID, willIcfUid);
+        PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
+                ACCOUNT_WILL_OID, null, task, result);
+        display("Account provisioning", accountProvisioning);
+        ShadowType accountTypeProvisioning = accountProvisioning.asObjectable();
+        display("account from provisioning", accountTypeProvisioning);
+        PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeProvisioning.getName());
+        assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
+        assertAttribute(accountProvisioning, SchemaConstants.ICFS_NAME, ACCOUNT_WILL_USERNAME);
+        assertAttribute(accountProvisioning, getUidMatchingRule(), SchemaConstants.ICFS_UID, willIcfUid);
 
-		ActivationType activationProvisioning = accountTypeProvisioning.getActivation();
-		if (supportsActivation()) {
-			assertNotNull("No activation in "+accountProvisioning+" (provisioning)", activationProvisioning);
-			assertEquals("Wrong activation administrativeStatus in "+accountProvisioning+" (provisioning)", ActivationStatusType.ENABLED, activationProvisioning.getAdministrativeStatus());
-			TestUtil.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
-		} else {
-			assertNull("Activation sneaked in (provisioning)", activationProvisioning);
-		}
+        ActivationType activationProvisioning = accountTypeProvisioning.getActivation();
+        if (supportsActivation()) {
+            assertNotNull("No activation in "+accountProvisioning+" (provisioning)", activationProvisioning);
+            assertEquals("Wrong activation administrativeStatus in "+accountProvisioning+" (provisioning)", ActivationStatusType.ENABLED, activationProvisioning.getAdministrativeStatus());
+            TestUtil.assertEqualsTimestamp("Wrong activation enableTimestamp in "+accountProvisioning+" (provisioning)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationProvisioning.getEnableTimestamp());
+        } else {
+            assertNull("Activation sneaked in (provisioning)", activationProvisioning);
+        }
 
-		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
-				accountTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
+        assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
+                accountTypeProvisioning, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
-		// Check if the account was created in the dummy resource
+        // Check if the account was created in the dummy resource
 
-		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
-		assertNotNull("No dummy account", dummyAccount);
-		assertEquals("Username is wrong", ACCOUNT_WILL_USERNAME, dummyAccount.getName());
-		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
-		assertTrue("The account is not enabled", dummyAccount.isEnabled());
-		assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
+        DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
+        assertNotNull("No dummy account", dummyAccount);
+        assertEquals("Username is wrong", ACCOUNT_WILL_USERNAME, dummyAccount.getName());
+        assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
+        assertTrue("The account is not enabled", dummyAccount.isEnabled());
+        assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
 
-		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
-				addedObjectOid, null, result);
-		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-		display("Repository shadow", shadowFromRepo.debugDump());
+        // Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
+        PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
+                addedObjectOid, null, result);
+        assertNotNull("Shadow was not created in the repository", shadowFromRepo);
+        display("Repository shadow", shadowFromRepo.debugDump());
 
-		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
+        ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
-		checkUniqueness(accountProvisioning);
-		//assertSteadyResource();
-	}
+        checkUniqueness(accountProvisioning);
+        //assertSteadyResource();
+    }
 
-	@Test
-	public void test123ModifyObjectReplace() throws Exception {
-		final String TEST_NAME = "test123ModifyObjectReplace";
-		TestUtil.displayTestTitle(TEST_NAME);
+    @Test
+    public void test123ModifyObjectReplace() throws Exception {
+        final String TEST_NAME = "test123ModifyObjectReplace";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-		Task task = taskManager.createTaskInstance(TestDummyPrioritiesAndReadReplace.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = task.getResult();
+        Task task = taskManager.createTaskInstance(TestDummyPrioritiesAndReadReplace.class.getName()
+                + "." + TEST_NAME);
+        OperationResult result = task.getResult();
 
-		syncServiceMock.reset();
+        syncServiceMock.reset();
 
-		// todo add correct definition
-		ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Master Will Turner");
-		PropertyDelta weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
-		weaponDelta.setDefinition(
-				getAttributeDefinition(resourceType,
-						ShadowKindType.ACCOUNT, null,
-						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
-		weaponDelta.setRealValuesToReplace("Gun");
-		objectDelta.addModification(weaponDelta);
-		PropertyDelta lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
-		lootDelta.setDefinition(
-				getAttributeDefinition(resourceType,
-						ShadowKindType.ACCOUNT, null,
-						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
-		lootDelta.setRealValuesToReplace(43);
-		objectDelta.addModification(lootDelta);
-		PropertyDelta titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
-		titleDelta.setDefinition(
-				getAttributeDefinition(resourceType,
-						ShadowKindType.ACCOUNT, null,
-						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
-		titleDelta.setRealValuesToReplace("Pirate Master");
-		objectDelta.addModification(titleDelta);
+        // todo add correct definition
+        ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Master Will Turner");
+        PropertyDelta weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
+        weaponDelta.setDefinition(
+                getAttributeDefinition(resourceType,
+                        ShadowKindType.ACCOUNT, null,
+                        DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
+        weaponDelta.setRealValuesToReplace("Gun");
+        objectDelta.addModification(weaponDelta);
+        PropertyDelta lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
+        lootDelta.setDefinition(
+                getAttributeDefinition(resourceType,
+                        ShadowKindType.ACCOUNT, null,
+                        DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
+        lootDelta.setRealValuesToReplace(43);
+        objectDelta.addModification(lootDelta);
+        PropertyDelta titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
+        titleDelta.setDefinition(
+                getAttributeDefinition(resourceType,
+                        ShadowKindType.ACCOUNT, null,
+                        DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
+        titleDelta.setRealValuesToReplace("Pirate Master");
+        objectDelta.addModification(titleDelta);
 
-		display("ObjectDelta", objectDelta);
-		objectDelta.checkConsistence();
+        display("ObjectDelta", objectDelta);
+        objectDelta.checkConsistence();
 
-		// WHEN
-		provisioningService.modifyObject(ShadowType.class, objectDelta.getOid(), objectDelta.getModifications(),
-				new OperationProvisioningScriptsType(), null, task, result);
+        // WHEN
+        provisioningService.modifyObject(ShadowType.class, objectDelta.getOid(), objectDelta.getModifications(),
+                new OperationProvisioningScriptsType(), null, task, result);
 
-		// THEN
-		result.computeStatus();
-		display("modifyObject result", result);
-		TestUtil.assertSuccess(result);
+        // THEN
+        result.computeStatus();
+        display("modifyObject result", result);
+        TestUtil.assertSuccess(result);
 
-		objectDelta.checkConsistence();
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Master Will Turner");
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate Master");
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 43);
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Gun");
-		
-		assertTest123ModifyObjectReplaceResult(result);
-		
-		syncServiceMock.assertNotifySuccessOnly();
+        objectDelta.checkConsistence();
+        assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Master Will Turner");
+        assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate Master");
+        assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 43);
+        assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Gun");
 
-	}
-	
-	protected void assertTest123ModifyObjectReplaceResult(OperationResult result) {
-		// BEWARE: very brittle!
-		List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result, ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".updateDelta");
-		assertEquals("Wrong number of updates executed", 3, updatesExecuted.size());
-		checkAttributesDelta(updatesExecuted.get(0), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
-		checkAttributesDelta(updatesExecuted.get(1), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
-		checkAttributesDelta(updatesExecuted.get(2), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
-	}
+        assertTest123ModifyObjectReplaceResult(result);
 
-	protected void checkAttributesUpdated(OperationResult operationResult, String operation, String... attributeNames) {
-		assertEquals("Wrong operation name", ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + "." + operation, operationResult.getOperation());
-		Collection<String> updatedAttributes = parseUpdatedAttributes(operationResult.getParams().get("attributes").toString());
-		assertEquals("Names of updated attributes do not match", new HashSet<>(Arrays.asList(attributeNames)), updatedAttributes);
-	}
-	
-	protected void checkAttributesDelta(OperationResult operationResult, String operation, String... attributeNames) {
-		assertEquals("Wrong operation name", ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + "." + operation, operationResult.getOperation());
-		Collection<String> updatedAttributes = parseUpdatedAttributes(operationResult.getParams().get("attributesDelta").toString());
-		assertEquals("Names of updated attributes do not match", new HashSet<>(Arrays.asList(attributeNames)), updatedAttributes);
-	}
+        syncServiceMock.assertNotifySuccessOnly();
 
-	// From something like this: [Attribute: {Name=fullname, Value=[Pirate Master Will Turner]},Attribute: {Name=title, Value=[Pirate Master]}]
-	// we would like to get ["fullname", "title"]
-	private Collection<String> parseUpdatedAttributes(String attributes) {
-		Pattern pattern = Pattern.compile("Attribute: \\{Name=(\\w+),");
-		Matcher matcher = pattern.matcher(attributes);
-		Set<String> retval = new HashSet<>();
-		while (matcher.find()) {
-			retval.add(matcher.group(1));
-		}
-		return retval;
-	}
+    }
 
-	@Test
-	public void test150ModifyObjectAddDelete() throws Exception {
-		final String TEST_NAME = "test150ModifyObjectAddDelete";
-		TestUtil.displayTestTitle(TEST_NAME);
+    protected void assertTest123ModifyObjectReplaceResult(OperationResult result) {
+        // BEWARE: very brittle!
+        List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result, ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".updateDelta");
+        assertEquals("Wrong number of updates executed", 3, updatesExecuted.size());
+        checkAttributesDelta(updatesExecuted.get(0), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);
+        checkAttributesDelta(updatesExecuted.get(1), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);
+        checkAttributesDelta(updatesExecuted.get(2), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+    }
 
-		Task task = taskManager.createTaskInstance(TestDummyPrioritiesAndReadReplace.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = task.getResult();
+    protected void checkAttributesUpdated(OperationResult operationResult, String operation, String... attributeNames) {
+        assertEquals("Wrong operation name", ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + "." + operation, operationResult.getOperation());
+        Collection<String> updatedAttributes = parseUpdatedAttributes(operationResult.getParams().get("attributes").toString());
+        assertEquals("Names of updated attributes do not match", new HashSet<>(Arrays.asList(attributeNames)), updatedAttributes);
+    }
 
-		syncServiceMock.reset();
+    protected void checkAttributesDelta(OperationResult operationResult, String operation, String... attributeNames) {
+        assertEquals("Wrong operation name", ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + "." + operation, operationResult.getOperation());
+        Collection<String> updatedAttributes = parseUpdatedAttributes(operationResult.getParams().get("attributesDelta").toString());
+        assertEquals("Names of updated attributes do not match", new HashSet<>(Arrays.asList(attributeNames)), updatedAttributes);
+    }
 
-		// NOT a read replace attribute
-		// todo add correct definition
-		ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Great Master Will Turner");
-		// read replace attribute, priority 0
-		PropertyDelta weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
-		weaponDelta.setDefinition(
-				getAttributeDefinition(resourceType,
-						ShadowKindType.ACCOUNT, null,
-						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
-		weaponDelta.addRealValuesToAdd("Sword");
-		weaponDelta.addRealValuesToDelete("GUN");			// case-insensitive treatment should work here
-		objectDelta.addModification(weaponDelta);
-		// read replace attribute, priority 1
-		PropertyDelta lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
-		lootDelta.setDefinition(
-				getAttributeDefinition(resourceType,
-						ShadowKindType.ACCOUNT, null,
-						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
-		lootDelta.addRealValuesToAdd(44);
-		lootDelta.addRealValuesToDelete(43);
-		objectDelta.addModification(lootDelta);
-		// NOT a read-replace attribute
-		PropertyDelta titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
-		titleDelta.setDefinition(
-				getAttributeDefinition(resourceType,
-						ShadowKindType.ACCOUNT, null,
-						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
-		titleDelta.addRealValuesToAdd("Pirate Great Master");
-		titleDelta.addRealValuesToDelete("Pirate Master");
-		objectDelta.addModification(titleDelta);
-		// read replace attribute
-		PropertyDelta drinkDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
-		drinkDelta.setDefinition(
-				getAttributeDefinition(resourceType,
-						ShadowKindType.ACCOUNT, null,
-						DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
-		drinkDelta.addRealValuesToAdd("orange juice");
-		objectDelta.addModification(drinkDelta);
+    // From something like this: [Attribute: {Name=fullname, Value=[Pirate Master Will Turner]},Attribute: {Name=title, Value=[Pirate Master]}]
+    // we would like to get ["fullname", "title"]
+    private Collection<String> parseUpdatedAttributes(String attributes) {
+        Pattern pattern = Pattern.compile("Attribute: \\{Name=(\\w+),");
+        Matcher matcher = pattern.matcher(attributes);
+        Set<String> retval = new HashSet<>();
+        while (matcher.find()) {
+            retval.add(matcher.group(1));
+        }
+        return retval;
+    }
 
-		display("ObjectDelta", objectDelta);
-		objectDelta.checkConsistence();
+    @Test
+    public void test150ModifyObjectAddDelete() throws Exception {
+        final String TEST_NAME = "test150ModifyObjectAddDelete";
+        TestUtil.displayTestTitle(TEST_NAME);
 
-		// WHEN
-		provisioningService.modifyObject(ShadowType.class, objectDelta.getOid(), objectDelta.getModifications(),
-				new OperationProvisioningScriptsType(), null, task, result);
+        Task task = taskManager.createTaskInstance(TestDummyPrioritiesAndReadReplace.class.getName()
+                + "." + TEST_NAME);
+        OperationResult result = task.getResult();
 
-		// THEN
-		result.computeStatus();
-		display("modifyObject result", result);
-		TestUtil.assertSuccess(result);
+        syncServiceMock.reset();
 
-		objectDelta.checkConsistence();
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Great Master Will Turner");
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate Great Master");
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 44);
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword");
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "orange juice");
+        // NOT a read replace attribute
+        // todo add correct definition
+        ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Great Master Will Turner");
+        // read replace attribute, priority 0
+        PropertyDelta weaponDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeWeaponPath());
+        weaponDelta.setDefinition(
+                getAttributeDefinition(resourceType,
+                        ShadowKindType.ACCOUNT, null,
+                        DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME));
+        weaponDelta.addRealValuesToAdd("Sword");
+        weaponDelta.addRealValuesToDelete("GUN");            // case-insensitive treatment should work here
+        objectDelta.addModification(weaponDelta);
+        // read replace attribute, priority 1
+        PropertyDelta lootDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributeLootPath());
+        lootDelta.setDefinition(
+                getAttributeDefinition(resourceType,
+                        ShadowKindType.ACCOUNT, null,
+                        DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
+        lootDelta.addRealValuesToAdd(44);
+        lootDelta.addRealValuesToDelete(43);
+        objectDelta.addModification(lootDelta);
+        // NOT a read-replace attribute
+        PropertyDelta titleDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
+        titleDelta.setDefinition(
+                getAttributeDefinition(resourceType,
+                        ShadowKindType.ACCOUNT, null,
+                        DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME));
+        titleDelta.addRealValuesToAdd("Pirate Great Master");
+        titleDelta.addRealValuesToDelete("Pirate Master");
+        objectDelta.addModification(titleDelta);
+        // read replace attribute
+        PropertyDelta drinkDelta = objectDelta.createPropertyModification(dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
+        drinkDelta.setDefinition(
+                getAttributeDefinition(resourceType,
+                        ShadowKindType.ACCOUNT, null,
+                        DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME));
+        drinkDelta.addRealValuesToAdd("orange juice");
+        objectDelta.addModification(drinkDelta);
 
-		assertTest150ModifyObjectAddDeleteResult(result);
-		
-		syncServiceMock.assertNotifySuccessOnly();
+        display("ObjectDelta", objectDelta);
+        objectDelta.checkConsistence();
 
-		//assertSteadyResource();
-	}
-	
-	protected void assertTest150ModifyObjectAddDeleteResult(OperationResult result) {
-		// BEWARE: very brittle!
-		List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result,
-				ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".updateDelta");
-		assertEquals("Wrong number of updates executed", 3, updatesExecuted.size());
-		checkAttributesDelta(updatesExecuted.get(0), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);		// prio 0, read-replace
-		checkAttributesDelta(updatesExecuted.get(1), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);			// prio 1, read-replace
-		checkAttributesDelta(updatesExecuted.get(2), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);	// prio none, read-replace + real replace
-	}
+        // WHEN
+        provisioningService.modifyObject(ShadowType.class, objectDelta.getOid(), objectDelta.getModifications(),
+                new OperationProvisioningScriptsType(), null, task, result);
+
+        // THEN
+        result.computeStatus();
+        display("modifyObject result", result);
+        TestUtil.assertSuccess(result);
+
+        objectDelta.checkConsistence();
+        assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Great Master Will Turner");
+        assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate Great Master");
+        assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 44);
+        assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword");
+        assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "orange juice");
+
+        assertTest150ModifyObjectAddDeleteResult(result);
+
+        syncServiceMock.assertNotifySuccessOnly();
+
+        //assertSteadyResource();
+    }
+
+    protected void assertTest150ModifyObjectAddDeleteResult(OperationResult result) {
+        // BEWARE: very brittle!
+        List<OperationResult> updatesExecuted = TestUtil.selectSubresults(result,
+                ProvisioningTestUtil.CONNID_CONNECTOR_FACADE_CLASS_NAME + ".updateDelta");
+        assertEquals("Wrong number of updates executed", 3, updatesExecuted.size());
+        checkAttributesDelta(updatesExecuted.get(0), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME);        // prio 0, read-replace
+        checkAttributesDelta(updatesExecuted.get(1), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME);            // prio 1, read-replace
+        checkAttributesDelta(updatesExecuted.get(2), "updateDelta", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME);    // prio none, read-replace + real replace
+    }
 
 }

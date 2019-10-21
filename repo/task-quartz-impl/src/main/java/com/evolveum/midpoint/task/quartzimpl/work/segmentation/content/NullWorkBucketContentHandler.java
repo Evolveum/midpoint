@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,16 +28,16 @@ import static java.util.Collections.emptyList;
 @Component
 public class NullWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 
-	@PostConstruct
-	public void register() {
-		registry.registerHandler(null, this);
-	}
+    @PostConstruct
+    public void register() {
+        registry.registerHandler(null, this);
+    }
 
-	@NotNull
-	@Override
-	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket,
-			AbstractWorkSegmentationType configuration, Class<? extends ObjectType> type,
-			Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
-		return emptyList();
-	}
+    @NotNull
+    @Override
+    public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket,
+            AbstractWorkSegmentationType configuration, Class<? extends ObjectType> type,
+            Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
+        return emptyList();
+    }
 }

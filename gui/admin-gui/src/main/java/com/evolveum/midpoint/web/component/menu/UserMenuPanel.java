@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -265,16 +265,16 @@ public class UserMenuPanel extends BasePanel {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
 
         if (parentPage == null) {
-        	parentPage = ((PageBase)getPage());
+            parentPage = ((PageBase)getPage());
         }
 
         try {
 
-        	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-        	if (principal == null) {
-        		result.recordNotApplicableIfUnknown();
-        		return null;
-        	}
+            MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+            if (principal == null) {
+                result.recordNotApplicableIfUnknown();
+                return null;
+            }
             String userOid = principal.getOid();
             Task task = parentPage.createSimpleTask(OPERATION_LOAD_USER);
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
@@ -318,12 +318,12 @@ public class UserMenuPanel extends BasePanel {
                 Protector protector = ((PageBase) getPage()).getPrismContext().getDefaultProtector();
                 if (securityQuestionAnswerType.getQuestionAnswer() != null && securityQuestionAnswerType.getQuestionAnswer().getEncryptedDataType() != null) {
                     try {
-                    	String decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
+                        String decoded = protector.decryptString(securityQuestionAnswerType.getQuestionAnswer());
                         secQuestAnswListDTO.add(new SecurityQuestionAnswerDTO(securityQuestionAnswerType
                                 .getQuestionIdentifier(), decoded));
                     } catch (EncryptionException e) {
                         // TODO do we need to thrown exception here?
-                    	LOGGER.error("Could not get security questions. Error: "  + e.getMessage(), e);
+                        LOGGER.error("Could not get security questions. Error: "  + e.getMessage(), e);
                         continue;
                     }
                 }

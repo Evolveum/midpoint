@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <xsd:schema elementFormDefault="qualified"
@@ -13,7 +13,7 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-            
+
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
     <!-- user extension -->
@@ -26,100 +26,100 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="ship" type="xsd:string">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>true</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="tales" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>true</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="loot" type="xsd:int" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>true</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="badLuck" type="xsd:long" minOccurs="0" maxOccurs="unbounded">
-            	<!-- This has default indexed setting -->
+                <!-- This has default indexed setting -->
             </xsd:element>
             <xsd:element name="funeralTimestamp" type="xsd:dateTime" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>true</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="colors" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>false</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="mark" type="tns:MarkType" minOccurs="0" maxOccurs="1">
-            	<!-- Enumeration -->
+                <!-- Enumeration -->
             </xsd:element>
             <xsd:element name="key" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
-            	<xsd:annotation>
-            		<xsd:documentation>MID-3999</xsd:documentation>
-            		<xsd:appinfo>
-            			<a:displayName>Treasure Key</a:displayName>
-						<a:displayOrder>888</a:displayOrder>
-						<a:indexed>false</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:documentation>MID-3999</xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Treasure Key</a:displayName>
+                        <a:displayOrder>888</a:displayOrder>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="binaryId" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
-            	<xsd:annotation>
-            		<xsd:documentation>MID-3999</xsd:documentation>
-            		<xsd:appinfo>
-            			<a:displayName>Binary identifier</a:displayName>
-						<a:displayOrder>890</a:displayOrder>
-				<!-- 		<a:indexed>true</a:indexed> we do not support binary indexing -->
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:documentation>MID-3999</xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Binary identifier</a:displayName>
+                        <a:displayOrder>890</a:displayOrder>
+                <!--         <a:indexed>true</a:indexed> we do not support binary indexing -->
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="locker" type="t:ProtectedStringType" minOccurs="0" maxOccurs="1">
-            	<xsd:annotation>
-            		<xsd:documentation>MID-5197</xsd:documentation>
-            		<xsd:appinfo>
-            			<a:displayName>Locker</a:displayName>
-						<a:displayOrder>900</a:displayOrder>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:documentation>MID-5197</xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>Locker</a:displayName>
+                        <a:displayOrder>900</a:displayOrder>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:simpleType name="MarkType">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="pegLeg">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:label>Peg Leg</a:label>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:label>Peg Leg</a:label>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="noEye">
                <xsd:annotation>
-            		<xsd:appinfo>
-            			<a:label>No Eye</a:label>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+                    <xsd:appinfo>
+                        <a:label>No Eye</a:label>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:enumeration>
             <xsd:enumeration value="hook"/>
             <xsd:enumeration value="tatoo"/>
@@ -127,21 +127,21 @@
             <xsd:enumeration value="bravery"/>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
     <!-- assignment extension -->
 
-	<xsd:complexType name="AssignmentTypeExtensionType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:extension ref="c:AssignmentType"/>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element ref="tns:sea"/>
-		</xsd:sequence>
-	</xsd:complexType>
+    <xsd:complexType name="AssignmentTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:AssignmentType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:sea"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
-	<xsd:element name="sea" type="xsd:string"/>
+    <xsd:element name="sea" type="xsd:string"/>
 
     <!-- role extension -->
 
@@ -159,17 +159,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-			<xsd:element ref="tns:sea"/>
-			<xsd:element name="riskVector" type="tns:RiskVectorType" minOccurs="0"/>
+            <xsd:element ref="tns:sea"/>
+            <xsd:element name="riskVector" type="tns:RiskVectorType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="RiskVectorType">
         <xsd:annotation>
-        	<xsd:documentation>
-        		Prism container in role extension.
-        		MID-5080
-        	</xsd:documentation>
+            <xsd:documentation>
+                Prism container in role extension.
+                MID-5080
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
             </xsd:appinfo>
@@ -180,40 +180,40 @@
         </xsd:sequence>
     </xsd:complexType>
 
-	<!-- task extension -->
+    <!-- task extension -->
 
-	<xsd:complexType name="TaskTypeExtensionType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:extension ref="c:TaskType"/>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="userName" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:indexed>false</a:indexed>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="userDescription" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:indexed>false</a:indexed>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="studyGroup" type="xsd:string" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:indexed>false</a:indexed>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
-	
-	<!-- org extension -->
+    <xsd:complexType name="TaskTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:TaskType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="userName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userDescription" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="studyGroup" type="xsd:string" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>false</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- org extension -->
 
     <xsd:complexType name="OrgTypeExtensionType">
         <xsd:annotation>
@@ -222,13 +222,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-			<xsd:element ref="tns:sea"/>
-			<xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-            	<xsd:annotation>
-            		<xsd:appinfo>
-            			<a:indexed>true</a:indexed>
-            		</xsd:appinfo>
-            	</xsd:annotation>
+            <xsd:element ref="tns:sea"/>
+            <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:indexed>true</a:indexed>
+                    </xsd:appinfo>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>

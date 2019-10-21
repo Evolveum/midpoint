@@ -2,32 +2,32 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
-	<test name="QName Utils" parallel="false" preserve-order="false" verbose="10">
-		<classes>
-			<class name="com.evolveum.midpoint.util.QNameUtilTest" />
-		</classes>
-	</test>
-	<test name="DOM Utils" parallel="false" preserve-order="false" verbose="10">
-		<classes>
-			<class name="com.evolveum.midpoint.util.DOMUtilTest" />
-		</classes>
-	</test>
-	<test name="Classpath utils">
-		<classes>
-			<class name="com.evolveum.midpoint.util.ClassPathTest" />
-		</classes>
-	</test>
-	<test name="Utils">
-		<classes>
-			<class name="com.evolveum.midpoint.util.TestMiscUtil" />
-			<class name="com.evolveum.midpoint.util.TestReflectionUtil" />
-		</classes>
-	</test>
+    <test name="QName Utils" parallel="false" preserve-order="false" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.util.QNameUtilTest" />
+        </classes>
+    </test>
+    <test name="DOM Utils" parallel="false" preserve-order="false" verbose="10">
+        <classes>
+            <class name="com.evolveum.midpoint.util.DOMUtilTest" />
+        </classes>
+    </test>
+    <test name="Classpath utils">
+        <classes>
+            <class name="com.evolveum.midpoint.util.ClassPathTest" />
+        </classes>
+    </test>
+    <test name="Utils">
+        <classes>
+            <class name="com.evolveum.midpoint.util.TestMiscUtil" />
+            <class name="com.evolveum.midpoint.util.TestReflectionUtil" />
+        </classes>
+    </test>
     <test name="Profiling">
         <classes>
             <class name="com.evolveum.midpoint.util.ProfilingTest" />

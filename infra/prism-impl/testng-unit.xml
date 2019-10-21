@@ -3,46 +3,46 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false" verbose="1">
     <test name="Prism" preserve-order="false" verbose="1">
         <classes>
-        	<class name="com.evolveum.midpoint.prism.TestFundamentals"/>
-        	<class name="com.evolveum.midpoint.prism.TestTypeConversion"/>
-        	<class name="com.evolveum.midpoint.prism.TestPrismContext"/>
-			<class name="com.evolveum.midpoint.prism.TestPrismParsing"/>
-			<class name="com.evolveum.midpoint.prism.TestPrismParsingXml"/>
-			<class name="com.evolveum.midpoint.prism.TestPrismParsingJson"/>
-			<class name="com.evolveum.midpoint.prism.TestPrismParsingYaml"/>
-			<class name="com.evolveum.midpoint.prism.TestUnknownItems"/>
-			<class name="com.evolveum.midpoint.prism.TestCompare"/>
-			<class name="com.evolveum.midpoint.prism.TestCompareXml"/>
-			<class name="com.evolveum.midpoint.prism.TestCompareJson"/>
-			<class name="com.evolveum.midpoint.prism.TestCompareYaml"/>
-			<class name="com.evolveum.midpoint.prism.TestEquals"/>
+            <class name="com.evolveum.midpoint.prism.TestFundamentals"/>
+            <class name="com.evolveum.midpoint.prism.TestTypeConversion"/>
+            <class name="com.evolveum.midpoint.prism.TestPrismContext"/>
+            <class name="com.evolveum.midpoint.prism.TestPrismParsing"/>
+            <class name="com.evolveum.midpoint.prism.TestPrismParsingXml"/>
+            <class name="com.evolveum.midpoint.prism.TestPrismParsingJson"/>
+            <class name="com.evolveum.midpoint.prism.TestPrismParsingYaml"/>
+            <class name="com.evolveum.midpoint.prism.TestUnknownItems"/>
+            <class name="com.evolveum.midpoint.prism.TestCompare"/>
+            <class name="com.evolveum.midpoint.prism.TestCompareXml"/>
+            <class name="com.evolveum.midpoint.prism.TestCompareJson"/>
+            <class name="com.evolveum.midpoint.prism.TestCompareYaml"/>
+            <class name="com.evolveum.midpoint.prism.TestEquals"/>
             <class name="com.evolveum.midpoint.prism.TestXmlSerialization"/>
-			<class name="com.evolveum.midpoint.prism.TestPrismObjectConstruction"/>
-			<class name="com.evolveum.midpoint.prism.TestPrismSchemaConstruction"/>
-			<class name="com.evolveum.midpoint.prism.TestExtraSchema"/>
-			<class name="com.evolveum.midpoint.prism.TestPolyString"/>
-			<class name="com.evolveum.midpoint.prism.TestDiff"/>
-			<class name="com.evolveum.midpoint.prism.TestDelta"/>
-			<class name="com.evolveum.midpoint.prism.TestPath"/>
-			<class name="com.evolveum.midpoint.prism.TestFind"/>
-			<class name="com.evolveum.midpoint.prism.TestPerformance"/>
-			<class name="com.evolveum.midpoint.prism.crypto.TestProtector"/>
-			<class name="com.evolveum.midpoint.prism.match.TestMatchingRule"/>
-			<class name="com.evolveum.midpoint.prism.lex.TestDomParser"/>
-			<class name="com.evolveum.midpoint.prism.lex.TestJsonParser"/>
-			<class name="com.evolveum.midpoint.prism.lex.TestYamlParser"/>
+            <class name="com.evolveum.midpoint.prism.TestPrismObjectConstruction"/>
+            <class name="com.evolveum.midpoint.prism.TestPrismSchemaConstruction"/>
+            <class name="com.evolveum.midpoint.prism.TestExtraSchema"/>
+            <class name="com.evolveum.midpoint.prism.TestPolyString"/>
+            <class name="com.evolveum.midpoint.prism.TestDiff"/>
+            <class name="com.evolveum.midpoint.prism.TestDelta"/>
+            <class name="com.evolveum.midpoint.prism.TestPath"/>
+            <class name="com.evolveum.midpoint.prism.TestFind"/>
+            <class name="com.evolveum.midpoint.prism.TestPerformance"/>
+            <class name="com.evolveum.midpoint.prism.crypto.TestProtector"/>
+            <class name="com.evolveum.midpoint.prism.match.TestMatchingRule"/>
+            <class name="com.evolveum.midpoint.prism.lex.TestDomParser"/>
+            <class name="com.evolveum.midpoint.prism.lex.TestJsonParser"/>
+            <class name="com.evolveum.midpoint.prism.lex.TestYamlParser"/>
             <class name="com.evolveum.midpoint.prism.lex.TestProtectedString"/>
-			<class name="com.evolveum.midpoint.prism.query.TestObjectQuery"/>
-			<class name="com.evolveum.midpoint.prism.query.TestQueryConverters"/>
-			<class name="com.evolveum.midpoint.prism.query.TestQueryBuilder"/>
-			<class name="com.evolveum.midpoint.prism.path.ItemPathTest"/>
+            <class name="com.evolveum.midpoint.prism.query.TestObjectQuery"/>
+            <class name="com.evolveum.midpoint.prism.query.TestQueryConverters"/>
+            <class name="com.evolveum.midpoint.prism.query.TestQueryBuilder"/>
+            <class name="com.evolveum.midpoint.prism.path.ItemPathTest"/>
         </classes>
     </test>
 </suite>

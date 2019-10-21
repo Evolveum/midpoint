@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.api.context;
@@ -14,20 +14,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelStateType;
  */
 public enum ModelState {
 
-	INITIAL,
+    INITIAL,
 
-	PRIMARY,
+    PRIMARY,
 
-	SECONDARY,
+    SECONDARY,
 
-	EXECUTION,
+    EXECUTION,
 
-	POSTEXECUTION,
+    POSTEXECUTION,
 
-	FINAL;
+    FINAL;
 
-	public static ModelStateType toModelStateType(ModelState value) {
-	    return value != null ? value.toModelStateType() : null;
+    public static ModelStateType toModelStateType(ModelState value) {
+        return value != null ? value.toModelStateType() : null;
     }
 
     public ModelStateType toModelStateType() {

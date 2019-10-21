@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -112,7 +112,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         }
         return new DeltaBuilder(objectClass, containerCTD, prismContext, newDeltas, newDelta);
     }
-    
+
     @Override
     public S_ValuesEntry property(QName... names) {
         return property(ItemPath.create(names));
@@ -122,13 +122,13 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     public S_ValuesEntry property(Object... namesOrIds) {
         return property(ItemPath.create(namesOrIds));
     }
-    
+
     @Override
     public <T> S_ValuesEntry property(ItemPath path) {
         PrismPropertyDefinition<T> definition = containerCTD.findPropertyDefinition(path);
         return property(path, definition);
     }
-    
+
     @Override
     public <T> S_ValuesEntry property(ItemPath path, PrismPropertyDefinition<T> definition) {
         PropertyDelta<Object> newDelta = new PropertyDeltaImpl(path, definition, prismContext);
@@ -149,7 +149,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     @Override
     public List<ObjectDelta<?>> asObjectDeltas(String oid) {
         return Collections.<ObjectDelta<?>>singletonList(
-		        prismContext.deltaFactory().object().createModifyDelta(oid, getAllDeltas(), (Class) objectClass
+                prismContext.deltaFactory().object().createModifyDelta(oid, getAllDeltas(), (Class) objectClass
                 ));
     }
 
@@ -226,7 +226,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         }
         return this;
     }
-    
+
     @Override
     public <T> S_ValuesEntry oldRealValue(T realValue) {
         if (realValue != null) {
@@ -336,14 +336,14 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         currentDelta.setValuesToReplace(prismValues);
         return this;
     }
-    
-    
+
+
 
     @Override
-	public S_ItemEntry mod(PlusMinusZero plusMinusZero, Object... realValues) {
-    	return modRealValues(plusMinusZero, Arrays.asList(realValues));
-	}
-    
+    public S_ItemEntry mod(PlusMinusZero plusMinusZero, Object... realValues) {
+        return modRealValues(plusMinusZero, Arrays.asList(realValues));
+    }
+
     @Override
     public S_ItemEntry modRealValues(PlusMinusZero plusMinusZero, Collection<?> realValues) {
         List<PrismValue> prismValues = new ArrayList<>();
@@ -353,15 +353,15 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
             }
         }
         switch (plusMinusZero) {
-        	case PLUS:
-        		currentDelta.addValuesToAdd(prismValues);
-        		break;
-        	case MINUS:
-        		currentDelta.addValuesToDelete(prismValues);
-        		break;
-        	case ZERO:
-        		currentDelta.setValuesToReplace(prismValues);
-        		break;
+            case PLUS:
+                currentDelta.addValuesToAdd(prismValues);
+                break;
+            case MINUS:
+                currentDelta.addValuesToDelete(prismValues);
+                break;
+            case ZERO:
+                currentDelta.setValuesToReplace(prismValues);
+                break;
         }
         return this;
     }
@@ -375,15 +375,15 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
             }
         }
         switch (plusMinusZero) {
-        	case PLUS:
-        		currentDelta.addValuesToAdd(prismValues);
-        		break;
-        	case MINUS:
-        		currentDelta.addValuesToDelete(prismValues);
-        		break;
-        	case ZERO:
-        		currentDelta.setValuesToReplace(prismValues);
-        		break;
+            case PLUS:
+                currentDelta.addValuesToAdd(prismValues);
+                break;
+            case MINUS:
+                currentDelta.addValuesToDelete(prismValues);
+                break;
+            case ZERO:
+                currentDelta.setValuesToReplace(prismValues);
+                break;
         }
         return this;
     }
@@ -397,20 +397,20 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
             }
         }
         switch (plusMinusZero) {
-        	case PLUS:
-        		currentDelta.addValuesToAdd(prismValues);
-        		break;
-        	case MINUS:
-        		currentDelta.addValuesToDelete(prismValues);
-        		break;
-        	case ZERO:
-        		currentDelta.setValuesToReplace(prismValues);
-        		break;
+            case PLUS:
+                currentDelta.addValuesToAdd(prismValues);
+                break;
+            case MINUS:
+                currentDelta.addValuesToDelete(prismValues);
+                break;
+            case ZERO:
+                currentDelta.setValuesToReplace(prismValues);
+                break;
         }
         return this;
     }
 
-	private PrismValue toPrismValue(ItemDelta<?,?> currentDelta, @NotNull Object v) {
+    private PrismValue toPrismValue(ItemDelta<?,?> currentDelta, @NotNull Object v) {
         if (currentDelta instanceof PropertyDelta<?>) {
             return new PrismPropertyValueImpl<>(v);
         } else if (currentDelta instanceof ContainerDelta<?>) {

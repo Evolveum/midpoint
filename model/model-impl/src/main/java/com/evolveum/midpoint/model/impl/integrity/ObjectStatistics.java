@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -18,24 +18,24 @@ import java.util.Map;
  */
 public class ObjectStatistics {
 
-	private int errors = 0;
-	private final Map<String,ObjectTypeStatistics> statisticsMap = new HashMap<>();		// key is object class full name
+    private int errors = 0;
+    private final Map<String,ObjectTypeStatistics> statisticsMap = new HashMap<>();        // key is object class full name
 
-	public Map<String, ObjectTypeStatistics> getStatisticsMap() {
-		return statisticsMap;
-	}
+    public Map<String, ObjectTypeStatistics> getStatisticsMap() {
+        return statisticsMap;
+    }
 
-	public int getErrors() {
-		return errors;
-	}
+    public int getErrors() {
+        return errors;
+    }
 
-	public void record(PrismObject<ObjectType> object) {
-		String key = object.asObjectable().getClass().getName();
-		ObjectTypeStatistics typeStatistics = statisticsMap.computeIfAbsent(key, (k) -> new ObjectTypeStatistics());
-		typeStatistics.register(object);
-	}
+    public void record(PrismObject<ObjectType> object) {
+        String key = object.asObjectable().getClass().getName();
+        ObjectTypeStatistics typeStatistics = statisticsMap.computeIfAbsent(key, (k) -> new ObjectTypeStatistics());
+        typeStatistics.register(object);
+    }
 
-	public void incrementObjectsWithErrors() {
-		errors++;
-	}
+    public void incrementObjectsWithErrors() {
+        errors++;
+    }
 }

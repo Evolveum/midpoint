@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="9e93dfb2-3eff-11e7-b56b-1b0e35f837fc"
@@ -10,24 +10,24 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Read Role Members - None</name>
     <description>
-    	Authorization to read members of the roles that does not really allows access to roleMembershipRef.
-    	This should NOT give access to role members.
+        Authorization to read members of the roles that does not really allows access to roleMembershipRef.
+        This should NOT give access to role members.
     </description>
     <authorization>
-    	<name>autz-read-roles</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>RoleType</type>
-    	</object>
-    	<item>name</item>
-    	<item>description</item>
+        <name>autz-read-roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+        </object>
+        <item>name</item>
+        <item>description</item>
     </authorization>
     <authorization>
-    	<name>autz-read-users</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>UserType</type>
-    	</object>
-    	<item>name</item>
+        <name>autz-read-users</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>UserType</type>
+        </object>
+        <item>name</item>
     </authorization>
 </role>

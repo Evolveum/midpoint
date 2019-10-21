@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.cases;
@@ -74,15 +74,15 @@ public class ApprovalCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
             return rv;
         }
 
-		if (parentCase.getEvent() != null && !parentCase.getEvent().isEmpty()) {
+        if (parentCase.getEvent() != null && !parentCase.getEvent().isEmpty()) {
             parentCase.getEvent().forEach(e -> CollectionUtils.addIgnoreNull(rv, DecisionDto.create(e, ApprovalCaseTabPanel.this.getPageBase())));
-		} else {
-			//ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(parentCase.getApprovalContext());
-//			if (instanceState != null) {
-//			    //todo where we can take decisions now?
-////				instanceState.getDecisions().forEach(d -> CollectionUtils.addIgnoreNull(rv, DecisionDto.create(d)));
-//			}
-		}
+        } else {
+            //ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(parentCase.getApprovalContext());
+//            if (instanceState != null) {
+//                //todo where we can take decisions now?
+////                instanceState.getDecisions().forEach(d -> CollectionUtils.addIgnoreNull(rv, DecisionDto.create(d)));
+//            }
+        }
         return rv;
     }
 

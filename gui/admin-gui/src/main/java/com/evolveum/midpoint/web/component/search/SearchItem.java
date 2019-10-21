@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -41,7 +41,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
     private ItemPath path;
     private ItemDefinition definition;
     private List<DisplayableValue<T>> values;
-    
+
     //TODO: think about dividing searchItem to searchProperty, searchReference?
     private List<QName> allowedRelations;
 
@@ -49,7 +49,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
     private boolean editWhenVisible;
 
 //    public SearchItem(Search search, ItemPath path, ItemDefinition definition, List<QName> allowedRelations) {
-    
+
     public SearchItem(Search search, ItemPath path, ItemDefinition definition, List<QName> allowedRelations) {
         Validate.notNull(path, "Item path must not be null.");
         Validate.notNull(definition, "Item definition must not be null.");
@@ -154,10 +154,10 @@ public class SearchItem<T extends Serializable> implements Serializable {
     public void setEditWhenVisible(boolean editWhenVisible) {
         this.editWhenVisible = editWhenVisible;
     }
-    
+
     public List<QName> getAllowedRelations() {
-		return allowedRelations;
-	}
+        return allowedRelations;
+    }
 
     @Override
     public String toString() {

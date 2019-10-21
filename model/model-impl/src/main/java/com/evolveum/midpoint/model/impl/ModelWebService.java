@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl;
@@ -60,140 +60,140 @@ import java.util.List;
 @Service
 public class ModelWebService extends AbstractModelWebService implements ModelPortType, ModelPort {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
 
-	@Autowired(required = true)
-	private ModelCrudService model;
+    @Autowired(required = true)
+    private ModelCrudService model;
 
     @Autowired
     private ScriptingService scriptingService;
 
-	@Override
-	public void getObject(QName objectType, String oid, SelectorQualifiedGetOptionsType optionsType,
-			Holder<ObjectType> objectHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {
+    @Override
+    public void getObject(QName objectType, String oid, SelectorQualifiedGetOptionsType optionsType,
+            Holder<ObjectType> objectHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {
         notNullArgument(objectType, "Object type must not be null.");
-		notEmptyArgument(oid, "Oid must not be null or empty.");
+        notEmptyArgument(oid, "Oid must not be null or empty.");
 
-		Task task = createTaskInstance(GET_OBJECT);
-		auditLogin(task);
-		OperationResult operationResult = task.getResult();
-		try {
+        Task task = createTaskInstance(GET_OBJECT);
+        auditLogin(task);
+        OperationResult operationResult = task.getResult();
+        try {
             Class objectClass = ObjectTypes.getObjectTypeFromTypeQName(objectType).getClassDefinition();
             Collection<SelectorOptions<GetOperationOptions>> options = MiscSchemaUtil.optionsTypeToOptions(optionsType,
-		            prismContext);
+                    prismContext);
             PrismObject<? extends ObjectType> object = model.getObject(objectClass, oid, options, task, operationResult);
-			handleOperationResult(operationResult, resultHolder);
-			objectHolder.value = object.asObjectable();
-			return;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL getObject() failed", ex);
-			throwFault(ex, operationResult);
-		} finally {
-			auditLogout(task);
-		}
-	}
+            handleOperationResult(operationResult, resultHolder);
+            objectHolder.value = object.asObjectable();
+            return;
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "# MODEL getObject() failed", ex);
+            throwFault(ex, operationResult);
+        } finally {
+            auditLogout(task);
+        }
+    }
 
-	@Override
-	public void searchObjects(QName objectType, QueryType query, SelectorQualifiedGetOptionsType optionsType,
+    @Override
+    public void searchObjects(QName objectType, QueryType query, SelectorQualifiedGetOptionsType optionsType,
                   Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
         notNullArgument(objectType, "Object type must not be null.");
 
-		Task task = createTaskInstance(SEARCH_OBJECTS);
-		auditLogin(task);
-		OperationResult operationResult = task.getResult();
-		try {
+        Task task = createTaskInstance(SEARCH_OBJECTS);
+        auditLogin(task);
+        OperationResult operationResult = task.getResult();
+        try {
             Class objectClass = ObjectTypes.getObjectTypeFromTypeQName(objectType).getClassDefinition();
             Collection<SelectorOptions<GetOperationOptions>> options = MiscSchemaUtil.optionsTypeToOptions(optionsType,
-		            prismContext);
-			ObjectQuery q = prismContext.getQueryConverter().createObjectQuery(objectClass, query);
-			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(objectClass, q, options, task, operationResult);
-			handleOperationResult(operationResult, result);
-			ObjectListType listType = new ObjectListType();
-			for (PrismObject<? extends ObjectType> o : list) {
-				listType.getObject().add(o.asObjectable());
-			}
-			objectListHolder.value = listType;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed", ex);
-			throwFault(ex, operationResult);
-		} finally {
-			auditLogout(task);
-		}
-	}
+                    prismContext);
+            ObjectQuery q = prismContext.getQueryConverter().createObjectQuery(objectClass, query);
+            List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(objectClass, q, options, task, operationResult);
+            handleOperationResult(operationResult, result);
+            ObjectListType listType = new ObjectListType();
+            for (PrismObject<? extends ObjectType> o : list) {
+                listType.getObject().add(o.asObjectable());
+            }
+            objectListHolder.value = listType;
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed", ex);
+            throwFault(ex, operationResult);
+        } finally {
+            auditLogout(task);
+        }
+    }
 
     @Override
     public ObjectDeltaOperationListType executeChanges(ObjectDeltaListType deltaList, ModelExecuteOptionsType optionsType) throws FaultMessage {
-		notNullArgument(deltaList, "Object delta list must not be null.");
+        notNullArgument(deltaList, "Object delta list must not be null.");
 
-		Task task = createTaskInstance(EXECUTE_CHANGES);
-		auditLogin(task);
-		OperationResult operationResult = task.getResult();
-		try {
-			Collection<ObjectDelta> deltas = DeltaConvertor.createObjectDeltas(deltaList, prismContext);
+        Task task = createTaskInstance(EXECUTE_CHANGES);
+        auditLogin(task);
+        OperationResult operationResult = task.getResult();
+        try {
+            Collection<ObjectDelta> deltas = DeltaConvertor.createObjectDeltas(deltaList, prismContext);
             for (ObjectDelta delta : deltas) {
                 prismContext.adopt(delta);
             }
             ModelExecuteOptions options = ModelExecuteOptions.fromModelExecutionOptionsType(optionsType);
             Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = modelService.executeChanges((Collection) deltas, options, task, operationResult);        // brutally eliminating type-safety compiler barking
-			ObjectDeltaOperationListType retval = new ObjectDeltaOperationListType();
+            ObjectDeltaOperationListType retval = new ObjectDeltaOperationListType();
             for (ObjectDeltaOperation objectDeltaOperation : objectDeltaOperations) {
                 ObjectDeltaOperationType objectDeltaOperationType = DeltaConvertor.toObjectDeltaOperationType(objectDeltaOperation, null);
                 retval.getDeltaOperation().add(objectDeltaOperationType);
             }
             return retval;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL executeChanges() failed", ex);
-			throwFault(ex, operationResult);
-			// notreached
-			return null;
-		} finally {
-			auditLogout(task);
-		}
-	}
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "# MODEL executeChanges() failed", ex);
+            throwFault(ex, operationResult);
+            // notreached
+            return null;
+        } finally {
+            auditLogout(task);
+        }
+    }
 
-	@Override
-	public void findShadowOwner(String accountOid, Holder<UserType> userHolder, Holder<OperationResultType> result)
-			throws FaultMessage {
-		notEmptyArgument(accountOid, "Account oid must not be null or empty.");
+    @Override
+    public void findShadowOwner(String accountOid, Holder<UserType> userHolder, Holder<OperationResultType> result)
+            throws FaultMessage {
+        notEmptyArgument(accountOid, "Account oid must not be null or empty.");
 
-		Task task = createTaskInstance(LIST_ACCOUNT_SHADOW_OWNER);
-		auditLogin(task);
-		OperationResult operationResult = task.getResult();
-		try {
-			PrismObject<UserType> user = modelService.findShadowOwner(accountOid, task, operationResult);
-			handleOperationResult(operationResult, result);
-			if (user != null) {
-				userHolder.value = user.asObjectable();
-			}
-			return;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL findShadowOwner() failed", ex);
-			throwFault(ex, operationResult);
-		} finally {
-			auditLogout(task);
-		}
-	}
+        Task task = createTaskInstance(LIST_ACCOUNT_SHADOW_OWNER);
+        auditLogin(task);
+        OperationResult operationResult = task.getResult();
+        try {
+            PrismObject<UserType> user = modelService.findShadowOwner(accountOid, task, operationResult);
+            handleOperationResult(operationResult, result);
+            if (user != null) {
+                userHolder.value = user.asObjectable();
+            }
+            return;
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "# MODEL findShadowOwner() failed", ex);
+            throwFault(ex, operationResult);
+        } finally {
+            auditLogout(task);
+        }
+    }
 
-	@Override
-	public OperationResultType testResource(String resourceOid) throws FaultMessage {
-		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
+    @Override
+    public OperationResultType testResource(String resourceOid) throws FaultMessage {
+        notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 
-		Task task = createTaskInstance(TEST_RESOURCE);
-		auditLogin(task);
-		try {
-			OperationResult testResult = modelService.testResource(resourceOid, task);
-			return handleOperationResult(testResult);
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);
-			OperationResult faultResult = new OperationResult(TEST_RESOURCE);
-			faultResult.recordFatalError(ex);
-			throwFault(ex, faultResult);
-			// notreached
-			return null;
-		} finally {
-			auditLogout(task);
-		}
-	}
+        Task task = createTaskInstance(TEST_RESOURCE);
+        auditLogin(task);
+        try {
+            OperationResult testResult = modelService.testResource(resourceOid, task);
+            return handleOperationResult(testResult);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);
+            OperationResult faultResult = new OperationResult(TEST_RESOURCE);
+            faultResult.recordFatalError(ex);
+            throwFault(ex, faultResult);
+            // notreached
+            return null;
+        } finally {
+            auditLogout(task);
+        }
+    }
 
     @Override
     public ExecuteScriptsResponseType executeScripts(ExecuteScriptsType parameters) throws FaultMessage {
@@ -207,9 +207,9 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
             LoggingUtils.logException(LOGGER, "# MODEL executeScripts() failed", ex);
             throwFault(ex, null);
             // notreached
-         	return null;
-		} finally {
-			auditLogout(task);
+             return null;
+        } finally {
+            auditLogout(task);
         }
     }
 
@@ -245,10 +245,10 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         try {
             for (JAXBElement<?> script : scriptsToExecute) {
 
-            	Object scriptValue = script.getValue();
-            	if (!(scriptValue instanceof ScriptingExpressionType)) {
-            		throw new SchemaException("Expected that scripts will be of type ScriptingExpressionType, but it was "+scriptValue.getClass().getName());
-            	}
+                Object scriptValue = script.getValue();
+                if (!(scriptValue instanceof ScriptingExpressionType)) {
+                    throw new SchemaException("Expected that scripts will be of type ScriptingExpressionType, but it was "+scriptValue.getClass().getName());
+                }
 
                 ScriptExecutionResult executionResult = scriptingService.evaluateExpression((ScriptingExpressionType) script.getValue(), task, result);
 
@@ -275,170 +275,170 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
     }
 
     public static PipelineDataType prepareXmlData(List<PipelineItem> output,
-			ScriptingExpressionEvaluationOptionsType options) throws JAXBException, SchemaException {
-		boolean hideResults = options != null && Boolean.TRUE.equals(options.isHideOperationResults());
+            ScriptingExpressionEvaluationOptionsType options) throws JAXBException, SchemaException {
+        boolean hideResults = options != null && Boolean.TRUE.equals(options.isHideOperationResults());
         PipelineDataType rv = new PipelineDataType();
         if (output != null) {
             for (PipelineItem item: output) {
-				PipelineItemType itemType = new PipelineItemType();
-				PrismValue value = item.getValue();
-				if (value instanceof PrismReferenceValue) {
-					// This is a bit of hack: value.getRealValue() would return unserializable object (PRV$1 - does not have type QName)
-					ObjectReferenceType ort = new ObjectReferenceType();
-					ort.setupReferenceValue((PrismReferenceValue) value);
-					itemType.setValue(ort);
-				} else {
-					itemType.setValue(value.getRealValue());                        // TODO - ok?
-				}
-				if (!hideResults) {
-					itemType.setResult(item.getResult().createOperationResultType());
-				}
-				rv.getItem().add(itemType);
+                PipelineItemType itemType = new PipelineItemType();
+                PrismValue value = item.getValue();
+                if (value instanceof PrismReferenceValue) {
+                    // This is a bit of hack: value.getRealValue() would return unserializable object (PRV$1 - does not have type QName)
+                    ObjectReferenceType ort = new ObjectReferenceType();
+                    ort.setupReferenceValue((PrismReferenceValue) value);
+                    itemType.setValue(ort);
+                } else {
+                    itemType.setValue(value.getRealValue());                        // TODO - ok?
+                }
+                if (!hideResults) {
+                    itemType.setResult(item.getResult().createOperationResultType());
+                }
+                rv.getItem().add(itemType);
             }
         }
         return rv;
     }
 
-	private void handleOperationResult(OperationResult result, Holder<OperationResultType> holder) {
-		result.recordSuccess();
-		OperationResultType resultType = result.createOperationResultType();
-		if (holder.value == null) {
-			holder.value = resultType;
-		} else {
-			holder.value.getPartialResults().add(resultType);
-		}
-	}
+    private void handleOperationResult(OperationResult result, Holder<OperationResultType> holder) {
+        result.recordSuccess();
+        OperationResultType resultType = result.createOperationResultType();
+        if (holder.value == null) {
+            holder.value = resultType;
+        } else {
+            holder.value.getPartialResults().add(resultType);
+        }
+    }
 
-	private OperationResultType handleOperationResult(OperationResult result) {
-		result.recordSuccess();
-		return result.createOperationResultType();
-	}
+    private OperationResultType handleOperationResult(OperationResult result) {
+        result.recordSuccess();
+        return result.createOperationResultType();
+    }
 
-	private void notNullResultHolder(Holder<OperationResultType> holder) throws FaultMessage {
-		notNullArgument(holder, "Holder must not be null.");
-		notNullArgument(holder.value, "Result type must not be null.");
-	}
+    private void notNullResultHolder(Holder<OperationResultType> holder) throws FaultMessage {
+        notNullArgument(holder, "Holder must not be null.");
+        notNullArgument(holder.value, "Result type must not be null.");
+    }
 
-	private <T> void notNullHolder(Holder<T> holder) throws FaultMessage {
-		notNullArgument(holder, "Holder must not be null.");
-		notNullArgument(holder.value, holder.getClass().getSimpleName() + " must not be null (in Holder).");
-	}
+    private <T> void notNullHolder(Holder<T> holder) throws FaultMessage {
+        notNullArgument(holder, "Holder must not be null.");
+        notNullArgument(holder.value, holder.getClass().getSimpleName() + " must not be null (in Holder).");
+    }
 
-	private void notEmptyArgument(String object, String message) throws FaultMessage {
-		if (StringUtils.isEmpty(object)) {
-			throw createIllegalArgumentFault(message);
-		}
-	}
+    private void notEmptyArgument(String object, String message) throws FaultMessage {
+        if (StringUtils.isEmpty(object)) {
+            throw createIllegalArgumentFault(message);
+        }
+    }
 
-	private void notNullArgument(Object object, String message) throws FaultMessage {
-		if (object == null) {
-			throw createIllegalArgumentFault(message);
-		}
-	}
+    private void notNullArgument(Object object, String message) throws FaultMessage {
+        if (object == null) {
+            throw createIllegalArgumentFault(message);
+        }
+    }
 
-	public FaultMessage createIllegalArgumentFault(String message) {
-		FaultType faultType = new IllegalArgumentFaultType();
-		return new FaultMessage(message, faultType);
-	}
+    public FaultMessage createIllegalArgumentFault(String message) {
+        FaultType faultType = new IllegalArgumentFaultType();
+        return new FaultMessage(message, faultType);
+    }
 
     public void throwFault(Throwable ex, OperationResult result) throws FaultMessage {
-		if (result != null) {
-			result.recordFatalError(ex.getMessage(), ex);
-		}
+        if (result != null) {
+            result.recordFatalError(ex.getMessage(), ex);
+        }
 
-		FaultType faultType;
-		if (ex instanceof ObjectNotFoundException) {
-			faultType = new ObjectNotFoundFaultType();
-		} else if (ex instanceof IllegalArgumentException) {
-			faultType = new IllegalArgumentFaultType();
-		} else if (ex instanceof ObjectAlreadyExistsException) {
-			faultType = new ObjectAlreadyExistsFaultType();
-		} else if (ex instanceof CommunicationException) {
-			faultType = new CommunicationFaultType();
-		} else if (ex instanceof ConfigurationException) {
-			faultType = new ConfigurationFaultType();
-		} else if (ex instanceof ExpressionEvaluationException) {
-			faultType = new SystemFaultType();
-		} else if (ex instanceof SchemaException) {
-			faultType = new SchemaViolationFaultType();
-		} else if (ex instanceof PolicyViolationException) {
-			faultType = new PolicyViolationFaultType();
-		} else if (ex instanceof AuthorizationException) {
-			throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION),
-					WSSecurityException.ErrorCode.FAILED_AUTHENTICATION.getQName());
-		} else if (ex instanceof SecurityViolationException) {
-			throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILURE),
-					WSSecurityException.ErrorCode.FAILURE.getQName());
-		} else{
-			faultType = new SystemFaultType();
-		}
-		faultType.setMessage(ex.getMessage());
-		if (result != null) {
-			faultType.setOperationResult(result.createOperationResultType());
-		}
+        FaultType faultType;
+        if (ex instanceof ObjectNotFoundException) {
+            faultType = new ObjectNotFoundFaultType();
+        } else if (ex instanceof IllegalArgumentException) {
+            faultType = new IllegalArgumentFaultType();
+        } else if (ex instanceof ObjectAlreadyExistsException) {
+            faultType = new ObjectAlreadyExistsFaultType();
+        } else if (ex instanceof CommunicationException) {
+            faultType = new CommunicationFaultType();
+        } else if (ex instanceof ConfigurationException) {
+            faultType = new ConfigurationFaultType();
+        } else if (ex instanceof ExpressionEvaluationException) {
+            faultType = new SystemFaultType();
+        } else if (ex instanceof SchemaException) {
+            faultType = new SchemaViolationFaultType();
+        } else if (ex instanceof PolicyViolationException) {
+            faultType = new PolicyViolationFaultType();
+        } else if (ex instanceof AuthorizationException) {
+            throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION),
+                    WSSecurityException.ErrorCode.FAILED_AUTHENTICATION.getQName());
+        } else if (ex instanceof SecurityViolationException) {
+            throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILURE),
+                    WSSecurityException.ErrorCode.FAILURE.getQName());
+        } else{
+            faultType = new SystemFaultType();
+        }
+        faultType.setMessage(ex.getMessage());
+        if (result != null) {
+            faultType.setOperationResult(result.createOperationResultType());
+        }
 
-		FaultMessage fault = new FaultMessage(ex.getMessage(), faultType, ex);
-		LOGGER.trace("Throwing fault message type: {}", faultType.getClass(), fault);
-		throw fault;
-	}
+        FaultMessage fault = new FaultMessage(ex.getMessage(), faultType, ex);
+        LOGGER.trace("Throwing fault message type: {}", faultType.getClass(), fault);
+        throw fault;
+    }
 
-	@Override
-	public TaskType importFromResource(String resourceOid, QName objectClass)
-			throws FaultMessage {
-		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
-		notNullArgument(objectClass, "Object class must not be null.");
+    @Override
+    public TaskType importFromResource(String resourceOid, QName objectClass)
+            throws FaultMessage {
+        notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
+        notNullArgument(objectClass, "Object class must not be null.");
 
-		Task task = createTaskInstance(IMPORT_FROM_RESOURCE);
-		auditLogin(task);
-		OperationResult operationResult = task.getResult();
+        Task task = createTaskInstance(IMPORT_FROM_RESOURCE);
+        auditLogin(task);
+        OperationResult operationResult = task.getResult();
 
-		try {
-			modelService.importFromResource(resourceOid, objectClass, task, operationResult);
-			operationResult.computeStatus();
-			return handleTaskResult(task);
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL importFromResource() failed", ex);
-			auditLogout(task);
-			throwFault(ex, operationResult);
-			// notreached
-			return null;
-		}
-	}
+        try {
+            modelService.importFromResource(resourceOid, objectClass, task, operationResult);
+            operationResult.computeStatus();
+            return handleTaskResult(task);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "# MODEL importFromResource() failed", ex);
+            auditLogout(task);
+            throwFault(ex, operationResult);
+            // notreached
+            return null;
+        }
+    }
 
-	@Override
-	public TaskType notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription)
-			throws FaultMessage {
-		// TODO Auto-generated method stub
-		notNullArgument(changeDescription, "Change description must not be null");
-		LOGGER.trace("notify change started");
+    @Override
+    public TaskType notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription)
+            throws FaultMessage {
+        // TODO Auto-generated method stub
+        notNullArgument(changeDescription, "Change description must not be null");
+        LOGGER.trace("notify change started");
 
-		Task task = createTaskInstance(NOTIFY_CHANGE);
-		OperationResult parentResult = task.getResult();
+        Task task = createTaskInstance(NOTIFY_CHANGE);
+        OperationResult parentResult = task.getResult();
 
-		try {
-			modelService.notifyChange(changeDescription, task, parentResult);
-		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
-				SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException |
-				RuntimeException | Error | PolicyViolationException ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-			auditLogout(task);
-			throwFault(ex, parentResult);
-		}
+        try {
+            modelService.notifyChange(changeDescription, task, parentResult);
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
+                SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException |
+                RuntimeException | Error | PolicyViolationException ex) {
+            LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
+            auditLogout(task);
+            throwFault(ex, parentResult);
+        }
 
 
-		LOGGER.info("notify change ended.");
-		LOGGER.info("result of notify change: {}", parentResult.debugDump());
-		return handleTaskResult(task);
-	}
+        LOGGER.info("notify change ended.");
+        LOGGER.info("result of notify change: {}", parentResult.debugDump());
+        return handleTaskResult(task);
+    }
 
-	/**
-	 * return appropriate form of taskType (and result) to
-	 * return back to a web service caller.
-	 *
-	 * @param task
-	 */
-	private TaskType handleTaskResult(Task task) {
-		return task.getUpdatedTaskObject().asObjectable();
-	}
+    /**
+     * return appropriate form of taskType (and result) to
+     * return back to a web service caller.
+     *
+     * @param task
+     */
+    private TaskType handleTaskResult(Task task) {
+        return task.getUpdatedTaskObject().asObjectable();
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,11 +19,11 @@ import java.util.Arrays;
  * @author Viliam Repan (lazyman)
  */
 public class BaseMenuItem implements Serializable {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     public static final String F_ICON_CLASS = "iconClass";
 
-	private IModel<String> nameModel;
+    private IModel<String> nameModel;
     private Class<? extends WebPage> pageClass;
     private PageParameters params;
     private VisibleEnableBehaviour visibleEnable;
@@ -77,16 +77,16 @@ public class BaseMenuItem implements Serializable {
     public String getIconClass() {
         return iconClass;
     }
-    
+
     public Integer getDisplayOrder() {
-		return displayOrder;
-	}
+        return displayOrder;
+    }
 
-	public void setDisplayOrder(Integer displayOrder) {
-		this.displayOrder = displayOrder;
-	}
+    public void setDisplayOrder(Integer displayOrder) {
+        this.displayOrder = displayOrder;
+    }
 
-	public boolean isMenuActive(WebPage page) {
+    public boolean isMenuActive(WebPage page) {
         if (page == null) {
             return false;
         }
@@ -120,11 +120,11 @@ public class BaseMenuItem implements Serializable {
         return true;
     }
 
-	@Override
-	public String toString() {
-		return "BaseMenuItem(nameModel=" + nameModel + ", pageClass=" + pageClass + ", params=" + params
-				+ ", visibleEnable=" + visibleEnable + ", aliases=" + Arrays.toString(aliases) + ")";
-	}
+    @Override
+    public String toString() {
+        return "BaseMenuItem(nameModel=" + nameModel + ", pageClass=" + pageClass + ", params=" + params
+                + ", visibleEnable=" + visibleEnable + ", aliases=" + Arrays.toString(aliases) + ")";
+    }
 
 
 }

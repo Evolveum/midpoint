@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -24,41 +24,41 @@ import java.security.NoSuchAlgorithmException;
  */
 public class ProtectedWorkItemId {
 
-	@NotNull public final String id;
-	@NotNull public final String hash;
+    @NotNull public final String id;
+    @NotNull public final String hash;
 
-	private ProtectedWorkItemId(@NotNull String id, @NotNull String hash) {
-		this.id = id;
-		this.hash = hash;
-	}
+    private ProtectedWorkItemId(@NotNull String id, @NotNull String hash) {
+        this.id = id;
+        this.hash = hash;
+    }
 
-	public static ProtectedWorkItemId fromExternalForm(@NotNull String externalForm) {
-		int i = externalForm.indexOf(':');
-		if (i < 0) {
-			throw new IllegalArgumentException("Wrong work item ID format");
-		}
-		return new ProtectedWorkItemId(externalForm.substring(0, i), externalForm.substring(i+1));
-	}
+    public static ProtectedWorkItemId fromExternalForm(@NotNull String externalForm) {
+        int i = externalForm.indexOf(':');
+        if (i < 0) {
+            throw new IllegalArgumentException("Wrong work item ID format");
+        }
+        return new ProtectedWorkItemId(externalForm.substring(0, i), externalForm.substring(i+1));
+    }
 
-	private static String createWorkItemHash(CaseWorkItemType workItem) {
-		try {
-			String valueToHash = "";
-			//TODO fix!!!
-//			workItem.getExternalId() + ":" +
-//					WfContextUtil.getTaskOid(workItem) + ":" +
-//					XmlTypeConverter.toMillis(workItem.getCreateTimestamp());
-			byte[] hashBytes = MessageDigest.getInstance("SHA-256").digest(valueToHash.getBytes(StandardCharsets.UTF_8));
-			return MiscUtil.binaryToHex(hashBytes);
-		} catch (NoSuchAlgorithmException e) {
-			throw new SystemException("Couldn't compute message digest: " + e.getMessage(), e);
-		}
-	}
+    private static String createWorkItemHash(CaseWorkItemType workItem) {
+        try {
+            String valueToHash = "";
+            //TODO fix!!!
+//            workItem.getExternalId() + ":" +
+//                    WfContextUtil.getTaskOid(workItem) + ":" +
+//                    XmlTypeConverter.toMillis(workItem.getCreateTimestamp());
+            byte[] hashBytes = MessageDigest.getInstance("SHA-256").digest(valueToHash.getBytes(StandardCharsets.UTF_8));
+            return MiscUtil.binaryToHex(hashBytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new SystemException("Couldn't compute message digest: " + e.getMessage(), e);
+        }
+    }
 
-	public static String createExternalForm(CaseWorkItemType workItem) {
-		return ""; // TODO fix!!!  workItem.getExternalId() + ":" + createWorkItemHash(workItem);
-	}
+    public static String createExternalForm(CaseWorkItemType workItem) {
+        return ""; // TODO fix!!!  workItem.getExternalId() + ":" + createWorkItemHash(workItem);
+    }
 
-	public boolean isCorrect(CaseWorkItemType workItem) {
-		return hash.equals(createWorkItemHash(workItem));
+    public boolean isCorrect(CaseWorkItemType workItem) {
+        return hash.equals(createWorkItemHash(workItem));
     }
 }

@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum, mythoss and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="10000000-0000-0000-0001-100000simple" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+<user oid="10000000-0000-0000-0001-100000simple"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
     <name>simple</name>
     <fullName>Simple User</fullName>
     <givenName>Simple</givenName>
     <familyName>User</familyName>
     <activation>
-    	<administrativeStatus>enabled</administrativeStatus>
+        <administrativeStatus>enabled</administrativeStatus>
     </activation>
 </user>

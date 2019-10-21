@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -33,7 +33,7 @@ import java.util.List;
  * @author lazyman
  */
 public class MyAssignmentsPanel extends BasePanel<List<AssignmentItemDto>> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private static final String ID_ASSIGNMETNS_TABLE = "assignmentsTable";
 
@@ -45,7 +45,7 @@ public class MyAssignmentsPanel extends BasePanel<List<AssignmentItemDto>> {
     private void initLayout() {
         List<IColumn<AssignmentItemDto, String>> columns = new ArrayList<>();
         columns.add(new IconColumn<AssignmentItemDto>(null) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected DisplayType getIconDisplayType(IModel<AssignmentItemDto> rowModel) {

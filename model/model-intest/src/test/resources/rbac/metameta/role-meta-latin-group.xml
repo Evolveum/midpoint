@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -15,9 +15,9 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Romans</name>
-    
+
     <assignment>
-    	<targetRef oid="fd52fec2-bd56-11e7-9143-b381baa5aaed" type="RoleType"/> <!-- World metameta role -->
+        <targetRef oid="fd52fec2-bd56-11e7-9143-b381baa5aaed" type="RoleType"/> <!-- World metameta role -->
     </assignment>
-     
+
 </role>

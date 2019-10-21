@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -43,8 +43,8 @@ import java.util.Objects;
         @javax.persistence.Index(name = "iShadowNameNorm", columnList = "name_norm"),
         @javax.persistence.Index(name = "iPrimaryIdentifierValueWithOC", columnList = "primaryIdentifierValue,objectClass,resourceRef_targetOid", unique = true) })
 @org.hibernate.annotations.Table(appliesTo = "m_shadow",
-		indexes = {
-				@Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
+        indexes = {
+                @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
                 @Index(name = "iShadowDead", columnNames = "dead"),
                 @Index(name = "iShadowKind", columnNames = "kind"),
                 @Index(name = "iShadowIntent", columnNames = "intent"),
@@ -52,7 +52,7 @@ import java.util.Objects;
                 @Index(name = "iShadowFailedOperationType", columnNames = "failedOperationType"),
                 @Index(name = "iShadowSyncSituation", columnNames = "synchronizationSituation"),
                 @Index(name = "iShadowPendingOperationCount", columnNames = "pendingOperationCount")
-		})
+        })
 @ForeignKey(name = "fk_shadow")
 @QueryEntity(anyElements = {
         @VirtualAny(jaxbNameLocalPart = "attributes", ownerType = RObjectExtensionType.ATTRIBUTES)})
@@ -211,16 +211,16 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         this.exists = exists;
     }
 
-	@Count
-	public Integer getPendingOperationCount() {
-		return pendingOperationCount;
-	}
+    @Count
+    public Integer getPendingOperationCount() {
+        return pendingOperationCount;
+    }
 
-	public void setPendingOperationCount(Integer pendingOperationCount) {
-		this.pendingOperationCount = pendingOperationCount;
-	}
+    public void setPendingOperationCount(Integer pendingOperationCount) {
+        this.pendingOperationCount = pendingOperationCount;
+    }
 
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

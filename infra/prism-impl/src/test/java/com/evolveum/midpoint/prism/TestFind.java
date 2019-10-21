@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism;
@@ -32,195 +32,195 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class TestFind {
 
-	@BeforeSuite
-	public void setupDebug() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-	}
+    @BeforeSuite
+    public void setupDebug() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
+        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
+    }
 
-	@Test
-	public void testFindString() throws SchemaException, SAXException, IOException {
-		final String TEST_NAME = "testFindString";
-		System.out.println("===[ "+TEST_NAME+" ]===");
+    @Test
+    public void testFindString() throws SchemaException, SAXException, IOException {
+        final String TEST_NAME = "testFindString";
+        System.out.println("===[ "+TEST_NAME+" ]===");
 
-		// GIVEN
-		PrismObject<UserType> user = createUser();
-		ItemPath path = UserType.F_DESCRIPTION;
+        // GIVEN
+        PrismObject<UserType> user = createUser();
+        ItemPath path = UserType.F_DESCRIPTION;
 
-		// WHEN
-		PrismProperty<String> nameProperty = findProperty(user, path);
+        // WHEN
+        PrismProperty<String> nameProperty = findProperty(user, path);
 
-		// THEN
-		assertEquals("Wrong property value (path="+path+")", USER_JACK_DESCRIPTION, nameProperty.getRealValue());
-		assertTrue("QName found something other", nameProperty == (PrismProperty) user.findProperty(UserType.F_DESCRIPTION));
-	}
+        // THEN
+        assertEquals("Wrong property value (path="+path+")", USER_JACK_DESCRIPTION, nameProperty.getRealValue());
+        assertTrue("QName found something other", nameProperty == (PrismProperty) user.findProperty(UserType.F_DESCRIPTION));
+    }
 
-	@Test
-	public void testFindPolyString() throws SchemaException, SAXException, IOException {
-		final String TEST_NAME = "testFindPolyString";
-		System.out.println("===[ "+TEST_NAME+" ]===");
+    @Test
+    public void testFindPolyString() throws SchemaException, SAXException, IOException {
+        final String TEST_NAME = "testFindPolyString";
+        System.out.println("===[ "+TEST_NAME+" ]===");
 
-		// GIVEN
-		PrismObject<UserType> user = createUser();
-		ItemPath path = UserType.F_POLY_NAME;
+        // GIVEN
+        PrismObject<UserType> user = createUser();
+        ItemPath path = UserType.F_POLY_NAME;
 
-		// WHEN
-		PrismProperty<PolyString> nameProperty = findProperty(user, path);
+        // WHEN
+        PrismProperty<PolyString> nameProperty = findProperty(user, path);
 
-		// THEN
-		PrismInternalTestUtil.asssertJackPolyName(nameProperty, user, true);
-		assertTrue("QName found something other", nameProperty == (PrismProperty) user.findProperty(UserType.F_POLY_NAME));
-	}
+        // THEN
+        PrismInternalTestUtil.asssertJackPolyName(nameProperty, user, true);
+        assertTrue("QName found something other", nameProperty == (PrismProperty) user.findProperty(UserType.F_POLY_NAME));
+    }
 
-	@Test
-	public void testFindPolyStringOrig() throws SchemaException, SAXException, IOException {
-		final String TEST_NAME = "testFindPolyStringOrig";
-		System.out.println("===[ "+TEST_NAME+" ]===");
+    @Test
+    public void testFindPolyStringOrig() throws SchemaException, SAXException, IOException {
+        final String TEST_NAME = "testFindPolyStringOrig";
+        System.out.println("===[ "+TEST_NAME+" ]===");
 
-		// GIVEN
-		ItemPath path = ItemPath.create(UserType.F_POLY_NAME, PolyString.F_ORIG);
+        // GIVEN
+        ItemPath path = ItemPath.create(UserType.F_POLY_NAME, PolyString.F_ORIG);
 
-		// WHEN
-		Object found = findUser(path);
+        // WHEN
+        Object found = findUser(path);
 
-		// THEN
-		assertEquals("Wrong property value (path="+path+")", USER_JACK_POLYNAME_ORIG, found);
-	}
+        // THEN
+        assertEquals("Wrong property value (path="+path+")", USER_JACK_POLYNAME_ORIG, found);
+    }
 
-	@Test
-	public void testFindPolyStringNorm() throws SchemaException, SAXException, IOException {
-		final String TEST_NAME = "testFindPolyStringNorm";
-		System.out.println("===[ "+TEST_NAME+" ]===");
+    @Test
+    public void testFindPolyStringNorm() throws SchemaException, SAXException, IOException {
+        final String TEST_NAME = "testFindPolyStringNorm";
+        System.out.println("===[ "+TEST_NAME+" ]===");
 
-		// GIVEN
-		ItemPath path = ItemPath.create(UserType.F_POLY_NAME, PolyString.F_NORM);
+        // GIVEN
+        ItemPath path = ItemPath.create(UserType.F_POLY_NAME, PolyString.F_NORM);
 
-		// WHEN
-		Object found = findUser(path);
+        // WHEN
+        Object found = findUser(path);
 
-		// THEN
-		assertEquals("Wrong property value (path="+path+")", USER_JACK_POLYNAME_NORM, found);
-	}
+        // THEN
+        assertEquals("Wrong property value (path="+path+")", USER_JACK_POLYNAME_NORM, found);
+    }
 
-	@Test
-	public void testFindExtensionBar() throws SchemaException, SAXException, IOException {
-		final String TEST_NAME = "testFindExtensionBar";
-		System.out.println("===[ "+TEST_NAME+" ]===");
+    @Test
+    public void testFindExtensionBar() throws SchemaException, SAXException, IOException {
+        final String TEST_NAME = "testFindExtensionBar";
+        System.out.println("===[ "+TEST_NAME+" ]===");
 
-		// GIVEN
-		ItemPath path = ItemPath.create(UserType.F_EXTENSION, EXTENSION_BAR_ELEMENT);
+        // GIVEN
+        ItemPath path = ItemPath.create(UserType.F_EXTENSION, EXTENSION_BAR_ELEMENT);
 
-		// WHEN
-		PrismProperty<String> property = findUserProperty(path);
+        // WHEN
+        PrismProperty<String> property = findUserProperty(path);
 
-		// THEN
-		assertEquals("Wrong property value (path="+path+")", "BAR", property.getAnyRealValue());
-	}
+        // THEN
+        assertEquals("Wrong property value (path="+path+")", "BAR", property.getAnyRealValue());
+    }
 
-	@Test
-	public void testFindAssignment1Description() throws SchemaException, SAXException, IOException {
-		final String TEST_NAME = "testFindAssignment1Description";
-		System.out.println("===[ "+TEST_NAME+" ]===");
+    @Test
+    public void testFindAssignment1Description() throws SchemaException, SAXException, IOException {
+        final String TEST_NAME = "testFindAssignment1Description";
+        System.out.println("===[ "+TEST_NAME+" ]===");
 
-		// GIVEN
-		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID, AssignmentType.F_DESCRIPTION);
+        // GIVEN
+        ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_1_ID, AssignmentType.F_DESCRIPTION);
 
-		// WHEN
-		PrismProperty<String> property = findUserProperty(path);
+        // WHEN
+        PrismProperty<String> property = findUserProperty(path);
 
-		// THEN
-		assertEquals("Wrong property value (path="+path+")", "Assignment 1", property.getRealValue());
-	}
+        // THEN
+        assertEquals("Wrong property value (path="+path+")", "Assignment 1", property.getRealValue());
+    }
 
-	@Test
-	public void testFindAssignment2Construction() throws SchemaException, SAXException, IOException {
-		final String TEST_NAME = "testFindAssignment2ConstructionHowto";
-		System.out.println("===[ "+TEST_NAME+" ]===");
+    @Test
+    public void testFindAssignment2Construction() throws SchemaException, SAXException, IOException {
+        final String TEST_NAME = "testFindAssignment2ConstructionHowto";
+        System.out.println("===[ "+TEST_NAME+" ]===");
 
-		// GIVEN
-		ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_2_ID, AssignmentType.F_ACCOUNT_CONSTRUCTION);
+        // GIVEN
+        ItemPath path = ItemPath.create(UserType.F_ASSIGNMENT, USER_ASSIGNMENT_2_ID, AssignmentType.F_ACCOUNT_CONSTRUCTION);
 
-		// WHEN
-		PrismProperty<AccountConstructionType> property = findUserProperty(path);
+        // WHEN
+        PrismProperty<AccountConstructionType> property = findUserProperty(path);
 
-		// THEN
-		assertEquals("Wrong property value (path="+path+")", "Just do it", property.getRealValue().getHowto());
-	}
+        // THEN
+        assertEquals("Wrong property value (path="+path+")", "Just do it", property.getRealValue().getHowto());
+    }
 
-	@Test
-	public void testFindAssignment() throws SchemaException, SAXException, IOException {
-		final String TEST_NAME = "testFindAssignment";
-		System.out.println("===[ "+TEST_NAME+" ]===");
+    @Test
+    public void testFindAssignment() throws SchemaException, SAXException, IOException {
+        final String TEST_NAME = "testFindAssignment";
+        System.out.println("===[ "+TEST_NAME+" ]===");
 
-		// GIVEN
-		ItemPath path = UserType.F_ASSIGNMENT;
+        // GIVEN
+        ItemPath path = UserType.F_ASSIGNMENT;
 
-		// WHEN
-		PrismContainer<AssignmentType> container = findUserContainer(path);
+        // WHEN
+        PrismContainer<AssignmentType> container = findUserContainer(path);
 
-		// THEN
-		PrismContainerValue<AssignmentType> value2 = container.getValue(USER_ASSIGNMENT_2_ID);
-		assertEquals("Wrong value2 description (path="+path+")", "Assignment 2", value2.findProperty(AssignmentType.F_DESCRIPTION).getRealValue());
-	}
+        // THEN
+        PrismContainerValue<AssignmentType> value2 = container.getValue(USER_ASSIGNMENT_2_ID);
+        assertEquals("Wrong value2 description (path="+path+")", "Assignment 2", value2.findProperty(AssignmentType.F_DESCRIPTION).getRealValue());
+    }
 
-	private <T> T findUser(ItemPath path) throws SchemaException, SAXException, IOException {
-		PrismObject<UserType> user = createUser();
-		return find(user, path);
-	}
+    private <T> T findUser(ItemPath path) throws SchemaException, SAXException, IOException {
+        PrismObject<UserType> user = createUser();
+        return find(user, path);
+    }
 
-	private <T> T find(PrismObject<UserType> user, ItemPath path) {
-		System.out.println("Path:");
-		System.out.println(path);
+    private <T> T find(PrismObject<UserType> user, ItemPath path) {
+        System.out.println("Path:");
+        System.out.println(path);
 
-		// WHEN
-		Object found = user.find(path);
+        // WHEN
+        Object found = user.find(path);
 
-		// THEN
-		System.out.println("Found:");
-		System.out.println(found);
-		return (T) found;
-	}
+        // THEN
+        System.out.println("Found:");
+        System.out.println(found);
+        return (T) found;
+    }
 
-	private <T> PrismProperty<T> findUserProperty(ItemPath path) throws SchemaException, SAXException, IOException {
-		PrismObject<UserType> user = createUser();
-		return findProperty(user, path);
-	}
+    private <T> PrismProperty<T> findUserProperty(ItemPath path) throws SchemaException, SAXException, IOException {
+        PrismObject<UserType> user = createUser();
+        return findProperty(user, path);
+    }
 
-	private <T> PrismProperty<T> findProperty(PrismObject<UserType> user, ItemPath path) {
-		System.out.println("Path:");
-		System.out.println(path);
+    private <T> PrismProperty<T> findProperty(PrismObject<UserType> user, ItemPath path) {
+        System.out.println("Path:");
+        System.out.println(path);
 
-		// WHEN
-		PrismProperty<T> property = user.findProperty(path);
+        // WHEN
+        PrismProperty<T> property = user.findProperty(path);
 
-		// THEN
-		System.out.println("Found:");
-		System.out.println(property);
-		return property;
-	}
+        // THEN
+        System.out.println("Found:");
+        System.out.println(property);
+        return property;
+    }
 
-	private <T extends Containerable> PrismContainer<T> findUserContainer(ItemPath path) throws SchemaException, SAXException, IOException {
-		PrismObject<UserType> user = createUser();
-		return findContainer(user, path);
-	}
+    private <T extends Containerable> PrismContainer<T> findUserContainer(ItemPath path) throws SchemaException, SAXException, IOException {
+        PrismObject<UserType> user = createUser();
+        return findContainer(user, path);
+    }
 
-	private <T extends Containerable> PrismContainer<T> findContainer(PrismObject<UserType> user, ItemPath path) {
-		System.out.println("Path:");
-		System.out.println(path);
+    private <T extends Containerable> PrismContainer<T> findContainer(PrismObject<UserType> user, ItemPath path) {
+        System.out.println("Path:");
+        System.out.println(path);
 
-		// WHEN
-		PrismContainer<T> container = user.findContainer(path);
+        // WHEN
+        PrismContainer<T> container = user.findContainer(path);
 
-		// THEN
-		System.out.println("Found:");
-		System.out.println(container);
-		return container;
-	}
+        // THEN
+        System.out.println("Found:");
+        System.out.println(container);
+        return container;
+    }
 
 
-	public PrismObject<UserType> createUser() throws SchemaException, SAXException, IOException {
-		return PrismTestUtil.parseObject(USER_JACK_FILE_XML);
-	}
+    public PrismObject<UserType> createUser() throws SchemaException, SAXException, IOException {
+        return PrismTestUtil.parseObject(USER_JACK_FILE_XML);
+    }
 
 
 }

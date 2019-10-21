@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -57,22 +57,22 @@ public class ModelOperationTaskHandler implements TaskHandler {
 
     @Autowired private TaskManager taskManager;
     @Autowired private PrismContext prismContext;
-	@Autowired private ProvisioningService provisioningService;
-	@Autowired private Clockwork clockwork;
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired private Clockwork clockwork;
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
-		TaskRunResult runResult = new TaskRunResult();
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
+        TaskRunResult runResult = new TaskRunResult();
 
-		LensContextType contextType = task.getModelOperationContext();
-		if (contextType == null) {
-			LOGGER.trace("No model context found, skipping the model operation execution.");
-			if (result.isUnknown()) {
-				result.computeStatus();
-			}
-			runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
-		} else {
+        LensContextType contextType = task.getModelOperationContext();
+        if (contextType == null) {
+            LOGGER.trace("No model context found, skipping the model operation execution.");
+            if (result.isUnknown()) {
+                result.computeStatus();
+            }
+            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
+        } else {
             LensContext context;
             try {
                 context = fromLensContextType(contextType, prismContext, provisioningService, task, result);
@@ -103,12 +103,12 @@ public class ModelOperationTaskHandler implements TaskHandler {
                     }
                     projectionIterator.remove();
                 }
-				if (task.getChannel() == null) {
-					task.setChannel(context.getChannel());
-				}
+                if (task.getChannel() == null) {
+                    task.setChannel(context.getChannel());
+                }
                 clockwork.run(context, task, result);
 
-				task.setModelOperationContext(context.toLensContextType(context.getState() == ModelState.FINAL ? ExportType.REDUCED : ExportType.OPERATIONAL));
+                task.setModelOperationContext(context.toLensContextType(context.getState() == ModelState.FINAL ? ExportType.REDUCED : ExportType.OPERATIONAL));
                 task.flushPendingModifications(result);
 
                 if (result.isUnknown()) {
@@ -125,26 +125,26 @@ public class ModelOperationTaskHandler implements TaskHandler {
         }
 
         task.getResult().recomputeStatus();
-		runResult.setOperationResult(task.getResult());
-		return runResult;
-	}
+        runResult.setOperationResult(task.getResult());
+        return runResult;
+    }
 
-	@Override
-	public Long heartbeat(Task task) {
-		return null; // null - as *not* to record progress
-	}
+    @Override
+    public Long heartbeat(Task task) {
+        return null; // null - as *not* to record progress
+    }
 
-	@Override
-	public void refreshStatus(Task task) {
-	}
+    @Override
+    public void refreshStatus(Task task) {
+    }
 
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.WORKFLOW;
     }
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(MODEL_OPERATION_TASK_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(MODEL_OPERATION_TASK_URI, this);
+    }
 }

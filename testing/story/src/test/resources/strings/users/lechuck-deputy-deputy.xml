@@ -2,27 +2,27 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <user oid="120effb1-1122-40bd-847f-1d898148b7ce"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
-	<name>lechuck-deputy-deputy</name>
-	<assignment>
-		<targetRef oid="0dde9c33-822f-4798-9fda-b3280edf6efa" type="c:UserType" relation="org:deputy" />	<!-- lechuck-deputy -->
-		<limitTargetContent>
-			<allowTransitive>true</allowTransitive>
-		</limitTargetContent>
-	</assignment>
-	<fullName>Captain LeChuck Deputy Deputy</fullName>
-	<familyName>LeChuck</familyName>
-	<emailAddress>lechuck-deputy-deputy@evolveum.com</emailAddress>
-	<credentials>
-		<password>
-			<value>a123456</value>
-		</password>
-	</credentials>
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+    <name>lechuck-deputy-deputy</name>
+    <assignment>
+        <targetRef oid="0dde9c33-822f-4798-9fda-b3280edf6efa" type="c:UserType" relation="org:deputy" />    <!-- lechuck-deputy -->
+        <limitTargetContent>
+            <allowTransitive>true</allowTransitive>
+        </limitTargetContent>
+    </assignment>
+    <fullName>Captain LeChuck Deputy Deputy</fullName>
+    <familyName>LeChuck</familyName>
+    <emailAddress>lechuck-deputy-deputy@evolveum.com</emailAddress>
+    <credentials>
+        <password>
+            <value>a123456</value>
+        </password>
+    </credentials>
 </user>

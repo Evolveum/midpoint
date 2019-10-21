@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -37,8 +37,8 @@ public class CertGuiHandlerRegistry {
     }
 
     @SuppressWarnings("unused")
-	private void doNothing() {
-    	// no nothing. Just for maven dependency analyze to properly detect the dependency.
-    	AccessCertificationApiConstants.noop();
+    private void doNothing() {
+        // no nothing. Just for maven dependency analyze to properly detect the dependency.
+        AccessCertificationApiConstants.noop();
     }
 }

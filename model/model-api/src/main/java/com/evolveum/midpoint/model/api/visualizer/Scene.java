@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,36 +23,36 @@ import java.util.List;
  */
 public interface Scene extends Serializable, DebugDumpable {
 
-	Name getName();
-	ChangeType getChangeType();
+    Name getName();
+    ChangeType getChangeType();
 
-	@NotNull List<? extends Scene> getPartialScenes();
-	@NotNull List<? extends SceneItem> getItems();
+    @NotNull List<? extends Scene> getPartialScenes();
+    @NotNull List<? extends SceneItem> getItems();
 
-	boolean isOperational();
+    boolean isOperational();
 
-	Scene getOwner();
+    Scene getOwner();
 
-	/**
-	 * Scene root path, relative to the owning scene root path.
-	 */
-	ItemPath getSourceRelPath();
+    /**
+     * Scene root path, relative to the owning scene root path.
+     */
+    ItemPath getSourceRelPath();
 
-	ItemPath getSourceAbsPath();
+    ItemPath getSourceAbsPath();
 
-	/**
-	 * Source container value where more details can be found.
-	 * (For scenes that display object or value add.)
-	 */
-	PrismContainerValue<?> getSourceValue();
+    /**
+     * Source container value where more details can be found.
+     * (For scenes that display object or value add.)
+     */
+    PrismContainerValue<?> getSourceValue();
 
-	PrismContainerDefinition<?> getSourceDefinition();
+    PrismContainerDefinition<?> getSourceDefinition();
 
-	/**
-	 * Source object delta where more details can be found.
-	 * (For scenes that display an object delta.)
-	 */
-	ObjectDelta<?> getSourceDelta();
+    /**
+     * Source object delta where more details can be found.
+     * (For scenes that display an object delta.)
+     */
+    ObjectDelta<?> getSourceDelta();
 
-	boolean isEmpty();
+    boolean isEmpty();
 }

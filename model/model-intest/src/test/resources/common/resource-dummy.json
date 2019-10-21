@@ -224,21 +224,21 @@
           "maxIterations" : 5
         },
         "protected" : [ {
-	        "filter" : {
-	          "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
-	          "equal" : {
-	            "path" : "attributes/name",
-	            "value" : "daviejones"
-	          }
-	        }
+            "filter" : {
+              "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+              "equal" : {
+                "path" : "attributes/name",
+                "value" : "daviejones"
+              }
+            }
         }, {
-	        "filter" : {
-	          "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
-	          "equal" : {
-	            "path" : "attributes/name",
-	            "value" : "calypso"
-	          }
-	        }
+            "filter" : {
+              "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+              "equal" : {
+                "path" : "attributes/name",
+                "value" : "calypso"
+              }
+            }
         } ],
         "activation" : {
           "existence" : {

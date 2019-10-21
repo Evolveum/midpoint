@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -16,15 +16,15 @@ import org.apache.wicket.model.IModel;
  */
 public class DefaultAjaxButton extends AjaxButton {
 
-	private final TargetAcceptor onClick;
+    private final TargetAcceptor onClick;
 
-	public DefaultAjaxButton(String id, IModel<String> label, TargetAcceptor onClick) {
-		super(id, label);
-		this.onClick = onClick;
-	}
+    public DefaultAjaxButton(String id, IModel<String> label, TargetAcceptor onClick) {
+        super(id, label);
+        this.onClick = onClick;
+    }
 
-	@Override
-	public void onClick(AjaxRequestTarget target) {
-		onClick.accept(target);
-	}
+    @Override
+    public void onClick(AjaxRequestTarget target) {
+        onClick.accept(target);
+    }
 }

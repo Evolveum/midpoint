@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,79 +23,79 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPoli
  */
 public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<ExclusionPolicyConstraintType> {
 
-	@NotNull private final EvaluatedAssignment conflictingAssignment;
-	private final ObjectType conflictingTarget;
-	private final AssignmentPath conflictingPath;
+    @NotNull private final EvaluatedAssignment conflictingAssignment;
+    private final ObjectType conflictingTarget;
+    private final AssignmentPath conflictingPath;
 
-	// we keep thisTarget and thisPath here because in the future they might be useful
-	public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
-			LocalizableMessage message, LocalizableMessage shortMessage, @NotNull EvaluatedAssignment conflictingAssignment,
-			ObjectType thisTarget, ObjectType conflictingTarget, AssignmentPath thisPath, AssignmentPath conflictingPath) {
-		this(constraint, message, shortMessage, conflictingAssignment, conflictingTarget, conflictingPath, false);
-	}
+    // we keep thisTarget and thisPath here because in the future they might be useful
+    public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
+            LocalizableMessage message, LocalizableMessage shortMessage, @NotNull EvaluatedAssignment conflictingAssignment,
+            ObjectType thisTarget, ObjectType conflictingTarget, AssignmentPath thisPath, AssignmentPath conflictingPath) {
+        this(constraint, message, shortMessage, conflictingAssignment, conflictingTarget, conflictingPath, false);
+    }
 
-	public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
-			LocalizableMessage message, LocalizableMessage shortMessage, @NotNull EvaluatedAssignment conflictingAssignment,
-			ObjectType conflictingTarget, AssignmentPath conflictingPath, boolean enforcementOverride) {
-		super(PolicyConstraintKindType.EXCLUSION, constraint, message, shortMessage, enforcementOverride);
-		this.conflictingAssignment = conflictingAssignment;
-		this.conflictingTarget = conflictingTarget;
-		this.conflictingPath = conflictingPath;
-	}
+    public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
+            LocalizableMessage message, LocalizableMessage shortMessage, @NotNull EvaluatedAssignment conflictingAssignment,
+            ObjectType conflictingTarget, AssignmentPath conflictingPath, boolean enforcementOverride) {
+        super(PolicyConstraintKindType.EXCLUSION, constraint, message, shortMessage, enforcementOverride);
+        this.conflictingAssignment = conflictingAssignment;
+        this.conflictingTarget = conflictingTarget;
+        this.conflictingPath = conflictingPath;
+    }
 
-	public <F extends FocusType> EvaluatedAssignment<F> getConflictingAssignment() {
-		return conflictingAssignment;
-	}
+    public <F extends FocusType> EvaluatedAssignment<F> getConflictingAssignment() {
+        return conflictingAssignment;
+    }
 
-	public ObjectType getConflictingTarget() {
-		return conflictingTarget;
-	}
+    public ObjectType getConflictingTarget() {
+        return conflictingTarget;
+    }
 
-	public AssignmentPath getConflictingPath() {
-		return conflictingPath;
-	}
+    public AssignmentPath getConflictingPath() {
+        return conflictingPath;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof EvaluatedExclusionTrigger))
-			return false;
-		if (!super.equals(o))
-			return false;
-		EvaluatedExclusionTrigger that = (EvaluatedExclusionTrigger) o;
-		return Objects.equals(conflictingAssignment, that.conflictingAssignment);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof EvaluatedExclusionTrigger))
+            return false;
+        if (!super.equals(o))
+            return false;
+        EvaluatedExclusionTrigger that = (EvaluatedExclusionTrigger) o;
+        return Objects.equals(conflictingAssignment, that.conflictingAssignment);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(super.hashCode(), conflictingAssignment);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), conflictingAssignment);
+    }
 
-	@Override
-	protected void debugDumpSpecific(StringBuilder sb, int indent) {
-		// cannot debug dump conflicting assignment in detail, as we might go into infinite loop
-		// (the assignment could have evaluated rule that would point to another conflicting assignment, which
-		// could point back to this rule)
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "conflictingAssignment", conflictingAssignment, indent);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "conflictingPath", conflictingPath, indent);
-	}
+    @Override
+    protected void debugDumpSpecific(StringBuilder sb, int indent) {
+        // cannot debug dump conflicting assignment in detail, as we might go into infinite loop
+        // (the assignment could have evaluated rule that would point to another conflicting assignment, which
+        // could point back to this rule)
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "conflictingAssignment", conflictingAssignment, indent);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "conflictingPath", conflictingPath, indent);
+    }
 
-	@Override
-	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
-			PrismContext prismContext) {
-		EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
-		fillCommonContent(rv);
-		if (options.getTriggeredRulesStorageStrategy() == FULL) {
-			rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget, prismContext));
-			rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
-			if (conflictingPath != null) {
-				rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
-			}
-			if (options.isIncludeAssignmentsContent() && conflictingAssignment.getAssignmentType() != null) {
-				rv.setConflictingAssignment(conflictingAssignment.getAssignmentType().clone());
-			}
-		}
-		return rv;
-	}
+    @Override
+    public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+            PrismContext prismContext) {
+        EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
+        fillCommonContent(rv);
+        if (options.getTriggeredRulesStorageStrategy() == FULL) {
+            rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget, prismContext));
+            rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
+            if (conflictingPath != null) {
+                rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
+            }
+            if (options.isIncludeAssignmentsContent() && conflictingAssignment.getAssignmentType() != null) {
+                rv.setConflictingAssignment(conflictingAssignment.getAssignmentType().clone());
+            }
+        }
+        return rv;
+    }
 }

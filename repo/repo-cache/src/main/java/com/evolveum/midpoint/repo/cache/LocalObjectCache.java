@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,7 +21,7 @@ public class LocalObjectCache extends AbstractThreadLocalCache {
 
     private final Map<String, PrismObject<? extends ObjectType>> data = new ConcurrentHashMap<>();
 
-	public PrismObject<? extends ObjectType> get(String oid) {
+    public PrismObject<? extends ObjectType> get(String oid) {
         return data.get(oid);
     }
 

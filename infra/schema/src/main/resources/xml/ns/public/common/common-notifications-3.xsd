@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -53,9 +53,9 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         When this transport don't have definision blackList, whiteList or recipient FilterExpression,
-			instead of sending message via this transport, writes it to a file. Useful for debugging.
-			When is defined one of whiteList, blackList or recipientFilterExpression, the messages 
-			for allowed recipient are sended, and the messages for forbidden recipients are writed to a file.
+            instead of sending message via this transport, writes it to a file. Useful for debugging.
+            When is defined one of whiteList, blackList or recipientFilterExpression, the messages
+            for allowed recipient are sended, and the messages for forbidden recipients are writed to a file.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>NotificationTransportConfigurationType.redirectToFile</a:displayName>
@@ -130,7 +130,7 @@
                 Where and how to send mail notifications (or any other mail messages).
             </xsd:documentation>
             <xsd:appinfo>
-				<a:displayName>MailConfigurationType.details</a:displayName>
+                <a:displayName>MailConfigurationType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -165,8 +165,8 @@
                 Configuration of a particular mail server host.
             </xsd:documentation>
             <xsd:appinfo>
-				<!--<a:container/>-->
-				<a:displayName>MailServerConfigurationType.details</a:displayName>
+                <!--<a:container/>-->
+                <a:displayName>MailServerConfigurationType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -175,9 +175,9 @@
                     <xsd:documentation>
                         Mail server host (FQDN or IP address).
                     </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>MailServerConfigurationType.host</a:displayName>
-					</xsd:appinfo>
+                    <xsd:appinfo>
+                        <a:displayName>MailServerConfigurationType.host</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="port" type="xsd:int" minOccurs="0">
@@ -185,9 +185,9 @@
                     <xsd:documentation>
                         Mail server port (25 by default).
                     </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>MailServerConfigurationType.port</a:displayName>
-					</xsd:appinfo>
+                    <xsd:appinfo>
+                        <a:displayName>MailServerConfigurationType.port</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="username" type="xsd:string" minOccurs="0">
@@ -195,9 +195,9 @@
                     <xsd:documentation>
                         How to authenticate to the mail server.
                     </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>MailServerConfigurationType.username</a:displayName>
-					</xsd:appinfo>
+                    <xsd:appinfo>
+                        <a:displayName>MailServerConfigurationType.username</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
@@ -205,9 +205,9 @@
                     <xsd:documentation>
                         How to authenticate to the mail server.
                     </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>MailServerConfigurationType.password</a:displayName>
-					</xsd:appinfo>
+                    <xsd:appinfo>
+                        <a:displayName>MailServerConfigurationType.password</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="transportSecurity" type="tns:MailTransportSecurityType" minOccurs="0">
@@ -215,9 +215,9 @@
                     <xsd:documentation>
                         How to ensure transport-level security when sending the message.
                     </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>MailServerConfigurationType.transportSecurity</a:displayName>
-					</xsd:appinfo>
+                    <xsd:appinfo>
+                        <a:displayName>MailServerConfigurationType.transportSecurity</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -243,7 +243,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NONE"/>
-						<a:displayName>MailTransportSecurityType.none</a:displayName>
+                        <a:displayName>MailTransportSecurityType.none</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -254,7 +254,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="STARTTLS_ENABLED"/>
-						<a:displayName>MailTransportSecurityType.starttlsEnabled</a:displayName>
+                        <a:displayName>MailTransportSecurityType.starttlsEnabled</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -265,7 +265,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="STARTTLS_REQUIRED"/>
-						<a:displayName>MailTransportSecurityType.starttlsRequired</a:displayName>
+                        <a:displayName>MailTransportSecurityType.starttlsRequired</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -276,7 +276,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SSL"/>
-						<a:displayName>MailTransportSecurityType.ssl</a:displayName>
+                        <a:displayName>MailTransportSecurityType.ssl</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -321,8 +321,8 @@
                 Where and how to store "file" notifications.
             </xsd:documentation>
             <xsd:appinfo>
-				<!--<a:container/>-->
-				<a:displayName>FileConfigurationType.details</a:displayName>
+                <!--<a:container/>-->
+                <a:displayName>FileConfigurationType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -333,9 +333,9 @@
                             <xsd:documentation>
                                 File to store notifications into.
                             </xsd:documentation>
-							<xsd:appinfo>
-								<a:displayName>FileConfigurationType.f</a:displayName>
-							</xsd:appinfo>
+                            <xsd:appinfo>
+                                <a:displayName>FileConfigurationType.f</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -377,11 +377,11 @@
                 Currently, we only support sending via HTTP GET method.
             </xsd:documentation>
             <xsd:appinfo>
-            	<a:schemaMigration>
-            		<a:element>tns:url</a:element>
-            		<a:version>4.0</a:version>
-            		<a:operation>removed</a:operation>
-            	</a:schemaMigration>
+                <a:schemaMigration>
+                    <a:element>tns:url</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -524,7 +524,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-				<a:displayName>NotificationConfigurationType.details</a:displayName>
+                <a:displayName>NotificationConfigurationType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -742,7 +742,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-			<xsd:element name="simpleReportNotifier" type="tns:SimpleReportNotifierType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="simpleReportNotifier" type="tns:SimpleReportNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -809,11 +809,11 @@
             </xsd:enumeration>
             <xsd:enumeration value="workItemLifecycleEvent">
                 <xsd:annotation>
-					<xsd:documentation>
-						Subtype of workItemEvent. Represents the fact that a work item was created or deleted.
-						Operation of ADD means that the work item was created.
-						Operation of DELETE means that the work item was deleted (usually because it was completed).
-					</xsd:documentation>
+                    <xsd:documentation>
+                        Subtype of workItemEvent. Represents the fact that a work item was created or deleted.
+                        Operation of ADD means that the work item was created.
+                        Operation of DELETE means that the work item was deleted (usually because it was completed).
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="WORK_ITEM_LIFECYCLE_EVENT"/>
                     </xsd:appinfo>
@@ -821,24 +821,24 @@
             </xsd:enumeration>
             <xsd:enumeration value="workItemAllocationEvent">
                 <xsd:annotation>
-					<xsd:documentation>
-						Subtype of workItemEvent. Represents the fact that a work item was allocated to a user.
-						(Either automatically when it is created or delegated, or manually when the user has claimed the item.)
-						Operation of ADD means that the allocation was created.
-						Operation of MODIFY means that the allocation is about to be deleted (probably as part of timed
-						delegation/escalation or timed completion).
-						Operation of DELETE means that the allocation was deleted (because of task completion/deletion or delegation).
-					</xsd:documentation>
+                    <xsd:documentation>
+                        Subtype of workItemEvent. Represents the fact that a work item was allocated to a user.
+                        (Either automatically when it is created or delegated, or manually when the user has claimed the item.)
+                        Operation of ADD means that the allocation was created.
+                        Operation of MODIFY means that the allocation is about to be deleted (probably as part of timed
+                        delegation/escalation or timed completion).
+                        Operation of DELETE means that the allocation was deleted (because of task completion/deletion or delegation).
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="WORK_ITEM_ALLOCATION_EVENT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-			<xsd:enumeration value="workItemCustomEvent">
+            <xsd:enumeration value="workItemCustomEvent">
                 <xsd:annotation>
-					<xsd:documentation>
-						Subtype of workItemEvent. Custom notification event emitted by "notify" timed action.
-					</xsd:documentation>
+                    <xsd:documentation>
+                        Subtype of workItemEvent. Custom notification event emitted by "notify" timed action.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="WORK_ITEM_CUSTOM_EVENT"/>
                     </xsd:appinfo>
@@ -851,13 +851,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-			<!--<xsd:enumeration value="workflowProcessStageEvent">-->
-				<!--<xsd:annotation>-->
-					<!--<xsd:appinfo>-->
-						<!--<jaxb:typesafeEnumMember name="WORKFLOW_PROCESS_STAGE_EVENT"/>-->
-					<!--</xsd:appinfo>-->
-				<!--</xsd:annotation>-->
-			<!--</xsd:enumeration>-->
+            <!--<xsd:enumeration value="workflowProcessStageEvent">-->
+                <!--<xsd:annotation>-->
+                    <!--<xsd:appinfo>-->
+                        <!--<jaxb:typesafeEnumMember name="WORKFLOW_PROCESS_STAGE_EVENT"/>-->
+                    <!--</xsd:appinfo>-->
+                <!--</xsd:annotation>-->
+            <!--</xsd:enumeration>-->
             <xsd:enumeration value="workflowEvent">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -1188,7 +1188,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="TimeValidityNotifierType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1250,7 +1250,7 @@
     </xsd:complexType>
 
 
-	<xsd:complexType name="ConfirmationNotifierType">
+    <xsd:complexType name="ConfirmationNotifierType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -1258,14 +1258,14 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:GeneralNotifierType">
-             	<xsd:sequence>
+                 <xsd:sequence>
                     <xsd:element name="confirmationMethod" type="tns:RegistrationConfirmationMethodType" minOccurs="0">
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="RegistrationConfirmationNotifierType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1274,11 +1274,11 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:ConfirmationNotifierType">
-             	
+
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="PasswordResetNotifierType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1287,11 +1287,11 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:ConfirmationNotifierType">
-             	
+
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="AccountActivationNotifierType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1300,7 +1300,7 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:ConfirmationNotifierType">
-             	
+
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -1364,8 +1364,8 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-	
-	<xsd:complexType name="SimpleReportNotifierType">
+
+    <xsd:complexType name="SimpleReportNotifierType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -1403,7 +1403,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:simpleType name="RegistrationConfirmationMethodType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1447,44 +1447,44 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-           
+
         </xsd:restriction>
     </xsd:simpleType>
 
-	<xsd:complexType name="NotificationMessageType">
-		<xsd:annotation>
-			<xsd:documentation>
-				XML version of Message (in notifications module).
-				Introduced in order to provide custom notifiers.
-				EXPERIMENTAL
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.6</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="from" type="xsd:string" minOccurs="0" />
-			<xsd:element name="to" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-			<xsd:element name="cc" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-			<xsd:element name="bcc" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-			<xsd:element name="subject" type="xsd:string" minOccurs="0" />
-			<xsd:element name="body" type="xsd:string" minOccurs="0" />
-			<xsd:element name="contentType" type="xsd:string" minOccurs="0" />
-			<xsd:element name="attachment" type="tns:NotificationMessageAttachmentType" minOccurs="0" maxOccurs="unbounded" />
-		</xsd:sequence>
-	</xsd:complexType>
+    <xsd:complexType name="NotificationMessageType">
+        <xsd:annotation>
+            <xsd:documentation>
+                XML version of Message (in notifications module).
+                Introduced in order to provide custom notifiers.
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="from" type="xsd:string" minOccurs="0" />
+            <xsd:element name="to" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="cc" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="bcc" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="subject" type="xsd:string" minOccurs="0" />
+            <xsd:element name="body" type="xsd:string" minOccurs="0" />
+            <xsd:element name="contentType" type="xsd:string" minOccurs="0" />
+            <xsd:element name="attachment" type="tns:NotificationMessageAttachmentType" minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
 
-	<xsd:complexType name="NotificationMessageAttachmentType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Message attachment for notifications. The content might be provided either directly (as arbitrary object)
+    <xsd:complexType name="NotificationMessageAttachmentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Message attachment for notifications. The content might be provided either directly (as arbitrary object)
                 or by referencing a file.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>4.0</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
             <xsd:element name="contentType" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1521,6 +1521,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.menu;
@@ -29,9 +29,9 @@ import java.util.Map;
  * @author Viliam Repan (lazyman)
  */
 public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
-	private static final long serialVersionUID = 1L;
-	
-	private static final String ID_SIDEBAR = "sidebar";
+    private static final long serialVersionUID = 1L;
+
+    private static final String ID_SIDEBAR = "sidebar";
     private static final String ID_MENU_ITEMS = "menuItems";
     private static final String ID_NAME = "name";
     private static final String ID_ITEMS = "items";
@@ -43,11 +43,11 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
 
         setOutputMarkupId(true);
     }
-    
+
     @Override
     protected void onInitialize() {
-    	super.onInitialize();
-    	initLayout();
+        super.onInitialize();
+        initLayout();
     }
 
     protected void initLayout() {
@@ -56,36 +56,36 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         add(sidebar);
 
         ListView<SideBarMenuItem> menuItems = new ListView<SideBarMenuItem>(ID_MENU_ITEMS, getModel()) {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             protected void populateItem(final ListItem<SideBarMenuItem> item) {
                 Label name = new Label(ID_NAME, item.getModelObject().getName());
                 name.add(new AjaxEventBehavior("click") {
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
+                    @Override
                     protected void onEvent(AjaxRequestTarget target) {
-                    	onMenuClick(sidebar, item, target);
+                        onMenuClick(sidebar, item, target);
                     }
                 });
                 item.add(name);
 
                 WebMarkupContainer icon = new WebMarkupContainer(ID_MINIMIZED_ICON);
                 icon.add(new AjaxEventBehavior("click") {
-					private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
-					@Override
+                    @Override
                     protected void onEvent(AjaxRequestTarget target) {
-                    	onMenuClick(sidebar, item, target);
+                        onMenuClick(sidebar, item, target);
                     }
                 });
                 icon.add(AttributeModifier.append("class", new IModel<String>() {
-                	private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public String getObject() {
-                    	SideBarMenuItem mainMenu = item.getModelObject();
+                        SideBarMenuItem mainMenu = item.getModelObject();
                         if (isMenuExpanded(mainMenu)) {
                             return GuiStyleConstants.CLASS_ICON_COLLAPSE;
                         }
@@ -170,9 +170,9 @@ public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
         };
         sidebar.add(menuItems);
     }
-    
+
     private void onMenuClick(final WebMarkupContainer sidebar, final ListItem<SideBarMenuItem> item, AjaxRequestTarget target) {
-    	SideBarMenuItem mainMenu = item.getModelObject();
+        SideBarMenuItem mainMenu = item.getModelObject();
 
         SessionStorage storage = getPageBase().getSessionStorage();
         Map<String, Boolean> menuState = storage.getMainMenuState();

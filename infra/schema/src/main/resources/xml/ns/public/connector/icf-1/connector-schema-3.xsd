@@ -2,177 +2,177 @@
 <!--
   ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
- 
+
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-    elementFormDefault="qualified">    
+    elementFormDefault="qualified">
 
     <xsd:annotation>
         <xsd:documentation>
- 			Identity Connector Framework version 1 (ICF1) connector configuration schema.
- 			
- 			TODO
+             Identity Connector Framework version 1 (ICF1) connector configuration schema.
 
-			The specific connector schemas are based on this definition.
-			MidPoint will look for the definition of top-level element that is
-			by convention the element with local name "configuration". It will use it as basic definition
-			for resource configuration. The definition of "configuration" element will most likely
-			refer to the data types and elements used in this schema definition.
- 			
- 			Version: 3.1
+             TODO
+
+            The specific connector schemas are based on this definition.
+            MidPoint will look for the definition of top-level element that is
+            by convention the element with local name "configuration". It will use it as basic definition
+            for resource configuration. The definition of "configuration" element will most likely
+            refer to the data types and elements used in this schema definition.
+
+             Version: 3.1
             Recommended namespace prefix: icfc
         </xsd:documentation>
     </xsd:annotation>
 
     <xsd:complexType name="ConfigurationPropertiesType">
-		<xsd:annotation>
-			<xsd:documentation>
-				TODO
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:container/>
-				<a:ignoredNamespace>http://midpoint.evolveum.com/</a:ignoredNamespace>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:any namespace="##any" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-		</xsd:sequence>
-	</xsd:complexType>
-	<xsd:element name="configurationProperties" type="tns:ConfigurationPropertiesType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:maxOccurs>1</a:maxOccurs>
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:ignoredNamespace>http://midpoint.evolveum.com/</a:ignoredNamespace>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any namespace="##any" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="configurationProperties" type="tns:ConfigurationPropertiesType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
                 <a:displayOrder>100</a:displayOrder>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
-    
-    <xsd:complexType name="ConnectorPoolConfigurationType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Type that contains configuration of ICF connector pools. This configuration is common for all
-				ICF connectors, therefore it may be part of a static schema.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:container/>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="minEvictableIdleTimeMillis" type="xsd:int" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						TODO
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="minIdle" type="xsd:int" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						TODO
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="maxIdle" type="xsd:int" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						TODO
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="maxObjects" type="xsd:int" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						TODO
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="maxWait" type="xsd:int" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						TODO
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
-	<xsd:element name="connectorPoolConfiguration" type="tns:ConnectorPoolConfigurationType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Element that contains configuration of ICF connector pools.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:maxOccurs>1</a:maxOccurs>
+    <xsd:complexType name="ConnectorPoolConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type that contains configuration of ICF connector pools. This configuration is common for all
+                ICF connectors, therefore it may be part of a static schema.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="minEvictableIdleTimeMillis" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="minIdle" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxIdle" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxObjects" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxWait" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="connectorPoolConfiguration" type="tns:ConnectorPoolConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Element that contains configuration of ICF connector pools.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
                 <a:displayOrder>200</a:displayOrder>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
-	
-	<xsd:element name="producerBufferSize" type="xsd:int">
-		<xsd:annotation>
-			<xsd:documentation>
-				TODO
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:maxOccurs>1</a:maxOccurs>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
-	
-	<xsd:element name="timeouts" type="tns:TimeoutsType">
-		<xsd:annotation>
-			<xsd:documentation>
-				TODO
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="producerBufferSize" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="timeouts" type="tns:TimeoutsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
                 <a:displayOrder>300</a:displayOrder>
             </xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
-		
+        </xsd:annotation>
+    </xsd:element>
 
-	<xsd:complexType name="TimeoutsType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Type that contains configuration of ICF operation timeouts.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:container/>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="create" type="xsd:int" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="get" type="xsd:int" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="update" type="xsd:int" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="delete" type="xsd:int" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="test" type="xsd:int" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="scriptOnConnector" type="xsd:int" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="scriptOnResource" type="xsd:int" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="authentication" type="xsd:int" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="search" type="xsd:int" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="validate" type="xsd:int" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="sync" type="xsd:int" minOccurs="0">
-			</xsd:element>
-			<xsd:element name="schema" type="xsd:int" minOccurs="0">
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
+
+    <xsd:complexType name="TimeoutsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type that contains configuration of ICF operation timeouts.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="create" type="xsd:int" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="get" type="xsd:int" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="update" type="xsd:int" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="delete" type="xsd:int" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="test" type="xsd:int" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="scriptOnConnector" type="xsd:int" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="scriptOnResource" type="xsd:int" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="authentication" type="xsd:int" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="search" type="xsd:int" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="validate" type="xsd:int" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="sync" type="xsd:int" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="schema" type="xsd:int" minOccurs="0">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="ResultsHandlerConfigurationType">
         <xsd:annotation>
@@ -259,21 +259,21 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="legacySchema" type="xsd:boolean">
-		<xsd:annotation>
-			<xsd:documentation>
-				Forces schema processing in "legacy" mode.
-				Legacy mode means that __ACCOUNT__ is translated as AccountObjectClass,
-				__GROUP__ as GroupObjectClass and any other as CustomXXXXXObjectClass.
-				Non-legacy mode does not translates object class names. They are used
-				in the same form as provided by the connector.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:maxOccurs>1</a:maxOccurs>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
+        <xsd:annotation>
+            <xsd:documentation>
+                Forces schema processing in "legacy" mode.
+                Legacy mode means that __ACCOUNT__ is translated as AccountObjectClass,
+                __GROUP__ as GroupObjectClass and any other as CustomXXXXXObjectClass.
+                Non-legacy mode does not translates object class names. They are used
+                in the same form as provided by the connector.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
 </xsd:schema>
 

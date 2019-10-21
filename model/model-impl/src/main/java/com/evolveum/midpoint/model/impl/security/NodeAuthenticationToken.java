@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.security;
@@ -16,25 +16,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
 public class NodeAuthenticationToken extends AbstractAuthenticationToken {
 
-	private static final long serialVersionUID = 1L;
-	
-	private PrismObject<NodeType> node;
-	private String remoteAddress;
+    private static final long serialVersionUID = 1L;
 
-	public NodeAuthenticationToken(PrismObject<NodeType> node, String remoteAddress, Collection<? extends GrantedAuthority> authorities) {
-		super(authorities);
-		this.node = node;
-		this.remoteAddress = remoteAddress;
-	}
+    private PrismObject<NodeType> node;
+    private String remoteAddress;
 
-	@Override
-	public Object getCredentials() {
-		return remoteAddress;
-	}
+    public NodeAuthenticationToken(PrismObject<NodeType> node, String remoteAddress, Collection<? extends GrantedAuthority> authorities) {
+        super(authorities);
+        this.node = node;
+        this.remoteAddress = remoteAddress;
+    }
 
-	@Override
-	public PrismObject<NodeType> getPrincipal() {
-		return node;
-	}
+    @Override
+    public Object getCredentials() {
+        return remoteAddress;
+    }
+
+    @Override
+    public PrismObject<NodeType> getPrincipal() {
+        return node;
+    }
 
 }

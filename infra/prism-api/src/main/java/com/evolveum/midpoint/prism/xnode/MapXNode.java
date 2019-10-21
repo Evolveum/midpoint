@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,25 +21,25 @@ import java.util.Set;
  */
 public interface MapXNode extends XNode, Serializable, DebugDumpable {
 
-	boolean containsKey(Object key);
-	boolean containsValue(Object value);
-	XNode get(Object key);
+    boolean containsKey(Object key);
+    boolean containsValue(Object value);
+    XNode get(Object key);
 
-	boolean isEmpty();
+    boolean isEmpty();
 
-	@NotNull
-	MapXNode clone();
+    @NotNull
+    MapXNode clone();
 
-	int size();
+    int size();
 
-	Set<QName> keySet();
+    Set<QName> keySet();
 
-	RootXNode getEntryAsRoot(@NotNull QName key);
+    RootXNode getEntryAsRoot(@NotNull QName key);
 
-	Map.Entry<QName, ? extends XNode> getSingleSubEntry(String errorContext) throws SchemaException;
+    Map.Entry<QName, ? extends XNode> getSingleSubEntry(String errorContext) throws SchemaException;
 
-	RootXNode getSingleSubEntryAsRoot(String errorContext) throws SchemaException;
+    RootXNode getSingleSubEntryAsRoot(String errorContext) throws SchemaException;
 
-	// EXPERIMENTAL
-	Map<QName, ? extends XNode> asMap();
+    // EXPERIMENTAL
+    Map<QName, ? extends XNode> asMap();
 }

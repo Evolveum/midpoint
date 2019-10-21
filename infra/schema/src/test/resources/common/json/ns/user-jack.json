@@ -33,7 +33,7 @@
       "oid" : "2f9b9299-6f45-498f-aaaa-000000001111"
     }, {
       "oid" : "2f9b9299-6f45-498f-aaaa-000000002222"
-	}, {
+    }, {
       "oid" : "2f9b9299-6f45-498f-aaaa-000000003333",
       "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType",
       "description" : "This is third accountRef",

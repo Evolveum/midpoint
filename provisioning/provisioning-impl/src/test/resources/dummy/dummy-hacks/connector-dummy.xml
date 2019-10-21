@@ -2,100 +2,100 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<connector oid="ef2bc95b-76e0-59e2-86d6-dddddddddddd" 
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+<connector oid="ef2bc95b-76e0-59e2-86d6-dddddddddddd"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-								  
-	<name>com.evolveum.icf.dummy.connector.DummyConnector</name>
-	<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
-	<connectorType>com.evolveum.icf.dummy.connector.DummyConnector</connectorType>
-	<connectorVersion>2.0</connectorVersion>
-	<connectorBundle>com.evolveum.icf.dummy</connectorBundle>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector</namespace>
-	<schema>
-		<definition>
-			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	            xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-	            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	            xmlns:qn942="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-	            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-	            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	            xmlns:qn984="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	            elementFormDefault="qualified"
-	            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector">
-	            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
-	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-	            <xsd:complexType name="ConfigurationPropertiesType">
-	               <xsd:sequence>
-	               	  <!--  The type of uselessString is overridden to ProtectedString. This is the hack we want to test. -->
-	                  <xsd:element minOccurs="0" name="uselessString" type="t:ProtectedStringType">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:displayName>UI_INSTANCE_USELESS_STRING</a:displayName>
-	                           <a:help>UI_INSTANCE_USELESS_STRING</a:help>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	                  <xsd:element minOccurs="0" name="instanceId" type="xsd:string">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:displayName>Instance identifier</a:displayName>
-	                           <a:help>Instance identifier</a:help>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	                  <xsd:element minOccurs="0" name="uselessGuardedString" type="t:ProtectedStringType">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:displayName>UI_INSTANCE_USELESS_GUARDED_STRING</a:displayName>
-	                           <a:help>UI_INSTANCE_USELESS_GUARDED_STRING</a:help>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	               </xsd:sequence>
-	            </xsd:complexType>
-	            <xsd:complexType name="ConfigurationType">
-	               <xsd:sequence>
-	                  <xsd:element minOccurs="0" ref="qn942:connectorPoolConfiguration">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:type>qn942:ConnectorPoolConfigurationType</a:type>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	                  <xsd:element minOccurs="0" ref="icfc:producerBufferSize"/>
-	                  <xsd:element minOccurs="0" ref="icfc:timeouts">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:type>icfc:TimeoutsType</a:type>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	                  <xsd:element ref="icfc:configurationProperties">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:type>tns:ConfigurationPropertiesType</a:type>
-	                           <a:container/>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	               </xsd:sequence>
-	            </xsd:complexType>
-	            <xsd:element name="connectorConfiguration" type="tns:ConfigurationType">
-	               <xsd:annotation>
-	                  <xsd:appinfo>
-	                     <a:container/>
-	                  </xsd:appinfo>
-	               </xsd:annotation>
-	            </xsd:element>
-	         </xsd:schema>
-		</definition>
-	</schema>
+
+    <name>com.evolveum.icf.dummy.connector.DummyConnector</name>
+    <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
+    <connectorType>com.evolveum.icf.dummy.connector.DummyConnector</connectorType>
+    <connectorVersion>2.0</connectorVersion>
+    <connectorBundle>com.evolveum.icf.dummy</connectorBundle>
+    <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector</namespace>
+    <schema>
+        <definition>
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+                xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                xmlns:qn942="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+                xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:qn984="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                elementFormDefault="qualified"
+                targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector">
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+                <xsd:complexType name="ConfigurationPropertiesType">
+                   <xsd:sequence>
+                         <!--  The type of uselessString is overridden to ProtectedString. This is the hack we want to test. -->
+                      <xsd:element minOccurs="0" name="uselessString" type="t:ProtectedStringType">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:displayName>UI_INSTANCE_USELESS_STRING</a:displayName>
+                               <a:help>UI_INSTANCE_USELESS_STRING</a:help>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                      <xsd:element minOccurs="0" name="instanceId" type="xsd:string">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:displayName>Instance identifier</a:displayName>
+                               <a:help>Instance identifier</a:help>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                      <xsd:element minOccurs="0" name="uselessGuardedString" type="t:ProtectedStringType">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:displayName>UI_INSTANCE_USELESS_GUARDED_STRING</a:displayName>
+                               <a:help>UI_INSTANCE_USELESS_GUARDED_STRING</a:help>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                   </xsd:sequence>
+                </xsd:complexType>
+                <xsd:complexType name="ConfigurationType">
+                   <xsd:sequence>
+                      <xsd:element minOccurs="0" ref="qn942:connectorPoolConfiguration">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:type>qn942:ConnectorPoolConfigurationType</a:type>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                      <xsd:element minOccurs="0" ref="icfc:producerBufferSize"/>
+                      <xsd:element minOccurs="0" ref="icfc:timeouts">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:type>icfc:TimeoutsType</a:type>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                      <xsd:element ref="icfc:configurationProperties">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:type>tns:ConfigurationPropertiesType</a:type>
+                               <a:container/>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                   </xsd:sequence>
+                </xsd:complexType>
+                <xsd:element name="connectorConfiguration" type="tns:ConfigurationType">
+                   <xsd:annotation>
+                      <xsd:appinfo>
+                         <a:container/>
+                      </xsd:appinfo>
+                   </xsd:annotation>
+                </xsd:element>
+             </xsd:schema>
+        </definition>
+    </schema>
 </connector>

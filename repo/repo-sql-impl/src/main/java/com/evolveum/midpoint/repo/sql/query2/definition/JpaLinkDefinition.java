@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -26,7 +26,7 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
     @NotNull private D targetDefinition;
 
     public JpaLinkDefinition(@NotNull ItemPath itemPath, String jpaName, CollectionSpecification collectionSpecification,
-			boolean embedded, @NotNull D targetDefinition) {
+            boolean embedded, @NotNull D targetDefinition) {
         this.itemPath = itemPath;
         this.jpaName = jpaName;
         this.collectionSpecification = collectionSpecification;
@@ -134,7 +134,7 @@ public class JpaLinkDefinition<D extends JpaDataNodeDefinition> implements Visit
         return sb.toString();
     }
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     void resolveEntityPointer() {
         if (targetDefinition instanceof JpaEntityPointerDefinition) {
             // typing hack but we don't mind

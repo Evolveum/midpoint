@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -11,35 +11,35 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>Org Metarole</name>
-    
+
     <inducement>
-    	<construction>
-    		<resourceRef oid="0893372c-3c42-11e5-9179-001e8c717e5b" type="c:ResourceType"/>
-    		<kind>entitlement</kind>
+        <construction>
+            <resourceRef oid="0893372c-3c42-11e5-9179-001e8c717e5b" type="c:ResourceType"/>
+            <kind>entitlement</kind>
             <intent>orgGroup</intent>
-    	</construction>
+        </construction>
     </inducement>
-    
+
     <inducement>
-    	<construction>
-    		<resourceRef oid="0893372c-3c42-11e5-9179-001e8c717e5b" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<intent>default</intent>
-    		<association>
-            	<ref>ri:orgGroup</ref>
-            	<outbound>
-            		<expression>
-            			<associationFromLink>
-            				<projectionDiscriminator>
-	            				<kind>entitlement</kind>
-	            				<intent>orgGroup</intent>
-            				</projectionDiscriminator>
-            			</associationFromLink>
-            		</expression>
-            	</outbound>
+        <construction>
+            <resourceRef oid="0893372c-3c42-11e5-9179-001e8c717e5b" type="c:ResourceType"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:orgGroup</ref>
+                <outbound>
+                    <expression>
+                        <associationFromLink>
+                            <projectionDiscriminator>
+                                <kind>entitlement</kind>
+                                <intent>orgGroup</intent>
+                            </projectionDiscriminator>
+                        </associationFromLink>
+                    </expression>
+                </outbound>
             </association>
-    	</construction>  
-    	<order>2</order>
+        </construction>
+        <order>2</order>
     </inducement>
-    
+
 </role>

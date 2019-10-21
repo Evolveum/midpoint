@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -31,37 +31,37 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 @Component
 public class ModificationsPanelFactory extends AbstractGuiComponentFactory<ObjectDeltaType> {
 
-	private static final long serialVersionUID = 1L;
-	
-	@Autowired private GuiComponentRegistry registry;
-	
-	@PostConstruct
-	public void register() {
-		registry.addToRegistry(this);
-	}
-	
-	@Override
-	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return ObjectDeltaType.COMPLEX_TYPE.equals(wrapper.getTypeName());
-	}
+    private static final long serialVersionUID = 1L;
 
-	@Override
-	protected Panel getPanel(PrismPropertyPanelContext<ObjectDeltaType> panelCtx) {
-		return new ModificationsPanel(panelCtx.getComponentId(), () -> {
-			ItemRealValueModel<ObjectDeltaType> model = panelCtx.getRealValueModel();
-			if (model == null || model.getObject() == null) {
-				return null;
-			}
-			
-			PrismContext prismContext = panelCtx.getPrismContext();
-			ObjectDeltaType objectDeltaType = model.getObject();
-			try {
-				ObjectDelta<?> delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
-				return new DeltaDto(delta);
-			} catch (SchemaException e) {
-				throw new IllegalStateException("Couldn't convert object delta: " + objectDeltaType);
-			}
-		});	
-	}
+    @Autowired private GuiComponentRegistry registry;
+
+    @PostConstruct
+    public void register() {
+        registry.addToRegistry(this);
+    }
+
+    @Override
+    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+        return ObjectDeltaType.COMPLEX_TYPE.equals(wrapper.getTypeName());
+    }
+
+    @Override
+    protected Panel getPanel(PrismPropertyPanelContext<ObjectDeltaType> panelCtx) {
+        return new ModificationsPanel(panelCtx.getComponentId(), () -> {
+            ItemRealValueModel<ObjectDeltaType> model = panelCtx.getRealValueModel();
+            if (model == null || model.getObject() == null) {
+                return null;
+            }
+
+            PrismContext prismContext = panelCtx.getPrismContext();
+            ObjectDeltaType objectDeltaType = model.getObject();
+            try {
+                ObjectDelta<?> delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+                return new DeltaDto(delta);
+            } catch (SchemaException e) {
+                throw new IllegalStateException("Couldn't convert object delta: " + objectDeltaType);
+            }
+        });
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -28,12 +28,12 @@ import com.evolveum.midpoint.util.ShortDumpable;
 })
 public class PolyStringNormalizerConfigurationType implements Serializable, Cloneable, ShortDumpable {
 
-	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "PolyStringNormalizerConfigurationType");
-	public static final QName F_CLASS_NAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "className");
-	public static final QName F_TRIM = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "trim");
-	public static final QName F_NFKD = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "nfkd");
-	public static final QName F_TRIM_WHITESPACE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "trimWhitespace");
-	public static final QName F_LOWERCASE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "lowercase");
+    public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "PolyStringNormalizerConfigurationType");
+    public static final QName F_CLASS_NAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "className");
+    public static final QName F_TRIM = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "trim");
+    public static final QName F_NFKD = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "nfkd");
+    public static final QName F_TRIM_WHITESPACE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "trimWhitespace");
+    public static final QName F_LOWERCASE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "lowercase");
 
     @XmlElement(required = false)
     protected String className;
@@ -49,48 +49,48 @@ public class PolyStringNormalizerConfigurationType implements Serializable, Clon
 
     @XmlElement(required = false)
     protected Boolean lowercase;
-    
+
     public String getClassName() {
-		return className;
-	}
+        return className;
+    }
 
     public void setClassName(String className) {
-		this.className = className;
-	}
+        this.className = className;
+    }
 
     public Boolean isTrim() {
-		return trim;
-	}
+        return trim;
+    }
 
     public void setTrim(Boolean trim) {
-		this.trim = trim;
-	}
+        this.trim = trim;
+    }
 
     public Boolean isNfkd() {
-		return nfkd;
-	}
+        return nfkd;
+    }
 
     public void setNfkd(Boolean nfkd) {
-		this.nfkd = nfkd;
-	}
-    
+        this.nfkd = nfkd;
+    }
+
     public Boolean isTrimWhitespace() {
-		return trimWhitespace;
-	}
+        return trimWhitespace;
+    }
 
     public void setTrimWhitespace(Boolean trimWhitespace) {
-		this.trimWhitespace = trimWhitespace;
-	}
+        this.trimWhitespace = trimWhitespace;
+    }
 
     public Boolean isLowercase() {
-		return lowercase;
-	}
+        return lowercase;
+    }
 
     public void setLowercase(Boolean lowercase) {
-		this.lowercase = lowercase;
-	}
+        this.lowercase = lowercase;
+    }
 
-	@Override
+    @Override
     public PolyStringNormalizerConfigurationType clone() {
         PolyStringNormalizerConfigurationType clone = new PolyStringNormalizerConfigurationType();
         clone.setClassName(getClassName());
@@ -100,86 +100,86 @@ public class PolyStringNormalizerConfigurationType implements Serializable, Clon
         return clone;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((className == null) ? 0 : className.hashCode());
-		result = prime * result + ((lowercase == null) ? 0 : lowercase.hashCode());
-		result = prime * result + ((nfkd == null) ? 0 : nfkd.hashCode());
-		result = prime * result + ((trim == null) ? 0 : trim.hashCode());
-		result = prime * result + ((trimWhitespace == null) ? 0 : trimWhitespace.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((className == null) ? 0 : className.hashCode());
+        result = prime * result + ((lowercase == null) ? 0 : lowercase.hashCode());
+        result = prime * result + ((nfkd == null) ? 0 : nfkd.hashCode());
+        result = prime * result + ((trim == null) ? 0 : trim.hashCode());
+        result = prime * result + ((trimWhitespace == null) ? 0 : trimWhitespace.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		PolyStringNormalizerConfigurationType other = (PolyStringNormalizerConfigurationType) obj;
-		if (className == null) {
-			if (other.className != null) {
-				return false;
-			}
-		} else if (!className.equals(other.className)) {
-			return false;
-		}
-		if (lowercase == null) {
-			if (other.lowercase != null) {
-				return false;
-			}
-		} else if (!lowercase.equals(other.lowercase)) {
-			return false;
-		}
-		if (nfkd == null) {
-			if (other.nfkd != null) {
-				return false;
-			}
-		} else if (!nfkd.equals(other.nfkd)) {
-			return false;
-		}
-		if (trim == null) {
-			if (other.trim != null) {
-				return false;
-			}
-		} else if (!trim.equals(other.trim)) {
-			return false;
-		}
-		if (trimWhitespace == null) {
-			if (other.trimWhitespace != null) {
-				return false;
-			}
-		} else if (!trimWhitespace.equals(other.trimWhitespace)) {
-			return false;
-		}
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        PolyStringNormalizerConfigurationType other = (PolyStringNormalizerConfigurationType) obj;
+        if (className == null) {
+            if (other.className != null) {
+                return false;
+            }
+        } else if (!className.equals(other.className)) {
+            return false;
+        }
+        if (lowercase == null) {
+            if (other.lowercase != null) {
+                return false;
+            }
+        } else if (!lowercase.equals(other.lowercase)) {
+            return false;
+        }
+        if (nfkd == null) {
+            if (other.nfkd != null) {
+                return false;
+            }
+        } else if (!nfkd.equals(other.nfkd)) {
+            return false;
+        }
+        if (trim == null) {
+            if (other.trim != null) {
+                return false;
+            }
+        } else if (!trim.equals(other.trim)) {
+            return false;
+        }
+        if (trimWhitespace == null) {
+            if (other.trimWhitespace != null) {
+                return false;
+            }
+        } else if (!trimWhitespace.equals(other.trimWhitespace)) {
+            return false;
+        }
+        return true;
+    }
 
-	@Override
-	public void shortDump(StringBuilder sb) {
-		DebugUtil.shortDumpAppendProperty(sb, "className", className);
-		DebugUtil.shortDumpAppendProperty(sb, "trim", trim);
-		DebugUtil.shortDumpAppendProperty(sb, "nfkd", nfkd);
-		DebugUtil.shortDumpAppendProperty(sb, "trimWhitespace", trimWhitespace);
-		DebugUtil.shortDumpAppendProperty(sb, "lowercase", lowercase);
-		DebugUtil.shortDumpRemoveLastComma(sb);
-	}
+    @Override
+    public void shortDump(StringBuilder sb) {
+        DebugUtil.shortDumpAppendProperty(sb, "className", className);
+        DebugUtil.shortDumpAppendProperty(sb, "trim", trim);
+        DebugUtil.shortDumpAppendProperty(sb, "nfkd", nfkd);
+        DebugUtil.shortDumpAppendProperty(sb, "trimWhitespace", trimWhitespace);
+        DebugUtil.shortDumpAppendProperty(sb, "lowercase", lowercase);
+        DebugUtil.shortDumpRemoveLastComma(sb);
+    }
 
-	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("PolyStringNormalizerConfigurationType(");
-		shortDump(sb);
-		sb.append(")");
-		return sb.toString();
-	}
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("PolyStringNormalizerConfigurationType(");
+        shortDump(sb);
+        sb.append(")");
+        return sb.toString();
+    }
 
 }

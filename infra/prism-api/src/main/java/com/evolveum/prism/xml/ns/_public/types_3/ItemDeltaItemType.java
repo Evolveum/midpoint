@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -34,10 +34,10 @@ import java.util.Objects;
 })
 public class ItemDeltaItemType implements Serializable, Cloneable, JaxbVisitable {
 
-	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ItemDeltaItemType");
-	public static final QName F_OLD_ITEM = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "oldItem");
-	public static final QName F_DELTA = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "delta");
-	public static final QName F_NEW_ITEM = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "newItem");
+    public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ItemDeltaItemType");
+    public static final QName F_OLD_ITEM = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "oldItem");
+    public static final QName F_DELTA = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "delta");
+    public static final QName F_NEW_ITEM = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "newItem");
 
     @XmlElement
     private ItemType oldItem;
@@ -115,18 +115,18 @@ public class ItemDeltaItemType implements Serializable, Cloneable, JaxbVisitable
     }
 
     @Override
-	public void accept(JaxbVisitor visitor) {
-		visitor.visit(this);
-		if (oldItem != null) {
-			oldItem.accept(visitor);
-		}
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+        if (oldItem != null) {
+            oldItem.accept(visitor);
+        }
         for (ItemDeltaType d : delta) {
             if (d != null) {
                 visitor.visit(d);
             }
         }
-		if (newItem != null) {
-			newItem.accept(visitor);
-		}
-	}
+        if (newItem != null) {
+            newItem.accept(visitor);
+        }
+    }
 }

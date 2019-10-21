@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.objectdetails;
@@ -42,54 +42,54 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  * @author semancik
  */
 public class FocusTasksTabPanel<F extends FocusType>
-		extends AbstractObjectTabPanel<F> {
-	private static final long serialVersionUID = 1L;
+        extends AbstractObjectTabPanel<F> {
+    private static final long serialVersionUID = 1L;
 
-	protected static final String ID_TASK_TABLE = "taskTable";
-	protected static final String ID_LABEL = "label";
-	protected boolean tasksExist = false;
-	private static final Trace LOGGER = TraceManager.getTrace(FocusTasksTabPanel.class);
+    protected static final String ID_TASK_TABLE = "taskTable";
+    protected static final String ID_LABEL = "label";
+    protected boolean tasksExist = false;
+    private static final Trace LOGGER = TraceManager.getTrace(FocusTasksTabPanel.class);
 
-	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel, boolean tasksExist) {
-		super(id, mainForm, focusModel);
-		this.tasksExist = tasksExist;
-	}
+    public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel, boolean tasksExist) {
+        super(id, mainForm, focusModel);
+        this.tasksExist = tasksExist;
+    }
 
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		initLayout();
-	}
-	
-	private void initLayout() {
-		Label label = new Label(ID_LABEL, getPageBase().createStringResource(tasksExist ?
-				"pageAdminFocus.task.descriptionHasTasks" : "pageAdminFocus.task.descriptionNoTasks"));
-		label.setOutputMarkupId(true);
-		add(label);
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
+    }
 
-		CasesListPanel casesPanel = new CasesListPanel(ID_TASK_TABLE) {
-			private static final long serialVersionUID = 1L;
+    private void initLayout() {
+        Label label = new Label(ID_LABEL, getPageBase().createStringResource(tasksExist ?
+                "pageAdminFocus.task.descriptionHasTasks" : "pageAdminFocus.task.descriptionNoTasks"));
+        label.setOutputMarkupId(true);
+        add(label);
 
-			@Override
-			protected ObjectFilter getCasesFilter() {
-				String oid = null;
-				if (getObjectWrapper() == null || StringUtils.isEmpty(getObjectWrapper().getOid())) {
-					oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
-				} else {
-					oid = getObjectWrapper().getOid();
-				}
-				return QueryUtils.filterForCasesOverUser(getPageBase().getPrismContext().queryFor(CaseType.class), oid)
-						.desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
-						.buildFilter();
-			}
+        CasesListPanel casesPanel = new CasesListPanel(ID_TASK_TABLE) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected boolean isDashboard(){
-				return true;
-			}
-		};
-		casesPanel.add(new VisibleBehaviour(() -> tasksExist));
-		casesPanel.setOutputMarkupId(true);
-		add(casesPanel);
-	}
+            @Override
+            protected ObjectFilter getCasesFilter() {
+                String oid = null;
+                if (getObjectWrapper() == null || StringUtils.isEmpty(getObjectWrapper().getOid())) {
+                    oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
+                } else {
+                    oid = getObjectWrapper().getOid();
+                }
+                return QueryUtils.filterForCasesOverUser(getPageBase().getPrismContext().queryFor(CaseType.class), oid)
+                        .desc(ItemPath.create(CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                        .buildFilter();
+            }
+
+            @Override
+            protected boolean isDashboard(){
+                return true;
+            }
+        };
+        casesPanel.add(new VisibleBehaviour(() -> tasksExist));
+        casesPanel.setOutputMarkupId(true);
+        add(casesPanel);
+    }
 }

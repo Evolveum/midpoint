@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2015-2016 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b"
@@ -11,10 +11,10 @@
     <name>Thief</name>
     <!-- No construction here. By purpose: to test exclusivity without any constructions. -->
     <policyConstraints>
-    	<exclusion>
-	    	<description>A thief cannot be a pirate at the same time. At least not openly.</description>
-	    	<enforcement>enforce</enforcement>
-	    	<targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
-    	</exclusion>
+        <exclusion>
+            <description>A thief cannot be a pirate at the same time. At least not openly.</description>
+            <enforcement>enforce</enforcement>
+            <targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
+        </exclusion>
     </policyConstraints>
 </role>

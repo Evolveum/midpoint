@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.helpers;
@@ -69,13 +69,13 @@ public class OrgClosureManager {
     private static final Trace LOGGER = TraceManager.getTrace(OrgClosureManager.class);
 
     @Autowired
-	@Qualifier("repositoryService")
+    @Qualifier("repositoryService")
     private RepositoryService repositoryService;
 
-	@Autowired
-	private BaseHelper baseHelper;
+    @Autowired
+    private BaseHelper baseHelper;
 
-    private static boolean DUMP_TABLES = false;
+    private static final boolean DUMP_TABLES = false;
     private static final boolean COUNT_CLOSURE_RECORDS = false;
     private static final String CLOSURE_TABLE_NAME = "m_org_closure";
     private static final String TEMP_DELTA_TABLE_NAME_FOR_ORACLE = "m_org_closure_temp_delta";
@@ -96,8 +96,8 @@ public class OrgClosureManager {
      * @param closureContext
      */
     public <T extends ObjectType> void updateOrgClosure(PrismObject<? extends ObjectType> originalObject,
-		    Collection<? extends ItemDelta> modifications, Session session, String oid, Class<T> type, Operation operation,
-		    Context closureContext) {
+            Collection<? extends ItemDelta> modifications, Session session, String oid, Class<T> type, Operation operation,
+            Context closureContext) {
         if (!isEnabled() || !OrgType.class.isAssignableFrom(type)) {
             return;
         }
@@ -895,7 +895,7 @@ public class OrgClosureManager {
             NativeQuery q = session.createNativeQuery("SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
             q.list();
         } else {
-        	throw new AssertionError("Neither H2 nor Oracle nor SQL Server");
+            throw new AssertionError("Neither H2 nor Oracle nor SQL Server");
         }
         LOGGER.trace("...locked in {} ms", System.currentTimeMillis()-start);
 

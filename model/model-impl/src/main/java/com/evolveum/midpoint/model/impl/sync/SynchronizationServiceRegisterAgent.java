@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,19 +25,19 @@ import javax.annotation.PreDestroy;
 @Component
 public class SynchronizationServiceRegisterAgent {
 
-	@Autowired
-	private SynchronizationService synchronizationService;
+    @Autowired
+    private SynchronizationService synchronizationService;
 
-	@Autowired
-	private ChangeNotificationDispatcher notificationManager;
+    @Autowired
+    private ChangeNotificationDispatcher notificationManager;
 
-	@PostConstruct
-	public void registerForResourceObjectChangeNotifications() {
-		notificationManager.registerNotificationListener(synchronizationService);
-	}
+    @PostConstruct
+    public void registerForResourceObjectChangeNotifications() {
+        notificationManager.registerNotificationListener(synchronizationService);
+    }
 
-	@PreDestroy
-	public void unregisterForResourceObjectChangeNotifications() {
-		notificationManager.unregisterNotificationListener(synchronizationService);
-	}
+    @PreDestroy
+    public void unregisterForResourceObjectChangeNotifications() {
+        notificationManager.unregisterNotificationListener(synchronizationService);
+    }
 }

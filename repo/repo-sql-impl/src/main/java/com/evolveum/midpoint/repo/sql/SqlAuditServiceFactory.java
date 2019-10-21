@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,11 +27,11 @@ import org.apache.commons.lang.StringUtils;
 public class SqlAuditServiceFactory implements AuditServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceFactory.class);
-    
+
     private static final String CONF_AUDIT_SERVICE_COLUMNS = "customColumn";
     private static final String CONF_AUDIT_SERVICE_COLUMN_NAME = "columnName";
     private static final String CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME = "eventRecordPropertyName";
-    
+
     private SqlRepositoryFactory repositoryFactory;
     private SqlAuditServiceImpl auditService;
 
@@ -62,23 +62,23 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
             auditService = new SqlAuditServiceImpl(repositoryFactory);
             List<SubnodeConfiguration> subConfigColumns = ((SubnodeConfiguration)config).configurationsAt(CONF_AUDIT_SERVICE_COLUMNS);
             for(SubnodeConfiguration subConfigColumn : subConfigColumns) {
-            	String columnName = getStringFromConfig(subConfigColumn, CONF_AUDIT_SERVICE_COLUMN_NAME);
-            	String eventRecordPropertyName = getStringFromConfig(subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
-            	auditService.getCustomColumn().put(eventRecordPropertyName, columnName);
+                String columnName = getStringFromConfig(subConfigColumn, CONF_AUDIT_SERVICE_COLUMN_NAME);
+                String eventRecordPropertyName = getStringFromConfig(subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
+                auditService.getCustomColumn().put(eventRecordPropertyName, columnName);
             }
         } catch (RepositoryServiceFactoryException ex) {
             throw new AuditServiceFactoryException(ex.getMessage(), ex);
         }
         LOGGER.info("Sql audit service factory initialization complete.");
     }
-    
+
     private String getStringFromConfig(Configuration config, String key) {
         String value = config.getString(key);
         if (StringUtils.isEmpty(value)) {
             LOGGER.error("Property with key ({}) not found in configuration. " +
                     "Provided configuration:\n{}", new Object[]{key, config});
             throw new SystemException("Property with key (" + key
-            		+ ") not found in configuration. Provided configuration:\n"
+                    + ") not found in configuration. Provided configuration:\n"
                     + config);
         }
 

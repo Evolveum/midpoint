@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,77 +25,77 @@ import java.io.Serializable;
  */
 public class DefaultReferencableImpl implements Referencable, Cloneable, Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private PrismReferenceValue referenceValue;
+    private PrismReferenceValue referenceValue;
 
-	public DefaultReferencableImpl(PrismReferenceValue value) {
-		this.referenceValue = value;
-	}
+    public DefaultReferencableImpl(PrismReferenceValue value) {
+        this.referenceValue = value;
+    }
 
-	@Override
-	public PrismReferenceValue asReferenceValue() {
-		return referenceValue;
-	}
+    @Override
+    public PrismReferenceValue asReferenceValue() {
+        return referenceValue;
+    }
 
-	@Override
-	public DefaultReferencableImpl setupReferenceValue(PrismReferenceValue value) {
-		referenceValue = value;
-		return this;
-	}
+    @Override
+    public DefaultReferencableImpl setupReferenceValue(PrismReferenceValue value) {
+        referenceValue = value;
+        return this;
+    }
 
-	@Override
-	public String getOid() {
-		return referenceValue.getOid();
-	}
+    @Override
+    public String getOid() {
+        return referenceValue.getOid();
+    }
 
-	@Override
-	public QName getType() {
-		return referenceValue.getTargetType();
-	}
+    @Override
+    public QName getType() {
+        return referenceValue.getTargetType();
+    }
 
-	@Override
-	public PolyStringType getTargetName() {
-		return PrismForJAXBUtil.getReferenceTargetName(referenceValue);
-	}
+    @Override
+    public PolyStringType getTargetName() {
+        return PrismForJAXBUtil.getReferenceTargetName(referenceValue);
+    }
 
-	@Override
-	public QName getRelation() {
-		return referenceValue.getRelation();
-	}
+    @Override
+    public QName getRelation() {
+        return referenceValue.getRelation();
+    }
 
-	@Override
-	public String getDescription() {
-		return referenceValue.getDescription();
-	}
+    @Override
+    public String getDescription() {
+        return referenceValue.getDescription();
+    }
 
-	@Override
-	public EvaluationTimeType getResolutionTime() {
-		return referenceValue.getResolutionTime();
-	}
+    @Override
+    public EvaluationTimeType getResolutionTime() {
+        return referenceValue.getResolutionTime();
+    }
 
-	@Override
-	public SearchFilterType getFilter() {
-		SearchFilterType filter = new SearchFilterType();
-		filter.setFilterClauseXNode(PrismForJAXBUtil.getReferenceFilterClauseXNode(referenceValue));
-		return filter;
-	}
+    @Override
+    public SearchFilterType getFilter() {
+        SearchFilterType filter = new SearchFilterType();
+        filter.setFilterClauseXNode(PrismForJAXBUtil.getReferenceFilterClauseXNode(referenceValue));
+        return filter;
+    }
 
-	public DefaultReferencableImpl clone() {
-		DefaultReferencableImpl clone;
-		try {
-			clone = (DefaultReferencableImpl) super.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new IllegalStateException(e);
-		}
-		if (referenceValue != null) {
-			clone.referenceValue = referenceValue.clone();
-		}
-		return clone;
-	}
+    public DefaultReferencableImpl clone() {
+        DefaultReferencableImpl clone;
+        try {
+            clone = (DefaultReferencableImpl) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException(e);
+        }
+        if (referenceValue != null) {
+            clone.referenceValue = referenceValue.clone();
+        }
+        return clone;
+    }
 
-	@Override
-	public String toString() {
-		return "DefaultReferencableImpl(" + referenceValue + ')';
-	}
+    @Override
+    public String toString() {
+        return "DefaultReferencableImpl(" + referenceValue + ')';
+    }
 }

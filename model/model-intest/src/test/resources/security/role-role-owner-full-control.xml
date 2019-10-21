@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="9c6e597e-dbd7-11e5-a538-97834c1cd5ba"
@@ -10,23 +10,23 @@
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
     <name>Role Owner Full Control</name>
     <authorization>
-    	<name>read-self</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<special>self</special>
-    	</object>
+        <name>read-self</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <special>self</special>
+        </object>
     </authorization>
     <authorization>
-    	<name>role-owner</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
-    	<object>
-    		<type>RoleType</type>
-    		<owner>
-    			<special>self</special>
-    		</owner>
-    	</object>
+        <name>role-owner</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+        <object>
+            <type>RoleType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
     </authorization>
 </role>

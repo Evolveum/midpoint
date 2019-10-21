@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 //
@@ -63,7 +63,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 })
 public class SchemaDefinitionType implements Cloneable, Serializable, JaxbVisitable {
 
-	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "SchemaDefinitionType");
+    public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "SchemaDefinitionType");
 
     @XmlAnyElement
     protected List<Element> any;
@@ -72,12 +72,12 @@ public class SchemaDefinitionType implements Cloneable, Serializable, JaxbVisita
     protected Element schema;
 
     public Element getSchema() {
-		return schema;
-	}
+        return schema;
+    }
 
-	public void setSchema(Element schema) {
-		this.schema = schema;
-	}
+    public void setSchema(Element schema) {
+        this.schema = schema;
+    }
 
     public List<Element> getAny() {
         if (any == null) {
@@ -86,34 +86,34 @@ public class SchemaDefinitionType implements Cloneable, Serializable, JaxbVisita
         return this.any;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((schema == null) ? 0 : schema.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((schema == null) ? 0 : schema.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		return equals(obj, false);
-	}
+    @Override
+    public boolean equals(Object obj) {
+        return equals(obj, false);
+    }
 
-	public boolean equals(Object obj, boolean isLiteral) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		SchemaDefinitionType other = (SchemaDefinitionType) obj;
-		if (schema == null) {
-			if (other.schema != null)
-				return false;
-		} else if (!DOMUtil.compareElement(schema, other.schema, isLiteral))
-			return false;
-		return true;
-	}
+    public boolean equals(Object obj, boolean isLiteral) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        SchemaDefinitionType other = (SchemaDefinitionType) obj;
+        if (schema == null) {
+            if (other.schema != null)
+                return false;
+        } else if (!DOMUtil.compareElement(schema, other.schema, isLiteral))
+            return false;
+        return true;
+    }
 
     public SchemaDefinitionType clone() throws CloneNotSupportedException {
         SchemaDefinitionType clone = (SchemaDefinitionType) super.clone();

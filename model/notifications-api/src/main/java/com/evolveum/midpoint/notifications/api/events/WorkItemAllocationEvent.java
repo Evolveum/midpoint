@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -24,31 +24,31 @@ import javax.xml.datatype.Duration;
  */
 public class WorkItemAllocationEvent extends WorkItemEvent {
 
-	public WorkItemAllocationEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
-			@NotNull ChangeType changeType,
-			@NotNull CaseWorkItemType workItem, @Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
-			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			@Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase,
-			@Nullable Duration timeBefore) {
+    public WorkItemAllocationEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
+            @NotNull ChangeType changeType,
+            @NotNull CaseWorkItemType workItem, @Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
+            @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
+            @Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase,
+            @Nullable Duration timeBefore) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator, operationInfo, sourceInfo,
-				approvalContext, aCase, null, timeBefore);
-	}
-
-	@Override
-    public boolean isCategoryType(EventCategoryType eventCategoryType) {
-        return eventCategoryType == EventCategoryType.WORK_ITEM_ALLOCATION_EVENT
-        		|| eventCategoryType == EventCategoryType.WORK_ITEM_EVENT
-				|| eventCategoryType == EventCategoryType.WORKFLOW_EVENT;
+                approvalContext, aCase, null, timeBefore);
     }
 
-	@Override
+    @Override
+    public boolean isCategoryType(EventCategoryType eventCategoryType) {
+        return eventCategoryType == EventCategoryType.WORK_ITEM_ALLOCATION_EVENT
+                || eventCategoryType == EventCategoryType.WORK_ITEM_EVENT
+                || eventCategoryType == EventCategoryType.WORKFLOW_EVENT;
+    }
+
+    @Override
     public void createExpressionVariables(VariablesMap variables, OperationResult result) {
         super.createExpressionVariables(variables, result);
     }
 
-	@Override
-	public String toString() {
-		return "WorkItemAllocationEvent:" + super.toString();
-	}
+    @Override
+    public String toString() {
+        return "WorkItemAllocationEvent:" + super.toString();
+    }
 
 }

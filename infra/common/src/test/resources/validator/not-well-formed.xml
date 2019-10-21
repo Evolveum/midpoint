@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -11,7 +11,7 @@
 
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-               
+
     <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
         <name>Localhost OpenDJ</name>
         <connectorConfiguration/>

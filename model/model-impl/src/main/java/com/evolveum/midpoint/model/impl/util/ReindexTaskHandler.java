@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -45,9 +45,9 @@ public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<
     public static final String HANDLER_URI = ModelPublicConstants.REINDEX_TASK_HANDLER_URI;
 
     // WARNING! This task handler is efficiently singleton!
- 	// It is a spring bean and it is supposed to handle all search task instances
- 	// Therefore it must not have task-specific fields. It can only contain fields specific to
- 	// all tasks of a specified type
+     // It is a spring bean and it is supposed to handle all search task instances
+     // Therefore it must not have task-specific fields. It can only contain fields specific to
+     // all tasks of a specified type
 
     private static final Trace LOGGER = TraceManager.getTrace(ReindexTaskHandler.class);
 
@@ -62,17 +62,17 @@ public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<
         taskManager.registerHandler(HANDLER_URI, this);
     }
 
-	@Override
-	protected ReindexResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult)
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, coordinatorTask, opResult);
+    @Override
+    protected ReindexResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult)
+            throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, coordinatorTask, opResult);
         return new ReindexResultHandler(coordinatorTask, ReindexTaskHandler.class.getName(),
-				"reindex", "reindex", taskManager, repositoryService);
-	}
+                "reindex", "reindex", taskManager, repositoryService);
+    }
 
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
-		return getTypeFromTask(task, ObjectType.class);
+        return getTypeFromTask(task, ObjectType.class);
     }
 
     @Override

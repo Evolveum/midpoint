@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="f23ab26c-69df-11e6-8330-979c643ea51c"
@@ -14,16 +14,16 @@
     <name>Project Omnimanager</name>
     <description>Manager of all projects</description>
     <inducement>
-    	<targetRef>
-    		<type>OrgType</type>
-    		<filter>
-				<q:equal>
-					<q:path>orgType</q:path>
-					<q:value>project</q:value>
-				</q:equal>
-    		</filter>
-    		<resolutionTime>run</resolutionTime>
-    		<relation>org:manager</relation>
-    	</targetRef>
+        <targetRef>
+            <type>OrgType</type>
+            <filter>
+                <q:equal>
+                    <q:path>orgType</q:path>
+                    <q:value>project</q:value>
+                </q:equal>
+            </filter>
+            <resolutionTime>run</resolutionTime>
+            <relation>org:manager</relation>
+        </targetRef>
     </inducement>
 </role>

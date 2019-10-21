@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,14 +17,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class SchemaHelper {
 
-	@Autowired
-	private PrismContext prismContext;
+    @Autowired
+    private PrismContext prismContext;
 
-	public PrismContext getPrismContext() {
-		return prismContext;
-	}
+    public PrismContext getPrismContext() {
+        return prismContext;
+    }
 
-	public GetOperationOptionsBuilder getOperationOptionsBuilder() {
-		return new GetOperationOptionsBuilderImpl(prismContext);
-	}
+    public GetOperationOptionsBuilder getOperationOptionsBuilder() {
+        return new GetOperationOptionsBuilderImpl(prismContext);
+    }
 }

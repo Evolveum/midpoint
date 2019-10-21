@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.xnode;
@@ -21,20 +21,20 @@ import java.util.Map;
 
 public interface ValueParser<T> {
 
-	T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException;
+    T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException;
 
-	// This has to work even without the type
-	boolean isEmpty();
+    // This has to work even without the type
+    boolean isEmpty();
 
-	/**
-	 * Returns the value represented as string - in the best format that we can.
-	 * This has to work even without knowing the exact data type. Therefore
-	 * there is no guarantee that the returned value will be precise.
-	 * This method is used as a "last instance" if everything else fails.
-	 * Invocation of this method will not change the state of the xnode, e.g.
-	 * it will NOT cause it to be parsed. It can be invoked without any side effects.
-	 */
-	String getStringValue();
+    /**
+     * Returns the value represented as string - in the best format that we can.
+     * This has to work even without knowing the exact data type. Therefore
+     * there is no guarantee that the returned value will be precise.
+     * This method is used as a "last instance" if everything else fails.
+     * Invocation of this method will not change the state of the xnode, e.g.
+     * it will NOT cause it to be parsed. It can be invoked without any side effects.
+     */
+    String getStringValue();
 
     /**
      * Returns namespaces that could be relevant when serializing unparsed string value

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,26 +21,26 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ExplicitWorkSegmentationStrategy extends BaseWorkSegmentationStrategy {
 
-	@NotNull private final ExplicitWorkSegmentationType bucketsConfiguration;
+    @NotNull private final ExplicitWorkSegmentationType bucketsConfiguration;
 
-	public ExplicitWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration, PrismContext prismContext) {
-		super(configuration, prismContext);
-		this.bucketsConfiguration = (ExplicitWorkSegmentationType)
-				TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(configuration);
-	}
+    public ExplicitWorkSegmentationStrategy(@NotNull TaskWorkManagementType configuration, PrismContext prismContext) {
+        super(configuration, prismContext);
+        this.bucketsConfiguration = (ExplicitWorkSegmentationType)
+                TaskWorkStateTypeUtil.getWorkSegmentationConfiguration(configuration);
+    }
 
-	@Override
-	protected AbstractWorkBucketContentType createAdditionalBucket(AbstractWorkBucketContentType lastBucketContent, Integer lastBucketSequentialNumber) {
-		int currentBucketNumber = lastBucketSequentialNumber != null ? lastBucketSequentialNumber : 0;
-		if (currentBucketNumber < bucketsConfiguration.getContent().size()) {
-			return bucketsConfiguration.getContent().get(currentBucketNumber);
-		} else {
-			return null;
-		}
-	}
+    @Override
+    protected AbstractWorkBucketContentType createAdditionalBucket(AbstractWorkBucketContentType lastBucketContent, Integer lastBucketSequentialNumber) {
+        int currentBucketNumber = lastBucketSequentialNumber != null ? lastBucketSequentialNumber : 0;
+        if (currentBucketNumber < bucketsConfiguration.getContent().size()) {
+            return bucketsConfiguration.getContent().get(currentBucketNumber);
+        } else {
+            return null;
+        }
+    }
 
-	@Override
-	public Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
-		return bucketsConfiguration.getContent().size();
-	}
+    @Override
+    public Integer estimateNumberOfBuckets(@Nullable TaskWorkStateType workState) {
+        return bucketsConfiguration.getContent().size();
+    }
 }

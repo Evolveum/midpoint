@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -87,831 +87,831 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestDummyParallelism extends AbstractBasicDummyTest {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestDummyParallelism.class);
-
-	@Autowired private CacheConfigurationManager cacheConfigurationManager;
-
-	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-parallelism");
-	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
-	
-	protected static final String GROUP_SCUM_NAME = "scum";
-
-	private static final long WAIT_TIMEOUT = 60000L;
-
-	private static final int DUMMY_OPERATION_DELAY_RANGE = 1500;
-
-	private static final int MESS_RESOURCE_ITERATIONS = 200;
-	
-	private final Random RND = new Random();
-
-	private String accountMorganOid;
-	private String accountElizabethOid;
-	private String accountWallyOid;
-
-	private String groupScumOid;
-
-	protected int getConcurrentTestNumberOfThreads() {
-		return 5;
-	}
-
-	protected int getConcurrentTestFastRandomStartDelayRange() {
-		return 10;
-	}
-	
-	protected int getConcurrentTestSlowRandomStartDelayRange() {
-		return 150;
-	}
-
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		dummyResource.setOperationDelayRange(DUMMY_OPERATION_DELAY_RANGE);
-//		InternalMonitor.setTraceConnectorOperation(true);
-	}
-
-	@Override
-	protected File getResourceDummyFile() {
-		return RESOURCE_DUMMY_FILE;
-	}
-
-	// test000-test106 in the superclasses
-	
-	protected void assertWillRepoShadowAfterCreate(PrismObject<ShadowType> repoShadow) {
-		ShadowAsserter.forShadow(repoShadow, "repo")
-			.assertActiveLifecycleState()
-			.pendingOperations()
-				.singleOperation()
-					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-					.delta()
-						.assertAdd();
-	}
-	
-	@Test
-	public void test120ModifyWillReplaceFullname() throws Exception {
-		final String TEST_NAME = "test120ModifyWillReplaceFullname";
-		displayTestTitle(TEST_NAME);
-
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		syncServiceMock.reset();
-
-		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Will Turner");
-		display("ObjectDelta", delta);
-		delta.checkConsistence();
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
-				new OperationProvisioningScriptsType(), null, task, result);
-
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-
-		assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
-		
-		assertRepoShadow(ACCOUNT_WILL_OID)
-			.assertActiveLifecycleState()
-			.pendingOperations()
-				.assertOperations(2)
-				.modifyOperation()
-					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-					.delta()
-						.assertModify();
-
-		syncServiceMock.assertNotifySuccessOnly();
-
-		assertSteadyResource();
-	}
-	
-	@Test
-	public void test190DeleteWill() throws Exception {
-		final String TEST_NAME = "test190DeleteWill";
-		displayTestTitle(TEST_NAME);
-
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		syncServiceMock.reset();
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
-
-		// THEN
-		displayThen(TEST_NAME);
-		assertSuccess(result);
-		syncServiceMock.assertNotifySuccessOnly();
-
-		assertNoDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-
-		assertRepoShadow(ACCOUNT_WILL_OID)
-			.assertDead()
-			.assertIsNotExists()
-			.pendingOperations()
-				.assertOperations(3)
-				.deleteOperation()
-					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
-					.delta()
-						.assertDelete();
-
-		assertShadowProvisioning(ACCOUNT_WILL_OID)
-			.assertTombstone();
-
-		assertSteadyResource();
-	}
-
-	/**
-	 * Maybe some chance of reproducing MID-5237. But not much,
-	 * as the dummy resource is uniqueness arbiter here.
-	 */
-	@Test
-	public void test200ParallelCreate() throws Exception {
-		final String TEST_NAME = "test200ParallelCreate";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		final Counter successCounter = new Counter();
-		rememberDummyResourceWriteOperationCount(null);
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		
-		accountMorganOid = null;
-
-		ParallelTestThread[] threads = multithread(TEST_NAME,
-				(i) -> {
-					Task localTask = createTask(TEST_NAME + ".local");
-					OperationResult localResult = localTask.getResult();
-
-					ShadowType account = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
-
-					try {
-						String thisAccountMorganOid = provisioningService.addObject(account.asPrismObject(), null, null, localTask, localResult);
-						successCounter.click();
-						
-						synchronized (dummyResource) {
-							if (accountMorganOid == null) {
-								accountMorganOid = thisAccountMorganOid;
-							} else {
-								assertEquals("Whoops! Create shadow OID mismatch", accountMorganOid, thisAccountMorganOid);
-							}
-						}
-					} catch (ObjectAlreadyExistsException e) {
-						// this is expected ... sometimes
-						LOGGER.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
-					}
-
-				}, 15, getConcurrentTestFastRandomStartDelayRange());
-
-		// THEN
-		displayThen(TEST_NAME);
-		waitForThreads(threads, WAIT_TIMEOUT);
-
-		successCounter.assertCount("Wrong number of successful operations", 1);
-
-		PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountMorganOid, null, task, result);
-		display("Shadow after", shadowAfter);
-
-		assertDummyResourceWriteOperationCountIncrement(null, 1);
-		
-		checkUniqueness(shadowAfter);
-
-		assertSteadyResource();
-	}
-
-	/**
-	 * Create a lot parallel modifications for the same property and the same value.
-	 * These should all be eliminated - except for one of them.
-	 * 
-	 * There is a slight chance that one of the thread starts after the first operation
-	 * is finished. But the threads are fast and the operations are slow. So this is
-	 * a very slim chance.
-	 */
-	@Test
-	public void test202ParallelModifyCaptainMorgan() throws Exception {
-		final String TEST_NAME = "test202ParallelModifyCaptainMorgan";
-		
-		PrismObject<ShadowType> shadowAfter = parallelModifyTest(TEST_NAME,
-				() -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-						accountMorganOid, dummyResourceCtl.getAttributeFullnamePath(), "Captain Morgan"));
-		
-		assertAttribute(shadowAfter, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
-	}
-	
-	/**
-	 * Create a lot parallel modifications for the same property and the same value.
-	 * These should all be eliminated - except for one of them.
-	 * 
-	 * There is a slight chance that one of the thread starts after the first operation
-	 * is finished. But the threads are fast and the operations are slow. So this is
-	 * a very slim chance.
-	 */
-	@Test
-	public void test204ParallelModifyDisable() throws Exception {
-		final String TEST_NAME = "test204ParallelModifyDisable";
-		
-		PrismObject<ShadowType> shadowAfter = parallelModifyTest(TEST_NAME,
-				() -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-						accountMorganOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-						ActivationStatusType.DISABLED));
-
-		assertActivationAdministrativeStatus(shadowAfter, ActivationStatusType.DISABLED);
-	}
-		
-	private PrismObject<ShadowType> parallelModifyTest(final String TEST_NAME, FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
-		displayTestTitle(TEST_NAME);
-
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		
-		final Counter successCounter = new Counter();
-		rememberDummyResourceWriteOperationCount(null);
-
-		// WHEN
-		displayWhen(TEST_NAME);
-
-		ParallelTestThread[] threads = multithread(TEST_NAME,
-				(i) -> {
-					Task localTask = createTask(TEST_NAME + ".local");
-					OperationResult localResult = localTask.getResult();
-					
-					RepositoryCache.enter(cacheConfigurationManager);
-					// Playing with cache, trying to make a worst case
-					PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountMorganOid, null, localResult);
-
-					randomDelay(getConcurrentTestSlowRandomStartDelayRange());
-					LOGGER.info("{} starting to do some work", Thread.currentThread().getName());
-					
-					ObjectDelta<ShadowType> delta = deltaProducer.run();
-					display("ObjectDelta", delta);
-					
-					provisioningService.modifyObject(ShadowType.class, accountMorganOid, delta.getModifications(), null, null, localTask, localResult);
-					
-					localResult.computeStatus();
-					display("Thread "+Thread.currentThread().getName()+" DONE, result", localResult);
-					if (localResult.isSuccess()) {
-						successCounter.click();
-					} else if (localResult.isInProgress()) {
-						// expected
-					} else {
-						fail("Unexpected thread result status " + localResult.getStatus());
-					}
-					
-					RepositoryCache.exit();
-
-				}, getConcurrentTestNumberOfThreads(), getConcurrentTestFastRandomStartDelayRange());
-
-		// THEN
-		displayThen(TEST_NAME);
-		waitForThreads(threads, WAIT_TIMEOUT);
-
-		PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountMorganOid, null, task, result);
-		display("Shadow after", shadowAfter);
-		
-		successCounter.assertCount("Wrong number of successful operations", 1);
-
-		assertDummyResourceWriteOperationCountIncrement(null, 1);
-
-		assertSteadyResource();
-		
-		return shadowAfter;
-	}
-	
-	@Test
-	public void test209ParallelDelete() throws Exception {
-		final String TEST_NAME = "test209ParallelDelete";
-		displayTestTitle(TEST_NAME);
-
-		// GIVEN
-		final Counter successCounter = new Counter();
-		rememberDummyResourceWriteOperationCount(null);
-
-		// WHEN
-		displayWhen(TEST_NAME);
-
-		ParallelTestThread[] threads = multithread(TEST_NAME,
-				(i) -> {
-					Task localTask = createTask(TEST_NAME + ".local");
-					OperationResult localResult = localTask.getResult();
-					
-					RepositoryCache.enter(cacheConfigurationManager);
-					
-					try {
-						display("Thread "+Thread.currentThread().getName()+" START");
-						provisioningService.deleteObject(ShadowType.class, accountMorganOid, null, null, localTask, localResult);
-						localResult.computeStatus();
-						display("Thread "+Thread.currentThread().getName()+" DONE, result", localResult);
-						if (localResult.isSuccess()) {
-							successCounter.click();
-						} else if (localResult.isInProgress()) {
-							// expected
-						} else if (localResult.isHandledError()) {
-							// harmless. The account was just deleted in another thread.
-						} else {
-							fail("Unexpected thread result status " + localResult.getStatus());
-						}
-					} catch (ObjectNotFoundException e) {
-						// this is expected ... sometimes
-						LOGGER.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
-					} finally {
-						RepositoryCache.exit();
-					}
-
-				}, getConcurrentTestNumberOfThreads(), getConcurrentTestFastRandomStartDelayRange());
-
-		// THEN
-		displayThen(TEST_NAME);
-		waitForThreads(threads, WAIT_TIMEOUT);
-
-		successCounter.assertCount("Wrong number of successful operations", 1);
-
-		assertRepoShadow(accountMorganOid)
-			.assertTombstone();
-		
-		assertShadowProvisioning(accountMorganOid)
-			.assertTombstone();
-
-		assertDummyResourceWriteOperationCountIncrement(null, 1);
-
-		assertSteadyResource();
-	}
-
-	@Test
-	public void test210ParallelCreateSlow() throws Exception {
-		final String TEST_NAME = "test210ParallelCreateSlow";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		final Counter successCounter = new Counter();
-		rememberDummyResourceWriteOperationCount(null);
-
-		// WHEN
-		displayWhen(TEST_NAME);
-
-		ParallelTestThread[] threads = multithread(TEST_NAME,
-				(i) -> {
-					Task localTask = createTask(TEST_NAME + ".local");
-					OperationResult localResult = localTask.getResult();
-					
-					RepositoryCache.enter(cacheConfigurationManager);
-					
-					randomDelay(getConcurrentTestSlowRandomStartDelayRange());
-					LOGGER.info("{} starting to do some work", Thread.currentThread().getName());
-
-					ShadowType account = parseObjectType(ACCOUNT_ELIZABETH_FILE, ShadowType.class);
-
-					try {
-						accountElizabethOid = provisioningService.addObject(account.asPrismObject(), null, null, localTask, localResult);
-						successCounter.click();
-					} catch (ObjectAlreadyExistsException e) {
-						// this is expected ... sometimes
-						LOGGER.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
-					} finally {
-						RepositoryCache.exit();
-					}
-
-				}, getConcurrentTestNumberOfThreads(), null);
-
-		// THEN
-		displayThen(TEST_NAME);
-		waitForThreads(threads, WAIT_TIMEOUT);
-
-		successCounter.assertCount("Wrong number of successful operations", 1);
-
-		PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountElizabethOid, null, task, result);
-		display("Shadow after", shadowAfter);
-
-		assertDummyResourceWriteOperationCountIncrement(null, 1);
-
-		assertSteadyResource();
-	}
-
-	/**
-	 * Create a lot parallel modifications for the same property and the same value.
-	 * These should all be eliminated - except for one of them.
-	 * 
-	 * There is a slight chance that one of the thread starts after the first operation
-	 * is finished. But the threads are fast and the operations are slow. So this is
-	 * a very slim chance.
-	 */
-	@Test
-	public void test212ParallelModifyElizabethSlow() throws Exception {
-		final String TEST_NAME = "test212ParallelModifyElizabethSlow";
-		
-		PrismObject<ShadowType> shadowAfter = parallelModifyTestSlow(TEST_NAME,
-				() -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-						accountElizabethOid, dummyResourceCtl.getAttributeFullnamePath(), "Miss Swan"));
-		
-		assertAttribute(shadowAfter, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Miss Swan");
-	}
-	
-	/**
-	 * Create a lot parallel modifications for the same property and the same value.
-	 * These should all be eliminated - except for one of them.
-	 * 
-	 * There is a slight chance that one of the thread starts after the first operation
-	 * is finished. But the threads are fast and the operations are slow. So this is
-	 * a very slim chance.
-	 */
-	@Test
-	public void test214ParallelModifyDisableSlow() throws Exception {
-		final String TEST_NAME = "test214ParallelModifyDisableSlow";
-		
-		PrismObject<ShadowType> shadowAfter = parallelModifyTestSlow(TEST_NAME,
-				() -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
-						accountElizabethOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-						ActivationStatusType.DISABLED));
-
-		assertActivationAdministrativeStatus(shadowAfter, ActivationStatusType.DISABLED);
-	}
-		
-	private PrismObject<ShadowType> parallelModifyTestSlow(final String TEST_NAME, FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
-		displayTestTitle(TEST_NAME);
-
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		
-		final Counter successCounter = new Counter();
-		rememberDummyResourceWriteOperationCount(null);
-
-		// WHEN
-		displayWhen(TEST_NAME);
-
-		ParallelTestThread[] threads = multithread(TEST_NAME,
-				(i) -> {
-					Task localTask = createTask(TEST_NAME + ".local");
-					OperationResult localResult = localTask.getResult();
-
-					RepositoryCache.enter(cacheConfigurationManager);
-					// Playing with cache, trying to make a worst case
-					PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountElizabethOid, null, localResult);
-
-					randomDelay(getConcurrentTestSlowRandomStartDelayRange());
-					LOGGER.info("{} starting to do some work", Thread.currentThread().getName());
-					
-					ObjectDelta<ShadowType> delta = deltaProducer.run();
-					display("ObjectDelta", delta);
-					
-					provisioningService.modifyObject(ShadowType.class, accountElizabethOid, delta.getModifications(), null, null, localTask, localResult);
-					
-					localResult.computeStatus();
-					display("Thread "+Thread.currentThread().getName()+" DONE, result", localResult);
-					if (localResult.isSuccess()) {
-						successCounter.click();
-					} else if (localResult.isInProgress()) {
-						// expected
-					} else {
-						fail("Unexpected thread result status " + localResult.getStatus());
-					}
-					
-					RepositoryCache.exit();
-
-				}, getConcurrentTestNumberOfThreads(), null);
-
-		// THEN
-		displayThen(TEST_NAME);
-		waitForThreads(threads, WAIT_TIMEOUT);
-
-		PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountElizabethOid, null, task, result);
-		display("Shadow after", shadowAfter);
-		
-		successCounter.assertCount("Wrong number of successful operations", 1);
-
-		assertDummyResourceWriteOperationCountIncrement(null, 1);
-
-		assertSteadyResource();
-		
-		return shadowAfter;
-	}
-
-	
-	@Test
-	public void test229ParallelDeleteSlow() throws Exception {
-		final String TEST_NAME = "test229ParallelDeleteSlow";
-		displayTestTitle(TEST_NAME);
-
-		// GIVEN
-		final Counter successCounter = new Counter();
-		rememberDummyResourceWriteOperationCount(null);
-
-		// WHEN
-		displayWhen(TEST_NAME);
-
-		ParallelTestThread[] threads = multithread(TEST_NAME,
-				(i) -> {
-					Task localTask = createTask(TEST_NAME + ".local");
-					OperationResult localResult = localTask.getResult();
-					
-					RepositoryCache.enter(cacheConfigurationManager);
-					// Playing with cache, trying to make a worst case
-					PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountElizabethOid, null, localResult);
-
-					randomDelay(getConcurrentTestSlowRandomStartDelayRange());
-					LOGGER.info("{} starting to do some work", Thread.currentThread().getName());
-					
-					try {
-						display("Thread "+Thread.currentThread().getName()+" START");
-						provisioningService.deleteObject(ShadowType.class, accountElizabethOid, null, null, localTask, localResult);
-						localResult.computeStatus();
-						display("Thread "+Thread.currentThread().getName()+" DONE, result", localResult);
-						if (localResult.isSuccess()) {
-							successCounter.click();
-						} else if (localResult.isInProgress()) {
-							// expected
-						} else {
-							fail("Unexpected thread result status " + localResult.getStatus());
-						}
-					} catch (ObjectNotFoundException e) {
-						// this is expected ... sometimes
-						LOGGER.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
-					} finally {
-						RepositoryCache.exit();
-					}
-
-				}, getConcurrentTestNumberOfThreads(), null);
-
-		// THEN
-		displayThen(TEST_NAME);
-		waitForThreads(threads, WAIT_TIMEOUT);
-
-		successCounter.assertCount("Wrong number of successful operations", 1);
-
-		assertRepoShadow(accountElizabethOid)
-			.assertTombstone();
-	
-		assertShadowProvisioning(accountElizabethOid)
-			.assertTombstone();
-
-		assertDummyResourceWriteOperationCountIncrement(null, 1);
-
-		assertSteadyResource();
-	}
-	
-	/**
-	 * Search for group that we do not have any shadow for yet.
-	 * Do that in several threads at once. The group will be "discovered"
-	 * by the threads at the same time, each thread trying to create shadow.
-	 * There is a chance that the shadows get duplicated.
-	 * 
-	 * MID-5237
-	 */
-	@Test
-	public void test230ParallelGroupSearch() throws Exception {
-		final String TEST_NAME = "test230ParallelGroupSearch";
-		displayTestTitle(TEST_NAME);
-		// GIVEN
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-
-		DummyGroup groupScum = new DummyGroup(GROUP_SCUM_NAME);
-		dummyResource.addGroup(groupScum);
-		
-		final Counter successCounter = new Counter();
-		rememberDummyResourceWriteOperationCount(null);
-		
-		groupScumOid = null;
-		dummyResource.setOperationDelayOffset(0);
-		dummyResource.setOperationDelayRange(0);
-		dummyResource.setSyncSearchHandlerStart(true);
-
-		ParallelTestThread[] threads = multithread(TEST_NAME,
-				(i) -> {
-					Task localTask = createTask(TEST_NAME + ".local");
-					OperationResult localResult = localTask.getResult();
-
-					ObjectQuery query = createGroupNameQuery(GROUP_SCUM_NAME);
-					
-					SearchResultList<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
-					assertEquals("Unexpected number of shadows found: "+foundObjects, 1, foundObjects.size());
-					successCounter.click();
-					
-					PrismObject<ShadowType> groupShadow = foundObjects.get(0);
-					
-					synchronized (dummyResource) {
-						if (groupScumOid == null) {
-							groupScumOid = groupShadow.getOid();
-						} else {
-							assertEquals("Whoops! Create shadow OID mismatch", groupScumOid, groupShadow.getOid());
-						}
-					}
-
-				}, 10, null); // No need to user more than 10 threads, we are going to max out connector pool anyway.
-		
-		// Give some time for all the threads to start
-		// The threads should be blocked just before search handler invocation
-		Thread.sleep(100);
-
-		// WHEN
-		displayWhen(TEST_NAME);
-		
-		// Unblock the handlers. And here we go!
-		dummyResource.unblockAll();
-		
-		// THEN
-		displayThen(TEST_NAME);
-		waitForThreads(threads, WAIT_TIMEOUT);
-
-		dummyResource.setSyncSearchHandlerStart(false);
-		successCounter.assertCount("Wrong number of successful operations", 10);
-
-		PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, groupScumOid, null, task, result);
-		display("Shadow after", shadowAfter);
-
-		checkUniqueness(shadowAfter);
-
-		assertSteadyResource();
-	}
-
-	private ObjectQuery createGroupNameQuery(String groupName) throws SchemaException {
-		
-		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
-				RESOURCE_DUMMY_OID, 
-				new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECTCLAS_GROUP_LOCAL_NAME),
-				prismContext);
-		
-		ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
-		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(OBJECTCLAS_GROUP_LOCAL_NAME);
-		ResourceAttributeDefinition<String> attrDef = objectClassDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
-		ObjectFilter nameFilter = prismContext.queryFor(ShadowType.class)
-				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(groupName)
-				.buildFilter();
-		
-		query.setFilter(ObjectQueryUtil.filterAnd(query.getFilter(), nameFilter, prismContext));
-		return query;
-	}
-
-	/**
-	 * Several threads reading from resource. Couple other threads try to get into the way
-	 * by modifying the resource, hence forcing connector re-initialization.
-	 * The goal is to detect connector initialization race conditions.
-	 * 
-	 * MID-5068
-	 */
-	@Test
-	public void test800ParallelReadAndModifyResource() throws Exception {
-		final String TEST_NAME = "test800ParallelReadAndModifyResource";
-		displayTestTitle(TEST_NAME);
-
-		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
-		
-		// Previous test will max out the connector pool
-		dummyResource.assertConnections(10);
-		assertDummyConnectorInstances(10);
-		
-		dummyResource.setOperationDelayOffset(0);
-		dummyResource.setOperationDelayRange(0);
-		
-		PrismObject<ShadowType> accountBefore = parseObject(ACCOUNT_WALLY_FILE);
-		display("Account before", accountBefore);
-		accountWallyOid = provisioningService.addObject(accountBefore, null, null, task, result);
-		PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, accountWallyOid, null, task, result);
-		result.computeStatus();
-		if (result.getStatus() != OperationResultStatus.SUCCESS) {
-			display("Failed read result (precondition)", result);
-			fail("Unexpected read status (precondition): "+result.getStatus());
-		}
-		
-		// WHEN
-		displayWhen(TEST_NAME);
-		
-		long t0 = System.currentTimeMillis();
-		MutableBoolean readFinished = new MutableBoolean();
-
-		ParallelTestThread[] threads = multithread(TEST_NAME,
-				(threadIndex) -> {
-				
-					if (threadIndex <= 6) {
-						
-						for (int i = 0; /* neverending */ ; i++) {
-							
-							messResource(TEST_NAME, threadIndex, i);
-							
-							display("T +"+(System.currentTimeMillis() - t0));
-							
-							if (readFinished.booleanValue()) {
-								break;
-							}
-							
-						}	
-						
-					} else if (threadIndex == 7) {
-						
-						for (int i = 0; /* neverending */ ; i++) {
-							
-							Task localTask = createTask(TEST_NAME + ".test."+i);
-							
-							LOGGER.debug("PAR: TESTing "+threadIndex+"."+i);
-							
-							OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, localTask);
-							
-							display("PAR: TESTed "+threadIndex+"."+i+": "+testResult.getStatus());
-							
-							if (testResult.getStatus() != OperationResultStatus.SUCCESS) {
-								display("Failed test resource result", testResult);
-								readFinished.setValue(true);
-								fail("Unexpected test resource result status: "+testResult.getStatus());
-							}
-							
-							if (readFinished.booleanValue()) {
-								break;
-							}
-							
-						}	
-						
-					} else {
-
-						try {
-							for (int i = 0; i < MESS_RESOURCE_ITERATIONS; i++) {
-								Task localTask = createTask(TEST_NAME + ".op."+i);
-								OperationResult localResult = localTask.getResult();
-
-								LOGGER.debug("PAR: OPing "+threadIndex+"."+i);
-								
-								Object out = doResourceOperation(threadIndex, i, localTask, localResult);
-								
-								localResult.computeStatus();
-								display("PAR: OPed "+threadIndex+"."+i+": " + out.toString() + ": "+localResult.getStatus());
-								
-								if (localResult.getStatus() != OperationResultStatus.SUCCESS) {
-									display("Failed read result", localResult);
-									readFinished.setValue(true);
-									fail("Unexpected read status: "+localResult.getStatus());
-								}
-								
-								if (readFinished.booleanValue()) {
-									break;
-								}
-							}
-						} finally {
-							readFinished.setValue(true);
-						}
-					}
-					
-					display("mischief managed ("+threadIndex+")");
-
-				}, 15, getConcurrentTestFastRandomStartDelayRange());
-
-		// THEN
-		displayThen(TEST_NAME);
-		waitForThreads(threads, WAIT_TIMEOUT);
-		
-		PrismObject<ResourceType> resourceAfter = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
-		display("resource after", resourceAfter);
-		
-		List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, task, result);
-		display("Dummy connector stats after", stats);
-		
-		display("Dummy resource connections", dummyResource.getConnectionCount());
-		
-		assertDummyConnectorInstances(dummyResource.getConnectionCount());
-	}
-
-	private Object doResourceOperation(int threadIndex, int i, Task task, OperationResult result) throws Exception {
-		int op = RND.nextInt(3);
-		
-		if (op == 0) {
-			return provisioningService.getObject(ShadowType.class, accountWallyOid, null, task, result);
-			
-		} else if (op == 1) {
-			ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, prismContext);
-			List<PrismObject<ShadowType>> list = new ArrayList<>();
-			ResultHandler<ShadowType> handler = (o,or) -> { list.add(o); return true; };
-			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
-			return list;
-			
-		} else if (op == 2) {
-			ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, prismContext);
-			return provisioningService.searchObjects(ShadowType.class, query, null, task, result);
-		}
-		return null;
-	}
-
-	private void messResource(final String TEST_NAME, int threadIndex, int i) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
-		Task task = createTask(TEST_NAME+".mess."+threadIndex+"."+i);
-		OperationResult result = task.getResult();
-		List<ItemDelta<?,?>> deltas = deltaFor(ResourceType.class)
-			.item(ResourceType.F_DESCRIPTION).replace("Iter "+threadIndex+"."+i)
-			.asItemDeltas();
-		
-		LOGGER.debug("PAR: MESSing "+threadIndex+"."+i);
-		
-		provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, deltas, null, null, task, result);
-		result.computeStatus();
-		
-		display("PAR: MESSed "+threadIndex+"."+i+": "+result.getStatus());
-		
-		if (result.getStatus() != OperationResultStatus.SUCCESS) {
-			display("Failed mess resource result", result);
-			fail("Unexpected mess resource result status: "+result.getStatus());
-		}
-	}
+    private static final Trace LOGGER = TraceManager.getTrace(TestDummyParallelism.class);
+
+    @Autowired private CacheConfigurationManager cacheConfigurationManager;
+
+    public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-parallelism");
+    public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
+
+    protected static final String GROUP_SCUM_NAME = "scum";
+
+    private static final long WAIT_TIMEOUT = 60000L;
+
+    private static final int DUMMY_OPERATION_DELAY_RANGE = 1500;
+
+    private static final int MESS_RESOURCE_ITERATIONS = 200;
+
+    private final Random RND = new Random();
+
+    private String accountMorganOid;
+    private String accountElizabethOid;
+    private String accountWallyOid;
+
+    private String groupScumOid;
+
+    protected int getConcurrentTestNumberOfThreads() {
+        return 5;
+    }
+
+    protected int getConcurrentTestFastRandomStartDelayRange() {
+        return 10;
+    }
+
+    protected int getConcurrentTestSlowRandomStartDelayRange() {
+        return 150;
+    }
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        dummyResource.setOperationDelayRange(DUMMY_OPERATION_DELAY_RANGE);
+//        InternalMonitor.setTraceConnectorOperation(true);
+    }
+
+    @Override
+    protected File getResourceDummyFile() {
+        return RESOURCE_DUMMY_FILE;
+    }
+
+    // test000-test106 in the superclasses
+
+    protected void assertWillRepoShadowAfterCreate(PrismObject<ShadowType> repoShadow) {
+        ShadowAsserter.forShadow(repoShadow, "repo")
+            .assertActiveLifecycleState()
+            .pendingOperations()
+                .singleOperation()
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                    .delta()
+                        .assertAdd();
+    }
+
+    @Test
+    public void test120ModifyWillReplaceFullname() throws Exception {
+        final String TEST_NAME = "test120ModifyWillReplaceFullname";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
+
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), "Pirate Will Turner");
+        display("ObjectDelta", delta);
+        delta.checkConsistence();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+                new OperationProvisioningScriptsType(), null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+            .assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
+
+        assertRepoShadow(ACCOUNT_WILL_OID)
+            .assertActiveLifecycleState()
+            .pendingOperations()
+                .assertOperations(2)
+                .modifyOperation()
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                    .delta()
+                        .assertModify();
+
+        syncServiceMock.assertNotifySuccessOnly();
+
+        assertSteadyResource();
+    }
+
+    @Test
+    public void test190DeleteWill() throws Exception {
+        final String TEST_NAME = "test190DeleteWill";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        syncServiceMock.assertNotifySuccessOnly();
+
+        assertNoDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+
+        assertRepoShadow(ACCOUNT_WILL_OID)
+            .assertDead()
+            .assertIsNotExists()
+            .pendingOperations()
+                .assertOperations(3)
+                .deleteOperation()
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                    .delta()
+                        .assertDelete();
+
+        assertShadowProvisioning(ACCOUNT_WILL_OID)
+            .assertTombstone();
+
+        assertSteadyResource();
+    }
+
+    /**
+     * Maybe some chance of reproducing MID-5237. But not much,
+     * as the dummy resource is uniqueness arbiter here.
+     */
+    @Test
+    public void test200ParallelCreate() throws Exception {
+        final String TEST_NAME = "test200ParallelCreate";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        final Counter successCounter = new Counter();
+        rememberDummyResourceWriteOperationCount(null);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        accountMorganOid = null;
+
+        ParallelTestThread[] threads = multithread(TEST_NAME,
+                (i) -> {
+                    Task localTask = createTask(TEST_NAME + ".local");
+                    OperationResult localResult = localTask.getResult();
+
+                    ShadowType account = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
+
+                    try {
+                        String thisAccountMorganOid = provisioningService.addObject(account.asPrismObject(), null, null, localTask, localResult);
+                        successCounter.click();
+
+                        synchronized (dummyResource) {
+                            if (accountMorganOid == null) {
+                                accountMorganOid = thisAccountMorganOid;
+                            } else {
+                                assertEquals("Whoops! Create shadow OID mismatch", accountMorganOid, thisAccountMorganOid);
+                            }
+                        }
+                    } catch (ObjectAlreadyExistsException e) {
+                        // this is expected ... sometimes
+                        LOGGER.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
+                    }
+
+                }, 15, getConcurrentTestFastRandomStartDelayRange());
+
+        // THEN
+        displayThen(TEST_NAME);
+        waitForThreads(threads, WAIT_TIMEOUT);
+
+        successCounter.assertCount("Wrong number of successful operations", 1);
+
+        PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountMorganOid, null, task, result);
+        display("Shadow after", shadowAfter);
+
+        assertDummyResourceWriteOperationCountIncrement(null, 1);
+
+        checkUniqueness(shadowAfter);
+
+        assertSteadyResource();
+    }
+
+    /**
+     * Create a lot parallel modifications for the same property and the same value.
+     * These should all be eliminated - except for one of them.
+     *
+     * There is a slight chance that one of the thread starts after the first operation
+     * is finished. But the threads are fast and the operations are slow. So this is
+     * a very slim chance.
+     */
+    @Test
+    public void test202ParallelModifyCaptainMorgan() throws Exception {
+        final String TEST_NAME = "test202ParallelModifyCaptainMorgan";
+
+        PrismObject<ShadowType> shadowAfter = parallelModifyTest(TEST_NAME,
+                () -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                        accountMorganOid, dummyResourceCtl.getAttributeFullnamePath(), "Captain Morgan"));
+
+        assertAttribute(shadowAfter, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
+    }
+
+    /**
+     * Create a lot parallel modifications for the same property and the same value.
+     * These should all be eliminated - except for one of them.
+     *
+     * There is a slight chance that one of the thread starts after the first operation
+     * is finished. But the threads are fast and the operations are slow. So this is
+     * a very slim chance.
+     */
+    @Test
+    public void test204ParallelModifyDisable() throws Exception {
+        final String TEST_NAME = "test204ParallelModifyDisable";
+
+        PrismObject<ShadowType> shadowAfter = parallelModifyTest(TEST_NAME,
+                () -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                        accountMorganOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                        ActivationStatusType.DISABLED));
+
+        assertActivationAdministrativeStatus(shadowAfter, ActivationStatusType.DISABLED);
+    }
+
+    private PrismObject<ShadowType> parallelModifyTest(final String TEST_NAME, FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        final Counter successCounter = new Counter();
+        rememberDummyResourceWriteOperationCount(null);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        ParallelTestThread[] threads = multithread(TEST_NAME,
+                (i) -> {
+                    Task localTask = createTask(TEST_NAME + ".local");
+                    OperationResult localResult = localTask.getResult();
+
+                    RepositoryCache.enter(cacheConfigurationManager);
+                    // Playing with cache, trying to make a worst case
+                    PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountMorganOid, null, localResult);
+
+                    randomDelay(getConcurrentTestSlowRandomStartDelayRange());
+                    LOGGER.info("{} starting to do some work", Thread.currentThread().getName());
+
+                    ObjectDelta<ShadowType> delta = deltaProducer.run();
+                    display("ObjectDelta", delta);
+
+                    provisioningService.modifyObject(ShadowType.class, accountMorganOid, delta.getModifications(), null, null, localTask, localResult);
+
+                    localResult.computeStatus();
+                    display("Thread "+Thread.currentThread().getName()+" DONE, result", localResult);
+                    if (localResult.isSuccess()) {
+                        successCounter.click();
+                    } else if (localResult.isInProgress()) {
+                        // expected
+                    } else {
+                        fail("Unexpected thread result status " + localResult.getStatus());
+                    }
+
+                    RepositoryCache.exit();
+
+                }, getConcurrentTestNumberOfThreads(), getConcurrentTestFastRandomStartDelayRange());
+
+        // THEN
+        displayThen(TEST_NAME);
+        waitForThreads(threads, WAIT_TIMEOUT);
+
+        PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountMorganOid, null, task, result);
+        display("Shadow after", shadowAfter);
+
+        successCounter.assertCount("Wrong number of successful operations", 1);
+
+        assertDummyResourceWriteOperationCountIncrement(null, 1);
+
+        assertSteadyResource();
+
+        return shadowAfter;
+    }
+
+    @Test
+    public void test209ParallelDelete() throws Exception {
+        final String TEST_NAME = "test209ParallelDelete";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        final Counter successCounter = new Counter();
+        rememberDummyResourceWriteOperationCount(null);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        ParallelTestThread[] threads = multithread(TEST_NAME,
+                (i) -> {
+                    Task localTask = createTask(TEST_NAME + ".local");
+                    OperationResult localResult = localTask.getResult();
+
+                    RepositoryCache.enter(cacheConfigurationManager);
+
+                    try {
+                        display("Thread "+Thread.currentThread().getName()+" START");
+                        provisioningService.deleteObject(ShadowType.class, accountMorganOid, null, null, localTask, localResult);
+                        localResult.computeStatus();
+                        display("Thread "+Thread.currentThread().getName()+" DONE, result", localResult);
+                        if (localResult.isSuccess()) {
+                            successCounter.click();
+                        } else if (localResult.isInProgress()) {
+                            // expected
+                        } else if (localResult.isHandledError()) {
+                            // harmless. The account was just deleted in another thread.
+                        } else {
+                            fail("Unexpected thread result status " + localResult.getStatus());
+                        }
+                    } catch (ObjectNotFoundException e) {
+                        // this is expected ... sometimes
+                        LOGGER.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
+                    } finally {
+                        RepositoryCache.exit();
+                    }
+
+                }, getConcurrentTestNumberOfThreads(), getConcurrentTestFastRandomStartDelayRange());
+
+        // THEN
+        displayThen(TEST_NAME);
+        waitForThreads(threads, WAIT_TIMEOUT);
+
+        successCounter.assertCount("Wrong number of successful operations", 1);
+
+        assertRepoShadow(accountMorganOid)
+            .assertTombstone();
+
+        assertShadowProvisioning(accountMorganOid)
+            .assertTombstone();
+
+        assertDummyResourceWriteOperationCountIncrement(null, 1);
+
+        assertSteadyResource();
+    }
+
+    @Test
+    public void test210ParallelCreateSlow() throws Exception {
+        final String TEST_NAME = "test210ParallelCreateSlow";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        final Counter successCounter = new Counter();
+        rememberDummyResourceWriteOperationCount(null);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        ParallelTestThread[] threads = multithread(TEST_NAME,
+                (i) -> {
+                    Task localTask = createTask(TEST_NAME + ".local");
+                    OperationResult localResult = localTask.getResult();
+
+                    RepositoryCache.enter(cacheConfigurationManager);
+
+                    randomDelay(getConcurrentTestSlowRandomStartDelayRange());
+                    LOGGER.info("{} starting to do some work", Thread.currentThread().getName());
+
+                    ShadowType account = parseObjectType(ACCOUNT_ELIZABETH_FILE, ShadowType.class);
+
+                    try {
+                        accountElizabethOid = provisioningService.addObject(account.asPrismObject(), null, null, localTask, localResult);
+                        successCounter.click();
+                    } catch (ObjectAlreadyExistsException e) {
+                        // this is expected ... sometimes
+                        LOGGER.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
+                    } finally {
+                        RepositoryCache.exit();
+                    }
+
+                }, getConcurrentTestNumberOfThreads(), null);
+
+        // THEN
+        displayThen(TEST_NAME);
+        waitForThreads(threads, WAIT_TIMEOUT);
+
+        successCounter.assertCount("Wrong number of successful operations", 1);
+
+        PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountElizabethOid, null, task, result);
+        display("Shadow after", shadowAfter);
+
+        assertDummyResourceWriteOperationCountIncrement(null, 1);
+
+        assertSteadyResource();
+    }
+
+    /**
+     * Create a lot parallel modifications for the same property and the same value.
+     * These should all be eliminated - except for one of them.
+     *
+     * There is a slight chance that one of the thread starts after the first operation
+     * is finished. But the threads are fast and the operations are slow. So this is
+     * a very slim chance.
+     */
+    @Test
+    public void test212ParallelModifyElizabethSlow() throws Exception {
+        final String TEST_NAME = "test212ParallelModifyElizabethSlow";
+
+        PrismObject<ShadowType> shadowAfter = parallelModifyTestSlow(TEST_NAME,
+                () -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                        accountElizabethOid, dummyResourceCtl.getAttributeFullnamePath(), "Miss Swan"));
+
+        assertAttribute(shadowAfter, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Miss Swan");
+    }
+
+    /**
+     * Create a lot parallel modifications for the same property and the same value.
+     * These should all be eliminated - except for one of them.
+     *
+     * There is a slight chance that one of the thread starts after the first operation
+     * is finished. But the threads are fast and the operations are slow. So this is
+     * a very slim chance.
+     */
+    @Test
+    public void test214ParallelModifyDisableSlow() throws Exception {
+        final String TEST_NAME = "test214ParallelModifyDisableSlow";
+
+        PrismObject<ShadowType> shadowAfter = parallelModifyTestSlow(TEST_NAME,
+                () -> prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
+                        accountElizabethOid, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
+                        ActivationStatusType.DISABLED));
+
+        assertActivationAdministrativeStatus(shadowAfter, ActivationStatusType.DISABLED);
+    }
+
+    private PrismObject<ShadowType> parallelModifyTestSlow(final String TEST_NAME, FailableProducer<ObjectDelta<ShadowType>> deltaProducer) throws Exception {
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        final Counter successCounter = new Counter();
+        rememberDummyResourceWriteOperationCount(null);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        ParallelTestThread[] threads = multithread(TEST_NAME,
+                (i) -> {
+                    Task localTask = createTask(TEST_NAME + ".local");
+                    OperationResult localResult = localTask.getResult();
+
+                    RepositoryCache.enter(cacheConfigurationManager);
+                    // Playing with cache, trying to make a worst case
+                    PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountElizabethOid, null, localResult);
+
+                    randomDelay(getConcurrentTestSlowRandomStartDelayRange());
+                    LOGGER.info("{} starting to do some work", Thread.currentThread().getName());
+
+                    ObjectDelta<ShadowType> delta = deltaProducer.run();
+                    display("ObjectDelta", delta);
+
+                    provisioningService.modifyObject(ShadowType.class, accountElizabethOid, delta.getModifications(), null, null, localTask, localResult);
+
+                    localResult.computeStatus();
+                    display("Thread "+Thread.currentThread().getName()+" DONE, result", localResult);
+                    if (localResult.isSuccess()) {
+                        successCounter.click();
+                    } else if (localResult.isInProgress()) {
+                        // expected
+                    } else {
+                        fail("Unexpected thread result status " + localResult.getStatus());
+                    }
+
+                    RepositoryCache.exit();
+
+                }, getConcurrentTestNumberOfThreads(), null);
+
+        // THEN
+        displayThen(TEST_NAME);
+        waitForThreads(threads, WAIT_TIMEOUT);
+
+        PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, accountElizabethOid, null, task, result);
+        display("Shadow after", shadowAfter);
+
+        successCounter.assertCount("Wrong number of successful operations", 1);
+
+        assertDummyResourceWriteOperationCountIncrement(null, 1);
+
+        assertSteadyResource();
+
+        return shadowAfter;
+    }
+
+
+    @Test
+    public void test229ParallelDeleteSlow() throws Exception {
+        final String TEST_NAME = "test229ParallelDeleteSlow";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        final Counter successCounter = new Counter();
+        rememberDummyResourceWriteOperationCount(null);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        ParallelTestThread[] threads = multithread(TEST_NAME,
+                (i) -> {
+                    Task localTask = createTask(TEST_NAME + ".local");
+                    OperationResult localResult = localTask.getResult();
+
+                    RepositoryCache.enter(cacheConfigurationManager);
+                    // Playing with cache, trying to make a worst case
+                    PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountElizabethOid, null, localResult);
+
+                    randomDelay(getConcurrentTestSlowRandomStartDelayRange());
+                    LOGGER.info("{} starting to do some work", Thread.currentThread().getName());
+
+                    try {
+                        display("Thread "+Thread.currentThread().getName()+" START");
+                        provisioningService.deleteObject(ShadowType.class, accountElizabethOid, null, null, localTask, localResult);
+                        localResult.computeStatus();
+                        display("Thread "+Thread.currentThread().getName()+" DONE, result", localResult);
+                        if (localResult.isSuccess()) {
+                            successCounter.click();
+                        } else if (localResult.isInProgress()) {
+                            // expected
+                        } else {
+                            fail("Unexpected thread result status " + localResult.getStatus());
+                        }
+                    } catch (ObjectNotFoundException e) {
+                        // this is expected ... sometimes
+                        LOGGER.info("Exception (maybe expected): {}: {}", e.getClass().getSimpleName(), e.getMessage());
+                    } finally {
+                        RepositoryCache.exit();
+                    }
+
+                }, getConcurrentTestNumberOfThreads(), null);
+
+        // THEN
+        displayThen(TEST_NAME);
+        waitForThreads(threads, WAIT_TIMEOUT);
+
+        successCounter.assertCount("Wrong number of successful operations", 1);
+
+        assertRepoShadow(accountElizabethOid)
+            .assertTombstone();
+
+        assertShadowProvisioning(accountElizabethOid)
+            .assertTombstone();
+
+        assertDummyResourceWriteOperationCountIncrement(null, 1);
+
+        assertSteadyResource();
+    }
+
+    /**
+     * Search for group that we do not have any shadow for yet.
+     * Do that in several threads at once. The group will be "discovered"
+     * by the threads at the same time, each thread trying to create shadow.
+     * There is a chance that the shadows get duplicated.
+     *
+     * MID-5237
+     */
+    @Test
+    public void test230ParallelGroupSearch() throws Exception {
+        final String TEST_NAME = "test230ParallelGroupSearch";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        DummyGroup groupScum = new DummyGroup(GROUP_SCUM_NAME);
+        dummyResource.addGroup(groupScum);
+
+        final Counter successCounter = new Counter();
+        rememberDummyResourceWriteOperationCount(null);
+
+        groupScumOid = null;
+        dummyResource.setOperationDelayOffset(0);
+        dummyResource.setOperationDelayRange(0);
+        dummyResource.setSyncSearchHandlerStart(true);
+
+        ParallelTestThread[] threads = multithread(TEST_NAME,
+                (i) -> {
+                    Task localTask = createTask(TEST_NAME + ".local");
+                    OperationResult localResult = localTask.getResult();
+
+                    ObjectQuery query = createGroupNameQuery(GROUP_SCUM_NAME);
+
+                    SearchResultList<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+                    assertEquals("Unexpected number of shadows found: "+foundObjects, 1, foundObjects.size());
+                    successCounter.click();
+
+                    PrismObject<ShadowType> groupShadow = foundObjects.get(0);
+
+                    synchronized (dummyResource) {
+                        if (groupScumOid == null) {
+                            groupScumOid = groupShadow.getOid();
+                        } else {
+                            assertEquals("Whoops! Create shadow OID mismatch", groupScumOid, groupShadow.getOid());
+                        }
+                    }
+
+                }, 10, null); // No need to user more than 10 threads, we are going to max out connector pool anyway.
+
+        // Give some time for all the threads to start
+        // The threads should be blocked just before search handler invocation
+        Thread.sleep(100);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        // Unblock the handlers. And here we go!
+        dummyResource.unblockAll();
+
+        // THEN
+        displayThen(TEST_NAME);
+        waitForThreads(threads, WAIT_TIMEOUT);
+
+        dummyResource.setSyncSearchHandlerStart(false);
+        successCounter.assertCount("Wrong number of successful operations", 10);
+
+        PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, groupScumOid, null, task, result);
+        display("Shadow after", shadowAfter);
+
+        checkUniqueness(shadowAfter);
+
+        assertSteadyResource();
+    }
+
+    private ObjectQuery createGroupNameQuery(String groupName) throws SchemaException {
+
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
+                RESOURCE_DUMMY_OID,
+                new QName(ResourceTypeUtil.getResourceNamespace(resourceType), OBJECTCLAS_GROUP_LOCAL_NAME),
+                prismContext);
+
+        ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
+        ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(OBJECTCLAS_GROUP_LOCAL_NAME);
+        ResourceAttributeDefinition<String> attrDef = objectClassDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+        ObjectFilter nameFilter = prismContext.queryFor(ShadowType.class)
+                .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(groupName)
+                .buildFilter();
+
+        query.setFilter(ObjectQueryUtil.filterAnd(query.getFilter(), nameFilter, prismContext));
+        return query;
+    }
+
+    /**
+     * Several threads reading from resource. Couple other threads try to get into the way
+     * by modifying the resource, hence forcing connector re-initialization.
+     * The goal is to detect connector initialization race conditions.
+     *
+     * MID-5068
+     */
+    @Test
+    public void test800ParallelReadAndModifyResource() throws Exception {
+        final String TEST_NAME = "test800ParallelReadAndModifyResource";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // Previous test will max out the connector pool
+        dummyResource.assertConnections(10);
+        assertDummyConnectorInstances(10);
+
+        dummyResource.setOperationDelayOffset(0);
+        dummyResource.setOperationDelayRange(0);
+
+        PrismObject<ShadowType> accountBefore = parseObject(ACCOUNT_WALLY_FILE);
+        display("Account before", accountBefore);
+        accountWallyOid = provisioningService.addObject(accountBefore, null, null, task, result);
+        PrismObject<ShadowType> shadowBefore = provisioningService.getObject(ShadowType.class, accountWallyOid, null, task, result);
+        result.computeStatus();
+        if (result.getStatus() != OperationResultStatus.SUCCESS) {
+            display("Failed read result (precondition)", result);
+            fail("Unexpected read status (precondition): "+result.getStatus());
+        }
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        long t0 = System.currentTimeMillis();
+        MutableBoolean readFinished = new MutableBoolean();
+
+        ParallelTestThread[] threads = multithread(TEST_NAME,
+                (threadIndex) -> {
+
+                    if (threadIndex <= 6) {
+
+                        for (int i = 0; /* neverending */ ; i++) {
+
+                            messResource(TEST_NAME, threadIndex, i);
+
+                            display("T +"+(System.currentTimeMillis() - t0));
+
+                            if (readFinished.booleanValue()) {
+                                break;
+                            }
+
+                        }
+
+                    } else if (threadIndex == 7) {
+
+                        for (int i = 0; /* neverending */ ; i++) {
+
+                            Task localTask = createTask(TEST_NAME + ".test."+i);
+
+                            LOGGER.debug("PAR: TESTing "+threadIndex+"."+i);
+
+                            OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, localTask);
+
+                            display("PAR: TESTed "+threadIndex+"."+i+": "+testResult.getStatus());
+
+                            if (testResult.getStatus() != OperationResultStatus.SUCCESS) {
+                                display("Failed test resource result", testResult);
+                                readFinished.setValue(true);
+                                fail("Unexpected test resource result status: "+testResult.getStatus());
+                            }
+
+                            if (readFinished.booleanValue()) {
+                                break;
+                            }
+
+                        }
+
+                    } else {
+
+                        try {
+                            for (int i = 0; i < MESS_RESOURCE_ITERATIONS; i++) {
+                                Task localTask = createTask(TEST_NAME + ".op."+i);
+                                OperationResult localResult = localTask.getResult();
+
+                                LOGGER.debug("PAR: OPing "+threadIndex+"."+i);
+
+                                Object out = doResourceOperation(threadIndex, i, localTask, localResult);
+
+                                localResult.computeStatus();
+                                display("PAR: OPed "+threadIndex+"."+i+": " + out.toString() + ": "+localResult.getStatus());
+
+                                if (localResult.getStatus() != OperationResultStatus.SUCCESS) {
+                                    display("Failed read result", localResult);
+                                    readFinished.setValue(true);
+                                    fail("Unexpected read status: "+localResult.getStatus());
+                                }
+
+                                if (readFinished.booleanValue()) {
+                                    break;
+                                }
+                            }
+                        } finally {
+                            readFinished.setValue(true);
+                        }
+                    }
+
+                    display("mischief managed ("+threadIndex+")");
+
+                }, 15, getConcurrentTestFastRandomStartDelayRange());
+
+        // THEN
+        displayThen(TEST_NAME);
+        waitForThreads(threads, WAIT_TIMEOUT);
+
+        PrismObject<ResourceType> resourceAfter = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        display("resource after", resourceAfter);
+
+        List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, task, result);
+        display("Dummy connector stats after", stats);
+
+        display("Dummy resource connections", dummyResource.getConnectionCount());
+
+        assertDummyConnectorInstances(dummyResource.getConnectionCount());
+    }
+
+    private Object doResourceOperation(int threadIndex, int i, Task task, OperationResult result) throws Exception {
+        int op = RND.nextInt(3);
+
+        if (op == 0) {
+            return provisioningService.getObject(ShadowType.class, accountWallyOid, null, task, result);
+
+        } else if (op == 1) {
+            ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, prismContext);
+            List<PrismObject<ShadowType>> list = new ArrayList<>();
+            ResultHandler<ShadowType> handler = (o,or) -> { list.add(o); return true; };
+            provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
+            return list;
+
+        } else if (op == 2) {
+            ObjectQuery query = ObjectQueryUtil.createResourceAndKind(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, prismContext);
+            return provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+        }
+        return null;
+    }
+
+    private void messResource(final String TEST_NAME, int threadIndex, int i) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+        Task task = createTask(TEST_NAME+".mess."+threadIndex+"."+i);
+        OperationResult result = task.getResult();
+        List<ItemDelta<?,?>> deltas = deltaFor(ResourceType.class)
+            .item(ResourceType.F_DESCRIPTION).replace("Iter "+threadIndex+"."+i)
+            .asItemDeltas();
+
+        LOGGER.debug("PAR: MESSing "+threadIndex+"."+i);
+
+        provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, deltas, null, null, task, result);
+        result.computeStatus();
+
+        display("PAR: MESSed "+threadIndex+"."+i+": "+result.getStatus());
+
+        if (result.getStatus() != OperationResultStatus.SUCCESS) {
+            display("Failed mess resource result", result);
+            fail("Unexpected mess resource result status: "+result.getStatus());
+        }
+    }
 }

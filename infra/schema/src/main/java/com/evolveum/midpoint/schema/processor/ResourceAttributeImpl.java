@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -45,8 +45,8 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
 //        super(name);
 //    }
 
-	@Override
-	public ResourceAttributeDefinition<T> getDefinition() {
+    @Override
+    public ResourceAttributeDefinition<T> getDefinition() {
         return (ResourceAttributeDefinition<T>) super.getDefinition();
     }
 
@@ -76,23 +76,23 @@ public class ResourceAttributeImpl<T> extends PrismPropertyImpl<T> implements Re
     }
 
     @Override
-	public ResourceAttribute<T> clone() {
-    	return cloneComplex(CloneStrategy.LITERAL);
-	}
-    
+    public ResourceAttribute<T> clone() {
+        return cloneComplex(CloneStrategy.LITERAL);
+    }
+
     @Override
-	public ResourceAttribute<T> cloneComplex(CloneStrategy strategy) {
-	    ResourceAttributeImpl<T> clone = new ResourceAttributeImpl<>(getElementName(), getDefinition(), getPrismContext());
-    	copyValues(strategy, clone);
-    	return clone;
-	}
+    public ResourceAttribute<T> cloneComplex(CloneStrategy strategy) {
+        ResourceAttributeImpl<T> clone = new ResourceAttributeImpl<>(getElementName(), getDefinition(), getPrismContext());
+        copyValues(strategy, clone);
+        return clone;
+    }
 
-	protected void copyValues(CloneStrategy strategy, ResourceAttributeImpl<T> clone) {
-		super.copyValues(strategy, clone);
-		// Nothing to copy
-	}
+    protected void copyValues(CloneStrategy strategy, ResourceAttributeImpl<T> clone) {
+        super.copyValues(strategy, clone);
+        // Nothing to copy
+    }
 
-	/**
+    /**
      * Return a human readable name of this class suitable for logs.
      */
     protected String getDebugDumpClassName() {

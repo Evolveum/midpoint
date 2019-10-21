@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -24,16 +24,16 @@ public class TaskChangesPanel extends BasePanel<TaskChangesDto> {
 
     public TaskChangesPanel(String id, IModel<TaskChangesDto> model) {
         super(id, model);
-		initLayout();
+        initLayout();
     }
 
     protected void initLayout() {
 //        add(new Label(ID_TITLE, new IModel<String>() {
-//			@Override
-//			public String getObject() {
-//				return getString(getModelObject().getTitleKey());
-//			}
-//		}));
+//            @Override
+//            public String getObject() {
+//                return getString(getModelObject().getTitleKey());
+//            }
+//        }));
 
         ScenePanel deltaPanel = new ScenePanel(ID_PRIMARY_DELTA, new PropertyModel<>(getModel(), TaskChangesDto.F_PRIMARY_DELTAS));
         deltaPanel.add(new VisibleEnableBehaviour() {

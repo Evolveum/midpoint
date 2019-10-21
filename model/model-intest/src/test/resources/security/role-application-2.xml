@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="00000000-0000-0000-0000-00000000aaa2"
@@ -10,7 +10,7 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Application Role Two</name>
     <assignment>
-    	<targetRef oid="32073084-65d0-11e9-baff-bbb479bb05b7" type="ArchetypeType"/> <!-- Application Role -->
+        <targetRef oid="32073084-65d0-11e9-baff-bbb479bb05b7" type="ArchetypeType"/> <!-- Application Role -->
     </assignment>
-    <subtype>application</subtype>    
+    <subtype>application</subtype>
 </role>

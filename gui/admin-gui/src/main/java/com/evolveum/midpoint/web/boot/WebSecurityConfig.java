@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -69,7 +69,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
-    
+
     @Value("${auth.logout.url:/}")
     private String authLogoutUrl;
 
@@ -108,7 +108,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/less/**");
 
         web.ignoring().antMatchers("/wicket/resource/**");
-        
+
         web.ignoring().antMatchers("/actuator");
         web.ignoring().antMatchers("/actuator/health");
     }
@@ -171,7 +171,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             http.addFilterBefore(requestAttributeAuthenticationFilter(), LogoutFilter.class);
         }
     }
-    
+
     @Bean
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {

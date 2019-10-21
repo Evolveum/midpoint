@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2014-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="d3e83cce-bb25-11e7-ae7c-b73d2208bf2a"
@@ -10,45 +10,45 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
     <name>Assign self requestable and any approver</name>
-    <description>Assign any requestable role to self. Assign approver/owner for any role.</description>    
+    <description>Assign any requestable role to self. Assign approver/owner for any role.</description>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
     <authorization>
-    	<name>assign-self-requestable</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
-    	<phase>request</phase>
-    	<object>
-    		<special>self</special>
-    	</object>
-    	<target>
-    		<type>RoleType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>requestable</q:path>
-    				<q:value>true</q:value>
-    			</q:equal>
-    		</filter>
-    	</target>
-    	<relation>org:default</relation>
+        <name>assign-self-requestable</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+        <phase>request</phase>
+        <object>
+            <special>self</special>
+        </object>
+        <target>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>requestable</q:path>
+                    <q:value>true</q:value>
+                </q:equal>
+            </filter>
+        </target>
+        <relation>org:default</relation>
     </authorization>
     <authorization>
-    	<name>assign-approver</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
-    	<phase>request</phase>
-    	<object>
-    		<type>UserType</type>
-    	</object>
-    	<target>
-    		<type>RoleType</type>
-    	</target>
-    	<relation>org:approver</relation>
-    	<relation>org:owner</relation>
+        <name>assign-approver</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+        <phase>request</phase>
+        <object>
+            <type>UserType</type>
+        </object>
+        <target>
+            <type>RoleType</type>
+        </target>
+        <relation>org:approver</relation>
+        <relation>org:owner</relation>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<phase>execution</phase>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <phase>execution</phase>
     </authorization>
 </role>

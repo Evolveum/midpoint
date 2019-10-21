@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -36,7 +36,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 
 /**
  * @author Radovan Semancik
- * 
+ *
  * THIS TEST IS DISABLED MID-4166
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
@@ -44,113 +44,113 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManualDisableSlowProposed extends TestSemiManualDisable {
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestSemiManualDisableSlowProposed.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestSemiManualDisableSlowProposed.class);
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		
-		initManualConnector();
-		
-		// Recompute is not enough. It will not detect that account status is wrong and won't disable the account.
-		setConflictResolutionAction(UserType.COMPLEX_TYPE, null, ConflictResolutionActionType.RECONCILE, initResult);
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-	@Override
-	protected String getResourceOid() {
-		return RESOURCE_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_OID;
-	}
+        initManualConnector();
 
-	@Override
-	protected File getResourceFile() {
-		return RESOURCE_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_FILE;
-	}
+        // Recompute is not enough. It will not detect that account status is wrong and won't disable the account.
+        setConflictResolutionAction(UserType.COMPLEX_TYPE, null, ConflictResolutionActionType.RECONCILE, initResult);
+    }
 
-	@Override
-	protected String getRoleOneOid() {
-		return ROLE_ONE_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_OID;
-	}
+    @Override
+    protected String getResourceOid() {
+        return RESOURCE_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_OID;
+    }
 
-	@Override
-	protected File getRoleOneFile() {
-		return ROLE_ONE_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_FILE;
-	}
+    @Override
+    protected File getResourceFile() {
+        return RESOURCE_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_FILE;
+    }
 
-	@Override
-	protected String getRoleTwoOid() {
-		return ROLE_TWO_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_OID;
-	}
+    @Override
+    protected String getRoleOneOid() {
+        return ROLE_ONE_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_OID;
+    }
 
-	@Override
-	protected File getRoleTwoFile() {
-		return ROLE_TWO_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_FILE;
-	}
+    @Override
+    protected File getRoleOneFile() {
+        return ROLE_ONE_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_FILE;
+    }
 
-	@Override
-	protected boolean nativeCapabilitiesEntered() {
-		return false;
-	}
-	
-	@Override
-	protected int getConcurrentTestRandomStartDelayRangeAssign() {
-		// Take it extra easy here. We do not have complete atomicity during shadow create.
-		// And this resource is really slow.
-		// MID-4166
-		return 2000;
-	}
+    @Override
+    protected String getRoleTwoOid() {
+        return ROLE_TWO_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_OID;
+    }
 
-	// Make the test fast ...
-	@Override
-	protected int getConcurrentTestRandomStartDelayRangeUnassign() {
-		return 3;
-	}
+    @Override
+    protected File getRoleTwoFile() {
+        return ROLE_TWO_SEMI_MANUAL_DISABLE_SLOW_PROPOSED_FILE;
+    }
 
-	// ... and intense ...
-	@Override
-	protected int getConcurrentTestNumberOfThreads() {
-		return 10;
-	}
-	
-	@Override
-	protected boolean are9xxTestsEnabled() {
-		return true;
-	}
+    @Override
+    protected boolean nativeCapabilitiesEntered() {
+        return false;
+    }
 
-	// .. and make the resource slow.
-	protected void initManualConnector() {
-		ManualConnectorInstance.setRandomDelayRange(1000);
-	}
-	
-	@Override
-	protected void assertTest919ShadowRepo(PrismObject<ShadowType> shadowRepo, Task task, OperationResult result) throws Exception {
-		ObjectDeltaType disablePendingDelta = null;
-		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
-			ObjectDeltaType delta = pendingOperation.getDelta();
-			if (delta.getChangeType() == ChangeTypeType.ADD) {
-				ObjectType objectToAdd = delta.getObjectToAdd();
-				display("Pending ADD object", objectToAdd.asPrismObject());
-			}
-			if (isActivationStatusModifyDelta(delta, ActivationStatusType.DISABLED)) {
-				if (disablePendingDelta != null) {
-					fail("More than one disable pending delta found:\n"+disablePendingDelta+"\n"+delta);
-				}
-				disablePendingDelta = delta;
-			}
-			if (isActivationStatusModifyDelta(delta, ActivationStatusType.ENABLED)) {
-				fail("Unexpected enable pending delta found:\n"+delta);
-			}
-			if (delta.getChangeType() == ChangeTypeType.DELETE) {
-				fail("Unexpected delete pending delta found:\n"+disablePendingDelta+"\n"+delta);
-			}
+    @Override
+    protected int getConcurrentTestRandomStartDelayRangeAssign() {
+        // Take it extra easy here. We do not have complete atomicity during shadow create.
+        // And this resource is really slow.
+        // MID-4166
+        return 2000;
+    }
 
-		}
-		assertNotNull("No disable pending delta", disablePendingDelta);
-	}
+    // Make the test fast ...
+    @Override
+    protected int getConcurrentTestRandomStartDelayRangeUnassign() {
+        return 3;
+    }
 
-	@Override
-	protected void assertTest919ShadowFuture(PrismObject<ShadowType> shadowModelFuture, Task task,
-			OperationResult result) {
-		assertShadowNotDead(shadowModelFuture);
-		assertAdministrativeStatusDisabled(shadowModelFuture);
-	}
+    // ... and intense ...
+    @Override
+    protected int getConcurrentTestNumberOfThreads() {
+        return 10;
+    }
+
+    @Override
+    protected boolean are9xxTestsEnabled() {
+        return true;
+    }
+
+    // .. and make the resource slow.
+    protected void initManualConnector() {
+        ManualConnectorInstance.setRandomDelayRange(1000);
+    }
+
+    @Override
+    protected void assertTest919ShadowRepo(PrismObject<ShadowType> shadowRepo, Task task, OperationResult result) throws Exception {
+        ObjectDeltaType disablePendingDelta = null;
+        for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
+            ObjectDeltaType delta = pendingOperation.getDelta();
+            if (delta.getChangeType() == ChangeTypeType.ADD) {
+                ObjectType objectToAdd = delta.getObjectToAdd();
+                display("Pending ADD object", objectToAdd.asPrismObject());
+            }
+            if (isActivationStatusModifyDelta(delta, ActivationStatusType.DISABLED)) {
+                if (disablePendingDelta != null) {
+                    fail("More than one disable pending delta found:\n"+disablePendingDelta+"\n"+delta);
+                }
+                disablePendingDelta = delta;
+            }
+            if (isActivationStatusModifyDelta(delta, ActivationStatusType.ENABLED)) {
+                fail("Unexpected enable pending delta found:\n"+delta);
+            }
+            if (delta.getChangeType() == ChangeTypeType.DELETE) {
+                fail("Unexpected delete pending delta found:\n"+disablePendingDelta+"\n"+delta);
+            }
+
+        }
+        assertNotNull("No disable pending delta", disablePendingDelta);
+    }
+
+    @Override
+    protected void assertTest919ShadowFuture(PrismObject<ShadowType> shadowModelFuture, Task task,
+            OperationResult result) {
+        assertShadowNotDead(shadowModelFuture);
+        assertAdministrativeStatusDisabled(shadowModelFuture);
+    }
 }

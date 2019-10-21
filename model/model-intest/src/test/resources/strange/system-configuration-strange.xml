@@ -2,23 +2,23 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>SystemConfiguration</name>
     <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
     <logging>
-    	<rootLoggerAppender>File Appender</rootLoggerAppender>
-    	<rootLoggerLevel>INFO</rootLoggerLevel>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
         <classLogger>
-	        <level>TRACE</level>
-	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-      	</classLogger>
+            <level>TRACE</level>
+            <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+          </classLogger>
         <c:classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>
@@ -30,30 +30,30 @@
         </appender>
     </logging>
     <notificationConfiguration>
-<!--		<handler>-->
-<!--			<simpleCaseManagementNotifier>-->
-<!--				<recipientExpression>-->
-<!--					<value>recipient@evolveum.com</value>-->
-<!--				</recipientExpression>-->
-<!--				<showTechnicalInformation>true</showTechnicalInformation>-->
-<!--				<transport>dummy:caseNotifier</transport>-->
-<!--			</simpleCaseManagementNotifier>-->
-<!--		</handler>-->
-		<handler>
-			<simplePolicyRuleNotifier>
-				<recipientExpression>
-					<value>recipient@evolveum.com</value>
-				</recipientExpression>
-				<transport>dummy:policyRuleNotifier</transport>
-			</simplePolicyRuleNotifier>
-		</handler>
-		<handler>
+<!--        <handler>-->
+<!--            <simpleCaseManagementNotifier>-->
+<!--                <recipientExpression>-->
+<!--                    <value>recipient@evolveum.com</value>-->
+<!--                </recipientExpression>-->
+<!--                <showTechnicalInformation>true</showTechnicalInformation>-->
+<!--                <transport>dummy:caseNotifier</transport>-->
+<!--            </simpleCaseManagementNotifier>-->
+<!--        </handler>-->
+        <handler>
+            <simplePolicyRuleNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:policyRuleNotifier</transport>
+            </simplePolicyRuleNotifier>
+        </handler>
+        <handler>
             <accountActivationNotifier>
                 <recipientExpression>
-					<script>
-						<code>requestee.getEmailAddress()</code>
-					</script>
-				</recipientExpression>
+                    <script>
+                        <code>requestee.getEmailAddress()</code>
+                    </script>
+                </recipientExpression>
                 <transport>dummy:accountActivationNotifier</transport>
                 <confirmationMethod>link</confirmationMethod>
             </accountActivationNotifier>
@@ -186,430 +186,430 @@
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>
     </notificationConfiguration>
-    
+
     <globalPolicyRule>
-    	<name>non-createable-role</name>
-    	<policyConstraints>
-    		<modification>
-    			<operation>add</operation>
-    		</modification>
-    	</policyConstraints>
-    	<policyActions>
-    		<enforcement/>
-    	</policyActions>
-    	<focusSelector>
-    		<type>RoleType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>description</q:path>
-    				<q:value>Thou shalt not create this role!</q:value>
-    			</q:equal>
-    		</filter>
-    	</focusSelector>
+        <name>non-createable-role</name>
+        <policyConstraints>
+            <modification>
+                <operation>add</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <enforcement/>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>description</q:path>
+                    <q:value>Thou shalt not create this role!</q:value>
+                </q:equal>
+            </filter>
+        </focusSelector>
     </globalPolicyRule>
     <globalPolicyRule>
-    	<name>non-createable-role-disabled</name>
-    	<policyConstraints>
-    		<modification>
-    			<operation>add</operation>
-    		</modification>
-    	</policyConstraints>
-    	<policyActions>
-    		<enforcement/>
-    	</policyActions>
-    	<focusSelector>
-    		<type>RoleType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>description</q:path>
-    				<q:value>Thou shalt not create this role! (disabled)</q:value>
-    			</q:equal>
-    		</filter>
-    	</focusSelector>
-		<condition>
-			<expression>
-				<script>
-					<code>false</code>
-				</script>
-			</expression>
-		</condition>
+        <name>non-createable-role-disabled</name>
+        <policyConstraints>
+            <modification>
+                <operation>add</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <enforcement/>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>description</q:path>
+                    <q:value>Thou shalt not create this role! (disabled)</q:value>
+                </q:equal>
+            </filter>
+        </focusSelector>
+        <condition>
+            <expression>
+                <script>
+                    <code>false</code>
+                </script>
+            </expression>
+        </condition>
     </globalPolicyRule>
     <globalPolicyRule>
-    	<name>immutable-role</name>
-    	<policyConstraints>
-    		<modification>
-    			<operation>modify</operation>
-    		</modification>
-    	</policyConstraints>
-    	<policyActions>
-    		<enforcement/>
-    	</policyActions>
-    	<focusSelector>
-    		<type>RoleType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>description</q:path>
-    				<q:value>Thou shalt not modify this role!</q:value>
-    			</q:equal>
-    		</filter>
-    	</focusSelector>
+        <name>immutable-role</name>
+        <policyConstraints>
+            <modification>
+                <operation>modify</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <enforcement/>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>description</q:path>
+                    <q:value>Thou shalt not modify this role!</q:value>
+                </q:equal>
+            </filter>
+        </focusSelector>
     </globalPolicyRule>
     <globalPolicyRule>
-    	<name>undeletable-role</name>
-    	<policyConstraints>
-    		<modification>
-    			<operation>delete</operation>
-    		</modification>
-    	</policyConstraints>
-    	<policyActions>
-    		<enforcement/>
-    	</policyActions>
-    	<focusSelector>
-    		<type>RoleType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>description</q:path>
-    				<q:value>Thou shalt not delete this role!</q:value>
-    			</q:equal>
-    		</filter>
-    	</focusSelector>
+        <name>undeletable-role</name>
+        <policyConstraints>
+            <modification>
+                <operation>delete</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <enforcement/>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>description</q:path>
+                    <q:value>Thou shalt not delete this role!</q:value>
+                </q:equal>
+            </filter>
+        </focusSelector>
     </globalPolicyRule>
     <globalPolicyRule>  <!-- see TestRbac.test880 -->
-    	<name>immutable-user-from-pluto-selector</name>
-    	<policyConstraints>
-    		<modification>
-    			<operation>modify</operation>
-    		</modification>
-    	</policyConstraints>
-    	<policyActions>
-    		<enforcement/>
-    	</policyActions>
-    	<focusSelector>
-    		<type>UserType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>description</q:path>
-    				<q:value>Came from Pluto</q:value>
-    			</q:equal>
-    		</filter>
-    	</focusSelector>
+        <name>immutable-user-from-pluto-selector</name>
+        <policyConstraints>
+            <modification>
+                <operation>modify</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <enforcement/>
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+            <filter>
+                <q:equal>
+                    <q:path>description</q:path>
+                    <q:value>Came from Pluto</q:value>
+                </q:equal>
+            </filter>
+        </focusSelector>
     </globalPolicyRule>
-    <globalPolicyRule>	<!-- see TestRbac.test880 -->
-    	<name>immutable-user-from-pluto-condition</name>
-    	<policyConstraints>
-    		<modification>
-    			<operation>modify</operation>
-    		</modification>
-    	</policyConstraints>
-    	<policyActions>
-    		<enforcement/>
-    	</policyActions>
-    	<focusSelector>
-    		<type>UserType</type>
-    	</focusSelector>
-		<condition>
-			<source>
-				<path>description</path>
-			</source>
-			<expression>
-				<script>
-					<code>
-						description == 'Came from Pluto'
-					</code>
-				</script>
-			</expression>
-		</condition>
+    <globalPolicyRule>    <!-- see TestRbac.test880 -->
+        <name>immutable-user-from-pluto-condition</name>
+        <policyConstraints>
+            <modification>
+                <operation>modify</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <enforcement/>
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+        <condition>
+            <source>
+                <path>description</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        description == 'Came from Pluto'
+                    </code>
+                </script>
+            </expression>
+        </condition>
     </globalPolicyRule>
     <globalPolicyRule>
-    	<name>immutable-role-description</name>
-    	<policyConstraints>
-    		<modification>
-    			<operation>modify</operation>
-				<item>description</item>
-    		</modification>
-    	</policyConstraints>
-    	<policyActions>
-    		<enforcement/>
-    	</policyActions>
-    	<focusSelector>
-    		<type>RoleType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>description</q:path>
-    				<q:value>Thou shalt not modify description of this role!</q:value>
-    			</q:equal>
-    		</filter>
-    	</focusSelector>
+        <name>immutable-role-description</name>
+        <policyConstraints>
+            <modification>
+                <operation>modify</operation>
+                <item>description</item>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <enforcement/>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>description</q:path>
+                    <q:value>Thou shalt not modify description of this role!</q:value>
+                </q:equal>
+            </filter>
+        </focusSelector>
     </globalPolicyRule>
 
     <internals>
         <maxModelClicks>30</maxModelClicks>     <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->
     </internals>
-    
+
     <adminGuiConfiguration>
-	    <userDashboardLink>
-	    	<targetUrl>/foo</targetUrl>
-	    	<label>Foo</label>
-	    </userDashboardLink>
-	    <objectCollectionViews>
-	    	<objectCollectionView>
-	    		<type>UserType</type>
-	    		<searchBoxConfiguration>
-	    			<defaultMode>basic</defaultMode>
-	    		</searchBoxConfiguration>
-	    	</objectCollectionView>
-	    	<objectCollectionView>
-	    		<type>RoleType</type>
-	    		<searchBoxConfiguration>
-	    			<defaultMode>fulltext</defaultMode>
-	    		</searchBoxConfiguration>
-	    	</objectCollectionView>
-	    	<objectCollectionView>
-	    		<type>ServiceType</type>
-	    		<searchBoxConfiguration>
-	    			<defaultMode>advanced</defaultMode>
-	    		</searchBoxConfiguration>
-	    	</objectCollectionView>
-	    	<objectCollectionView>
-	    		<identifier>broken</identifier>
-	    		<type>ServiceType</type>
-	    		<collection>
-	    			<!-- MID-5328 -->
-	    			<collectionRef oid="we-do-not-have-this-collection" type="ObjectCollectionType"/>
-	    		</collection>
-	    	</objectCollectionView>
-	    </objectCollectionViews>
-	    <objectForms>
-    		<objectForm>
-    			<type>RoleType</type>
-    			<formSpecification>
-    				<panelClass>com.piracy.form.PirateRolePanel</panelClass>
-    			</formSpecification>
-    		</objectForm>
-    	</objectForms>
-    	<defaultTimezone>Jamaica</defaultTimezone>
+        <userDashboardLink>
+            <targetUrl>/foo</targetUrl>
+            <label>Foo</label>
+        </userDashboardLink>
+        <objectCollectionViews>
+            <objectCollectionView>
+                <type>UserType</type>
+                <searchBoxConfiguration>
+                    <defaultMode>basic</defaultMode>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+            <objectCollectionView>
+                <type>RoleType</type>
+                <searchBoxConfiguration>
+                    <defaultMode>fulltext</defaultMode>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+            <objectCollectionView>
+                <type>ServiceType</type>
+                <searchBoxConfiguration>
+                    <defaultMode>advanced</defaultMode>
+                </searchBoxConfiguration>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>broken</identifier>
+                <type>ServiceType</type>
+                <collection>
+                    <!-- MID-5328 -->
+                    <collectionRef oid="we-do-not-have-this-collection" type="ObjectCollectionType"/>
+                </collection>
+            </objectCollectionView>
+        </objectCollectionViews>
+        <objectForms>
+            <objectForm>
+                <type>RoleType</type>
+                <formSpecification>
+                    <panelClass>com.piracy.form.PirateRolePanel</panelClass>
+                </formSpecification>
+            </objectForm>
+        </objectForms>
+        <defaultTimezone>Jamaica</defaultTimezone>
     </adminGuiConfiguration>
-    
+
     <roleManagement>
-    	<autoassignEnabled>false</autoassignEnabled>
+        <autoassignEnabled>false</autoassignEnabled>
     </roleManagement>
-    
+
     <mergeConfiguration>
-    	<name>default</name>
-    	<item>
-    		<ref>name</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>givenName</ref>
-    		<left>take</left>
-    		<right>ignore</right>
-    	</item>
-    	<item>
-    		<ref>familyName</ref>
-    	</item>
-    	<item>
-    		<ref>fullName</ref>
-    		<right>take</right>
-    	</item>
-    	<item>
-    		<ref>subtype</ref>
-    		<left>take</left>
-    		<right>take</right>
-    	</item>
-    	<item>
-    		<ref>organization</ref>
-    		<left>take</left>
-    		<right>take</right>
-    	</item>
-    	<item>
-    		<ref>organizationalUnit</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>activation</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>assignment</ref>
-    		<left>take</left>
-    		<right>take</right>
-    	</item>
-    	<projection>
-    		<left>take</left>
-    		<situation>conflict</situation>
-    	</projection>
-    	<projection>
-    		<left>take</left>
-    		<right>take</right>
-    	</projection>
-    	<default>
-    		<right>take</right>
-    	</default>
+        <name>default</name>
+        <item>
+            <ref>name</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>givenName</ref>
+            <left>take</left>
+            <right>ignore</right>
+        </item>
+        <item>
+            <ref>familyName</ref>
+        </item>
+        <item>
+            <ref>fullName</ref>
+            <right>take</right>
+        </item>
+        <item>
+            <ref>subtype</ref>
+            <left>take</left>
+            <right>take</right>
+        </item>
+        <item>
+            <ref>organization</ref>
+            <left>take</left>
+            <right>take</right>
+        </item>
+        <item>
+            <ref>organizationalUnit</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>activation</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>assignment</ref>
+            <left>take</left>
+            <right>take</right>
+        </item>
+        <projection>
+            <left>take</left>
+            <situation>conflict</situation>
+        </projection>
+        <projection>
+            <left>take</left>
+            <right>take</right>
+        </projection>
+        <default>
+            <right>take</right>
+        </default>
     </mergeConfiguration>
-    
+
     <mergeConfiguration>
-    	<name>default-specific</name>
-    	<description>
-    		The default-specific config is almost the same as default, just the projections are selected
-    		by specific resource.
-    	</description>
-    	<item>
-    		<ref>name</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>givenName</ref>
-    		<left>take</left>
-    		<right>ignore</right>
-    	</item>
-    	<item>
-    		<ref>familyName</ref>
-    	</item>
-    	<item>
-    		<ref>fullName</ref>
-    		<right>take</right>
-    	</item>
-    	<item>
-    		<ref>subtype</ref>
-    		<left>take</left>
-    		<right>take</right>
-    	</item>
-    	<item>
-    		<ref>organization</ref>
-    		<left>take</left>
-    		<right>take</right>
-    	</item>
-    	<item>
-    		<ref>organizationalUnit</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>activation</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>assignment</ref>
-    		<left>take</left>
-    		<right>take</right>
-    	</item>
-    	<projection>
-    		<left>take</left>
-    		<projectionDiscriminator>
-    			<resourceRef oid="10000000-0000-0000-0000-000000000004"/> <!-- dummy -->
-    		</projectionDiscriminator>
-    	</projection>
-    	<projection>
-    		<left>take</left>
-    		<right>take</right>
-    	</projection>
-    	<default>
-    		<right>take</right>
-    	</default>
+        <name>default-specific</name>
+        <description>
+            The default-specific config is almost the same as default, just the projections are selected
+            by specific resource.
+        </description>
+        <item>
+            <ref>name</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>givenName</ref>
+            <left>take</left>
+            <right>ignore</right>
+        </item>
+        <item>
+            <ref>familyName</ref>
+        </item>
+        <item>
+            <ref>fullName</ref>
+            <right>take</right>
+        </item>
+        <item>
+            <ref>subtype</ref>
+            <left>take</left>
+            <right>take</right>
+        </item>
+        <item>
+            <ref>organization</ref>
+            <left>take</left>
+            <right>take</right>
+        </item>
+        <item>
+            <ref>organizationalUnit</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>activation</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>assignment</ref>
+            <left>take</left>
+            <right>take</right>
+        </item>
+        <projection>
+            <left>take</left>
+            <projectionDiscriminator>
+                <resourceRef oid="10000000-0000-0000-0000-000000000004"/> <!-- dummy -->
+            </projectionDiscriminator>
+        </projection>
+        <projection>
+            <left>take</left>
+            <right>take</right>
+        </projection>
+        <default>
+            <right>take</right>
+        </default>
     </mergeConfiguration>
-    
+
     <mergeConfiguration>
-    	<name>empty</name>
+        <name>empty</name>
     </mergeConfiguration>
-    
+
     <mergeConfiguration>
-    	<name>allRight</name>
-    	<default>
-    		<right>take</right>
-    	</default>
+        <name>allRight</name>
+        <default>
+            <right>take</right>
+        </default>
     </mergeConfiguration>
-    
+
     <mergeConfiguration>
-    	<name>allLeft</name>
-    	<default>
-    		<left>take</left>
-    	</default>
+        <name>allLeft</name>
+        <default>
+            <left>take</left>
+        </default>
     </mergeConfiguration>
-    
+
     <mergeConfiguration>
-    	<name>allLeftProjectionsBoth</name>
-    	<description>
-    		Takes all projections. There may be conflicting projections.
-    		Attempt to merge should end with an error.
-    	</description>
-    	<default>
-    		<left>take</left>
-    	</default>
-    	<projection>
-    		<left>take</left>
-    		<right>take</right>
-    	</projection>
+        <name>allLeftProjectionsBoth</name>
+        <description>
+            Takes all projections. There may be conflicting projections.
+            Attempt to merge should end with an error.
+        </description>
+        <default>
+            <left>take</left>
+        </default>
+        <projection>
+            <left>take</left>
+            <right>take</right>
+        </projection>
     </mergeConfiguration>
-    
+
     <mergeConfiguration>
-    	<name>expression</name>
-    	<item>
-    		<ref>name</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>givenName</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>familyName</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>fullName</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>subtype</ref>
-    		<left>take</left>
-    		<right>expression</right>
-    		<valueExpression>
-    			<script>
-	    			<code>
-	    				if (input ==~ /.*S.*/) {
-	    					return input
-	    				} else {
-	    					return null
-	    				}
-	    			</code>
-    			</script>
-    		</valueExpression>
-    	</item>
-    	<item>
-    		<ref>organization</ref>
-    		<left>expression</left>
-    		<right>expression</right>
-    		<valueExpression>
-    			<script>
-	    			<code>
-	    				if (input ==~ /.* .*/) {
-	    					return input
-	    				} else {
-	    					return null
-	    				}
-	    			</code>
-    			</script>
-    		</valueExpression>
-    	</item>
-    	<item>
-    		<ref>organizationalUnit</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>activation</ref>
-    		<left>take</left>
-    	</item>
-    	<item>
-    		<ref>assignment</ref>
-    		<left>take</left>
-    		<right>take</right>
-    	</item>
-    	<projection>
-    		<left>take</left>
-    	</projection>
-    	<default>
-    		<left>take</left>
-    	</default>
+        <name>expression</name>
+        <item>
+            <ref>name</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>givenName</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>familyName</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>fullName</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>subtype</ref>
+            <left>take</left>
+            <right>expression</right>
+            <valueExpression>
+                <script>
+                    <code>
+                        if (input ==~ /.*S.*/) {
+                            return input
+                        } else {
+                            return null
+                        }
+                    </code>
+                </script>
+            </valueExpression>
+        </item>
+        <item>
+            <ref>organization</ref>
+            <left>expression</left>
+            <right>expression</right>
+            <valueExpression>
+                <script>
+                    <code>
+                        if (input ==~ /.* .*/) {
+                            return input
+                        } else {
+                            return null
+                        }
+                    </code>
+                </script>
+            </valueExpression>
+        </item>
+        <item>
+            <ref>organizationalUnit</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>activation</ref>
+            <left>take</left>
+        </item>
+        <item>
+            <ref>assignment</ref>
+            <left>take</left>
+            <right>take</right>
+        </item>
+        <projection>
+            <left>take</left>
+        </projection>
+        <default>
+            <left>take</left>
+        </default>
     </mergeConfiguration>
-    
+
 </systemConfiguration>

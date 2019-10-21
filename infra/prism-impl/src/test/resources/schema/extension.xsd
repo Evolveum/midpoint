@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2010-2013 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
  <!-- This is a runtime schema that defines data types used in the
       <extension> part of the objects. It should be loaded during
       test initialization (creation of prism context). -->
-      
+
 <xsd:schema elementFormDefault="qualified"
             targetNamespace="http://midpoint.evolveum.com/xml/ns/test/extension"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/test/extension"
@@ -17,53 +17,53 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
-	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
-				schemaLocation="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"/>
 
     <xsd:element name="stringType" type="xsd:string"/>
-    
+
     <xsd:element name="singleStringType" type="xsd:string">
-	    <xsd:annotation>
-			<xsd:appinfo>
-				<a:maxOccurs>1</a:maxOccurs>
-			</xsd:appinfo>
-		</xsd:annotation>
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
     </xsd:element>
 
     <xsd:element name="doubleType" type="xsd:double"/>
 
     <xsd:element name="intType" type="xsd:int"/>
-    
+
     <xsd:element name="integerType" type="xsd:integer"/>
 
     <xsd:element name="longType" type="xsd:long"/>
 
     <xsd:element name="dateType" type="xsd:dateTime"/>
-    
+
     <xsd:element name="durationType" type="xsd:duration"/>
-    
+
     <xsd:element name="ignoredType" type="xsd:string">
-	    <xsd:annotation>
-			<xsd:appinfo>
-				<a:ignore/>
-			</xsd:appinfo>
-		</xsd:annotation>
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:ignore/>
+            </xsd:appinfo>
+        </xsd:annotation>
     </xsd:element>
-    
+
     <xsd:element name="indexedString" type="xsd:string">
-	    <xsd:annotation>
-			<xsd:appinfo>
-				<a:indexed/>
-			</xsd:appinfo>
-		</xsd:annotation>
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:indexed/>
+            </xsd:appinfo>
+        </xsd:annotation>
     </xsd:element>
 
     <xsd:complexType name="LocationsType">
-    	<xsd:annotation>
-    		<xsd:appinfo>
-    			<a:container/>
-    		</xsd:appinfo>
-    	</xsd:annotation>
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="location" type="tns:LocationType" maxOccurs="unbounded"/>
         </xsd:sequence>
@@ -71,55 +71,55 @@
     <xsd:element name="locations" type="tns:LocationsType"/>
 
     <xsd:complexType name="LocationType">
-    	<xsd:annotation>
-    		<xsd:appinfo>
-    			<a:container/>
-    		</xsd:appinfo>
-    	</xsd:annotation>
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="key" type="xsd:string"/>
+            <xsd:element name="key" type="xsd:string"/>
             <xsd:element name="value" type="xsd:string"/>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="BladeType">
-    	<xsd:sequence>
-    		<xsd:element name="shape" type="xsd:string" minOccurs="1"/>
-    		<xsd:element name="edges" type="xsd:int" minOccurs="0"/>
-    	</xsd:sequence>
+        <xsd:sequence>
+            <xsd:element name="shape" type="xsd:string" minOccurs="1"/>
+            <xsd:element name="edges" type="xsd:int" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="MeleeContextType">
-    	<xsd:annotation>
-    		<xsd:appinfo>
-    			<a:container/>
-    		</xsd:appinfo>
-    	</xsd:annotation>
-    	<xsd:sequence>
-    		<xsd:element name="weaponsDrawn" type="xsd:int" minOccurs="0"/>
-    		<xsd:element name="opponent" type="foo:UserType" minOccurs="0">
-          	<xsd:annotation>
-          		<xsd:appinfo>
-          			<a:objectReference>tns:opponentRef</a:objectReference>
-          		</xsd:appinfo>
-          	</xsd:annotation>
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="weaponsDrawn" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="opponent" type="foo:UserType" minOccurs="0">
+              <xsd:annotation>
+                  <xsd:appinfo>
+                      <a:objectReference>tns:opponentRef</a:objectReference>
+                  </xsd:appinfo>
+              </xsd:annotation>
           </xsd:element>
           <xsd:element name="opponentRef" type="foo:ObjectReferenceType" minOccurs="0">
-          	<xsd:annotation>
-          		<xsd:appinfo>
-          			<a:objectReferenceTargetType>foo:UserType</a:objectReferenceTargetType>
-          			<a:composite>true</a:composite>
-          		</xsd:appinfo>
-          	</xsd:annotation>
+              <xsd:annotation>
+                  <xsd:appinfo>
+                      <a:objectReferenceTargetType>foo:UserType</a:objectReferenceTargetType>
+                      <a:composite>true</a:composite>
+                  </xsd:appinfo>
+              </xsd:annotation>
           </xsd:element>
-    	</xsd:sequence>
+        </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="meleeContext" type="tns:MeleeContextType">
-    	<xsd:annotation>
-    		<xsd:appinfo>
-    			<a:maxOccurs>1</a:maxOccurs>
-    		</xsd:appinfo>
-    	</xsd:annotation>
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
     </xsd:element>
 
 </xsd:schema>

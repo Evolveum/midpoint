@@ -7,6 +7,6 @@
   -->
 
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  oid="6ce717d6-414f-4d91-948a-923f02191399">
-	<name>jim</name>
+      oid="6ce717d6-414f-4d91-948a-923f02191399">
+    <name>jim</name>
 </user>

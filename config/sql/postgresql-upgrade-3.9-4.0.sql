@@ -113,7 +113,7 @@ UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
 -- 2019-06-25 09:00
 
 CREATE TABLE m_audit_resource (
-  resourceOid 	  VARCHAR(255) NOT NULL,
+  resourceOid       VARCHAR(255) NOT NULL,
   record_id       INT8         NOT NULL,
   PRIMARY KEY (record_id, resourceOid)
 );

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,34 +21,34 @@ import java.util.Set;
  */
 class DuplicateObjectTypeDetector {
 
-	@NotNull final private Set<ObjectTypeRecord> records = new HashSet<>();
-	@NotNull final private Set<ObjectTypeRecord> duplicates = new HashSet<>();
+    @NotNull final private Set<ObjectTypeRecord> records = new HashSet<>();
+    @NotNull final private Set<ObjectTypeRecord> duplicates = new HashSet<>();
 
-	DuplicateObjectTypeDetector(@Nullable SchemaHandlingType schemaHandling) {
-		addCheckingDuplicates(ObjectTypeRecord.extractFrom(schemaHandling));
-	}
+    DuplicateObjectTypeDetector(@Nullable SchemaHandlingType schemaHandling) {
+        addCheckingDuplicates(ObjectTypeRecord.extractFrom(schemaHandling));
+    }
 
-	DuplicateObjectTypeDetector(SynchronizationType objectSynchronization) {
-		addCheckingDuplicates(ObjectTypeRecord.extractFrom(objectSynchronization));
-	}
+    DuplicateObjectTypeDetector(SynchronizationType objectSynchronization) {
+        addCheckingDuplicates(ObjectTypeRecord.extractFrom(objectSynchronization));
+    }
 
-	private void add(ObjectTypeRecord objectTypeRecord) {
-		if (!records.add(objectTypeRecord)) {
-			duplicates.add(objectTypeRecord);
-		}
-	}
+    private void add(ObjectTypeRecord objectTypeRecord) {
+        if (!records.add(objectTypeRecord)) {
+            duplicates.add(objectTypeRecord);
+        }
+    }
 
-	private void addCheckingDuplicates(List<ObjectTypeRecord> objectTypeRecords) {
-		for (ObjectTypeRecord record : objectTypeRecords) {
-			add(record);
-		}
-	}
+    private void addCheckingDuplicates(List<ObjectTypeRecord> objectTypeRecords) {
+        for (ObjectTypeRecord record : objectTypeRecords) {
+            add(record);
+        }
+    }
 
-	boolean hasDuplicates() {
-		return !duplicates.isEmpty();
-	}
+    boolean hasDuplicates() {
+        return !duplicates.isEmpty();
+    }
 
-	String getDuplicatesList() {
-		return ObjectTypeRecord.asFormattedList(duplicates);
-	}
+    String getDuplicatesList() {
+        return ObjectTypeRecord.asFormattedList(duplicates);
+    }
 }

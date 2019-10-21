@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -18,7 +18,7 @@ object.
 -->
 
 <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -35,7 +35,7 @@ object.
         <connectorRef type="ConnectorType" oid="123">
             <filter>
                 <q:equal>
-                	<q:path>connectorType</q:path>
+                    <q:path>connectorType</q:path>
                     <q:value>com.evolveum.polygon.csvfile.CSVFileConnector</q:value>
                 </q:equal>
             </filter>
@@ -47,7 +47,7 @@ object.
 
             <!-- Configuration specific for the CSVfile connector -->
             <icfc:configurationProperties
-		xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/com.evolveum.polygon.csvfile.CSVFileConnector">
+        xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/com.evolveum.polygon.csvfile.CSVFileConnector">
                 <icfccsvfile:filePath>C:/csv/midpoint-flatfile.csv</icfccsvfile:filePath>
                 <icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
                 <icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
@@ -55,7 +55,7 @@ object.
                 <icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
                 <icfccsvfile:usingMultivalue>false</icfccsvfile:usingMultivalue>
                 <icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
-                <!--			<icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
+                <!--            <icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
                 <icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
             </icfc:configurationProperties>
 
@@ -113,12 +113,12 @@ object.
                     <outbound>
                         <strength>weak</strength>
                         <source>
-                        	<path>$user/name</path>
+                            <path>$user/name</path>
                         </source>
                     </outbound>
                     <inbound>
                         <target>
-                        	<path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            <path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
                             $user/i:name
                             </path>
                         </target>
@@ -132,7 +132,7 @@ object.
                     <outbound>
                         <strength>weak</strength>
                         <source>
-                        	<path>$user/givenName</path>
+                            <path>$user/givenName</path>
                         </source>
                     </outbound>
                     <inbound>
@@ -151,7 +151,7 @@ object.
                     <outbound>
                         <strength>weak</strength>
                         <source>
-                        	<path>$user/familyName</path>
+                            <path>$user/familyName</path>
                         </source>
                     </outbound>
                     <inbound>
@@ -174,12 +174,12 @@ object.
                 <credentials>
                     <password>
                         <outbound>
-                        	<expression>
-                            	<asIs/>
+                            <expression>
+                                <asIs/>
                             </expression>
                         </outbound>
                         <inbound>
-                        	<strength>weak</strength>
+                            <strength>weak</strength>
                             <expression>
                                 <generate/>
                             </expression>
@@ -189,12 +189,12 @@ object.
                 <activation>
                     <administrativeStatus>
                         <outbound>
-	                        <expression>
-	                            <asIs/>
+                            <expression>
+                                <asIs/>
                             </expression>
                         </outbound>
                         <inbound>
-                        	<strength>weak</strength>
+                            <strength>weak</strength>
                             <expression>
                                 <asIs/>
                             </expression>
@@ -204,38 +204,38 @@ object.
             </objectType>
         </schemaHandling>
         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-        	<configured>
-	            <cap:activation>
-	                <cap:status>
-	                    <cap:attribute>ri:disabled</cap:attribute>
-	                    <cap:enableValue>false</cap:enableValue>
-	                    <cap:disableValue>true</cap:disableValue>
-	                </cap:status>
-	            </cap:activation>
-	            <cap:credentials>
-	                <cap:password/>
-	            </cap:credentials>
-	            <cap:liveSync/>
-	            <cap:testConnection/>
+            <configured>
+                <cap:activation>
+                    <cap:status>
+                        <cap:attribute>ri:disabled</cap:attribute>
+                        <cap:enableValue>false</cap:enableValue>
+                        <cap:disableValue>true</cap:disableValue>
+                    </cap:status>
+                </cap:activation>
+                <cap:credentials>
+                    <cap:password/>
+                </cap:credentials>
+                <cap:liveSync/>
+                <cap:testConnection/>
             </configured>
         </capabilities>
         <synchronization>
-        	<objectSynchronization>
-	            <!--
-	                The synchronization for this resource is enabled.
-	                It means that the synchronization will react to changes detected by
-	                the system (live sync task, discovery or reconciliation) -->
-	            <enabled>true</enabled>
-	
-	            <correlation>
-	                <q:description>
-	                    Correlation expression is a search query.
-	                    Following search query will look for users that have "name"
-	                    equal to the "name" attribute of the account. Simply speaking,
-	                    it will look for match in usernames in the IDM and the resource.
-	                    The correlation rule always looks for users, so it will not match
-	                    any other object type.
-	                </q:description>
+            <objectSynchronization>
+                <!--
+                    The synchronization for this resource is enabled.
+                    It means that the synchronization will react to changes detected by
+                    the system (live sync task, discovery or reconciliation) -->
+                <enabled>true</enabled>
+
+                <correlation>
+                    <q:description>
+                        Correlation expression is a search query.
+                        Following search query will look for users that have "name"
+                        equal to the "name" attribute of the account. Simply speaking,
+                        it will look for match in usernames in the IDM and the resource.
+                        The correlation rule always looks for users, so it will not match
+                        any other object type.
+                    </q:description>
                     <q:equal>
                         <q:path>name</q:path>
                         <expression>
@@ -246,39 +246,39 @@ object.
                             </script>
                         </expression>
                     </q:equal>
-	            </correlation>
-	
-	            <!-- Confirmation rule may be here, but as the search above will
-	                 always return at most one match, the confirmation rule is not needed. -->
-	
-	            <!-- Following section describes reactions to a situations.
-	                 The setting here assumes that this resource is authoritative,
-	                 therefore all accounts created on the resource should be
-	                 reflected as new users in IDM.
-	                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
-	             -->
-	            <reaction>
-	                <situation>linked</situation>
-	                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri></action>
-	            </reaction>
-	            <reaction>
-	                <situation>deleted</situation>
-	                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri></action>
-	            </reaction>
-	            <reaction>
-	                <situation>unlinked</situation>
-	                <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri></action>
-	            </reaction>
-	            <reaction>
-	                <situation>unmatched</situation>
-	                <action>
-	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
-	                </action>
-	                <action>
-	                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
-	                </action>
-	            </reaction>
-			</objectSynchronization>
+                </correlation>
+
+                <!-- Confirmation rule may be here, but as the search above will
+                     always return at most one match, the confirmation rule is not needed. -->
+
+                <!-- Following section describes reactions to a situations.
+                     The setting here assumes that this resource is authoritative,
+                     therefore all accounts created on the resource should be
+                     reflected as new users in IDM.
+                     See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+                 -->
+                <reaction>
+                    <situation>linked</situation>
+                    <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri></action>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri></action>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <action><handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri></action>
+                </reaction>
+                <reaction>
+                    <situation>unmatched</situation>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+                    </action>
+                    <action>
+                        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+                    </action>
+                </reaction>
+            </objectSynchronization>
         </synchronization>
     </c:resource>
 

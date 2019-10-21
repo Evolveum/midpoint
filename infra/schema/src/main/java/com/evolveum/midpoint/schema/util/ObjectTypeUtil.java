@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -51,49 +51,49 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
  */
 public class ObjectTypeUtil {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ObjectTypeUtil.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectTypeUtil.class);
 
-	/**
-	 * Never returns null. Returns empty collection instead.
-	 */
-	public static <T> Collection<T> getExtensionPropertyValuesNotNull(ObjectType objectType, QName propertyQname) {
-		Collection<T> values = getExtensionPropertyValues(objectType, propertyQname);
-		if (values == null) {
-			return new ArrayList<>(0);
-		} else {
-			return values;
-		}
-	}
+    /**
+     * Never returns null. Returns empty collection instead.
+     */
+    public static <T> Collection<T> getExtensionPropertyValuesNotNull(ObjectType objectType, QName propertyQname) {
+        Collection<T> values = getExtensionPropertyValues(objectType, propertyQname);
+        if (values == null) {
+            return new ArrayList<>(0);
+        } else {
+            return values;
+        }
+    }
 
-	public static <T> Collection<T> getExtensionPropertyValues(ObjectType objectType, QName propertyQname) {
-		PrismObject<? extends ObjectType> object = objectType.asPrismObject();
-		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
-		if (extensionContainer == null) {
-			return null;
-		}
-		PrismProperty<T> property = extensionContainer.findProperty(ItemName.fromQName(propertyQname));
-		if (property == null) {
-			return null;
-		}
-		return property.getRealValues();
-	}
+    public static <T> Collection<T> getExtensionPropertyValues(ObjectType objectType, QName propertyQname) {
+        PrismObject<? extends ObjectType> object = objectType.asPrismObject();
+        PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
+        if (extensionContainer == null) {
+            return null;
+        }
+        PrismProperty<T> property = extensionContainer.findProperty(ItemName.fromQName(propertyQname));
+        if (property == null) {
+            return null;
+        }
+        return property.getRealValues();
+    }
 
-	public static Collection<Referencable> getExtensionReferenceValues(ObjectType objectType, QName propertyQname) {
-		PrismObject<? extends ObjectType> object = objectType.asPrismObject();
-		PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
-		if (extensionContainer == null) {
-			return null;
-		}
-		PrismReference property = extensionContainer.findReference(ItemName.fromQName(propertyQname));
-		if (property == null) {
-			return null;
-		}
-		Collection<Referencable> refs = new ArrayList<>(property.getValues().size());
-		for (PrismReferenceValue refVal : property.getValues()){
-			refs.add(refVal.asReferencable());
-		}
-		return refs;
-	}
+    public static Collection<Referencable> getExtensionReferenceValues(ObjectType objectType, QName propertyQname) {
+        PrismObject<? extends ObjectType> object = objectType.asPrismObject();
+        PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
+        if (extensionContainer == null) {
+            return null;
+        }
+        PrismReference property = extensionContainer.findReference(ItemName.fromQName(propertyQname));
+        if (property == null) {
+            return null;
+        }
+        Collection<Referencable> refs = new ArrayList<>(property.getValues().size());
+        for (PrismReferenceValue refVal : property.getValues()){
+            refs.add(refVal.asReferencable());
+        }
+        return refs;
+    }
 
 
     public static ObjectReferenceType findRef(String oid, List<ObjectReferenceType> refs) {
@@ -113,22 +113,22 @@ public class ObjectTypeUtil {
         if (object == null) {
             return "null";
         } else {
-	        return getShortTypeName(object)
-			        + ": "
-			        + object.getName()
-			        + " (OID:"
-			        + object.getOid()
-			        + ")";
+            return getShortTypeName(object)
+                    + ": "
+                    + object.getName()
+                    + " (OID:"
+                    + object.getOid()
+                    + ")";
         }
     }
 
     public static Object toShortStringLazy(ObjectType object) {
-		return new Object() {
-			@Override
-			public String toString() {
-				return toShortString(object);
-			}
-		};
+        return new Object() {
+            @Override
+            public String toString() {
+                return toShortString(object);
+            }
+        };
     }
 
     public static String toShortString(AssignmentType assignment) {
@@ -149,150 +149,150 @@ public class ObjectTypeUtil {
 
 
     public static String dump(ObjectType object) {
-    	if (object == null) {
-    		return "null";
-    	}
+        if (object == null) {
+            return "null";
+        }
         return object.asPrismObject().debugDump();
     }
 
     public static Object toShortString(ObjectReferenceType objectRef) {
-		return toShortString(objectRef, false);
-	}
+        return toShortString(objectRef, false);
+    }
 
-	public static Object toShortString(PrismReferenceValue objectRef) {
-		return toShortString(toObjectReferenceType(objectRef));
-	}
+    public static Object toShortString(PrismReferenceValue objectRef) {
+        return toShortString(toObjectReferenceType(objectRef));
+    }
 
-	private static ObjectReferenceType toObjectReferenceType(PrismReferenceValue prv) {
-		if (prv != null) {
-			ObjectReferenceType ort = new ObjectReferenceType();
-			ort.setupReferenceValue(prv);
-			return ort;
-		} else {
-			return null;
-		}
-	}
+    private static ObjectReferenceType toObjectReferenceType(PrismReferenceValue prv) {
+        if (prv != null) {
+            ObjectReferenceType ort = new ObjectReferenceType();
+            ort.setupReferenceValue(prv);
+            return ort;
+        } else {
+            return null;
+        }
+    }
 
-	public static Object toShortString(ObjectReferenceType objectRef, boolean withName) {
+    public static Object toShortString(ObjectReferenceType objectRef, boolean withName) {
         if (objectRef == null) {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
         sb.append("objectRef oid=").append(objectRef.getOid());
-		if (withName && objectRef.getTargetName() != null) {
-			sb.append(" name='").append(objectRef.getTargetName()).append("'");
-		}
+        if (withName && objectRef.getTargetName() != null) {
+            sb.append(" name='").append(objectRef.getTargetName()).append("'");
+        }
         if (objectRef.getType() != null) {
             sb.append(" type=").append(SchemaDebugUtil.prettyPrint(objectRef.getType()));
         }
         return sb.toString();
     }
 
-	public static String getShortTypeName(ObjectType object) {
-		return getShortTypeName(object.getClass());
-	}
+    public static String getShortTypeName(ObjectType object) {
+        return getShortTypeName(object.getClass());
+    }
 
-	public static String getShortTypeName(Class<? extends ObjectType> type) {
-		ObjectTypes objectTypeType = ObjectTypes.getObjectType(type);
+    public static String getShortTypeName(Class<? extends ObjectType> type) {
+        ObjectTypes objectTypeType = ObjectTypes.getObjectType(type);
         if (objectTypeType != null) {
             return objectTypeType.getElementName().getLocalPart();
         } else {
             return type.getSimpleName();
         }
-	}
+    }
 
-	@NotNull
-	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull ObjectReferenceType ref, @Nullable PrismContext prismContext) {
-		AssignmentType assignment = new AssignmentType(prismContext);
-		if (QNameUtil.match(ref.getType(), ResourceType.COMPLEX_TYPE)) {
-			ConstructionType construction = new ConstructionType();
-			construction.setResourceRef(ref);
-			assignment.setConstruction(construction);
-		} else {
-			assignment.setTargetRef(ref);
-		}
-		return assignment;
-	}
+    @NotNull
+    public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull ObjectReferenceType ref, @Nullable PrismContext prismContext) {
+        AssignmentType assignment = new AssignmentType(prismContext);
+        if (QNameUtil.match(ref.getType(), ResourceType.COMPLEX_TYPE)) {
+            ConstructionType construction = new ConstructionType();
+            construction.setResourceRef(ref);
+            assignment.setConstruction(construction);
+        } else {
+            assignment.setTargetRef(ref);
+        }
+        return assignment;
+    }
 
-	@NotNull
-	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismReferenceValue ref, @Nullable PrismContext prismContext) {
-		ObjectReferenceType ort = new ObjectReferenceType();
-		ort.setupReferenceValue(ref);
-		return createAssignmentTo(ort, prismContext);
-	}
+    @NotNull
+    public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismReferenceValue ref, @Nullable PrismContext prismContext) {
+        ObjectReferenceType ort = new ObjectReferenceType();
+        ort.setupReferenceValue(ref);
+        return createAssignmentTo(ort, prismContext);
+    }
 
-	@NotNull
-	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull String oid, @NotNull ObjectTypes type, @Nullable PrismContext prismContext) {
-		return createAssignmentTo(createObjectRef(oid, type), prismContext);
-	}
+    @NotNull
+    public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull String oid, @NotNull ObjectTypes type, @Nullable PrismContext prismContext) {
+        return createAssignmentTo(createObjectRef(oid, type), prismContext);
+    }
 
-	@NotNull
-	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object,
-			PrismContext prismContext) {
-		return createAssignmentTo(object, prismContext.getDefaultRelation());
-	}
+    @NotNull
+    public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object,
+            PrismContext prismContext) {
+        return createAssignmentTo(object, prismContext.getDefaultRelation());
+    }
 
-	@NotNull
-	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object, QName relation) {
-		AssignmentType assignment = new AssignmentType(object.getPrismContext());
-		if (object.asObjectable() instanceof ResourceType) {
-			ConstructionType construction = new ConstructionType(object.getPrismContext());
-			construction.setResourceRef(createObjectRef(object, relation));
-			assignment.setConstruction(construction);
-		} else {
-			assignment.setTargetRef(createObjectRef(object, relation));
-		}
-		return assignment;
-	}
+    @NotNull
+    public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object, QName relation) {
+        AssignmentType assignment = new AssignmentType(object.getPrismContext());
+        if (object.asObjectable() instanceof ResourceType) {
+            ConstructionType construction = new ConstructionType(object.getPrismContext());
+            construction.setResourceRef(createObjectRef(object, relation));
+            assignment.setConstruction(construction);
+        } else {
+            assignment.setTargetRef(createObjectRef(object, relation));
+        }
+        return assignment;
+    }
 
-	@NotNull
-	public static AssignmentType createAssignmentWithConstruction(@NotNull PrismObject<ResourceType> object, ShadowKindType kind,
-			String intent, PrismContext prismContext) {
-		AssignmentType assignment = new AssignmentType(prismContext);
-		ConstructionType construction = new ConstructionType(prismContext);
-		construction.setResourceRef(createObjectRef(object, prismContext));
-		construction.setKind(kind);
-		construction.setIntent(intent);
-		assignment.setConstruction(construction);
-		return assignment;
-	}
+    @NotNull
+    public static AssignmentType createAssignmentWithConstruction(@NotNull PrismObject<ResourceType> object, ShadowKindType kind,
+            String intent, PrismContext prismContext) {
+        AssignmentType assignment = new AssignmentType(prismContext);
+        ConstructionType construction = new ConstructionType(prismContext);
+        construction.setResourceRef(createObjectRef(object, prismContext));
+        construction.setKind(kind);
+        construction.setIntent(intent);
+        assignment.setConstruction(construction);
+        return assignment;
+    }
 
-	@NotNull
-	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull T objectType, QName relation) {
-		return createAssignmentTo((PrismObject<T>) objectType.asPrismObject(), relation);
-	}
+    @NotNull
+    public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull T objectType, QName relation) {
+        return createAssignmentTo((PrismObject<T>) objectType.asPrismObject(), relation);
+    }
 
-	public static ObjectReferenceType createObjectRef(PrismReferenceValue prv) {
-		ObjectReferenceType ort = new ObjectReferenceType();
-		ort.setupReferenceValue(prv);
-		return ort;
-	}
+    public static ObjectReferenceType createObjectRef(PrismReferenceValue prv) {
+        ObjectReferenceType ort = new ObjectReferenceType();
+        ort.setupReferenceValue(prv);
+        return ort;
+    }
 
-	public static ObjectReferenceType createObjectRefWithFullObject(ObjectType objectType, PrismContext prismContext) {
-		if (objectType == null) {
-			return null;
-		}
+    public static ObjectReferenceType createObjectRefWithFullObject(ObjectType objectType, PrismContext prismContext) {
+        if (objectType == null) {
+            return null;
+        }
         return createObjectRefWithFullObject(objectType.asPrismObject(), prismContext);
     }
 
-	public static ObjectReferenceType createObjectRef(ObjectType object, PrismContext prismContext) {
-		if (object == null) {
-			return null;
-		}
-		return createObjectRef(object, prismContext.getDefaultRelation());
+    public static ObjectReferenceType createObjectRef(ObjectType object, PrismContext prismContext) {
+        if (object == null) {
+            return null;
+        }
+        return createObjectRef(object, prismContext.getDefaultRelation());
     }
 
-	public static ObjectReferenceType createObjectRef(ObjectType objectType, QName relation) {
-		if (objectType == null) {
-			return null;
-		}
+    public static ObjectReferenceType createObjectRef(ObjectType objectType, QName relation) {
+        if (objectType == null) {
+            return null;
+        }
         return createObjectRef(objectType.asPrismObject(), relation);
     }
 
     public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object, PrismContext prismContext) {
-		if (object == null) {
-			return null;
-		}
+        if (object == null) {
+            return null;
+        }
         return createObjectRef(object, prismContext.getDefaultRelation());
     }
 
@@ -312,7 +312,7 @@ public class ObjectTypeUtil {
     }
 
     public static <T extends ObjectType> ObjectReferenceType createObjectRefWithFullObject(PrismObject<T> object,
-		    PrismContext prismContext) {
+            PrismContext prismContext) {
         if (object == null) {
             return null;
         }
@@ -329,7 +329,7 @@ public class ObjectTypeUtil {
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid(object.getOid());
         if (nameAsDescription){
-        	ref.setDescription(object.getBusinessDisplayName());
+            ref.setDescription(object.getBusinessDisplayName());
         }
         PrismObjectDefinition<T> definition = object.getDefinition();
         if (definition != null) {
@@ -346,20 +346,20 @@ public class ObjectTypeUtil {
         ref.setOid(refVal.getOid());
         PrismObject<T> object = refVal.getObject();
         if (object != null) {
-	        if (nameAsDescription) {
-	        	ref.setDescription(object.getBusinessDisplayName());
-	        }
-	        PrismObjectDefinition<T> definition = object.getDefinition();
-	        if (definition != null) {
-	            ref.setType(definition.getTypeName());
-	        }
-	        ref.setTargetName(PolyString.toPolyStringType(object.getName()));
+            if (nameAsDescription) {
+                ref.setDescription(object.getBusinessDisplayName());
+            }
+            PrismObjectDefinition<T> definition = object.getDefinition();
+            if (definition != null) {
+                ref.setType(definition.getTypeName());
+            }
+            ref.setTargetName(PolyString.toPolyStringType(object.getName()));
         } else {
-        	ref.setType(refVal.getTargetType());
-        	ref.setTargetName(PolyString.toPolyStringType(refVal.getTargetName()));
-        	if (nameAsDescription && refVal.getTargetName() != null) {
-	        	ref.setDescription(refVal.getTargetName().getOrig());
-	        }
+            ref.setType(refVal.getTargetType());
+            ref.setTargetName(PolyString.toPolyStringType(refVal.getTargetName()));
+            if (nameAsDescription && refVal.getTargetName() != null) {
+                ref.setDescription(refVal.getTargetName().getOrig());
+            }
         }
         return ref;
     }
@@ -393,49 +393,49 @@ public class ObjectTypeUtil {
     }
 
     public static Element findXsdElement(PrismContainer<XmlSchemaType> xmlSchemaContainer) {
-    	return findXsdElement(xmlSchemaContainer.getValue());
+        return findXsdElement(xmlSchemaContainer.getValue());
     }
 
     public static Element findXsdElement(PrismContainerValue<XmlSchemaType> xmlSchemaContainerValue) {
         PrismProperty<SchemaDefinitionType> definitionProperty = xmlSchemaContainerValue.findProperty(XmlSchemaType.F_DEFINITION);
         if (definitionProperty == null) {
-			return null;
-		}
+            return null;
+        }
         SchemaDefinitionType schemaDefinition = definitionProperty.getValue().getValue();
         if (schemaDefinition == null) {
-			return null;
-		}
+            return null;
+        }
 
         return schemaDefinition.getSchema();
 
 //        List<Element> schemaElements = DOMUtil.listChildElements(definitionElement);
 //        for (Element e : schemaElements) {
 //            if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
-//            	DOMUtil.fixNamespaceDeclarations(e);
+//                DOMUtil.fixNamespaceDeclarations(e);
 //                return e;
 //            }
 //        }
 //        return null;
     }
 
-	public static void setXsdSchemaDefinition(PrismProperty<SchemaDefinitionType> definitionProperty, Element xsdElement) {
+    public static void setXsdSchemaDefinition(PrismProperty<SchemaDefinitionType> definitionProperty, Element xsdElement) {
 
-//		Document document = xsdElement.getOwnerDocument();
-//		Element definitionElement = document.createElementNS(XmlSchemaType.F_DEFINITION.getNamespaceURI(),
-//				XmlSchemaType.F_DEFINITION.getLocalPart());
-//		definitionElement.appendChild(xsdElement);
-//		SchemaDefinitionType schemaDefinition = definitionProperty.getValue().getValue();
-//		schemaDefinition.setSchema(definitionElement);
-		SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
-		schemaDefinition.setSchema(xsdElement);
-		definitionProperty.setRealValue(schemaDefinition);
-	}
+//        Document document = xsdElement.getOwnerDocument();
+//        Element definitionElement = document.createElementNS(XmlSchemaType.F_DEFINITION.getNamespaceURI(),
+//                XmlSchemaType.F_DEFINITION.getLocalPart());
+//        definitionElement.appendChild(xsdElement);
+//        SchemaDefinitionType schemaDefinition = definitionProperty.getValue().getValue();
+//        schemaDefinition.setSchema(definitionElement);
+        SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
+        schemaDefinition.setSchema(xsdElement);
+        definitionProperty.setRealValue(schemaDefinition);
+    }
 
     public static void assertConcreteType(Class<? extends Objectable> type) {
-    	// The abstract object types are enumerated here. It should be switched to some flag later on
-    	if (type.equals(ObjectType.class)) {
-    		throw new IllegalArgumentException("The type "+type.getName()+" is abstract");
-    	}
+        // The abstract object types are enumerated here. It should be switched to some flag later on
+        if (type.equals(ObjectType.class)) {
+            throw new IllegalArgumentException("The type "+type.getName()+" is abstract");
+        }
     }
 
     public static PrismObject getParentObject(Containerable containerable) {
@@ -484,431 +484,431 @@ public class ObjectTypeUtil {
 
     public static <O extends ObjectType> List<ObjectReferenceType> objectListToReferences(Collection<PrismObject<O>> objects) {
         List<ObjectReferenceType> rv = new ArrayList<>();
-	    for (PrismObject<? extends ObjectType> object : objects) {
-		    rv.add(createObjectRef(object.asObjectable(), object.getPrismContext().getDefaultRelation()));
-	    }
+        for (PrismObject<? extends ObjectType> object : objects) {
+            rv.add(createObjectRef(object.asObjectable(), object.getPrismContext().getDefaultRelation()));
+        }
         return rv;
     }
 
     public static List<ObjectReferenceType> getAsObjectReferenceTypeList(PrismReference prismReference) throws SchemaException {
-		List<ObjectReferenceType> rv = new ArrayList<>();
-		for (PrismReferenceValue prv : prismReference.getValues()) {
-			if (prismReference == null || prismReference.getOid() == null) {
-				continue;
-			}
-			rv.add(createObjectRef(prv.clone()));
-		}
-		return rv;
-	}
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (PrismReferenceValue prv : prismReference.getValues()) {
+            if (prismReference == null || prismReference.getOid() == null) {
+                continue;
+            }
+            rv.add(createObjectRef(prv.clone()));
+        }
+        return rv;
+    }
 
-	public static List<String> referenceValueListToOidList(Collection<PrismReferenceValue> referenceValues) {
-		List<String> oids = new ArrayList<>(referenceValues.size());
-		for (PrismReferenceValue referenceValue : referenceValues) {
-			oids.add(referenceValue.getOid());
-		}
-		return oids;
-	}
+    public static List<String> referenceValueListToOidList(Collection<PrismReferenceValue> referenceValues) {
+        List<String> oids = new ArrayList<>(referenceValues.size());
+        for (PrismReferenceValue referenceValue : referenceValues) {
+            oids.add(referenceValue.getOid());
+        }
+        return oids;
+    }
 
-	public static Objectable getObjectFromReference(ObjectReferenceType ref) {
-		if (ref == null) {
-			return null;
-		}
-		if (ref.asReferenceValue().getObject() == null) {
-			return null;
-		}
-		return ref.asReferenceValue().getObject().asObjectable();
-	}
+    public static Objectable getObjectFromReference(ObjectReferenceType ref) {
+        if (ref == null) {
+            return null;
+        }
+        if (ref.asReferenceValue().getObject() == null) {
+            return null;
+        }
+        return ref.asReferenceValue().getObject().asObjectable();
+    }
 
-	public static PrismObject<?> getPrismObjectFromReference(ObjectReferenceType ref) {
-		if (ref == null) {
-			return null;
-		}
-		return ref.asReferenceValue().getObject();
-	}
+    public static PrismObject<?> getPrismObjectFromReference(ObjectReferenceType ref) {
+        if (ref == null) {
+            return null;
+        }
+        return ref.asReferenceValue().getObject();
+    }
 
-	public static List<ObjectDelta<? extends ObjectType>> toDeltaList(ObjectDelta<?> delta) {
-		@SuppressWarnings("unchecked")
-		ObjectDelta<? extends ObjectType> objectDelta = (ObjectDelta<? extends ObjectType>) delta;
-		return Collections.<ObjectDelta<? extends ObjectType>>singletonList(objectDelta);
-	}
+    public static List<ObjectDelta<? extends ObjectType>> toDeltaList(ObjectDelta<?> delta) {
+        @SuppressWarnings("unchecked")
+        ObjectDelta<? extends ObjectType> objectDelta = (ObjectDelta<? extends ObjectType>) delta;
+        return Collections.<ObjectDelta<? extends ObjectType>>singletonList(objectDelta);
+    }
 
-	// Hack: because DeltaBuilder cannot provide ObjectDelta<? extends ObjectType> (it is from schema)
-	public static Collection<ObjectDelta<? extends ObjectType>> cast(Collection<ObjectDelta<?>> deltas) {
-		@SuppressWarnings("unchecked")
-		final Collection<ObjectDelta<? extends ObjectType>> deltas1 = (Collection) deltas;
-		return deltas1;
-	}
+    // Hack: because DeltaBuilder cannot provide ObjectDelta<? extends ObjectType> (it is from schema)
+    public static Collection<ObjectDelta<? extends ObjectType>> cast(Collection<ObjectDelta<?>> deltas) {
+        @SuppressWarnings("unchecked")
+        final Collection<ObjectDelta<? extends ObjectType>> deltas1 = (Collection) deltas;
+        return deltas1;
+    }
 
-	public static PolyStringType getDisplayName(PrismObject<?> object) {
-    	return object != null ? getDisplayName((ObjectType) object.asObjectable()) : null;
-	}
+    public static PolyStringType getDisplayName(PrismObject<?> object) {
+        return object != null ? getDisplayName((ObjectType) object.asObjectable()) : null;
+    }
 
-	public static PolyStringType getDisplayName(ObjectType object) {
-    	if (object instanceof AbstractRoleType) {
-    		return ((AbstractRoleType) object).getDisplayName();
-		} else if (object instanceof UserType) {
-    		return ((UserType) object).getFullName();
-		} else {
-    		return null;
-		}
-	}
+    public static PolyStringType getDisplayName(ObjectType object) {
+        if (object instanceof AbstractRoleType) {
+            return ((AbstractRoleType) object).getDisplayName();
+        } else if (object instanceof UserType) {
+            return ((UserType) object).getFullName();
+        } else {
+            return null;
+        }
+    }
 
-	public static PolyStringType getDisplayName(ObjectReferenceType ref) {
-		return ref != null ? getDisplayName(ref.asReferenceValue().getObject()) : null;
-	}
+    public static PolyStringType getDisplayName(ObjectReferenceType ref) {
+        return ref != null ? getDisplayName(ref.asReferenceValue().getObject()) : null;
+    }
 
-	public static PolyStringType getName(ObjectReferenceType ref) {
-    	if (ref == null) {
-    		return null;
-	    } else if (ref.asReferenceValue().getObject() != null && ref.asReferenceValue().getObject().getName() != null) {
-    		return new PolyStringType(ref.asReferenceValue().getObject().getName());
-	    } else {
-    		return ref.getTargetName();
-	    }
-	}
+    public static PolyStringType getName(ObjectReferenceType ref) {
+        if (ref == null) {
+            return null;
+        } else if (ref.asReferenceValue().getObject() != null && ref.asReferenceValue().getObject().getName() != null) {
+            return new PolyStringType(ref.asReferenceValue().getObject().getName());
+        } else {
+            return ref.getTargetName();
+        }
+    }
 
-	public static ObjectType toObjectable(PrismObject object) {
-    	return object != null ? (ObjectType) object.asObjectable() : null;
-	}
+    public static ObjectType toObjectable(PrismObject object) {
+        return object != null ? (ObjectType) object.asObjectable() : null;
+    }
 
-	public static <T extends Objectable> PrismObject<T> asPrismObject(T objectable) {
-		//noinspection unchecked
-		return objectable != null ? objectable.asPrismObject() : null;
-	}
+    public static <T extends Objectable> PrismObject<T> asPrismObject(T objectable) {
+        //noinspection unchecked
+        return objectable != null ? objectable.asPrismObject() : null;
+    }
 
-	public static boolean containsOid(Collection<ObjectReferenceType> values, @NotNull String oid) {
-		return values.stream().anyMatch(v -> oid.equals(v.getOid()));
-	}
+    public static boolean containsOid(Collection<ObjectReferenceType> values, @NotNull String oid) {
+        return values.stream().anyMatch(v -> oid.equals(v.getOid()));
+    }
 
-	@SuppressWarnings("unchecked")
-	public static <T> T getExtensionItemRealValue(@Nullable ExtensionType extension, @NotNull QName itemName) {
-    	if (extension == null) {
-    		return null;
-		}
-		Item item = extension.asPrismContainerValue().findItem(ItemName.fromQName(itemName));
-    	return item != null ? (T) item.getRealValue() : null;
-	}
-	
-	public static <T> T getExtensionItemRealValue(@NotNull PrismObject<? extends ObjectType> object, @NotNull QName itemName) {
-		PrismContainer<?> extension = object.getExtension();
-    	if (extension == null) {
-    		return null;
-		}
-		Item item = extension.findItem(ItemName.fromQName(itemName));
-    	return item != null ? (T) item.getRealValue() : null;
-	}
+    @SuppressWarnings("unchecked")
+    public static <T> T getExtensionItemRealValue(@Nullable ExtensionType extension, @NotNull QName itemName) {
+        if (extension == null) {
+            return null;
+        }
+        Item item = extension.asPrismContainerValue().findItem(ItemName.fromQName(itemName));
+        return item != null ? (T) item.getRealValue() : null;
+    }
 
-	public static void normalizeRelation(ObjectReferenceType reference, RelationRegistry relationRegistry) {
-    	if (reference != null) {
-			reference.setRelation(relationRegistry.normalizeRelation(reference.getRelation()));
-		}
-	}
+    public static <T> T getExtensionItemRealValue(@NotNull PrismObject<? extends ObjectType> object, @NotNull QName itemName) {
+        PrismContainer<?> extension = object.getExtension();
+        if (extension == null) {
+            return null;
+        }
+        Item item = extension.findItem(ItemName.fromQName(itemName));
+        return item != null ? (T) item.getRealValue() : null;
+    }
 
-	public static void normalizeRelation(PrismReferenceValue reference, RelationRegistry relationRegistry) {
-    	if (reference != null) {
-			reference.setRelation(relationRegistry.normalizeRelation(reference.getRelation()));
-		}
-	}
+    public static void normalizeRelation(ObjectReferenceType reference, RelationRegistry relationRegistry) {
+        if (reference != null) {
+            reference.setRelation(relationRegistry.normalizeRelation(reference.getRelation()));
+        }
+    }
 
-	public static void normalizeAllRelations(PrismValue value, RelationRegistry relationRegistry) {
-    	if (value != null) {
-			value.accept(createNormalizingVisitor(relationRegistry));
-		}
-	}
+    public static void normalizeRelation(PrismReferenceValue reference, RelationRegistry relationRegistry) {
+        if (reference != null) {
+            reference.setRelation(relationRegistry.normalizeRelation(reference.getRelation()));
+        }
+    }
 
-	public static void normalizeAllRelations(Item<?, ?> item, RelationRegistry relationRegistry) {
-    	if (item != null) {
-			item.accept(createNormalizingVisitor(relationRegistry));
-		}
-	}
+    public static void normalizeAllRelations(PrismValue value, RelationRegistry relationRegistry) {
+        if (value != null) {
+            value.accept(createNormalizingVisitor(relationRegistry));
+        }
+    }
 
-	private static Visitor createNormalizingVisitor(RelationRegistry relationRegistry) {
-		return v -> {
-			if (v instanceof PrismReferenceValue) {
-				normalizeRelation((PrismReferenceValue) v, relationRegistry);
-			}
-		};
-	}
+    public static void normalizeAllRelations(Item<?, ?> item, RelationRegistry relationRegistry) {
+        if (item != null) {
+            item.accept(createNormalizingVisitor(relationRegistry));
+        }
+    }
 
-	public static void normalizeFilter(ObjectFilter filter, RelationRegistry relationRegistry) {
-		if (filter != null) {
-			filter.accept(f -> {
-				if (f instanceof RefFilter) {
-					emptyIfNull(((RefFilter) f).getValues()).forEach(v -> normalizeRelation(v, relationRegistry));
-				}
-			});
-		}
-	}
+    private static Visitor createNormalizingVisitor(RelationRegistry relationRegistry) {
+        return v -> {
+            if (v instanceof PrismReferenceValue) {
+                normalizeRelation((PrismReferenceValue) v, relationRegistry);
+            }
+        };
+    }
 
-	public static RelationDefinitionType findRelationDefinition(List<RelationDefinitionType> relationDefinitions, QName qname) {
-		for (RelationDefinitionType relation: relationDefinitions) {
-			if (QNameUtil.match(qname, relation.getRef())) {
-				return relation;
-			}
-		}
-		return null;
-	}
+    public static void normalizeFilter(ObjectFilter filter, RelationRegistry relationRegistry) {
+        if (filter != null) {
+            filter.accept(f -> {
+                if (f instanceof RefFilter) {
+                    emptyIfNull(((RefFilter) f).getValues()).forEach(v -> normalizeRelation(v, relationRegistry));
+                }
+            });
+        }
+    }
 
-	public static boolean referenceMatches(ObjectReferenceType ref, String targetOid, QName targetType, QName relation,
-			PrismContext prismContext) {
-		if (ref == null) {
-			return false;
-		}
-		if (targetOid != null) {
-			if (!targetOid.equals(ref.getOid())) {
-				return false;
-			}
-		}
-		if (targetType != null) {
-			if (!QNameUtil.match(ref.getType(), targetType)) {
-				return false;
-			}
-		}
-		if (relation != null) {
-			if (!prismContext.relationMatches(relation, ref.getRelation())) {
-				return false;
-			}
-		}
-		return true;
-	}
+    public static RelationDefinitionType findRelationDefinition(List<RelationDefinitionType> relationDefinitions, QName qname) {
+        for (RelationDefinitionType relation: relationDefinitions) {
+            if (QNameUtil.match(qname, relation.getRef())) {
+                return relation;
+            }
+        }
+        return null;
+    }
 
-	public static OrderConstraintsType getConstraintFor(List<OrderConstraintsType> constraints, QName relation) {
-		return CollectionUtils.emptyIfNull(constraints).stream()
-				.filter(c -> QNameUtil.match(c.getRelation(), relation))		// intentionally not using default/null equivalence here
-				.findFirst().orElse(null);
-	}
+    public static boolean referenceMatches(ObjectReferenceType ref, String targetOid, QName targetType, QName relation,
+            PrismContext prismContext) {
+        if (ref == null) {
+            return false;
+        }
+        if (targetOid != null) {
+            if (!targetOid.equals(ref.getOid())) {
+                return false;
+            }
+        }
+        if (targetType != null) {
+            if (!QNameUtil.match(ref.getType(), targetType)) {
+                return false;
+            }
+        }
+        if (relation != null) {
+            if (!prismContext.relationMatches(relation, ref.getRelation())) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-	public static <T extends Objectable> T asObjectable(PrismObject<T> prismObject) {
-    	return prismObject != null ? prismObject.asObjectable() : null;
-	}
+    public static OrderConstraintsType getConstraintFor(List<OrderConstraintsType> constraints, QName relation) {
+        return CollectionUtils.emptyIfNull(constraints).stream()
+                .filter(c -> QNameUtil.match(c.getRelation(), relation))        // intentionally not using default/null equivalence here
+                .findFirst().orElse(null);
+    }
 
-	public static <T extends Objectable> List<T> asObjectables(Collection<PrismObject<T>> objects) {
-    	return objects.stream().map(ObjectTypeUtil::asObjectable).collect(Collectors.toList());
-	}
+    public static <T extends Objectable> T asObjectable(PrismObject<T> prismObject) {
+        return prismObject != null ? prismObject.asObjectable() : null;
+    }
 
-	public static boolean matchOnOid(ObjectReferenceType ref1, ObjectReferenceType ref2) {
-		return ref1 != null && ref2 != null && ref1.getOid() != null && ref2.getOid() != null
-				&& ref1.getOid().equals(ref2.getOid());
-	}
+    public static <T extends Objectable> List<T> asObjectables(Collection<PrismObject<T>> objects) {
+        return objects.stream().map(ObjectTypeUtil::asObjectable).collect(Collectors.toList());
+    }
 
-	public static void mergeExtension(PrismContainerValue<?> dstExtensionContainerValue, PrismContainerValue<?> srcExtensionContainerValue) throws SchemaException {
-		for (Item<?,?> srcExtensionItem: emptyIfNull(srcExtensionContainerValue.getItems())) {
-			Item<?,?> magicItem = dstExtensionContainerValue.findItem(srcExtensionItem.getElementName());
-			if (magicItem == null) {
-				//noinspection unchecked
-				dstExtensionContainerValue.add(srcExtensionItem.clone());
-			}
-		}
-	}
+    public static boolean matchOnOid(ObjectReferenceType ref1, ObjectReferenceType ref2) {
+        return ref1 != null && ref2 != null && ref1.getOid() != null && ref2.getOid() != null
+                && ref1.getOid().equals(ref2.getOid());
+    }
 
-	public static LocalizableMessage createTechnicalDisplayInformation(PrismObject<?> object, boolean startsWithUppercase) {
-		if (object != null) {
-			return new LocalizableMessageBuilder()
-					.key(SchemaConstants.TECHNICAL_OBJECT_SPECIFICATION_KEY)
-					.arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
-					.arg(object.asObjectable().getName())
-					.arg(object.getOid())
-					.build();
-		} else {
-			return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
-		}
-	}
+    public static void mergeExtension(PrismContainerValue<?> dstExtensionContainerValue, PrismContainerValue<?> srcExtensionContainerValue) throws SchemaException {
+        for (Item<?,?> srcExtensionItem: emptyIfNull(srcExtensionContainerValue.getItems())) {
+            Item<?,?> magicItem = dstExtensionContainerValue.findItem(srcExtensionItem.getElementName());
+            if (magicItem == null) {
+                //noinspection unchecked
+                dstExtensionContainerValue.add(srcExtensionItem.clone());
+            }
+        }
+    }
 
-	public static LocalizableMessage createDisplayInformation(PrismObject<?> object, boolean startsWithUppercase) {
-		if (object != null) {
-			return new LocalizableMessageBuilder()
-					.key(SchemaConstants.OBJECT_SPECIFICATION_KEY)
-					.arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
-					.arg(object.asObjectable().getName())
-					.build();
-		} else {
-			return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
-		}
-	}
+    public static LocalizableMessage createTechnicalDisplayInformation(PrismObject<?> object, boolean startsWithUppercase) {
+        if (object != null) {
+            return new LocalizableMessageBuilder()
+                    .key(SchemaConstants.TECHNICAL_OBJECT_SPECIFICATION_KEY)
+                    .arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
+                    .arg(object.asObjectable().getName())
+                    .arg(object.getOid())
+                    .build();
+        } else {
+            return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
+        }
+    }
 
-	public static LocalizableMessage createDisplayInformationWithPath(PrismObject<?> object, boolean startsWithUppercase, String path) {
-		if (object != null) {
-			return new LocalizableMessageBuilder()
-					.key(SchemaConstants.OBJECT_SPECIFICATION_WITH_PATH_KEY)
-					.arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
-					.arg(object.asObjectable().getName())
-					.arg(path)
-					.build();
-		} else {
-			return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
-		}
-	}
+    public static LocalizableMessage createDisplayInformation(PrismObject<?> object, boolean startsWithUppercase) {
+        if (object != null) {
+            return new LocalizableMessageBuilder()
+                    .key(SchemaConstants.OBJECT_SPECIFICATION_KEY)
+                    .arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
+                    .arg(object.asObjectable().getName())
+                    .build();
+        } else {
+            return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
+        }
+    }
 
-	public static LocalizableMessage createTypeDisplayInformation(QName type, boolean startsWithUppercase) {
-		return createTypeDisplayInformation(type != null ? type.getLocalPart() : null, startsWithUppercase);
-	}
+    public static LocalizableMessage createDisplayInformationWithPath(PrismObject<?> object, boolean startsWithUppercase, String path) {
+        if (object != null) {
+            return new LocalizableMessageBuilder()
+                    .key(SchemaConstants.OBJECT_SPECIFICATION_WITH_PATH_KEY)
+                    .arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
+                    .arg(object.asObjectable().getName())
+                    .arg(path)
+                    .build();
+        } else {
+            return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
+        }
+    }
 
-	public static LocalizableMessage createTypeDisplayInformation(String objectClassName, boolean startsWithUppercase) {
-    	String prefix = startsWithUppercase ? SchemaConstants.OBJECT_TYPE_KEY_PREFIX : SchemaConstants.OBJECT_TYPE_LOWERCASE_KEY_PREFIX;
-		return new LocalizableMessageBuilder()
-						.key(prefix + objectClassName)
-						.fallbackMessage(objectClassName)
-						.build();
-	}
+    public static LocalizableMessage createTypeDisplayInformation(QName type, boolean startsWithUppercase) {
+        return createTypeDisplayInformation(type != null ? type.getLocalPart() : null, startsWithUppercase);
+    }
 
-	@NotNull
-	@Deprecated
-	public static <O extends ObjectType> Collection<String> getSubtypeValues(@NotNull PrismObject<O> object) {
-		return FocusTypeUtil.determineSubTypes(object);
-	}
-	
-	public static <O extends ObjectType> XMLGregorianCalendar getLastTouchTimestamp(PrismObject<O> object) {
-		if (object == null) {
-			return null;
-		}
-		MetadataType metadata = object.asObjectable().getMetadata();
-		if (metadata == null) {
-			return null;
-		}
-		XMLGregorianCalendar modifyTimestamp = metadata.getModifyTimestamp();
-		if (modifyTimestamp != null) {
-			return modifyTimestamp;
-		}
-		return metadata.getCreateTimestamp();
-	}
+    public static LocalizableMessage createTypeDisplayInformation(String objectClassName, boolean startsWithUppercase) {
+        String prefix = startsWithUppercase ? SchemaConstants.OBJECT_TYPE_KEY_PREFIX : SchemaConstants.OBJECT_TYPE_LOWERCASE_KEY_PREFIX;
+        return new LocalizableMessageBuilder()
+                        .key(prefix + objectClassName)
+                        .fallbackMessage(objectClassName)
+                        .build();
+    }
 
-	@NotNull
-	public static List<Item<?, ?>> mapToExtensionItems(Map<QName, Object> values, PrismContainerDefinition<?> extensionDefinition,
-			PrismContext prismContext) throws SchemaException {
-		List<Item<?, ?>> extensionItems = new ArrayList<>();
-		for (Map.Entry<QName, Object> entry : values.entrySet()) {
-			ItemDefinition<Item<PrismValue, ItemDefinition>> def = extensionDefinition != null
-					? extensionDefinition.findItemDefinition(ItemName.fromQName(entry.getKey()))
-					: null;
-			if (def == null) {
-				//noinspection unchecked
-				def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(entry.getKey());     // a bit of hack here
-				if (def == null) {
-					throw new SchemaException("No definition of " + entry.getKey() + " in task extension");
-				}
-			}
-			Item<PrismValue, ItemDefinition> extensionItem = def.instantiate();
-			if (entry.getValue() != null) {
-				if (entry.getValue() instanceof Collection) {
-					for (Object value : (Collection) entry.getValue()) {
-						addRealValue(extensionItem, value, prismContext);
-					}
-				} else {
-					addRealValue(extensionItem, entry.getValue(), prismContext);
-				}
-			}
-			extensionItems.add(extensionItem);
-		}
-		return extensionItems;
-	}
+    @NotNull
+    @Deprecated
+    public static <O extends ObjectType> Collection<String> getSubtypeValues(@NotNull PrismObject<O> object) {
+        return FocusTypeUtil.determineSubTypes(object);
+    }
 
-	private static void addRealValue(Item<PrismValue, ItemDefinition> extensionItem, Object value,
-			PrismContext prismContext) throws SchemaException {
-    	if (value != null) {
-		    extensionItem.add(prismContext.itemFactory().createValue(value).clone());
-	    }
-	}
+    public static <O extends ObjectType> XMLGregorianCalendar getLastTouchTimestamp(PrismObject<O> object) {
+        if (object == null) {
+            return null;
+        }
+        MetadataType metadata = object.asObjectable().getMetadata();
+        if (metadata == null) {
+            return null;
+        }
+        XMLGregorianCalendar modifyTimestamp = metadata.getModifyTimestamp();
+        if (modifyTimestamp != null) {
+            return modifyTimestamp;
+        }
+        return metadata.getCreateTimestamp();
+    }
 
-	@NotNull
-	public static ObjectQuery createManagerQuery(Class<? extends ObjectType> objectTypeClass, String orgOid,
-			RelationRegistry relationRegistry, PrismContext prismContext) {
-	    Collection<QName> managerRelations = relationRegistry.getAllRelationsFor(RelationKindType.MANAGER);
-		if (managerRelations.isEmpty()) {
-			LOGGER.warn("No manager relation is defined");
-			return prismContext.queryFor(objectTypeClass).none().build();
-		}
+    @NotNull
+    public static List<Item<?, ?>> mapToExtensionItems(Map<QName, Object> values, PrismContainerDefinition<?> extensionDefinition,
+            PrismContext prismContext) throws SchemaException {
+        List<Item<?, ?>> extensionItems = new ArrayList<>();
+        for (Map.Entry<QName, Object> entry : values.entrySet()) {
+            ItemDefinition<Item<PrismValue, ItemDefinition>> def = extensionDefinition != null
+                    ? extensionDefinition.findItemDefinition(ItemName.fromQName(entry.getKey()))
+                    : null;
+            if (def == null) {
+                //noinspection unchecked
+                def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(entry.getKey());     // a bit of hack here
+                if (def == null) {
+                    throw new SchemaException("No definition of " + entry.getKey() + " in task extension");
+                }
+            }
+            Item<PrismValue, ItemDefinition> extensionItem = def.instantiate();
+            if (entry.getValue() != null) {
+                if (entry.getValue() instanceof Collection) {
+                    for (Object value : (Collection) entry.getValue()) {
+                        addRealValue(extensionItem, value, prismContext);
+                    }
+                } else {
+                    addRealValue(extensionItem, entry.getValue(), prismContext);
+                }
+            }
+            extensionItems.add(extensionItem);
+        }
+        return extensionItems;
+    }
 
-		List<PrismReferenceValue> referencesToFind = new ArrayList<>();
-	    for (QName managerRelation : managerRelations) {
-	        PrismReferenceValue parentOrgRefVal = prismContext.itemFactory().createReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
-	        parentOrgRefVal.setRelation(managerRelation);
-	        referencesToFind.add(parentOrgRefVal);
-	    }
-	    return prismContext.queryFor(objectTypeClass)
-	            .item(ObjectType.F_PARENT_ORG_REF).ref(referencesToFind)
-	            .build();
-	}
+    private static void addRealValue(Item<PrismValue, ItemDefinition> extensionItem, Object value,
+            PrismContext prismContext) throws SchemaException {
+        if (value != null) {
+            extensionItem.add(prismContext.itemFactory().createValue(value).clone());
+        }
+    }
 
-	public static <T extends Objectable> List<PrismObject<T>> keepDistinctObjects(Collection<PrismObject<T>> objects) {
-		List<PrismObject<T>> rv = new ArrayList<>();
-    	Set<String> oids = new HashSet<>(objects.size());
-		for (PrismObject<T> object : emptyIfNull(objects)) {
-			if (object.getOid() == null) {
-				throw new IllegalArgumentException("Unexpected OID-less object");
-			} else if (!oids.contains(object.getOid())) {
-				rv.add(object);
-				oids.add(object.getOid());
-			}
-		}
-		return rv;
-	}
+    @NotNull
+    public static ObjectQuery createManagerQuery(Class<? extends ObjectType> objectTypeClass, String orgOid,
+            RelationRegistry relationRegistry, PrismContext prismContext) {
+        Collection<QName> managerRelations = relationRegistry.getAllRelationsFor(RelationKindType.MANAGER);
+        if (managerRelations.isEmpty()) {
+            LOGGER.warn("No manager relation is defined");
+            return prismContext.queryFor(objectTypeClass).none().build();
+        }
 
-	public static List<ObjectReferenceType> keepDistinctReferences(Collection<ObjectReferenceType> references) {
-		List<ObjectReferenceType> rv = new ArrayList<>();
-    	Set<String> oids = new HashSet<>(references.size());
-		for (ObjectReferenceType reference : emptyIfNull(references)) {
-			if (reference.getOid() == null) {
-				throw new IllegalArgumentException("Unexpected OID-less reference");
-			} else if (!oids.contains(reference.getOid())) {
-				rv.add(reference);
-				oids.add(reference.getOid());
-			}
-		}
-		return rv;
-	}
+        List<PrismReferenceValue> referencesToFind = new ArrayList<>();
+        for (QName managerRelation : managerRelations) {
+            PrismReferenceValue parentOrgRefVal = prismContext.itemFactory().createReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
+            parentOrgRefVal.setRelation(managerRelation);
+            referencesToFind.add(parentOrgRefVal);
+        }
+        return prismContext.queryFor(objectTypeClass)
+                .item(ObjectType.F_PARENT_ORG_REF).ref(referencesToFind)
+                .build();
+    }
 
-	public static <AH extends AssignmentHolderType> boolean hasArchetype(PrismObject<AH> object, String oid) {
-    	return hasArchetype(object.asObjectable(), oid);
-	}
+    public static <T extends Objectable> List<PrismObject<T>> keepDistinctObjects(Collection<PrismObject<T>> objects) {
+        List<PrismObject<T>> rv = new ArrayList<>();
+        Set<String> oids = new HashSet<>(objects.size());
+        for (PrismObject<T> object : emptyIfNull(objects)) {
+            if (object.getOid() == null) {
+                throw new IllegalArgumentException("Unexpected OID-less object");
+            } else if (!oids.contains(object.getOid())) {
+                rv.add(object);
+                oids.add(object.getOid());
+            }
+        }
+        return rv;
+    }
 
-	public static <AH extends AssignmentHolderType> boolean hasArchetype(AH objectable, String oid) {
-		for (ObjectReferenceType orgRef: objectable.getArchetypeRef()) {
-			if (oid.equals(orgRef.getOid())) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public static List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns){
-		if (customColumns == null || customColumns.size() == 0){
-			return new ArrayList<>();
-		}
-		List<GuiObjectColumnType> customColumnsList = new ArrayList<>(customColumns);
-		List<String> previousColumnValues = new ArrayList<>();
-		previousColumnValues.add(null);
-		previousColumnValues.add("");
+    public static List<ObjectReferenceType> keepDistinctReferences(Collection<ObjectReferenceType> references) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        Set<String> oids = new HashSet<>(references.size());
+        for (ObjectReferenceType reference : emptyIfNull(references)) {
+            if (reference.getOid() == null) {
+                throw new IllegalArgumentException("Unexpected OID-less reference");
+            } else if (!oids.contains(reference.getOid())) {
+                rv.add(reference);
+                oids.add(reference.getOid());
+            }
+        }
+        return rv;
+    }
 
-		Map<String, String> columnRefsMap = new HashMap<>();
-		for (GuiObjectColumnType column : customColumns){
-			columnRefsMap.put(column.getName(), column.getPreviousColumn() == null ? "" : column.getPreviousColumn());
-		}
+    public static <AH extends AssignmentHolderType> boolean hasArchetype(PrismObject<AH> object, String oid) {
+        return hasArchetype(object.asObjectable(), oid);
+    }
 
-		List<String> temp = new ArrayList<> ();
-		int index = 0;
-		while (index < customColumns.size()){
-			int sortFrom = index;
-			for (int i = index; i < customColumnsList.size(); i++){
-				GuiObjectColumnType column = customColumnsList.get(i);
-				if (previousColumnValues.contains(column.getPreviousColumn()) ||
-						!columnRefsMap.containsKey(column.getPreviousColumn())){
-					Collections.swap(customColumnsList, index, i);
-					index++;
-					temp.add(column.getName());
-				}
-			}
-			if (temp.size() == 0){
-				temp.add(customColumnsList.get(index).getName());
-				index++;
-			}
-			if (index - sortFrom > 1){
-				customColumnsList.subList(sortFrom, index - 1)
-						.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()));
-			}
-			previousColumnValues.clear();
-			previousColumnValues.addAll(temp);
-			temp.clear();
-		}
-		return customColumnsList;
-	}
+    public static <AH extends AssignmentHolderType> boolean hasArchetype(AH objectable, String oid) {
+        for (ObjectReferenceType orgRef: objectable.getArchetypeRef()) {
+            if (oid.equals(orgRef.getOid())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns){
+        if (customColumns == null || customColumns.size() == 0){
+            return new ArrayList<>();
+        }
+        List<GuiObjectColumnType> customColumnsList = new ArrayList<>(customColumns);
+        List<String> previousColumnValues = new ArrayList<>();
+        previousColumnValues.add(null);
+        previousColumnValues.add("");
+
+        Map<String, String> columnRefsMap = new HashMap<>();
+        for (GuiObjectColumnType column : customColumns){
+            columnRefsMap.put(column.getName(), column.getPreviousColumn() == null ? "" : column.getPreviousColumn());
+        }
+
+        List<String> temp = new ArrayList<> ();
+        int index = 0;
+        while (index < customColumns.size()){
+            int sortFrom = index;
+            for (int i = index; i < customColumnsList.size(); i++){
+                GuiObjectColumnType column = customColumnsList.get(i);
+                if (previousColumnValues.contains(column.getPreviousColumn()) ||
+                        !columnRefsMap.containsKey(column.getPreviousColumn())){
+                    Collections.swap(customColumnsList, index, i);
+                    index++;
+                    temp.add(column.getName());
+                }
+            }
+            if (temp.size() == 0){
+                temp.add(customColumnsList.get(index).getName());
+                index++;
+            }
+            if (index - sortFrom > 1){
+                customColumnsList.subList(sortFrom, index - 1)
+                        .sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()));
+            }
+            previousColumnValues.clear();
+            previousColumnValues.addAll(temp);
+            temp.clear();
+        }
+        return customColumnsList;
+    }
 }

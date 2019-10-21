@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -50,10 +50,10 @@ public class ConstructionWrapperFactory extends AssignmentDetailsWrapperFactoryI
         ConstructionValueWrapper constructionValueWrapper = new ConstructionValueWrapper(objectWrapper, objectValue, status);
         ConstructionType constructionType = objectValue.asContainerable();
         if (constructionType.getResourceRef() != null) {
-        	PrismObject resource = constructionType.getResourceRef().asReferenceValue().getObject();
-        	if (resource != null) {
-        		constructionValueWrapper.setResource(resource);
-        	}
+            PrismObject resource = constructionType.getResourceRef().asReferenceValue().getObject();
+            if (resource != null) {
+                constructionValueWrapper.setResource(resource);
+            }
             return constructionValueWrapper;
         }
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.menu.cog;
@@ -26,19 +26,19 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * DEPRECATED: use DropdownButtonPanel instead
- * 
+ *
  * This is the old cog-like dropdown from pre-adminlte times
- * 
+ *
  * @author lazyman
  */
 @Deprecated
 public class InlineMenu extends BasePanel<List<InlineMenuItem>> {
 
-    private static String ID_MENU_ITEM_CONTAINER= "menuItemContainer";
-    private static String ID_MENU_ITEM_BUTTON = "menuItemButton";
-    private static String ID_MENU_ITEM = "menuItem";
-    private static String ID_MENU_ITEM_BODY = "menuItemBody";
-    private static String ID_MENU_ITEM_ICON = "menuItemIcon";
+    private static final String ID_MENU_ITEM_CONTAINER= "menuItemContainer";
+    private static final String ID_MENU_ITEM_BUTTON = "menuItemButton";
+    private static final String ID_MENU_ITEM = "menuItem";
+    private static final String ID_MENU_ITEM_BODY = "menuItemBody";
+    private static final String ID_MENU_ITEM_ICON = "menuItemIcon";
 
     private boolean hideByDefault;
 

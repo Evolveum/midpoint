@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  *
  * This file is inspired and uses minor parts of the maven-dependency-plugin by Brian Fox.
@@ -63,19 +63,19 @@ import com.evolveum.midpoint.util.DOMUtil;
 public class SchemaDistMojo extends AbstractMojo {
 
     @Parameter
-	private String includes;
+    private String includes;
 
     @Parameter
     private String excludes;
 
-	@Parameter(defaultValue="${project.build.directory}/schemadist", required=true)
+    @Parameter(defaultValue="${project.build.directory}/schemadist", required=true)
     private File outputDirectory;
 
-	@Parameter(defaultValue="${project.build.directory}/schemadist-work", required=true)
+    @Parameter(defaultValue="${project.build.directory}/schemadist-work", required=true)
     private File workDirectory;
 
     @Parameter
-	private List<ArtifactItem> artifactItems;
+    private List<ArtifactItem> artifactItems;
 
     @Parameter(defaultValue="true", required=true)
     private boolean translateSchemaLocation;
@@ -90,25 +90,25 @@ public class SchemaDistMojo extends AbstractMojo {
     private ArtifactFactory factory;
 
     @Component
-	private RepositorySystem repository;
+    private RepositorySystem repository;
 
-	@Component
-	private MavenSession session;
+    @Component
+    private MavenSession session;
 
     @Component
     private ArchiverManager archiverManager;
 
     private void processArtifactItems() throws MojoExecutionException, InvalidVersionSpecificationException {
-    	for (ArtifactItem artifactItem : artifactItems) {
-    		if (StringUtils.isEmpty(artifactItem.getVersion())) {
+        for (ArtifactItem artifactItem : artifactItems) {
+            if (StringUtils.isEmpty(artifactItem.getVersion())) {
                 fillMissingArtifactVersion(artifactItem);
             }
-    		artifactItem.setArtifact(getArtifact(artifactItem));
-    	}
+            artifactItem.setArtifact(getArtifact(artifactItem));
+        }
     }
 
     private void fillMissingArtifactVersion(ArtifactItem artifactItem) throws MojoExecutionException {
-    	List<Dependency> deps = project.getDependencies();
+        List<Dependency> deps = project.getDependencies();
         List<Dependency> depMngt = project.getDependencyManagement() == null
             ? Collections.<Dependency>emptyList() : project.getDependencyManagement().getDependencies();
 
@@ -121,7 +121,7 @@ public class SchemaDistMojo extends AbstractMojo {
                 "Unable to find artifact version of " + artifactItem.getGroupId() + ":" + artifactItem.getArtifactId()
                     + " in either dependency list or in project's dependency management." );
         }
-	}
+    }
 
     private boolean findDependencyVersion(ArtifactItem artifact, List<Dependency> dependencies, boolean looseMatch) {
         for ( Dependency dependency : dependencies ) {
@@ -137,265 +137,265 @@ public class SchemaDistMojo extends AbstractMojo {
         return false;
     }
 
-	protected Artifact getArtifact(ArtifactItem artifactItem) throws MojoExecutionException, InvalidVersionSpecificationException {
-	    Artifact artifact;
+    protected Artifact getArtifact(ArtifactItem artifactItem) throws MojoExecutionException, InvalidVersionSpecificationException {
+        Artifact artifact;
 
-	    VersionRange vr = VersionRange.createFromVersionSpec(artifactItem.getVersion());
+        VersionRange vr = VersionRange.createFromVersionSpec(artifactItem.getVersion());
 
-	    if (StringUtils.isEmpty(artifactItem.getClassifier())) {
-	        artifact = factory.createDependencyArtifact( artifactItem.getGroupId(), artifactItem.getArtifactId(), vr,
-	                                                     artifactItem.getType(), null, Artifact.SCOPE_COMPILE );
-	    } else {
-	        artifact = factory.createDependencyArtifact( artifactItem.getGroupId(), artifactItem.getArtifactId(), vr,
-	                                                     artifactItem.getType(), artifactItem.getClassifier(),
-	                                                     Artifact.SCOPE_COMPILE );
-	    }
+        if (StringUtils.isEmpty(artifactItem.getClassifier())) {
+            artifact = factory.createDependencyArtifact( artifactItem.getGroupId(), artifactItem.getArtifactId(), vr,
+                                                         artifactItem.getType(), null, Artifact.SCOPE_COMPILE );
+        } else {
+            artifact = factory.createDependencyArtifact( artifactItem.getGroupId(), artifactItem.getArtifactId(), vr,
+                                                         artifactItem.getType(), artifactItem.getClassifier(),
+                                                         Artifact.SCOPE_COMPILE );
+        }
 
-		ArtifactResolutionRequest request = new ArtifactResolutionRequest();
-		request.setArtifact(artifact);
-		request.setResolveRoot(true).setResolveTransitively(false);
-		request.setServers( session.getRequest().getServers() );
-		request.setMirrors( session.getRequest().getMirrors() );
-		request.setProxies( session.getRequest().getProxies() );
-		request.setLocalRepository(session.getLocalRepository());
-		request.setRemoteRepositories(session.getRequest().getRemoteRepositories());
-		repository.resolve(request);
+        ArtifactResolutionRequest request = new ArtifactResolutionRequest();
+        request.setArtifact(artifact);
+        request.setResolveRoot(true).setResolveTransitively(false);
+        request.setServers( session.getRequest().getServers() );
+        request.setMirrors( session.getRequest().getMirrors() );
+        request.setProxies( session.getRequest().getProxies() );
+        request.setLocalRepository(session.getLocalRepository());
+        request.setRemoteRepositories(session.getRequest().getRemoteRepositories());
+        repository.resolve(request);
 
-	    return artifact;
+        return artifact;
     }
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         getLog().debug( "SchemaDist plugin started" );
 
         try {
-			processArtifactItems();
-		} catch (InvalidVersionSpecificationException e) {
-			handleFailure(e);
-		}
+            processArtifactItems();
+        } catch (InvalidVersionSpecificationException e) {
+            handleFailure(e);
+        }
         final File outDir = initializeOutDir(outputDirectory);
 
         CatalogManager catalogManager = new CatalogManager();
-		catalogManager.setVerbosity(0);
+        catalogManager.setVerbosity(0);
 //        catalogManager.setVerbosity(999);
 
         for (ArtifactItem artifactItem: artifactItems) {
-        	Artifact artifact = artifactItem.getArtifact();
-        	getLog().debug( "SchemaDist unpacking artifact " + artifact);
-        	File workDir = new File(workDirectory, artifact.getArtifactId());
-        	initializeOutDir(workDir);
-        	artifactItem.setWorkDir(workDir);
-        	unpack(artifactItem, workDir);
+            Artifact artifact = artifactItem.getArtifact();
+            getLog().debug( "SchemaDist unpacking artifact " + artifact);
+            File workDir = new File(workDirectory, artifact.getArtifactId());
+            initializeOutDir(workDir);
+            artifactItem.setWorkDir(workDir);
+            unpack(artifactItem, workDir);
 
-        	if (translateSchemaLocation) {
-				String catalogPath = artifactItem.getCatalog();
-				if (catalogPath != null) {
-					File catalogFile = new File(workDir, catalogPath);
-					if (!catalogFile.exists()) {
-						throw new MojoExecutionException(
-								"No catalog file " + catalogPath + " in artifact " + artifact);
-					}
-					Catalog catalog = new Catalog(catalogManager);
-					catalog.setupReaders();
-					try {
-						// UGLY HACK. On Windows, file names like d:\abc\def\catalog.xml eventually get treated very strangely
-						// (resulting in names like "file:<current-working-dir>d:\abc\def\catalog.xml" that are obviously wrong)
-						// Prefixing such names with "file:/" helps.
-						String prefix;
-						if (catalogFile.isAbsolute() && !catalogFile.getPath().startsWith("/")) {
-							prefix = "/";
-						} else {
-							prefix = "";
-						}
-						String fileName = "file:" + prefix + catalogFile.getPath();
-						getLog().debug("Calling parseCatalog with: " + fileName);
-						catalog.parseCatalog(fileName);
-					} catch (MalformedURLException e) {
-						throw new MojoExecutionException(
-								"Error parsing catalog file " + catalogPath + " in artifact " + artifact, e);
-					} catch (IOException e) {
-						throw new MojoExecutionException(
-								"Error parsing catalog file " + catalogPath + " in artifact " + artifact, e);
-					}
-					artifactItem.setResolveCatalog(catalog);
-				}
-			} else {
-				getLog().debug("Catalog search disabled for " + artifact);
-			}
+            if (translateSchemaLocation) {
+                String catalogPath = artifactItem.getCatalog();
+                if (catalogPath != null) {
+                    File catalogFile = new File(workDir, catalogPath);
+                    if (!catalogFile.exists()) {
+                        throw new MojoExecutionException(
+                                "No catalog file " + catalogPath + " in artifact " + artifact);
+                    }
+                    Catalog catalog = new Catalog(catalogManager);
+                    catalog.setupReaders();
+                    try {
+                        // UGLY HACK. On Windows, file names like d:\abc\def\catalog.xml eventually get treated very strangely
+                        // (resulting in names like "file:<current-working-dir>d:\abc\def\catalog.xml" that are obviously wrong)
+                        // Prefixing such names with "file:/" helps.
+                        String prefix;
+                        if (catalogFile.isAbsolute() && !catalogFile.getPath().startsWith("/")) {
+                            prefix = "/";
+                        } else {
+                            prefix = "";
+                        }
+                        String fileName = "file:" + prefix + catalogFile.getPath();
+                        getLog().debug("Calling parseCatalog with: " + fileName);
+                        catalog.parseCatalog(fileName);
+                    } catch (MalformedURLException e) {
+                        throw new MojoExecutionException(
+                                "Error parsing catalog file " + catalogPath + " in artifact " + artifact, e);
+                    } catch (IOException e) {
+                        throw new MojoExecutionException(
+                                "Error parsing catalog file " + catalogPath + " in artifact " + artifact, e);
+                    }
+                    artifactItem.setResolveCatalog(catalog);
+                }
+            } else {
+                getLog().debug("Catalog search disabled for " + artifact);
+            }
         }
 
         for (ArtifactItem artifactItem: artifactItems) {
-        	Artifact artifact = artifactItem.getArtifact();
-        	getLog().debug( "SchemaDist processing artifact " + artifact);
-        	final File workDir = artifactItem.getWorkDir();
-        	FileVisitor<Path> fileVisitor = new FileVisitor<Path>() {
-				@Override
-				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-						throws IOException {
-					// nothing to do
-					return FileVisitResult.CONTINUE;
-				}
+            Artifact artifact = artifactItem.getArtifact();
+            getLog().debug( "SchemaDist processing artifact " + artifact);
+            final File workDir = artifactItem.getWorkDir();
+            FileVisitor<Path> fileVisitor = new FileVisitor<Path>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+                        throws IOException {
+                    // nothing to do
+                    return FileVisitResult.CONTINUE;
+                }
 
-				@Override
-				public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException {
-					String fileName = filePath.getFileName().toString();
-					if (fileName.endsWith(".xsd")) {
-						getLog().debug("=======================> Processing file "+filePath);
-						try {
-							processXsd(filePath, workDir, outDir);
-						} catch (MojoExecutionException | MojoFailureException e) {
-							throw new RuntimeException(e.getMessage(),e);
-						}
-					} else if (fileName.endsWith(".wsdl")) {
-						getLog().debug("=======================> Processing file "+filePath);
-						try {
-							processWsdl(filePath, workDir, outDir);
-						} catch (MojoExecutionException | MojoFailureException e) {
-							throw new RuntimeException(e.getMessage(),e);
-						}
-					} else {
-						getLog().debug("=======================> Skipping file "+filePath);
-					}
-					return FileVisitResult.CONTINUE;
-				}
+                @Override
+                public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException {
+                    String fileName = filePath.getFileName().toString();
+                    if (fileName.endsWith(".xsd")) {
+                        getLog().debug("=======================> Processing file "+filePath);
+                        try {
+                            processXsd(filePath, workDir, outDir);
+                        } catch (MojoExecutionException | MojoFailureException e) {
+                            throw new RuntimeException(e.getMessage(),e);
+                        }
+                    } else if (fileName.endsWith(".wsdl")) {
+                        getLog().debug("=======================> Processing file "+filePath);
+                        try {
+                            processWsdl(filePath, workDir, outDir);
+                        } catch (MojoExecutionException | MojoFailureException e) {
+                            throw new RuntimeException(e.getMessage(),e);
+                        }
+                    } else {
+                        getLog().debug("=======================> Skipping file "+filePath);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
 
-				@Override
-				public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-					return FileVisitResult.TERMINATE;
-				}
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                    return FileVisitResult.TERMINATE;
+                }
 
-				@Override
-				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-					// nothing to do
-					return FileVisitResult.CONTINUE;
-				}
-			};
-			try {
-				Files.walkFileTree(workDir.toPath(), fileVisitor);
-			} catch (IOException e) {
-				throw new MojoExecutionException("Error processing files of artifact "+artifact, e);
-			}
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    // nothing to do
+                    return FileVisitResult.CONTINUE;
+                }
+            };
+            try {
+                Files.walkFileTree(workDir.toPath(), fileVisitor);
+            } catch (IOException e) {
+                throw new MojoExecutionException("Error processing files of artifact "+artifact, e);
+            }
 
         }
         getLog().debug( "SchemaDist plugin finished" );
     }
 
-	private void processXsd(Path filePath, File workDir, File outDir) throws MojoExecutionException, MojoFailureException {
-		Document dom = DOMUtil.parseFile(filePath.toFile());
-		Element rootElement = DOMUtil.getFirstChildElement(dom);
-		if (translateSchemaLocation) {
-			processXsdElement(rootElement, filePath, workDir, outDir);
-		}
-		serializeXml(dom, filePath, workDir, outDir);
-	}
+    private void processXsd(Path filePath, File workDir, File outDir) throws MojoExecutionException, MojoFailureException {
+        Document dom = DOMUtil.parseFile(filePath.toFile());
+        Element rootElement = DOMUtil.getFirstChildElement(dom);
+        if (translateSchemaLocation) {
+            processXsdElement(rootElement, filePath, workDir, outDir);
+        }
+        serializeXml(dom, filePath, workDir, outDir);
+    }
 
-	private void serializeXml(Document dom, Path filePath, File workDir, File outDir) throws MojoFailureException, MojoExecutionException {
-		Path fileRelPath = workDir.toPath().relativize(filePath);
-		File outFile = new File(outDir, fileRelPath.toString());
-		initializeOutDir(outFile.getParentFile());
-		try {
-			DOMUtil.serializeDOMToFile(dom, outFile);
-		} catch (TransformerFactoryConfigurationError | TransformerException e) {
-			throw new MojoExecutionException("Error serializing modified file "+fileRelPath+" to XML: "+ e.getMessage(), e);
-		}
-	}
+    private void serializeXml(Document dom, Path filePath, File workDir, File outDir) throws MojoFailureException, MojoExecutionException {
+        Path fileRelPath = workDir.toPath().relativize(filePath);
+        File outFile = new File(outDir, fileRelPath.toString());
+        initializeOutDir(outFile.getParentFile());
+        try {
+            DOMUtil.serializeDOMToFile(dom, outFile);
+        } catch (TransformerFactoryConfigurationError | TransformerException e) {
+            throw new MojoExecutionException("Error serializing modified file "+fileRelPath+" to XML: "+ e.getMessage(), e);
+        }
+    }
 
-	private void processXsdElement(Element rootElement, Path filePath, File workDir, File outDir) throws MojoExecutionException, MojoFailureException {
-		List<Element> importElements = DOMUtil.getChildElements(rootElement, DOMUtil.XSD_IMPORT_ELEMENT);
-		for (Element importElement: importElements) {
-			String namespace = DOMUtil.getAttribute(importElement, DOMUtil.XSD_ATTR_NAMESPACE);
-			if (DOMUtil.getAttribute(importElement, DOMUtil.XSD_ATTR_SCHEMA_LOCATION) == null) {
-				// target-less imports are skipped
-				continue;
-			}
-			getLog().debug("Processing import of '" + namespace + "'...");
-			String schemaLocation;
-			try {
-				schemaLocation = resolveSchemaLocation(namespace, filePath, workDir);
-			} catch (IOException e) {
-				throw new MojoExecutionException(
-						"Error resolving namespace " + namespace + " in file " + filePath + ": " + e.getMessage(), e);
-			}
-			importElement.setAttribute(DOMUtil.XSD_ATTR_SCHEMA_LOCATION.getLocalPart(), schemaLocation);
-		}
+    private void processXsdElement(Element rootElement, Path filePath, File workDir, File outDir) throws MojoExecutionException, MojoFailureException {
+        List<Element> importElements = DOMUtil.getChildElements(rootElement, DOMUtil.XSD_IMPORT_ELEMENT);
+        for (Element importElement: importElements) {
+            String namespace = DOMUtil.getAttribute(importElement, DOMUtil.XSD_ATTR_NAMESPACE);
+            if (DOMUtil.getAttribute(importElement, DOMUtil.XSD_ATTR_SCHEMA_LOCATION) == null) {
+                // target-less imports are skipped
+                continue;
+            }
+            getLog().debug("Processing import of '" + namespace + "'...");
+            String schemaLocation;
+            try {
+                schemaLocation = resolveSchemaLocation(namespace, filePath, workDir);
+            } catch (IOException e) {
+                throw new MojoExecutionException(
+                        "Error resolving namespace " + namespace + " in file " + filePath + ": " + e.getMessage(), e);
+            }
+            importElement.setAttribute(DOMUtil.XSD_ATTR_SCHEMA_LOCATION.getLocalPart(), schemaLocation);
+        }
 
-		List<Element> includeElements = DOMUtil.getChildElements(rootElement, DOMUtil.XSD_INCLUDE_ELEMENT);
-		for (Element includeElement: includeElements) {
-			String schemaLocationOriginal = DOMUtil.getAttribute(includeElement, DOMUtil.XSD_ATTR_SCHEMA_LOCATION);
-			getLog().debug("Processing include of '" + schemaLocationOriginal + "'...");
-			String schemaLocationTranslated;
-			try {
-				schemaLocationTranslated = resolveSchemaLocation(schemaLocationOriginal, filePath, workDir);
-			} catch (IOException e) {
-				throw new MojoExecutionException("Error resolving schemaLocation "+schemaLocationOriginal+" in file "+filePath+": "+ e.getMessage(), e);
-			}
-			includeElement.setAttribute(DOMUtil.XSD_ATTR_SCHEMA_LOCATION.getLocalPart(),
-					schemaLocationTranslated);
-		}
-	}
+        List<Element> includeElements = DOMUtil.getChildElements(rootElement, DOMUtil.XSD_INCLUDE_ELEMENT);
+        for (Element includeElement: includeElements) {
+            String schemaLocationOriginal = DOMUtil.getAttribute(includeElement, DOMUtil.XSD_ATTR_SCHEMA_LOCATION);
+            getLog().debug("Processing include of '" + schemaLocationOriginal + "'...");
+            String schemaLocationTranslated;
+            try {
+                schemaLocationTranslated = resolveSchemaLocation(schemaLocationOriginal, filePath, workDir);
+            } catch (IOException e) {
+                throw new MojoExecutionException("Error resolving schemaLocation "+schemaLocationOriginal+" in file "+filePath+": "+ e.getMessage(), e);
+            }
+            includeElement.setAttribute(DOMUtil.XSD_ATTR_SCHEMA_LOCATION.getLocalPart(),
+                    schemaLocationTranslated);
+        }
+    }
 
-	private void processWsdl(Path filePath, File workDir, File outDir) throws MojoExecutionException, MojoFailureException {
-		Document dom = DOMUtil.parseFile(filePath.toFile());
+    private void processWsdl(Path filePath, File workDir, File outDir) throws MojoExecutionException, MojoFailureException {
+        Document dom = DOMUtil.parseFile(filePath.toFile());
 
-		if (translateSchemaLocation) {
-			Element rootElement = DOMUtil.getFirstChildElement(dom);
-			List<Element> importElements = DOMUtil.getChildElements(rootElement, DOMUtil.WSDL_IMPORT_ELEMENT);
-			for(Element importElement: importElements) {
-				String namespace = DOMUtil.getAttribute(importElement, DOMUtil.WSDL_ATTR_NAMESPACE);
-				String schemaLocation;
-				try {
-					schemaLocation = resolveSchemaLocation(namespace, filePath, workDir);
-				} catch (IOException e) {
-					throw new MojoExecutionException("Error resolving namespace "+namespace+" in file "+filePath+": "+ e.getMessage(), e);
-				}
-				importElement.setAttribute(DOMUtil.WSDL_ATTR_LOCATION.getLocalPart(),
-						schemaLocation);
-			}
+        if (translateSchemaLocation) {
+            Element rootElement = DOMUtil.getFirstChildElement(dom);
+            List<Element> importElements = DOMUtil.getChildElements(rootElement, DOMUtil.WSDL_IMPORT_ELEMENT);
+            for(Element importElement: importElements) {
+                String namespace = DOMUtil.getAttribute(importElement, DOMUtil.WSDL_ATTR_NAMESPACE);
+                String schemaLocation;
+                try {
+                    schemaLocation = resolveSchemaLocation(namespace, filePath, workDir);
+                } catch (IOException e) {
+                    throw new MojoExecutionException("Error resolving namespace "+namespace+" in file "+filePath+": "+ e.getMessage(), e);
+                }
+                importElement.setAttribute(DOMUtil.WSDL_ATTR_LOCATION.getLocalPart(),
+                        schemaLocation);
+            }
 
-			List<Element> typesElements = DOMUtil.getChildElements(rootElement, DOMUtil.WSDL_TYPES_ELEMENT);
-			for(Element typesElement: typesElements) {
-				processXsdElement(DOMUtil.getFirstChildElement(typesElement),filePath,workDir,outDir);
-			}
-		}
+            List<Element> typesElements = DOMUtil.getChildElements(rootElement, DOMUtil.WSDL_TYPES_ELEMENT);
+            for(Element typesElement: typesElements) {
+                processXsdElement(DOMUtil.getFirstChildElement(typesElement),filePath,workDir,outDir);
+            }
+        }
 
-		serializeXml(dom, filePath, workDir, outDir);
-	}
+        serializeXml(dom, filePath, workDir, outDir);
+    }
 
     private String resolveSchemaLocation(String namespaceOrLocation, Path filePath, File workDir) throws MojoExecutionException, IOException {
-    	for (ArtifactItem artifactItem: artifactItems) {
-    		Catalog catalog = artifactItem.getResolveCatalog();
-			if (catalog == null) {
-				continue;
-			}
+        for (ArtifactItem artifactItem: artifactItems) {
+            Catalog catalog = artifactItem.getResolveCatalog();
+            if (catalog == null) {
+                continue;
+            }
             String publicId = namespaceOrLocation;
             if (publicId.endsWith("#")) {
                 publicId = publicId.substring(0, publicId.length()-1);
             }
-    		String resolvedString = catalog.resolveEntity(filePath.toString(), publicId, publicId);
-    		if (resolvedString != null) {
-    			getLog().debug("-------------------");
-    			getLog().debug("Resolved namespace/schemaLocation "+namespaceOrLocation+" to "+resolvedString+" using catalog "+catalog);
-    			URL resolvedUrl = new URL(resolvedString);
-    			String resolvedPathString = resolvedUrl.getPath();
-    			Path resolvedPath = new File(resolvedPathString).toPath();
-    			Path workDirPath = workDir.toPath();
+            String resolvedString = catalog.resolveEntity(filePath.toString(), publicId, publicId);
+            if (resolvedString != null) {
+                getLog().debug("-------------------");
+                getLog().debug("Resolved namespace/schemaLocation "+namespaceOrLocation+" to "+resolvedString+" using catalog "+catalog);
+                URL resolvedUrl = new URL(resolvedString);
+                String resolvedPathString = resolvedUrl.getPath();
+                Path resolvedPath = new File(resolvedPathString).toPath();
+                Path workDirPath = workDir.toPath();
 
-    			Path resolvedRelativeToCatalogWorkdir = artifactItem.getWorkDir().toPath().relativize(resolvedPath);
-    			Path fileRelativeToWorkdir = workDirPath.relativize(filePath);
+                Path resolvedRelativeToCatalogWorkdir = artifactItem.getWorkDir().toPath().relativize(resolvedPath);
+                Path fileRelativeToWorkdir = workDirPath.relativize(filePath);
 
-    			getLog().debug("workDirPath: "+workDirPath);
-    			getLog().debug("resolvedRelativeToCatalogWorkdir: "+resolvedRelativeToCatalogWorkdir+",  fileRelativeToWorkdir: "+fileRelativeToWorkdir);
+                getLog().debug("workDirPath: "+workDirPath);
+                getLog().debug("resolvedRelativeToCatalogWorkdir: "+resolvedRelativeToCatalogWorkdir+",  fileRelativeToWorkdir: "+fileRelativeToWorkdir);
 
-    			Path relativePath = fileRelativeToWorkdir.getParent().relativize(resolvedRelativeToCatalogWorkdir);
-    			getLog().debug("Rel: "+relativePath);
-				String unixSeparators = FilenameUtils.separatorsToUnix(relativePath.toString());
-				getLog().debug("Normalized to use UNIX separators: " + unixSeparators);
-    			return unixSeparators;
-    		}
-    	}
-		throw new MojoExecutionException("Cannot resolve namespace "+namespaceOrLocation+" in file "+filePath+" using any of the catalogs");
-	}
+                Path relativePath = fileRelativeToWorkdir.getParent().relativize(resolvedRelativeToCatalogWorkdir);
+                getLog().debug("Rel: "+relativePath);
+                String unixSeparators = FilenameUtils.separatorsToUnix(relativePath.toString());
+                getLog().debug("Normalized to use UNIX separators: " + unixSeparators);
+                return unixSeparators;
+            }
+        }
+        throw new MojoExecutionException("Cannot resolve namespace "+namespaceOrLocation+" in file "+filePath+" using any of the catalogs");
+    }
 
-	private File initializeOutDir(File dir) throws MojoFailureException {
+    private File initializeOutDir(File dir) throws MojoFailureException {
         getLog().debug("Output dir: "+dir);
         if ( dir.exists() && !dir.isDirectory() ) {
             throw new MojoFailureException("Output directory is not a directory: "+dir);
@@ -408,52 +408,52 @@ public class SchemaDistMojo extends AbstractMojo {
     }
 
     private void unpack(ArtifactItem artifactItem, File destDir) throws MojoExecutionException {
-    	Artifact artifact = artifactItem.getArtifact();
-    	File file = artifact.getFile();
-    	if (file == null) {
-    		throw new MojoExecutionException("No file for artifact "+artifact);
-    	}
-    	if (file.isDirectory()) {
-    		try {
-				FileUtils.copyDirectory(file, destDir);
-			} catch (IOException e) {
-				throw new MojoExecutionException("Error copying directory "+file+" to "+destDir+": "+e.getMessage(), e);
-			}
+        Artifact artifact = artifactItem.getArtifact();
+        File file = artifact.getFile();
+        if (file == null) {
+            throw new MojoExecutionException("No file for artifact "+artifact);
+        }
+        if (file.isDirectory()) {
+            try {
+                FileUtils.copyDirectory(file, destDir);
+            } catch (IOException e) {
+                throw new MojoExecutionException("Error copying directory "+file+" to "+destDir+": "+e.getMessage(), e);
+            }
         } else {
-	    	try {
-	            UnArchiver unArchiver = archiverManager.getUnArchiver( artifact.getType() );
-	            unArchiver.setSourceFile(file);
-	            unArchiver.setDestDirectory(destDir);
+            try {
+                UnArchiver unArchiver = archiverManager.getUnArchiver( artifact.getType() );
+                unArchiver.setSourceFile(file);
+                unArchiver.setDestDirectory(destDir);
 
-	            if (StringUtils.isNotEmpty(excludes) || StringUtils.isNotEmpty(includes)) {
-	                // Create the selectors that will filter
-	                // based on include/exclude parameters
-	                // MDEP-47
-	                IncludeExcludeFileSelector[] selectors =
-	                    new IncludeExcludeFileSelector[]{ new IncludeExcludeFileSelector() };
+                if (StringUtils.isNotEmpty(excludes) || StringUtils.isNotEmpty(includes)) {
+                    // Create the selectors that will filter
+                    // based on include/exclude parameters
+                    // MDEP-47
+                    IncludeExcludeFileSelector[] selectors =
+                        new IncludeExcludeFileSelector[]{ new IncludeExcludeFileSelector() };
 
-	                if ( StringUtils.isNotEmpty( excludes ) ) {
-	                    selectors[0].setExcludes( excludes.split( "," ) );
-	                }
+                    if ( StringUtils.isNotEmpty( excludes ) ) {
+                        selectors[0].setExcludes( excludes.split( "," ) );
+                    }
 
-	                if ( StringUtils.isNotEmpty( includes ) ) {
-	                    selectors[0].setIncludes( includes.split( "," ) );
-	                }
+                    if ( StringUtils.isNotEmpty( includes ) ) {
+                        selectors[0].setIncludes( includes.split( "," ) );
+                    }
 
-	                unArchiver.setFileSelectors( selectors );
-	            }
+                    unArchiver.setFileSelectors( selectors );
+                }
 
-	            unArchiver.extract();
-	    	} catch (ArchiverException | NoSuchArchiverException e) {
-	            throw new MojoExecutionException(
-	                    "Error unpacking file: " + file + " to: " + destDir + "\r\n" + e.toString(), e );
-			}
+                unArchiver.extract();
+            } catch (ArchiverException | NoSuchArchiverException e) {
+                throw new MojoExecutionException(
+                        "Error unpacking file: " + file + " to: " + destDir + "\r\n" + e.toString(), e );
+            }
         }
     }
 
     private void handleFailure(Exception e) throws MojoFailureException {
-    	e.printStackTrace();
-    	throw new MojoFailureException(e.getMessage());
-	}
+        e.printStackTrace();
+        throw new MojoFailureException(e.getMessage());
+    }
 
 }

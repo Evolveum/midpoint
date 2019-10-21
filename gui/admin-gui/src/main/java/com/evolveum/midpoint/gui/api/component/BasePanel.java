@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -44,7 +44,7 @@ public class BasePanel<T> extends Panel {// extends Serializable> extends Panel 
     public BasePanel(String id) {
         super(id);
     }
-    
+
     public BasePanel(String id, T object) {
         super(id);
 //        this.model = Model.of(object);
@@ -79,33 +79,33 @@ public class BasePanel<T> extends Panel {// extends Serializable> extends Panel 
         return new StringResourceModel(resourceKey, this).setModel(model)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
-//    	return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
+//        return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return new StringResourceModel(resourceKey, this).setModel(null)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
-//    	return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
+//        return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
     }
 
     public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
-    	String resourceKey = null;
-    	if (polystringKey != null) {
-    		// TODO later: use polystringKey.getKey()
-    		resourceKey = polystringKey.getOrig();
-    	}
+        String resourceKey = null;
+        if (polystringKey != null) {
+            // TODO later: use polystringKey.getKey()
+            resourceKey = polystringKey.getOrig();
+        }
         return new StringResourceModel(resourceKey, this).setModel(null)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);
     }
 
     public StringResourceModel createStringResource(PolyStringType polystringKey, Object... objects) {
-    	String resourceKey = null;
-    	if (polystringKey != null) {
-    		// TODO later: use polystringKey.getKey()
-    		resourceKey = polystringKey.getOrig();
-    	}
+        String resourceKey = null;
+        if (polystringKey != null) {
+            // TODO later: use polystringKey.getKey()
+            resourceKey = polystringKey.getOrig();
+        }
         return new StringResourceModel(resourceKey, this).setModel(null)
                 .setDefaultValue(resourceKey)
                 .setParameters(objects);

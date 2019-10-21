@@ -3,7 +3,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -279,18 +279,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-			<xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						What actions are to be applied to work items when given timer(s) occur.
-						EXPERIMENTAL
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.6</a:since>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
+            <xsd:element name="timedActions" type="tns:WorkItemTimedActionsType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What actions are to be applied to work items when given timer(s) occur.
+                        EXPERIMENTAL
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
@@ -364,9 +364,9 @@
                     <xsd:documentation>
                         The most general way of specifying the reviewer. Inputs for such expressions are:
                         - certificationCase (current certification case),
-						- campaign (certification campaign object),
-						- reviewerSpecification (current reviewer specification).
-						Output is a collection of parent-less reviewer references (of type ObjectReferenceType).
+                        - campaign (certification campaign object),
+                        - reviewerSpecification (current reviewer specification).
+                        Output is a collection of parent-less reviewer references (of type ObjectReferenceType).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -759,14 +759,14 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-					<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Relation(s) which are to be considered. Value of q:any means "any relation".
-								If no relation is present, org:default (i.e. null) is assumed.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
+                    <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Relation(s) which are to be considered. Value of q:any means "any relation".
+                                If no relation is present, org:default (i.e. null) is assumed.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -875,7 +875,7 @@
                         Work items for this stage. Some might be completed. Work items are not deleted.
                     </xsd:documentation>
                     <xsd:appinfo>
-						<a:since>3.6</a:since>
+                        <a:since>3.6</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -961,12 +961,12 @@
 
     <xsd:complexType name="AccessCertificationWorkItemType">
         <xsd:annotation>
-			<xsd:documentation>
-				A work item for a certification case.
-			</xsd:documentation>
+            <xsd:documentation>
+                A work item for a certification case.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
-				<a:since>3.6</a:since>
+                <a:since>3.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1408,10 +1408,10 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:schemaMigration>
-            		<a:element>tns:markedAsDelegate</a:element>
-            		<a:version>4.0</a:version>
-            		<a:operation>removed</a:operation>
-            	</a:schemaMigration>
+                    <a:element>tns:markedAsDelegate</a:element>
+                    <a:version>4.0</a:version>
+                    <a:operation>removed</a:operation>
+                </a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1456,8 +1456,8 @@
                         What response types are available to reviewers? Empty list means all responses.
                         TODO should we configure also names of the responses? (probably no)
                     </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>AccessCertificationConfigurationType.availableResponse</a:displayName>
+                    <xsd:appinfo>
+                        <a:displayName>AccessCertificationConfigurationType.availableResponse</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1470,7 +1470,7 @@
                     <xsd:appinfo>
                         <a:experimental>true</a:experimental>
                         <a:since>3.7.1</a:since>
-						<a:displayName>AccessCertificationConfigurationType.reviewerCommentsFormatting</a:displayName>
+                        <a:displayName>AccessCertificationConfigurationType.reviewerCommentsFormatting</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

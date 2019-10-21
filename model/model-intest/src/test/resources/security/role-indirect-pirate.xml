@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="67680a40-582c-11e7-b5b1-abcfbb047b34"
@@ -10,7 +10,7 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Indirect Pirate</name>
     <inducement>
-    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
-    	<focusType>UserType</focusType> <!-- MID-3650 -->
+        <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/>
+        <focusType>UserType</focusType> <!-- MID-3650 -->
     </inducement>
 </role>

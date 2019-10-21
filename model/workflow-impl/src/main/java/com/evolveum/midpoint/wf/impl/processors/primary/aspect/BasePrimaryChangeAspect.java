@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -69,12 +69,12 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
     @Autowired protected ConfigurationHelper configurationHelper;
     @Autowired protected PrismContext prismContext;
     @Autowired protected RelationRegistry relationRegistry;
-	@Autowired protected ModelHelper modelHelper;
-	@Autowired private SystemObjectCache systemObjectCache;
-	@Autowired private MappingFactory mappingFactory;
-	@Autowired protected ApprovalSchemaHelper approvalSchemaHelper;
+    @Autowired protected ModelHelper modelHelper;
+    @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private MappingFactory mappingFactory;
+    @Autowired protected ApprovalSchemaHelper approvalSchemaHelper;
 
-	@PostConstruct
+    @PostConstruct
     public void init() {
         changeProcessor.registerChangeAspect(this, isFirst());
     }
@@ -110,66 +110,66 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
         return createRelationResolver(object != null ? object.asPrismObject() : null, result);
     }
 
-	private <O extends ObjectType, F extends ObjectType> List<ObjectReferenceType> resolveReferenceFromFilter(Class<O> clazz, SearchFilterType filter, String sourceDescription,
-			LensContext<F> lensContext, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ExpressionEnvironment<F,?,?> env = new ExpressionEnvironment<>();
-		env.setLensContext(lensContext);
-		env.setCurrentResult(result);
-		env.setCurrentTask(task);
-		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
-		try {
+    private <O extends ObjectType, F extends ObjectType> List<ObjectReferenceType> resolveReferenceFromFilter(Class<O> clazz, SearchFilterType filter, String sourceDescription,
+            LensContext<F> lensContext, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        ExpressionEnvironment<F,?,?> env = new ExpressionEnvironment<>();
+        env.setLensContext(lensContext);
+        env.setCurrentResult(result);
+        env.setCurrentTask(task);
+        ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
+        try {
 
-			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(getFocusObjectable(lensContext), null, null, systemConfiguration.asObjectable(), prismContext);
+            PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+            ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(getFocusObjectable(lensContext), null, null, systemConfiguration.asObjectable(), prismContext);
 
-			ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, clazz);
-			ObjectFilter evaluatedFilter = ExpressionUtil
-					.evaluateFilterExpressions(origFilter, variables, MiscSchemaUtil.getExpressionProfile(), mappingFactory.getExpressionFactory(), prismContext, " evaluating approverRef filter expression ", task, result);
+            ObjectFilter origFilter = prismContext.getQueryConverter().parseFilter(filter, clazz);
+            ObjectFilter evaluatedFilter = ExpressionUtil
+                    .evaluateFilterExpressions(origFilter, variables, MiscSchemaUtil.getExpressionProfile(), mappingFactory.getExpressionFactory(), prismContext, " evaluating approverRef filter expression ", task, result);
 
-			if (evaluatedFilter == null) {
-				throw new SchemaException("Filter could not be evaluated in approverRef in "+sourceDescription+"; original filter = "+origFilter);
-			}
+            if (evaluatedFilter == null) {
+                throw new SchemaException("Filter could not be evaluated in approverRef in "+sourceDescription+"; original filter = "+origFilter);
+            }
 
-			SearchResultList<PrismObject<O>> targets = repositoryService.searchObjects(clazz, prismContext.queryFactory().createQuery(evaluatedFilter), null, result);
+            SearchResultList<PrismObject<O>> targets = repositoryService.searchObjects(clazz, prismContext.queryFactory().createQuery(evaluatedFilter), null, result);
 
-			return targets.stream()
-					.map(object -> ObjectTypeUtil.createObjectRef(object, prismContext))
-					.collect(Collectors.toList());
+            return targets.stream()
+                    .map(object -> ObjectTypeUtil.createObjectRef(object, prismContext))
+                    .collect(Collectors.toList());
 
-		} finally {
-			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-		}
-	}
+        } finally {
+            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+        }
+    }
 
-	private FocusType getFocusObjectable(LensContext<?> lensContext) {
-		if (lensContext.getFocusContext() == null) {
-			return null;		// shouldn't occur, probably
-		}
-		PrismObject<?> focus = lensContext.getFocusContext().getObjectAny();
-		return focus != null ? (FocusType) focus.asObjectable() : null;
-	}
+    private FocusType getFocusObjectable(LensContext<?> lensContext) {
+        if (lensContext.getFocusContext() == null) {
+            return null;        // shouldn't occur, probably
+        }
+        PrismObject<?> focus = lensContext.getFocusContext().getObjectAny();
+        return focus != null ? (FocusType) focus.asObjectable() : null;
+    }
 
-	public ReferenceResolver createReferenceResolver(ModelContext modelContext, Task taskFromModel, OperationResult result) {
-		return (ref, sourceDescription) -> {
-			if (ref == null) {
-				return Collections.emptyList();
-			} else if (ref.getOid() != null) {
-				return Collections.singletonList(ref.clone());
-			} else {
-				Class<? extends ObjectType> clazz;
-				if (ref.getType() != null) {
-					clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(ref.getType());
-					if (clazz == null) {
-						throw new SchemaException("Cannot determine type from " + ref.getType() + " in approver reference in " + sourceDescription);
-					}
-				} else {
-					throw new SchemaException("Missing type in target reference in " + sourceDescription);
-				}
-				return resolveReferenceFromFilter(clazz, ref.getFilter(), sourceDescription, (LensContext) modelContext, taskFromModel, result);
-			}
-		};
-	}
+    public ReferenceResolver createReferenceResolver(ModelContext modelContext, Task taskFromModel, OperationResult result) {
+        return (ref, sourceDescription) -> {
+            if (ref == null) {
+                return Collections.emptyList();
+            } else if (ref.getOid() != null) {
+                return Collections.singletonList(ref.clone());
+            } else {
+                Class<? extends ObjectType> clazz;
+                if (ref.getType() != null) {
+                    clazz = prismContext.getSchemaRegistry().determineCompileTimeClass(ref.getType());
+                    if (clazz == null) {
+                        throw new SchemaException("Cannot determine type from " + ref.getType() + " in approver reference in " + sourceDescription);
+                    }
+                } else {
+                    throw new SchemaException("Missing type in target reference in " + sourceDescription);
+                }
+                return resolveReferenceFromFilter(clazz, ref.getFilter(), sourceDescription, (LensContext) modelContext, taskFromModel, result);
+            }
+        };
+    }
 
     public RelationResolver createRelationResolver(PrismObject<?> object, OperationResult result) {
         return relations -> {

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.util;
@@ -14,31 +14,31 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class AbstractScannerResultHandler<O extends ObjectType> extends
-		AbstractSearchIterativeResultHandler<O> {
+        AbstractSearchIterativeResultHandler<O> {
 
-	protected XMLGregorianCalendar lastScanTimestamp;
-	protected XMLGregorianCalendar thisScanTimestamp;
+    protected XMLGregorianCalendar lastScanTimestamp;
+    protected XMLGregorianCalendar thisScanTimestamp;
 
-	public AbstractScannerResultHandler(RunningTask coordinatorTask, String taskOperationPrefix,
-			String processShortName, String contextDesc, TaskManager taskManager) {
-		super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
-	}
+    public AbstractScannerResultHandler(RunningTask coordinatorTask, String taskOperationPrefix,
+            String processShortName, String contextDesc, TaskManager taskManager) {
+        super(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, taskManager);
+    }
 
-	public XMLGregorianCalendar getLastScanTimestamp() {
-		return lastScanTimestamp;
-	}
+    public XMLGregorianCalendar getLastScanTimestamp() {
+        return lastScanTimestamp;
+    }
 
-	public void setLastScanTimestamp(XMLGregorianCalendar lastScanTimestamp) {
-		this.lastScanTimestamp = lastScanTimestamp;
-	}
+    public void setLastScanTimestamp(XMLGregorianCalendar lastScanTimestamp) {
+        this.lastScanTimestamp = lastScanTimestamp;
+    }
 
-	public XMLGregorianCalendar getThisScanTimestamp() {
-		return thisScanTimestamp;
-	}
+    public XMLGregorianCalendar getThisScanTimestamp() {
+        return thisScanTimestamp;
+    }
 
-	public void setThisScanTimestamp(XMLGregorianCalendar thisScanTimestamp) {
-		this.thisScanTimestamp = thisScanTimestamp;
-	}
+    public void setThisScanTimestamp(XMLGregorianCalendar thisScanTimestamp) {
+        this.thisScanTimestamp = thisScanTimestamp;
+    }
 
 
 

@@ -2,14 +2,14 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-	<code>
+    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+    <code>
         // resource dummy
-		midpoint.getLinkedShadow(user, '10000000-0000-0000-0000-000000000004', true).getName()
-	</code>
+        midpoint.getLinkedShadow(user, '10000000-0000-0000-0000-000000000004', true).getName()
+    </code>
 </script>

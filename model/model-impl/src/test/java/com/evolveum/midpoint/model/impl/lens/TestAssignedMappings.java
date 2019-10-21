@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
@@ -34,7 +34,7 @@ public class TestAssignedMappings extends AbstractLensTest {
 
     private static final TestResource ROLE_SIMPLE = new TestResource(TEST_DIR, "role-simple.xml", "de0c9c11-eb2e-4b6a-9200-a4306a5c8d6c");
     private static final TestResource USER_JIM = new TestResource(TEST_DIR, "user-jim.xml", "6ce717d6-414f-4d91-948a-923f02191399");
-    
+
     private static final TestResource METAMETAROLE_MMR111 = new TestResource(TEST_DIR, "metametarole-mmr1.1.1.xml", "b3d1cb95-526b-4162-8d65-acd8f2994644");
     private static final TestResource METAMETAROLE_MMR112 = new TestResource(TEST_DIR, "metametarole-mmr1.1.2.xml", "49cf021c-4127-41e1-9187-abcbeb8c0903");
     private static final TestResource METAMETAROLE_MMR113 = new TestResource(TEST_DIR, "metametarole-mmr1.1.3.xml", "99ed5447-4633-40ca-a81d-faa6f364ee69");
@@ -141,7 +141,7 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test100AssignSimpleToJim() throws Exception {
-    	final String TEST_NAME = "test100AssignSimpleToJim";
+        final String TEST_NAME = "test100AssignSimpleToJim";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -188,7 +188,7 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test110AssignRingToFrodo() throws Exception {
-    	final String TEST_NAME = "test110AssignRingToFrodo";
+        final String TEST_NAME = "test110AssignRingToFrodo";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -238,7 +238,7 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test120AssignStingToFrodo() throws Exception {
-    	final String TEST_NAME = "test120AssignStingToFrodo";
+        final String TEST_NAME = "test120AssignStingToFrodo";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
@@ -287,7 +287,7 @@ public class TestAssignedMappings extends AbstractLensTest {
      */
     @Test
     public void test130UnassignRingFromFrodo() throws Exception {
-    	final String TEST_NAME = "test130UnassignRingFromFrodo";
+        final String TEST_NAME = "test130UnassignRingFromFrodo";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN

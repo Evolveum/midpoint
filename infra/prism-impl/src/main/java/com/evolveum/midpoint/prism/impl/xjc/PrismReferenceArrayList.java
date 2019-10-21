@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -128,23 +128,23 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T> impleme
      * will only clear the values that naturally "belong" to the list.
      */
     @Override
-	public void clear() {
-    	List<PrismReferenceValue> values = reference.getValues();
-    	if (values == null) {
-    		return;
-    	}
-    	Iterator<PrismReferenceValue> iterator = values.iterator();
-    	while (iterator.hasNext()) {
-    		PrismReferenceValue value = iterator.next();
-    		if (willClear(value)) {
-    			iterator.remove();
-    		}
-    	}
-	}
+    public void clear() {
+        List<PrismReferenceValue> values = reference.getValues();
+        if (values == null) {
+            return;
+        }
+        Iterator<PrismReferenceValue> iterator = values.iterator();
+        while (iterator.hasNext()) {
+            PrismReferenceValue value = iterator.next();
+            if (willClear(value)) {
+                iterator.remove();
+            }
+        }
+    }
 
-	protected abstract boolean willClear(PrismReferenceValue value);
+    protected abstract boolean willClear(PrismReferenceValue value);
 
-	@Override
+    @Override
     public boolean isEmpty() {
         return size() == 0;
     }

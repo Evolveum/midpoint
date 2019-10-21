@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -56,13 +56,13 @@ public class AssignmentType
     implements Serializable, Containerable
 {
 
-	// This is NOT GENERATED. It is supplied here manually for the testing.
-	public final static ItemName F_DESCRIPTION = new ItemName(ObjectType.NS_FOO, "description");
+    // This is NOT GENERATED. It is supplied here manually for the testing.
+    public final static ItemName F_DESCRIPTION = new ItemName(ObjectType.NS_FOO, "description");
     public final static ItemName F_NOTE = new ItemName(ObjectType.NS_FOO, "note");
-	public final static ItemName F_ACCOUNT_CONSTRUCTION = new ItemName(ObjectType.NS_FOO, "accountConstruction");
-	public final static ItemName F_ACTIVATION = new ItemName(ObjectType.NS_FOO, "activation");
+    public final static ItemName F_ACCOUNT_CONSTRUCTION = new ItemName(ObjectType.NS_FOO, "accountConstruction");
+    public final static ItemName F_ACTIVATION = new ItemName(ObjectType.NS_FOO, "activation");
 
-	private final static long serialVersionUID = 201202081233L;
+    private final static long serialVersionUID = 201202081233L;
     protected String description;
     protected String note;
     protected AccountConstructionType accountConstruction;
@@ -149,20 +149,20 @@ public class AssignmentType
         this.id = value;
     }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Containerable#asPrismContainerValue()
-	 */
-	@Override
-	public PrismContainerValue asPrismContainerValue() {
-		throw new UnsupportedOperationException();
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.prism.Containerable#asPrismContainerValue()
+     */
+    @Override
+    public PrismContainerValue asPrismContainerValue() {
+        throw new UnsupportedOperationException();
+    }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Containerable#setupContainerValue(com.evolveum.midpoint.prism.PrismContainerValue)
-	 */
-	@Override
-	public void setupContainerValue(PrismContainerValue container) {
-		throw new UnsupportedOperationException();
-	}
+    /* (non-Javadoc)
+     * @see com.evolveum.midpoint.prism.Containerable#setupContainerValue(com.evolveum.midpoint.prism.PrismContainerValue)
+     */
+    @Override
+    public void setupContainerValue(PrismContainerValue container) {
+        throw new UnsupportedOperationException();
+    }
 
 }

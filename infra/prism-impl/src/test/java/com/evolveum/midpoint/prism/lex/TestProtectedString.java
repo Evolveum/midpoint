@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.lex;
@@ -33,18 +33,18 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class TestProtectedString {
 
-	@BeforeSuite
-	public void setupDebug() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
-		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-	}
+    @BeforeSuite
+    public void setupDebug() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
+        PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
+    }
 
-	@Test
+    @Test
     public void testParseProtectedStringEncrypted() throws Exception {
-		final String TEST_NAME = "testParseProtectedStringEncrypted";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "testParseProtectedStringEncrypted";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
+        // GIVEN
         Protector protector = PrismInternalTestUtil.createProtector(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC);
         ProtectedStringType protectedStringType = protector.encryptString("salalala");
 
@@ -62,14 +62,14 @@ public class TestProtectedString {
         assertEquals("Unmarshalled value differs from the original", protectedStringType, unmarshalled);
     }
 
-	@Test
+    @Test
     public void testParseProtectedStringHashed() throws Exception {
-		final String TEST_NAME = "testParseProtectedStringHashed";
-		displayTestTitle(TEST_NAME);
+        final String TEST_NAME = "testParseProtectedStringHashed";
+        displayTestTitle(TEST_NAME);
 
-		// GIVEN
-		ProtectedStringType protectedStringType = new ProtectedStringType();
-		protectedStringType.setClearValue("blabla");
+        // GIVEN
+        ProtectedStringType protectedStringType = new ProtectedStringType();
+        protectedStringType.setClearValue("blabla");
         Protector protector = PrismInternalTestUtil.createProtector(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC);
         protector.hash(protectedStringType);
 
@@ -82,7 +82,7 @@ public class TestProtectedString {
 
         // THEN
         ProtectedStringType unmarshalled = new ProtectedStringType();
-		prismContext.hacks().parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, createDefaultParsingContext());
+        prismContext.hacks().parseProtectedType(unmarshalled, protectedStringTypeXNode, prismContext, createDefaultParsingContext());
         System.out.println("Unmarshalled value: " + unmarshalled);
         assertEquals("Unmarshalled value differs from the original", protectedStringType, unmarshalled);
     }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -59,7 +59,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
 
     protected void initLayout() {
 
-    	// TODO clean this code up!!!
+        // TODO clean this code up!!!
 
         ListView<ApprovalStageExecutionInformationDto> stagesList = new ListView<ApprovalStageExecutionInformationDto>(ID_STAGES,
                 new PropertyModel<>(getModel(), ApprovalProcessExecutionInformationDto.F_STAGES)) {
@@ -71,11 +71,11 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                 int numberOfStages = process.getNumberOfStages();
                 int currentStageNumber = process.getCurrentStageNumber();
 
-	            WebMarkupContainer arrow = new WebMarkupContainer(ID_ARROW);
-	            arrow.add(new VisibleBehaviour(() -> stageNumber > 1));
-	            stagesListItem.add(arrow);
+                WebMarkupContainer arrow = new WebMarkupContainer(ID_ARROW);
+                arrow.add(new VisibleBehaviour(() -> stageNumber > 1));
+                stagesListItem.add(arrow);
 
-	            WebMarkupContainer currentStageMarker = new WebMarkupContainer(ID_CURRENT_STAGE_MARKER);
+                WebMarkupContainer currentStageMarker = new WebMarkupContainer(ID_CURRENT_STAGE_MARKER);
                 currentStageMarker.add(new VisibleBehaviour(() -> stageNumber == currentStageNumber && process.isRunning()));
                 stagesListItem.add(currentStageMarker);
 
@@ -87,7 +87,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
 
                         // original approver name
                         approversListItem.add(createApproverLabel(ID_APPROVER_NAME,
-		                        "ApprovalProcessExecutionInformationPanel.approver", ae.getApproverRef(), true));
+                                "ApprovalProcessExecutionInformationPanel.approver", ae.getApproverRef(), true));
 
                         // outcome
                         WorkItemOutcomeType outcome = ae.getOutput() != null
@@ -105,10 +105,10 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                                 outcomeIcon = ApprovalOutcomeIcon.EMPTY;         // history: do not show anything for work items with no outcome
                             } else if (stageNumber == currentStageNumber) {
                                 outcomeIcon = process.isRunning() && stage.isReachable() ?
-		                                ApprovalOutcomeIcon.IN_PROGRESS : ApprovalOutcomeIcon.CANCELLED;      // currently open
+                                        ApprovalOutcomeIcon.IN_PROGRESS : ApprovalOutcomeIcon.CANCELLED;      // currently open
                             } else {
                                 outcomeIcon = process.isRunning() && stage.isReachable()
-		                                ? ApprovalOutcomeIcon.FUTURE : ApprovalOutcomeIcon.CANCELLED;
+                                        ? ApprovalOutcomeIcon.FUTURE : ApprovalOutcomeIcon.CANCELLED;
                             }
                         }
                         ImagePanel outcomePanel = new ImagePanel(ID_OUTCOME,
@@ -117,17 +117,17 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
                         outcomePanel.add(new VisibleBehaviour(() -> outcomeIcon != ApprovalOutcomeIcon.EMPTY));
                         approversListItem.add(outcomePanel);
 
-	                    // content (incl. performer)
-	                    WebMarkupContainer approvalBoxContent = new WebMarkupContainer(ID_APPROVAL_BOX_CONTENT);
-	                    approversListItem.add(approvalBoxContent);
-	                    approvalBoxContent.setVisible(performerVisible(ae) || attorneyVisible(ae));
-	                    approvalBoxContent.add(createApproverLabel(ID_PERFORMER_NAME, "ApprovalProcessExecutionInformationPanel.performer", ae.getCompletedBy(), performerVisible(ae)));
-	                    approvalBoxContent.add(createApproverLabel(ID_ATTORNEY_NAME, "ApprovalProcessExecutionInformationPanel.attorney", ae.getAttorney(), attorneyVisible(ae)));
+                        // content (incl. performer)
+                        WebMarkupContainer approvalBoxContent = new WebMarkupContainer(ID_APPROVAL_BOX_CONTENT);
+                        approversListItem.add(approvalBoxContent);
+                        approvalBoxContent.setVisible(performerVisible(ae) || attorneyVisible(ae));
+                        approvalBoxContent.add(createApproverLabel(ID_PERFORMER_NAME, "ApprovalProcessExecutionInformationPanel.performer", ae.getCompletedBy(), performerVisible(ae)));
+                        approvalBoxContent.add(createApproverLabel(ID_ATTORNEY_NAME, "ApprovalProcessExecutionInformationPanel.attorney", ae.getAttorney(), attorneyVisible(ae)));
 
                         // junction
-	                    Label junctionLabel = new Label(ID_JUNCTION, stage.isFirstDecides() ? "" : " & ");      // or "+" for first decides? probably not
-	                    junctionLabel.setVisible(!stage.isFirstDecides() && !ae.isLast());                       // not showing "" to save space (if aligned vertically)
-	                    approversListItem.add(junctionLabel);
+                        Label junctionLabel = new Label(ID_JUNCTION, stage.isFirstDecides() ? "" : " & ");      // or "+" for first decides? probably not
+                        junctionLabel.setVisible(!stage.isFirstDecides() && !ae.isLast());                       // not showing "" to save space (if aligned vertically)
+                        approversListItem.add(junctionLabel);
                     }
                 };
                 approversList.setVisible(stage.getAutomatedCompletionReason() == null);
@@ -135,87 +135,87 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
 
                 String autoCompletionKey;
                 if (stage.getAutomatedCompletionReason() != null) {
-                	switch (stage.getAutomatedCompletionReason()) {
-		                case AUTO_COMPLETION_CONDITION: autoCompletionKey = "DecisionDto.AUTO_COMPLETION_CONDITION"; break;
-		                case NO_ASSIGNEES_FOUND: autoCompletionKey = "DecisionDto.NO_ASSIGNEES_FOUND"; break;
-		                default: autoCompletionKey = null;      // or throw an exception?
-	                }
+                    switch (stage.getAutomatedCompletionReason()) {
+                        case AUTO_COMPLETION_CONDITION: autoCompletionKey = "DecisionDto.AUTO_COMPLETION_CONDITION"; break;
+                        case NO_ASSIGNEES_FOUND: autoCompletionKey = "DecisionDto.NO_ASSIGNEES_FOUND"; break;
+                        default: autoCompletionKey = null;      // or throw an exception?
+                    }
                 } else {
-                	autoCompletionKey = null;
+                    autoCompletionKey = null;
                 }
-	            Label automatedOutcomeLabel = new Label(ID_AUTOMATED_OUTCOME, autoCompletionKey != null ? getString(autoCompletionKey) : "");
+                Label automatedOutcomeLabel = new Label(ID_AUTOMATED_OUTCOME, autoCompletionKey != null ? getString(autoCompletionKey) : "");
                 automatedOutcomeLabel.setVisible(stage.getAutomatedCompletionReason() != null);
                 stagesListItem.add(automatedOutcomeLabel);
 
                 stagesListItem.add(new Label(ID_STAGE_NAME, getStageNameLabel(stage, stageNumber, numberOfStages)));
 
-	            ApprovalLevelOutcomeType stageOutcome = stage.getOutcome();
-	            ApprovalOutcomeIcon stageOutcomeIcon;
-	            if (stageOutcome != null) {
-		            switch (stageOutcome) {
-			            case APPROVE: stageOutcomeIcon = ApprovalOutcomeIcon.APPROVED; break;
-			            case REJECT: stageOutcomeIcon = ApprovalOutcomeIcon.REJECTED; break;
-			            case SKIP: stageOutcomeIcon = ApprovalOutcomeIcon.SKIPPED; break;
-			            default: stageOutcomeIcon = ApprovalOutcomeIcon.UNKNOWN; break;          // perhaps should throw AssertionError instead
-		            }
-	            } else {
-		            if (stageNumber < currentStageNumber) {
-			            stageOutcomeIcon = ApprovalOutcomeIcon.EMPTY;         // history: do not show anything (shouldn't occur, as historical stages are filled in)
-		            } else if (stageNumber == currentStageNumber) {
-			            stageOutcomeIcon = process.isRunning() && stage.isReachable() ?
-					            ApprovalOutcomeIcon.IN_PROGRESS : ApprovalOutcomeIcon.CANCELLED;      // currently open
-		            } else {
-			            stageOutcomeIcon = process.isRunning() && stage.isReachable() ?
-					            ApprovalOutcomeIcon.FUTURE : ApprovalOutcomeIcon.CANCELLED;
-		            }
-	            }
-	            ImagePanel stageOutcomePanel = new ImagePanel(ID_STAGE_OUTCOME,
-			            Model.of(stageOutcomeIcon.getIcon()),
-			            Model.of(getString(stageOutcomeIcon.getTitle())));
-	            stageOutcomePanel.add(new VisibleBehaviour(() -> stageOutcomeIcon != ApprovalOutcomeIcon.EMPTY));
-	            stagesListItem.add(stageOutcomePanel);
+                ApprovalLevelOutcomeType stageOutcome = stage.getOutcome();
+                ApprovalOutcomeIcon stageOutcomeIcon;
+                if (stageOutcome != null) {
+                    switch (stageOutcome) {
+                        case APPROVE: stageOutcomeIcon = ApprovalOutcomeIcon.APPROVED; break;
+                        case REJECT: stageOutcomeIcon = ApprovalOutcomeIcon.REJECTED; break;
+                        case SKIP: stageOutcomeIcon = ApprovalOutcomeIcon.SKIPPED; break;
+                        default: stageOutcomeIcon = ApprovalOutcomeIcon.UNKNOWN; break;          // perhaps should throw AssertionError instead
+                    }
+                } else {
+                    if (stageNumber < currentStageNumber) {
+                        stageOutcomeIcon = ApprovalOutcomeIcon.EMPTY;         // history: do not show anything (shouldn't occur, as historical stages are filled in)
+                    } else if (stageNumber == currentStageNumber) {
+                        stageOutcomeIcon = process.isRunning() && stage.isReachable() ?
+                                ApprovalOutcomeIcon.IN_PROGRESS : ApprovalOutcomeIcon.CANCELLED;      // currently open
+                    } else {
+                        stageOutcomeIcon = process.isRunning() && stage.isReachable() ?
+                                ApprovalOutcomeIcon.FUTURE : ApprovalOutcomeIcon.CANCELLED;
+                    }
+                }
+                ImagePanel stageOutcomePanel = new ImagePanel(ID_STAGE_OUTCOME,
+                        Model.of(stageOutcomeIcon.getIcon()),
+                        Model.of(getString(stageOutcomeIcon.getTitle())));
+                stageOutcomePanel.add(new VisibleBehaviour(() -> stageOutcomeIcon != ApprovalOutcomeIcon.EMPTY));
+                stagesListItem.add(stageOutcomePanel);
             }
 
         };
         add(stagesList);
     }
 
-	@NotNull
-	private Label createApproverLabel(String id, String key, ObjectReferenceType reference, boolean visibility) {
-		Label label = new Label(id, getApproverLabel(key, reference));
-		label.setVisible(visibility);
-		return label;
-	}
+    @NotNull
+    private Label createApproverLabel(String id, String key, ObjectReferenceType reference, boolean visibility) {
+        Label label = new Label(id, getApproverLabel(key, reference));
+        label.setVisible(visibility);
+        return label;
+    }
 
-	private boolean performerVisible(ApproverEngagementDto ae) {
-		return ae.getCompletedBy() != null &&
-				!Objects.equals(ae.getCompletedBy().getOid(), ae.getApproverRef().getOid());
-	}
+    private boolean performerVisible(ApproverEngagementDto ae) {
+        return ae.getCompletedBy() != null &&
+                !Objects.equals(ae.getCompletedBy().getOid(), ae.getApproverRef().getOid());
+    }
 
-	private boolean attorneyVisible(ApproverEngagementDto ae) {
-		return ae.getAttorney() != null && ae.getCompletedBy() != null
-				&& !Objects.equals(ae.getAttorney().getOid(), ae.getCompletedBy().getOid());
-	}
+    private boolean attorneyVisible(ApproverEngagementDto ae) {
+        return ae.getAttorney() != null && ae.getCompletedBy() != null
+                && !Objects.equals(ae.getAttorney().getOid(), ae.getCompletedBy().getOid());
+    }
 
-	private String getStageNameLabel(ApprovalStageExecutionInformationDto stage, int stageNumber, int numberOfStages) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(getString("ApprovalProcessExecutionInformationPanel.stage"));
-		if (stage.getStageName() != null || stage.getStageDisplayName() != null) {
-			sb.append(": ");
-			sb.append(ApprovalContextUtil.getStageInfo(stageNumber, numberOfStages, stage.getStageName(), stage.getStageDisplayName()));
-			return sb.toString();
-		} else {
-			sb.append(" ").append(stageNumber).append("/").append(numberOfStages);
-			return sb.toString();
-		}
-	}
+    private String getStageNameLabel(ApprovalStageExecutionInformationDto stage, int stageNumber, int numberOfStages) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getString("ApprovalProcessExecutionInformationPanel.stage"));
+        if (stage.getStageName() != null || stage.getStageDisplayName() != null) {
+            sb.append(": ");
+            sb.append(ApprovalContextUtil.getStageInfo(stageNumber, numberOfStages, stage.getStageName(), stage.getStageDisplayName()));
+            return sb.toString();
+        } else {
+            sb.append(" ").append(stageNumber).append("/").append(numberOfStages);
+            return sb.toString();
+        }
+    }
 
-	private String getApproverLabel(String labelKey, ObjectReferenceType ref) {
-		if (ref != null) {
-			return getString(labelKey) + ": " + WebComponentUtil.getName(ref);
-		} else {
-			return "";
-		}
-	}
-    
+    private String getApproverLabel(String labelKey, ObjectReferenceType ref) {
+        if (ref != null) {
+            return getString(labelKey) + ": " + WebComponentUtil.getName(ref);
+        } else {
+            return "";
+        }
+    }
+
 }

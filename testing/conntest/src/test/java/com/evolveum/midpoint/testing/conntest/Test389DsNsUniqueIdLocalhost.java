@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2014-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.conntest;
@@ -23,24 +23,24 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class Test389DsNsUniqueIdLocalhost extends Abstract389DsNsUniqueIdTest {
 
 
-	@Override
-	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-nsuniqueid-localhost.xml");
-	}
+    @Override
+    protected File getResourceFile() {
+        return new File(getBaseDir(), "resource-nsuniqueid-localhost.xml");
+    }
 
-	@Override
-	public String getStartSystemCommand() {
-		return null;
-	}
+    @Override
+    public String getStartSystemCommand() {
+        return null;
+    }
 
-	@Override
-	public String getStopSystemCommand() {
-		return null;
-	}
+    @Override
+    public String getStopSystemCommand() {
+        return null;
+    }
 
-	@Override
-	protected String getLdapServerHost() {
-		return "localhost";
-	}
+    @Override
+    protected String getLdapServerHost() {
+        return "localhost";
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -12,12 +12,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public interface CacheListener {
 
-	/**
-	 * Invalidates given object(s) in all relevant caches.
-	 * @param type Type of object (null means all types).
-	 * @param oid OID of object (null means all object(s) of given type(s)).
-	 * @param clusterwide Whether to distribute this event clusterwide.
-	 * @param context Context of the invalidation request (optional).
-	 */
-	<O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide, CacheInvalidationContext context);
+    /**
+     * Invalidates given object(s) in all relevant caches.
+     * @param type Type of object (null means all types).
+     * @param oid OID of object (null means all object(s) of given type(s)).
+     * @param clusterwide Whether to distribute this event clusterwide.
+     * @param context Context of the invalidation request (optional).
+     */
+    <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide, CacheInvalidationContext context);
 }

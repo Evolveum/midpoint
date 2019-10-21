@@ -15,7 +15,7 @@ import com.evolveum.midpoint.task.api.Task;
  */
 public class MidpointTestMethodContext {
 
-    private static final ThreadLocal<MidpointTestMethodContext> testContextThreadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<MidpointTestMethodContext> TEST_CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
 
     /**
      * Task used to execute the test.
@@ -41,16 +41,16 @@ public class MidpointTestMethodContext {
     }
 
     public static MidpointTestMethodContext get() {
-        return testContextThreadLocal.get();
+        return TEST_CONTEXT_THREAD_LOCAL.get();
     }
 
     public static MidpointTestMethodContext setup(Task task, OperationResult result) {
         MidpointTestMethodContext ctx = new MidpointTestMethodContext(task, result);
-        testContextThreadLocal.set(ctx);
+        TEST_CONTEXT_THREAD_LOCAL.set(ctx);
         return ctx;
     }
 
     public static void destroy() {
-        testContextThreadLocal.remove();
+        TEST_CONTEXT_THREAD_LOCAL.remove();
     }
 }

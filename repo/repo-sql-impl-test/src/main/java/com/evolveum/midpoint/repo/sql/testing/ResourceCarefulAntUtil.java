@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -38,92 +38,92 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
  */
 public class ResourceCarefulAntUtil {
 
-	private static Random rnd = new Random();
+    private static Random rnd = new Random();
 
-	public static void initAnts(List<CarefulAnt<ResourceType>> ants, final File resourceFile, final PrismContext prismContext) {
-		final PrismObjectDefinition<ResourceType> resourceDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
-		ants.add(new CarefulAnt<ResourceType>() {
-			@Override
-			public ItemDelta<?,?> createDelta(int iteration) {
-				return  prismContext.deltaFactory().property().createModificationReplaceProperty(ResourceType.F_DESCRIPTION,
-		    			resourceDef, "Blah "+iteration);
-			}
+    public static void initAnts(List<CarefulAnt<ResourceType>> ants, final File resourceFile, final PrismContext prismContext) {
+        final PrismObjectDefinition<ResourceType> resourceDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+        ants.add(new CarefulAnt<ResourceType>() {
+            @Override
+            public ItemDelta<?,?> createDelta(int iteration) {
+                return  prismContext.deltaFactory().property().createModificationReplaceProperty(ResourceType.F_DESCRIPTION,
+                        resourceDef, "Blah "+iteration);
+            }
 
-			@Override
-			public void assertModification(PrismObject<ResourceType> resource, int iteration) {
-				assertEquals("Wrong description in iteration "+iteration, "Blah "+iteration, resource.asObjectable().getDescription());
-			}
-		});
+            @Override
+            public void assertModification(PrismObject<ResourceType> resource, int iteration) {
+                assertEquals("Wrong description in iteration "+iteration, "Blah "+iteration, resource.asObjectable().getDescription());
+            }
+        });
 
-    	ants.add(new CarefulAnt<ResourceType>() {
-    		SchemaHandlingType schemaHandling;
-			@Override
-			public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
-				schemaHandling = createNewSchemaHandling(resourceFile, iteration, prismContext);
-				return prismContext.deltaFactory().container().createModificationReplace(ResourceType.F_SCHEMA_HANDLING,
-						prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class),
-						schemaHandling.asPrismContainerValue().clone());
-			}
-			@Override
-			public void assertModification(PrismObject<ResourceType> resource, int iteration) {
-				if (!schemaHandling.equals(resource.asObjectable().getSchemaHandling())) {
-					System.out.println("Expected: " + PrismUtil.serializeQuietly(prismContext, schemaHandling));
-					System.out.println("Real: " + PrismUtil.serializeQuietly(prismContext, resource.asObjectable().getSchemaHandling()));
-					fail("Wrong schemaHandling in iteration" + iteration);
-				}
-				//assertEquals("Wrong schemaHandling in iteration "+iteration, schemaHandling, resource.asObjectable().getSchemaHandling());
-			}
-		});
+        ants.add(new CarefulAnt<ResourceType>() {
+            SchemaHandlingType schemaHandling;
+            @Override
+            public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
+                schemaHandling = createNewSchemaHandling(resourceFile, iteration, prismContext);
+                return prismContext.deltaFactory().container().createModificationReplace(ResourceType.F_SCHEMA_HANDLING,
+                        prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class),
+                        schemaHandling.asPrismContainerValue().clone());
+            }
+            @Override
+            public void assertModification(PrismObject<ResourceType> resource, int iteration) {
+                if (!schemaHandling.equals(resource.asObjectable().getSchemaHandling())) {
+                    System.out.println("Expected: " + PrismUtil.serializeQuietly(prismContext, schemaHandling));
+                    System.out.println("Real: " + PrismUtil.serializeQuietly(prismContext, resource.asObjectable().getSchemaHandling()));
+                    fail("Wrong schemaHandling in iteration" + iteration);
+                }
+                //assertEquals("Wrong schemaHandling in iteration "+iteration, schemaHandling, resource.asObjectable().getSchemaHandling());
+            }
+        });
 
-    	ants.add(new CarefulAnt<ResourceType>() {
-    		SchemaDefinitionType xmlSchemaDef;
-			@Override
-			public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
-				xmlSchemaDef = createNewXmlSchemaDef(resourceFile, iteration, prismContext);
-				return prismContext.deltaFactory().property().createModificationReplaceProperty(
-						ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),
-						resourceDef, xmlSchemaDef);
-			}
-			@Override
-			public void assertModification(PrismObject<ResourceType> resource, int iteration) {
-				List<Element> orgigElements = xmlSchemaDef.getAny();
-				List<Element> newElements = resource.asObjectable().getSchema().getDefinition().getAny();
-				assertEquals("Wrong number of elements in schema definition in iteration "+iteration, orgigElements.size(), newElements.size());
-				// TODO look inside elements
-			}
-		});
-	}
+        ants.add(new CarefulAnt<ResourceType>() {
+            SchemaDefinitionType xmlSchemaDef;
+            @Override
+            public ItemDelta<?,?> createDelta(int iteration) throws SchemaException {
+                xmlSchemaDef = createNewXmlSchemaDef(resourceFile, iteration, prismContext);
+                return prismContext.deltaFactory().property().createModificationReplaceProperty(
+                        ItemPath.create(ResourceType.F_SCHEMA, XmlSchemaType.F_DEFINITION),
+                        resourceDef, xmlSchemaDef);
+            }
+            @Override
+            public void assertModification(PrismObject<ResourceType> resource, int iteration) {
+                List<Element> orgigElements = xmlSchemaDef.getAny();
+                List<Element> newElements = resource.asObjectable().getSchema().getDefinition().getAny();
+                assertEquals("Wrong number of elements in schema definition in iteration "+iteration, orgigElements.size(), newElements.size());
+                // TODO look inside elements
+            }
+        });
+    }
 
     private static SchemaHandlingType createNewSchemaHandling(File resourceFile, int iteration, PrismContext prismContext) throws SchemaException {
-    	PrismObject<ResourceType> resource = parseResource(resourceFile, prismContext);
-    	SchemaHandlingType schemaHandling = resource.asObjectable().getSchemaHandling();
-    	ResourceObjectTypeDefinitionType accountType = schemaHandling.getObjectType().iterator().next();
-    	List<ResourceAttributeDefinitionType> attrDefs = accountType.getAttribute();
-    	ResourceAttributeDefinitionType attributeDefinitionType = attrDefs.get(rnd.nextInt(attrDefs.size()));
-    	attributeDefinitionType.setDescription(Integer.toString(iteration));
-		return schemaHandling;
-	}
+        PrismObject<ResourceType> resource = parseResource(resourceFile, prismContext);
+        SchemaHandlingType schemaHandling = resource.asObjectable().getSchemaHandling();
+        ResourceObjectTypeDefinitionType accountType = schemaHandling.getObjectType().iterator().next();
+        List<ResourceAttributeDefinitionType> attrDefs = accountType.getAttribute();
+        ResourceAttributeDefinitionType attributeDefinitionType = attrDefs.get(rnd.nextInt(attrDefs.size()));
+        attributeDefinitionType.setDescription(Integer.toString(iteration));
+        return schemaHandling;
+    }
 
     private static SchemaDefinitionType createNewXmlSchemaDef(File resourceFile, int iteration, PrismContext prismContext) throws SchemaException {
-    	PrismObject<ResourceType> resource = parseResource(resourceFile, prismContext);
-    	XmlSchemaType schema = resource.asObjectable().getSchema();
-    	SchemaDefinitionType def;
-    	if (schema == null) {
-    		def = new SchemaDefinitionType();
-    		def.getAny().add(DOMUtil.createElement(DOMUtil.XSD_SCHEMA_ELEMENT));
-    	} else {
-    		def = schema.getDefinition();
-	    	// TODO: modify it somehow
-    	}
-    	return def;
-	}
+        PrismObject<ResourceType> resource = parseResource(resourceFile, prismContext);
+        XmlSchemaType schema = resource.asObjectable().getSchema();
+        SchemaDefinitionType def;
+        if (schema == null) {
+            def = new SchemaDefinitionType();
+            def.getAny().add(DOMUtil.createElement(DOMUtil.XSD_SCHEMA_ELEMENT));
+        } else {
+            def = schema.getDefinition();
+            // TODO: modify it somehow
+        }
+        return def;
+    }
 
     private static PrismObject<ResourceType> parseResource(File resourceFile, PrismContext prismContext) throws SchemaException{
-    	try{
-    		return prismContext.parseObject(resourceFile);
-    	} catch (IOException ex){
-    		throw new SchemaException(ex.getMessage(), ex);
-    	}
+        try{
+            return prismContext.parseObject(resourceFile);
+        } catch (IOException ex){
+            throw new SchemaException(ex.getMessage(), ex);
+        }
     }
 
 }

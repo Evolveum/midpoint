@@ -52,97 +52,97 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLargeGroups extends AbstractStoryTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "large-groups");
+    public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "large-groups");
 
-	protected static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
-	protected static final String RESOURCE_DUMMY_ID = null;
-	protected static final String RESOURCE_DUMMY_OID = "b07a7f15-61f6-4769-b697-083b7ab4f995";
+    protected static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
+    protected static final String RESOURCE_DUMMY_ID = null;
+    protected static final String RESOURCE_DUMMY_OID = "b07a7f15-61f6-4769-b697-083b7ab4f995";
 
-	protected static DummyResource dummyResource;
-	protected static DummyResourceContoller dummyResourceCtl;
-	protected PrismObject<ResourceType> resourceDummy;
+    protected static DummyResource dummyResource;
+    protected static DummyResourceContoller dummyResourceCtl;
+    protected PrismObject<ResourceType> resourceDummy;
 
-	private static final ItemName ATTR_MEMBERS = new ItemName(MidPointConstants.NS_RI, "members");
+    private static final ItemName ATTR_MEMBERS = new ItemName(MidPointConstants.NS_RI, "members");
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-		// Resources
-		dummyResourceCtl = DummyResourceContoller.create(RESOURCE_DUMMY_ID, resourceDummy);
-		dummyResourceCtl.extendSchemaPirate();
-		dummyResource = dummyResourceCtl.getDummyResource();
-		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
-		dummyResourceCtl.setResource(resourceDummy);
-		dummyResource.setSyncStyle(DummySyncStyle.SMART);
-	}
+        // Resources
+        dummyResourceCtl = DummyResourceContoller.create(RESOURCE_DUMMY_ID, resourceDummy);
+        dummyResourceCtl.extendSchemaPirate();
+        dummyResource = dummyResourceCtl.getDummyResource();
+        resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILE, RESOURCE_DUMMY_OID, initTask, initResult);
+        dummyResourceCtl.setResource(resourceDummy);
+        dummyResource.setSyncStyle(DummySyncStyle.SMART);
+    }
 
-	@Override
-	protected boolean isAutoTaskManagementEnabled() {
-		return true;
-	}
+    @Override
+    protected boolean isAutoTaskManagementEnabled() {
+        return true;
+    }
 
-	@Override
-	protected TracingProfileType getTestMethodTracingProfile() {
-		return createModelLoggingTracingProfile()
-				.fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-	}
+    @Override
+    protected TracingProfileType getTestMethodTracingProfile() {
+        return createModelLoggingTracingProfile()
+                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+    }
 
-	@Test
-	public void test000Sanity(ITestContext ctx) throws Exception {
-		Task task = getTask(ctx);
+    @Test
+    public void test000Sanity(ITestContext ctx) throws Exception {
+        Task task = getTask(ctx);
 
-		OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
-		TestUtil.assertSuccess(testResult);
-	}
+        OperationResult testResult = modelService.testResource(RESOURCE_DUMMY_OID, task);
+        TestUtil.assertSuccess(testResult);
+    }
 
-	/**
-	 * Test retrieval of a large group.
-	 */
-	@Test
-	public void test100GetLargeGroup(ITestContext ctx) throws Exception {
-		Task task = getTask(ctx);
-		OperationResult result = getResult(ctx);
+    /**
+     * Test retrieval of a large group.
+     */
+    @Test
+    public void test100GetLargeGroup(ITestContext ctx) throws Exception {
+        Task task = getTask(ctx);
+        OperationResult result = getResult(ctx);
 
-		final int MEMBERS = 20000;
+        final int MEMBERS = 20000;
 
-		DummyGroup group1 = dummyResourceCtl.addGroup("group1");
-		for (int i = 0; i < MEMBERS; i++) {
-			group1.addMember(String.format("member-%09d", i));
-		}
+        DummyGroup group1 = dummyResourceCtl.addGroup("group1");
+        for (int i = 0; i < MEMBERS; i++) {
+            group1.addMember(String.format("member-%09d", i));
+        }
 
-		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-				// MID-5838
-				.item(ShadowType.F_ATTRIBUTES, ATTR_MEMBERS).retrieve()
-				.build();
-		assert100LargeGroupSearch(ctx, options, MEMBERS);
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+                // MID-5838
+                .item(ShadowType.F_ATTRIBUTES, ATTR_MEMBERS).retrieve()
+                .build();
+        assert100LargeGroupSearch(ctx, options, MEMBERS);
 
-		// Legacy behavior (MID-5838)
-		Collection<SelectorOptions<GetOperationOptions>> badOptions = schemaHelper.getOperationOptionsBuilder()
-				.item(/*ShadowType.F_ATTRIBUTES,*/ ATTR_MEMBERS).retrieve()
-				.build();
-		assert100LargeGroupSearch(ctx, badOptions, MEMBERS);
-	}
+        // Legacy behavior (MID-5838)
+        Collection<SelectorOptions<GetOperationOptions>> badOptions = schemaHelper.getOperationOptionsBuilder()
+                .item(/*ShadowType.F_ATTRIBUTES,*/ ATTR_MEMBERS).retrieve()
+                .build();
+        assert100LargeGroupSearch(ctx, badOptions, MEMBERS);
+    }
 
-	private void assert100LargeGroupSearch(ITestContext ctx, Collection<SelectorOptions<GetOperationOptions>> options, final int MEMBERS) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-		Task task = getTask(ctx);
-		OperationResult result = getResult(ctx);
-		ResourceAttributeDefinition<Object> nameDefinition = libraryMidpointFunctions
-				.getAttributeDefinition(resourceDummy, dummyResourceCtl.getGroupObjectClass(), SchemaConstants.ICFS_NAME);
-		ObjectQuery query = prismContext.queryFor(ShadowType.class)
-				.item(ShadowType.F_RESOURCE_REF).ref(resourceDummy.getOid())
-				.and().item(ShadowType.F_KIND).eq(ShadowKindType.ENTITLEMENT)
-				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), nameDefinition)
-					.eq("group1")
-				.build();
+    private void assert100LargeGroupSearch(ITestContext ctx, Collection<SelectorOptions<GetOperationOptions>> options, final int MEMBERS) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        Task task = getTask(ctx);
+        OperationResult result = getResult(ctx);
+        ResourceAttributeDefinition<Object> nameDefinition = libraryMidpointFunctions
+                .getAttributeDefinition(resourceDummy, dummyResourceCtl.getGroupObjectClass(), SchemaConstants.ICFS_NAME);
+        ObjectQuery query = prismContext.queryFor(ShadowType.class)
+                .item(ShadowType.F_RESOURCE_REF).ref(resourceDummy.getOid())
+                .and().item(ShadowType.F_KIND).eq(ShadowKindType.ENTITLEMENT)
+                .and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), nameDefinition)
+                    .eq("group1")
+                .build();
 
-		SearchResultList<PrismObject<ShadowType>> groups = provisioningService
-				.searchObjects(ShadowType.class, query, options, task, result);
+        SearchResultList<PrismObject<ShadowType>> groups = provisioningService
+                .searchObjects(ShadowType.class, query, options, task, result);
 
-		assertEquals("Wrong # of groups found", 1, groups.size());
-		PrismObject<ShadowType> group = groups.get(0);
-		PrismProperty<String> membersProperty = group.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBERS));
-		assertNotNull("Members attribute was not found", membersProperty);
-		assertEquals("Wrong # of members", MEMBERS, membersProperty.size());
-	}
+        assertEquals("Wrong # of groups found", 1, groups.size());
+        PrismObject<ShadowType> group = groups.get(0);
+        PrismProperty<String> membersProperty = group.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBERS));
+        assertNotNull("Members attribute was not found", membersProperty);
+        assertEquals("Wrong # of members", MEMBERS, membersProperty.size());
+    }
 }

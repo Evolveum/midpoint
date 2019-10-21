@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,34 +25,34 @@ import java.io.File;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class DeleteTestSimple extends BaseSQLRepoTest {
 
-	private static final Trace LOGGER = TraceManager.getTrace(DeleteTestSimple.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DeleteTestSimple.class);
 
-	@Test
-	public void delete001() throws Exception {
-		PrismObject<UserType> user = prismContext.parseObject(new File(FOLDER_BASIC, "user0.xml"));
+    @Test
+    public void delete001() throws Exception {
+        PrismObject<UserType> user = prismContext.parseObject(new File(FOLDER_BASIC, "user0.xml"));
 
-		OperationResult result = new OperationResult("Delete Test");
-		String oid = repositoryService.addObject(user, null, result);
-		LOGGER.info("*** deleteObject ***");
+        OperationResult result = new OperationResult("Delete Test");
+        String oid = repositoryService.addObject(user, null, result);
+        LOGGER.info("*** deleteObject ***");
 
-		//        Session session = open();
-		//        CriteriaQuery<RAssignment> aQ = session.getCriteriaBuilder().createQuery(RAssignment.class);
-		//        aQ.select(aQ.from(RAssignment.class));
-		//        List<RAssignment> aList = session.createQuery(aQ).getResultList();
-		//        System.out.println("RAssignment: " + aList);
-		//
-		//        CriteriaQuery<RAssignmentExtension> aeQ = session.getCriteriaBuilder().createQuery(RAssignmentExtension.class);
-		//        aeQ.select(aeQ.from(RAssignmentExtension.class));
-		//        List<RAssignmentExtension> aeList = session.createQuery(aeQ).getResultList();
-		//        System.out.println("RAssignmentExtension: " + aeList);
-		//
-		//        CriteriaQuery<RAExtBoolean> aebQ = session.getCriteriaBuilder().createQuery(RAExtBoolean.class);
-		//        aebQ.select(aebQ.from(RAExtBoolean.class));
-		//        List<RAExtBoolean> aebList = session.createQuery(aebQ).getResultList();
-		//        System.out.println("RAExtBoolean: " + aebList);
-		//
-		//        session.getTransaction().commit();
+        //        Session session = open();
+        //        CriteriaQuery<RAssignment> aQ = session.getCriteriaBuilder().createQuery(RAssignment.class);
+        //        aQ.select(aQ.from(RAssignment.class));
+        //        List<RAssignment> aList = session.createQuery(aQ).getResultList();
+        //        System.out.println("RAssignment: " + aList);
+        //
+        //        CriteriaQuery<RAssignmentExtension> aeQ = session.getCriteriaBuilder().createQuery(RAssignmentExtension.class);
+        //        aeQ.select(aeQ.from(RAssignmentExtension.class));
+        //        List<RAssignmentExtension> aeList = session.createQuery(aeQ).getResultList();
+        //        System.out.println("RAssignmentExtension: " + aeList);
+        //
+        //        CriteriaQuery<RAExtBoolean> aebQ = session.getCriteriaBuilder().createQuery(RAExtBoolean.class);
+        //        aebQ.select(aebQ.from(RAExtBoolean.class));
+        //        List<RAExtBoolean> aebList = session.createQuery(aebQ).getResultList();
+        //        System.out.println("RAExtBoolean: " + aebList);
+        //
+        //        session.getTransaction().commit();
 
-		repositoryService.deleteObject(UserType.class, oid, result);
-	}
+        repositoryService.deleteObject(UserType.class, oid, result);
+    }
 }

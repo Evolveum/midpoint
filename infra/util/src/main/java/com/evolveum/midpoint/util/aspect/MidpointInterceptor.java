@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.util.aspect;
@@ -25,15 +25,15 @@ import org.springframework.core.annotation.Order;
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 public class MidpointInterceptor implements MethodInterceptor {
 
-	@Override
-	public Object invoke(MethodInvocation invocation) throws Throwable {
-		OperationInvocationRecord ctx = OperationInvocationRecord.create(invocation);
-		try {
-			return ctx.processReturnValue(invocation.proceed());
-		} catch (Throwable e) {
-			throw ctx.processException(e);
-		} finally {
-			ctx.afterCall(invocation);
-		}
-	}
+    @Override
+    public Object invoke(MethodInvocation invocation) throws Throwable {
+        OperationInvocationRecord ctx = OperationInvocationRecord.create(invocation);
+        try {
+            return ctx.processReturnValue(invocation.proceed());
+        } catch (Throwable e) {
+            throw ctx.processException(e);
+        } finally {
+            ctx.afterCall(invocation);
+        }
+    }
 }

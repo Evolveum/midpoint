@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -16,68 +16,68 @@ Matches if the role 'roleRef' is not assigned to the user.
 -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-		oid="321c660b-4150-4ea9-bf33-71e702aed015">
-	<name>k20</name>
-	<inducement>
-		<policyRule>
-			<policyConstraints>
-				<objectState>
-					<messageExpression>
-						<script>
-							<code><![CDATA[
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="321c660b-4150-4ea9-bf33-71e702aed015">
+    <name>k20</name>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <objectState>
+                    <messageExpression>
+                        <script>
+                            <code><![CDATA[
 
-								return rulesLib.execute('evaluateRolePresenceWithMessage', [
-									object : object,
-									ruleEvaluationContext : ruleEvaluationContext,
-									assumeExistence : true,
-									rolesAttributeName : 'roleRef',
-									evaluatorHelper: evaluatorHelper,
-									constraint: constraint
-								])
-								]]>
-							</code>
-						</script>
-					</messageExpression>
-				</objectState>
-			</policyConstraints>
-			<policyActions>
-				<enforcement>
-					<condition>
-						<script>
-							<code>
-								!rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext])
-							</code>
-						</script>
-					</condition>
-				</enforcement>
-				<approval>
-					<condition>
-						<script>
-							<code>
-								rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext])
-							</code>
-						</script>
-					</condition>
-					<approvalSchema>
-						<stage>
-							<approverExpression>
-								<script>
-									<code>
-										rulesLib.execute('computeApprovers', [
-											approvalContext : approvalContext,
-											stageDefinition : stageDefinition
-										])
-									</code>
-								</script>
-							</approverExpression>
-						</stage>
-					</approvalSchema>
-				</approval>
-			</policyActions>
-			<evaluationTarget>assignment</evaluationTarget>
-		</policyRule>
-		<order>2</order>
-	</inducement>
+                                return rulesLib.execute('evaluateRolePresenceWithMessage', [
+                                    object : object,
+                                    ruleEvaluationContext : ruleEvaluationContext,
+                                    assumeExistence : true,
+                                    rolesAttributeName : 'roleRef',
+                                    evaluatorHelper: evaluatorHelper,
+                                    constraint: constraint
+                                ])
+                                ]]>
+                            </code>
+                        </script>
+                    </messageExpression>
+                </objectState>
+            </policyConstraints>
+            <policyActions>
+                <enforcement>
+                    <condition>
+                        <script>
+                            <code>
+                                !rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext])
+                            </code>
+                        </script>
+                    </condition>
+                </enforcement>
+                <approval>
+                    <condition>
+                        <script>
+                            <code>
+                                rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext])
+                            </code>
+                        </script>
+                    </condition>
+                    <approvalSchema>
+                        <stage>
+                            <approverExpression>
+                                <script>
+                                    <code>
+                                        rulesLib.execute('computeApprovers', [
+                                            approvalContext : approvalContext,
+                                            stageDefinition : stageDefinition
+                                        ])
+                                    </code>
+                                </script>
+                            </approverExpression>
+                        </stage>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+            <evaluationTarget>assignment</evaluationTarget>
+        </policyRule>
+        <order>2</order>
+    </inducement>
 </role>

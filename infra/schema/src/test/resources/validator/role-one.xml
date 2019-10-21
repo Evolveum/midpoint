@@ -1,36 +1,36 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="0d70504c-d094-11e8-b0cc-675c492577e7"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-      
+
     <name>One</name> <!-- OK -->
     <description>First role</description> <!-- OK -->
-    
+
     <roleType>lab</roleType> <!-- deprecated, but not plannedRemoval -->
-    
+
     <approverExpression> <!-- plannedRemoval=4.0 -->
         <script>
             <code>midpoint.oid2ort(user.getOid())</code>
         </script>
     </approverExpression>
-    
+
     <policyConstraints> <!-- plannedRemoval=4.0 -->
-    	<minAssignees>
-    		<enforcement>report</enforcement>
-    		<multiplicity>2</multiplicity>
-    	</minAssignees>
-    	<minAssignees>
-    		<multiplicity>1</multiplicity>
-    	</minAssignees>
-    	<maxAssignees>
-    		<multiplicity>unbounded</multiplicity>
-    	</maxAssignees>
+        <minAssignees>
+            <enforcement>report</enforcement>
+            <multiplicity>2</multiplicity>
+        </minAssignees>
+        <minAssignees>
+            <multiplicity>1</multiplicity>
+        </minAssignees>
+        <maxAssignees>
+            <multiplicity>unbounded</multiplicity>
+        </maxAssignees>
     </policyConstraints>
-    
+
 </role>

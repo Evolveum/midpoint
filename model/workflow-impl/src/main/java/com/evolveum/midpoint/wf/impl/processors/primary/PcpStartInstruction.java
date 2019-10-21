@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -32,76 +32,76 @@ import java.util.Date;
  */
 public class PcpStartInstruction extends StartInstruction {
 
-	@SuppressWarnings("unused")
-	private static final Trace LOGGER = TraceManager.getTrace(PcpStartInstruction.class);
+    @SuppressWarnings("unused")
+    private static final Trace LOGGER = TraceManager.getTrace(PcpStartInstruction.class);
 
-	private boolean isObjectCreationInstruction;
+    private boolean isObjectCreationInstruction;
 
-	private PcpStartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
+    private PcpStartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
         super(changeProcessor, archetypeOid);
-		aCase.setApprovalContext(new ApprovalContextType(changeProcessor.getPrismContext()));
+        aCase.setApprovalContext(new ApprovalContextType(changeProcessor.getPrismContext()));
     }
 
-	public static PcpStartInstruction createItemApprovalInstruction(ChangeProcessor changeProcessor,
-			@NotNull ApprovalSchemaType approvalSchemaType, SchemaAttachedPolicyRulesType attachedPolicyRules) {
-		PcpStartInstruction instruction = new PcpStartInstruction(changeProcessor,
-				SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
-		instruction.getApprovalContext().setApprovalSchema(approvalSchemaType);
-		instruction.getApprovalContext().setPolicyRules(attachedPolicyRules);
-		return instruction;
-	}
-
-	static PcpStartInstruction createEmpty(ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
-		return new PcpStartInstruction(changeProcessor, archetypeOid);
-	}
-
-	public boolean isExecuteApprovedChangeImmediately() {
-		ApprovalContextType actx = aCase.getApprovalContext();
-		return actx != null && Boolean.TRUE.equals(actx.isImmediateExecution());
+    public static PcpStartInstruction createItemApprovalInstruction(ChangeProcessor changeProcessor,
+            @NotNull ApprovalSchemaType approvalSchemaType, SchemaAttachedPolicyRulesType attachedPolicyRules) {
+        PcpStartInstruction instruction = new PcpStartInstruction(changeProcessor,
+                SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
+        instruction.getApprovalContext().setApprovalSchema(approvalSchemaType);
+        instruction.getApprovalContext().setPolicyRules(attachedPolicyRules);
+        return instruction;
     }
 
-	void setExecuteApprovedChangeImmediately(ModelContext<?> modelContext) {
-		aCase.getApprovalContext().setImmediateExecution(
-				ModelExecuteOptions.isExecuteImmediatelyAfterApproval(modelContext.getOptions()));
-	}
+    static PcpStartInstruction createEmpty(ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
+        return new PcpStartInstruction(changeProcessor, archetypeOid);
+    }
 
-	public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, PrismObject<UserType> requester) {
-		if (requester != null) {
-			setRequesterRef(requester);
-		}
+    public boolean isExecuteApprovedChangeImmediately() {
+        ApprovalContextType actx = aCase.getApprovalContext();
+        return actx != null && Boolean.TRUE.equals(actx.isImmediateExecution());
+    }
 
-		setExecuteApprovedChangeImmediately(modelContext);
+    void setExecuteApprovedChangeImmediately(ModelContext<?> modelContext) {
+        aCase.getApprovalContext().setImmediateExecution(
+                ModelExecuteOptions.isExecuteImmediatelyAfterApproval(modelContext.getOptions()));
+    }
 
-	    getApprovalContext().setChangeAspect(aspect.getClass().getName());
+    public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, PrismObject<UserType> requester) {
+        if (requester != null) {
+            setRequesterRef(requester);
+        }
 
-		CaseCreationEventType event = new CaseCreationEventType(getPrismContext());
+        setExecuteApprovedChangeImmediately(modelContext);
+
+        getApprovalContext().setChangeAspect(aspect.getClass().getName());
+
+        CaseCreationEventType event = new CaseCreationEventType(getPrismContext());
         event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         if (requester != null) {
-			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester, getPrismContext()));
-			// attorney does not need to be set here (for now)
-		}
-		event.setBusinessContext(((LensContext) modelContext).getRequestBusinessContext());
+            event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester, getPrismContext()));
+            // attorney does not need to be set here (for now)
+        }
+        event.setBusinessContext(((LensContext) modelContext).getRequestBusinessContext());
         aCase.getEvent().add(event);
     }
 
-	public void setDeltasToApprove(ObjectDelta<? extends ObjectType> delta) throws SchemaException {
+    public void setDeltasToApprove(ObjectDelta<? extends ObjectType> delta) throws SchemaException {
         setDeltasToApprove(new ObjectTreeDeltas<>(delta, getChangeProcessor().getPrismContext()));
     }
 
     public void setDeltasToApprove(ObjectTreeDeltas<?> objectTreeDeltas) throws SchemaException {
-		isObjectCreationInstruction = isObjectCreationInstruction(objectTreeDeltas);
+        isObjectCreationInstruction = isObjectCreationInstruction(objectTreeDeltas);
         getApprovalContext().setDeltasToApprove(ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
     }
 
-	private boolean isObjectCreationInstruction(ObjectTreeDeltas<?> deltasToApprove) {
-		return deltasToApprove != null && deltasToApprove.getFocusChange() != null && deltasToApprove.getFocusChange().isAdd();
-	}
-
-    void setResultingDeltas(ObjectTreeDeltas objectTreeDeltas) throws SchemaException {
-	    getApprovalContext().setResultingDeltas(ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
+    private boolean isObjectCreationInstruction(ObjectTreeDeltas<?> deltasToApprove) {
+        return deltasToApprove != null && deltasToApprove.getFocusChange() != null && deltasToApprove.getFocusChange().isAdd();
     }
 
-	@Override
+    void setResultingDeltas(ObjectTreeDeltas objectTreeDeltas) throws SchemaException {
+        getApprovalContext().setResultingDeltas(ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
+    }
+
+    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
 
@@ -110,10 +110,10 @@ public class PcpStartInstruction extends StartInstruction {
                 .append(isExecuteApprovedChangeImmediately())
                 .append(")\n");
         sb.append(super.debugDump(indent+1));
-		return sb.toString();
+        return sb.toString();
     }
 
-	boolean isObjectCreationInstruction() {
-		return isObjectCreationInstruction;
-	}
+    boolean isObjectCreationInstruction() {
+        return isObjectCreationInstruction;
+    }
 }

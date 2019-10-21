@@ -2,59 +2,59 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <configuration>
 
 
-	<appender name="X" class="ch.qos.logback.core.FileAppender">
-		<file>./target/test.log</file>
-		<encoder>
-			<!-- <pattern>%date [%thread] %-5level [%X{subsystem}]\(%logger{46}\): %message%n%caller{16}</pattern>  -->
-			<pattern>%date [%thread] %-5level [%X{subsystem}]\(%logger{46}\): %message%n</pattern>
-		</encoder>
-	</appender>
+    <appender name="X" class="ch.qos.logback.core.FileAppender">
+        <file>./target/test.log</file>
+        <encoder>
+            <!-- <pattern>%date [%thread] %-5level [%X{subsystem}]\(%logger{46}\): %message%n%caller{16}</pattern>  -->
+            <pattern>%date [%thread] %-5level [%X{subsystem}]\(%logger{46}\): %message%n</pattern>
+        </encoder>
+    </appender>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="INFO"/>
-	<logger name="org.springframework" level="WARN" />
-	
-	<logger name="com.evolveum.midpoint" level="INFO" />
+    <logger name="org.springframework" level="WARN" />
 
-	<logger name="com.evolveum.midpoint.model" level="INFO" />
-<!-- 	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.projector.ReconciliationProcessor" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="TRACE" />  -->
+    <logger name="com.evolveum.midpoint" level="INFO" />
 
-	<logger name="com.evolveum.midpoint.provisioning" level="INFO" />
-<!-- 	<logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" /> -->
-	<logger name="com.evolveum.midpoint.common" level="INFO" />
-	<logger name="com.evolveum.midpoint.repo" level="INFO" />
-	
-	<logger name="com.evolveum.polygon.connector.ldap" level="INFO" />
-	<logger name="org.identityconnectors.framework" level="INFO" />
-	
-	<logger name="com.evolveum.midpoint.model.impl.importer" level="DEBUG" />
-    
-	<!-- Expression trace -->
-	<!-- 
-	<logger name="com.evolveum.midpoint.common.expression" level="TRACE" />
-	<logger name="com.evolveum.midpoint.common.expression.MidPointFunctions" level="TRACE" />
-	 -->
-	
-	<logger name="com.evolveum.midpoint.test" level="TRACE" />
-	
-	<logger name="com.evolveum.midpoint.model.impl.util.DeleteTaskHandler" level="TRACE" />
-	
-	
-	<logger name="PROFILING" level="INFO" />
-	
-	<root level="WARN">
-		<appender-ref ref="X" />
-	</root>
+    <logger name="com.evolveum.midpoint.model" level="INFO" />
+<!--     <logger name="com.evolveum.midpoint.model.lens.Clockwork" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.ChangeExecutor" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.Projector" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.ConsolidationProcessor" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.projector.ReconciliationProcessor" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.impl.lens.LensUtil" level="TRACE" />  -->
+
+    <logger name="com.evolveum.midpoint.provisioning" level="INFO" />
+<!--     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" /> -->
+    <logger name="com.evolveum.midpoint.common" level="INFO" />
+    <logger name="com.evolveum.midpoint.repo" level="INFO" />
+
+    <logger name="com.evolveum.polygon.connector.ldap" level="INFO" />
+    <logger name="org.identityconnectors.framework" level="INFO" />
+
+    <logger name="com.evolveum.midpoint.model.impl.importer" level="DEBUG" />
+
+    <!-- Expression trace -->
+    <!--
+    <logger name="com.evolveum.midpoint.common.expression" level="TRACE" />
+    <logger name="com.evolveum.midpoint.common.expression.MidPointFunctions" level="TRACE" />
+     -->
+
+    <logger name="com.evolveum.midpoint.test" level="TRACE" />
+
+    <logger name="com.evolveum.midpoint.model.impl.util.DeleteTaskHandler" level="TRACE" />
+
+
+    <logger name="PROFILING" level="INFO" />
+
+    <root level="WARN">
+        <appender-ref ref="X" />
+    </root>
 </configuration>
 

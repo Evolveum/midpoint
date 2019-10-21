@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -44,22 +44,22 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 
     private static final String DOT_CLASS = ScriptExecutionTaskHandler.class.getName() + ".";
 
-	@Autowired private TaskManager taskManager;
-	@Autowired private ScriptingService scriptingService;
+    @Autowired private TaskManager taskManager;
+    @Autowired private ScriptingService scriptingService;
 
-	@NotNull
-	@Override
-	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
-		return new StatisticsCollectionStrategy()
-				.fromZero()
-				.maintainIterationStatistics()
-				.maintainActionsExecutedStatistics();
-	}
+    @NotNull
+    @Override
+    public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+        return new StatisticsCollectionStrategy()
+                .fromZero()
+                .maintainIterationStatistics()
+                .maintainActionsExecutedStatistics();
+    }
 
-	@Override
-	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
-		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
-		TaskRunResult runResult = new TaskRunResult();
+    @Override
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+        OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
+        TaskRunResult runResult = new TaskRunResult();
 
         PrismProperty<ExecuteScriptType> executeScriptProperty = task.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
         if (executeScriptProperty == null || executeScriptProperty.getValue().getValue() == null ||
@@ -69,7 +69,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 
         try {
             ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptProperty.getRealValue(), VariablesMap.emptyMap(),
-		            true, task, result);
+                    true, task, result);
             LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
             LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
             result.computeStatus();
@@ -81,17 +81,17 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         }
 
         task.getResult().computeStatus();
-		runResult.setOperationResult(task.getResult());
-		return runResult;
-	}
+        runResult.setOperationResult(task.getResult());
+        return runResult;
+    }
 
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.BULK_ACTIONS;
     }
 
-	@PostConstruct
-	private void initialize() {
-		taskManager.registerHandler(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI, this);
-	}
+    @PostConstruct
+    private void initialize() {
+        taskManager.registerHandler(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI, this);
+    }
 }

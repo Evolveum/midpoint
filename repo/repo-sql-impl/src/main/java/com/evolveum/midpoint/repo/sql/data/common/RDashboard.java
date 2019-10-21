@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -34,9 +34,9 @@ import java.util.Objects;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RDashboard extends RObject<DashboardType> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private RPolyString nameCopy;
+    private static final long serialVersionUID = 1L;
+
+    private RPolyString nameCopy;
 
     @JaxbName(localPart = "name")
     @AttributeOverrides({
@@ -71,8 +71,8 @@ public class RDashboard extends RObject<DashboardType> {
 
     // dynamically called
     public static void copyFromJAXB(DashboardType jaxb, RDashboard repo, RepositoryContext repositoryContext,
-			IdGeneratorResult generatorResult) throws DtoTranslationException {
-		copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
+        copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-	}
+    }
 }

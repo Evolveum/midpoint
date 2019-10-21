@@ -2,10 +2,10 @@
 <!--
   ~ Copyright (c) 2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-  
+
 <lookupTable oid="70000000-0000-0000-1111-000000000021"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
@@ -14,19 +14,19 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
 
-	<name>Role Types</name>
-	
-	<row>
-		<key>application</key>
-		<label>Application role</label>
-	</row>
-	<row>
-		<key>system</key>
-		<label>System role</label>
-	</row>
+    <name>Role Types</name>
+
     <row>
-		<key>it</key>
-		<label>IT role</label>
-	</row>
+        <key>application</key>
+        <label>Application role</label>
+    </row>
+    <row>
+        <key>system</key>
+        <label>System role</label>
+    </row>
+    <row>
+        <key>it</key>
+        <label>IT role</label>
+    </row>
 
 </lookupTable>

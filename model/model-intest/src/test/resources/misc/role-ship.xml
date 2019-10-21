@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -15,27 +15,27 @@
     <name>Space Ship</name>
     <description>MID-4504</description>
     <inducement>
-    	<construction >
-    		<resourceRef oid="399f5308-0447-11e8-91e9-a7f9c4100ffb" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction >
+            <resourceRef oid="399f5308-0447-11e8-91e9-a7f9c4100ffb" type="c:ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:ship</ref>
-				<outbound>
-					<strength>strong</strength>
-                	<expression>
-                		<script>
-                			<code>
-                				log.info("####BEFORE calling get on non existent linked shadow")
-                				log.info("###FOCUS " + focus)
-                				shadow = midpoint.getLinkedShadow(focus, "399f5308-0447-11e8-91e9-a7f9c4100ffb") //shadow does not not exist
-                				log.info("####AFTER calling get on non existent linked shadow")
-                				log.info("###SHADOW: " + shadow)
-                				return "ship"
-                			</code>
-                		</script>
-					</expression>
-				</outbound>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                log.info("####BEFORE calling get on non existent linked shadow")
+                                log.info("###FOCUS " + focus)
+                                shadow = midpoint.getLinkedShadow(focus, "399f5308-0447-11e8-91e9-a7f9c4100ffb") //shadow does not not exist
+                                log.info("####AFTER calling get on non existent linked shadow")
+                                log.info("###SHADOW: " + shadow)
+                                return "ship"
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
 </role>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.home.component;
@@ -21,9 +21,9 @@ import java.io.Serializable;
  * @author lazyman
  */
 public abstract class DashboardPanel<T extends Serializable> extends BasePanel<T> {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_DASHBOARD_PARENT = "dashboardParent";
+    private static final String ID_DASHBOARD_PARENT = "dashboardParent";
     private static final String ID_DASHBOARD_TITLE = "dashboardTitle";
     private static final String ID_TITLE = "title";
     private static final String ID_DASHBOARD_CONTENT = "dashboardContent";
@@ -36,8 +36,8 @@ public abstract class DashboardPanel<T extends Serializable> extends BasePanel<T
     }
 
     private void initLayout(IModel<String> titleModel, String icon, String boxCssClasses) {
-    	if (boxCssClasses == null) {
-        	boxCssClasses = GuiStyleConstants.CLASS_BOX_DEFAULT;
+        if (boxCssClasses == null) {
+            boxCssClasses = GuiStyleConstants.CLASS_BOX_DEFAULT;
         }
 
         WebMarkupContainer dashboardParent = new WebMarkupContainer(ID_DASHBOARD_PARENT);

@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000222"
@@ -12,31 +12,31 @@
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>User Template</name>
-    
-    
+
+
     <mapping>
-    	<!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
-    	<source>
-    		<path>$user/givenName</path>
-    	</source>
-    	<source>
-    		<path>$user/familyName</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					givenName + ' ' + familyName
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>$user/fullName</path>
-    	</target>
-    	<condition>
-     		<script>
-    			<code>givenName != null &amp;&amp; familyName != null</code>
-    		</script>  
-    	</condition>
+        <!-- This mapping is NOT initial so if will in fact FORCE fullname consistency -->
+        <source>
+            <path>$user/givenName</path>
+        </source>
+        <source>
+            <path>$user/familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + ' ' + familyName
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>$user/fullName</path>
+        </target>
+        <condition>
+             <script>
+                <code>givenName != null &amp;&amp; familyName != null</code>
+            </script>
+        </condition>
     </mapping>
-        
+
 </objectTemplate>

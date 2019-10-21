@@ -2,31 +2,31 @@
 <!--
   ~ Copyright (c) 2010-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <shadow oid="c0c010c0-d34d-b44f-f11d-444400008888"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
-	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
-	<objectClass>ri:AccountObjectClass</objectClass>
-	<kind>account</kind>
-	<attributes>
-		<icfs:name>morgan</icfs:name>
-		<ri:fullname>Captain Morgan</ri:fullname>
-		<ri:ship>Satisfaction</ri:ship>
-		<ri:weapon>cutlass</ri:weapon>
-		<ri:weapon>pistol</ri:weapon>
-		<ri:enlistTimestamp>1663-05-30T14:15:16Z</ri:enlistTimestamp> <!-- MID-4751 -->
-	</attributes>
-	<credentials>
-		<password>
-			<value>
-				<clearValue>sh1verM3T1mb3rs</clearValue>
-			</value>
-		</password>
-	</credentials>
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
+    <resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
+    <objectClass>ri:AccountObjectClass</objectClass>
+    <kind>account</kind>
+    <attributes>
+        <icfs:name>morgan</icfs:name>
+        <ri:fullname>Captain Morgan</ri:fullname>
+        <ri:ship>Satisfaction</ri:ship>
+        <ri:weapon>cutlass</ri:weapon>
+        <ri:weapon>pistol</ri:weapon>
+        <ri:enlistTimestamp>1663-05-30T14:15:16Z</ri:enlistTimestamp> <!-- MID-4751 -->
+    </attributes>
+    <credentials>
+        <password>
+            <value>
+                <clearValue>sh1verM3T1mb3rs</clearValue>
+            </value>
+        </password>
+    </credentials>
 </shadow>

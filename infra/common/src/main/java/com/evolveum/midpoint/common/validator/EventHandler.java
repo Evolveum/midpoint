@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,28 +25,28 @@ import org.w3c.dom.Node;
  */
 public interface EventHandler {
 
-	/**
-	 * Call-back called after deserializing to DOM and static schema validation but before unmarshall to JAXB.
-	 * It can be used for extra DOM-based checks or transformations of the object.
-	 *
-	 * @param objectElement DOM tree parsed from file
-	 * @param postValidationTree post-validation DOM tree
-	 * @param objectResult Operation result for this object
-	 * @return true if the process should continue, false if it should stop
-	 */
-	public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult);
+    /**
+     * Call-back called after deserializing to DOM and static schema validation but before unmarshall to JAXB.
+     * It can be used for extra DOM-based checks or transformations of the object.
+     *
+     * @param objectElement DOM tree parsed from file
+     * @param postValidationTree post-validation DOM tree
+     * @param objectResult Operation result for this object
+     * @return true if the process should continue, false if it should stop
+     */
+    public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult);
 
-	/**
-	 * Call-back called after the object is unmarshalled.
-	 *
-	 * The compliance with static schemas should already be checked. This is the "main" call-back as it is expected that
-	 * this call-back will do the primary part of work such storing the object to repository during import.
-	 *
-	 * @param object unmarshalled JAXB object
-	 * @param objectElement DOM tree parsed from the fil
-	 * @param objectResult Operation result for this object
-	 * @return true if the process should continue, false if it should stop
-	 */
+    /**
+     * Call-back called after the object is unmarshalled.
+     *
+     * The compliance with static schemas should already be checked. This is the "main" call-back as it is expected that
+     * this call-back will do the primary part of work such storing the object to repository during import.
+     *
+     * @param object unmarshalled JAXB object
+     * @param objectElement DOM tree parsed from the fil
+     * @param objectResult Operation result for this object
+     * @return true if the process should continue, false if it should stop
+     */
     public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult);
 
     /**

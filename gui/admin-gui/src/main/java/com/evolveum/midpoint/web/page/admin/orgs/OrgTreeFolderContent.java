@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
@@ -72,16 +72,16 @@ public class OrgTreeFolderContent extends BasePanel<TreeSelectableBean<OrgType>>
         folder.setOutputMarkupId(true);
         addOrReplace(folder);
         if (selected.getObject().equals(getModelObject())) {
-        	getParent().add(AttributeAppender.append("class", "success"));
+            getParent().add(AttributeAppender.append("class", "success"));
         } else {
-        	getParent().add(new AttributeAppender("class", "success", " ") {
-        		@Override
-        		protected Serializable newValue(String currentValue, String removeValue) {
-        			currentValue = getSeparator() + currentValue + getSeparator();
-        			removeValue = getSeparator() + removeValue + getSeparator();
-        			return currentValue.replace(removeValue, getSeparator());
-        		}
-        	});
+            getParent().add(new AttributeAppender("class", "success", " ") {
+                @Override
+                protected Serializable newValue(String currentValue, String removeValue) {
+                    currentValue = getSeparator() + currentValue + getSeparator();
+                    removeValue = getSeparator() + removeValue + getSeparator();
+                    return currentValue.replace(removeValue, getSeparator());
+                }
+            });
         }
 
         MenuMultiButtonPanel<OrgType> menuButtons = new MenuMultiButtonPanel<>(ID_MENU, new PropertyModel<>(getModel(), TreeSelectableBean.F_VALUE), 2, new PropertyModel<>(getModel(), TreeSelectableBean.F_MENU_ITEMS));

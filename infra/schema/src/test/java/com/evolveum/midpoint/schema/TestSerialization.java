@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2015-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema;
@@ -41,189 +41,189 @@ import java.io.IOException;
  */
 public class TestSerialization {
 
-	@BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-	}
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
 
-	@Test
-	public void testSerializeTrace() throws Exception {
-		System.out.println("===[ testSerializeTrace ]===");
+    @Test
+    public void testSerializeTrace() throws Exception {
+        System.out.println("===[ testSerializeTrace ]===");
 
-		PrismContext prismContext = getPrismContext();
-		ValueTransformationTraceType trace = new ValueTransformationTraceType(prismContext);
-		NamedValueType input1 = new NamedValueType();
-		input1.setName(new QName("myRef"));
-		input1.setValue(new ObjectReferenceType().oid("123").type(UserType.COMPLEX_TYPE));
-		trace.getInput().add(input1);
-		QName fakeQName = new QName(PrismConstants.NS_TYPES, "trace");
-		String xml = prismContext.xmlSerializer().serializeAnyData(trace, fakeQName);
-		System.out.println(xml);
-	}
+        PrismContext prismContext = getPrismContext();
+        ValueTransformationTraceType trace = new ValueTransformationTraceType(prismContext);
+        NamedValueType input1 = new NamedValueType();
+        input1.setName(new QName("myRef"));
+        input1.setValue(new ObjectReferenceType().oid("123").type(UserType.COMPLEX_TYPE));
+        trace.getInput().add(input1);
+        QName fakeQName = new QName(PrismConstants.NS_TYPES, "trace");
+        String xml = prismContext.xmlSerializer().serializeAnyData(trace, fakeQName);
+        System.out.println(xml);
+    }
 
-	@Test
-	public void testSerializeDeltaSetTripleType() throws Exception {
-		System.out.println("===[ testSerializeDeltaSetTripleType ]===");
+    @Test
+    public void testSerializeDeltaSetTripleType() throws Exception {
+        System.out.println("===[ testSerializeDeltaSetTripleType ]===");
 
-		PrismContext prismContext = getPrismContext();
+        PrismContext prismContext = getPrismContext();
 
-		PrismReferenceValue refValue = new PrismReferenceValueImpl("123456");
-		DefaultReferencableImpl referencable = new DefaultReferencableImpl(refValue);
-		DeltaSetTripleType triple = new DeltaSetTripleType();
-		triple.getPlus().add(referencable);
+        PrismReferenceValue refValue = new PrismReferenceValueImpl("123456");
+        DefaultReferencableImpl referencable = new DefaultReferencableImpl(refValue);
+        DeltaSetTripleType triple = new DeltaSetTripleType();
+        triple.getPlus().add(referencable);
 
-		QName fakeQName = new QName(PrismConstants.NS_TYPES, "triple");
-		String xml = prismContext.xmlSerializer().serializeAnyData(triple, fakeQName);
-		System.out.println(xml);
-	}
+        QName fakeQName = new QName(PrismConstants.NS_TYPES, "triple");
+        String xml = prismContext.xmlSerializer().serializeAnyData(triple, fakeQName);
+        System.out.println(xml);
+    }
 
-	@Test
-	public void testSerializeNamedReference() throws Exception {
-		System.out.println("===[ testSerializeNamedReference ]===");
+    @Test
+    public void testSerializeNamedReference() throws Exception {
+        System.out.println("===[ testSerializeNamedReference ]===");
 
-		PrismContext prismContext = getPrismContext();
-		ObjectReferenceType reference = new ObjectReferenceType()
-				.oid("66662a3b-76eb-4465-8374-742f6e2f54b4")
-				.type(UserType.COMPLEX_TYPE)
-				.targetName("joe");
-		QName fakeQName = new QName(PrismConstants.NS_TYPES, "ref");
-		String xml = prismContext.xmlSerializer().serializeAnyData(reference, fakeQName);
-		System.out.println(xml);
-	}
+        PrismContext prismContext = getPrismContext();
+        ObjectReferenceType reference = new ObjectReferenceType()
+                .oid("66662a3b-76eb-4465-8374-742f6e2f54b4")
+                .type(UserType.COMPLEX_TYPE)
+                .targetName("joe");
+        QName fakeQName = new QName(PrismConstants.NS_TYPES, "ref");
+        String xml = prismContext.xmlSerializer().serializeAnyData(reference, fakeQName);
+        System.out.println(xml);
+    }
 
-	@Test
-	public void testSerializeFullReference() throws Exception {
-		System.out.println("===[ testSerializeFullReference ]===");
+    @Test
+    public void testSerializeFullReference() throws Exception {
+        System.out.println("===[ testSerializeFullReference ]===");
 
-		PrismContext prismContext = getPrismContext();
+        PrismContext prismContext = getPrismContext();
 
-		QName fakeQName = new QName(PrismConstants.NS_TYPES, "ref");
-		MutablePrismReferenceDefinition definition = prismContext.definitionFactory().createReferenceDefinition(fakeQName, ObjectReferenceType.COMPLEX_TYPE);
-		definition.setComposite(true);
-		PrismReference reference = definition.instantiate();
+        QName fakeQName = new QName(PrismConstants.NS_TYPES, "ref");
+        MutablePrismReferenceDefinition definition = prismContext.definitionFactory().createReferenceDefinition(fakeQName, ObjectReferenceType.COMPLEX_TYPE);
+        definition.setComposite(true);
+        PrismReference reference = definition.instantiate();
 
-		UserType joe = new UserType(prismContext)
-				.name("joe")
-				.oid("66662a3b-76eb-4465-8374-742f6e2f54b4")
-				.description("description");
-		ObjectReferenceType referenceRealValue = ObjectTypeUtil.createObjectRefWithFullObject(joe, prismContext);
-		reference.add(referenceRealValue.asReferenceValue());
+        UserType joe = new UserType(prismContext)
+                .name("joe")
+                .oid("66662a3b-76eb-4465-8374-742f6e2f54b4")
+                .description("description");
+        ObjectReferenceType referenceRealValue = ObjectTypeUtil.createObjectRefWithFullObject(joe, prismContext);
+        reference.add(referenceRealValue.asReferenceValue());
 
-		String xml = prismContext.xmlSerializer().serialize(reference);
-		System.out.println(xml);
-	}
+        String xml = prismContext.xmlSerializer().serialize(reference);
+        System.out.println(xml);
+    }
 
-	@Test
-	public void testSerializeMessage() throws Exception {
-		System.out.println("===[ testSerializeMessage ]===");
+    @Test
+    public void testSerializeMessage() throws Exception {
+        System.out.println("===[ testSerializeMessage ]===");
 
-		PrismContext prismContext = getPrismContext();
-		SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
-		LocalizableMessageType localizableMessageBean = LocalizationUtil.createLocalizableMessageType(localizableMessage);
-		QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
-		String xml = prismContext.xmlSerializer().serializeAnyData(localizableMessageBean, fakeQName);
-		System.out.println(xml);
-	}
+        PrismContext prismContext = getPrismContext();
+        SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
+        LocalizableMessageType localizableMessageBean = LocalizationUtil.createLocalizableMessageType(localizableMessage);
+        QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
+        String xml = prismContext.xmlSerializer().serializeAnyData(localizableMessageBean, fakeQName);
+        System.out.println(xml);
+    }
 
-	@Test
-	public void testSerializeExecuteCredentialResetResponseType() throws Exception {
-		System.out.println("===[ testSerializeExecuteCredentialResetResponseType ]===");
+    @Test
+    public void testSerializeExecuteCredentialResetResponseType() throws Exception {
+        System.out.println("===[ testSerializeExecuteCredentialResetResponseType ]===");
 
-		PrismContext prismContext = getPrismContext();
+        PrismContext prismContext = getPrismContext();
 
-		SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
-		LocalizableMessageType localizableMessageBean = LocalizationUtil.createLocalizableMessageType(localizableMessage);
-		ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType();
-		response.setMessage(localizableMessageBean);
-		QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
+        SingleLocalizableMessage localizableMessage = new SingleLocalizableMessage("execute.reset.credential.bad.request", null, "Failed to execute reset password. Bad request.");
+        LocalizableMessageType localizableMessageBean = LocalizationUtil.createLocalizableMessageType(localizableMessage);
+        ExecuteCredentialResetResponseType response = new ExecuteCredentialResetResponseType();
+        response.setMessage(localizableMessageBean);
+        QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
 
-		prismContext.adopt(response);
+        prismContext.adopt(response);
 
-		String xml = prismContext.xmlSerializer().serializeAnyData(response, fakeQName);
-		System.out.println(xml);
-	}
+        String xml = prismContext.xmlSerializer().serializeAnyData(response, fakeQName);
+        System.out.println(xml);
+    }
 
-	@Test
-	public void testSerializeResource() throws Exception {
-		System.out.println("===[ testSerializeResource ]===");
+    @Test
+    public void testSerializeResource() throws Exception {
+        System.out.println("===[ testSerializeResource ]===");
 
-		serializationRoundTrip(TestConstants.RESOURCE_FILE);
-	}
+        serializationRoundTrip(TestConstants.RESOURCE_FILE);
+    }
 
-	@Test
-	public void testSerializeUser() throws Exception {
-		System.out.println("===[ testSerializeUser ]===");
+    @Test
+    public void testSerializeUser() throws Exception {
+        System.out.println("===[ testSerializeUser ]===");
 
-		serializationRoundTrip(TestConstants.USER_FILE);
-	}
+        serializationRoundTrip(TestConstants.USER_FILE);
+    }
 
-	@Test
-	public void testSerializeRole() throws Exception {
-		System.out.println("===[ testSerializeRole ]===");
+    @Test
+    public void testSerializeRole() throws Exception {
+        System.out.println("===[ testSerializeRole ]===");
 
-		PrismContext prismContext = getPrismContext();
+        PrismContext prismContext = getPrismContext();
 
-		PrismObject<RoleType> parsedObject = prismContext.parseObject(TestConstants.ROLE_FILE);
+        PrismObject<RoleType> parsedObject = prismContext.parseObject(TestConstants.ROLE_FILE);
 
-		System.out.println("Parsed object:");
-		System.out.println(parsedObject.debugDump(1));
+        System.out.println("Parsed object:");
+        System.out.println(parsedObject.debugDump(1));
 
-		RoleType parsedRoleType = parsedObject.asObjectable();
-		AdminGuiConfigurationType adminGuiConfiguration = parsedRoleType.getAdminGuiConfiguration();
-		String defaultTimezone = adminGuiConfiguration.getDefaultTimezone();
-		assertEquals("Wrong defaultTimezone", "Europe/Bratislava", defaultTimezone);
+        RoleType parsedRoleType = parsedObject.asObjectable();
+        AdminGuiConfigurationType adminGuiConfiguration = parsedRoleType.getAdminGuiConfiguration();
+        String defaultTimezone = adminGuiConfiguration.getDefaultTimezone();
+        assertEquals("Wrong defaultTimezone", "Europe/Bratislava", defaultTimezone);
 
-		// WHEN
-		serializationRoundTripPrismObject(parsedObject);
-		serializationRoundTripObjectType(parsedRoleType);
-	}
+        // WHEN
+        serializationRoundTripPrismObject(parsedObject);
+        serializationRoundTripObjectType(parsedRoleType);
+    }
 
-	private <O extends ObjectType> void serializationRoundTrip(File file) throws Exception {
-		PrismContext prismContext = getPrismContext();
+    private <O extends ObjectType> void serializationRoundTrip(File file) throws Exception {
+        PrismContext prismContext = getPrismContext();
 
-		PrismObject<O> parsedObject = prismContext.parseObject(file);
+        PrismObject<O> parsedObject = prismContext.parseObject(file);
 
-		System.out.println("\nParsed object:");
-		System.out.println(parsedObject.debugDump());
+        System.out.println("\nParsed object:");
+        System.out.println(parsedObject.debugDump());
 
-		serializationRoundTripPrismObject(parsedObject);
-		serializationRoundTripObjectType(parsedObject.asObjectable());
-	}
+        serializationRoundTripPrismObject(parsedObject);
+        serializationRoundTripObjectType(parsedObject.asObjectable());
+    }
 
-	private <O extends ObjectType> void serializationRoundTripPrismObject(PrismObject<O> parsedObject) throws Exception {
+    private <O extends ObjectType> void serializationRoundTripPrismObject(PrismObject<O> parsedObject) throws Exception {
 
-		// WHEN
-		String serializedObject = SerializationUtil.toString(parsedObject);
+        // WHEN
+        String serializedObject = SerializationUtil.toString(parsedObject);
 
-		// THEN
-		System.out.println("\nSerialized object:");
-		System.out.println(serializedObject);
-		PrismObject<O> deserializedObject = SerializationUtil.fromString(serializedObject);
+        // THEN
+        System.out.println("\nSerialized object:");
+        System.out.println(serializedObject);
+        PrismObject<O> deserializedObject = SerializationUtil.fromString(serializedObject);
 
-		System.out.println("\nDeserialized object (PrismObject):");
-		System.out.println(deserializedObject.debugDump());
-		deserializedObject.revive(getPrismContext());
+        System.out.println("\nDeserialized object (PrismObject):");
+        System.out.println(deserializedObject.debugDump());
+        deserializedObject.revive(getPrismContext());
 
-		ObjectDelta<O> diff = parsedObject.diff(deserializedObject);
-		assertTrue("Something changed in serialization of "+parsedObject+" (PrismObject): "+diff, diff.isEmpty());
-	}
+        ObjectDelta<O> diff = parsedObject.diff(deserializedObject);
+        assertTrue("Something changed in serialization of "+parsedObject+" (PrismObject): "+diff, diff.isEmpty());
+    }
 
-	private <O extends ObjectType> void serializationRoundTripObjectType(O parsedObject) throws Exception {
+    private <O extends ObjectType> void serializationRoundTripObjectType(O parsedObject) throws Exception {
 
-		// WHEN
-		String serializedObject = SerializationUtil.toString(parsedObject);
+        // WHEN
+        String serializedObject = SerializationUtil.toString(parsedObject);
 
-		// THEN
-		O deserializedObject = SerializationUtil.fromString(serializedObject);
+        // THEN
+        O deserializedObject = SerializationUtil.fromString(serializedObject);
 
-		deserializedObject.asPrismObject().revive(getPrismContext());
+        deserializedObject.asPrismObject().revive(getPrismContext());
 
-		System.out.println("Deserialized object (ObjectType):");
-		System.out.println(deserializedObject.asPrismObject().debugDump());
+        System.out.println("Deserialized object (ObjectType):");
+        System.out.println(deserializedObject.asPrismObject().debugDump());
 
-		ObjectDelta<O> diff = parsedObject.asPrismObject().diff((PrismObject) deserializedObject.asPrismObject());
-		assertTrue("Something changed in serializetion of "+parsedObject+" (ObjectType): "+diff, diff.isEmpty());
-	}
+        ObjectDelta<O> diff = parsedObject.asPrismObject().diff((PrismObject) deserializedObject.asPrismObject());
+        assertTrue("Something changed in serializetion of "+parsedObject+" (ObjectType): "+diff, diff.isEmpty());
+    }
 
 }

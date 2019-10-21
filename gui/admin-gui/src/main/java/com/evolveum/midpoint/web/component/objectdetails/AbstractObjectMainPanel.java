@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015-2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.objectdetails;
@@ -41,125 +41,125 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  */
 public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Panel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final String PARAMETER_SELECTED_TAB = "tab";
+    public static final String PARAMETER_SELECTED_TAB = "tab";
 
-	private static final String ID_MAIN_FORM = "mainForm";
-	public static final String ID_TAB_PANEL = "tabPanel";
-	private static final String ID_EXECUTE_OPTIONS = "executeOptions";
-	private static final String ID_BACK = "back";
-	private static final String ID_SAVE = "save";
-	private static final String ID_EDIT_XML = "editXml";
-	private static final String ID_PREVIEW_CHANGES = "previewChanges";
+    private static final String ID_MAIN_FORM = "mainForm";
+    public static final String ID_TAB_PANEL = "tabPanel";
+    private static final String ID_EXECUTE_OPTIONS = "executeOptions";
+    private static final String ID_BACK = "back";
+    private static final String ID_SAVE = "save";
+    private static final String ID_EDIT_XML = "editXml";
+    private static final String ID_PREVIEW_CHANGES = "previewChanges";
 
-	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectMainPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectMainPanel.class);
 
-	private Form mainForm;
+    private Form mainForm;
 
-	private LoadableModel<PrismObjectWrapper<O>> objectModel;
+    private LoadableModel<PrismObjectWrapper<O>> objectModel;
 
-	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
-		private static final long serialVersionUID = 1L;
+    private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+        private static final long serialVersionUID = 1L;
 
-		@Override
-		protected ExecuteChangeOptionsDto load() {
-			return ExecuteChangeOptionsDto.createFromSystemConfiguration();
-		}
-	};
+        @Override
+        protected ExecuteChangeOptionsDto load() {
+            return ExecuteChangeOptionsDto.createFromSystemConfiguration();
+        }
+    };
 
-	public AbstractObjectMainPanel(String id, LoadableModel<PrismObjectWrapper<O>> objectModel, PageAdminObjectDetails<O> parentPage) {
-		super(id, objectModel);
-		Validate.notNull(objectModel, "Null object model");
-		this.objectModel = objectModel;
-		initLayout(parentPage);
-	}
+    public AbstractObjectMainPanel(String id, LoadableModel<PrismObjectWrapper<O>> objectModel, PageAdminObjectDetails<O> parentPage) {
+        super(id, objectModel);
+        Validate.notNull(objectModel, "Null object model");
+        this.objectModel = objectModel;
+        initLayout(parentPage);
+    }
 
-	@Override
-	protected void onConfigure() {
-		super.onConfigure();
+    @Override
+    protected void onConfigure() {
+        super.onConfigure();
 
-		TabbedPanel tabbedPanel = (TabbedPanel) get(ID_MAIN_FORM + ":" + ID_TAB_PANEL);
-		WebComponentUtil.setSelectedTabFromPageParameters(tabbedPanel, getPage().getPageParameters(),
-				PARAMETER_SELECTED_TAB);
-	}
+        TabbedPanel tabbedPanel = (TabbedPanel) get(ID_MAIN_FORM + ":" + ID_TAB_PANEL);
+        WebComponentUtil.setSelectedTabFromPageParameters(tabbedPanel, getPage().getPageParameters(),
+                PARAMETER_SELECTED_TAB);
+    }
 
-	public LoadableModel<PrismObjectWrapper<O>> getObjectModel() {
-		return objectModel;
-	}
+    public LoadableModel<PrismObjectWrapper<O>> getObjectModel() {
+        return objectModel;
+    }
 
-	public PrismObjectWrapper<O> getObjectWrapper() {
-		return objectModel.getObject();
-	}
+    public PrismObjectWrapper<O> getObjectWrapper() {
+        return objectModel.getObject();
+    }
 
-	public PrismObject<O> getObject() {
-		return objectModel.getObject().getObject();
-	}
+    public PrismObject<O> getObject() {
+        return objectModel.getObject().getObject();
+    }
 
-	public Form getMainForm() {
-		return mainForm;
-	}
+    public Form getMainForm() {
+        return mainForm;
+    }
 
-	private void initLayout(PageAdminObjectDetails<O> parentPage) {
-		mainForm = new Form<>(ID_MAIN_FORM, true);
-		add(mainForm);
-		initLayoutTabs(parentPage);
-		initLayoutOptions();
-		initLayoutButtons(parentPage);
-	}
+    private void initLayout(PageAdminObjectDetails<O> parentPage) {
+        mainForm = new Form<>(ID_MAIN_FORM, true);
+        add(mainForm);
+        initLayoutTabs(parentPage);
+        initLayoutOptions();
+        initLayoutButtons(parentPage);
+    }
 
-	protected void initLayoutTabs(final PageAdminObjectDetails<O> parentPage) {
-		List<ITab> tabs = createTabs(parentPage);
-		TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, null,
-				PARAMETER_SELECTED_TAB);
-		mainForm.add(tabPanel);
-	}
+    protected void initLayoutTabs(final PageAdminObjectDetails<O> parentPage) {
+        List<ITab> tabs = createTabs(parentPage);
+        TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, null,
+                PARAMETER_SELECTED_TAB);
+        mainForm.add(tabPanel);
+    }
 
-	protected abstract List<ITab> createTabs(PageAdminObjectDetails<O> parentPage);
+    protected abstract List<ITab> createTabs(PageAdminObjectDetails<O> parentPage);
 
-	protected void initLayoutOptions() {
-		ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS,
-				executeOptionsModel, true, false);
+    protected void initLayoutOptions() {
+        ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS,
+                executeOptionsModel, true, false);
         optionsPanel.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible() {
-				return getOptionsPanelVisibility();
-			}
+            @Override
+            public boolean isVisible() {
+                return getOptionsPanelVisibility();
+            }
 
-		});
-		mainForm.add(optionsPanel);
-	}
+        });
+        mainForm.add(optionsPanel);
+    }
 
-	protected void initLayoutButtons(PageAdminObjectDetails<O> parentPage) {
-		initLayoutPreviewButton(parentPage);
-		initLayoutSaveButton(parentPage);
-		initLayoutBackButton(parentPage);
-		initLayoutEditXmlButton(parentPage);
-	}
+    protected void initLayoutButtons(PageAdminObjectDetails<O> parentPage) {
+        initLayoutPreviewButton(parentPage);
+        initLayoutSaveButton(parentPage);
+        initLayoutBackButton(parentPage);
+        initLayoutEditXmlButton(parentPage);
+    }
 
-	protected void initLayoutSaveButton(final PageAdminObjectDetails<O> parentPage) {
-		AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE, parentPage.createStringResource("pageAdminFocus.button.save")) {
-			private static final long serialVersionUID = 1L;
+    protected void initLayoutSaveButton(final PageAdminObjectDetails<O> parentPage) {
+        AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE, parentPage.createStringResource("pageAdminFocus.button.save")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target) {
-				getDetailsPage().savePerformed(target);
-			}
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                getDetailsPage().savePerformed(target);
+            }
 
-			@Override
-			protected void onError(AjaxRequestTarget target) {
-				target.add(parentPage.getFeedbackPanel());
-			}
-		};
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(parentPage.getFeedbackPanel());
+            }
+        };
         saveButton.add(new VisibleEnableBehaviour(){
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
                 return !getObjectWrapper().isReadOnly() &&
-						!getDetailsPage().isForcedPreview();
+                        !getDetailsPage().isForcedPreview();
             }
 
             @Override
@@ -178,25 +178,25 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
         });
         saveButton.setOutputMarkupId(true);
         saveButton.setOutputMarkupPlaceholderTag(true);
-		mainForm.setDefaultButton(saveButton);
-		mainForm.add(saveButton);
-	}
+        mainForm.setDefaultButton(saveButton);
+        mainForm.add(saveButton);
+    }
 
-	// TEMPORARY
-	protected void initLayoutPreviewButton(final PageAdminObjectDetails<O> parentPage) {
-		AjaxSubmitButton previewButton = new AjaxSubmitButton(ID_PREVIEW_CHANGES, parentPage.createStringResource("pageAdminFocus.button.previewChanges")) {
-			private static final long serialVersionUID = 1L;
+    // TEMPORARY
+    protected void initLayoutPreviewButton(final PageAdminObjectDetails<O> parentPage) {
+        AjaxSubmitButton previewButton = new AjaxSubmitButton(ID_PREVIEW_CHANGES, parentPage.createStringResource("pageAdminFocus.button.previewChanges")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target) {
-				getDetailsPage().previewPerformed(target);
-			}
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                getDetailsPage().previewPerformed(target);
+            }
 
-			@Override
-			protected void onError(AjaxRequestTarget target) {
-				target.add(parentPage.getFeedbackPanel());
-			}
-		};
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(parentPage.getFeedbackPanel());
+            }
+        };
         previewButton.add(new VisibleEnableBehaviour(){
             private static final long serialVersionUID = 1L;
 
@@ -217,90 +217,90 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
         });
         previewButton.setOutputMarkupId(true);
         previewButton.setOutputMarkupPlaceholderTag(true);
-		mainForm.add(previewButton);
-	}
+        mainForm.add(previewButton);
+    }
 
-	protected boolean isPreviewButtonVisible(){
-		return !getObjectWrapper().isReadOnly();
-	}
+    protected boolean isPreviewButtonVisible(){
+        return !getObjectWrapper().isReadOnly();
+    }
 
-	protected void initLayoutBackButton(PageAdminObjectDetails<O> parentPage) {
-		AjaxButton back = new AjaxButton(ID_BACK, parentPage.createStringResource("pageAdminFocus.button.back")) {
-			private static final long serialVersionUID = 1L;
+    protected void initLayoutBackButton(PageAdminObjectDetails<O> parentPage) {
+        AjaxButton back = new AjaxButton(ID_BACK, parentPage.createStringResource("pageAdminFocus.button.back")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				backPerformed(target);
-			}
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                backPerformed(target);
+            }
 
-		};
-		back.setOutputMarkupId(true);
-		back.setOutputMarkupPlaceholderTag(true);
-		mainForm.add(back);
-	}
+        };
+        back.setOutputMarkupId(true);
+        back.setOutputMarkupPlaceholderTag(true);
+        mainForm.add(back);
+    }
 
-	private void initLayoutEditXmlButton(final PageAdminObjectDetails<O> parentPage){
-		AjaxButton editXmlButton = new AjaxButton(ID_EDIT_XML, parentPage.createStringResource("AbstractObjectMainPanel.editXmlButton")) {
-			private static final long serialVersionUID = 1L;
+    private void initLayoutEditXmlButton(final PageAdminObjectDetails<O> parentPage){
+        AjaxButton editXmlButton = new AjaxButton(ID_EDIT_XML, parentPage.createStringResource("AbstractObjectMainPanel.editXmlButton")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				ConfirmationPanel confirmationPanel = new ConfirmationPanel(parentPage.getMainPopupBodyId(),
-						parentPage.createStringResource("AbstractObjectMainPanel.confirmEditXmlRedirect")){
-					private static final long serialVersionUID = 1L;
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ConfirmationPanel confirmationPanel = new ConfirmationPanel(parentPage.getMainPopupBodyId(),
+                        parentPage.createStringResource("AbstractObjectMainPanel.confirmEditXmlRedirect")){
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public void yesPerformed(AjaxRequestTarget target) {
-						PageParameters parameters = new PageParameters();
-						parameters.add(PageDebugView.PARAM_OBJECT_ID, parentPage.getObjectWrapper().getOid());
-						parameters.add(PageDebugView.PARAM_OBJECT_TYPE, parentPage.getCompileTimeClass().getSimpleName());
-						parentPage.navigateToNext(PageDebugView.class, parameters);
-					}
+                    @Override
+                    public void yesPerformed(AjaxRequestTarget target) {
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(PageDebugView.PARAM_OBJECT_ID, parentPage.getObjectWrapper().getOid());
+                        parameters.add(PageDebugView.PARAM_OBJECT_TYPE, parentPage.getCompileTimeClass().getSimpleName());
+                        parentPage.navigateToNext(PageDebugView.class, parameters);
+                    }
 
-					@Override
-					public StringResourceModel getTitle() {
-						return new StringResourceModel("pageUsers.message.confirmActionPopupTitle");
-					}
-				};
+                    @Override
+                    public StringResourceModel getTitle() {
+                        return new StringResourceModel("pageUsers.message.confirmActionPopupTitle");
+                    }
+                };
 
-				parentPage.showMainPopup(confirmationPanel, target);
-			}
-		};
-		editXmlButton.add(new VisibleEnableBehaviour(){
-			private static final long serialVersionUID = 1L;
+                parentPage.showMainPopup(confirmationPanel, target);
+            }
+        };
+        editXmlButton.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isVisible(){
-				return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
-						AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL) &&
-						!getObjectWrapper().isReadOnly();
-			}
-		});
-		mainForm.add(editXmlButton);
+            @Override
+            public boolean isVisible(){
+                return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
+                        AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL) &&
+                        !getObjectWrapper().isReadOnly();
+            }
+        });
+        mainForm.add(editXmlButton);
 
-	}
-	public ExecuteChangeOptionsDto getExecuteChangeOptionsDto() {
-		return executeOptionsModel.getObject();
-	}
+    }
+    public ExecuteChangeOptionsDto getExecuteChangeOptionsDto() {
+        return executeOptionsModel.getObject();
+    }
 
-	private void backPerformed(AjaxRequestTarget target) {
-		getDetailsPage().redirectBack();
-	}
+    private void backPerformed(AjaxRequestTarget target) {
+        getDetailsPage().redirectBack();
+    }
 
-	protected PageAdminObjectDetails<O> getDetailsPage() {
-		return (PageAdminObjectDetails<O>)getPage();
-	}
+    protected PageAdminObjectDetails<O> getDetailsPage() {
+        return (PageAdminObjectDetails<O>)getPage();
+    }
 
     protected boolean getOptionsPanelVisibility(){
         if (getObjectWrapper().isReadOnly()){
-			return false;
-		}
-//		PrismContainerDefinition def = getObjectWrapper().getDefinition();
-		if (ItemStatus.NOT_CHANGED.equals(getObjectWrapper().getStatus())
-				&& !getObjectWrapper().canModify()){
-			return false;
-		}
-		return true;
+            return false;
+        }
+//        PrismContainerDefinition def = getObjectWrapper().getDefinition();
+        if (ItemStatus.NOT_CHANGED.equals(getObjectWrapper().getStatus())
+                && !getObjectWrapper().canModify()){
+            return false;
+        }
+        return true;
     }
 
     public void reloadSavePreviewButtons(AjaxRequestTarget target){

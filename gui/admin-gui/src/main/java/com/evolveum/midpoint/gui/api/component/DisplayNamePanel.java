@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component;
@@ -44,9 +44,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 
-	private static final long serialVersionUID = 1L;
-	
-	private static final Trace LOGGER = TraceManager.getTrace(DisplayNamePanel.class);
+    private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(DisplayNamePanel.class);
 
     private final static String ID_TYPE_IMAGE = "typeImage";
     private final static String ID_DISPLAY_NAME = "displayName";
@@ -57,48 +57,48 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
     private final static String ID_DESCRIPTION_LABELS = "descriptionLabels";
     private final static String ID_NAVIGATE_TO_OBJECT = "navigateToObject";
 
-	public DisplayNamePanel(String id, IModel<C> model) {
-		super(id, model);
+    public DisplayNamePanel(String id, IModel<C> model) {
+        super(id, model);
 
-	}
+    }
 
-	@Override
-	protected void onInitialize(){
-		super.onInitialize();
-		initLayout();
-	}
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        initLayout();
+    }
 
-	private void initLayout() {
-		WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
+    private void initLayout() {
+        WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
         typeImage.setOutputMarkupId(true);
         typeImage.add(AttributeModifier.append("class", createImageModel()));
         add(typeImage);
-        
+
         Label name = new Label(ID_DISPLAY_NAME, createHeaderModel());
         name.setOutputMarkupId(true);
         add(name);
-        
+
         Label identifier = new Label(ID_IDENTIFIER, createIdentifierModel());
         identifier.setOutputMarkupId(true);
         identifier.add(new VisibleBehaviour(() -> isIdentifierVisible()));
         add(identifier);
 
-		AjaxButton navigateToObject = new AjaxButton(ID_NAVIGATE_TO_OBJECT) {
-			@Override
-			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-				if (DisplayNamePanel.this.getModelObject() instanceof ObjectType){
-					ObjectType o = (ObjectType) DisplayNamePanel.this.getModelObject();
-					ObjectReferenceType ort = new ObjectReferenceType();
-					ort.setOid(o.getOid());
-					ort.setType(WebComponentUtil.classToQName(DisplayNamePanel.this.getPageBase().getPrismContext(), o.getClass()));
-					WebComponentUtil.dispatchToObjectDetailsPage(ort, DisplayNamePanel.this, false);
-				}
-			}
-		};
-		navigateToObject.add(new VisibleBehaviour(() -> DisplayNamePanel.this.getModelObject() instanceof ObjectType &&
-				WebComponentUtil.getObjectDetailsPage(((ObjectType)DisplayNamePanel.this.getModelObject()).getClass()) != null));
-		navigateToObject.setOutputMarkupId(true);
-		add(navigateToObject);
+        AjaxButton navigateToObject = new AjaxButton(ID_NAVIGATE_TO_OBJECT) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                if (DisplayNamePanel.this.getModelObject() instanceof ObjectType){
+                    ObjectType o = (ObjectType) DisplayNamePanel.this.getModelObject();
+                    ObjectReferenceType ort = new ObjectReferenceType();
+                    ort.setOid(o.getOid());
+                    ort.setType(WebComponentUtil.classToQName(DisplayNamePanel.this.getPageBase().getPrismContext(), o.getClass()));
+                    WebComponentUtil.dispatchToObjectDetailsPage(ort, DisplayNamePanel.this, false);
+                }
+            }
+        };
+        navigateToObject.add(new VisibleBehaviour(() -> DisplayNamePanel.this.getModelObject() instanceof ObjectType &&
+                WebComponentUtil.getObjectDetailsPage(((ObjectType)DisplayNamePanel.this.getModelObject()).getClass()) != null));
+        navigateToObject.setOutputMarkupId(true);
+        add(navigateToObject);
 
         Label relation = new Label(ID_RELATION, Model.of(getRelationLabel()));
         relation.setOutputMarkupId(true);
@@ -107,10 +107,10 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 
         IModel<String> kindIntentLabelModel = getKindIntentLabelModel();
         Label kindIntent = new Label(ID_KIND_INTENT, kindIntentLabelModel);
-		kindIntent.setOutputMarkupId(true);
-		kindIntent.add(new VisibleBehaviour(() -> isKindIntentVisible(kindIntentLabelModel)));
+        kindIntent.setOutputMarkupId(true);
+        kindIntent.add(new VisibleBehaviour(() -> isKindIntentVisible(kindIntentLabelModel)));
         add(kindIntent);
-        
+
         ListView<String> descriptionLabels = new ListView<String>(ID_DESCRIPTION_LABELS, getDescriptionLabelsModel()) {
 
             private static final long serialVersionUID = 1L;
@@ -120,129 +120,129 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
                 item.add(new Label(ID_DESCRIPTION, item.getModel()));
             }
         };
-        
+
         add(descriptionLabels);
-        
+
 //        add(new Label(ID_DESCRIPTION, getDescriptionLabelsModel()));
 //        add(new Label(ID_PENDING_OPERATION, getPendingOperationLabelModel()));
-	}
-	
-	private boolean isObjectPolicyConfigurationType() {
-		if(QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName())) {
-			return true;
-		}
-		return false;
-	}
-	
-	protected String createImageModel() {
-		if (getModelObject() == null){
-			return "";
-		}
-		if (ConstructionType.class.isAssignableFrom(getModelObject().getClass())) {
-			return WebComponentUtil.createDefaultColoredIcon(ResourceType.COMPLEX_TYPE);
-		}
+    }
 
-		return WebComponentUtil.createDefaultColoredIcon(getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName());
+    private boolean isObjectPolicyConfigurationType() {
+        if(QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName())) {
+            return true;
+        }
+        return false;
+    }
 
-	}
+    protected String createImageModel() {
+        if (getModelObject() == null){
+            return "";
+        }
+        if (ConstructionType.class.isAssignableFrom(getModelObject().getClass())) {
+            return WebComponentUtil.createDefaultColoredIcon(ResourceType.COMPLEX_TYPE);
+        }
 
-	private IModel<String> createHeaderModel() {
-		// TODO: align with DisplayNameModel
-		if (getModelObject() == null){
-			return Model.of("");
-		}
-		if (ObjectType.class.isAssignableFrom(getModelObject().getClass())) {
-			return Model.of(WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
-		}
-		if (isObjectPolicyConfigurationType()) {
-			QName typeValue = WebComponentUtil.getValue(getModel().getObject().asPrismContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
-			ObjectReferenceType objectTemplate = ((ObjectPolicyConfigurationType)getModel().getObject()).getObjectTemplateRef();
-			if(objectTemplate == null || objectTemplate.getTargetName() == null){
-				return Model.of("");
-			}
-			String objectTemplateNameValue = objectTemplate.getTargetName().toString();
-			StringBuilder sb = new StringBuilder();
-			if(typeValue != null) {
-				sb.append(typeValue.getLocalPart()).append(" - ");
-			}
-			sb.append(objectTemplateNameValue);
-			return Model.of(sb.toString());
-        } 
-		PrismProperty<String> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);
-		if (name == null || name.isEmpty()) {
-			return Model.of("");
-		}
-		return Model.of(name.getRealValue());
-	}
-	
-	private IModel<String> createIdentifierModel() {
-		if (getModelObject() == null){
-			return Model.of("");
-		}
-		if (AbstractRoleType.class.isAssignableFrom(getModelObject().getClass())) {
-			return Model.of(WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_IDENTIFIER));
-		}
-		return Model.of("");
-	}
+        return WebComponentUtil.createDefaultColoredIcon(getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName());
 
-	private boolean isIdentifierVisible() {
-		if (getModelObject() == null){
-			return false;
-		}
-		if (AbstractRoleType.class.isAssignableFrom(getModelObject().getClass())) {
-			return getModelObject().asPrismContainerValue().findProperty(AbstractRoleType.F_IDENTIFIER) != null;
-		}
-		return false;
-	}
-	
-	// TODO: maybe move relation methods to subclass if we want this panel to be really reusable
-	
-	private boolean isRelationVisible() {
-		return !WebComponentUtil.isDefaultRelation(getRelation());
-	}
+    }
 
-	private boolean isKindIntentVisible(IModel<String> kindIntentLabelModel) {
-		return kindIntentLabelModel != null && StringUtils.isNotEmpty(kindIntentLabelModel.getObject());
-	}
+    private IModel<String> createHeaderModel() {
+        // TODO: align with DisplayNameModel
+        if (getModelObject() == null){
+            return Model.of("");
+        }
+        if (ObjectType.class.isAssignableFrom(getModelObject().getClass())) {
+            return Model.of(WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
+        }
+        if (isObjectPolicyConfigurationType()) {
+            QName typeValue = WebComponentUtil.getValue(getModel().getObject().asPrismContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
+            ObjectReferenceType objectTemplate = ((ObjectPolicyConfigurationType)getModel().getObject()).getObjectTemplateRef();
+            if(objectTemplate == null || objectTemplate.getTargetName() == null){
+                return Model.of("");
+            }
+            String objectTemplateNameValue = objectTemplate.getTargetName().toString();
+            StringBuilder sb = new StringBuilder();
+            if(typeValue != null) {
+                sb.append(typeValue.getLocalPart()).append(" - ");
+            }
+            sb.append(objectTemplateNameValue);
+            return Model.of(sb.toString());
+        }
+        PrismProperty<String> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);
+        if (name == null || name.isEmpty()) {
+            return Model.of("");
+        }
+        return Model.of(name.getRealValue());
+    }
 
-	private String getRelationLabel() {
-		QName relation = getRelation();
-		if (relation == null) {
-			return "";
-		}
-		// TODO: localization?
-		return relation.getLocalPart();
-	}
+    private IModel<String> createIdentifierModel() {
+        if (getModelObject() == null){
+            return Model.of("");
+        }
+        if (AbstractRoleType.class.isAssignableFrom(getModelObject().getClass())) {
+            return Model.of(WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_IDENTIFIER));
+        }
+        return Model.of("");
+    }
 
-	protected IModel<String> getKindIntentLabelModel() {
-		// To be overriden in subclasses
-		return Model.of("");
-	}
-	
-	protected IModel<String> getDescriptionLabelModel() {
-		if(getModel().getObject() != null && getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
-			return new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart());
-        } 
-		return null;
-	}
-	
-	protected IModel<List<String>> getDescriptionLabelsModel() {
-		List<String> descriptionLabels = new ArrayList<String>();
-		IModel<String> des= getDescriptionLabelModel();
-		if(des != null) {
-			descriptionLabels.add(des.getObject());
-		}
-		return new IModel<List<String>>() {
+    private boolean isIdentifierVisible() {
+        if (getModelObject() == null){
+            return false;
+        }
+        if (AbstractRoleType.class.isAssignableFrom(getModelObject().getClass())) {
+            return getModelObject().asPrismContainerValue().findProperty(AbstractRoleType.F_IDENTIFIER) != null;
+        }
+        return false;
+    }
 
-			@Override
-			public List<String> getObject() {
-				return descriptionLabels;
-			}
-		};
-	}
+    // TODO: maybe move relation methods to subclass if we want this panel to be really reusable
 
-	protected QName getRelation() {
-		// To be overriden in subclasses
-		return null;
-	}
+    private boolean isRelationVisible() {
+        return !WebComponentUtil.isDefaultRelation(getRelation());
+    }
+
+    private boolean isKindIntentVisible(IModel<String> kindIntentLabelModel) {
+        return kindIntentLabelModel != null && StringUtils.isNotEmpty(kindIntentLabelModel.getObject());
+    }
+
+    private String getRelationLabel() {
+        QName relation = getRelation();
+        if (relation == null) {
+            return "";
+        }
+        // TODO: localization?
+        return relation.getLocalPart();
+    }
+
+    protected IModel<String> getKindIntentLabelModel() {
+        // To be overriden in subclasses
+        return Model.of("");
+    }
+
+    protected IModel<String> getDescriptionLabelModel() {
+        if(getModel().getObject() != null && getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
+            return new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart());
+        }
+        return null;
+    }
+
+    protected IModel<List<String>> getDescriptionLabelsModel() {
+        List<String> descriptionLabels = new ArrayList<String>();
+        IModel<String> des= getDescriptionLabelModel();
+        if(des != null) {
+            descriptionLabels.add(des.getObject());
+        }
+        return new IModel<List<String>>() {
+
+            @Override
+            public List<String> getObject() {
+                return descriptionLabels;
+            }
+        };
+    }
+
+    protected QName getRelation() {
+        // To be overriden in subclasses
+        return null;
+    }
 }

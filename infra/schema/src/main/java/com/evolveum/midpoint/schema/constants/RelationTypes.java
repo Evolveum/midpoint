@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -21,12 +21,12 @@ import static java.util.Collections.singletonList;
 
 /**
  * Built-in (hardcoded) relations.
- * 
+ *
  * Created by honchar.
  */
 public enum RelationTypes {
 
-	MEMBER(SchemaConstants.ORG_DEFAULT, "", "", "", RelationKindType.MEMBER, null, ADMINISTRATION, ORGANIZATION, SELF_SERVICE),
+    MEMBER(SchemaConstants.ORG_DEFAULT, "", "", "", RelationKindType.MEMBER, null, ADMINISTRATION, ORGANIZATION, SELF_SERVICE),
     MANAGER(SchemaConstants.ORG_MANAGER, "Manager", "fe fe-manager-tie-object", "darkblue", RelationKindType.MANAGER, singletonList(RelationKindType.MEMBER), ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
     META(SchemaConstants.ORG_META, "Meta", "", "", RelationKindType.META, null, POLICY),
     DEPUTY(SchemaConstants.ORG_DEPUTY, "Deputy", "", "", RelationKindType.DELEGATION, null /* no values */),
@@ -65,9 +65,9 @@ public enum RelationTypes {
     public String getHeaderLabel() {
         return headerLabel;
     }
-    
+
     public String getLabelKey() {
-    	return RelationTypes.class.getSimpleName() + "." + relation.getLocalPart();
+        return RelationTypes.class.getSimpleName() + "." + relation.getLocalPart();
     }
 
     public RelationKindType getDefaultFor() {
@@ -80,8 +80,8 @@ public enum RelationTypes {
     }
 
     public AreaCategoryType[] getCategories() {
-		return categories;
-	}
+        return categories;
+    }
 
     public String getDefaultIconStyle() {
         return defaultIconStyle;

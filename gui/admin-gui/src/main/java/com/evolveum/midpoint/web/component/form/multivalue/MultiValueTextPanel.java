@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.form.multivalue;
@@ -78,7 +78,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
                 addValuePerformed(target);
             }
         };
-		placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        placeholderAdd.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         placeholderAdd.add(new AttributeAppender("class", new IModel<String>() {
 
             @Override
@@ -109,8 +109,8 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
                     }
                 });
                 text.add(AttributeAppender.replace("placeholder", createEmptyItemPlaceholder()));
-				text.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-				text.setConvertEmptyInputStringToNull(emptyStringToNull);
+                text.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+                text.setConvertEmptyInputStringToNull(emptyStringToNull);
                 item.add(text);
 
                 WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
@@ -139,7 +139,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
             }
         };
         plus.add(new AttributeAppender("class", getPlusClassModifier(item)));
-		plus.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        plus.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(plus);
 
         AjaxLink<Void> minus = new AjaxLink<Void>(ID_MINUS) {
@@ -150,7 +150,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
             }
         };
         minus.add(new AttributeAppender("class", getMinusClassModifier()));
-		minus.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        minus.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(minus);
     }
 

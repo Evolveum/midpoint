@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.users;
@@ -69,18 +69,18 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
  */
 
 @PageDescriptor(
-		urls = {
-				@Url(mountUrl = "/admin/user", matchUrlForSecurity = "/admin/user")
-		},
-		encoder = OnePageParameterEncoder.class,
-		action = {
-				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
-		                label = "PageAdminUsers.auth.usersAll.label",
-		                description = "PageAdminUsers.auth.usersAll.description"),
-		        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
-		                label = "PageUser.auth.user.label",
-		                description = "PageUser.auth.user.description")
-		})
+        urls = {
+                @Url(mountUrl = "/admin/user", matchUrlForSecurity = "/admin/user")
+        },
+        encoder = OnePageParameterEncoder.class,
+        action = {
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+                        label = "PageAdminUsers.auth.usersAll.label",
+                        description = "PageAdminUsers.auth.usersAll.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
+                        label = "PageUser.auth.user.label",
+                        description = "PageUser.auth.user.description")
+        })
 public class PageUser extends PageAdminFocus<UserType> {
     private static final long serialVersionUID = 1L;
 
@@ -95,7 +95,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     private UserDelegationsTabPanel userDelegationsTabPanel = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
-    
+
     public PageUser() {
         super();
     }
@@ -105,7 +105,7 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     public PageUser(final PrismObject<UserType> userToEdit) {
-    	super(userToEdit);
+        super(userToEdit);
     }
 
     public PageUser(final PrismObject<UserType> userToEdit, boolean isNewObject)  {
@@ -140,7 +140,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel() {
-    	return new UserSummaryPanel(ID_SUMMARY_PANEL, isEditingFocus() ?
+        return new UserSummaryPanel(ID_SUMMARY_PANEL, isEditingFocus() ?
                 Model.of(getObjectModel().getObject().getObject().asObjectable()) : Model.of(), this);
     }
 
@@ -164,23 +164,23 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
 
-	@Override
-	protected UserType createNewObject() {
-		return new UserType();
-	}
+    @Override
+    protected UserType createNewObject() {
+        return new UserType();
+    }
 
-	@Override
-	protected Class getRestartResponsePage() {
-		return PageUsers.class;
-	}
+    @Override
+    protected Class getRestartResponsePage() {
+        return PageUsers.class;
+    }
 
-	@Override
+    @Override
     public Class getCompileTimeClass() {
-		return UserType.class;
-	}
+        return UserType.class;
+    }
 
-	@Override
-	protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
+    @Override
+    protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
         return new FocusMainPanel<UserType>(id, getObjectModel(), getProjectionModel(), this) {
             private static final long serialVersionUID = 1L;
 
@@ -197,19 +197,19 @@ public class PageUser extends PageAdminFocus<UserType> {
                             public WebMarkupContainer createPanel(String panelId) {
                                 return new FocusPersonasTabPanel<>(panelId, getMainForm(), getObjectModel());
                             }
-                            
+
                             @Override
                             public String getCount() {
-                            	if(getObjectWrapper() == null || getObjectWrapper().getObject() == null) {
-                            		return Integer.toString(0);
-                            	}
-                            	List<ObjectReferenceType> personasRefList = getObjectWrapper().getObject().asObjectable().getPersonaRef();
-                            	int count = 0;
-                            	for(ObjectReferenceType object : personasRefList) {
-                            		if(object != null && !object.asReferenceValue().isEmpty()) {
-                            			count++;
-                            		}
-                            	}
+                                if(getObjectWrapper() == null || getObjectWrapper().getObject() == null) {
+                                    return Integer.toString(0);
+                                }
+                                List<ObjectReferenceType> personasRefList = getObjectWrapper().getObject().asObjectable().getPersonaRef();
+                                int count = 0;
+                                for(ObjectReferenceType object : personasRefList) {
+                                    if(object != null && !object.asReferenceValue().isEmpty()) {
+                                        count++;
+                                    }
+                                }
                                 return Integer.toString(count);
                             }
 
@@ -224,7 +224,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         userDelegationsTabPanel = new UserDelegationsTabPanel<>(panelId, getMainForm(), getObjectModel(),
-								delegationsModel, privilegesListModel);
+                                delegationsModel, privilegesListModel);
                         return userDelegationsTabPanel;
                     }
 
@@ -241,7 +241,7 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentTablePanel<UserType>(panelId, 
+                        return new AssignmentTablePanel<UserType>(panelId,
                                 getDelegatedToMeModel()) {
                             private static final long serialVersionUID = 1L;
 
@@ -256,7 +256,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                             public String getExcludeOid() {
                                 return getObject().getOid();
                             }
-                            
+
                             @Override
                             public IModel<String> getLabel() {
                                 return parentPage.createStringResource("FocusType.delegatedToMe");
@@ -450,30 +450,30 @@ public class PageUser extends PageAdminFocus<UserType> {
     }
 
     protected int countConsents() {
-		int consentCounter = 0;
-		PrismObject<UserType> focus = getObjectModel().getObject().getObject();
-		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
-		for (AssignmentType assignment : assignments) {
-			if (isConsentAssignment(assignment)) {
-				consentCounter++;
-			}
-		}
-		return consentCounter;
-	}
+        int consentCounter = 0;
+        PrismObject<UserType> focus = getObjectModel().getObject().getObject();
+        List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+        for (AssignmentType assignment : assignments) {
+            if (isConsentAssignment(assignment)) {
+                consentCounter++;
+            }
+        }
+        return consentCounter;
+    }
 
     private boolean isConsentAssignment(AssignmentType assignment) {
-    	return assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
+        return assignment.getTargetRef() != null && QNameUtil.match(assignment.getTargetRef().getRelation(), SchemaConstants.ORG_CONSENT);
     }
 
     protected List<AssignmentType> getConsentsList(List<AssignmentType> assignments, UserDtoStatus status){
-		List<AssignmentType> list = new ArrayList<>();
-		for (AssignmentType assignment : assignments) {
-			if (isConsentAssignment(assignment)) {
-			    //TODO set status
-				list.add(assignment);
-			}
-		}
-		return list;
-	}
+        List<AssignmentType> list = new ArrayList<>();
+        for (AssignmentType assignment : assignments) {
+            if (isConsentAssignment(assignment)) {
+                //TODO set status
+                list.add(assignment);
+            }
+        }
+        return list;
+    }
 
 }

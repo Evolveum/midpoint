@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -40,86 +40,86 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
  */
 public class GenericHandlerDto extends HandlerDto {
 
-	private static final Trace LOGGER = TraceManager.getTrace(GenericHandlerDto.class);
+    private static final Trace LOGGER = TraceManager.getTrace(GenericHandlerDto.class);
 
-	public static final String F_CONTAINER = "container";
+    public static final String F_CONTAINER = "container";
 
-	public static class ExtensionItem implements Serializable {
-		@NotNull private final QName name;
-		@NotNull private final Class<?> type;
+    public static class ExtensionItem implements Serializable {
+        @NotNull private final QName name;
+        @NotNull private final Class<?> type;
 
-		public ExtensionItem(@NotNull QName name, @NotNull Class<?> type) {
-			this.name = name;
-			this.type = type;
-		}
-	}
+        public ExtensionItem(@NotNull QName name, @NotNull Class<?> type) {
+            this.name = name;
+            this.type = type;
+        }
+    }
 
-	public static ExtensionItem extensionItem(QName name, Class<?> type) {
-		return new ExtensionItem(name, type);
-	}
+    public static ExtensionItem extensionItem(QName name, Class<?> type) {
+        return new ExtensionItem(name, type);
+    }
 
-	private PrismContainerWrapper containerWrapper = null;
+    private PrismContainerWrapper containerWrapper = null;
 
-	public GenericHandlerDto(TaskDto taskDto, @NotNull List<ExtensionItem> extensionItems, PageBase pageBase) {
-		super(taskDto);
-		PrismContext prismContext = pageBase.getPrismContext();
-		
-		PrismContainer container = prismContext.itemFactory().createContainer(new QName("test"));
-		ComplexTypeDefinition ctd = prismContext.definitionFactory().createComplexTypeDefinition(new QName("Test"));
-		int displayOrder = 1;
-		for (ExtensionItem extensionItem : extensionItems) {
-			Item<?,?> item = taskDto.getExtensionItem(extensionItem.name);
-			MutableItemDefinition<?> clonedDefinition = null;
-			if (item != null) {
-				try {
-					Item<?,?> clonedItem = item.clone();
-					//noinspection unchecked
-					container.add(clonedItem);
-					if (clonedItem.getDefinition() != null) {
-						clonedDefinition = clonedItem.getDefinition().clone().toMutable();
-						//noinspection unchecked
-						((Item) clonedItem).setDefinition(clonedDefinition);
-					}
-				} catch (SchemaException e) {
-					throw new SystemException(e);
-				}
-			}
-			if (clonedDefinition == null) {
-				ItemDefinition definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(extensionItem.name);
-				if (definition != null) {
-					clonedDefinition = CloneUtil.clone(definition).toMutable();
-				}
-			}
-			if (clonedDefinition == null) {
-				LOGGER.warn("Extension item without definition: {} of {}", extensionItem.name, extensionItem.type);
-			} else {
-				clonedDefinition.setCanAdd(false);
-				clonedDefinition.setCanModify(false);
-				clonedDefinition.setDisplayOrder(displayOrder);
-				ctd.toMutable().add(clonedDefinition);
-			}
-			displayOrder++;
-		}
-		MutablePrismContainerDefinition<?> containerDefinition = prismContext.definitionFactory().createContainerDefinition(new QName("Handler data"), ctd);
-		//noinspection unchecked
-		container.setDefinition(containerDefinition);
-		Task task = pageBase.createSimpleTask("Adding new container wrapper");
-		//noinspection unchecked
-		ItemWrapperFactory factory = pageBase.findWrapperFactory(containerDefinition);
-		if (factory instanceof PrismContainerWrapperFactory) {
-		
-			PrismContainerWrapperFactory containerF = (PrismContainerWrapperFactory) factory;
-			
-			WrapperContext ctx = new WrapperContext(task, task.getResult());
-		try {
-			containerWrapper = (PrismContainerWrapper) containerF.createWrapper(container, ItemStatus.NOT_CHANGED, ctx);
-		} catch (SchemaException e) {
-			LOGGER.error("Error creating wrapper for {}", container);
-		}
-		}
-	}
+    public GenericHandlerDto(TaskDto taskDto, @NotNull List<ExtensionItem> extensionItems, PageBase pageBase) {
+        super(taskDto);
+        PrismContext prismContext = pageBase.getPrismContext();
 
-	public PrismContainerWrapper getContainer() {
-		return containerWrapper;
-	}
+        PrismContainer container = prismContext.itemFactory().createContainer(new QName("test"));
+        ComplexTypeDefinition ctd = prismContext.definitionFactory().createComplexTypeDefinition(new QName("Test"));
+        int displayOrder = 1;
+        for (ExtensionItem extensionItem : extensionItems) {
+            Item<?,?> item = taskDto.getExtensionItem(extensionItem.name);
+            MutableItemDefinition<?> clonedDefinition = null;
+            if (item != null) {
+                try {
+                    Item<?,?> clonedItem = item.clone();
+                    //noinspection unchecked
+                    container.add(clonedItem);
+                    if (clonedItem.getDefinition() != null) {
+                        clonedDefinition = clonedItem.getDefinition().clone().toMutable();
+                        //noinspection unchecked
+                        ((Item) clonedItem).setDefinition(clonedDefinition);
+                    }
+                } catch (SchemaException e) {
+                    throw new SystemException(e);
+                }
+            }
+            if (clonedDefinition == null) {
+                ItemDefinition definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(extensionItem.name);
+                if (definition != null) {
+                    clonedDefinition = CloneUtil.clone(definition).toMutable();
+                }
+            }
+            if (clonedDefinition == null) {
+                LOGGER.warn("Extension item without definition: {} of {}", extensionItem.name, extensionItem.type);
+            } else {
+                clonedDefinition.setCanAdd(false);
+                clonedDefinition.setCanModify(false);
+                clonedDefinition.setDisplayOrder(displayOrder);
+                ctd.toMutable().add(clonedDefinition);
+            }
+            displayOrder++;
+        }
+        MutablePrismContainerDefinition<?> containerDefinition = prismContext.definitionFactory().createContainerDefinition(new QName("Handler data"), ctd);
+        //noinspection unchecked
+        container.setDefinition(containerDefinition);
+        Task task = pageBase.createSimpleTask("Adding new container wrapper");
+        //noinspection unchecked
+        ItemWrapperFactory factory = pageBase.findWrapperFactory(containerDefinition);
+        if (factory instanceof PrismContainerWrapperFactory) {
+
+            PrismContainerWrapperFactory containerF = (PrismContainerWrapperFactory) factory;
+
+            WrapperContext ctx = new WrapperContext(task, task.getResult());
+        try {
+            containerWrapper = (PrismContainerWrapper) containerF.createWrapper(container, ItemStatus.NOT_CHANGED, ctx);
+        } catch (SchemaException e) {
+            LOGGER.error("Error creating wrapper for {}", container);
+        }
+        }
+    }
+
+    public PrismContainerWrapper getContainer() {
+        return containerWrapper;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -11,29 +11,29 @@ import org.apache.commons.lang.StringUtils;
 
 public enum RestAuthenticationMethod {
 
-	BASIC("Basic"),
-	SECURITY_QUESTIONS("SecQ"),
-	CLUSTER("Cluster");
-	
+    BASIC("Basic"),
+    SECURITY_QUESTIONS("SecQ"),
+    CLUSTER("Cluster");
 
-	private String method;
 
-	RestAuthenticationMethod(String method) {
-		this.method = method;
-	}
+    private String method;
 
-	public String getMethod() {
-		return method;
-	}
+    RestAuthenticationMethod(String method) {
+        this.method = method;
+    }
 
-	protected boolean equals(String authenticationType) {
-		if (StringUtils.isBlank(authenticationType)) {
-			return false;
-		}
+    public String getMethod() {
+        return method;
+    }
 
-		if (getMethod().equals(authenticationType)) {
-			return true;
-		}
-		return false;
-	}
+    protected boolean equals(String authenticationType) {
+        if (StringUtils.isBlank(authenticationType)) {
+            return false;
+        }
+
+        if (getMethod().equals(authenticationType)) {
+            return true;
+        }
+        return false;
+    }
 }

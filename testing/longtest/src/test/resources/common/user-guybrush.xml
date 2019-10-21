@@ -2,34 +2,34 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111116" 
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+<user oid="c0c010c0-d34d-b33f-f00d-111111111116"
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>guybrush</name>
 
     <fullName>Guybrush Threepwood</fullName>
     <givenName>Guybrush</givenName>
     <familyName>Threepwood</familyName>
     <locality>Melee Island</locality>
-	<activation>
-		<administrativeStatus>enabled</administrativeStatus>
-		<effectiveStatus>enabled</effectiveStatus>
-	</activation>
-	
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+        <effectiveStatus>enabled</effectiveStatus>
+    </activation>
+
 <!--     <credentials> -->
 <!--         <password> -->
-<!--         	<value> -->
-<!-- 	            <clearValue>xM4rksTh3Sp0t</clearValue> -->
+<!--             <value> -->
+<!--                 <clearValue>xM4rksTh3Sp0t</clearValue> -->
 <!--             </value> -->
 <!--         </password> -->
 <!--     </credentials> -->
-    
-    
+
+
 </user>

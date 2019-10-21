@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -24,37 +24,37 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>self-exclusion-manager-member</name>
     <assignment>
-    	<policyRule>
-    		<name>self exclusion: no manager and member at once</name>
-    		<policyConstraints>
-				<or>
-					<exclusion>
-						<!-- no targetRef meaning self -->
-						<orderConstraint>
-							<order>1</order>
-							<relation>manager</relation>
-						</orderConstraint>
-						<targetOrderConstraint>
-							<order>1</order>
-							<relation>default</relation>
-						</targetOrderConstraint>
-					</exclusion>
-					<exclusion>
-						<!-- no targetRef meaning self -->
-						<orderConstraint>
-							<order>1</order>
-							<relation>default</relation>
-						</orderConstraint>
-						<targetOrderConstraint>
-							<order>1</order>
-							<relation>manager</relation>
-						</targetOrderConstraint>
-					</exclusion>
-				</or>
-		    </policyConstraints>
-		    <policyActions>
-		    	<enforcement/>
-		    </policyActions>
-    	</policyRule>
+        <policyRule>
+            <name>self exclusion: no manager and member at once</name>
+            <policyConstraints>
+                <or>
+                    <exclusion>
+                        <!-- no targetRef meaning self -->
+                        <orderConstraint>
+                            <order>1</order>
+                            <relation>manager</relation>
+                        </orderConstraint>
+                        <targetOrderConstraint>
+                            <order>1</order>
+                            <relation>default</relation>
+                        </targetOrderConstraint>
+                    </exclusion>
+                    <exclusion>
+                        <!-- no targetRef meaning self -->
+                        <orderConstraint>
+                            <order>1</order>
+                            <relation>default</relation>
+                        </orderConstraint>
+                        <targetOrderConstraint>
+                            <order>1</order>
+                            <relation>manager</relation>
+                        </targetOrderConstraint>
+                    </exclusion>
+                </or>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
     </assignment>
 </role>

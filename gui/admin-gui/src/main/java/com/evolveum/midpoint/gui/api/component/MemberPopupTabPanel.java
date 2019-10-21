@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component;
@@ -66,7 +66,7 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
             @Override
             public boolean isEnabled(){
                 return CollectionUtils.isNotEmpty(supportedRelationList.getAvailableRelationList())
-                		&& supportedRelationList.getAvailableRelationList().size() > 1;
+                        && supportedRelationList.getAvailableRelationList().size() > 1;
             }
         });
         parametersPanel.add(relationContainer);

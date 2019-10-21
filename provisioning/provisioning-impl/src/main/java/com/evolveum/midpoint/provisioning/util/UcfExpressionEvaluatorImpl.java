@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -38,38 +38,38 @@ import java.util.List;
 @Experimental
 public class UcfExpressionEvaluatorImpl implements UcfExpressionEvaluator {
 
-	private static final String OP_EVALUATE = UcfExpressionEvaluatorImpl.class.getName() + ".evaluate";
+    private static final String OP_EVALUATE = UcfExpressionEvaluatorImpl.class.getName() + ".evaluate";
 
-	@Autowired private ExpressionFactory expressionFactory;
-	@Autowired private TaskManager taskManager;
+    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private TaskManager taskManager;
 
-	@NotNull
-	@Override
-	public <O> List<O> evaluate(ExpressionType expressionBean, VariablesMap variables, QName outputPropertyName,
-			String ctxDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		OperationResult result = parentResult.subresult(OP_EVALUATE)
-				.setMinor()
-				.build();
-		try {
-			Expression<PrismPropertyValue<O>, PrismPropertyDefinition<O>> expression =
-					expressionFactory
-							.makePropertyExpression(expressionBean, outputPropertyName, MiscSchemaUtil.getExpressionProfile(),
-									ctxDesc, task, result);
-			ExpressionVariables exprVariables = new ExpressionVariables();
-			exprVariables.putAll(variables);
-			ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, exprVariables, ctxDesc, task);
-			PrismValueDeltaSetTriple<PrismPropertyValue<O>> exprResultTriple = expression.evaluate(context, result);
-			List<O> list = new ArrayList<>();
-			for (PrismPropertyValue<O> pv : exprResultTriple.getZeroSet()) {
-				list.add(pv.getRealValue());
-			}
-			return list;
-		} catch (Throwable t) {
-			result.recordFatalError(t);
-			throw t;
-		} finally {
-			result.computeStatusIfUnknown();
-		}
-	}
+    @NotNull
+    @Override
+    public <O> List<O> evaluate(ExpressionType expressionBean, VariablesMap variables, QName outputPropertyName,
+            String ctxDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        OperationResult result = parentResult.subresult(OP_EVALUATE)
+                .setMinor()
+                .build();
+        try {
+            Expression<PrismPropertyValue<O>, PrismPropertyDefinition<O>> expression =
+                    expressionFactory
+                            .makePropertyExpression(expressionBean, outputPropertyName, MiscSchemaUtil.getExpressionProfile(),
+                                    ctxDesc, task, result);
+            ExpressionVariables exprVariables = new ExpressionVariables();
+            exprVariables.putAll(variables);
+            ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, exprVariables, ctxDesc, task);
+            PrismValueDeltaSetTriple<PrismPropertyValue<O>> exprResultTriple = expression.evaluate(context, result);
+            List<O> list = new ArrayList<>();
+            for (PrismPropertyValue<O> pv : exprResultTriple.getZeroSet()) {
+                list.add(pv.getRealValue());
+            }
+            return list;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
 }

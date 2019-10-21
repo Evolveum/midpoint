@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.conntest.ad;
@@ -28,9 +28,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public abstract class AbstractAdLdapRawTest extends AbstractAdLdapTest {
 
-	@Test
+    @Test
     public void test050Capabilities() throws Exception {
-		final String TEST_NAME = "test050Capabilities";
+        final String TEST_NAME = "test050Capabilities";
         TestUtil.displayTestTitle(this, TEST_NAME);
 
         Collection<Object> nativeCapabilitiesCollection = ResourceTypeUtil.getNativeCapabilitiesCollection(resourceType);
@@ -40,15 +40,15 @@ public abstract class AbstractAdLdapRawTest extends AbstractAdLdapTest {
         assertFalse("No native activation status capability", ResourceTypeUtil.hasResourceNativeActivationStatusCapability(resourceType));
         assertFalse("No native lockout capability", ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resourceType));
         assertTrue("No native credentias capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType, null));
-	}
+    }
 
 
-	protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
-		PrismAsserts.assertPropertyValue(shadow, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME), 514);
-	}
+    protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
+        PrismAsserts.assertPropertyValue(shadow, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME), 514);
+    }
 
-	protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
-		PrismAsserts.assertPropertyValue(shadow, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME), 512);
-	}
+    protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
+        PrismAsserts.assertPropertyValue(shadow, ItemPath.create(ShadowType.F_ATTRIBUTES, ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME), 512);
+    }
 
 }

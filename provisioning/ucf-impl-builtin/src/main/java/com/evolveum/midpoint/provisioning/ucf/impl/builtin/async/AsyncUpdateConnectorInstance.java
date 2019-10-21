@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin.async;
@@ -50,343 +50,343 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("DefaultAnnotationParam")
 @ManagedConnector(type="AsyncUpdateConnector", version="1.0.0")
 public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstance implements UcfExpressionEvaluatorAware,
-		SecurityContextManagerAware, TracerAware, TaskManagerAware {
-	
-	@SuppressWarnings("unused")
-	private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdateConnectorInstance.class);
+        SecurityContextManagerAware, TracerAware, TaskManagerAware {
 
-	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY
-			= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
+    @SuppressWarnings("unused")
+    private static final Trace LOGGER = TraceManager.getTrace(AsyncUpdateConnectorInstance.class);
 
-	private AsyncUpdateConnectorConfiguration configuration;
+    private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory CAPABILITY_OBJECT_FACTORY
+            = new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
 
-	private final SourceManager sourceManager = new SourceManager(this);
+    private AsyncUpdateConnectorConfiguration configuration;
 
-	/**
-	 * The expression evaluator has to come from the higher layers because it needs features not present in UCF impl module.
-	 */
-	private UcfExpressionEvaluator ucfExpressionEvaluator;
+    private final SourceManager sourceManager = new SourceManager(this);
 
-	private SecurityContextManager securityContextManager;
+    /**
+     * The expression evaluator has to come from the higher layers because it needs features not present in UCF impl module.
+     */
+    private UcfExpressionEvaluator ucfExpressionEvaluator;
 
-	private Tracer tracer;
+    private SecurityContextManager securityContextManager;
 
-	private TaskManager taskManager;
+    private Tracer tracer;
 
-	/**
-	 * Open listening activities. Needed mainly to be able to restart them on configuration change.
-	 */
-	private final Collection<ConnectorInstanceListeningActivity> openListeningActivities = ConcurrentHashMap.newKeySet();
+    private TaskManager taskManager;
 
-	@ManagedConnectorConfiguration
-	public AsyncUpdateConnectorConfiguration getConfiguration() {
-		return configuration;
-	}
+    /**
+     * Open listening activities. Needed mainly to be able to restart them on configuration change.
+     */
+    private final Collection<ConnectorInstanceListeningActivity> openListeningActivities = ConcurrentHashMap.newKeySet();
 
-	public void setConfiguration(AsyncUpdateConnectorConfiguration configuration) {
-		LOGGER.info("Setting new configuration");
-		configuration.validate();
-		boolean sourcesChanged = configuration.hasSourcesChanged(this.configuration);
-		this.configuration = configuration;
-		if (sourcesChanged) {
-			HashSet<ConnectorInstanceListeningActivity> openActivitiesClone = new HashSet<>(openListeningActivities);
-			LOGGER.info("Sources have changed; open activities: {}", openActivitiesClone);
-			if (!openActivitiesClone.isEmpty()) {
-				restartListeningActivities(openActivitiesClone);
-			}
-		}
-	}
+    @ManagedConnectorConfiguration
+    public AsyncUpdateConnectorConfiguration getConfiguration() {
+        return configuration;
+    }
 
-	@Override
-	protected void connect(OperationResult result) {
-		// no-op
-	}
+    public void setConfiguration(AsyncUpdateConnectorConfiguration configuration) {
+        LOGGER.info("Setting new configuration");
+        configuration.validate();
+        boolean sourcesChanged = configuration.hasSourcesChanged(this.configuration);
+        this.configuration = configuration;
+        if (sourcesChanged) {
+            HashSet<ConnectorInstanceListeningActivity> openActivitiesClone = new HashSet<>(openListeningActivities);
+            LOGGER.info("Sources have changed; open activities: {}", openActivitiesClone);
+            if (!openActivitiesClone.isEmpty()) {
+                restartListeningActivities(openActivitiesClone);
+            }
+        }
+    }
 
-	@Override
-	protected void disconnect(OperationResult result) {
-		// no-op - we act on configuration change in setConfiguration method because
-		// we need the original configuration to know the difference
-	}
+    @Override
+    protected void connect(OperationResult result) {
+        // no-op
+    }
 
-	@Override
-	public void test(OperationResult parentResult) {
-		OperationResult result = parentResult.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
-		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, AsyncUpdateConnectorInstance.class);
-		result.addContext("connector", getConnectorObject().toString());
-		Collection<AsyncUpdateSource> sources = sourceManager.createSources(configuration.getAllSources());
-		try {
-			sources.forEach(s -> s.test(result));
-			result.computeStatus();
-		} catch (RuntimeException e) {
-			result.recordFatalError("Couldn't test async update sources: " + e.getMessage(), e);
-		}
-	}
+    @Override
+    protected void disconnect(OperationResult result) {
+        // no-op - we act on configuration change in setConfiguration method because
+        // we need the original configuration to know the difference
+    }
 
-	@Override
-	public void dispose() {
-		// This operation is invoked on system shutdown; for simplicity let's not try to cancel open listening activities
-		// as they were probably cancelled on respective Async Update tasks going down; and will be cancelled on system
-		// shutdown anyway.
-		//
-		// This will change if the use of dispose() will change.
-	}
+    @Override
+    public void test(OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, AsyncUpdateConnectorInstance.class);
+        result.addContext("connector", getConnectorObject().toString());
+        Collection<AsyncUpdateSource> sources = sourceManager.createSources(configuration.getAllSources());
+        try {
+            sources.forEach(s -> s.test(result));
+            result.computeStatus();
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't test async update sources: " + e.getMessage(), e);
+        }
+    }
 
-	@Override
-	public ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult)
-			throws SchemaException {
+    @Override
+    public void dispose() {
+        // This operation is invoked on system shutdown; for simplicity let's not try to cancel open listening activities
+        // as they were probably cancelled on respective Async Update tasks going down; and will be cancelled on system
+        // shutdown anyway.
+        //
+        // This will change if the use of dispose() will change.
+    }
 
-		Authentication authentication = securityContextManager.getAuthentication();
-		ConnectorInstanceListeningActivity listeningActivity = new ConnectorInstanceListeningActivity(changeListener, authentication);
-		try {
-			openListeningActivities.add(listeningActivity);
-			startListeningInternal(listeningActivity);
-		} catch (Throwable t) {
-			openListeningActivities.remove(listeningActivity);
-			throw t;
-		}
-		return listeningActivity;
-	}
+    @Override
+    public ListeningActivity startListeningForChanges(ChangeListener changeListener, OperationResult parentResult)
+            throws SchemaException {
 
-	private void startListeningInternal(ConnectorInstanceListeningActivity listeningActivity)
-			throws SchemaException {
-		TransformationalAsyncUpdateMessageListener messageListener = new TransformationalAsyncUpdateMessageListener(
-				listeningActivity.changeListener, listeningActivity.authentication, this, tracer, taskManager);
-		Collection<AsyncUpdateSource> sources = sourceManager.createSources(configuration.getAllSources());
-		try {
-			for (AsyncUpdateSource source : sources) {
-				listeningActivity.addActivity(source.startListening(messageListener));
-			}
-		} catch (Throwable t) {
-			listeningActivity.stopInnerActivities();
-			throw t;
-		}
-	}
+        Authentication authentication = securityContextManager.getAuthentication();
+        ConnectorInstanceListeningActivity listeningActivity = new ConnectorInstanceListeningActivity(changeListener, authentication);
+        try {
+            openListeningActivities.add(listeningActivity);
+            startListeningInternal(listeningActivity);
+        } catch (Throwable t) {
+            openListeningActivities.remove(listeningActivity);
+            throw t;
+        }
+        return listeningActivity;
+    }
 
-	private void restartListeningActivities(Set<ConnectorInstanceListeningActivity> activities) {
-		LOGGER.info("Restarting {} open listening activities", activities.size());
+    private void startListeningInternal(ConnectorInstanceListeningActivity listeningActivity)
+            throws SchemaException {
+        TransformationalAsyncUpdateMessageListener messageListener = new TransformationalAsyncUpdateMessageListener(
+                listeningActivity.changeListener, listeningActivity.authentication, this, tracer, taskManager);
+        Collection<AsyncUpdateSource> sources = sourceManager.createSources(configuration.getAllSources());
+        try {
+            for (AsyncUpdateSource source : sources) {
+                listeningActivity.addActivity(source.startListening(messageListener));
+            }
+        } catch (Throwable t) {
+            listeningActivity.stopInnerActivities();
+            throw t;
+        }
+    }
 
-		for (ConnectorInstanceListeningActivity activity : activities) {
-			try {
-				activity.status = AsyncUpdateListeningActivityStatusType.RECONNECTING;
-				LOGGER.info("Stopping listening activity {}", activity);    // todo debug
-				activity.stopInnerActivities();
-				LOGGER.info("Starting listening activity {} again", activity);  // todo debug
-				startListeningInternal(activity);
-				activity.status = null;
-			} catch (RuntimeException | SchemaException e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restart listening activity {} on {}", e, activity, this);
-			}
-		}
-	}
+    private void restartListeningActivities(Set<ConnectorInstanceListeningActivity> activities) {
+        LOGGER.info("Restarting {} open listening activities", activities.size());
 
-	@Override
-	public ConnectorOperationalStatus getOperationalStatus() {
-		ConnectorOperationalStatus status = new ConnectorOperationalStatus();
-		status.setConnectorClassName(this.getClass().getName());
-		return status;
-	}
+        for (ConnectorInstanceListeningActivity activity : activities) {
+            try {
+                activity.status = AsyncUpdateListeningActivityStatusType.RECONNECTING;
+                LOGGER.info("Stopping listening activity {}", activity);    // todo debug
+                activity.stopInnerActivities();
+                LOGGER.info("Starting listening activity {} again", activity);  // todo debug
+                startListeningInternal(activity);
+                activity.status = null;
+            } catch (RuntimeException | SchemaException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restart listening activity {} on {}", e, activity, this);
+            }
+        }
+    }
 
-	@Override
-	public Collection<Object> fetchCapabilities(OperationResult parentResult) {
-		InternalMonitor.recordConnectorOperation("capabilities");
+    @Override
+    public ConnectorOperationalStatus getOperationalStatus() {
+        ConnectorOperationalStatus status = new ConnectorOperationalStatus();
+        status.setConnectorClassName(this.getClass().getName());
+        return status;
+    }
 
-		Collection<Object> capabilities = new ArrayList<>();
-		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAsyncUpdate(new AsyncUpdateCapabilityType()));
-		return capabilities;
+    @Override
+    public Collection<Object> fetchCapabilities(OperationResult parentResult) {
+        InternalMonitor.recordConnectorOperation("capabilities");
 
-		// TODO activation, credentials?
-	}
+        Collection<Object> capabilities = new ArrayList<>();
+        capabilities.add(CAPABILITY_OBJECT_FACTORY.createAsyncUpdate(new AsyncUpdateCapabilityType()));
+        return capabilities;
 
-	@Override
-	public UcfExpressionEvaluator getUcfExpressionEvaluator() {
-		return ucfExpressionEvaluator;
-	}
+        // TODO activation, credentials?
+    }
 
-	@Override
-	public void setUcfExpressionEvaluator(UcfExpressionEvaluator evaluator) {
-		this.ucfExpressionEvaluator = evaluator;
-	}
+    @Override
+    public UcfExpressionEvaluator getUcfExpressionEvaluator() {
+        return ucfExpressionEvaluator;
+    }
 
-	@Override
-	public SecurityContextManager getSecurityContextManager() {
-		return securityContextManager;
-	}
+    @Override
+    public void setUcfExpressionEvaluator(UcfExpressionEvaluator evaluator) {
+        this.ucfExpressionEvaluator = evaluator;
+    }
 
-	@Override
-	public void setSecurityContextManager(SecurityContextManager securityContextManager) {
-		this.securityContextManager = securityContextManager;
-	}
+    @Override
+    public SecurityContextManager getSecurityContextManager() {
+        return securityContextManager;
+    }
 
-	@Override
-	public Tracer getTracer() {
-		return tracer;
-	}
+    @Override
+    public void setSecurityContextManager(SecurityContextManager securityContextManager) {
+        this.securityContextManager = securityContextManager;
+    }
 
-	@Override
-	public void setTracer(Tracer tracer) {
-		this.tracer = tracer;
-	}
+    @Override
+    public Tracer getTracer() {
+        return tracer;
+    }
 
-	@Override
-	public TaskManager getTaskManager() {
-		return taskManager;
-	}
+    @Override
+    public void setTracer(Tracer tracer) {
+        this.tracer = tracer;
+    }
 
-	@Override
-	public void setTaskManager(TaskManager taskManager) {
-		this.taskManager = taskManager;
-	}
+    @Override
+    public TaskManager getTaskManager() {
+        return taskManager;
+    }
 
-	ExpressionType getTransformExpression() {
-		return configuration.getTransformExpression();
-	}
+    @Override
+    public void setTaskManager(TaskManager taskManager) {
+        this.taskManager = taskManager;
+    }
 
-	@NotNull
-	AsyncUpdateErrorHandlingActionType getErrorHandlingAction() {
-		return configuration.getErrorHandlingAction() != null ?
-				configuration.getErrorHandlingAction() : AsyncUpdateErrorHandlingActionType.STOP_PROCESSING;
-	}
+    ExpressionType getTransformExpression() {
+        return configuration.getTransformExpression();
+    }
 
-	//region Unsupported operations
-	@Override
-	public ResourceSchema fetchResourceSchema(OperationResult parentResult) {
-		// Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
-		InternalMonitor.recordConnectorOperation("schema");
-		return null;
-	}
+    @NotNull
+    AsyncUpdateErrorHandlingActionType getErrorHandlingAction() {
+        return configuration.getErrorHandlingAction() != null ?
+                configuration.getErrorHandlingAction() : AsyncUpdateErrorHandlingActionType.STOP_PROCESSING;
+    }
 
-	@Override
-	public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
-			AttributesToReturn attributesToReturn, StateReporter reporter, OperationResult parentResult) {
-		InternalMonitor.recordConnectorOperation("fetchObject");
-		return null;
-	}
+    //region Unsupported operations
+    @Override
+    public ResourceSchema fetchResourceSchema(OperationResult parentResult) {
+        // Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
+        InternalMonitor.recordConnectorOperation("schema");
+        return null;
+    }
 
-	@Override
-	public SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-			ShadowResultHandler handler, AttributesToReturn attributesToReturn,
-			PagedSearchCapabilityType pagedSearchConfigurationType, SearchHierarchyConstraints searchHierarchyConstraints,
-			StateReporter reporter, OperationResult parentResult) {
-		InternalMonitor.recordConnectorOperation("search");
-		return null;
-	}
+    @Override
+    public PrismObject<ShadowType> fetchObject(ResourceObjectIdentification resourceObjectIdentification,
+            AttributesToReturn attributesToReturn, StateReporter reporter, OperationResult parentResult) {
+        InternalMonitor.recordConnectorOperation("fetchObject");
+        return null;
+    }
 
-	@Override
-	public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-			PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter, OperationResult parentResult) {
-		InternalMonitor.recordConnectorOperation("count");
-		return 0;
-	}
+    @Override
+    public SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
+            ShadowResultHandler handler, AttributesToReturn attributesToReturn,
+            PagedSearchCapabilityType pagedSearchConfigurationType, SearchHierarchyConstraints searchHierarchyConstraints,
+            StateReporter reporter, OperationResult parentResult) {
+        InternalMonitor.recordConnectorOperation("search");
+        return null;
+    }
 
-	@Override
-	public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object,
-			Collection<Operation> additionalOperations, StateReporter reporter, OperationResult parentResult) {
-		InternalMonitor.recordConnectorOperation("addObject");
-		return null;
-	}
+    @Override
+    public int count(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
+            PagedSearchCapabilityType pagedSearchConfigurationType, StateReporter reporter, OperationResult parentResult) {
+        InternalMonitor.recordConnectorOperation("count");
+        return 0;
+    }
 
-	@Override
-	public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
-			ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, Collection<Operation> changes,
-			ConnectorOperationOptions options, StateReporter reporter, OperationResult parentResult) {
-		InternalMonitor.recordConnectorOperation("modifyObject");
-		return null;
-	}
+    @Override
+    public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> object,
+            Collection<Operation> additionalOperations, StateReporter reporter, OperationResult parentResult) {
+        InternalMonitor.recordConnectorOperation("addObject");
+        return null;
+    }
 
-	@Override
-	public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
-			Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow,
-			Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter, OperationResult parentResult) {
-		InternalMonitor.recordConnectorOperation("deleteObject");
-		return null;
-	}
+    @Override
+    public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
+            ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, Collection<Operation> changes,
+            ConnectorOperationOptions options, StateReporter reporter, OperationResult parentResult) {
+        InternalMonitor.recordConnectorOperation("modifyObject");
+        return null;
+    }
 
-	@Override
-	public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter,
-			OperationResult parentResult) {
-		InternalMonitor.recordConnectorOperation("executeScript");
-		return null;
-	}
+    @Override
+    public AsynchronousOperationResult deleteObject(ObjectClassComplexTypeDefinition objectClass,
+            Collection<Operation> additionalOperations, PrismObject<ShadowType> shadow,
+            Collection<? extends ResourceAttribute<?>> identifiers, StateReporter reporter, OperationResult parentResult) {
+        InternalMonitor.recordConnectorOperation("deleteObject");
+        return null;
+    }
 
-	@Override
-	public PrismProperty<?> deserializeToken(Object serializedToken) {
-		return null;
-	}
+    @Override
+    public Object executeScript(ExecuteProvisioningScriptOperation scriptOperation, StateReporter reporter,
+            OperationResult parentResult) {
+        InternalMonitor.recordConnectorOperation("executeScript");
+        return null;
+    }
 
-	@Override
-	public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, StateReporter reporter,
-			OperationResult parentResult) {
-		return null;
-	}
+    @Override
+    public PrismProperty<?> deserializeToken(Object serializedToken) {
+        return null;
+    }
 
-	@Override
-	public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
-			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
-			ChangeHandler changeHandler, OperationResult parentResult) {
-	}
+    @Override
+    public <T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, StateReporter reporter,
+            OperationResult parentResult) {
+        return null;
+    }
 
-	//endregion
+    @Override
+    public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+            AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
+            ChangeHandler changeHandler, OperationResult parentResult) {
+    }
 
-	//region Listening activity
-	private class ConnectorInstanceListeningActivity implements ListeningActivity {
+    //endregion
 
-		@NotNull private final List<ListeningActivity> activities = new ArrayList<>();       // do not forget to synchronize on this
-		@NotNull private final ChangeListener changeListener;
-		@Nullable private final Authentication authentication;
-		private AsyncUpdateListeningActivityStatusType status;
+    //region Listening activity
+    private class ConnectorInstanceListeningActivity implements ListeningActivity {
 
-		ConnectorInstanceListeningActivity(@NotNull ChangeListener changeListener, @Nullable Authentication authentication) {
-			this.changeListener = changeListener;
-			this.authentication = authentication;
-		}
+        @NotNull private final List<ListeningActivity> activities = new ArrayList<>();       // do not forget to synchronize on this
+        @NotNull private final ChangeListener changeListener;
+        @Nullable private final Authentication authentication;
+        private AsyncUpdateListeningActivityStatusType status;
 
-		@Override
-		public void stop() {
-			openListeningActivities.remove(this);
-			stopInnerActivities();
-		}
+        ConnectorInstanceListeningActivity(@NotNull ChangeListener changeListener, @Nullable Authentication authentication) {
+            this.changeListener = changeListener;
+            this.authentication = authentication;
+        }
 
-		private void stopInnerActivities() {
-			List<ListeningActivity> activitiesCopy;
-			synchronized (activities) {
-				activitiesCopy = new ArrayList<>(activities);
-				activities.clear();
-			}
-			for (ListeningActivity activity : activitiesCopy) {
-				try {
-					activity.stop();
-				} catch (RuntimeException e) {
-					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop listening on {}", e, activity);
-				}
-			}
-		}
+        @Override
+        public void stop() {
+            openListeningActivities.remove(this);
+            stopInnerActivities();
+        }
 
-		void addActivity(ListeningActivity activity) {
-			synchronized (activities) {
-				activities.add(activity);
-			}
-		}
+        private void stopInnerActivities() {
+            List<ListeningActivity> activitiesCopy;
+            synchronized (activities) {
+                activitiesCopy = new ArrayList<>(activities);
+                activities.clear();
+            }
+            for (ListeningActivity activity : activitiesCopy) {
+                try {
+                    activity.stop();
+                } catch (RuntimeException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop listening on {}", e, activity);
+                }
+            }
+        }
 
-		@Override
-		public AsyncUpdateListeningActivityInformationType getInformation() {
-			List<ListeningActivity> activitiesCopy;
-			synchronized (activities) {
-				activitiesCopy = new ArrayList<>(activities);
-			}
-			AsyncUpdateListeningActivityInformationType rv = new AsyncUpdateListeningActivityInformationType();
-			rv.setName("[root]");
-			rv.setStatus(status);
-			for (ListeningActivity activity : activitiesCopy) {
-				rv.getSubActivity().add(activity.getInformation());
-			}
-			return rv;
-		}
+        void addActivity(ListeningActivity activity) {
+            synchronized (activities) {
+                activities.add(activity);
+            }
+        }
 
-		@Override
-		public String toString() {
-			return "ConnectorInstanceListeningActivity{" + activities + "}";
-		}
-	}
+        @Override
+        public AsyncUpdateListeningActivityInformationType getInformation() {
+            List<ListeningActivity> activitiesCopy;
+            synchronized (activities) {
+                activitiesCopy = new ArrayList<>(activities);
+            }
+            AsyncUpdateListeningActivityInformationType rv = new AsyncUpdateListeningActivityInformationType();
+            rv.setName("[root]");
+            rv.setStatus(status);
+            for (ListeningActivity activity : activitiesCopy) {
+                rv.getSubActivity().add(activity.getInformation());
+            }
+            return rv;
+        }
 
-	//endregion
+        @Override
+        public String toString() {
+            return "ConnectorInstanceListeningActivity{" + activities + "}";
+        }
+    }
+
+    //endregion
 }

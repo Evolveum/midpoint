@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory;
@@ -56,73 +56,73 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 @Component
 public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<PrismPropertyWrapper<T>, PrismPropertyValue<T>, PrismProperty<T>, PrismPropertyValueWrapper<T>>{
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperFactoryImpl.class);
-	
-	@Autowired private ModelService modelService;
-	@Autowired private SchemaHelper schemaHelper;
-	@Autowired private TaskManager taskManager;
-	
-	private static final String DOT_CLASS = PrismPropertyWrapperFactoryImpl.class.getSimpleName() + ".";
-	private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
-	
-	@Override
-	public boolean match(ItemDefinition<?> def) {
-		return def instanceof PrismPropertyDefinition;
-	}
+    private static final transient Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperFactoryImpl.class);
 
-	@PostConstruct
-	@Override
-	public void register() {
-		getRegistry().addToRegistry(this);
-	}
+    @Autowired private ModelService modelService;
+    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private TaskManager taskManager;
 
-	@Override
-	public int getOrder() {
-		return Integer.MAX_VALUE;
-	}
+    private static final String DOT_CLASS = PrismPropertyWrapperFactoryImpl.class.getSimpleName() + ".";
+    private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
 
-	@Override
-	protected PrismPropertyValue<T> createNewValue(PrismProperty<T> item) throws SchemaException {
-		PrismPropertyValue<T> newValue = getPrismContext().itemFactory().createPropertyValue();
-		item.add(newValue);
-		return newValue;
-	}
+    @Override
+    public boolean match(ItemDefinition<?> def) {
+        return def instanceof PrismPropertyDefinition;
+    }
 
-	@Override
-	protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
-			ItemStatus status) {
-		getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
-		PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
-		PrismReferenceValue valueEnumerationRef = item.getDefinition().getValueEnumerationRef();
-		if (valueEnumerationRef != null) {
-			//TODO: task and result from context
-			Task task = taskManager.createTaskInstance(OPERATION_LOAD_LOOKUP_TABLE);
-			OperationResult result = new OperationResult(OPERATION_LOAD_LOOKUP_TABLE);
-			Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
-					.createLookupTableRetrieveOptions(schemaHelper);
-			
-			try {
-				PrismObject<LookupTableType> lookupTable = modelService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
-				propertyWrapper.setPredefinedValues(lookupTable.asObjectable());
-			} catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
-					| ConfigurationException | ExpressionEvaluationException e) {
-				LOGGER.error("Cannot load lookup table for {} ", item);
-				//TODO throw???
-			}
-		}
-		return propertyWrapper;
-	}
-	
-	@Override
-	public PrismPropertyValueWrapper<T> createValueWrapper(PrismPropertyWrapper<T> parent, PrismPropertyValue<T> value,
-			ValueStatus status, WrapperContext context) throws SchemaException {
-		PrismPropertyValueWrapper<T> valueWrapper = new PrismPropertyValueWrapper<>(parent, value, status);
-		return valueWrapper;
-	}
+    @PostConstruct
+    @Override
+    public void register() {
+        getRegistry().addToRegistry(this);
+    }
 
-	@Override
-	protected void setupWrapper(PrismPropertyWrapper<T> wrapper) {
-		
-	}
+    @Override
+    public int getOrder() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    protected PrismPropertyValue<T> createNewValue(PrismProperty<T> item) throws SchemaException {
+        PrismPropertyValue<T> newValue = getPrismContext().itemFactory().createPropertyValue();
+        item.add(newValue);
+        return newValue;
+    }
+
+    @Override
+    protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
+            ItemStatus status) {
+        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
+        PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
+        PrismReferenceValue valueEnumerationRef = item.getDefinition().getValueEnumerationRef();
+        if (valueEnumerationRef != null) {
+            //TODO: task and result from context
+            Task task = taskManager.createTaskInstance(OPERATION_LOAD_LOOKUP_TABLE);
+            OperationResult result = new OperationResult(OPERATION_LOAD_LOOKUP_TABLE);
+            Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+                    .createLookupTableRetrieveOptions(schemaHelper);
+
+            try {
+                PrismObject<LookupTableType> lookupTable = modelService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
+                propertyWrapper.setPredefinedValues(lookupTable.asObjectable());
+            } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
+                    | ConfigurationException | ExpressionEvaluationException e) {
+                LOGGER.error("Cannot load lookup table for {} ", item);
+                //TODO throw???
+            }
+        }
+        return propertyWrapper;
+    }
+
+    @Override
+    public PrismPropertyValueWrapper<T> createValueWrapper(PrismPropertyWrapper<T> parent, PrismPropertyValue<T> value,
+            ValueStatus status, WrapperContext context) throws SchemaException {
+        PrismPropertyValueWrapper<T> valueWrapper = new PrismPropertyValueWrapper<>(parent, value, status);
+        return valueWrapper;
+    }
+
+    @Override
+    protected void setupWrapper(PrismPropertyWrapper<T> wrapper) {
+
+    }
 
 }

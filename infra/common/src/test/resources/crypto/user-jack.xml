@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-111111111111" 
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+<user oid="c0c010c0-d34d-b33f-f00d-111111111111"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>jack</name>
     <description>Where's the rum?</description>
-	<activation>
-		<administrativeStatus>enabled</administrativeStatus>
-	</activation>
-	<locality>Caribbean</locality>
-	<emailAddress>jack.sparrow@evolveum.com</emailAddress>
-	<telephoneNumber>555-1234</telephoneNumber>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+    </activation>
+    <locality>Caribbean</locality>
+    <emailAddress>jack.sparrow@evolveum.com</emailAddress>
+    <telephoneNumber>555-1234</telephoneNumber>
     <fullName>Jack Sparrow</fullName>
     <givenName>Jack</givenName>
     <familyName>Sparrow</familyName>
@@ -24,11 +24,11 @@
     <honorificSuffix>PhD.</honorificSuffix>
     <employeeNumber>emp1234</employeeNumber>
     <employeeType>CAPTAIN</employeeType>
-	<credentials>
-		<password>
-			<value>
-				<t:clearValue>deadmentellnotales</t:clearValue>
-			</value>
-		</password>
-	</credentials>
+    <credentials>
+        <password>
+            <value>
+                <t:clearValue>deadmentellnotales</t:clearValue>
+            </value>
+        </password>
+    </credentials>
 </user>

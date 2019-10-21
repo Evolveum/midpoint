@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -61,24 +61,24 @@ public class ModelOperationStatusDto implements Serializable {
             }
 
             // primaryDelta
-			final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
-//			final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
-			final List<? extends Scene> primaryScenes;
-//			final List<? extends Scene> secondaryScenes;
-			try {
-				addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
-//				addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
-				for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
-					addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
-//					addIgnoreNull(secondaryDeltas, projCtx.getExecutableDelta());
-				}
-				primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, opTask, result);
-//				secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, opTask, result);
-			} catch (SchemaException | ExpressionEvaluationException e) {
-				throw new SystemException(e);		// TODO
-			}
-			final WrapperScene primaryWrapperScene = new WrapperScene(primaryScenes, primaryDeltas.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryDeltas.size());
-			primarySceneDto = new SceneDto(primaryWrapperScene);
+            final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
+//            final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
+            final List<? extends Scene> primaryScenes;
+//            final List<? extends Scene> secondaryScenes;
+            try {
+                addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
+//                addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
+                for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
+                    addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
+//                    addIgnoreNull(secondaryDeltas, projCtx.getExecutableDelta());
+                }
+                primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, opTask, result);
+//                secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, opTask, result);
+            } catch (SchemaException | ExpressionEvaluationException e) {
+                throw new SystemException(e);        // TODO
+            }
+            final WrapperScene primaryWrapperScene = new WrapperScene(primaryScenes, primaryDeltas.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryDeltas.size());
+            primarySceneDto = new SceneDto(primaryWrapperScene);
         }
     }
 

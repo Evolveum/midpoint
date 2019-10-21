@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -31,83 +31,83 @@ import org.jetbrains.annotations.NotNull;
  * @author lazyman
  */
 public class ListDataProvider2<W extends Serializable, T extends Serializable>
-		extends BaseSortableDataProvider<W> {
+        extends BaseSortableDataProvider<W> {
 
-	private IModel<List<T>> model;
+    private IModel<List<T>> model;
 
-	public ListDataProvider2(Component Component, IModel<List<T>> model) {
-		super(Component);
+    public ListDataProvider2(Component Component, IModel<List<T>> model) {
+        super(Component);
 
-		Validate.notNull(model);
-		this.model = model;
-	}
+        Validate.notNull(model);
+        this.model = model;
+    }
 
-	@Override
-	public Iterator<W> internalIterator(long first, long count) {
+    @Override
+    public Iterator<W> internalIterator(long first, long count) {
 
-		getAvailableData().clear();
+        getAvailableData().clear();
 
-		List<T> list = model.getObject();
-		if (list != null) {
-			for (long i = first; i < first + count; i++) {
-				if (i < 0 || i >= list.size()) {
-					throw new ArrayIndexOutOfBoundsException(
-							"Trying to get item on index " + i + " but list size is " + list.size());
-				}
-				getAvailableData().add(createObjectWrapper(list.get(WebComponentUtil.safeLongToInteger(i))));
-			}
-		}
+        List<T> list = model.getObject();
+        if (list != null) {
+            for (long i = first; i < first + count; i++) {
+                if (i < 0 || i >= list.size()) {
+                    throw new ArrayIndexOutOfBoundsException(
+                            "Trying to get item on index " + i + " but list size is " + list.size());
+                }
+                getAvailableData().add(createObjectWrapper(list.get(WebComponentUtil.safeLongToInteger(i))));
+            }
+        }
 
-		return getAvailableData().iterator();
-	}
+        return getAvailableData().iterator();
+    }
 
-	protected W createObjectWrapper(T object) {
-		return (W) new SelectableBean<>(object);
-	}
+    protected W createObjectWrapper(T object) {
+        return (W) new SelectableBean<>(object);
+    }
 
-	@Override
-	protected int internalSize() {
-		List<T> list = model.getObject();
-		if (list == null) {
-			return 0;
-		}
+    @Override
+    protected int internalSize() {
+        List<T> list = model.getObject();
+        if (list == null) {
+            return 0;
+        }
 
-		return list.size();
-	}
+        return list.size();
+    }
 
-	@NotNull
-	public List<W> getSelectedObjects() {
-		List<W> allSelected = new ArrayList<>();
-		for (Serializable s : super.getAvailableData()) {
-			if (s instanceof Selectable) {
-				Selectable<W> selectable = (Selectable<W>) s;
-				if (selectable.isSelected() && selectable.getValue() != null) {
-					allSelected.add(selectable.getValue());
-				}
-			}
-		}
+    @NotNull
+    public List<W> getSelectedObjects() {
+        List<W> allSelected = new ArrayList<>();
+        for (Serializable s : super.getAvailableData()) {
+            if (s instanceof Selectable) {
+                Selectable<W> selectable = (Selectable<W>) s;
+                if (selectable.isSelected() && selectable.getValue() != null) {
+                    allSelected.add(selectable.getValue());
+                }
+            }
+        }
 
-		return allSelected;
-	}
+        return allSelected;
+    }
 
-	@SuppressWarnings("unchecked")
-	protected <V extends Comparable<V>> void sort(List<T> list) {
-		Collections.sort(list, new Comparator<T>() {
-			@Override
-			public int compare(T o1, T o2) {
-				SortParam<String> sortParam = getSort();
-				String propertyName = sortParam.getProperty();
-				V prop1, prop2;
-				try {
-					prop1 = (V) PropertyUtils.getProperty(o1, propertyName);
-					prop2 = (V) PropertyUtils.getProperty(o2, propertyName);
-				} catch (RuntimeException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
-					throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
-				}
-				int comparison = ObjectUtils.compare(prop1, prop2, true);
-				return sortParam.isAscending() ? comparison : -comparison;
-			}
-		});
-	}
+    @SuppressWarnings("unchecked")
+    protected <V extends Comparable<V>> void sort(List<T> list) {
+        Collections.sort(list, new Comparator<T>() {
+            @Override
+            public int compare(T o1, T o2) {
+                SortParam<String> sortParam = getSort();
+                String propertyName = sortParam.getProperty();
+                V prop1, prop2;
+                try {
+                    prop1 = (V) PropertyUtils.getProperty(o1, propertyName);
+                    prop2 = (V) PropertyUtils.getProperty(o2, propertyName);
+                } catch (RuntimeException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
+                    throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
+                }
+                int comparison = ObjectUtils.compare(prop1, prop2, true);
+                return sortParam.isAscending() ? comparison : -comparison;
+            }
+        });
+    }
 
 }

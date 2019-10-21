@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -60,7 +60,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                            "where " +
                               "ref.referenceType = " + RReferenceOwner.OBJECT_PARENT_ORG.ordinal()
                                 + (doesRelationRestrictionExist(relation) ?
-		                            " and ref.relation in (:" + relationParamName + ")" : "")
+                                    " and ref.relation in (:" + relationParamName + ")" : "")
                                 + " and ref.targetOid = :" + orgOidParamName;
                 break;
             case ANCESTORS:
@@ -79,7 +79,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
                         "where " +
                             "ref.referenceType = " + RReferenceOwner.OBJECT_PARENT_ORG.ordinal()
                                 + (doesRelationRestrictionExist(relation) ?
-		                            " and ref.relation in (:" + relationParamName + ")" : "")
+                                    " and ref.relation in (:" + relationParamName + ")" : "")
                                 + " and ref.targetOid in (" +
                                     "select descendantOid from ROrgClosure where ancestorOid = :" + orgOidParamName + ")";
         }

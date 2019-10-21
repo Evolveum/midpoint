@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.validator;
@@ -19,67 +19,67 @@ import com.evolveum.midpoint.util.ShortDumpable;
  */
 public class ValidationItem implements DebugDumpable, ShortDumpable {
 
-	private OperationResultStatus status;
-	private LocalizableMessage message;
-	private ItemPath itemPath;
-	// TODO? line number?
-	
-	public OperationResultStatus getStatus() {
-		return status;
-	}
-	
-	public void setStatus(OperationResultStatus status) {
-		this.status = status;
-	}
+    private OperationResultStatus status;
+    private LocalizableMessage message;
+    private ItemPath itemPath;
+    // TODO? line number?
 
-	public LocalizableMessage getMessage() {
-		return message;
-	}
+    public OperationResultStatus getStatus() {
+        return status;
+    }
 
-	public void setMessage(LocalizableMessage message) {
-		this.message = message;
-	}
+    public void setStatus(OperationResultStatus status) {
+        this.status = status;
+    }
 
-	public ItemPath getItemPath() {
-		return itemPath;
-	}
+    public LocalizableMessage getMessage() {
+        return message;
+    }
 
-	public void setItemPath(ItemPath itemPath) {
-		this.itemPath = itemPath;
-	}
+    public void setMessage(LocalizableMessage message) {
+        this.message = message;
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(ValidationItem.class, indent);
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "status", status, indent + 1);
-		DebugUtil.debugDumpWithLabelShortDumpLn(sb, "message", message, indent + 1);
-		DebugUtil.debugDumpWithLabelShortDump(sb, "itemPath", itemPath, indent + 1);
-		return sb.toString();
-	}
+    public ItemPath getItemPath() {
+        return itemPath;
+    }
 
-	@Override
-	public void shortDump(StringBuilder sb) {
-		if (status != null) {
-			sb.append(status);
-			sb.append(" ");
-		}
-		if (itemPath != null) {
-			sb.append(itemPath);
-			sb.append(" ");
-		}
-		if (message != null) {
-			sb.append(message.getFallbackMessage());
-		}
-	}
+    public void setItemPath(ItemPath itemPath) {
+        this.itemPath = itemPath;
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("ValidationItem(");
-		shortDump(sb);
-		sb.append(")");
-		return sb.toString();
-	}
-	
-	
-	
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilderLn(ValidationItem.class, indent);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "status", status, indent + 1);
+        DebugUtil.debugDumpWithLabelShortDumpLn(sb, "message", message, indent + 1);
+        DebugUtil.debugDumpWithLabelShortDump(sb, "itemPath", itemPath, indent + 1);
+        return sb.toString();
+    }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        if (status != null) {
+            sb.append(status);
+            sb.append(" ");
+        }
+        if (itemPath != null) {
+            sb.append(itemPath);
+            sb.append(" ");
+        }
+        if (message != null) {
+            sb.append(message.getFallbackMessage());
+        }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("ValidationItem(");
+        shortDump(sb);
+        sb.append(")");
+        return sb.toString();
+    }
+
+
+
 }

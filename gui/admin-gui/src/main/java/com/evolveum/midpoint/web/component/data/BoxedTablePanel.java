@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,274 +27,273 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import org.apache.wicket.model.IModel;
 
 /**
  * @author Viliam Repan (lazyman)
  */
 public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_BOX = "box";
-	private static final String ID_HEADER = "header";
-	private static final String ID_FOOTER = "footer";
-	private static final String ID_TABLE = "table";
-	private static final String ID_TABLE_CONTAINER = "tableContainer";
+    private static final String ID_BOX = "box";
+    private static final String ID_HEADER = "header";
+    private static final String ID_FOOTER = "footer";
+    private static final String ID_TABLE = "table";
+    private static final String ID_TABLE_CONTAINER = "tableContainer";
 
-	private static final String ID_PAGING_FOOTER = "pagingFooter";
-	private static final String ID_PAGING = "paging";
-	private static final String ID_COUNT = "count";
-	private static final String ID_MENU = "menu";
-	private static final String ID_FOOTER_CONTAINER = "footerContainer";
-	private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
+    private static final String ID_PAGING_FOOTER = "pagingFooter";
+    private static final String ID_PAGING = "paging";
+    private static final String ID_COUNT = "count";
+    private static final String ID_MENU = "menu";
+    private static final String ID_FOOTER_CONTAINER = "footerContainer";
+    private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
 
-	private UserProfileStorage.TableId tableId;
-	private boolean showPaging;
-	private String additionalBoxCssClasses = null;
+    private UserProfileStorage.TableId tableId;
+    private boolean showPaging;
+    private String additionalBoxCssClasses = null;
 
-	public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
-		this(id, provider, columns, null, Integer.MAX_VALUE);
-	}
+    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
+        this(id, provider, columns, null, Integer.MAX_VALUE);
+    }
 
-	public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-			UserProfileStorage.TableId tableId) {
-		this(id, provider, columns, tableId, UserProfileStorage.DEFAULT_PAGING_SIZE);
-	}
+    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
+            UserProfileStorage.TableId tableId) {
+        this(id, provider, columns, tableId, UserProfileStorage.DEFAULT_PAGING_SIZE);
+    }
 
-	public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-			UserProfileStorage.TableId tableId, int pageSize) {
-		super(id);
-		this.tableId = tableId;
+    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
+            UserProfileStorage.TableId tableId, int pageSize) {
+        super(id);
+        this.tableId = tableId;
 
-		initLayout(columns, provider, pageSize);
-	}
+        initLayout(columns, provider, pageSize);
+    }
 
-	private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, int pageSize) {
+    private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider, int pageSize) {
         setOutputMarkupId(true);
-		WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
-		box.add(new AttributeAppender("class", new IModel<String>() {
-			private static final long serialVersionUID = 1L;
+        WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
+        box.add(new AttributeAppender("class", new IModel<String>() {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public String getObject() {
-				String boxCssClasses = getAdditionalBoxCssClasses();
-				if (boxCssClasses == null) {
-					return "";
-				} else {
-					return " " + boxCssClasses;
-				}
-			}
-		}));
-		add(box);
+            @Override
+            public String getObject() {
+                String boxCssClasses = getAdditionalBoxCssClasses();
+                if (boxCssClasses == null) {
+                    return "";
+                } else {
+                    return " " + boxCssClasses;
+                }
+            }
+        }));
+        add(box);
 
-		WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
-		tableContainer.setOutputMarkupId(true);
+        WebMarkupContainer tableContainer = new WebMarkupContainer(ID_TABLE_CONTAINER);
+        tableContainer.setOutputMarkupId(true);
 
-		DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider, pageSize) {
-			private static final long serialVersionUID = 1L;
+        DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider, pageSize) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected Item<T> newRowItem(String id, int index, IModel<T> rowModel) {
-				Item<T> item = super.newRowItem(id, index, rowModel);
-				return customizeNewRowItem(item, rowModel);
-			}
-		};
-		table.setOutputMarkupId(true);
-		tableContainer.add(table);
-		box.add(tableContainer);
+            @Override
+            protected Item<T> newRowItem(String id, int index, IModel<T> rowModel) {
+                Item<T> item = super.newRowItem(id, index, rowModel);
+                return customizeNewRowItem(item, rowModel);
+            }
+        };
+        table.setOutputMarkupId(true);
+        tableContainer.add(table);
+        box.add(tableContainer);
 
-		TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider);
-		headersTop.setOutputMarkupId(true);
-		table.addTopToolbar(headersTop);
+        TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider);
+        headersTop.setOutputMarkupId(true);
+        table.addTopToolbar(headersTop);
 
-		box.add(createHeader(ID_HEADER));
-		WebMarkupContainer footer = createFooter(ID_FOOTER);
-		footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() ||  provider.size() > pageSize));
-		box.add(footer);
-	}
+        box.add(createHeader(ID_HEADER));
+        WebMarkupContainer footer = createFooter(ID_FOOTER);
+        footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() ||  provider.size() > pageSize));
+        box.add(footer);
+    }
 
-	public String getAdditionalBoxCssClasses() {
-		return additionalBoxCssClasses;
-	}
+    public String getAdditionalBoxCssClasses() {
+        return additionalBoxCssClasses;
+    }
 
-	public void setAdditionalBoxCssClasses(String boxCssClasses) {
-		this.additionalBoxCssClasses = boxCssClasses;
-	}
+    public void setAdditionalBoxCssClasses(String boxCssClasses) {
+        this.additionalBoxCssClasses = boxCssClasses;
+    }
 
-	// TODO better name?
-	protected Item<T> customizeNewRowItem(Item<T> item, IModel<T> model) {
-		return item;
-	}
+    // TODO better name?
+    protected Item<T> customizeNewRowItem(Item<T> item, IModel<T> model) {
+        return item;
+    }
 
-	protected boolean hideFooterIfSinglePage(){
-		return false;
-	}
+    protected boolean hideFooterIfSinglePage(){
+        return false;
+    }
 
-	@Override
-	public DataTable getDataTable() {
-		return (DataTable) get(ID_BOX).get(ID_TABLE_CONTAINER).get(ID_TABLE);
-	}
+    @Override
+    public DataTable getDataTable() {
+        return (DataTable) get(ID_BOX).get(ID_TABLE_CONTAINER).get(ID_TABLE);
+    }
 
-	public WebMarkupContainer getDataTableContainer() {
-		return (WebMarkupContainer) get(ID_BOX).get(ID_TABLE_CONTAINER);
-	}
+    public WebMarkupContainer getDataTableContainer() {
+        return (WebMarkupContainer) get(ID_BOX).get(ID_TABLE_CONTAINER);
+    }
 
-	@Override
-	public UserProfileStorage.TableId getTableId() {
-		return tableId;
-	}
+    @Override
+    public UserProfileStorage.TableId getTableId() {
+        return tableId;
+    }
 
-	@Override
-	public void setItemsPerPage(int size) {
-		getDataTable().setItemsPerPage(size);
-	}
+    @Override
+    public void setItemsPerPage(int size) {
+        getDataTable().setItemsPerPage(size);
+    }
 
-	@Override
-	public int getItemsPerPage() {
-		return (int) getDataTable().getItemsPerPage();
-	}
+    @Override
+    public int getItemsPerPage() {
+        return (int) getDataTable().getItemsPerPage();
+    }
 
-	@Override
-	public void setShowPaging(boolean show) {
-		// todo make use of this [lazyman]
-		this.showPaging = show;
+    @Override
+    public void setShowPaging(boolean show) {
+        // todo make use of this [lazyman]
+        this.showPaging = show;
 
-		if (!show) {
-			setItemsPerPage(Integer.MAX_VALUE);
-		} else {
-			setItemsPerPage(10);
-		}
-	}
+        if (!show) {
+            setItemsPerPage(Integer.MAX_VALUE);
+        } else {
+            setItemsPerPage(10);
+        }
+    }
 
-	public WebMarkupContainer getHeader() {
-		return (WebMarkupContainer) get(ID_BOX).get(ID_HEADER);
-	}
+    public WebMarkupContainer getHeader() {
+        return (WebMarkupContainer) get(ID_BOX).get(ID_HEADER);
+    }
 
-	public WebMarkupContainer getFooter() {
-		return (WebMarkupContainer) get(ID_BOX).get(ID_FOOTER);
-	}
+    public WebMarkupContainer getFooter() {
+        return (WebMarkupContainer) get(ID_BOX).get(ID_FOOTER);
+    }
 
-	protected WebMarkupContainer createHeader(String headerId) {
-		WebMarkupContainer header = new WebMarkupContainer(headerId);
-		header.setVisible(false);
-		return header;
-	}
+    protected WebMarkupContainer createHeader(String headerId) {
+        WebMarkupContainer header = new WebMarkupContainer(headerId);
+        header.setVisible(false);
+        return header;
+    }
 
-	protected WebMarkupContainer createFooter(String footerId) {
-		return new PagingFooter(footerId, ID_PAGING_FOOTER, this, this);
-	}
-	
-	public Component getFooterButtonToolbar() {
-		return ((PagingFooter) getFooter()).getFooterButtonToolbar();
-	}
+    protected WebMarkupContainer createFooter(String footerId) {
+        return new PagingFooter(footerId, ID_PAGING_FOOTER, this, this);
+    }
 
-	public Component getFooterMenu() {
-		return ((PagingFooter) getFooter()).getFooterMenu();
-	}
+    public Component getFooterButtonToolbar() {
+        return ((PagingFooter) getFooter()).getFooterButtonToolbar();
+    }
 
-	public Component getFooterCountLabel() {
-		return ((PagingFooter) getFooter()).getFooterCountLabel();
-	}
+    public Component getFooterMenu() {
+        return ((PagingFooter) getFooter()).getFooterMenu();
+    }
 
-	public Component getFooterPaging() {
-		return ((PagingFooter) getFooter()).getFooterPaging();
-	}
+    public Component getFooterCountLabel() {
+        return ((PagingFooter) getFooter()).getFooterCountLabel();
+    }
 
-	@Override
-	public void setCurrentPage(ObjectPaging paging) {
-		WebComponentUtil.setCurrentPage(this, paging);
-	}
+    public Component getFooterPaging() {
+        return ((PagingFooter) getFooter()).getFooterPaging();
+    }
 
-	@Override
-	public void setCurrentPage(long page) {
-		getDataTable().setCurrentPage(page);
-	}
+    @Override
+    public void setCurrentPage(ObjectPaging paging) {
+        WebComponentUtil.setCurrentPage(this, paging);
+    }
 
-	protected WebMarkupContainer createButtonToolbar(String id) {
-		return new WebMarkupContainer(id);
-	}
+    @Override
+    public void setCurrentPage(long page) {
+        getDataTable().setCurrentPage(page);
+    }
 
-	private static class PagingFooter extends Fragment {
+    protected WebMarkupContainer createButtonToolbar(String id) {
+        return new WebMarkupContainer(id);
+    }
 
-		public PagingFooter(String id, String markupId, BoxedTablePanel markupProvider, Table table) {
-			super(id, markupId, markupProvider);
-			setOutputMarkupId(true);
+    private static class PagingFooter extends Fragment {
 
-			initLayout(markupProvider, table);
-		}
+        public PagingFooter(String id, String markupId, BoxedTablePanel markupProvider, Table table) {
+            super(id, markupId, markupProvider);
+            setOutputMarkupId(true);
 
-		private void initLayout(final BoxedTablePanel boxedTablePanel, final Table table) {
-			WebMarkupContainer buttonToolbar = boxedTablePanel.createButtonToolbar(ID_BUTTON_TOOLBAR);
-			add(buttonToolbar);
+            initLayout(markupProvider, table);
+        }
 
-			final DataTable dataTable = table.getDataTable();
-			WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
-			footerContainer.setOutputMarkupId(true);
+        private void initLayout(final BoxedTablePanel boxedTablePanel, final Table table) {
+            WebMarkupContainer buttonToolbar = boxedTablePanel.createButtonToolbar(ID_BUTTON_TOOLBAR);
+            add(buttonToolbar);
 
-			final Label count = new Label(ID_COUNT, new IModel<String>() {
+            final DataTable dataTable = table.getDataTable();
+            WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
+            footerContainer.setOutputMarkupId(true);
 
-				@Override
-				public String getObject() {
-					return CountToolbar.createCountString(PagingFooter.this, dataTable);
-				}
-			});
-			count.setOutputMarkupId(true);
-			footerContainer.add(count);
+            final Label count = new Label(ID_COUNT, new IModel<String>() {
 
-			BoxedPagingPanel nb2 = new BoxedPagingPanel(ID_PAGING, dataTable, true) {
+                @Override
+                public String getObject() {
+                    return CountToolbar.createCountString(PagingFooter.this, dataTable);
+                }
+            });
+            count.setOutputMarkupId(true);
+            footerContainer.add(count);
 
-				@Override
-				protected void onPageChanged(AjaxRequestTarget target, long page) {
-					target.add(count);
-				}
+            BoxedPagingPanel nb2 = new BoxedPagingPanel(ID_PAGING, dataTable, true) {
 
-				@Override
-				protected boolean isCountingDisabled(){
-					if (dataTable.getDataProvider() instanceof SelectableBeanObjectDataProvider){
-						return !((SelectableBeanObjectDataProvider)dataTable.getDataProvider()).isUseObjectCounting();
-					}
-					return super.isCountingDisabled();
-				}
-			};
-			footerContainer.add(nb2);
+                @Override
+                protected void onPageChanged(AjaxRequestTarget target, long page) {
+                    target.add(count);
+                }
 
-			TableConfigurationPanel menu = new TableConfigurationPanel(ID_MENU) {
+                @Override
+                protected boolean isCountingDisabled(){
+                    if (dataTable.getDataProvider() instanceof SelectableBeanObjectDataProvider){
+                        return !((SelectableBeanObjectDataProvider)dataTable.getDataProvider()).isUseObjectCounting();
+                    }
+                    return super.isCountingDisabled();
+                }
+            };
+            footerContainer.add(nb2);
 
-				@Override
-				protected void pageSizeChanged(AjaxRequestTarget target) {
-					Table table = findParent(Table.class);
-					UserProfileStorage.TableId tableId = table.getTableId();
+            TableConfigurationPanel menu = new TableConfigurationPanel(ID_MENU) {
 
-					if (tableId != null) {
-						PageBase page = (PageBase) getPage();
-						Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableId);
+                @Override
+                protected void pageSizeChanged(AjaxRequestTarget target) {
+                    Table table = findParent(Table.class);
+                    UserProfileStorage.TableId tableId = table.getTableId();
 
-						table.setItemsPerPage(pageSize);
-					}
-					target.add(findParent(PagingFooter.class));
-					target.add((Component) table);
-				}
+                    if (tableId != null) {
+                        PageBase page = (PageBase) getPage();
+                        Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableId);
 
-			};
-			footerContainer.add(menu);
-			add(footerContainer);
-		}
-		
-		public Component getFooterButtonToolbar() {
-			return get(ID_BUTTON_TOOLBAR);
-		}
+                        table.setItemsPerPage(pageSize);
+                    }
+                    target.add(findParent(PagingFooter.class));
+                    target.add((Component) table);
+                }
 
-		public Component getFooterMenu() {
-			return get(ID_FOOTER_CONTAINER).get(ID_MENU);
-		}
+            };
+            footerContainer.add(menu);
+            add(footerContainer);
+        }
 
-		public Component getFooterCountLabel() {
-			return get(ID_FOOTER_CONTAINER).get(ID_COUNT);
-		}
+        public Component getFooterButtonToolbar() {
+            return get(ID_BUTTON_TOOLBAR);
+        }
 
-		public Component getFooterPaging() {
-			return get(ID_FOOTER_CONTAINER).get(ID_PAGING);
-		}
-	}
+        public Component getFooterMenu() {
+            return get(ID_FOOTER_CONTAINER).get(ID_MENU);
+        }
+
+        public Component getFooterCountLabel() {
+            return get(ID_FOOTER_CONTAINER).get(ID_COUNT);
+        }
+
+        public Component getFooterPaging() {
+            return get(ID_FOOTER_CONTAINER).get(ID_PAGING);
+        }
+    }
 }

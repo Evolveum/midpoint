@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -62,573 +62,573 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MappingEditorDialog extends ModalWindow {
 
-	private static final Trace LOGGER = TraceManager.getTrace(MappingEditorDialog.class);
+    private static final Trace LOGGER = TraceManager.getTrace(MappingEditorDialog.class);
 
-	private static final String DOT_CLASS = MappingEditorDialog.class.getName() + ".";
-	private static final String OPERATION_LOAD_PASSWORD_POLICIES = DOT_CLASS + "createPasswordPolicyList";
+    private static final String DOT_CLASS = MappingEditorDialog.class.getName() + ".";
+    private static final String OPERATION_LOAD_PASSWORD_POLICIES = DOT_CLASS + "createPasswordPolicyList";
 
-	private static final String ID_FEEDBACK = "feedback";
-	private static final String ID_MAIN_FORM = "mainForm";
-	private static final String ID_NAME = "name";
-	private static final String ID_DESCRIPTION = "description";
-	private static final String ID_AUTHORITATIVE = "authoritative";
-	private static final String ID_EXCLUSIVE = "exclusive";
-	private static final String ID_STRENGTH = "strength";
-	private static final String ID_CHANNEL = "channel";
-	private static final String ID_EXCEPT_CHANNEL = "exceptChannel";
-	private static final String ID_SOURCE = "source";
-	private static final String ID_TARGET = "target";
-	private static final String ID_EXPRESSION_TYPE = "expressionType";
-	private static final String ID_EXPRESSION = "expression";
-	private static final String ID_EXPRESSION_LANG = "expressionLanguage";
-	private static final String ID_EXPRESSION_POLICY_REF = "expressionValuePolicyRef";
-	private static final String ID_CONDITION_TYPE = "conditionType";
-	private static final String ID_CONDITION = "condition";
-	private static final String ID_CONDITION_LANG = "conditionLanguage";
-	private static final String ID_CONDITION_POLICY_REF = "conditionValuePolicyRef";
-	// private static final String ID_TIME_FROM = "timeFrom";
-	// private static final String ID_TIME_TO = "timeTo";
-	private static final String ID_BUTTON_SAVE = "saveButton";
-	private static final String ID_BUTTON_CANCEL = "cancelButton";
+    private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_NAME = "name";
+    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_AUTHORITATIVE = "authoritative";
+    private static final String ID_EXCLUSIVE = "exclusive";
+    private static final String ID_STRENGTH = "strength";
+    private static final String ID_CHANNEL = "channel";
+    private static final String ID_EXCEPT_CHANNEL = "exceptChannel";
+    private static final String ID_SOURCE = "source";
+    private static final String ID_TARGET = "target";
+    private static final String ID_EXPRESSION_TYPE = "expressionType";
+    private static final String ID_EXPRESSION = "expression";
+    private static final String ID_EXPRESSION_LANG = "expressionLanguage";
+    private static final String ID_EXPRESSION_POLICY_REF = "expressionValuePolicyRef";
+    private static final String ID_CONDITION_TYPE = "conditionType";
+    private static final String ID_CONDITION = "condition";
+    private static final String ID_CONDITION_LANG = "conditionLanguage";
+    private static final String ID_CONDITION_POLICY_REF = "conditionValuePolicyRef";
+    // private static final String ID_TIME_FROM = "timeFrom";
+    // private static final String ID_TIME_TO = "timeTo";
+    private static final String ID_BUTTON_SAVE = "saveButton";
+    private static final String ID_BUTTON_CANCEL = "cancelButton";
 
-	private static final String ID_T_CHANNEL = "channelTooltip";
-	private static final String ID_T_EXCEPT_CHANNEL = "exceptChannelTooltip";
-	private static final String ID_T_SOURCE = "sourceTooltip";
+    private static final String ID_T_CHANNEL = "channelTooltip";
+    private static final String ID_T_EXCEPT_CHANNEL = "exceptChannelTooltip";
+    private static final String ID_T_SOURCE = "sourceTooltip";
 
-	private static final String ID_LABEL_SIZE = "col-md-4";
-	private static final String ID_INPUT_SIZE = "col-md-8";
+    private static final String ID_LABEL_SIZE = "col-md-4";
+    private static final String ID_INPUT_SIZE = "col-md-8";
 
-	private static final int CODE_ROW_COUNT = 5;
+    private static final int CODE_ROW_COUNT = 5;
 
-	private static final StringChoiceRenderer CHANNEL_RENDERER = StringChoiceRenderer.prefixedSplit("Channel.", "#");
+    private static final StringChoiceRenderer CHANNEL_RENDERER = StringChoiceRenderer.prefixedSplit("Channel.", "#");
 
-	private boolean initialized;
-	private IModel<MappingTypeDto> model;
-	private Map<String, String> policyMap = new HashMap<>();
-	private IModel<MappingType> inputModel;
-	private boolean isTargetRequired = false;
-	@NotNull private final NonEmptyModel<Boolean> readOnlyModel;
+    private boolean initialized;
+    private IModel<MappingTypeDto> model;
+    private Map<String, String> policyMap = new HashMap<>();
+    private IModel<MappingType> inputModel;
+    private boolean isTargetRequired = false;
+    @NotNull private final NonEmptyModel<Boolean> readOnlyModel;
 
-	public MappingEditorDialog(String id, final IModel<MappingType> mapping, NonEmptyModel<Boolean> readOnlyModel) {
-		super(id);
+    public MappingEditorDialog(String id, final IModel<MappingType> mapping, NonEmptyModel<Boolean> readOnlyModel) {
+        super(id);
 
-		inputModel = mapping;
-		this.readOnlyModel = readOnlyModel;
-		model = new LoadableModel<MappingTypeDto>(false) {
+        inputModel = mapping;
+        this.readOnlyModel = readOnlyModel;
+        model = new LoadableModel<MappingTypeDto>(false) {
 
-			@Override
-			protected MappingTypeDto load() {
-				if (mapping != null) {
-					return new MappingTypeDto(mapping.getObject(), getPageBase().getPrismContext());
-				} else {
-					return new MappingTypeDto(new MappingType(), getPageBase().getPrismContext());
-				}
-			}
-		};
+            @Override
+            protected MappingTypeDto load() {
+                if (mapping != null) {
+                    return new MappingTypeDto(mapping.getObject(), getPageBase().getPrismContext());
+                } else {
+                    return new MappingTypeDto(new MappingType(), getPageBase().getPrismContext());
+                }
+            }
+        };
 
-		setOutputMarkupId(true);
-		setTitle(createStringResource("MappingEditorDialog.label"));
-		showUnloadConfirmation(false);
-		setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-		setCookieName(MappingEditorDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
-		setInitialWidth(700);
-		setInitialHeight(700);
-		setWidthUnit("px");
+        setOutputMarkupId(true);
+        setTitle(createStringResource("MappingEditorDialog.label"));
+        showUnloadConfirmation(false);
+        setCssClassName(ModalWindow.CSS_CLASS_GRAY);
+        setCookieName(MappingEditorDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
+        setInitialWidth(700);
+        setInitialHeight(700);
+        setWidthUnit("px");
 
-		WebMarkupContainer content = new WebMarkupContainer(getContentId());
-		content.setOutputMarkupId(true);
-		setContent(content);
-	}
+        WebMarkupContainer content = new WebMarkupContainer(getContentId());
+        content.setOutputMarkupId(true);
+        setContent(content);
+    }
 
-	public void updateModel(AjaxRequestTarget target, IModel<MappingType> mapping, boolean isTargetRequired) {
-		this.isTargetRequired = isTargetRequired;
-		model.setObject(new MappingTypeDto(mapping.getObject(), getPageBase().getPrismContext()));
-		inputModel = mapping;
-		target.add(getContent());
+    public void updateModel(AjaxRequestTarget target, IModel<MappingType> mapping, boolean isTargetRequired) {
+        this.isTargetRequired = isTargetRequired;
+        model.setObject(new MappingTypeDto(mapping.getObject(), getPageBase().getPrismContext()));
+        inputModel = mapping;
+        target.add(getContent());
 
-		if (initialized) {
-			((WebMarkupContainer) get(getContentId())).removeAll();
-			initialized = false;
-		}
-	}
+        if (initialized) {
+            ((WebMarkupContainer) get(getContentId())).removeAll();
+            initialized = false;
+        }
+    }
 
-	public void updateModel(AjaxRequestTarget target, MappingType mapping, boolean isTargetRequired) {
-		this.isTargetRequired = isTargetRequired;
-		model.setObject(new MappingTypeDto(mapping, getPageBase().getPrismContext()));
+    public void updateModel(AjaxRequestTarget target, MappingType mapping, boolean isTargetRequired) {
+        this.isTargetRequired = isTargetRequired;
+        model.setObject(new MappingTypeDto(mapping, getPageBase().getPrismContext()));
 
-		if (inputModel != null) {
-			inputModel.setObject(mapping);
-		} else {
-			inputModel = new Model<>(mapping);
-		}
+        if (inputModel != null) {
+            inputModel.setObject(mapping);
+        } else {
+            inputModel = new Model<>(mapping);
+        }
 
-		target.add(getContent());
+        target.add(getContent());
 
-		if (initialized) {
-			((WebMarkupContainer) get(getContentId())).removeAll();
-			initialized = false;
-		}
-	}
+        if (initialized) {
+            ((WebMarkupContainer) get(getContentId())).removeAll();
+            initialized = false;
+        }
+    }
 
-	public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-		return PageBase.createStringResourceStatic(this, resourceKey, objects);
-	}
+    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+        return PageBase.createStringResourceStatic(this, resourceKey, objects);
+    }
 
-	@Override
-	protected void onBeforeRender() {
-		super.onBeforeRender();
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
 
-		if (initialized) {
-			return;
-		}
+        if (initialized) {
+            return;
+        }
 
-		initLayout((WebMarkupContainer) get(getContentId()));
-		initialized = true;
-	}
+        initLayout((WebMarkupContainer) get(getContentId()));
+        initialized = true;
+    }
 
-	public void initLayout(WebMarkupContainer content) {
-		Form form = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
-		form.setOutputMarkupId(true);
-		content.add(form);
+    public void initLayout(WebMarkupContainer content) {
+        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        form.setOutputMarkupId(true);
+        content.add(form);
 
-		TextFormGroup name = new TextFormGroup(ID_NAME,
+        TextFormGroup name = new TextFormGroup(ID_NAME,
             new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".name"),
-				createStringResource("MappingEditorDialog.label.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-		name.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-		form.add(name);
+                createStringResource("MappingEditorDialog.label.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        name.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        form.add(name);
 
-		TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
+        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
             new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".description"),
-				createStringResource("MappingEditorDialog.label.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-		description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-		form.add(description);
+                createStringResource("MappingEditorDialog.label.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        form.add(description);
 
-		CheckFormGroup authoritative = new CheckFormGroup(ID_AUTHORITATIVE,
+        CheckFormGroup authoritative = new CheckFormGroup(ID_AUTHORITATIVE,
             new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".authoritative"),
-				createStringResource("MappingEditorDialog.label.authoritative"),
-				"SchemaHandlingStep.mapping.tooltip.authoritative", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
-		authoritative.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-		form.add(authoritative);
+                createStringResource("MappingEditorDialog.label.authoritative"),
+                "SchemaHandlingStep.mapping.tooltip.authoritative", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
+        authoritative.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        form.add(authoritative);
 
-		CheckFormGroup exclusive = new CheckFormGroup(ID_EXCLUSIVE,
+        CheckFormGroup exclusive = new CheckFormGroup(ID_EXCLUSIVE,
             new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".exclusive"),
-				createStringResource("MappingEditorDialog.label.exclusive"),
-				"SchemaHandlingStep.mapping.tooltip.exclusive", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
-		exclusive.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-		form.add(exclusive);
+                createStringResource("MappingEditorDialog.label.exclusive"),
+                "SchemaHandlingStep.mapping.tooltip.exclusive", true, ID_LABEL_SIZE, ID_INPUT_SIZE);
+        exclusive.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        form.add(exclusive);
 
-		DropDownFormGroup strength = new DropDownFormGroup<>(ID_STRENGTH,
+        DropDownFormGroup strength = new DropDownFormGroup<>(ID_STRENGTH,
             new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".strength"),
-				WebComponentUtil.createReadonlyModelFromEnum(MappingStrengthType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(MappingStrengthType.class),
             new EnumChoiceRenderer<>(this),
-				createStringResource("MappingEditorDialog.label.strength"),
-				"SchemaHandlingStep.mapping.tooltip.strength", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-		strength.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-		form.add(strength);
+                createStringResource("MappingEditorDialog.label.strength"),
+                "SchemaHandlingStep.mapping.tooltip.strength", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        strength.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        form.add(strength);
 
-		MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
+        MultiValueDropDownPanel channel = new MultiValueDropDownPanel<String>(ID_CHANNEL,
             new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".channel"), true, readOnlyModel) {
 
-			@Override
-			protected String createNewEmptyItem() {
-				return "";
-			}
+            @Override
+            protected String createNewEmptyItem() {
+                return "";
+            }
 
-			@Override
-			protected IModel<List<String>> createChoiceList() {
-				return new IModel<List<String>>() {
+            @Override
+            protected IModel<List<String>> createChoiceList() {
+                return new IModel<List<String>>() {
 
-					@Override
-					public List<String> getObject() {
-						return WebComponentUtil.getChannelList();
-					}
-				};
-			}
+                    @Override
+                    public List<String> getObject() {
+                        return WebComponentUtil.getChannelList();
+                    }
+                };
+            }
 
-			@Override
-			protected IChoiceRenderer<String> createRenderer() {
-				return CHANNEL_RENDERER;
+            @Override
+            protected IChoiceRenderer<String> createRenderer() {
+                return CHANNEL_RENDERER;
 
-			}
-		};
-		form.add(channel);
+            }
+        };
+        form.add(channel);
 
-		MultiValueDropDownPanel exceptChannel = new MultiValueDropDownPanel<String>(ID_EXCEPT_CHANNEL,
+        MultiValueDropDownPanel exceptChannel = new MultiValueDropDownPanel<String>(ID_EXCEPT_CHANNEL,
             new PropertyModel<>(model, MappingTypeDto.F_MAPPING + ".exceptChannel"), true, readOnlyModel) {
 
-			@Override
-			protected String createNewEmptyItem() {
-				return "";
-			}
+            @Override
+            protected String createNewEmptyItem() {
+                return "";
+            }
 
-			@Override
-			protected IModel<List<String>> createChoiceList() {
-				return new IModel<List<String>>() {
+            @Override
+            protected IModel<List<String>> createChoiceList() {
+                return new IModel<List<String>>() {
 
-					@Override
-					public List<String> getObject() {
-						return WebComponentUtil.getChannelList();
-					}
-				};
-			}
+                    @Override
+                    public List<String> getObject() {
+                        return WebComponentUtil.getChannelList();
+                    }
+                };
+            }
 
-			@Override
-			protected IChoiceRenderer<String> createRenderer() {
-					return CHANNEL_RENDERER;
-			}
-		};
-		form.add(exceptChannel);
+            @Override
+            protected IChoiceRenderer<String> createRenderer() {
+                    return CHANNEL_RENDERER;
+            }
+        };
+        form.add(exceptChannel);
 
-		// TODO - create some nice ItemPathType editor in near future
-		MultiValueTextPanel source = new MultiValueTextPanel<>(ID_SOURCE,
-				new PropertyModel<List<String>>(model, MappingTypeDto.F_SOURCE), readOnlyModel, true);
-		form.add(source);
+        // TODO - create some nice ItemPathType editor in near future
+        MultiValueTextPanel source = new MultiValueTextPanel<>(ID_SOURCE,
+                new PropertyModel<List<String>>(model, MappingTypeDto.F_SOURCE), readOnlyModel, true);
+        form.add(source);
 
-		// TODO - create some nice ItemPathType editor in near future
-		TextFormGroup target = new TextFormGroup(ID_TARGET, new PropertyModel<>(model, MappingTypeDto.F_TARGET),
-				createStringResource("MappingEditorDialog.label.target"), "SchemaHandlingStep.mapping.tooltip.target",
-				true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, isTargetRequired);
-		target.setOutputMarkupId(true);
-		target.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-		form.add(target);
+        // TODO - create some nice ItemPathType editor in near future
+        TextFormGroup target = new TextFormGroup(ID_TARGET, new PropertyModel<>(model, MappingTypeDto.F_TARGET),
+                createStringResource("MappingEditorDialog.label.target"), "SchemaHandlingStep.mapping.tooltip.target",
+                true, ID_LABEL_SIZE, ID_INPUT_SIZE, false, isTargetRequired);
+        target.setOutputMarkupId(true);
+        target.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        form.add(target);
 
-		DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> expressionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(
-				ID_EXPRESSION_TYPE,
+        DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> expressionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(
+                ID_EXPRESSION_TYPE,
             new PropertyModel<>(model, MappingTypeDto.F_EXPRESSION_TYPE),
-				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
             new EnumChoiceRenderer<>(this),
-				createStringResource("MappingEditorDialog.label.expressionType"),
-				"SchemaHandlingStep.mapping.tooltip.expressionType", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
+                createStringResource("MappingEditorDialog.label.expressionType"),
+                "SchemaHandlingStep.mapping.tooltip.expressionType", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
 
-			@Override
-			protected DropDownChoice createDropDown(String id,
-					IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices,
-					IChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType> renderer, boolean required) {
-				return new DropDownChoice<>(id, getModel(), choices, renderer);
-			}
-		};
-		expressionType.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected DropDownChoice createDropDown(String id,
+                    IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices,
+                    IChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType> renderer, boolean required) {
+                return new DropDownChoice<>(id, getModel(), choices, renderer);
+            }
+        };
+        expressionType.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				model.getObject().updateExpression();
-				target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION));
-				target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION_LANG));
-				target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION_POLICY_REF));
-			}
-		});
-		expressionType.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-		form.add(expressionType);
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                model.getObject().updateExpression();
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION));
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION_LANG));
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION_POLICY_REF));
+            }
+        });
+        expressionType.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        form.add(expressionType);
 
-		DropDownFormGroup expressionLanguage = new DropDownFormGroup<>(ID_EXPRESSION_LANG,
+        DropDownFormGroup expressionLanguage = new DropDownFormGroup<>(ID_EXPRESSION_LANG,
             new PropertyModel<>(model, MappingTypeDto.F_EXPRESSION_LANG),
-				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
+                WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
             new EnumChoiceRenderer<>(this),
-				createStringResource("MappingEditorDialog.label.language"),
-				"SchemaHandlingStep.mapping.tooltip.expressionLanguage", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-		expressionLanguage.setOutputMarkupId(true);
-		expressionLanguage.setOutputMarkupPlaceholderTag(true);
-		expressionLanguage.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getExpressionType());
-			}
-			@Override
-			public boolean isEnabled() {
-				return !readOnlyModel.getObject();
-			}
-		});
-		form.add(expressionLanguage);
-		expressionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				model.getObject().updateExpressionLanguage();
-				target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION));
-			}
-		});
+                createStringResource("MappingEditorDialog.label.language"),
+                "SchemaHandlingStep.mapping.tooltip.expressionLanguage", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        expressionLanguage.setOutputMarkupId(true);
+        expressionLanguage.setOutputMarkupPlaceholderTag(true);
+        expressionLanguage.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getExpressionType());
+            }
+            @Override
+            public boolean isEnabled() {
+                return !readOnlyModel.getObject();
+            }
+        });
+        form.add(expressionLanguage);
+        expressionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                model.getObject().updateExpressionLanguage();
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION));
+            }
+        });
 
-		DropDownFormGroup<ObjectReferenceType> expressionGeneratePolicy = new DropDownFormGroup<ObjectReferenceType>(
-				ID_EXPRESSION_POLICY_REF,
+        DropDownFormGroup<ObjectReferenceType> expressionGeneratePolicy = new DropDownFormGroup<ObjectReferenceType>(
+                ID_EXPRESSION_POLICY_REF,
             new PropertyModel<>(model, MappingTypeDto.F_EXPRESSION_POLICY_REF),
-				new IModel<List<ObjectReferenceType>>() {
+                new IModel<List<ObjectReferenceType>>() {
 
-					@Override
-					public List<ObjectReferenceType> getObject() {
-						return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
-					}
-				}, new ObjectReferenceChoiceRenderer(policyMap),
-				createStringResource("MappingEditorDialog.label.passPolicyRef"),
-				"SchemaHandlingStep.mapping.tooltip.expressionValuePolicyRef", true, ID_LABEL_SIZE, ID_INPUT_SIZE,
-				false) {
+                    @Override
+                    public List<ObjectReferenceType> getObject() {
+                        return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
+                    }
+                }, new ObjectReferenceChoiceRenderer(policyMap),
+                createStringResource("MappingEditorDialog.label.passPolicyRef"),
+                "SchemaHandlingStep.mapping.tooltip.expressionValuePolicyRef", true, ID_LABEL_SIZE, ID_INPUT_SIZE,
+                false) {
 
-			@Override
-			protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices,
-					IChoiceRenderer<ObjectReferenceType> renderer, boolean required) {
-				return new DropDownChoice<>(id, getModel(), choices, renderer);
-			}
-		};
-		expressionGeneratePolicy.setOutputMarkupId(true);
-		expressionGeneratePolicy.setOutputMarkupPlaceholderTag(true);
-		expressionGeneratePolicy.add(new VisibleEnableBehaviour() {
-			@Override
-			public boolean isVisible() {
-				return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getExpressionType());
-			}
-			@Override
-			public boolean isEnabled() {
-				return !readOnlyModel.getObject();
-			}
-		});
-		expressionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				model.getObject().updateExpressionGeneratePolicy();
-				target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION));
-			}
-		});
-		form.add(expressionGeneratePolicy);
+            @Override
+            protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices,
+                    IChoiceRenderer<ObjectReferenceType> renderer, boolean required) {
+                return new DropDownChoice<>(id, getModel(), choices, renderer);
+            }
+        };
+        expressionGeneratePolicy.setOutputMarkupId(true);
+        expressionGeneratePolicy.setOutputMarkupPlaceholderTag(true);
+        expressionGeneratePolicy.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getExpressionType());
+            }
+            @Override
+            public boolean isEnabled() {
+                return !readOnlyModel.getObject();
+            }
+        });
+        expressionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                model.getObject().updateExpressionGeneratePolicy();
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_EXPRESSION));
+            }
+        });
+        form.add(expressionGeneratePolicy);
 
-		AceEditorFormGroup expression = new AceEditorFormGroup(ID_EXPRESSION,
+        AceEditorFormGroup expression = new AceEditorFormGroup(ID_EXPRESSION,
             new PropertyModel<>(model, MappingTypeDto.F_EXPRESSION),
-				createStringResource("MappingEditorDialog.label.expression"),
-				"SchemaHandlingStep.mapping.tooltip.expression", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,
-				CODE_ROW_COUNT);
-		expression.setOutputMarkupId(true);
-		expression.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-		form.add(expression);
+                createStringResource("MappingEditorDialog.label.expression"),
+                "SchemaHandlingStep.mapping.tooltip.expression", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,
+                CODE_ROW_COUNT);
+        expression.setOutputMarkupId(true);
+        expression.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        form.add(expression);
 
-		DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> conditionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(
-				ID_CONDITION_TYPE,
+        DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType> conditionType = new DropDownFormGroup<ExpressionUtil.ExpressionEvaluatorType>(
+                ID_CONDITION_TYPE,
             new PropertyModel<>(model, MappingTypeDto.F_CONDITION_TYPE),
-				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
+                WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.ExpressionEvaluatorType.class),
             new EnumChoiceRenderer<>(this),
-				createStringResource("MappingEditorDialog.label.conditionType"),
-				"SchemaHandlingStep.mapping.tooltip.conditionType", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
+                createStringResource("MappingEditorDialog.label.conditionType"),
+                "SchemaHandlingStep.mapping.tooltip.conditionType", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
 
-			@Override
-			protected DropDownChoice createDropDown(String id,
-					IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices,
-					IChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType> renderer, boolean required) {
-				return new DropDownChoice<>(id, getModel(), choices, renderer);
-			}
-		};
-		conditionType.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            protected DropDownChoice createDropDown(String id,
+                    IModel<List<ExpressionUtil.ExpressionEvaluatorType>> choices,
+                    IChoiceRenderer<ExpressionUtil.ExpressionEvaluatorType> renderer, boolean required) {
+                return new DropDownChoice<>(id, getModel(), choices, renderer);
+            }
+        };
+        conditionType.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				model.getObject().updateCondition();
-				target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_CONDITION));
-				target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_CONDITION_LANG));
-				target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_CONDITION_POLICY_REF));
-			}
-		});
-		form.add(conditionType);
-		conditionType.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                model.getObject().updateCondition();
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_CONDITION));
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_CONDITION_LANG));
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_CONDITION_POLICY_REF));
+            }
+        });
+        form.add(conditionType);
+        conditionType.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
 
-		DropDownFormGroup conditionLanguage = new DropDownFormGroup<>(ID_CONDITION_LANG,
+        DropDownFormGroup conditionLanguage = new DropDownFormGroup<>(ID_CONDITION_LANG,
             new PropertyModel<>(model, MappingTypeDto.F_CONDITION_LANG),
-				WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
+                WebComponentUtil.createReadonlyModelFromEnum(ExpressionUtil.Language.class),
             new EnumChoiceRenderer<>(this),
-				createStringResource("MappingEditorDialog.label.language"),
-				"SchemaHandlingStep.mapping.tooltip.conditionLanguage", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-		conditionLanguage.setOutputMarkupId(true);
-		conditionLanguage.setOutputMarkupPlaceholderTag(true);
-		conditionLanguage.add(new VisibleEnableBehaviour() {
+                createStringResource("MappingEditorDialog.label.language"),
+                "SchemaHandlingStep.mapping.tooltip.conditionLanguage", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        conditionLanguage.setOutputMarkupId(true);
+        conditionLanguage.setOutputMarkupPlaceholderTag(true);
+        conditionLanguage.add(new VisibleEnableBehaviour() {
 
-			@Override
-			public boolean isVisible() {
-				return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getConditionType());
-			}
+            @Override
+            public boolean isVisible() {
+                return ExpressionUtil.ExpressionEvaluatorType.SCRIPT.equals(model.getObject().getConditionType());
+            }
 
-			@Override
-			public boolean isEnabled() {
-				return !readOnlyModel.getObject();
-			}
-		});
-		conditionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            public boolean isEnabled() {
+                return !readOnlyModel.getObject();
+            }
+        });
+        conditionLanguage.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				model.getObject().updateConditionLanguage();
-				target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_CONDITION));
-			}
-		});
-		form.add(conditionLanguage);
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                model.getObject().updateConditionLanguage();
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_CONDITION));
+            }
+        });
+        form.add(conditionLanguage);
 
-		DropDownFormGroup<ObjectReferenceType> conditionGeneratePolicy = new DropDownFormGroup<ObjectReferenceType>(
-				ID_CONDITION_POLICY_REF,
+        DropDownFormGroup<ObjectReferenceType> conditionGeneratePolicy = new DropDownFormGroup<ObjectReferenceType>(
+                ID_CONDITION_POLICY_REF,
             new PropertyModel<>(model, MappingTypeDto.F_CONDITION_POLICY_REF),
-				new IModel<List<ObjectReferenceType>>() {
+                new IModel<List<ObjectReferenceType>>() {
 
-					@Override
-					public List<ObjectReferenceType> getObject() {
-						return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
-					}
-				}, new ObjectReferenceChoiceRenderer(policyMap), createStringResource("MappingEditorDialog.label.passPolicyRef"),
-				"SchemaHandlingStep.mapping.tooltip.conditionValuePolicyRef", true, ID_LABEL_SIZE, ID_INPUT_SIZE,
-				false) {
+                    @Override
+                    public List<ObjectReferenceType> getObject() {
+                        return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), policyMap);
+                    }
+                }, new ObjectReferenceChoiceRenderer(policyMap), createStringResource("MappingEditorDialog.label.passPolicyRef"),
+                "SchemaHandlingStep.mapping.tooltip.conditionValuePolicyRef", true, ID_LABEL_SIZE, ID_INPUT_SIZE,
+                false) {
 
-			@Override
-			protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices,
-					IChoiceRenderer<ObjectReferenceType> renderer, boolean required) {
-				return new DropDownChoice<>(id, getModel(), choices, renderer);
-			}
-		};
-		conditionGeneratePolicy.setOutputMarkupId(true);
-		conditionGeneratePolicy.setOutputMarkupPlaceholderTag(true);
-		conditionGeneratePolicy.add(new VisibleEnableBehaviour() {
+            @Override
+            protected DropDownChoice createDropDown(String id, IModel<List<ObjectReferenceType>> choices,
+                    IChoiceRenderer<ObjectReferenceType> renderer, boolean required) {
+                return new DropDownChoice<>(id, getModel(), choices, renderer);
+            }
+        };
+        conditionGeneratePolicy.setOutputMarkupId(true);
+        conditionGeneratePolicy.setOutputMarkupPlaceholderTag(true);
+        conditionGeneratePolicy.add(new VisibleEnableBehaviour() {
 
-			@Override
-			public boolean isVisible() {
-				return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getConditionType());
-			}
+            @Override
+            public boolean isVisible() {
+                return ExpressionUtil.ExpressionEvaluatorType.GENERATE.equals(model.getObject().getConditionType());
+            }
 
-			@Override
-			public boolean isEnabled() {
-				return !readOnlyModel.getObject();
-			}
-		});
-		conditionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
+            @Override
+            public boolean isEnabled() {
+                return !readOnlyModel.getObject();
+            }
+        });
+        conditionGeneratePolicy.getInput().add(new AjaxFormComponentUpdatingBehavior("change") {
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				model.getObject().updateConditionGeneratePolicy();
-				target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_CONDITION));
-			}
-		});
-		form.add(conditionGeneratePolicy);
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                model.getObject().updateConditionGeneratePolicy();
+                target.add(get(getContentId() + ":" + ID_MAIN_FORM + ":" + ID_CONDITION));
+            }
+        });
+        form.add(conditionGeneratePolicy);
 
-		AceEditorFormGroup condition = new AceEditorFormGroup(ID_CONDITION,
+        AceEditorFormGroup condition = new AceEditorFormGroup(ID_CONDITION,
             new PropertyModel<>(model, MappingTypeDto.F_CONDITION),
-				createStringResource("MappingEditorDialog.label.condition"),
-				"SchemaHandlingStep.mapping.tooltip.condition", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,
-				CODE_ROW_COUNT);
-		condition.setOutputMarkupId(true);
-		condition.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
-		form.add(condition);
+                createStringResource("MappingEditorDialog.label.condition"),
+                "SchemaHandlingStep.mapping.tooltip.condition", true, ID_LABEL_SIZE, ID_INPUT_SIZE, false,
+                CODE_ROW_COUNT);
+        condition.setOutputMarkupId(true);
+        condition.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
+        form.add(condition);
 
-		Label channelTooltip = new Label(ID_T_CHANNEL);
-		channelTooltip.add(new InfoTooltipBehavior(true));
-		form.add(channelTooltip);
+        Label channelTooltip = new Label(ID_T_CHANNEL);
+        channelTooltip.add(new InfoTooltipBehavior(true));
+        form.add(channelTooltip);
 
-		Label exceptChannelTooltip = new Label(ID_T_EXCEPT_CHANNEL);
-		exceptChannelTooltip.add(new InfoTooltipBehavior(true));
-		form.add(exceptChannelTooltip);
+        Label exceptChannelTooltip = new Label(ID_T_EXCEPT_CHANNEL);
+        exceptChannelTooltip.add(new InfoTooltipBehavior(true));
+        form.add(exceptChannelTooltip);
 
-		Label sourceTooltip = new Label(ID_T_SOURCE);
-		sourceTooltip.add(new InfoTooltipBehavior(true));
-		form.add(sourceTooltip);
+        Label sourceTooltip = new Label(ID_T_SOURCE);
+        sourceTooltip.add(new InfoTooltipBehavior(true));
+        form.add(sourceTooltip);
 
-		AjaxButton cancel = new AjaxButton(ID_BUTTON_CANCEL,
-				createStringResource("MappingEditorDialog.button.cancel")) {
+        AjaxButton cancel = new AjaxButton(ID_BUTTON_CANCEL,
+                createStringResource("MappingEditorDialog.button.cancel")) {
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				cancelPerformed(target);
-			}
-		};
-		form.add(cancel);
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                cancelPerformed(target);
+            }
+        };
+        form.add(cancel);
 
-		AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE,
-				createStringResource("MappingEditorDialog.button.apply")) {
+        AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE,
+                createStringResource("MappingEditorDialog.button.apply")) {
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target) {
-				savePerformed(target);
-			}
+            @Override
+            protected void onSubmit(AjaxRequestTarget target) {
+                savePerformed(target);
+            }
 
-			@Override
-			protected void onError(AjaxRequestTarget target) {
-				target.add(getPageBase().getFeedbackPanel(), getContent());
-			}
-		};
-		save.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
-		form.add(save);
-		
-		setCloseButtonCallback(new CloseButtonCallback() {
-			
-			@Override
-			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-				cancelPerformed(target);
-				return true;
-			}
-		});
-	}
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(getPageBase().getFeedbackPanel(), getContent());
+            }
+        };
+        save.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
+        form.add(save);
 
-	private PageBase getPageBase() {
-		return (PageBase) getPage();
-	}
+        setCloseButtonCallback(new CloseButtonCallback() {
 
-	private List<ObjectReferenceType> createPasswordPolicyList() {
-		policyMap.clear();
-		OperationResult result = new OperationResult(OPERATION_LOAD_PASSWORD_POLICIES);
-		Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
-		List<PrismObject<ValuePolicyType>> policies = null;
-		List<ObjectReferenceType> references = new ArrayList<>();
+            @Override
+            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+                cancelPerformed(target);
+                return true;
+            }
+        });
+    }
 
-		try {
-			policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, null, null,
-					task, result);
-			result.recomputeStatus();
-		} catch (CommonException|RuntimeException e) {
-			result.recordFatalError(getString("MappingEditorDialog.message.createPasswordPolicyList.fatalError"), e);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
-		}
+    private PageBase getPageBase() {
+        return (PageBase) getPage();
+    }
 
-		// TODO - show error somehow
-		// if(!result.isSuccess()){
-		// getPageBase().showResult(result);
-		// }
+    private List<ObjectReferenceType> createPasswordPolicyList() {
+        policyMap.clear();
+        OperationResult result = new OperationResult(OPERATION_LOAD_PASSWORD_POLICIES);
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
+        List<PrismObject<ValuePolicyType>> policies = null;
+        List<ObjectReferenceType> references = new ArrayList<>();
 
-		if (policies != null) {
-			ObjectReferenceType ref;
+        try {
+            policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, null, null,
+                    task, result);
+            result.recomputeStatus();
+        } catch (CommonException|RuntimeException e) {
+            result.recordFatalError(getString("MappingEditorDialog.message.createPasswordPolicyList.fatalError"), e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
+        }
 
-			for (PrismObject<ValuePolicyType> policy : policies) {
-				policyMap.put(policy.getOid(), WebComponentUtil.getName(policy));
-				ref = new ObjectReferenceType();
-				ref.setType(ValuePolicyType.COMPLEX_TYPE);
-				ref.setOid(policy.getOid());
-				references.add(ref);
-			}
-		}
+        // TODO - show error somehow
+        // if(!result.isSuccess()){
+        // getPageBase().showResult(result);
+        // }
 
-		return references;
-	}
+        if (policies != null) {
+            ObjectReferenceType ref;
 
-	private void cancelPerformed(AjaxRequestTarget target) {
-		if (inputModel != null && model.getObject() != null) {
-			model.getObject().cancelChanges();
-		}
+            for (PrismObject<ValuePolicyType> policy : policies) {
+                policyMap.put(policy.getOid(), WebComponentUtil.getName(policy));
+                ref = new ObjectReferenceType();
+                ref.setType(ValuePolicyType.COMPLEX_TYPE);
+                ref.setOid(policy.getOid());
+                references.add(ref);
+            }
+        }
 
-		updateComponents(target);
-		target.add(getPageBase().getFeedbackPanel());
-		close(target);
-	}
+        return references;
+    }
 
-	private void savePerformed(AjaxRequestTarget target) {
-		try {
-			if (inputModel != null) {
-				inputModel.setObject(model.getObject().prepareDtoToSave(getPageBase().getPrismContext()));
-			} else {
-				model.getObject().prepareDtoToSave(getPageBase().getPrismContext());
-				inputModel = new PropertyModel<>(model, MappingTypeDto.F_MAPPING);
-			}
+    private void cancelPerformed(AjaxRequestTarget target) {
+        if (inputModel != null && model.getObject() != null) {
+            model.getObject().cancelChanges();
+        }
 
-		} catch (CommonException|RuntimeException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save mapping.", e, e.getStackTrace());
-			error(getString("MappingEditorDialog.message.cantSave") + e);
-		}
+        updateComponents(target);
+        target.add(getPageBase().getFeedbackPanel());
+        close(target);
+    }
 
-		updateComponents(target);
-		target.add(getPageBase().getFeedbackPanel());
-		((PageResourceWizard) getPageBase()).refreshIssues(target);
-		close(target);
-	}
+    private void savePerformed(AjaxRequestTarget target) {
+        try {
+            if (inputModel != null) {
+                inputModel.setObject(model.getObject().prepareDtoToSave(getPageBase().getPrismContext()));
+            } else {
+                model.getObject().prepareDtoToSave(getPageBase().getPrismContext());
+                inputModel = new PropertyModel<>(model, MappingTypeDto.F_MAPPING);
+            }
 
-	/**
-	 * Override this if update of component(s) holding this modal window is
-	 * needed
-	 */
-	public void updateComponents(AjaxRequestTarget target) {
-	}
+        } catch (CommonException|RuntimeException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save mapping.", e, e.getStackTrace());
+            error(getString("MappingEditorDialog.message.cantSave") + e);
+        }
+
+        updateComponents(target);
+        target.add(getPageBase().getFeedbackPanel());
+        ((PageResourceWizard) getPageBase()).refreshIssues(target);
+        close(target);
+    }
+
+    /**
+     * Override this if update of component(s) holding this modal window is
+     * needed
+     */
+    public void updateComponents(AjaxRequestTarget target) {
+    }
 }

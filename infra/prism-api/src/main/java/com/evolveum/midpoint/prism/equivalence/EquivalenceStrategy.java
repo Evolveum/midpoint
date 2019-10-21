@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -27,17 +27,17 @@ import com.evolveum.midpoint.prism.PrismValue;
 
 public interface EquivalenceStrategy {
 
-	ParameterizedEquivalenceStrategy LITERAL = ParameterizedEquivalenceStrategy.LITERAL;
-	ParameterizedEquivalenceStrategy NOT_LITERAL = ParameterizedEquivalenceStrategy.NOT_LITERAL;
-	ParameterizedEquivalenceStrategy IGNORE_METADATA = ParameterizedEquivalenceStrategy.IGNORE_METADATA;
-	ParameterizedEquivalenceStrategy IGNORE_METADATA_CONSIDER_DIFFERENT_IDS = ParameterizedEquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS;
-	ParameterizedEquivalenceStrategy LITERAL_IGNORE_METADATA = ParameterizedEquivalenceStrategy.LITERAL_IGNORE_METADATA;
-	ParameterizedEquivalenceStrategy REAL_VALUE = ParameterizedEquivalenceStrategy.REAL_VALUE;
-	ParameterizedEquivalenceStrategy REAL_VALUE_CONSIDER_DIFFERENT_IDS = ParameterizedEquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS;
+    ParameterizedEquivalenceStrategy LITERAL = ParameterizedEquivalenceStrategy.LITERAL;
+    ParameterizedEquivalenceStrategy NOT_LITERAL = ParameterizedEquivalenceStrategy.NOT_LITERAL;
+    ParameterizedEquivalenceStrategy IGNORE_METADATA = ParameterizedEquivalenceStrategy.IGNORE_METADATA;
+    ParameterizedEquivalenceStrategy IGNORE_METADATA_CONSIDER_DIFFERENT_IDS = ParameterizedEquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS;
+    ParameterizedEquivalenceStrategy LITERAL_IGNORE_METADATA = ParameterizedEquivalenceStrategy.LITERAL_IGNORE_METADATA;
+    ParameterizedEquivalenceStrategy REAL_VALUE = ParameterizedEquivalenceStrategy.REAL_VALUE;
+    ParameterizedEquivalenceStrategy REAL_VALUE_CONSIDER_DIFFERENT_IDS = ParameterizedEquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS;
 
-	boolean equals(Item<?,?> first, Item<?,?> second);
-	boolean equals(PrismValue first, PrismValue second);
+    boolean equals(Item<?,?> first, Item<?,?> second);
+    boolean equals(PrismValue first, PrismValue second);
 
-	int hashCode(Item<?,?> item);
-	int hashCode(PrismValue value);
+    int hashCode(Item<?,?> item);
+    int hashCode(PrismValue value);
 }

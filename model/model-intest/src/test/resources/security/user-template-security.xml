@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="b3a8f244-565a-11e7-8802-7b2586c1ce99"
@@ -13,73 +13,73 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>Security User Template</name>
-    
+
     <!-- MID-4830 -->
     <item>
          <ref>nickName</ref>
-         <mapping>         	      
+         <mapping>
             <strength>strong</strength>
             <source>
                <path>credentials/password/metadata</path>
             </source>
             <expression>
-            	<runAsRef oid="00000000-0000-0000-0000-000000000002"/>
+                <runAsRef oid="00000000-0000-0000-0000-000000000002"/>
                <script>
                   <code>'modifier:'+metadata?.creatorRef?.oid</code>
                </script>
             </expression>
          </mapping>
       </item>
-    
+
     <mapping>
-    	<name>usertemplate-fullName</name>
-    	<strength>strong</strength>
-    	<source>
-    		<path>givenName</path>
-    	</source>
-    	<source>
-    		<path>familyName</path>
-    	</source>
-    	<expression>
-			<script>
-				<code>
-					givenName + ' ' + familyName
-				</code>
-         	</script>
-		</expression>
-    	<target>
-    		<path>fullName</path>
-    	</target>
-    	<condition>
-     		<script>
-    			<code>givenName != null &amp;&amp; familyName != null</code>
-    		</script>  
-    	</condition>
+        <name>usertemplate-fullName</name>
+        <strength>strong</strength>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + ' ' + familyName
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+        <condition>
+             <script>
+                <code>givenName != null &amp;&amp; familyName != null</code>
+            </script>
+        </condition>
     </mapping>
-    
+
     <mapping>
-    	<name>Org mapping</name>
-    	<strength>strong</strength>
-    	<authoritative>true</authoritative>
-    	<source>
-    		<path>organizationalUnit</path>
-    	</source>
-    	<expression>
+        <name>Org mapping</name>
+        <strength>strong</strength>
+        <authoritative>true</authoritative>
+        <source>
+            <path>organizationalUnit</path>
+        </source>
+        <expression>
             <assignmentTargetSearch>
-            	<targetType>OrgType</targetType>
-        		<filter>
-					<q:equal>
-						<q:path>name</q:path>
-						<expression>
-							<path>$organizationalUnit</path>
-						</expression>
-					</q:equal>
-				</filter>
-            </assignmentTargetSearch>    	
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
+                <targetType>OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <expression>
+                            <path>$organizationalUnit</path>
+                        </expression>
+                    </q:equal>
+                </filter>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
     </mapping>
 
 </objectTemplate>

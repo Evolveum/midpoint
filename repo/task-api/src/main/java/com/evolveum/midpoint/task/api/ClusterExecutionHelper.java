@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -31,28 +31,28 @@ import java.util.function.BiConsumer;
  */
 public interface ClusterExecutionHelper {
 
-	/**
-	 * Executes operation on a specified remote node (by OID).
-	 */
-	void execute(@NotNull String nodeOid, @NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException;
+    /**
+     * Executes operation on a specified remote node (by OID).
+     */
+    void execute(@NotNull String nodeOid, @NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException;
 
-	/**
-	 * Executes operation on a specified remote node (by node object).
-	 */
-	void execute(@NotNull NodeType node, @NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult)
-			throws SchemaException;
+    /**
+     * Executes operation on a specified remote node (by node object).
+     */
+    void execute(@NotNull NodeType node, @NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult)
+            throws SchemaException;
 
-	/**
-	 * Executes operation on all cluster nodes except for the current one.
-	 * TODO what to do with dead nodes?
-	 */
-	void execute(@NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult);
+    /**
+     * Executes operation on all cluster nodes except for the current one.
+     * TODO what to do with dead nodes?
+     */
+    void execute(@NotNull BiConsumer<WebClient, OperationResult> code, String context, OperationResult parentResult);
 
 
-	/**
-	 * Extracts the result from the REST response.
-	 */
-	<T> T extractResult(Response response, Class<T> expectedClass) throws SchemaException;
+    /**
+     * Extracts the result from the REST response.
+     */
+    <T> T extractResult(Response response, Class<T> expectedClass) throws SchemaException;
 
 }

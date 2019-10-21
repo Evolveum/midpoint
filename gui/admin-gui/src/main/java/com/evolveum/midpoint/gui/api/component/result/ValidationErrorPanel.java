@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component.result;
@@ -24,112 +24,112 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class ValidationErrorPanel extends BasePanel<FeedbackMessage> {
 
-	private static final String ID_MESSAGE = "message";
+    private static final String ID_MESSAGE = "message";
 
-	static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
+    static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
 
-	private static final Trace LOGGER = TraceManager.getTrace(OperationResultPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OperationResultPanel.class);
 
-	public ValidationErrorPanel(String id, IModel<FeedbackMessage> model) {
-		super(id, model);
+    public ValidationErrorPanel(String id, IModel<FeedbackMessage> model) {
+        super(id, model);
 
-		initLayout();
-	}
+        initLayout();
+    }
 
-	public void initLayout() {
+    public void initLayout() {
 
-		WebMarkupContainer detailsBox = new WebMarkupContainer("detailsBox");
-		detailsBox.setOutputMarkupId(true);
-		detailsBox.add(AttributeModifier.append("class", createHeaderCss()));
-		add(detailsBox);
+        WebMarkupContainer detailsBox = new WebMarkupContainer("detailsBox");
+        detailsBox.setOutputMarkupId(true);
+        detailsBox.add(AttributeModifier.append("class", createHeaderCss()));
+        add(detailsBox);
 
-		initHeader(detailsBox);
+        initHeader(detailsBox);
 
-	}
+    }
 
-	private IModel<String> createHeaderCss() {
+    private IModel<String> createHeaderCss() {
 
-		return new IModel<String>() {
+        return new IModel<String>() {
 
-			@Override
-			public String getObject() {
-				FeedbackMessage result = getModelObject();
+            @Override
+            public String getObject() {
+                FeedbackMessage result = getModelObject();
 
-				if (result == null) {
-					return " box-warning";
-				}
+                if (result == null) {
+                    return " box-warning";
+                }
 
-				switch (result.getLevel()) {
-					case FeedbackMessage.INFO:
-					case FeedbackMessage.DEBUG:
-						return " box-info";
-					case FeedbackMessage.SUCCESS:
-						return " box-success";
-					case FeedbackMessage.ERROR:
-					case FeedbackMessage.FATAL:
-						return " box-danger";
-					case FeedbackMessage.UNDEFINED:
-					case FeedbackMessage.WARNING: // TODO:
-					default:
-						return " box-warning";
-					}
-				}
+                switch (result.getLevel()) {
+                    case FeedbackMessage.INFO:
+                    case FeedbackMessage.DEBUG:
+                        return " box-info";
+                    case FeedbackMessage.SUCCESS:
+                        return " box-success";
+                    case FeedbackMessage.ERROR:
+                    case FeedbackMessage.FATAL:
+                        return " box-danger";
+                    case FeedbackMessage.UNDEFINED:
+                    case FeedbackMessage.WARNING: // TODO:
+                    default:
+                        return " box-warning";
+                    }
+                }
 
-		};
-	}
+        };
+    }
 
-	private void initHeader(WebMarkupContainer box) {
-		WebMarkupContainer iconType = new WebMarkupContainer("iconType");
-		iconType.setOutputMarkupId(true);
-		iconType.add(new AttributeAppender("class", new IModel() {
-			@Override
-			public Object getObject() {
+    private void initHeader(WebMarkupContainer box) {
+        WebMarkupContainer iconType = new WebMarkupContainer("iconType");
+        iconType.setOutputMarkupId(true);
+        iconType.add(new AttributeAppender("class", new IModel() {
+            @Override
+            public Object getObject() {
 
-				FeedbackMessage result = getModelObject();
+                FeedbackMessage result = getModelObject();
 
-				if (result == null) {
-					return " fa-info";
-				}
+                if (result == null) {
+                    return " fa-info";
+                }
 
-				switch (result.getLevel()) {
-					case FeedbackMessage.INFO:
-					case FeedbackMessage.DEBUG:
-						return " fa-info";
-					case FeedbackMessage.SUCCESS:
-						return " fa-check";
-					case FeedbackMessage.ERROR:
-					case FeedbackMessage.FATAL:
-						return " fa-ban";
-					case FeedbackMessage.UNDEFINED:
-					case FeedbackMessage.WARNING: // TODO:
-					default:
-						return " fa-warning";
-					}
-				}
+                switch (result.getLevel()) {
+                    case FeedbackMessage.INFO:
+                    case FeedbackMessage.DEBUG:
+                        return " fa-info";
+                    case FeedbackMessage.SUCCESS:
+                        return " fa-check";
+                    case FeedbackMessage.ERROR:
+                    case FeedbackMessage.FATAL:
+                        return " fa-ban";
+                    case FeedbackMessage.UNDEFINED:
+                    case FeedbackMessage.WARNING: // TODO:
+                    default:
+                        return " fa-warning";
+                    }
+                }
 
-		}));
+        }));
 
-		box.add(iconType);
+        box.add(iconType);
 
-		Label message =  new Label(ID_MESSAGE, new PropertyModel<Serializable>(getModel(), "message"));
-		box.add(message);
+        Label message =  new Label(ID_MESSAGE, new PropertyModel<Serializable>(getModel(), "message"));
+        box.add(message);
 
-		AjaxLink<Void> close = new AjaxLink<Void>("close") {
+        AjaxLink<Void> close = new AjaxLink<Void>("close") {
 
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				close(target);
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                close(target);
 
-			}
-		};
+            }
+        };
 
-		box.add(close);
-	}
+        box.add(close);
+    }
 
-	public void close(AjaxRequestTarget target){
-		this.setVisible(false);
-		target.add(this);
-	}
+    public void close(AjaxRequestTarget target){
+        this.setVisible(false);
+        target.add(this);
+    }
 }

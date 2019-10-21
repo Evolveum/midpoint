@@ -2,20 +2,20 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <c:object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xsi:type="c:UserType"
-	xsi:schemaLocation="http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xsi:type="c:UserType"
+    xsi:schemaLocation="http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../ns/public/common/common-3.xsd">
-	<name>bond</name>
-	<fullName>James Bond 007</fullName>
-	<givenName>James Jr.</givenName>
-	<honorificSuffix>007</honorificSuffix>
-	<locality>home</locality>
-	<assignment>
+    <name>bond</name>
+    <fullName>James Bond 007</fullName>
+    <givenName>James Jr.</givenName>
+    <honorificSuffix>007</honorificSuffix>
+    <locality>home</locality>
+    <assignment>
         <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
         </construction>

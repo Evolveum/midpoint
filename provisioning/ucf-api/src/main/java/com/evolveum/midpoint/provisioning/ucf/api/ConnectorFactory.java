@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
@@ -40,51 +40,51 @@ import java.util.Set;
  */
 public interface ConnectorFactory {
 
-	String OPERATION_LIST_CONNECTOR = ConnectorFactory.class.getName()+".listConnectors";
+    String OPERATION_LIST_CONNECTOR = ConnectorFactory.class.getName()+".listConnectors";
 
-	PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException;
+    PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException;
 
-	/**
-	 * Creates new unconfigured instance of the connector.
-	 *
-	 * This factory is NOT required to cache or pool the connector instances.
-	 * Call to this method may create new connector instance each time it is
-	 * called unless an underlying framework is pooling connector instances.
-	 *
-	 * May return null if the resource definition cannot be handled by this factory
-	 * instance. E.g. it does not have configuration or the configuration is meant for
-	 * a different factory.
-	 * TODO: Better error handling
-	 *
-	 * @param resource resource definition
-	 * @return configured and initialized connector instance
-	 * @throws ObjectNotFoundException is the specified connector was not found
-	 * @throws SchemaException
-	 */
-	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String instanceName, String desc) throws ObjectNotFoundException, SchemaException;
+    /**
+     * Creates new unconfigured instance of the connector.
+     *
+     * This factory is NOT required to cache or pool the connector instances.
+     * Call to this method may create new connector instance each time it is
+     * called unless an underlying framework is pooling connector instances.
+     *
+     * May return null if the resource definition cannot be handled by this factory
+     * instance. E.g. it does not have configuration or the configuration is meant for
+     * a different factory.
+     * TODO: Better error handling
+     *
+     * @param resource resource definition
+     * @return configured and initialized connector instance
+     * @throws ObjectNotFoundException is the specified connector was not found
+     * @throws SchemaException
+     */
+    public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String instanceName, String desc) throws ObjectNotFoundException, SchemaException;
 
-	/**
-	 * Returns a list of all known connectors.
-	 *
-	 * The returned list contains all connectors known to the system, whether
-	 * they are used or not, whethere they are configured or not. It should
-	 * be used to list the "capabilities" of the system.
-	 *
-	 * Returned connector objects are "virtual". They may not be stored in the
-	 * persistent repository and they may disappear if the connector disappears
-	 * from the system. The returned connector objects are immutable.
-	 *
-	 * @param host definition of a connector host or null for local connector list
-	 * @return list of all known connectors.
-	 */
-	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul) throws CommunicationException;
+    /**
+     * Returns a list of all known connectors.
+     *
+     * The returned list contains all connectors known to the system, whether
+     * they are used or not, whethere they are configured or not. It should
+     * be used to list the "capabilities" of the system.
+     *
+     * Returned connector objects are "virtual". They may not be stored in the
+     * persistent repository and they may disappear if the connector disappears
+     * from the system. The returned connector objects are immutable.
+     *
+     * @param host definition of a connector host or null for local connector list
+     * @return list of all known connectors.
+     */
+    public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul) throws CommunicationException;
 
-	/**
-	 * Execute self-test for each connector framework that is capable of executing tests.
-	 */
-	public void selfTest(OperationResult parentTestResult);
+    /**
+     * Execute self-test for each connector framework that is capable of executing tests.
+     */
+    public void selfTest(OperationResult parentTestResult);
 
-	boolean supportsFramework(String frameworkIdentifier);
+    boolean supportsFramework(String frameworkIdentifier);
 
     /**
      * Return a version of the framework.
@@ -93,6 +93,6 @@ public interface ConnectorFactory {
      */
     String getFrameworkVersion();
 
-	void shutdown();
+    void shutdown();
 
 }

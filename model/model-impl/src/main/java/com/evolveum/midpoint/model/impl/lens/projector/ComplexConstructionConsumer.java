@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
@@ -17,15 +17,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public interface ComplexConstructionConsumer<K, T extends AbstractConstruction> {
 
-	boolean before(K key);
+    boolean before(K key);
 
-	void onAssigned(K key, String desc) throws SchemaException;
+    void onAssigned(K key, String desc) throws SchemaException;
 
-	void onUnchangedValid(K key, String desc) throws SchemaException;
+    void onUnchangedValid(K key, String desc) throws SchemaException;
 
-	void onUnchangedInvalid(K key, String desc) throws SchemaException;
+    void onUnchangedInvalid(K key, String desc) throws SchemaException;
 
-	void onUnassigned(K key, String desc) throws SchemaException;
+    void onUnassigned(K key, String desc) throws SchemaException;
 
-	void after(K key, String desc, DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple);
+    void after(K key, String desc, DeltaMapTriple<K, ConstructionPack<T>> constructionMapTriple);
 }

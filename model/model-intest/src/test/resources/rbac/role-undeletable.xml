@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="7ae7d616-1442-4295-9aee-5f5e339870af"
@@ -11,16 +11,16 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Undeletable</name>
     <assignment>
-    	<policyRule>
-    		<name>undeletable</name>
-    		<policyConstraints>
-		    	<modification>
-					<operation>modify</operation>
-				</modification>
-		    </policyConstraints>
-		    <policyActions>
-		    	<enforcement/>
-		    </policyActions>
-    	</policyRule>
+        <policyRule>
+            <name>undeletable</name>
+            <policyConstraints>
+                <modification>
+                    <operation>modify</operation>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
     </assignment>
 </role>

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.expr;
@@ -90,13 +90,13 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
 
     @Override
     public Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList, boolean preAuthorized)
-			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Set<String> rv = new HashSet<>();
-		for (ObjectReferenceType ref : userRefList) {
-			UserType user = getObject(UserType.class, ref.getOid(), preAuthorized);
-			rv.addAll(getManagersOidsExceptUser(user, preAuthorized));
-		}
-		return rv;
+        for (ObjectReferenceType ref : userRefList) {
+            UserType user = getObject(UserType.class, ref.getOid(), preAuthorized);
+            rv.addAll(getManagersOidsExceptUser(user, preAuthorized));
+        }
+        return rv;
     }
 
     @Override
@@ -116,7 +116,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             SecurityViolationException {
         Set<UserType> retval = new HashSet<>();
         if (user == null) {
-        	return retval;
+            return retval;
         }
         Collection<String> orgOids = getOrgUnits(user, null, preAuthorized);
         while (!orgOids.isEmpty()) {
@@ -126,7 +126,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
                 if (orgType != null) {
                     OrgType org = getOrgByOid(orgOid, preAuthorized);
                     if (org == null) {
-                    	continue;
+                        continue;
                     }
                     if (!determineSubTypes(org).contains(orgType)) {
                         continue;
@@ -259,8 +259,8 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         List<OrgType> parentOrgs = new ArrayList<>(parentOrgRefs.size());
         for (ObjectReferenceType parentOrgRef: parentOrgRefs) {
             if (!prismContext.relationMatches(relation, parentOrgRef.getRelation())) {
-            	continue;
-			}
+                continue;
+            }
             OrgType parentOrg;
             try {
                 parentOrg = getObject(OrgType.class, parentOrgRef.getOid(), preAuthorized);
@@ -335,7 +335,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         if (preAuthorized) {
             prismObject = repositoryService.getObject(type, oid, null, midpointFunctions.getCurrentResult());
         } else {
-        	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
+            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
             prismObject = modelService.getObject(type, oid, options, midpointFunctions.getCurrentTask(), midpointFunctions.getCurrentResult(CLASS_DOT + "getObject"));
         }
         return prismObject.asObjectable();
@@ -347,7 +347,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             return repositoryService.searchObjects(clazz, query, null, result);
         } else {
             try {
-            	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
+                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
                 return modelService.searchObjects(clazz, query, options, midpointFunctions.getCurrentTask(), result);
             } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 throw new SystemException("Couldn't search objects: " + e.getMessage(), e);

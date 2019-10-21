@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -17,16 +17,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EvaluatedModificationTrigger extends EvaluatedPolicyRuleTrigger<ModificationPolicyConstraintType> {
 
-	public EvaluatedModificationTrigger(@NotNull PolicyConstraintKindType kind, @NotNull ModificationPolicyConstraintType constraint,
-			LocalizableMessage message, LocalizableMessage shortMessage) {
-		super(kind, constraint, message, shortMessage, false);
-	}
+    public EvaluatedModificationTrigger(@NotNull PolicyConstraintKindType kind, @NotNull ModificationPolicyConstraintType constraint,
+            LocalizableMessage message, LocalizableMessage shortMessage) {
+        super(kind, constraint, message, shortMessage, false);
+    }
 
-	@Override
-	public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
-			PrismContext prismContext) {
-		EvaluatedModificationTriggerType rv = new EvaluatedModificationTriggerType();
-		fillCommonContent(rv);
-		return rv;
-	}
+    @Override
+    public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+            PrismContext prismContext) {
+        EvaluatedModificationTriggerType rv = new EvaluatedModificationTriggerType();
+        fillCommonContent(rv);
+        return rv;
+    }
 }

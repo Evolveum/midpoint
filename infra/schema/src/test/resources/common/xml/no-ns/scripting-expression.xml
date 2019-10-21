@@ -1,39 +1,39 @@
 <?xml version="1.0"?>
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
-  ~  
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<pipeline list="true">			<!-- this is necessary, because 'sequence' is ambiguous (c:sequence, s:sequence) so we cannot afford to guess here -->
-	<sequence>
-		<search>
-			<type>RoleType</type>
-			<searchFilter>
-				<equal>
-					<path>name</path>
-					<value>AAAAA</value>
-				</equal>
-			</searchFilter>
-		</search>
-		<action>
-			<type>log</type>
-		</action>
-	</sequence>
-	<sequence>
-		<action>
-			<type>delete</type>
-		</action>
-		<action>
-			<type>assign</type>
-			<parameter>
-				<name>role</name>
-				<value>rome555c-7797-11e2-94a6-001e8c717e5b</value>
-			</parameter>
-		</action>
-		<search>
-			<type>UserType</type>
-		</search>
-	</sequence>
+<pipeline list="true">            <!-- this is necessary, because 'sequence' is ambiguous (c:sequence, s:sequence) so we cannot afford to guess here -->
+    <sequence>
+        <search>
+            <type>RoleType</type>
+            <searchFilter>
+                <equal>
+                    <path>name</path>
+                    <value>AAAAA</value>
+                </equal>
+            </searchFilter>
+        </search>
+        <action>
+            <type>log</type>
+        </action>
+    </sequence>
+    <sequence>
+        <action>
+            <type>delete</type>
+        </action>
+        <action>
+            <type>assign</type>
+            <parameter>
+                <name>role</name>
+                <value>rome555c-7797-11e2-94a6-001e8c717e5b</value>
+            </parameter>
+        </action>
+        <search>
+            <type>UserType</type>
+        </search>
+    </sequence>
 </pipeline>

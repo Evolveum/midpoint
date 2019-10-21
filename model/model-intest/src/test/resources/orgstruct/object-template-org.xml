@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2014-2015 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="3e62558c-ca0f-11e3-ba83-001e8c717e5b"
@@ -13,65 +13,65 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
     <name>Org Template</name>
-    
+
     <item>
-    	<ref>assignment</ref>
-    	<mapping>
-			<authoritative>true</authoritative>
-			<strength>strong</strength>			<!-- there's already an assignment, so normal mappings are skipped on object add -->
-	    	<source>
-	    		<path>orgType</path>
-	    	</source>
-    		<expression>
-				<assignmentTargetSearch>
-					<targetType>c:OrgType</targetType>
-					<filter>
-						<q:equal>
-							<q:path>name</q:path>
-							<q:value>F0006</q:value>
-						</q:equal>
-					</filter>
-				</assignmentTargetSearch>
-				<!-- parentOrgRef cannot exist without assignment, so we have to create one (instead of parentRefOrg alone) -->
-	            <!--<referenceSearch>-->
-					<!--<targetType>c:OrgType</targetType>-->
-					<!--<filter>-->
-						<!--<q:equal>-->
-							<!--<q:path>name</q:path>-->
-							<!--<q:value>F0006</q:value>-->
-						<!--</q:equal>-->
-					<!--</filter>-->
-				<!--</referenceSearch>    	-->
-	    	</expression>
-    		<condition>
-	    		<script>
-	    			<code>orgType == 'fictional'</code>
-	    		</script>
-	    	</condition>
-    	</mapping>
+        <ref>assignment</ref>
+        <mapping>
+            <authoritative>true</authoritative>
+            <strength>strong</strength>            <!-- there's already an assignment, so normal mappings are skipped on object add -->
+            <source>
+                <path>orgType</path>
+            </source>
+            <expression>
+                <assignmentTargetSearch>
+                    <targetType>c:OrgType</targetType>
+                    <filter>
+                        <q:equal>
+                            <q:path>name</q:path>
+                            <q:value>F0006</q:value>
+                        </q:equal>
+                    </filter>
+                </assignmentTargetSearch>
+                <!-- parentOrgRef cannot exist without assignment, so we have to create one (instead of parentRefOrg alone) -->
+                <!--<referenceSearch>-->
+                    <!--<targetType>c:OrgType</targetType>-->
+                    <!--<filter>-->
+                        <!--<q:equal>-->
+                            <!--<q:path>name</q:path>-->
+                            <!--<q:value>F0006</q:value>-->
+                        <!--</q:equal>-->
+                    <!--</filter>-->
+                <!--</referenceSearch>        -->
+            </expression>
+            <condition>
+                <script>
+                    <code>orgType == 'fictional'</code>
+                </script>
+            </condition>
+        </mapping>
     </item>
-    
+
     <mapping>
-    	<name>Org functional metarole assignment</name>
-    	<authoritative>true</authoritative>
-		<strength>strong</strength>			<!-- there's already an assignment, so normal mappings are skipped on object add -->
-    	<source>
-    		<path>orgType</path>
-    	</source>
-    	<expression>
+        <name>Org functional metarole assignment</name>
+        <authoritative>true</authoritative>
+        <strength>strong</strength>            <!-- there's already an assignment, so normal mappings are skipped on object add -->
+        <source>
+            <path>orgType</path>
+        </source>
+        <expression>
             <assignmentTargetSearch>
-            	<targetType>c:RoleType</targetType>
-        		<oid>74aac2c8-ca0f-11e3-bb29-001e8c717e5b</oid>
-            </assignmentTargetSearch>    	
-    	</expression>
-    	<target>
-    		<path>assignment</path>
-    	</target>
-    	<condition>
-    		<script>
-    			<code>orgType == 'functional'</code>
-    		</script>
-    	</condition>
+                <targetType>c:RoleType</targetType>
+                <oid>74aac2c8-ca0f-11e3-bb29-001e8c717e5b</oid>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
+        <condition>
+            <script>
+                <code>orgType == 'functional'</code>
+            </script>
+        </condition>
     </mapping>
-    
+
 </objectTemplate>

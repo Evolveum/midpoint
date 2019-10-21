@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2016-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.sample;
@@ -44,9 +44,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
-	private static final long serialVersionUID = 1L;
-	
-	private static final String DOT_CLASS = SampleFormFocusTabPanel.class.getName() + ".";
+    private static final long serialVersionUID = 1L;
+
+    private static final String DOT_CLASS = SampleFormFocusTabPanel.class.getName() + ".";
     private static final String OPERATION_SEARCH_ROLES = DOT_CLASS + "searchRoles";
 
     private static final String ID_HEADER = "header";
@@ -67,8 +67,8 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObject
 
     @Override
     protected void onInitialize() {
-    	super.onInitialize();
-    	initLayout();
+        super.onInitialize();
+        initLayout();
     }
 
     private void initLayout() {
@@ -85,7 +85,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObject
         try {
             availableRoles = getPageBase().getModelService().searchObjects(RoleType.class, null, null, task, task.getResult());
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException |
-        		ConfigurationException | ExpressionEvaluationException e) {
+                ConfigurationException | ExpressionEvaluationException e) {
             task.getResult().recordFatalError(e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load roles", e);
             availableRoles = new ArrayList<>();

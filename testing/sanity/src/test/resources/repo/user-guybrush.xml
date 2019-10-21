@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -18,12 +18,12 @@
     <employeeType>A</employeeType>
     <employeeType>B</employeeType>
     <employeeType>C</employeeType>
-    
+
 
     <credentials>
         <password>
-        	<value>
-	            <clearValue>howMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChuckWood</clearValue>
+            <value>
+                <clearValue>howMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChuckWood</clearValue>
             </value>
         </password>
     </credentials>

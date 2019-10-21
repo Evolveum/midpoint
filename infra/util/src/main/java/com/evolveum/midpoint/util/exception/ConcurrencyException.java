@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.util.exception;
@@ -22,35 +22,35 @@ import com.evolveum.midpoint.util.LocalizableMessage;
  *
  */
 public class ConcurrencyException extends CommonException {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public ConcurrencyException() {
-	}
+    public ConcurrencyException() {
+    }
 
-	public ConcurrencyException(String message) {
-		super(message);
-	}
+    public ConcurrencyException(String message) {
+        super(message);
+    }
 
-	public ConcurrencyException(LocalizableMessage userFriendlyMessage) {
-		super(userFriendlyMessage);
-	}
+    public ConcurrencyException(LocalizableMessage userFriendlyMessage) {
+        super(userFriendlyMessage);
+    }
 
-	public ConcurrencyException(Throwable cause) {
-		super(cause);
-	}
+    public ConcurrencyException(Throwable cause) {
+        super(cause);
+    }
 
-	public ConcurrencyException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public ConcurrencyException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-	public ConcurrencyException(LocalizableMessage userFriendlyMessage, Throwable cause) {
-		super(userFriendlyMessage, cause);
-	}
+    public ConcurrencyException(LocalizableMessage userFriendlyMessage, Throwable cause) {
+        super(userFriendlyMessage, cause);
+    }
 
-	@Override
-	public String getErrorTypeMessage() {
-		return "Concurrency exception";
-	}
+    @Override
+    public String getErrorTypeMessage() {
+        return "Concurrency exception";
+    }
 
 
 

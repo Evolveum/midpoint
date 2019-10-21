@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019 michael.gruber@wwk.de, Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.story;
@@ -34,62 +34,62 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInducement extends AbstractStoryTest {
 
-	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "inducement");
+    public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "inducement");
 
-	public static final File ROLE_ROLE1_FILE = new File(TEST_DIR, "role-role1.xml");
-	public static final String ROLE_ROLE1_OID = "10000000-0000-0000-0000-100000000001";
+    public static final File ROLE_ROLE1_FILE = new File(TEST_DIR, "role-role1.xml");
+    public static final String ROLE_ROLE1_OID = "10000000-0000-0000-0000-100000000001";
 
-	public static final File ROLE_ROLE2_FILE = new File(TEST_DIR, "role-role2.xml");
-	public static final String ROLE_ROLE2_OID = "10000000-0000-0000-0000-100000000002";
-	
-	public static final File ROLE_ROLE3_FILE = new File(TEST_DIR, "role-role3.xml");
-	public static final String ROLE_ROLE3_OID = "10000000-0000-0000-0000-100000000003";
-	
-	public static final File ROLE_LOCK_FILE = new File(TEST_DIR, "role-lock.xml");
-	public static final String ROLE_LOCK_OID = "10000000-0000-0000-0000-10000000lock";
-	
-	public static final File ROLE_PROCESSOR_FILE = new File(TEST_DIR, "role-processor.xml");
-	public static final String ROLE_PROCESSOR_OID = "10000000-0000-0000-0000-100processor";
-	
-	public static final File USER_SIMPLE_FILE = new File(TEST_DIR, "user-simple.xml");
-	public static final String USER_SIMPLE_OID = "10000000-0000-0000-0001-100000simple";
+    public static final File ROLE_ROLE2_FILE = new File(TEST_DIR, "role-role2.xml");
+    public static final String ROLE_ROLE2_OID = "10000000-0000-0000-0000-100000000002";
 
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
+    public static final File ROLE_ROLE3_FILE = new File(TEST_DIR, "role-role3.xml");
+    public static final String ROLE_ROLE3_OID = "10000000-0000-0000-0000-100000000003";
 
-		// Roles
-		importObjectFromFile(ROLE_ROLE1_FILE, initResult);
-		importObjectFromFile(ROLE_ROLE2_FILE, initResult);
-		importObjectFromFile(ROLE_ROLE3_FILE, initResult);
-		importObjectFromFile(ROLE_LOCK_FILE, initResult);
-		importObjectFromFile(ROLE_PROCESSOR_FILE, initResult);
+    public static final File ROLE_LOCK_FILE = new File(TEST_DIR, "role-lock.xml");
+    public static final String ROLE_LOCK_OID = "10000000-0000-0000-0000-10000000lock";
 
-		//User
-		importObjectFromFile(USER_SIMPLE_FILE, initResult);
+    public static final File ROLE_PROCESSOR_FILE = new File(TEST_DIR, "role-processor.xml");
+    public static final String ROLE_PROCESSOR_OID = "10000000-0000-0000-0000-100processor";
 
-	}
+    public static final File USER_SIMPLE_FILE = new File(TEST_DIR, "user-simple.xml");
+    public static final String USER_SIMPLE_OID = "10000000-0000-0000-0001-100000simple";
 
-	@Test
-	public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
-		displayTestTitle(TEST_NAME);
-		//no resource, no extension definition
-		//anything to check?		
-		
-	}
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
 
-	/**
-	 * assign role "processor".
-	 * role "processor" contains inducements for role1, role2, role3
-	 */
-	@Test
-	public void test010InducementConditionsTrue() throws Exception {
-		final String TEST_NAME = "test010InducementConditionsTrue";
-		displayTestTitle(TEST_NAME);
+        // Roles
+        importObjectFromFile(ROLE_ROLE1_FILE, initResult);
+        importObjectFromFile(ROLE_ROLE2_FILE, initResult);
+        importObjectFromFile(ROLE_ROLE3_FILE, initResult);
+        importObjectFromFile(ROLE_LOCK_FILE, initResult);
+        importObjectFromFile(ROLE_PROCESSOR_FILE, initResult);
+
+        //User
+        importObjectFromFile(USER_SIMPLE_FILE, initResult);
+
+    }
+
+    @Test
+    public void test000Sanity() throws Exception {
+        final String TEST_NAME = "test000Sanity";
+        displayTestTitle(TEST_NAME);
+        //no resource, no extension definition
+        //anything to check?
+
+    }
+
+    /**
+     * assign role "processor".
+     * role "processor" contains inducements for role1, role2, role3
+     */
+    @Test
+    public void test010InducementConditionsTrue() throws Exception {
+        final String TEST_NAME = "test010InducementConditionsTrue";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-		Task task = createTask(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -108,19 +108,19 @@ public class TestInducement extends AbstractStoryTest {
         assertNotAssignedRole(user, ROLE_ROLE2_OID);
         assertNotAssignedRole(user, ROLE_ROLE3_OID);
         assertRoleMembershipRef(user, ROLE_PROCESSOR_OID, ROLE_ROLE1_OID, ROLE_ROLE2_OID, ROLE_ROLE3_OID);
-	}
-	
-	/**
-	 * modify description of user 
-	 * condition in "processor" for inducing role2 returns false if description equals "NO" 
-	 */
-	@Test
-	public void test020InducementRole2ConditionFalse() throws Exception {
-		final String TEST_NAME = "test020InducementRole2ConditionFalse";
-		displayTestTitle(TEST_NAME);
+    }
+
+    /**
+     * modify description of user
+     * condition in "processor" for inducing role2 returns false if description equals "NO"
+     */
+    @Test
+    public void test020InducementRole2ConditionFalse() throws Exception {
+        final String TEST_NAME = "test020InducementRole2ConditionFalse";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-		Task task = createTask(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -132,7 +132,7 @@ public class TestInducement extends AbstractStoryTest {
 
         PrismObject<UserType> user = getUser(USER_SIMPLE_OID);
         display("User simple having description 'NO'", user);
-        
+
         assertUserProperty(USER_SIMPLE_OID, new QName("description"), "NO");
         assertAssignedRole(user, ROLE_PROCESSOR_OID);
         assertNotAssignedRole(user, ROLE_LOCK_OID);
@@ -140,80 +140,80 @@ public class TestInducement extends AbstractStoryTest {
         assertNotAssignedRole(user, ROLE_ROLE2_OID);
         assertNotAssignedRole(user, ROLE_ROLE3_OID);
         assertRoleMembershipRef(user, ROLE_PROCESSOR_OID, ROLE_ROLE1_OID, ROLE_ROLE3_OID);
-	}
-	
-	/**
-	 * assign role "lock" to user 
-	 * condition in "processor" for inducing role3 returns false if lock is contained in rolemembership
-	 */
-	@Test
-	public void test030InducementRole3ConditionFalse() throws Exception {
-		final String TEST_NAME = "test030InducementRole3ConditionFalse";
-		displayTestTitle(TEST_NAME);
+    }
+
+    /**
+     * assign role "lock" to user
+     * condition in "processor" for inducing role3 returns false if lock is contained in rolemembership
+     */
+    @Test
+    public void test030InducementRole3ConditionFalse() throws Exception {
+        final String TEST_NAME = "test030InducementRole3ConditionFalse";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-		Task task = createTask(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         // WHEN
         assignRole(USER_SIMPLE_OID, ROLE_LOCK_OID, task, result);
-        
+
 
         // THEN
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_SIMPLE_OID);
         display("User simple having role lock assigned'", user);
-        
+
         assertAssignedRole(user, ROLE_PROCESSOR_OID);
         assertAssignedRole(user, ROLE_LOCK_OID);
         assertNotAssignedRole(user, ROLE_ROLE1_OID);
         assertNotAssignedRole(user, ROLE_ROLE2_OID);
         assertNotAssignedRole(user, ROLE_ROLE3_OID);
         assertRoleMembershipRef(user, ROLE_PROCESSOR_OID, ROLE_LOCK_OID, ROLE_ROLE1_OID);
-	}
-	
-	/**
-	 * same as Test30, just recomputed again
-	 */
-	@Test
-	public void test040Recomputed() throws Exception {
-		final String TEST_NAME = "test040Recomputed";
-		displayTestTitle(TEST_NAME);
+    }
+
+    /**
+     * same as Test30, just recomputed again
+     */
+    @Test
+    public void test040Recomputed() throws Exception {
+        final String TEST_NAME = "test040Recomputed";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-		Task task = createTask(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         // WHEN
         recomputeUser(USER_SIMPLE_OID);
-        
+
         // THEN
         assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_SIMPLE_OID);
         display("User simple having role lock assigned'", user);
-        
+
         assertAssignedRole(user, ROLE_PROCESSOR_OID);
         assertAssignedRole(user, ROLE_LOCK_OID);
         assertNotAssignedRole(user, ROLE_ROLE1_OID);
         assertNotAssignedRole(user, ROLE_ROLE2_OID);
         assertNotAssignedRole(user, ROLE_ROLE3_OID);
         assertRoleMembershipRef(user, ROLE_PROCESSOR_OID, ROLE_LOCK_OID, ROLE_ROLE1_OID);
-	}
+    }
 
-	/**
-	 * Unassign role "lock" from user
-	 */
-	@Test
-	public void test050InducementRole3ConditionTrue() throws Exception {
-		final String TEST_NAME = "test050InducementRole3ConditionTrue";
-		displayTestTitle(TEST_NAME);
+    /**
+     * Unassign role "lock" from user
+     */
+    @Test
+    public void test050InducementRole3ConditionTrue() throws Exception {
+        final String TEST_NAME = "test050InducementRole3ConditionTrue";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-		Task task = createTask(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -232,18 +232,18 @@ public class TestInducement extends AbstractStoryTest {
         assertNotAssignedRole(user, ROLE_ROLE2_OID);
         assertNotAssignedRole(user, ROLE_ROLE3_OID);
         assertRoleMembershipRef(user, ROLE_PROCESSOR_OID, ROLE_ROLE1_OID, ROLE_ROLE3_OID);
-	}
+    }
 
-	/**
-	 * same as Test50, just recomputed again
-	 */
-	@Test
-	public void test060Recomputed() throws Exception {
-		final String TEST_NAME = "test060Recomputed";
-		displayTestTitle(TEST_NAME);
+    /**
+     * same as Test50, just recomputed again
+     */
+    @Test
+    public void test060Recomputed() throws Exception {
+        final String TEST_NAME = "test060Recomputed";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-		Task task = createTask(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
@@ -256,30 +256,30 @@ public class TestInducement extends AbstractStoryTest {
         PrismObject<UserType> user = getUser(USER_SIMPLE_OID);
         display("User simple having role lock unassigned'", user);
 
-		assertAssignedRole(user, ROLE_PROCESSOR_OID);
-		assertNotAssignedRole(user, ROLE_LOCK_OID);
-		assertNotAssignedRole(user, ROLE_ROLE1_OID);
-		assertNotAssignedRole(user, ROLE_ROLE2_OID);
-		assertNotAssignedRole(user, ROLE_ROLE3_OID);
-		assertRoleMembershipRef(user, ROLE_PROCESSOR_OID, ROLE_ROLE1_OID, ROLE_ROLE3_OID);
-	}
+        assertAssignedRole(user, ROLE_PROCESSOR_OID);
+        assertNotAssignedRole(user, ROLE_LOCK_OID);
+        assertNotAssignedRole(user, ROLE_ROLE1_OID);
+        assertNotAssignedRole(user, ROLE_ROLE2_OID);
+        assertNotAssignedRole(user, ROLE_ROLE3_OID);
+        assertRoleMembershipRef(user, ROLE_PROCESSOR_OID, ROLE_ROLE1_OID, ROLE_ROLE3_OID);
+    }
 
-	@Test
-	public void test070DeleteUser() throws Exception {
-		final String TEST_NAME = "test070DeleteUser";
-		displayTestTitle(TEST_NAME);
+    @Test
+    public void test070DeleteUser() throws Exception {
+        final String TEST_NAME = "test070DeleteUser";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-		Task task = createTask(TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
 
         // WHEN
-		deleteObject(UserType.class, USER_SIMPLE_OID, task, result);
+        deleteObject(UserType.class, USER_SIMPLE_OID, task, result);
 
         // THEN
         assertSuccess(result);
 
         assertNoObject(UserType.class, USER_SIMPLE_OID, task, result);
-	}
+    }
 }

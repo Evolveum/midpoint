@@ -2,7 +2,7 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
@@ -10,7 +10,7 @@
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
     xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
     xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -21,585 +21,585 @@
     <xsd:annotation>
         <xsd:documentation>
             Capabilities schema.
-            
+
             Defines resource capabilities such as ability to enable/disable account,
             ability to reset passwords, etc.
-            
+
             Version: 3.9
             Recommended namespace prefix: cap
         </xsd:documentation>
         <xsd:appinfo>
-			<!--  jaxb:globalBindings are specified indirectly by import from common-2 -->
-		</xsd:appinfo>
+            <!--  jaxb:globalBindings are specified indirectly by import from common-2 -->
+        </xsd:appinfo>
     </xsd:annotation>
-    
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    	<xsd:annotation>
-    		<xsd:documentation>
-    			Import of the common schema. Some datatypes are reused here.
-    		</xsd:documentation>
-    	</xsd:annotation>
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        <xsd:annotation>
+            <xsd:documentation>
+                Import of the common schema. Some datatypes are reused here.
+            </xsd:documentation>
+        </xsd:annotation>
     </xsd:import>
 
-	<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
-				schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3">
-		<xsd:annotation>
-			<xsd:documentation>
-				Prism query.
-			</xsd:documentation>
-		</xsd:annotation>
-	</xsd:import>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3">
+        <xsd:annotation>
+            <xsd:documentation>
+                Prism query.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
 
-	<!-- Abstract supertype -->
-    
+    <!-- Abstract supertype -->
+
     <xsd:complexType name="CapabilityType" abstract="true">
-		<xsd:annotation>
-			<xsd:documentation>
-				Abstract supertype for all (static schema) capabilities. It is in fact just a shortcut
-				to introduce common "enabled" flag. As custom capabilities are expected to be in a
-				dynamic schema this has probably very little conceptual value.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element ref="tns:enabled" minOccurs="0"/>
-		</xsd:sequence>
-	</xsd:complexType>
-	
-	<xsd:element name="enabled" type="xsd:boolean" default="true">
-		<xsd:annotation>
-			<xsd:documentation>
-				Element specifying whether the capability is enabled or disabled.
-				Enabled capability work as usual (this is the default). Disabled capability
-				acts as it is not there at all. This is used to disable undesirable
-				native capabilities.
-				Each capability definition should have this element. It is made a top-level
-				element in this XSD definition to make that easier.
-			</xsd:documentation>
-		</xsd:annotation>
-	</xsd:element>
+        <xsd:annotation>
+            <xsd:documentation>
+                Abstract supertype for all (static schema) capabilities. It is in fact just a shortcut
+                to introduce common "enabled" flag. As custom capabilities are expected to be in a
+                dynamic schema this has probably very little conceptual value.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:enabled" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
-	<!-- Concrete capabilities -->
+    <xsd:element name="enabled" type="xsd:boolean" default="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Element specifying whether the capability is enabled or disabled.
+                Enabled capability work as usual (this is the default). Disabled capability
+                acts as it is not there at all. This is used to disable undesirable
+                native capabilities.
+                Each capability definition should have this element. It is made a top-level
+                element in this XSD definition to make that easier.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
 
-	<xsd:complexType name="SchemaCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to discover resource schema.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="schema" type="tns:SchemaCapabilityType"/>
+    <!-- Concrete capabilities -->
 
-	<xsd:complexType name="ActivationCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to process activation data, which means
-				enable/disable of accounts, dates for scheduled enable/disable
-				and similar things related to make the account active.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="status" type="tns:ActivationStatusCapabilityType" minOccurs="0">
-					</xsd:element>
-					<xsd:element name="validFrom" type="tns:ActivationValidityCapabilityType" minOccurs="0">
-					</xsd:element>
-					<xsd:element name="validTo" type="tns:ActivationValidityCapabilityType" minOccurs="0">
-					</xsd:element>
-					<xsd:element name="lockoutStatus" type="tns:ActivationLockoutStatusCapabilityType" minOccurs="0">
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:element name="activation" type="tns:ActivationCapabilityType"/>
-	
-	<xsd:complexType name="ActivationStatusCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to provide activation status (e.g. account enable and disable).
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
-					<!-- TODO: "disable destroys password" -->
-					<xsd:element name="attribute" type="xsd:QName" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Name of the attribute to use for account enable/disable.
-								This is a configuration of simulated enable/disable capability.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="enableValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Value to set to the attribute when the account should be enabled.
-								This is a configuration of simulated enable/disable capability.
-								
-								More than one value can be specified. All specified values will
-								be compared to the attribute when the activation status is read
-								from the resource (get operation). The value that matches will determine
-								the activation state. But only the first value will be used when
-								storing the activation state to the resource (add or modify operations).
-								All other values will be ignored.
-							</xsd:documentation>
-						</xsd:annotation>						
-					</xsd:element>
-					<xsd:element name="disableValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Value to set to the attribute when the account should be disabled.
-								This is a configuration of simulated enable/disable capability.
-	
-								More than one value can be specified. All specified values will
-								be compared to the attribute when the activation status is read
-								from the resource (get operation). The value that matches will determine
-								the activation state. But only the first value will be used when
-								storing the activation state to the resource (add or modify operations).
-								All other values will be ignored.
-							</xsd:documentation>
-						</xsd:annotation>						
-					</xsd:element>
-					<xsd:element name="ignoreAttribute" type="xsd:boolean" minOccurs="0" default="true">
-						<xsd:annotation>
-							<xsd:documentation>
-								Flag that controls whether the original attribute should be ignored.
-								
-								If set to true (or not present at all) the original attribute used as a source of
-								simulated capability is marked as "ignored" in the schema. If set to false then
-								the original attribute is still present in its original form in the schema.
-								
-								This option is meaningful only for simulated enable/disable, i.e. in case that the
-								"attribute" element above is set.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:complexType name="ActivationValidityCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to provide activation validity dates (validFrom, validTo)
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:complexType name="ActivationLockoutStatusCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to provide lockout status (e.g. account temporarily disabled due to many failed login attempts).
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
-					<xsd:element name="attribute" type="xsd:QName" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Name of the attribute to use for account lockout status.
-								This is a configuration of simulated lockout capability.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="normalValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Value to set to the attribute when the account is in a normal state (not locked out).
-								This is a configuration of simulated lockout capability.
-								
-								More than one value can be specified. All specified values will
-								be compared to the attribute when the activation status is read
-								from the resource (get operation). The value that matches will determine
-								the activation state. But only the first value will be used when
-								storing the lockout state to the resource (add or modify operations).
-								All other values will be ignored.
-							</xsd:documentation>
-						</xsd:annotation>						
-					</xsd:element>
-					<xsd:element name="lockedValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Value to set to the attribute when the account is locked out.
-								This is a configuration of simulated lockout capability.
-	
-								More than one value can be specified. All specified values will
-								be compared to the attribute when the activation status is read
-								from the resource (get operation). The value that matches will determine
-								the lockout state. But only the first value will be used when
-								storing the activation state to the resource (add or modify operations).
-								All other values will be ignored.
-							</xsd:documentation>
-						</xsd:annotation>						
-					</xsd:element>
-					<xsd:element name="ignoreAttribute" type="xsd:boolean" minOccurs="0" default="true">
-						<xsd:annotation>
-							<xsd:documentation>
-								Flag that controls whether the original attribute should be ignored.
-								
-								If set to true (or not present at all) the original attribute used as a source of
-								simulated capability is marked as "ignored" in the schema. If set to false then
-								the original attribute is still present in its original form in the schema.
-								
-								This option is meaningful only for simulated enable/disable, i.e. in case that the
-								"attribute" element above is set.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+    <xsd:complexType name="SchemaCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to discover resource schema.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="schema" type="tns:SchemaCapabilityType"/>
 
-	<xsd:complexType name="CredentialsCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to present credentials in a structured way.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="password" type="tns:PasswordCapabilityType" minOccurs="0"/>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:element name="credentials" type="tns:CredentialsCapabilityType"/>
-	
-	<xsd:complexType name="PasswordCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to present password in a structured way.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
-					<xsd:element name="readable" type="xsd:boolean" minOccurs="0" default="false"/>
-					<!-- TODO: password expiration -->
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:complexType name="LiveSyncCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to detect changes in almost real time (live synchronization).
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="preciseTokenValue" type="xsd:boolean" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								If true then the connector ensures that the token value provided in each sync delta
-								is precise enough to guarantee correct restart of live sync after given delta.
-								(Some connectors provide token value of e.g. current timestamp, so they cannot distinguish
-								individual deltas. Others provide correct token values but do not guarantee correct ordering
-								of these deltas.)
+    <xsd:complexType name="ActivationCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to process activation data, which means
+                enable/disable of accounts, dates for scheduled enable/disable
+                and similar things related to make the account active.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="status" type="tns:ActivationStatusCapabilityType" minOccurs="0">
+                    </xsd:element>
+                    <xsd:element name="validFrom" type="tns:ActivationValidityCapabilityType" minOccurs="0">
+                    </xsd:element>
+                    <xsd:element name="validTo" type="tns:ActivationValidityCapabilityType" minOccurs="0">
+                    </xsd:element>
+                    <xsd:element name="lockoutStatus" type="tns:ActivationLockoutStatusCapabilityType" minOccurs="0">
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
-								EXPERIMENTAL
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:element name="liveSync" type="tns:LiveSyncCapabilityType"/>
-	
-	<xsd:complexType name="AsyncUpdateCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to process asynchronous updates. Note that this is currently supported only
-				by the built-in AsyncUpdateConnector.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+    <xsd:element name="activation" type="tns:ActivationCapabilityType"/>
 
-	<xsd:element name="asyncUpdate" type="tns:AsyncUpdateCapabilityType"/>
+    <xsd:complexType name="ActivationStatusCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to provide activation status (e.g. account enable and disable).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
+                    <!-- TODO: "disable destroys password" -->
+                    <xsd:element name="attribute" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the attribute to use for account enable/disable.
+                                This is a configuration of simulated enable/disable capability.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="enableValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Value to set to the attribute when the account should be enabled.
+                                This is a configuration of simulated enable/disable capability.
 
-	<xsd:complexType name="AbstractWriteCapabilityType" abstract="true">
-		<xsd:annotation>
-			<xsd:documentation>
-				Base type for all write capabilities.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="manual" type="xsd:boolean" minOccurs="0" default="false">
-						<xsd:annotation>
-							<xsd:documentation>
-								If set to true then there is NO online connection to the resource.
-								The operations are executed manually by a human operator. The resource
-								provides ability to execute the operations in an asynchronous way. But
-								this asynchronous operation contains a human in the loop.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:complexType name="CreateCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes create capability.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractWriteCapabilityType">
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:element name="create" type="tns:CreateCapabilityType"/>
-	
-	<xsd:complexType name="ReadCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes read capability.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="cachingOnly" type="xsd:boolean" minOccurs="0" default="false">
-						<xsd:annotation>
-							<xsd:documentation>
-								If set to true then the resource does NOT have native read capability.
-								However, the resource suggests that the native read capability has to be
-								approximated by the use of midPoint caching.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="returnDefaultAttributesOption" type="xsd:boolean" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								If set to true then the resource supports "return default attributes" option
-								when specifying the list of attributes to return.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.9</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:element name="read" type="tns:ReadCapabilityType"/>
-	
-	<xsd:complexType name="UpdateCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes update capability.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractWriteCapabilityType">
-				<xsd:sequence>
-					<xsd:element name="delta" type="xsd:boolean" minOccurs="0" default="false">
-						<xsd:annotation>
-							<xsd:documentation>
-								<p>
-									If set to true then resource supports update operation that takes complete delta as an
-									argument. Or in other words: the resource can execute complex updates
-									that add/remove/replace values of several attributes in one operation.
-								</p>
-								<p>
-									If set to false then resource cannot execute complex updates in one
-									operation. Several operations may be needed, e.g. one operation to
-									add values, separate operation to delete values. This may cause
-									schema violations. E.g. deleting last value of a mandatory multi-valued
-									attribute just to immediately add new value. Such operation may fail.
-								</p>
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.9</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="addRemoveAttributeValues" type="xsd:boolean" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								<p>
-									If set to true then resource supports update operation that can add
-									and remove individual attribute values.
-								</p>
-								<p>
-									This is an replacement for deprecated AddRemoveAttributeValuesCapabilityType.
-									If no value is provided for this element, then the presence or non-presence
-									of AddRemoveAttributeValuesCapabilityType determines its value. 
-								</p>
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>4.0</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:element name="update" type="tns:UpdateCapabilityType"/>
-	
-	<xsd:complexType name="DeleteCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes delete capability.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractWriteCapabilityType">
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:element name="delete" type="tns:DeleteCapabilityType"/>
-	
-	
-	<xsd:complexType name="TestConnectionCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to test connection to the resource once the connector is configured.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+                                More than one value can be specified. All specified values will
+                                be compared to the attribute when the activation status is read
+                                from the resource (get operation). The value that matches will determine
+                                the activation state. But only the first value will be used when
+                                storing the activation state to the resource (add or modify operations).
+                                All other values will be ignored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="disableValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Value to set to the attribute when the account should be disabled.
+                                This is a configuration of simulated enable/disable capability.
 
-	<xsd:element name="testConnection" type="tns:TestConnectionCapabilityType"/>
+                                More than one value can be specified. All specified values will
+                                be compared to the attribute when the activation status is read
+                                from the resource (get operation). The value that matches will determine
+                                the activation state. But only the first value will be used when
+                                storing the activation state to the resource (add or modify operations).
+                                All other values will be ignored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="ignoreAttribute" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Flag that controls whether the original attribute should be ignored.
 
-	<xsd:complexType name="ScriptCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to execute scripts (short pieces of program) on the connector or resource.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="host" maxOccurs="unbounded">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="type" type="c:ProvisioningScriptHostType"/>
-								<xsd:element name="language" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
-									<xsd:annotation>
-										<xsd:documentation>
-											Specifies the script language(s) supported on this host. 
-										</xsd:documentation>
-									</xsd:annotation>
-								</xsd:element>
-							</xsd:sequence>
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>	
-	
-	<xsd:element name="script" type="tns:ScriptCapabilityType"/>
+                                If set to true (or not present at all) the original attribute used as a source of
+                                simulated capability is marked as "ignored" in the schema. If set to false then
+                                the original attribute is still present in its original form in the schema.
 
-	<xsd:complexType name="PagedSearchCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				How to handle paged searches.
-				Although deals primarily with GUI issues, may be useful for other kinds of access as well.
+                                This option is meaningful only for simulated enable/disable, i.e. in case that the
+                                "attribute" element above is set.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
-				If not present, paged searches are not enabled for this resource/kind/intent/objectClass.
+    <xsd:complexType name="ActivationValidityCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to provide activation validity dates (validFrom, validTo)
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
-				EXPERIMENTAL.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="defaultSortField" type="xsd:QName" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								If no sorting is specified by client (higher levels), use this field as the default.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="defaultSortDirection" type="q:OrderDirectionType" minOccurs="0" >
-						<xsd:annotation>
-							<xsd:documentation>
-								If the defaultSortField is used, this element specified the sorting order
-								(ascending is the default).
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+    <xsd:complexType name="ActivationLockoutStatusCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to provide lockout status (e.g. account temporarily disabled due to many failed login attempts).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
+                    <xsd:element name="attribute" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the attribute to use for account lockout status.
+                                This is a configuration of simulated lockout capability.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="normalValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Value to set to the attribute when the account is in a normal state (not locked out).
+                                This is a configuration of simulated lockout capability.
 
-	<xsd:element name="pagedSearch" type="tns:PagedSearchCapabilityType"/>
+                                More than one value can be specified. All specified values will
+                                be compared to the attribute when the activation status is read
+                                from the resource (get operation). The value that matches will determine
+                                the activation state. But only the first value will be used when
+                                storing the lockout state to the resource (add or modify operations).
+                                All other values will be ignored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="lockedValue" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Value to set to the attribute when the account is locked out.
+                                This is a configuration of simulated lockout capability.
 
-	<xsd:complexType name="CountObjectsCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Ability to efficiently count objects.
-				Although deals primarily with GUI issues, may be useful for other kinds of access as well.
-				EXPERIMENTAL.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<xsd:element name="simulate" type="tns:CountObjectsSimulateType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Strategy to simulate count operation using a different operation.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+                                More than one value can be specified. All specified values will
+                                be compared to the attribute when the activation status is read
+                                from the resource (get operation). The value that matches will determine
+                                the lockout state. But only the first value will be used when
+                                storing the activation state to the resource (add or modify operations).
+                                All other values will be ignored.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="ignoreAttribute" type="xsd:boolean" minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Flag that controls whether the original attribute should be ignored.
 
-	<xsd:element name="countObjects" type="tns:CountObjectsCapabilityType"/>
-	
-	<xsd:simpleType name="CountObjectsSimulateType">
+                                If set to true (or not present at all) the original attribute used as a source of
+                                simulated capability is marked as "ignored" in the schema. If set to false then
+                                the original attribute is still present in its original form in the schema.
+
+                                This option is meaningful only for simulated enable/disable, i.e. in case that the
+                                "attribute" element above is set.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CredentialsCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to present credentials in a structured way.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="password" type="tns:PasswordCapabilityType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="credentials" type="tns:CredentialsCapabilityType"/>
+
+    <xsd:complexType name="PasswordCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to present password in a structured way.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="returnedByDefault" type="xsd:boolean" minOccurs="0" default="true"/>
+                    <xsd:element name="readable" type="xsd:boolean" minOccurs="0" default="false"/>
+                    <!-- TODO: password expiration -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="LiveSyncCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to detect changes in almost real time (live synchronization).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="preciseTokenValue" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If true then the connector ensures that the token value provided in each sync delta
+                                is precise enough to guarantee correct restart of live sync after given delta.
+                                (Some connectors provide token value of e.g. current timestamp, so they cannot distinguish
+                                individual deltas. Others provide correct token values but do not guarantee correct ordering
+                                of these deltas.)
+
+                                EXPERIMENTAL
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="liveSync" type="tns:LiveSyncCapabilityType"/>
+
+    <xsd:complexType name="AsyncUpdateCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to process asynchronous updates. Note that this is currently supported only
+                by the built-in AsyncUpdateConnector.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="asyncUpdate" type="tns:AsyncUpdateCapabilityType"/>
+
+    <xsd:complexType name="AbstractWriteCapabilityType" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Base type for all write capabilities.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="manual" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If set to true then there is NO online connection to the resource.
+                                The operations are executed manually by a human operator. The resource
+                                provides ability to execute the operations in an asynchronous way. But
+                                this asynchronous operation contains a human in the loop.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CreateCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes create capability.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWriteCapabilityType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="create" type="tns:CreateCapabilityType"/>
+
+    <xsd:complexType name="ReadCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes read capability.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="cachingOnly" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If set to true then the resource does NOT have native read capability.
+                                However, the resource suggests that the native read capability has to be
+                                approximated by the use of midPoint caching.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="returnDefaultAttributesOption" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If set to true then the resource supports "return default attributes" option
+                                when specifying the list of attributes to return.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="read" type="tns:ReadCapabilityType"/>
+
+    <xsd:complexType name="UpdateCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes update capability.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWriteCapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="delta" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    If set to true then resource supports update operation that takes complete delta as an
+                                    argument. Or in other words: the resource can execute complex updates
+                                    that add/remove/replace values of several attributes in one operation.
+                                </p>
+                                <p>
+                                    If set to false then resource cannot execute complex updates in one
+                                    operation. Several operations may be needed, e.g. one operation to
+                                    add values, separate operation to delete values. This may cause
+                                    schema violations. E.g. deleting last value of a mandatory multi-valued
+                                    attribute just to immediately add new value. Such operation may fail.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="addRemoveAttributeValues" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    If set to true then resource supports update operation that can add
+                                    and remove individual attribute values.
+                                </p>
+                                <p>
+                                    This is an replacement for deprecated AddRemoveAttributeValuesCapabilityType.
+                                    If no value is provided for this element, then the presence or non-presence
+                                    of AddRemoveAttributeValuesCapabilityType determines its value.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="update" type="tns:UpdateCapabilityType"/>
+
+    <xsd:complexType name="DeleteCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes delete capability.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWriteCapabilityType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="delete" type="tns:DeleteCapabilityType"/>
+
+
+    <xsd:complexType name="TestConnectionCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to test connection to the resource once the connector is configured.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="testConnection" type="tns:TestConnectionCapabilityType"/>
+
+    <xsd:complexType name="ScriptCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to execute scripts (short pieces of program) on the connector or resource.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="host" maxOccurs="unbounded">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="type" type="c:ProvisioningScriptHostType"/>
+                                <xsd:element name="language" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+                                    <xsd:annotation>
+                                        <xsd:documentation>
+                                            Specifies the script language(s) supported on this host.
+                                        </xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:element>
+                            </xsd:sequence>
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="script" type="tns:ScriptCapabilityType"/>
+
+    <xsd:complexType name="PagedSearchCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How to handle paged searches.
+                Although deals primarily with GUI issues, may be useful for other kinds of access as well.
+
+                If not present, paged searches are not enabled for this resource/kind/intent/objectClass.
+
+                EXPERIMENTAL.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="defaultSortField" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If no sorting is specified by client (higher levels), use this field as the default.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="defaultSortDirection" type="q:OrderDirectionType" minOccurs="0" >
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If the defaultSortField is used, this element specified the sorting order
+                                (ascending is the default).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="pagedSearch" type="tns:PagedSearchCapabilityType"/>
+
+    <xsd:complexType name="CountObjectsCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Ability to efficiently count objects.
+                Although deals primarily with GUI issues, may be useful for other kinds of access as well.
+                EXPERIMENTAL.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <xsd:element name="simulate" type="tns:CountObjectsSimulateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Strategy to simulate count operation using a different operation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="countObjects" type="tns:CountObjectsCapabilityType"/>
+
+    <xsd:simpleType name="CountObjectsSimulateType">
         <xsd:annotation>
             <xsd:documentation>
                 Strategy to simulate count operation using a different operation.
@@ -611,10 +611,10 @@
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="pagedSearchEstimate">
                 <xsd:annotation>
-		            <xsd:documentation>
-		                Try a paged search with the page of one. Use the approximate number of entries
-		                returned in search metadata as count approximation.
-		            </xsd:documentation>
+                    <xsd:documentation>
+                        Try a paged search with the page of one. Use the approximate number of entries
+                        returned in search metadata as count approximation.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PAGED_SEARCH_ESTIMATE"/>
                     </xsd:appinfo>
@@ -622,10 +622,10 @@
             </xsd:enumeration>
             <xsd:enumeration value="sequentialSearch">
                 <xsd:annotation>
-		            <xsd:documentation>
-		                Execute the actual search and sequentially count the entries.
-		                WARNING: this may be very inefficient.
-		            </xsd:documentation>
+                    <xsd:documentation>
+                        Execute the actual search and sequentially count the entries.
+                        WARNING: this may be very inefficient.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SEQUENTIAL_SEARCH"/>
                     </xsd:appinfo>
@@ -634,64 +634,64 @@
              </xsd:restriction>
     </xsd:simpleType>
 
-	<xsd:complexType name="AddRemoveAttributeValuesCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Indication that ADD and REMOVE of attribute values is reliably supported.
-				If this capability is not present or disabled, READ+REPLACE mode is assumed.
-				(Can be overriden at the level of individual attributes via readReplaceMode property.)
+    <xsd:complexType name="AddRemoveAttributeValuesCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Indication that ADD and REMOVE of attribute values is reliably supported.
+                If this capability is not present or disabled, READ+REPLACE mode is assumed.
+                (Can be overriden at the level of individual attributes via readReplaceMode property.)
 
-				BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
-				
-				DEPRECATED: Use addRemoveAttributeValues element of Update capability instead.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:deprecated>true</a:deprecated>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+                BEWARE: READ+REPLACE is currently supported for attributes only - not for subjectToObject associations.
 
-	<xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType"/>
-	
-	<xsd:complexType name="AuxiliaryObjectClassesCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to specify additional (auxiliary) object classes in addition to the
-				primary object class.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	
-	<xsd:element name="auxiliaryObjectClasses" type="tns:AuxiliaryObjectClassesCapabilityType"/>
-	
-	<xsd:complexType name="RunAsCapabilityType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Describes capability to execute operations with specified identity.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<a:since>3.9</a:since>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:CapabilityType">
-				<xsd:sequence>
-					<!-- TODO: settings whether authentication is required or whether this is just user switch (proxy) -->
-					<!-- TODO: if authentication is required then what credentials are needed? -->
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>	
-	
-	<xsd:element name="runAs" type="tns:RunAsCapabilityType"/>
+                DEPRECATED: Use addRemoveAttributeValues element of Update capability instead.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:deprecated>true</a:deprecated>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="addRemoveAttributeValues" type="tns:AddRemoveAttributeValuesCapabilityType"/>
+
+    <xsd:complexType name="AuxiliaryObjectClassesCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to specify additional (auxiliary) object classes in addition to the
+                primary object class.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="auxiliaryObjectClasses" type="tns:AuxiliaryObjectClassesCapabilityType"/>
+
+    <xsd:complexType name="RunAsCapabilityType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes capability to execute operations with specified identity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CapabilityType">
+                <xsd:sequence>
+                    <!-- TODO: settings whether authentication is required or whether this is just user switch (proxy) -->
+                    <!-- TODO: if authentication is required then what credentials are needed? -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="runAs" type="tns:RunAsCapabilityType"/>
 
 </xsd:schema>
 

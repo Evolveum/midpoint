@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.ninja.action;
@@ -32,26 +32,26 @@ import java.util.concurrent.*;
 
 /**
  * Abstract action for all search-based operations, such as export and verify.
- * 
+ *
  * @author Viliam Repan (lazyman)
  */
 public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> extends RepositoryAction<OP> {
-	
-	private static final String DOT_CLASS = AbstractRepositorySearchAction.class.getName() + ".";
+
+    private static final String DOT_CLASS = AbstractRepositorySearchAction.class.getName() + ".";
 
     private static final String OPERATION_LIST_RESOURCES = DOT_CLASS + "listResources";
 
     private static final int QUEUE_CAPACITY_PER_THREAD = 100;
     private static final long CONSUMERS_WAIT_FOR_START = 2000L;
-    
+
     protected abstract String getOperationShortName();
-    
+
     protected abstract Runnable createConsumer(BlockingQueue<PrismObject> queue, OperationStatus operation);
 
     protected String getOperationName() {
-    	return this.getClass().getName() + "." + getOperationShortName();
+        return this.getClass().getName() + "." + getOperationShortName();
     }
-    
+
     @Override
     public void execute() throws Exception {
         OperationResult result = new OperationResult(getOperationName());
@@ -136,7 +136,7 @@ public abstract class AbstractRepositorySearchAction<OP extends ExportOptions> e
     /**
      * The idea is to split shadow per resource. We will get more producer workers in this way, therefore we can
      * run in more threads. No extra special processing is done for shadows. Just to split them to workers for
-     * performance reasons. 
+     * performance reasons.
      */
     private List<SearchProducerWorker> createProducersForShadows(NinjaContext context,
             BlockingQueue<PrismObject> queue, OperationStatus operation, List<SearchProducerWorker> producers, ObjectFilter filter) {

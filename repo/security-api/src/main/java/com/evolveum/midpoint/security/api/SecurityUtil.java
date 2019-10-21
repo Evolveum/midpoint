@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2014-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.security.api;
@@ -36,331 +36,331 @@ import java.util.function.Function;
  */
 public class SecurityUtil {
 
-	private static final Trace LOGGER = TraceManager.getTrace(SecurityUtil.class);
-	private static final long GET_LOCAL_NAME_THRESHOLD = 2000;
+    private static final Trace LOGGER = TraceManager.getTrace(SecurityUtil.class);
+    private static final long GET_LOCAL_NAME_THRESHOLD = 2000;
 
-	@NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
+    @NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
 
-	public static Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
-		Collection<String> actions = new ArrayList<>(configAttributes.size());
-		for (ConfigAttribute attr: configAttributes) {
-			actions.add(attr.getAttribute());
-		}
-		return actions;
-	}
+    public static Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
+        Collection<String> actions = new ArrayList<>(configAttributes.size());
+        for (ConfigAttribute attr: configAttributes) {
+            actions.add(attr.getAttribute());
+        }
+        return actions;
+    }
 
-	public static void logSecurityDeny(Object object, String message) {
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Denied access to {} by {} {}", object, getSubjectDescription(), message);
-		}
-	}
-	
-	public static void logSecurityDeny(MidPointPrincipal midPointPrincipal, Object object, String message) {
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Denied access to {} by {} {}", object, midPointPrincipal, message);
-		}
-	}
+    public static void logSecurityDeny(Object object, String message) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Denied access to {} by {} {}", object, getSubjectDescription(), message);
+        }
+    }
 
-	public static void logSecurityDeny(Object object, String message, Throwable cause, Collection<String> requiredAuthorizations) {
-		if (LOGGER.isDebugEnabled()) {
-			String subjectDesc = getSubjectDescription();
-			LOGGER.debug("Denied access to {} by {} {}", object, subjectDesc, message);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Denied access to {} by {} {}; one of the following authorization actions is required: "+requiredAuthorizations,
-						object, subjectDesc, message, cause);
-			}
-		}
-	}
+    public static void logSecurityDeny(MidPointPrincipal midPointPrincipal, Object object, String message) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Denied access to {} by {} {}", object, midPointPrincipal, message);
+        }
+    }
 
-	/**
-	 * Returns short description of the subject suitable for log
-	 * and error messages.
-	 * Does not throw errors. Safe to toString-like methods.
-	 * May return null (means anonymous or unknown)
-	 */
-	public static String getSubjectDescription() {
-		Authentication authentication = getAuthentication();
-		if (authentication == null) {
-			return null;
-		}
-		Object principalObject = authentication.getPrincipal();
-		if (principalObject == null) {
-			return null;
-		}
-		if (!(principalObject instanceof MidPointPrincipal)) {
-			return principalObject.toString();
-		}
-		return ((MidPointPrincipal)principalObject).getUsername();
-	}
+    public static void logSecurityDeny(Object object, String message, Throwable cause, Collection<String> requiredAuthorizations) {
+        if (LOGGER.isDebugEnabled()) {
+            String subjectDesc = getSubjectDescription();
+            LOGGER.debug("Denied access to {} by {} {}", object, subjectDesc, message);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Denied access to {} by {} {}; one of the following authorization actions is required: "+requiredAuthorizations,
+                        object, subjectDesc, message, cause);
+            }
+        }
+    }
 
-	public static <T> T getCredPolicyItem(CredentialPolicyType defaltCredPolicyType, CredentialPolicyType credPolicyType, Function<CredentialPolicyType, T> getter) {
-		if (credPolicyType != null) {
-			T val = getter.apply(credPolicyType);
-			if (val != null) {
-				return val;
-			}
-		}
-		if (defaltCredPolicyType != null) {
-			T val = getter.apply(defaltCredPolicyType);
-			if (val != null) {
-				return val;
-			}
-		}
-		return null;
-	}
+    /**
+     * Returns short description of the subject suitable for log
+     * and error messages.
+     * Does not throw errors. Safe to toString-like methods.
+     * May return null (means anonymous or unknown)
+     */
+    public static String getSubjectDescription() {
+        Authentication authentication = getAuthentication();
+        if (authentication == null) {
+            return null;
+        }
+        Object principalObject = authentication.getPrincipal();
+        if (principalObject == null) {
+            return null;
+        }
+        if (!(principalObject instanceof MidPointPrincipal)) {
+            return principalObject.toString();
+        }
+        return ((MidPointPrincipal)principalObject).getUsername();
+    }
 
-	public static PasswordCredentialsPolicyType getEffectivePasswordCredentialsPolicy(SecurityPolicyType securityPolicy) {
-		if (securityPolicy == null) {
-			return null;
-		}
-		CredentialsPolicyType creds = securityPolicy.getCredentials();
-		if (creds == null) {
-			return null;
-		}
-		if (creds.getDefault() == null) {
-			return creds.getPassword();
-		}
-		PasswordCredentialsPolicyType passPolicy = creds.getPassword();
-		if (passPolicy == null) {
-			passPolicy = new PasswordCredentialsPolicyType();
-		} else {
-			passPolicy = passPolicy.clone();
-		}
-		copyDefaults(creds.getDefault(), passPolicy);
-		return passPolicy;
-	}
+    public static <T> T getCredPolicyItem(CredentialPolicyType defaltCredPolicyType, CredentialPolicyType credPolicyType, Function<CredentialPolicyType, T> getter) {
+        if (credPolicyType != null) {
+            T val = getter.apply(credPolicyType);
+            if (val != null) {
+                return val;
+            }
+        }
+        if (defaltCredPolicyType != null) {
+            T val = getter.apply(defaltCredPolicyType);
+            if (val != null) {
+                return val;
+            }
+        }
+        return null;
+    }
 
-	public static SecurityQuestionsCredentialsPolicyType getEffectiveSecurityQuestionsCredentialsPolicy(SecurityPolicyType securityPolicy) {
-		if (securityPolicy == null) {
-			return null;
-		}
-		CredentialsPolicyType creds = securityPolicy.getCredentials();
-		if (creds == null) {
-			return null;
-		}
-		if (creds.getDefault() == null) {
-			return creds.getSecurityQuestions();
-		}
-		SecurityQuestionsCredentialsPolicyType securityQuestionsPolicy = creds.getSecurityQuestions();
-		if (securityQuestionsPolicy == null) {
-			securityQuestionsPolicy = new SecurityQuestionsCredentialsPolicyType();
-		} else {
-			securityQuestionsPolicy = securityQuestionsPolicy.clone();
-		}
-		copyDefaults(creds.getDefault(), securityQuestionsPolicy);
-		return securityQuestionsPolicy;
-	}
+    public static PasswordCredentialsPolicyType getEffectivePasswordCredentialsPolicy(SecurityPolicyType securityPolicy) {
+        if (securityPolicy == null) {
+            return null;
+        }
+        CredentialsPolicyType creds = securityPolicy.getCredentials();
+        if (creds == null) {
+            return null;
+        }
+        if (creds.getDefault() == null) {
+            return creds.getPassword();
+        }
+        PasswordCredentialsPolicyType passPolicy = creds.getPassword();
+        if (passPolicy == null) {
+            passPolicy = new PasswordCredentialsPolicyType();
+        } else {
+            passPolicy = passPolicy.clone();
+        }
+        copyDefaults(creds.getDefault(), passPolicy);
+        return passPolicy;
+    }
+
+    public static SecurityQuestionsCredentialsPolicyType getEffectiveSecurityQuestionsCredentialsPolicy(SecurityPolicyType securityPolicy) {
+        if (securityPolicy == null) {
+            return null;
+        }
+        CredentialsPolicyType creds = securityPolicy.getCredentials();
+        if (creds == null) {
+            return null;
+        }
+        if (creds.getDefault() == null) {
+            return creds.getSecurityQuestions();
+        }
+        SecurityQuestionsCredentialsPolicyType securityQuestionsPolicy = creds.getSecurityQuestions();
+        if (securityQuestionsPolicy == null) {
+            securityQuestionsPolicy = new SecurityQuestionsCredentialsPolicyType();
+        } else {
+            securityQuestionsPolicy = securityQuestionsPolicy.clone();
+        }
+        copyDefaults(creds.getDefault(), securityQuestionsPolicy);
+        return securityQuestionsPolicy;
+    }
 
 
-	public static List<NonceCredentialsPolicyType> getEffectiveNonceCredentialsPolicies(SecurityPolicyType securityPolicy) {
-		if (securityPolicy == null) {
-			return null;
-		}
-		CredentialsPolicyType creds = securityPolicy.getCredentials();
-		if (creds == null) {
-			return null;
-		}
-		if (creds.getDefault() == null) {
-			return creds.getNonce();
-		}
-		List<NonceCredentialsPolicyType> existingNoncePolicies = creds.getNonce();
-		List<NonceCredentialsPolicyType> newNoncePolicies = new ArrayList<>(existingNoncePolicies.size());
-		for(NonceCredentialsPolicyType noncePolicy: existingNoncePolicies) {
-			NonceCredentialsPolicyType newNoncePolicy = noncePolicy.clone();
-			copyDefaults(creds.getDefault(), newNoncePolicy);
-			newNoncePolicies.add(newNoncePolicy);
-		}
-		return newNoncePolicies;
-	}
+    public static List<NonceCredentialsPolicyType> getEffectiveNonceCredentialsPolicies(SecurityPolicyType securityPolicy) {
+        if (securityPolicy == null) {
+            return null;
+        }
+        CredentialsPolicyType creds = securityPolicy.getCredentials();
+        if (creds == null) {
+            return null;
+        }
+        if (creds.getDefault() == null) {
+            return creds.getNonce();
+        }
+        List<NonceCredentialsPolicyType> existingNoncePolicies = creds.getNonce();
+        List<NonceCredentialsPolicyType> newNoncePolicies = new ArrayList<>(existingNoncePolicies.size());
+        for(NonceCredentialsPolicyType noncePolicy: existingNoncePolicies) {
+            NonceCredentialsPolicyType newNoncePolicy = noncePolicy.clone();
+            copyDefaults(creds.getDefault(), newNoncePolicy);
+            newNoncePolicies.add(newNoncePolicy);
+        }
+        return newNoncePolicies;
+    }
 
-	public static NonceCredentialsPolicyType getEffectiveNonceCredentialsPolicy(SecurityPolicyType securityPolicy) throws SchemaException {
-		List<NonceCredentialsPolicyType> noncePolicies = getEffectiveNonceCredentialsPolicies(securityPolicy);
-		if (CollectionUtils.isEmpty(noncePolicies)) {
-			return null;
-		}
-		if (noncePolicies.size() > 1) {
-			throw new SchemaException("More than one nonce policy");
-		}
-		return noncePolicies.get(0);
-	}
+    public static NonceCredentialsPolicyType getEffectiveNonceCredentialsPolicy(SecurityPolicyType securityPolicy) throws SchemaException {
+        List<NonceCredentialsPolicyType> noncePolicies = getEffectiveNonceCredentialsPolicies(securityPolicy);
+        if (CollectionUtils.isEmpty(noncePolicies)) {
+            return null;
+        }
+        if (noncePolicies.size() > 1) {
+            throw new SchemaException("More than one nonce policy");
+        }
+        return noncePolicies.get(0);
+    }
 
-	private static void copyDefaults(CredentialPolicyType defaults,
-			CredentialPolicyType target) {
-		// Primitive, but efficient
-		if (target.getHistoryLength() == null && defaults.getHistoryLength() != null) {
-			target.setHistoryLength(defaults.getHistoryLength());
-		}
-		if (target.getHistoryStorageMethod() == null && defaults.getHistoryStorageMethod() != null) {
-			target.setHistoryStorageMethod(defaults.getHistoryStorageMethod());
-		}
-		if (target.getLockoutDuration() == null && defaults.getLockoutDuration() != null) {
-			target.setLockoutDuration(defaults.getLockoutDuration());
-		}
-		if (target.getLockoutFailedAttemptsDuration() == null && defaults.getLockoutFailedAttemptsDuration() != null) {
-			target.setLockoutFailedAttemptsDuration(defaults.getLockoutFailedAttemptsDuration());
-		}
-		if (target.getLockoutMaxFailedAttempts() == null && defaults.getLockoutMaxFailedAttempts() != null) {
-			target.setLockoutMaxFailedAttempts(defaults.getLockoutMaxFailedAttempts());
-		}
-		if (target.getMaxAge() == null && defaults.getMaxAge() != null) {
-			target.setMaxAge(defaults.getMaxAge());
-		}
-		if (target.getMinAge() == null && defaults.getMinAge() != null) {
-			target.setMinAge(defaults.getMinAge());
-		}
-		if (target.getPropagationUserControl() == null && defaults.getPropagationUserControl() != null) {
-			target.setPropagationUserControl(defaults.getPropagationUserControl());
-		}
-		if (target.getResetMethod() == null && defaults.getResetMethod() != null) {
-			target.setResetMethod(defaults.getResetMethod());
-		}
-		if (target.getStorageMethod() == null && defaults.getStorageMethod() != null) {
-			target.setStorageMethod(defaults.getStorageMethod());
-		}
-		if (target.getWarningBeforeExpirationDuration() == null && defaults.getWarningBeforeExpirationDuration() != null) {
-			target.setWarningBeforeExpirationDuration(defaults.getWarningBeforeExpirationDuration());
-		}
-	}
+    private static void copyDefaults(CredentialPolicyType defaults,
+            CredentialPolicyType target) {
+        // Primitive, but efficient
+        if (target.getHistoryLength() == null && defaults.getHistoryLength() != null) {
+            target.setHistoryLength(defaults.getHistoryLength());
+        }
+        if (target.getHistoryStorageMethod() == null && defaults.getHistoryStorageMethod() != null) {
+            target.setHistoryStorageMethod(defaults.getHistoryStorageMethod());
+        }
+        if (target.getLockoutDuration() == null && defaults.getLockoutDuration() != null) {
+            target.setLockoutDuration(defaults.getLockoutDuration());
+        }
+        if (target.getLockoutFailedAttemptsDuration() == null && defaults.getLockoutFailedAttemptsDuration() != null) {
+            target.setLockoutFailedAttemptsDuration(defaults.getLockoutFailedAttemptsDuration());
+        }
+        if (target.getLockoutMaxFailedAttempts() == null && defaults.getLockoutMaxFailedAttempts() != null) {
+            target.setLockoutMaxFailedAttempts(defaults.getLockoutMaxFailedAttempts());
+        }
+        if (target.getMaxAge() == null && defaults.getMaxAge() != null) {
+            target.setMaxAge(defaults.getMaxAge());
+        }
+        if (target.getMinAge() == null && defaults.getMinAge() != null) {
+            target.setMinAge(defaults.getMinAge());
+        }
+        if (target.getPropagationUserControl() == null && defaults.getPropagationUserControl() != null) {
+            target.setPropagationUserControl(defaults.getPropagationUserControl());
+        }
+        if (target.getResetMethod() == null && defaults.getResetMethod() != null) {
+            target.setResetMethod(defaults.getResetMethod());
+        }
+        if (target.getStorageMethod() == null && defaults.getStorageMethod() != null) {
+            target.setStorageMethod(defaults.getStorageMethod());
+        }
+        if (target.getWarningBeforeExpirationDuration() == null && defaults.getWarningBeforeExpirationDuration() != null) {
+            target.setWarningBeforeExpirationDuration(defaults.getWarningBeforeExpirationDuration());
+        }
+    }
 
-	public static int getCredentialHistoryLength(CredentialPolicyType credentialPolicy) {
-		if (credentialPolicy == null) {
-			return 0;
-		}
-		Integer historyLength = credentialPolicy.getHistoryLength();
-		if (historyLength == null) {
-			return 0;
-		}
-		return historyLength;
-	}
+    public static int getCredentialHistoryLength(CredentialPolicyType credentialPolicy) {
+        if (credentialPolicy == null) {
+            return 0;
+        }
+        Integer historyLength = credentialPolicy.getHistoryLength();
+        if (historyLength == null) {
+            return 0;
+        }
+        return historyLength;
+    }
 
-	public static CredentialsStorageTypeType getCredentialStorageTypeType(CredentialsStorageMethodType storageMethod) {
-		if (storageMethod == null) {
-			return null;
-		}
-		return storageMethod.getStorageType();
-	}
+    public static CredentialsStorageTypeType getCredentialStorageTypeType(CredentialsStorageMethodType storageMethod) {
+        if (storageMethod == null) {
+            return null;
+        }
+        return storageMethod.getStorageType();
+    }
 
-	/**
-	 * Not very systematic. Used mostly in hacks.
-	 */
-	public static ValuePolicyType getPasswordPolicy(SecurityPolicyType securityPolicy) {
-		if (securityPolicy == null) {
-			return null;
-		}
-		CredentialsPolicyType creds = securityPolicy.getCredentials();
-		if (creds == null) {
-			return null;
-		}
-		PasswordCredentialsPolicyType passd = creds.getPassword();
-		if (passd == null) {
-			return null;
-		}
-		ObjectReferenceType valuePolicyRef = passd.getValuePolicyRef();
-		if (valuePolicyRef == null) {
-			return null;
-		}
-		PrismObject<ValuePolicyType> policyObj = valuePolicyRef.asReferenceValue().getObject();
-		if (policyObj == null) {
-			return null;
-		}
-		return policyObj.asObjectable();
-	}
+    /**
+     * Not very systematic. Used mostly in hacks.
+     */
+    public static ValuePolicyType getPasswordPolicy(SecurityPolicyType securityPolicy) {
+        if (securityPolicy == null) {
+            return null;
+        }
+        CredentialsPolicyType creds = securityPolicy.getCredentials();
+        if (creds == null) {
+            return null;
+        }
+        PasswordCredentialsPolicyType passd = creds.getPassword();
+        if (passd == null) {
+            return null;
+        }
+        ObjectReferenceType valuePolicyRef = passd.getValuePolicyRef();
+        if (valuePolicyRef == null) {
+            return null;
+        }
+        PrismObject<ValuePolicyType> policyObj = valuePolicyRef.asReferenceValue().getObject();
+        if (policyObj == null) {
+            return null;
+        }
+        return policyObj.asObjectable();
+    }
 
-	// This is a bit of hack. We don't have an access to system configuration object from the static context,
-	// so we rely on the upper layers to provide 'client address' header list here when the configuration object changes.
-	// A more serious solution would be moving getCurrentConnectionInformation out of static context (perhaps into
-	// securityEnforcer). But this would mean the easiness of its use would be gone...
-	@SuppressWarnings("NullableProblems")
-	public static void setRemoteHostAddressHeaders(SystemConfigurationType config) {
-		List<String> newValue = config != null && config.getInfrastructure() != null ?
-				new ArrayList<>(config.getInfrastructure().getRemoteHostAddressHeader()) :
-				Collections.emptyList();
-		if (!MiscUtil.unorderedCollectionEquals(remoteHostAddressHeaders, newValue)) {
-			LOGGER.debug("Setting new value for 'remoteHostAddressHeaders': {}", newValue);
-		}
-		remoteHostAddressHeaders = newValue;
-	}
+    // This is a bit of hack. We don't have an access to system configuration object from the static context,
+    // so we rely on the upper layers to provide 'client address' header list here when the configuration object changes.
+    // A more serious solution would be moving getCurrentConnectionInformation out of static context (perhaps into
+    // securityEnforcer). But this would mean the easiness of its use would be gone...
+    @SuppressWarnings("NullableProblems")
+    public static void setRemoteHostAddressHeaders(SystemConfigurationType config) {
+        List<String> newValue = config != null && config.getInfrastructure() != null ?
+                new ArrayList<>(config.getInfrastructure().getRemoteHostAddressHeader()) :
+                Collections.emptyList();
+        if (!MiscUtil.unorderedCollectionEquals(remoteHostAddressHeaders, newValue)) {
+            LOGGER.debug("Setting new value for 'remoteHostAddressHeaders': {}", newValue);
+        }
+        remoteHostAddressHeaders = newValue;
+    }
 
-	/**
-	 * Returns current connection information, as derived from HTTP request stored in current thread.
-	 * May be null if the thread is not associated with any HTTP request (e.g. task threads, operations invoked from GUI but executing in background).
-	 */
-	public static HttpConnectionInformation getCurrentConnectionInformation() {
-		RequestAttributes attr = RequestContextHolder.getRequestAttributes();
-		if (!(attr instanceof ServletRequestAttributes)) {
-			return null;
-		}
-		ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) attr;
-		HttpServletRequest request = servletRequestAttributes.getRequest();
-		HttpConnectionInformation rv = new HttpConnectionInformation();
-		HttpSession session = request.getSession(false);
-		if (session != null) {
-			rv.setSessionId(session.getId());
-		}
-		long start = System.currentTimeMillis();
-		rv.setLocalHostName(request.getLocalName());
-		long delta = System.currentTimeMillis() - start;
-		if (delta > GET_LOCAL_NAME_THRESHOLD) {
-			LOGGER.warn("getLocalName() on HTTP request took {} milliseconds that is too long; "
-							+ "please check your DNS configuration. Local name = {}, local address = {}", delta,
-					request.getLocalName(), request.getLocalAddr());
-		}
-		rv.setRemoteHostAddress(getRemoteHostAddress(request));
-		return rv;
-	}
+    /**
+     * Returns current connection information, as derived from HTTP request stored in current thread.
+     * May be null if the thread is not associated with any HTTP request (e.g. task threads, operations invoked from GUI but executing in background).
+     */
+    public static HttpConnectionInformation getCurrentConnectionInformation() {
+        RequestAttributes attr = RequestContextHolder.getRequestAttributes();
+        if (!(attr instanceof ServletRequestAttributes)) {
+            return null;
+        }
+        ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) attr;
+        HttpServletRequest request = servletRequestAttributes.getRequest();
+        HttpConnectionInformation rv = new HttpConnectionInformation();
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            rv.setSessionId(session.getId());
+        }
+        long start = System.currentTimeMillis();
+        rv.setLocalHostName(request.getLocalName());
+        long delta = System.currentTimeMillis() - start;
+        if (delta > GET_LOCAL_NAME_THRESHOLD) {
+            LOGGER.warn("getLocalName() on HTTP request took {} milliseconds that is too long; "
+                            + "please check your DNS configuration. Local name = {}, local address = {}", delta,
+                    request.getLocalName(), request.getLocalAddr());
+        }
+        rv.setRemoteHostAddress(getRemoteHostAddress(request));
+        return rv;
+    }
 
-	private static String getRemoteHostAddress(HttpServletRequest request) {
-		for (String headerName : remoteHostAddressHeaders) {
-			String header = request.getHeader(headerName);
-			if (header != null) {
-				return getAddressFromHeader(headerName, header);
-			}
-		}
-		return request.getRemoteAddr();
-	}
+    private static String getRemoteHostAddress(HttpServletRequest request) {
+        for (String headerName : remoteHostAddressHeaders) {
+            String header = request.getHeader(headerName);
+            if (header != null) {
+                return getAddressFromHeader(headerName, header);
+            }
+        }
+        return request.getRemoteAddr();
+    }
 
-	// TODO implement various methods if necessary
-	private static String getAddressFromHeader(String name, String value) {
-		String[] split = StringUtils.split(value, ",");
-		return StringUtils.trim(split[0]);
-	}
+    // TODO implement various methods if necessary
+    private static String getAddressFromHeader(String name, String value) {
+        String[] split = StringUtils.split(value, ",");
+        return StringUtils.trim(split[0]);
+    }
 
-	/**
-	 * Returns principal representing currently logged-in user. Returns null if the user is anonymous.
-	 */
-	public static MidPointPrincipal getPrincipal() throws SecurityViolationException {
-		Authentication authentication = getAuthentication();
-		if (authentication == null) {
-			SecurityViolationException ex = new SecurityViolationException("No authentication");
-			LOGGER.error("No authentication", ex);
-			throw ex;
-		}
-		Object principalObject = authentication.getPrincipal();
-		if (!(principalObject instanceof MidPointPrincipal)) {
-			if (authentication.getPrincipal() instanceof String && AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principalObject)) {
-				return null;
-			} else {
-				throw new IllegalArgumentException("Expected that spring security principal will be of type "+
-					MidPointPrincipal.class.getName()+" but it was "+ MiscUtil.getObjectName(principalObject));
-			}
-		}
-		return (MidPointPrincipal) principalObject;
-	}
+    /**
+     * Returns principal representing currently logged-in user. Returns null if the user is anonymous.
+     */
+    public static MidPointPrincipal getPrincipal() throws SecurityViolationException {
+        Authentication authentication = getAuthentication();
+        if (authentication == null) {
+            SecurityViolationException ex = new SecurityViolationException("No authentication");
+            LOGGER.error("No authentication", ex);
+            throw ex;
+        }
+        Object principalObject = authentication.getPrincipal();
+        if (!(principalObject instanceof MidPointPrincipal)) {
+            if (authentication.getPrincipal() instanceof String && AuthorizationConstants.ANONYMOUS_USER_PRINCIPAL.equals(principalObject)) {
+                return null;
+            } else {
+                throw new IllegalArgumentException("Expected that spring security principal will be of type "+
+                    MidPointPrincipal.class.getName()+" but it was "+ MiscUtil.getObjectName(principalObject));
+            }
+        }
+        return (MidPointPrincipal) principalObject;
+    }
 
-	public static String getPrincipalOidIfAuthenticated() {
-		Authentication authentication = getAuthentication();
-		if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
-			return ((MidPointPrincipal) authentication.getPrincipal()).getOid();
-		} else {
-			return null;
-		}
-	}
+    public static String getPrincipalOidIfAuthenticated() {
+        Authentication authentication = getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
+            return ((MidPointPrincipal) authentication.getPrincipal()).getOid();
+        } else {
+            return null;
+        }
+    }
 
-	public static boolean isAuthenticated() {
-		return getAuthentication() != null;
-	}
+    public static boolean isAuthenticated() {
+        return getAuthentication() != null;
+    }
 
-	public static Authentication getAuthentication() {
-		return SecurityContextHolder.getContext().getAuthentication();
-	}
+    public static Authentication getAuthentication() {
+        return SecurityContextHolder.getContext().getAuthentication();
+    }
 }

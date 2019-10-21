@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017-2019 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
   <!-- MID-3647 -->
@@ -13,12 +13,12 @@
     <name>Read some roles</name>
     <description>Archetype-based method</description>
     <authorization>
-    	<name>read-some-roles</name>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<object>
-    		<type>RoleType</type>
-    		<archetypeRef oid="00000000-0000-0000-0000-000000000321"/> <!-- Business Role -->
-    		<archetypeRef oid="32073084-65d0-11e9-baff-bbb479bb05b7"/> <!-- Application Role -->
-    	</object>
+        <name>read-some-roles</name>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>RoleType</type>
+            <archetypeRef oid="00000000-0000-0000-0000-000000000321"/> <!-- Business Role -->
+            <archetypeRef oid="32073084-65d0-11e9-baff-bbb479bb05b7"/> <!-- Application Role -->
+        </object>
     </authorization>
 </role>

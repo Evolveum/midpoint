@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.server;
@@ -49,7 +49,7 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TASK_ERRORS = "taskErrors";
-    
+
     private IModel<TaskDto> taskDtoModel;
 
     public TaskErrorsTabPanel(String id, Form mainForm,
@@ -59,11 +59,11 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
         this.taskDtoModel = taskDtoModel;
         setOutputMarkupId(true);
     }
-    
+
     @Override
     protected void onInitialize() {
-    	super.onInitialize();
-    	initLayout();
+        super.onInitialize();
+        initLayout();
     }
 
     private void initLayout() {
@@ -86,23 +86,23 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
             public ObjectQuery getQuery() {
                 return createContentQuery(taskDtoModel.getObject().getOid(), getPageBase());
             }
-            
+
             protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-        		if (sortParam != null && sortParam.getProperty() != null) {
-        			OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
-        			ItemPath ordering = null;
-        			if (sortParam.getProperty().equals("timestamp")) {
-        				ordering = ItemPath.create("operationExecution", "timestamp");
-        			} else {
-        				ordering = ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty()));
-        			}
-        			return Collections.singletonList(
-        					getPrismContext().queryFactory().createOrdering(
+                if (sortParam != null && sortParam.getProperty() != null) {
+                    OrderDirection order = sortParam.isAscending() ? OrderDirection.ASCENDING : OrderDirection.DESCENDING;
+                    ItemPath ordering = null;
+                    if (sortParam.getProperty().equals("timestamp")) {
+                        ordering = ItemPath.create("operationExecution", "timestamp");
+                    } else {
+                        ordering = ItemPath.create(new QName(SchemaConstantsGenerated.NS_COMMON, sortParam.getProperty()));
+                    }
+                    return Collections.singletonList(
+                            getPrismContext().queryFactory().createOrdering(
                                     ordering, order));
-        		} else {
-        			return Collections.emptyList();
-        		}
-        	}
+                } else {
+                    return Collections.emptyList();
+                }
+            }
         };
         TablePanel resultTablePanel = new TablePanel<>(ID_TASK_ERRORS, provider, initColumns());
         resultTablePanel.setStyle("padding-top: 0px;");
@@ -118,10 +118,10 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
     private List<IColumn<TaskErrorDto, String>> initColumns() {
         List<IColumn<TaskErrorDto, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn<TaskErrorDto, String>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorDto.F_OBJECT_REF_NAME){
-        	@Override
-        	public String getSortProperty() {
-        		return "name";
-        	}
+            @Override
+            public String getSortProperty() {
+                return "name";
+            }
         });
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorDto.F_STATUS));
         columns.add(new AbstractColumn<TaskErrorDto, String>(createStringResource("pageTaskEdit.taskErros.timestamp")){
@@ -138,12 +138,12 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
                 });
                 cellItem.add(label);
             }
-            
+
 //            TODO:uncomment after fixing of MID-5748
 //            @Override
-//        	public String getSortProperty() {
-//        		return "timestamp";
-//        	}
+//            public String getSortProperty() {
+//                return "timestamp";
+//            }
         });
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorDto.F_MESSAGE));
         return columns;

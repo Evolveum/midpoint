@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.archetype;
@@ -29,53 +29,53 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 
 @PageDescriptor(
-		url = "/admin/archetypes", action = {
-				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL,
-						label = "PageArchetypes.auth.archetypesAll.label",
-						description = "PageArchetypes.auth.archetypesAll.description"),
-				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
-						label = "PageArchetypes.auth.archetypes.label",
-						description = "PageArchetypes.auth.archetypes.description"),
-				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_VIEW_URL,
-						label = "PageArchetypes.auth.archetypes.view.label",
-						description = "PageArchetypes.auth.archetypes.view.description")
-		})
+        url = "/admin/archetypes", action = {
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL,
+                        label = "PageArchetypes.auth.archetypesAll.label",
+                        description = "PageArchetypes.auth.archetypesAll.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
+                        label = "PageArchetypes.auth.archetypes.label",
+                        description = "PageArchetypes.auth.archetypes.description"),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ARCHETYPES_VIEW_URL,
+                        label = "PageArchetypes.auth.archetypes.view.label",
+                        description = "PageArchetypes.auth.archetypes.view.description")
+        })
 public class PageArchetypes extends PageAdminObjectList<ArchetypeType> {
 
-	private static final long serialVersionUID = 1L;
-	
-	private static transient final Trace LOGGER = TraceManager.getTrace(PageArchetypes.class);
-	
-	public PageArchetypes() {
-		super();
-	}
-	
-	@Override
+    private static final long serialVersionUID = 1L;
+
+    private static transient final Trace LOGGER = TraceManager.getTrace(PageArchetypes.class);
+
+    public PageArchetypes() {
+        super();
+    }
+
+    @Override
     protected void objectDetailsPerformed(AjaxRequestTarget target, ArchetypeType archetype) {
         PageParameters pageParameters = new PageParameters();
         pageParameters.add(OnePageParameterEncoder.PARAMETER, archetype.getOid());
         navigateToNext(PageArchetype.class, pageParameters);
     }
-	
-	@Override
-	protected Class<ArchetypeType> getType() {
-		return ArchetypeType.class;
-	}
 
-	@Override
-	protected List<IColumn<SelectableBean<ArchetypeType>, String>> initColumns() {
-		return ColumnUtils.getDefaultArchetypeColumns();
-	}
+    @Override
+    protected Class<ArchetypeType> getType() {
+        return ArchetypeType.class;
+    }
 
-	@Override
-	protected List<InlineMenuItem> createRowActions() {
-		List<InlineMenuItem> menu = new ArrayList<>();
+    @Override
+    protected List<IColumn<SelectableBean<ArchetypeType>, String>> initColumns() {
+        return ColumnUtils.getDefaultArchetypeColumns();
+    }
+
+    @Override
+    protected List<InlineMenuItem> createRowActions() {
+        List<InlineMenuItem> menu = new ArrayList<>();
         return menu;
-	}
+    }
 
-	@Override
-	protected TableId getTableId() {
-		return UserProfileStorage.TableId.TABLE_ARCHETYPES;
-	}
+    @Override
+    protected TableId getTableId() {
+        return UserProfileStorage.TableId.TABLE_ARCHETYPES;
+    }
 
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.roles;
@@ -32,71 +32,71 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  * @author semancik
  */
 @PageDescriptor(url = "/admin/role", encoder = OnePageParameterEncoder.class, action = {
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, label = "PageAdminRoles.auth.roleAll.label", description = "PageAdminRoles.auth.roleAll.description"),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description") })
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, label = "PageAdminRoles.auth.roleAll.label", description = "PageAdminRoles.auth.roleAll.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description") })
 public class PageRole extends PageAdminAbstractRole<RoleType> implements ProgressReportingAwarePage {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public static final String AUTH_ROLE_ALL = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL;
-	public static final String AUTH_ROLE_ALL_LABEL = "PageAdminRoles.auth.roleAll.label";
-	public static final String AUTH_ROLE_ALL_DESCRIPTION = "PageAdminRoles.auth.roleAll.description";
+    public static final String AUTH_ROLE_ALL = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL;
+    public static final String AUTH_ROLE_ALL_LABEL = "PageAdminRoles.auth.roleAll.label";
+    public static final String AUTH_ROLE_ALL_DESCRIPTION = "PageAdminRoles.auth.roleAll.description";
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageRole.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageRole.class);
 
-	public PageRole() {
-		super();
-	}
-
-	public PageRole(PageParameters parameters) {
-		super(parameters);
-	}
-
-	public PageRole(final PrismObject<RoleType> role) {
-		super(role);
-	}
-
-	public PageRole(final PrismObject<RoleType> userToEdit, boolean isNewObject) {
-		super(userToEdit, isNewObject);
-	}
-	
-	public PageRole(final PrismObject<RoleType> abstractRole, boolean isNewObject, boolean isReadonly) {
-		super(abstractRole, isNewObject, isReadonly);
-	}
-	
-	@Override
-	protected RoleType createNewObject() {
-		return new RoleType();
-	}
-
-	@Override
-    public Class<RoleType> getCompileTimeClass() {
-		return RoleType.class;
-	}
-
-	@Override
-	protected Class getRestartResponsePage() {
-		return PageRoles.class;
-	}
-
-	@Override
-	protected FocusSummaryPanel<RoleType> createSummaryPanel() {
-    	return new RoleSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
+    public PageRole() {
+        super();
     }
 
-	@Override
-	protected AbstractObjectMainPanel<RoleType> createMainPanel(String id) {
-		return new AbstractRoleMainPanel<RoleType>(id, getObjectModel(), getProjectionModel(), this) {
-			private static final long serialVersionUID = 1L;
+    public PageRole(PageParameters parameters) {
+        super(parameters);
+    }
 
-			@Override
-			protected boolean isFocusHistoryPage(){
-				return PageRole.this.isFocusHistoryPage();
-			}
+    public PageRole(final PrismObject<RoleType> role) {
+        super(role);
+    }
 
-			@Override
-			protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<RoleType> object, String date){
-				PageRole.this.navigateToNext(new PageRoleHistory(object, date));
-			}
-		};
-	}
+    public PageRole(final PrismObject<RoleType> userToEdit, boolean isNewObject) {
+        super(userToEdit, isNewObject);
+    }
+
+    public PageRole(final PrismObject<RoleType> abstractRole, boolean isNewObject, boolean isReadonly) {
+        super(abstractRole, isNewObject, isReadonly);
+    }
+
+    @Override
+    protected RoleType createNewObject() {
+        return new RoleType();
+    }
+
+    @Override
+    public Class<RoleType> getCompileTimeClass() {
+        return RoleType.class;
+    }
+
+    @Override
+    protected Class getRestartResponsePage() {
+        return PageRoles.class;
+    }
+
+    @Override
+    protected FocusSummaryPanel<RoleType> createSummaryPanel() {
+        return new RoleSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
+    }
+
+    @Override
+    protected AbstractObjectMainPanel<RoleType> createMainPanel(String id) {
+        return new AbstractRoleMainPanel<RoleType>(id, getObjectModel(), getProjectionModel(), this) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected boolean isFocusHistoryPage(){
+                return PageRole.this.isFocusHistoryPage();
+            }
+
+            @Override
+            protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<RoleType> object, String date){
+                PageRole.this.navigateToNext(new PageRoleHistory(object, date));
+            }
+        };
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -19,7 +19,7 @@ public class ObjectOrderingImpl implements ObjectOrdering {
     final private ItemPath orderBy;
     final private OrderDirection direction;
 
-	private ObjectOrderingImpl(ItemPath orderBy, OrderDirection direction) {
+    private ObjectOrderingImpl(ItemPath orderBy, OrderDirection direction) {
         if (ItemPath.isEmpty(orderBy)) {
             throw new IllegalArgumentException("Null or empty ordering path is not supported.");
         }
@@ -44,30 +44,30 @@ public class ObjectOrderingImpl implements ObjectOrdering {
         return orderBy.toString() + " " + direction;
     }
 
-	@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
-	@Override
-	public boolean equals(Object o) {
-		return equals(o, true);
-	}
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+    @Override
+    public boolean equals(Object o) {
+        return equals(o, true);
+    }
 
-	public boolean equals(Object o, boolean exact) {
-		if (this == o)
-			return true;
-		if (o == null || getClass() != o.getClass())
-			return false;
+    public boolean equals(Object o, boolean exact) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
-		ObjectOrderingImpl that = (ObjectOrderingImpl) o;
+        ObjectOrderingImpl that = (ObjectOrderingImpl) o;
 
-		if (orderBy != null ? !orderBy.equals(that.orderBy, exact) : that.orderBy != null)
-			return false;
-		return direction == that.direction;
+        if (orderBy != null ? !orderBy.equals(that.orderBy, exact) : that.orderBy != null)
+            return false;
+        return direction == that.direction;
 
-	}
+    }
 
-	@Override
-	public int hashCode() {
-		int result = 1;
-		result = 31 * result + (direction != null ? direction.hashCode() : 0);
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = 1;
+        result = 31 * result + (direction != null ? direction.hashCode() : 0);
+        return result;
+    }
 }

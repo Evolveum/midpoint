@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -25,52 +25,52 @@ import java.util.stream.Collectors;
  */
 class SourceManager {
 
-	private static final Trace LOGGER = TraceManager.getTrace(SourceManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SourceManager.class);
 
-	@NotNull private final AsyncUpdateConnectorInstance connectorInstance;
+    @NotNull private final AsyncUpdateConnectorInstance connectorInstance;
 
-	SourceManager(@NotNull AsyncUpdateConnectorInstance connectorInstance) {
-		this.connectorInstance = connectorInstance;
-	}
+    SourceManager(@NotNull AsyncUpdateConnectorInstance connectorInstance) {
+        this.connectorInstance = connectorInstance;
+    }
 
-	@NotNull
-	Collection<AsyncUpdateSource> createSources(Collection<AsyncUpdateSourceType> sourceConfigurations) {
-		if (sourceConfigurations.isEmpty()) {
-			throw new IllegalStateException("No asynchronous update sources are configured");
-		}
-		return sourceConfigurations.stream()
-				.map(this::createSource)
-				.collect(Collectors.toList());
-	}
+    @NotNull
+    Collection<AsyncUpdateSource> createSources(Collection<AsyncUpdateSourceType> sourceConfigurations) {
+        if (sourceConfigurations.isEmpty()) {
+            throw new IllegalStateException("No asynchronous update sources are configured");
+        }
+        return sourceConfigurations.stream()
+                .map(this::createSource)
+                .collect(Collectors.toList());
+    }
 
-	@NotNull
-	private AsyncUpdateSource createSource(AsyncUpdateSourceType sourceConfiguration) {
-		LOGGER.trace("Creating source from configuration: {}", sourceConfiguration);
-		Class<? extends AsyncUpdateSource> sourceClass = determineSourceClass(sourceConfiguration);
-		try {
-			Method createMethod = sourceClass.getMethod("create", AsyncUpdateSourceType.class, AsyncUpdateConnectorInstance.class);
-			AsyncUpdateSource source = (AsyncUpdateSource) createMethod.invoke(null, sourceConfiguration, connectorInstance);
-			if (source == null) {
-				throw new SystemException("Asynchronous update source was not created for " + sourceClass);
-			}
-			return source;
-		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassCastException e) {
-			throw new SystemException("Couldn't instantiate asynchronous update source class " + sourceClass + ": " + e.getMessage(), e);
-		}
-	}
+    @NotNull
+    private AsyncUpdateSource createSource(AsyncUpdateSourceType sourceConfiguration) {
+        LOGGER.trace("Creating source from configuration: {}", sourceConfiguration);
+        Class<? extends AsyncUpdateSource> sourceClass = determineSourceClass(sourceConfiguration);
+        try {
+            Method createMethod = sourceClass.getMethod("create", AsyncUpdateSourceType.class, AsyncUpdateConnectorInstance.class);
+            AsyncUpdateSource source = (AsyncUpdateSource) createMethod.invoke(null, sourceConfiguration, connectorInstance);
+            if (source == null) {
+                throw new SystemException("Asynchronous update source was not created for " + sourceClass);
+            }
+            return source;
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassCastException e) {
+            throw new SystemException("Couldn't instantiate asynchronous update source class " + sourceClass + ": " + e.getMessage(), e);
+        }
+    }
 
-	private Class<? extends AsyncUpdateSource> determineSourceClass(AsyncUpdateSourceType cfg) {
-		if (cfg.getClassName() != null) {
-			try {
-				//noinspection unchecked
-				return ((Class<? extends AsyncUpdateSource>) Class.forName(cfg.getClassName()));
-			} catch (ClassNotFoundException e) {
-				throw new SystemException("Couldn't find async source implementation class: " + cfg.getClassName());
-			}
-		} else if (cfg instanceof Amqp091SourceType) {
-			return Amqp091AsyncUpdateSource.class;
-		} else {
-			throw new SystemException("Couldn't find async update source class for configuration: " + cfg.getClass());
-		}
-	}
+    private Class<? extends AsyncUpdateSource> determineSourceClass(AsyncUpdateSourceType cfg) {
+        if (cfg.getClassName() != null) {
+            try {
+                //noinspection unchecked
+                return ((Class<? extends AsyncUpdateSource>) Class.forName(cfg.getClassName()));
+            } catch (ClassNotFoundException e) {
+                throw new SystemException("Couldn't find async source implementation class: " + cfg.getClassName());
+            }
+        } else if (cfg instanceof Amqp091SourceType) {
+            return Amqp091AsyncUpdateSource.class;
+        } else {
+            throw new SystemException("Couldn't find async update source class for configuration: " + cfg.getClass());
+        }
+    }
 }

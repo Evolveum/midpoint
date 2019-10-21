@@ -1,47 +1,47 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <role oid="9c0c224f-f279-44b5-b906-8e8418a651a2"
-	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-	<name>metarole-approval-security</name>
-	<description>Requests to assign role holding this metarole will be approved by the security officer(s)</description>
-	<displayName>Metarole: approval by the security people</displayName>
-	<inducement>
-		<policyRule>
-			<policyConstraints>
-				<assignment>
-					<relation>q:any</relation>
-				</assignment>
-			</policyConstraints>
-			<policyActions>
-				<approval>
-					<compositionStrategy>
-						<order>20</order>
-					</compositionStrategy>
-					<approvalSchema>
-						<level>
-							<name>Security</name>
-							<approverRef type="OrgType">
-								<filter>
-									<q:equal>
-										<q:path>name</q:path>
-										<q:value>Security Approvers</q:value>
-									</q:equal>
-								</filter>
-								<resolutionTime>run</resolutionTime>
-							</approverRef>
-							<evaluationStrategy>firstDecides</evaluationStrategy>
-							<outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
-							<groupExpansion>onWorkItemCreation</groupExpansion>
-						</level>
-					</approvalSchema>
-				</approval>
-			</policyActions>
-		</policyRule>
-	</inducement>
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>metarole-approval-security</name>
+    <description>Requests to assign role holding this metarole will be approved by the security officer(s)</description>
+    <displayName>Metarole: approval by the security people</displayName>
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                    <relation>q:any</relation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>20</order>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <level>
+                            <name>Security</name>
+                            <approverRef type="OrgType">
+                                <filter>
+                                    <q:equal>
+                                        <q:path>name</q:path>
+                                        <q:value>Security Approvers</q:value>
+                                    </q:equal>
+                                </filter>
+                                <resolutionTime>run</resolutionTime>
+                            </approverRef>
+                            <evaluationStrategy>firstDecides</evaluationStrategy>
+                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                            <groupExpansion>onWorkItemCreation</groupExpansion>
+                        </level>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
 </role>

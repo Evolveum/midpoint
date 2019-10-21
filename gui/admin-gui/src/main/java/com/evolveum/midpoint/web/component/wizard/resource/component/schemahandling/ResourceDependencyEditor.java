@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2014 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -78,7 +78,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
 
     public ResourceDependencyEditor(String id, IModel<List<ResourceObjectTypeDependencyType>> model, PageResourceWizard parentPage) {
         super(id, model);
-		initLayout(parentPage);
+        initLayout(parentPage);
     }
 
     @Override
@@ -110,14 +110,14 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                 linkContainer.add(linkLabel);
 
                 AjaxLink<Void> delete = new AjaxLink<Void>(ID_DELETE_BUTTON) {
-                	private static final long serialVersionUID = 1L;
-               
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteDependencyPerformed(target, item);
                     }
                 };
-				parentPage.addEditingVisibleBehavior(delete);
+                parentPage.addEditingVisibleBehavior(delete);
                 linkContainer.add(delete);
 
                 WebMarkupContainer dependencyBody = new WebMarkupContainer(ID_DEPENDENCY_BODY);
@@ -144,7 +144,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
 
                 TextField order = new TextField<>(ID_ORDER, new PropertyModel<Integer>(item.getModelObject(), "order"));
                 order.add(prepareAjaxOnComponentTagUpdateBehavior());
-				parentPage.addEditingEnabledBehavior(order);
+                parentPage.addEditingEnabledBehavior(order);
                 dependencyBody.add(order);
 
                 DropDownChoice strictness = new DropDownChoice<>(ID_STRICTNESS,
@@ -152,7 +152,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                         WebComponentUtil.createReadonlyModelFromEnum(ResourceObjectTypeDependencyStrictnessType.class),
                     new EnumChoiceRenderer<>(this));
                 strictness.add(prepareAjaxOnComponentTagUpdateBehavior());
-				parentPage.addEditingEnabledBehavior(strictness);
+                parentPage.addEditingEnabledBehavior(strictness);
                 dependencyBody.add(strictness);
 
                 DropDownChoice kind = new DropDownChoice<>(ID_KIND,
@@ -160,12 +160,12 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                         WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
                     new EnumChoiceRenderer<>(this));
                 kind.add(prepareAjaxOnComponentTagUpdateBehavior());
-				parentPage.addEditingEnabledBehavior(kind);
+                parentPage.addEditingEnabledBehavior(kind);
                 dependencyBody.add(kind);
 
                 TextField intent = new TextField<>(ID_INTENT, new PropertyModel<String>(item.getModelObject(), "intent"));
                 intent.add(prepareAjaxOnComponentTagUpdateBehavior());
-				parentPage.addEditingEnabledBehavior(intent);
+                parentPage.addEditingEnabledBehavior(intent);
                 dependencyBody.add(intent);
 
                 DropDownChoice resource = new DropDownChoice<>(ID_REF,
@@ -179,7 +179,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                         }, new ObjectReferenceChoiceRenderer(resourceMap));
 
                 resource.add(prepareAjaxOnComponentTagUpdateBehavior());
-				parentPage.addEditingEnabledBehavior(resource);
+                parentPage.addEditingEnabledBehavior(resource);
                 dependencyBody.add(resource);
 
                 Label orderTooltip = new Label(ID_T_ORDER);
@@ -207,14 +207,14 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
         container.add(repeater);
 
         AjaxLink<Void> add = new AjaxLink<Void>(ID_ADD_BUTTON) {
-        	private static final long serialVersionUID = 1L;
-		
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addDependencyPerformed(target);
             }
         };
-		parentPage.addEditingVisibleBehavior(add);
+        parentPage.addEditingVisibleBehavior(add);
         add(add);
     }
 

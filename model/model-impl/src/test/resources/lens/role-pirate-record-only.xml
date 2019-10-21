@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="12345678-d34d-b33f-f00d-555555556666"
@@ -12,38 +12,38 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Pirate</name>
     <description>Bloody pirates</description>
-	<assignment>
-		<policyRule>
-			<name>criminal exclusion</name>
-			<policyConstraints>
-				<exclusion>
-					<targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
-				</exclusion>
-			</policyConstraints>
-			<policyActions>
-				<!-- no enforcement here -->
-				<record>
-					<policyRules>messageOnly</policyRules>
-				</record>
-			</policyActions>
-		</policyRule>
-	</assignment>
+    <assignment>
+        <policyRule>
+            <name>criminal exclusion</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <!-- no enforcement here -->
+                <record>
+                    <policyRules>messageOnly</policyRules>
+                </record>
+            </policyActions>
+        </policyRule>
+    </assignment>
     <inducement id="1111">
-    	<construction id="60004">
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    		<kind>account</kind>
-    		<attribute>
+        <construction id="60004">
+            <resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+            <kind>account</kind>
+            <attribute>
                 <ref>ri:title</ref>
                 <outbound>
-                	<expression>
-						<value>Bloody Pirate</value>
-					</expression>
-				</outbound>
+                    <expression>
+                        <value>Bloody Pirate</value>
+                    </expression>
+                </outbound>
             </attribute>
-    	</construction>
+        </construction>
     </inducement>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>
+        <action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>
     </authorization>
     <requestable>true</requestable>
 </role>

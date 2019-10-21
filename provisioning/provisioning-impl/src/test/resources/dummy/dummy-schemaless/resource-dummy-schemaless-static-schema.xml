@@ -2,224 +2,224 @@
 <!--
   ~ Copyright (c) 2010-2018 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-9999dddd0505"
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
-								  
-	<name>Dummy Static Schemaless Resource</name>
-	<description>Dummy Schemaless Resource with static schema and capabilities</description>
-	<connectorRef oid="will-be-supplied-by-the-test-code"/>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
-		<icfc:configurationProperties>
-			<icfi:instanceId>staticSchema</icfi:instanceId> <!-- Default instance -->
-			<icfi:supportSchema>false</icfi:supportSchema> <!-- Disable schema support -->
-		</icfc:configurationProperties>
-		
-		<icfc:resultsHandlerConfiguration>
-			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
-			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
-			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
-		</icfc:resultsHandlerConfiguration>
 
-	</connectorConfiguration>
-	<!-- Static schema definition -->
-	<schema>
-		<!-- No cahingMetadata here MID-4472, MID-4174 -->
-		<definition>
-	         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    <name>Dummy Static Schemaless Resource</name>
+    <description>Dummy Schemaless Resource with static schema and capabilities</description>
+    <connectorRef oid="will-be-supplied-by-the-test-code"/>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+        <icfc:configurationProperties>
+            <icfi:instanceId>staticSchema</icfi:instanceId> <!-- Default instance -->
+            <icfi:supportSchema>false</icfi:supportSchema> <!-- Disable schema support -->
+        </icfc:configurationProperties>
+
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+
+    </connectorConfiguration>
+    <!-- Static schema definition -->
+    <schema>
+        <!-- No cahingMetadata here MID-4472, MID-4174 -->
+        <definition>
+             <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                      xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-	            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
-	            <xsd:complexType name="AccountObjectClass">
-	               <xsd:annotation>
-	                  <xsd:appinfo>
-	                     <ra:resourceObject/>
-	                     <ra:identifier>icfs:uid</ra:identifier>
-	                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-	                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-	                     <ra:account/>
-	                     <ra:default/>
-	                  </xsd:appinfo>
-	               </xsd:annotation>
-	               <xsd:sequence>
-	                  <xsd:element minOccurs="0" ref="icfs:uid">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                        	<!-- Following element MANUALY MODIFIED -->
-	                           <a:displayName>Modified ConnId UID</a:displayName>
-	                           <a:displayOrder>100</a:displayOrder>
-	                           <a:access>read</a:access>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	                  <xsd:element name="fullname" type="xsd:string">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:displayOrder>200</a:displayOrder>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	                  <xsd:element minOccurs="0" name="description" type="xsd:string"/>
-	                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
-	                  <xsd:element ref="icfs:name">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                        	<!-- Following element MANUALY MODIFIED -->
-	                           <a:displayName>Modified ConnId Name</a:displayName>
-	                           <a:displayOrder>110</a:displayOrder>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	               </xsd:sequence>
-	            </xsd:complexType>
-	            <xsd:complexType name="GroupObjectClass">
-	               <xsd:annotation>
-	                  <xsd:appinfo>
-	                     <ra:resourceObject/>
-	                     <ra:identifier>icfs:uid</ra:identifier>
-	                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-	                     <ra:nativeObjectClass>__GROUP__</ra:nativeObjectClass>
-	                  </xsd:appinfo>
-	               </xsd:annotation>
-	               <xsd:sequence>
-	                  <xsd:element minOccurs="0" ref="icfs:uid">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:displayName>ConnId UID</a:displayName>
-	                           <a:displayOrder>100</a:displayOrder>
-	                           <a:access>read</a:access>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	                  <xsd:element ref="icfs:name">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:displayName>ConnId Name</a:displayName>
-	                           <a:displayOrder>110</a:displayOrder>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	                  <xsd:element name="members" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-	               </xsd:sequence>
-	            </xsd:complexType>
-	            <xsd:complexType name="CustomprivilegeObjectClass">
-	               <xsd:annotation>
-	                  <xsd:appinfo>
-	                     <ra:resourceObject/>
-	                     <ra:identifier>icfs:uid</ra:identifier>
-	                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-	                     <ra:nativeObjectClass>privilege</ra:nativeObjectClass>
-	                  </xsd:appinfo>
-	               </xsd:annotation>
-	               <xsd:sequence>
-	                  <xsd:element minOccurs="0" ref="icfs:uid">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:displayName>ConnId UID</a:displayName>
-	                           <a:displayOrder>100</a:displayOrder>
-	                           <a:access>read</a:access>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	                  <xsd:element ref="icfs:name">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:displayName>ConnId Name</a:displayName>
-	                           <a:displayOrder>110</a:displayOrder>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	               </xsd:sequence>
-	            </xsd:complexType>
-	            <xsd:complexType name="CustomorgObjectClass">
-	               <xsd:annotation>
-	                  <xsd:appinfo>
-	                     <ra:resourceObject/>
-	                     <ra:identifier>icfs:uid</ra:identifier>
-	                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-	                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-	                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-	                     <ra:nativeObjectClass>org</ra:nativeObjectClass>
-	                  </xsd:appinfo>
-	               </xsd:annotation>
-	               <xsd:sequence>
-	                  <xsd:element minOccurs="0" ref="icfs:uid">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:displayName>ConnId UID</a:displayName>
-	                           <a:displayOrder>100</a:displayOrder>
-	                           <a:access>read</a:access>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	                  <xsd:element ref="icfs:name">
-	                     <xsd:annotation>
-	                        <xsd:appinfo>
-	                           <a:displayName>ConnId Name</a:displayName>
-	                           <a:displayOrder>110</a:displayOrder>
-	                        </xsd:appinfo>
-	                     </xsd:annotation>
-	                  </xsd:element>
-	               </xsd:sequence>
-	            </xsd:complexType>
-         	</xsd:schema>
-      	</definition>
-	</schema>
-	
-	<!-- No schemaHandling as well. -->
-	<!-- We need to configure those capabilities that depend on the schema -->
-	
-	<capabilities>
-		<!-- No cahingMetadata here MID-4472, MID-4174 -->
-		<native>
-		    <!-- no schema capability here -->
-		    <cap:liveSync/>
-		    <cap:testConnection/>
-		    <cap:create/>
-		    <cap:read/>
-		    <cap:update/>
-		    <cap:delete/>
-		    <cap:script>
-		        <cap:host>
-		            <cap:type>resource</cap:type>
-		        </cap:host>
-		        <cap:host>
-		            <cap:type>connector</cap:type>
-		        </cap:host>
-		    </cap:script>			
-		</native>
-		<configured>
-	        <cap:credentials>
-	            <cap:password/>
-	        </cap:credentials>
-	        <cap:activation>
-	            <cap:status/>
-	        </cap:activation>
-			<cap:countObjects>
-				<cap:simulate>pagedSearchEstimate</cap:simulate>
-			</cap:countObjects>
-    	</configured>
-	</capabilities>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+                <xsd:complexType name="AccountObjectClass">
+                   <xsd:annotation>
+                      <xsd:appinfo>
+                         <ra:resourceObject/>
+                         <ra:identifier>icfs:uid</ra:identifier>
+                         <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                         <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                         <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                         <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                         <ra:account/>
+                         <ra:default/>
+                      </xsd:appinfo>
+                   </xsd:annotation>
+                   <xsd:sequence>
+                      <xsd:element minOccurs="0" ref="icfs:uid">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                                <!-- Following element MANUALY MODIFIED -->
+                               <a:displayName>Modified ConnId UID</a:displayName>
+                               <a:displayOrder>100</a:displayOrder>
+                               <a:access>read</a:access>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                      <xsd:element name="fullname" type="xsd:string">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:displayOrder>200</a:displayOrder>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                      <xsd:element minOccurs="0" name="description" type="xsd:string"/>
+                      <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
+                      <xsd:element ref="icfs:name">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                                <!-- Following element MANUALY MODIFIED -->
+                               <a:displayName>Modified ConnId Name</a:displayName>
+                               <a:displayOrder>110</a:displayOrder>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                   </xsd:sequence>
+                </xsd:complexType>
+                <xsd:complexType name="GroupObjectClass">
+                   <xsd:annotation>
+                      <xsd:appinfo>
+                         <ra:resourceObject/>
+                         <ra:identifier>icfs:uid</ra:identifier>
+                         <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                         <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                         <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                         <ra:nativeObjectClass>__GROUP__</ra:nativeObjectClass>
+                      </xsd:appinfo>
+                   </xsd:annotation>
+                   <xsd:sequence>
+                      <xsd:element minOccurs="0" ref="icfs:uid">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:displayName>ConnId UID</a:displayName>
+                               <a:displayOrder>100</a:displayOrder>
+                               <a:access>read</a:access>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                      <xsd:element ref="icfs:name">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:displayName>ConnId Name</a:displayName>
+                               <a:displayOrder>110</a:displayOrder>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                      <xsd:element name="members" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                   </xsd:sequence>
+                </xsd:complexType>
+                <xsd:complexType name="CustomprivilegeObjectClass">
+                   <xsd:annotation>
+                      <xsd:appinfo>
+                         <ra:resourceObject/>
+                         <ra:identifier>icfs:uid</ra:identifier>
+                         <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                         <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                         <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                         <ra:nativeObjectClass>privilege</ra:nativeObjectClass>
+                      </xsd:appinfo>
+                   </xsd:annotation>
+                   <xsd:sequence>
+                      <xsd:element minOccurs="0" ref="icfs:uid">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:displayName>ConnId UID</a:displayName>
+                               <a:displayOrder>100</a:displayOrder>
+                               <a:access>read</a:access>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                      <xsd:element ref="icfs:name">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:displayName>ConnId Name</a:displayName>
+                               <a:displayOrder>110</a:displayOrder>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                   </xsd:sequence>
+                </xsd:complexType>
+                <xsd:complexType name="CustomorgObjectClass">
+                   <xsd:annotation>
+                      <xsd:appinfo>
+                         <ra:resourceObject/>
+                         <ra:identifier>icfs:uid</ra:identifier>
+                         <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                         <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                         <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                         <ra:nativeObjectClass>org</ra:nativeObjectClass>
+                      </xsd:appinfo>
+                   </xsd:annotation>
+                   <xsd:sequence>
+                      <xsd:element minOccurs="0" ref="icfs:uid">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:displayName>ConnId UID</a:displayName>
+                               <a:displayOrder>100</a:displayOrder>
+                               <a:access>read</a:access>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                      <xsd:element ref="icfs:name">
+                         <xsd:annotation>
+                            <xsd:appinfo>
+                               <a:displayName>ConnId Name</a:displayName>
+                               <a:displayOrder>110</a:displayOrder>
+                            </xsd:appinfo>
+                         </xsd:annotation>
+                      </xsd:element>
+                   </xsd:sequence>
+                </xsd:complexType>
+             </xsd:schema>
+          </definition>
+    </schema>
+
+    <!-- No schemaHandling as well. -->
+    <!-- We need to configure those capabilities that depend on the schema -->
+
+    <capabilities>
+        <!-- No cahingMetadata here MID-4472, MID-4174 -->
+        <native>
+            <!-- no schema capability here -->
+            <cap:liveSync/>
+            <cap:testConnection/>
+            <cap:create/>
+            <cap:read/>
+            <cap:update/>
+            <cap:delete/>
+            <cap:script>
+                <cap:host>
+                    <cap:type>resource</cap:type>
+                </cap:host>
+                <cap:host>
+                    <cap:type>connector</cap:type>
+                </cap:host>
+            </cap:script>
+        </native>
+        <configured>
+            <cap:credentials>
+                <cap:password/>
+            </cap:credentials>
+            <cap:activation>
+                <cap:status/>
+            </cap:activation>
+            <cap:countObjects>
+                <cap:simulate>pagedSearchEstimate</cap:simulate>
+            </cap:countObjects>
+        </configured>
+    </capabilities>
 </resource>

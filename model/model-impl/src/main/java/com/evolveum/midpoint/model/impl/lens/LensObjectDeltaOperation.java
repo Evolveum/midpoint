@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
@@ -26,35 +26,35 @@ import java.util.List;
  */
 public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaOperation<T> implements Serializable {
 
-	private boolean audited = false;
+    private boolean audited = false;
 
-	public LensObjectDeltaOperation() {
-		super();
-	}
+    public LensObjectDeltaOperation() {
+        super();
+    }
 
-	public LensObjectDeltaOperation(ObjectDelta<T> objectDelta) {
-		super(objectDelta);
-	}
+    public LensObjectDeltaOperation(ObjectDelta<T> objectDelta) {
+        super(objectDelta);
+    }
 
-	public boolean isAudited() {
-		return audited;
-	}
+    public boolean isAudited() {
+        return audited;
+    }
 
-	public void setAudited(boolean audited) {
-		this.audited = audited;
-	}
+    public void setAudited(boolean audited) {
+        this.audited = audited;
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(super.debugDump(indent));
-		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "audited", audited, indent + 1);
-		return sb.toString();
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.debugDump(indent));
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "audited", audited, indent + 1);
+        return sb.toString();
+    }
 
-	@Override
-	protected String getDebugDumpClassName() {
+    @Override
+    protected String getDebugDumpClassName() {
         return "LensObjectDeltaOperation";
     }
 
@@ -76,15 +76,15 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
         return retval;
     }
 
-	public LensObjectDeltaOperation<T> clone() {
-		LensObjectDeltaOperation<T> clone = new LensObjectDeltaOperation<>();
-		super.copyToClone(clone);
-		copyToClone(clone);
-		return clone;
-	}
+    public LensObjectDeltaOperation<T> clone() {
+        LensObjectDeltaOperation<T> clone = new LensObjectDeltaOperation<>();
+        super.copyToClone(clone);
+        copyToClone(clone);
+        return clone;
+    }
 
-	protected void copyToClone(LensObjectDeltaOperation<T> clone) {
-		clone.audited = this.audited;
-	}
+    protected void copyToClone(LensObjectDeltaOperation<T> clone) {
+        clone.audited = this.audited;
+    }
 
 }

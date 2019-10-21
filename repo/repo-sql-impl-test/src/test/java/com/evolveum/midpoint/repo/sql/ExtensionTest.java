@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql;
@@ -137,7 +137,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
         options.setUseNoFetchExtensionValuesDeletion(isNoFetchDeletion());
         return options;
     }
-    
+
     private boolean checkCounts() {
         return isH2();
     }
@@ -1502,7 +1502,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     @Test
     public void test170AddAssignments() throws Exception {
         OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test170AddAssignments");
-        
+
         AssignmentType newAssignment = new AssignmentType(prismContext)
                 .id(777L)
                 .targetRef("999999", OrgType.COMPLEX_TYPE);
@@ -1511,7 +1511,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
                 .getValue();
         newExtValue.findOrCreateProperty(EXT_WEAPON).addRealValues("W2.1", "W2.2");
         newExtValue.findOrCreateProperty(EXT_SHIP_NAME).addRealValues("ship2");
-        
+
         AssignmentType newAssignment2 = new AssignmentType(prismContext)
                 .id(888L)
                 .targetRef("999999", OrgType.COMPLEX_TYPE);
@@ -1520,7 +1520,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
                 .getValue();
         newExtValue2.findOrCreateProperty(EXT_WEAPON).addRealValues("W3.1", "W3.2");
         newExtValue2.findOrCreateProperty(EXT_SHIP_NAME).addRealValues("ship3");
-        
+
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                     .add(newAssignment, newAssignment2)
@@ -1579,7 +1579,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     @Test
     public void test173DeleteAssignment() throws Exception {
         OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test173DeleteAssignment");
-        
+
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                     .delete(new AssignmentType(prismContext).id(777L))

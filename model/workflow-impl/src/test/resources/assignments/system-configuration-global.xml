@@ -1,113 +1,113 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
-  ~  
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-					 xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>SystemConfiguration</name>
     <logging>
-    	<rootLoggerAppender>File Appender</rootLoggerAppender>
-    	<rootLoggerLevel>INFO</rootLoggerLevel>
+        <rootLoggerAppender>File Appender</rootLoggerAppender>
+        <rootLoggerLevel>INFO</rootLoggerLevel>
         <classLogger>
-	        <level>TRACE</level>
-	        <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-      	</classLogger>
+            <level>TRACE</level>
+            <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
+          </classLogger>
         <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
             <fileName>target/test.log</fileName>
             <append>true</append>
         </appender>
     </logging>
-	<notificationConfiguration>
-		<handler>
-			<simpleWorkflowNotifier>
-				<category>workflowProcessEvent</category>
-				<recipientExpression>
-					<value>recipient@evolveum.com</value>
-				</recipientExpression>
-				<transport>dummy:simpleWorkflowNotifier-Processes</transport>
-			</simpleWorkflowNotifier>
-		</handler>
-		<handler>
-			<simpleWorkflowNotifier>
-				<category>workItemEvent</category>
-				<recipientExpression>
-					<value>recipient@evolveum.com</value>
-				</recipientExpression>
-				<transport>dummy:simpleWorkflowNotifier-WorkItems</transport>
-			</simpleWorkflowNotifier>
-		</handler>
-	</notificationConfiguration>
-	<workflowConfiguration>
-		<useLegacyApproversSpecification>never</useLegacyApproversSpecification>
-		<useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
-		<approverCommentsFormatting>
-			<value>
-				<script>
-					<code>performer.name + ' :: ' + output.comment</code>
-				</script>
-			</value>
-			<condition>
-				<script>
-					<code>output.comment != null &amp;&amp; !output.comment.isEmpty()</code>
-				</script>
-			</condition>
-		</approverCommentsFormatting>
-	</workflowConfiguration>
-	<globalPolicyRule>
-		<policyConstraints>
-			<assignment>
-				<operation>add</operation>
-				<relation>q:any</relation>
-			</assignment>
-		</policyConstraints>
-		<policyActions>
-			<approval>
-				<approverRelation>approver</approverRelation>
-			</approval>
-		</policyActions>
-		<focusSelector>
-			<type>UserType</type>
-		</focusSelector>
-		<targetSelector>
-			<type>RoleType</type>
-			<filter>
-				<q:not>
-					<q:equal>
-						<q:path>name</q:path>
-						<q:value>Role4</q:value>
-					</q:equal>
-				</q:not>
-			</filter>
-		</targetSelector>
-	</globalPolicyRule>
-	<globalPolicyRule>
-		<policyConstraints>
-			<assignment>
-				<operation>add</operation>
-				<relation>q:any</relation>
-			</assignment>
-		</policyConstraints>
-		<policyActions>
-			<enforcement/>
-		</policyActions>
-		<focusSelector>
-			<type>UserType</type>
-		</focusSelector>
-		<targetSelector>
-			<type>RoleType</type>
-			<filter>
-				<q:equal>
-					<q:path>name</q:path>
-					<q:value>Role15</q:value>
-				</q:equal>
-			</filter>
-		</targetSelector>
-	</globalPolicyRule>
+    <notificationConfiguration>
+        <handler>
+            <simpleWorkflowNotifier>
+                <category>workflowProcessEvent</category>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleWorkflowNotifier-Processes</transport>
+            </simpleWorkflowNotifier>
+        </handler>
+        <handler>
+            <simpleWorkflowNotifier>
+                <category>workItemEvent</category>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleWorkflowNotifier-WorkItems</transport>
+            </simpleWorkflowNotifier>
+        </handler>
+    </notificationConfiguration>
+    <workflowConfiguration>
+        <useLegacyApproversSpecification>never</useLegacyApproversSpecification>
+        <useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
+        <approverCommentsFormatting>
+            <value>
+                <script>
+                    <code>performer.name + ' :: ' + output.comment</code>
+                </script>
+            </value>
+            <condition>
+                <script>
+                    <code>output.comment != null &amp;&amp; !output.comment.isEmpty()</code>
+                </script>
+            </condition>
+        </approverCommentsFormatting>
+    </workflowConfiguration>
+    <globalPolicyRule>
+        <policyConstraints>
+            <assignment>
+                <operation>add</operation>
+                <relation>q:any</relation>
+            </assignment>
+        </policyConstraints>
+        <policyActions>
+            <approval>
+                <approverRelation>approver</approverRelation>
+            </approval>
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+        <targetSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:not>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <q:value>Role4</q:value>
+                    </q:equal>
+                </q:not>
+            </filter>
+        </targetSelector>
+    </globalPolicyRule>
+    <globalPolicyRule>
+        <policyConstraints>
+            <assignment>
+                <operation>add</operation>
+                <relation>q:any</relation>
+            </assignment>
+        </policyConstraints>
+        <policyActions>
+            <enforcement/>
+        </policyActions>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+        <targetSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <q:value>Role15</q:value>
+                </q:equal>
+            </filter>
+        </targetSelector>
+    </globalPolicyRule>
 </systemConfiguration>

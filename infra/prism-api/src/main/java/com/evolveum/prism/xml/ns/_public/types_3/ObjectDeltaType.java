@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -215,70 +215,70 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
         return this.itemDelta;
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((changeType == null) ? 0 : changeType.hashCode());
-		result = prime * result + ((itemDelta == null) ? 0 : itemDelta.hashCode());
-		result = prime * result + ((objectToAdd == null) ? 0 : objectToAdd.hashCode());
-		result = prime * result + ((objectType == null) ? 0 : objectType.hashCode());
-		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((changeType == null) ? 0 : changeType.hashCode());
+        result = prime * result + ((itemDelta == null) ? 0 : itemDelta.hashCode());
+        result = prime * result + ((objectToAdd == null) ? 0 : objectToAdd.hashCode());
+        result = prime * result + ((objectType == null) ? 0 : objectType.hashCode());
+        result = prime * result + ((oid == null) ? 0 : oid.hashCode());
+        return result;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ObjectDeltaType other = (ObjectDeltaType) obj;
-		if (changeType != other.changeType)
-			return false;
-		if (itemDelta == null) {
-			if (other.itemDelta != null)
-				return false;
-		} else if (!itemDelta.equals(other.itemDelta))
-			return false;
-		if (objectToAdd == null) {
-			if (other.objectToAdd != null)
-				return false;
-		} else if (!objectToAdd.equals(other.objectToAdd))
-			return false;
-		if (objectType == null) {
-			if (other.objectType != null)
-				return false;
-		} else if (!objectType.equals(other.objectType))
-			return false;
-		if (oid == null) {
-			if (other.oid != null)
-				return false;
-		} else if (!oid.equals(other.oid))
-			return false;
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ObjectDeltaType other = (ObjectDeltaType) obj;
+        if (changeType != other.changeType)
+            return false;
+        if (itemDelta == null) {
+            if (other.itemDelta != null)
+                return false;
+        } else if (!itemDelta.equals(other.itemDelta))
+            return false;
+        if (objectToAdd == null) {
+            if (other.objectToAdd != null)
+                return false;
+        } else if (!objectToAdd.equals(other.objectToAdd))
+            return false;
+        if (objectType == null) {
+            if (other.objectType != null)
+                return false;
+        } else if (!objectType.equals(other.objectType))
+            return false;
+        if (oid == null) {
+            if (other.oid != null)
+                return false;
+        } else if (!oid.equals(other.oid))
+            return false;
+        return true;
+    }
 
-	@Override
-	public String toString() {
-		return "ObjectDeltaType(changeType=" + changeType + ", objectType=" + objectType + ", objectToAdd="
-				+ objectToAdd + ", oid=" + oid + ", modification=" + itemDelta + ")";
-	}
+    @Override
+    public String toString() {
+        return "ObjectDeltaType(changeType=" + changeType + ", objectType=" + objectType + ", objectToAdd="
+                + objectToAdd + ", oid=" + oid + ", modification=" + itemDelta + ")";
+    }
 
-	@Override
-	public void accept(JaxbVisitor visitor) {
-		visitor.visit(this);
-		for (ItemDeltaType delta : itemDelta) {
-			delta.accept(visitor);
-		}
-		if (objectToAdd != null) {
-			objectToAdd.accept(visitor);
-		}
-	}
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
+        for (ItemDeltaType delta : itemDelta) {
+            delta.accept(visitor);
+        }
+        if (objectToAdd != null) {
+            objectToAdd.accept(visitor);
+        }
+    }
 
-	/**
+    /**
      * <p>Java class for anonymous complex type.
      *
      * <p>The following schema fragment specifies the expected content contained within this class.
@@ -349,14 +349,14 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
             return retval;
         }
 
-		@Override
-		public void accept(JaxbVisitor visitor) {
-        	visitor.visit(this);
-			if (any != null && any.getValue() instanceof JaxbVisitable) {
-				((JaxbVisitable) any.getValue()).accept(visitor);
-			}
-		}
-	}
+        @Override
+        public void accept(JaxbVisitor visitor) {
+            visitor.visit(this);
+            if (any != null && any.getValue() instanceof JaxbVisitable) {
+                ((JaxbVisitable) any.getValue()).accept(visitor);
+            }
+        }
+    }
 
     /**
      * Clones the object (objectToAdd is cloned using reflection, assuming it is a subclass of ObjectType, that has public clone() method)

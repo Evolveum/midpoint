@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -36,40 +36,40 @@ import javax.xml.namespace.QName;
  *  @author semancik
  * */
 public abstract class AutoCompleteQNamePanel<T extends QName> extends AbstractAutoCompletePanel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final String ID_INPUT = "input";
-	private Map<String, T> choiceMap = null;
+    private static final String ID_INPUT = "input";
+    private Map<String, T> choiceMap = null;
 
-	private IModel<T> model;
+    private IModel<T> model;
 
     public AutoCompleteQNamePanel(String id, final IModel<T> model) {
-    	super(id);
-    	this.model = model;
-    	initLayout(model);
+        super(id);
+        this.model = model;
+        initLayout(model);
     }
 
     private void initLayout(final IModel<T> model) {
-    	setOutputMarkupId(true);
+        setOutputMarkupId(true);
 
         AutoCompleteSettings autoCompleteSettings = createAutoCompleteSettings();
         final IModel<String> stringModel = new Model<String>() {
 
-			@Override
-			public void setObject(String object) {
-				super.setObject(object);
-				model.setObject(convertToQname(object));
-			}
+            @Override
+            public void setObject(String object) {
+                super.setObject(object);
+                model.setObject(convertToQname(object));
+            }
 
-			@Override
-			public String getObject() {
-				return (model.getObject() != null) ? model.getObject().getLocalPart() : null;
-			}
-		};
+            @Override
+            public String getObject() {
+                return (model.getObject() != null) ? model.getObject().getLocalPart() : null;
+            }
+        };
 
-		// The inner autocomplete field is always String. Non-string auto-complete fields are problematic
+        // The inner autocomplete field is always String. Non-string auto-complete fields are problematic
         final AutoCompleteTextField<String> input = new AutoCompleteTextField<String>(ID_INPUT, stringModel, String.class, autoCompleteSettings) {
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected Iterator<String> getChoices(String input) {
@@ -79,70 +79,70 @@ public abstract class AutoCompleteQNamePanel<T extends QName> extends AbstractAu
 
         };
         input.add(new OnChangeAjaxBehavior() {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				String inputString = stringModel.getObject();
-				if (StringUtils.isBlank(inputString)) {
-					T modelObject = model.getObject();
-					if (modelObject != null) {
-						model.setObject(null);
-						AutoCompleteQNamePanel.this.onChange(target);
-					}
-				} else {
-					T inputQName = convertToQname(stringModel.getObject());
-					if (inputQName == null) {
-						// We have some input, but it does not match any QName. Just do nothing.
-					} else {
-						T modelObject = model.getObject();
-						if (inputQName.equals(modelObject)) {
-							model.setObject(inputQName);
-							AutoCompleteQNamePanel.this.onChange(target);
-						}
-					}
-				}
-			}
-		});
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                String inputString = stringModel.getObject();
+                if (StringUtils.isBlank(inputString)) {
+                    T modelObject = model.getObject();
+                    if (modelObject != null) {
+                        model.setObject(null);
+                        AutoCompleteQNamePanel.this.onChange(target);
+                    }
+                } else {
+                    T inputQName = convertToQname(stringModel.getObject());
+                    if (inputQName == null) {
+                        // We have some input, but it does not match any QName. Just do nothing.
+                    } else {
+                        T modelObject = model.getObject();
+                        if (inputQName.equals(modelObject)) {
+                            model.setObject(inputQName);
+                            AutoCompleteQNamePanel.this.onChange(target);
+                        }
+                    }
+                }
+            }
+        });
         add(input);
     }
 
 
 
     private Iterator<String> getIterator(String input) {
-    	Map<String, T> choiceMap = getChoiceMap();
-    	List<String> selected = new ArrayList<>(choiceMap.size());
-    	for (Entry<String, T> entry: choiceMap.entrySet()) {
-    		String key = entry.getKey();
-    		if (StringUtils.startsWithIgnoreCase(key, input.toLowerCase())) {
-    			selected.add(key);
-    		}
-    	}
-    	return selected.iterator();
+        Map<String, T> choiceMap = getChoiceMap();
+        List<String> selected = new ArrayList<>(choiceMap.size());
+        for (Entry<String, T> entry: choiceMap.entrySet()) {
+            String key = entry.getKey();
+            if (StringUtils.startsWithIgnoreCase(key, input.toLowerCase())) {
+                selected.add(key);
+            }
+        }
+        return selected.iterator();
     }
 
     private Map<String, T> getChoiceMap() {
-    	if (choiceMap == null) {
-    		Collection<T> choices = loadChoices();
-    		choiceMap = new HashMap<>();
-    		for (T choice: choices) {
-    			// TODO: smarter initialization of the map
-    			choiceMap.put(choice.getLocalPart(), choice);
-    		}
-    	}
-    	return choiceMap;
+        if (choiceMap == null) {
+            Collection<T> choices = loadChoices();
+            choiceMap = new HashMap<>();
+            for (T choice: choices) {
+                // TODO: smarter initialization of the map
+                choiceMap.put(choice.getLocalPart(), choice);
+            }
+        }
+        return choiceMap;
     }
 
-	private T convertToQname(String input) {
-		Map<String, T> choiceMap = getChoiceMap();
-		return choiceMap.get(input);
-	}
+    private T convertToQname(String input) {
+        Map<String, T> choiceMap = getChoiceMap();
+        return choiceMap.get(input);
+    }
 
 
     public abstract Collection<T> loadChoices();
 
     protected void onChange(AjaxRequestTarget target) {
-    	// Nothing to do by default. For use in subclasses
+        // Nothing to do by default. For use in subclasses
     }
 
     @Override

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -176,9 +176,9 @@ public class LookupTableHelper {
         for (SelectorOptions<GetOperationOptions> option : filtered) {
             ObjectSelector selector = option.getSelector();
             if (selector == null) {
-            	// Ignore this. These are top-level options. There will not
-            	// apply to lookup table
-            	continue;
+                // Ignore this. These are top-level options. There will not
+                // apply to lookup table
+                continue;
             }
             if (LookupTableType.F_ROW.equivalent(selector.getPath())) {
                 return option.getOptions();

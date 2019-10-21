@@ -150,7 +150,7 @@ REM Install service
 --StdOutput="%PR_STDOUTPUT%" ^
 --StdError="%PR_STDERROR%" ^
 --JvmOptions -Dmidpoint.home="%MIDPOINT_HOME%";-Dpython.cachedir="%MIDPOINT_HOME%\tmp";-Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks";-Djavax.net.ssl.trustStoreType=jceks ^
---Classpath="%PR_CLASSPATH%"  
+--Classpath="%PR_CLASSPATH%"
 
 if not errorlevel 1 goto installed
 echo Failed installing '%SERVICE_NAME%' service

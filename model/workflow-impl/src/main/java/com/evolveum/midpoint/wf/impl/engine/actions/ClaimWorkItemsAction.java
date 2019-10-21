@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -23,51 +23,51 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ClaimWorkItemsAction extends RequestedAction<ClaimWorkItemsRequest> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ClaimWorkItemsAction.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ClaimWorkItemsAction.class);
 
-	private static final String OP_EXECUTE = ClaimWorkItemsAction.class.getName() + ".execute";
+    private static final String OP_EXECUTE = ClaimWorkItemsAction.class.getName() + ".execute";
 
-	public ClaimWorkItemsAction(@NotNull EngineInvocationContext ctx, @NotNull ClaimWorkItemsRequest request) {
-		super(ctx, request);
-	}
+    public ClaimWorkItemsAction(@NotNull EngineInvocationContext ctx, @NotNull ClaimWorkItemsRequest request) {
+        super(ctx, request);
+    }
 
-	@Override
-	public Action execute(OperationResult parentResult) throws SecurityViolationException {
-		OperationResult result = parentResult.subresult(OP_EXECUTE)
-				.setMinor()
-				.build();
+    @Override
+    public Action execute(OperationResult parentResult) throws SecurityViolationException {
+        OperationResult result = parentResult.subresult(OP_EXECUTE)
+                .setMinor()
+                .build();
 
-		try {
-			traceEnter(LOGGER);
+        try {
+            traceEnter(LOGGER);
 
-			for (ClaimWorkItemsRequest.SingleClaim claim : request.getClaims()) {
-				CaseWorkItemType workItem = ctx.findWorkItemById(claim.getWorkItemId());
-				if (workItem.getCloseTimestamp() != null) {
-					result.recordStatus(OperationResultStatus.NOT_APPLICABLE,
-							"Work item has been already closed");     // todo better result handling
-				} else if (!workItem.getAssigneeRef().isEmpty()) {
-					String desc;
-					if (workItem.getAssigneeRef().size() == 1 && ctx.getPrincipal().getOid()
-							.equals(workItem.getAssigneeRef().get(0).getOid())) {
-						desc = "the current";
-					} else {
-						desc = "another";
-					}
-					throw new SystemException("The work item is already assigned to " + desc + " user");
-				} else if (!engine.authorizationHelper.isAuthorizedToClaim(workItem)) {
-					throw new SecurityViolationException("You are not authorized to claim the selected work item.");
-				} else {
-					workItem.getAssigneeRef().add(ctx.getPrincipal().toObjectReference().clone());
-				}
-			}
+            for (ClaimWorkItemsRequest.SingleClaim claim : request.getClaims()) {
+                CaseWorkItemType workItem = ctx.findWorkItemById(claim.getWorkItemId());
+                if (workItem.getCloseTimestamp() != null) {
+                    result.recordStatus(OperationResultStatus.NOT_APPLICABLE,
+                            "Work item has been already closed");     // todo better result handling
+                } else if (!workItem.getAssigneeRef().isEmpty()) {
+                    String desc;
+                    if (workItem.getAssigneeRef().size() == 1 && ctx.getPrincipal().getOid()
+                            .equals(workItem.getAssigneeRef().get(0).getOid())) {
+                        desc = "the current";
+                    } else {
+                        desc = "another";
+                    }
+                    throw new SystemException("The work item is already assigned to " + desc + " user");
+                } else if (!engine.authorizationHelper.isAuthorizedToClaim(workItem)) {
+                    throw new SecurityViolationException("You are not authorized to claim the selected work item.");
+                } else {
+                    workItem.getAssigneeRef().add(ctx.getPrincipal().toObjectReference().clone());
+                }
+            }
 
-			traceExit(LOGGER, null);
-			return null;
-		} catch (Throwable t) {
-			result.recordFatalError(t);
-			throw t;
-		} finally {
-			result.computeStatusIfUnknown();
-		}
-	}
+            traceExit(LOGGER, null);
+            return null;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
 }

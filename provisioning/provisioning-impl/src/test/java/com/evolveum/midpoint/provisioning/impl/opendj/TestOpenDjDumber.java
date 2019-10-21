@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2016-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.provisioning.impl.opendj;
@@ -31,46 +31,46 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @DirtiesContext
 public class TestOpenDjDumber extends TestOpenDj {
 
-	protected static final File RESOURCE_OPENDJ_DUMBER_FILE = new File(TEST_DIR, "resource-opendj-dumber.xml");
+    protected static final File RESOURCE_OPENDJ_DUMBER_FILE = new File(TEST_DIR, "resource-opendj-dumber.xml");
 
-	private static Trace LOGGER = TraceManager.getTrace(TestOpenDjDumber.class);
+    private static Trace LOGGER = TraceManager.getTrace(TestOpenDjDumber.class);
 
-	@Override
-	protected File getResourceOpenDjFile() {
-		return RESOURCE_OPENDJ_DUMBER_FILE;
-	}
+    @Override
+    protected File getResourceOpenDjFile() {
+        return RESOURCE_OPENDJ_DUMBER_FILE;
+    }
 
-	@Override
-	protected int getNumberOfBaseContextShadows() {
-		return 1;
-	}
+    @Override
+    protected int getNumberOfBaseContextShadows() {
+        return 1;
+    }
 
-	@Override
-	protected void assertConnectorOperationIncrement(int expectedIncrementSmart, int expectedIncrementDumb) {
-		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, expectedIncrementDumb);
-	}
-	
-	/**
-	 * But "dumber" resource do not have any count simulation for groups.
-	 */
-	@Override
-	protected Integer getExpectedLdapGroupCountTest25x() {
-		return null;
-	}
-	
-	@Override
-	protected void assertTimestampType(String attrName, ResourceAttributeDefinition<?> def) {
-		assertEquals("Wrong "+attrName+"type", DOMUtil.XSD_STRING, def.getTypeName());
-	}
-	
-	@Override
-	protected void assertTimestamp(String attrName, Object timestampValue) {
-		if (!(timestampValue instanceof String)) {
-			fail("Wrong type of "+attrName+", expected String but was "+timestampValue.getClass());
-		}
-		String str = (String)timestampValue;
-		assertTrue("Timestamp "+attrName+" does not start with 2: "+str, str.startsWith("2"));
-		assertTrue("Timestamp "+attrName+" does not end with Z: "+str, str.endsWith("Z"));
-	}
+    @Override
+    protected void assertConnectorOperationIncrement(int expectedIncrementSmart, int expectedIncrementDumb) {
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, expectedIncrementDumb);
+    }
+
+    /**
+     * But "dumber" resource do not have any count simulation for groups.
+     */
+    @Override
+    protected Integer getExpectedLdapGroupCountTest25x() {
+        return null;
+    }
+
+    @Override
+    protected void assertTimestampType(String attrName, ResourceAttributeDefinition<?> def) {
+        assertEquals("Wrong "+attrName+"type", DOMUtil.XSD_STRING, def.getTypeName());
+    }
+
+    @Override
+    protected void assertTimestamp(String attrName, Object timestampValue) {
+        if (!(timestampValue instanceof String)) {
+            fail("Wrong type of "+attrName+", expected String but was "+timestampValue.getClass());
+        }
+        String str = (String)timestampValue;
+        assertTrue("Timestamp "+attrName+" does not start with 2: "+str, str.startsWith("2"));
+        assertTrue("Timestamp "+attrName+" does not end with Z: "+str, str.endsWith("Z"));
+    }
 
 }

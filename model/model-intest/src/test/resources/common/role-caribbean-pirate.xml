@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="0719ec66-edd9-11e6-bd70-03a74157ff9e"
@@ -11,9 +11,9 @@
     <name>Caribbean Pirate</name>
     <description>Hierachical role with a parameter in the hierarchy</description>
     <inducement>
-    	<extension>
-    		<piracy:sea>Caribbean</piracy:sea>
-    	</extension>
-    	<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Role Pirate -->
+        <extension>
+            <piracy:sea>Caribbean</piracy:sea>
+        </extension>
+        <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Role Pirate -->
     </inducement>
 </role>

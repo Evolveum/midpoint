@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.services;
@@ -34,73 +34,73 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 @PageDescriptor(url = "/admin/service", encoder = OnePageParameterEncoder.class, action = {
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
-				label = "PageAdminServices.auth.servicesAll.label",
-				description = "PageAdminServices.auth.servicesAll.description"),
-		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL,
-				label = "PageService.auth.role.label",
-				description = "PageService.auth.role.description") })
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICES_ALL_URL,
+                label = "PageAdminServices.auth.servicesAll.label",
+                description = "PageAdminServices.auth.servicesAll.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL,
+                label = "PageService.auth.role.label",
+                description = "PageService.auth.role.description") })
 public class PageService extends PageAdminAbstractRole<ServiceType> implements ProgressReportingAwarePage{
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public PageService() {
-		super();
-	}
-
-	public PageService(PageParameters parameters) {
-		super(parameters);
-	}
-
-	public PageService(final PrismObject<ServiceType> role) {
-		super(role);
-	}
-
-	public PageService(final PrismObject<ServiceType> userToEdit, boolean isNewObject) {
-		super(userToEdit, isNewObject);
-	}
-	
-	public PageService(final PrismObject<ServiceType> abstractRole, boolean isNewObject, boolean isReadonly) {
-		super(abstractRole, isNewObject, isReadonly);
-	}
-	
-	@Override
-	protected ServiceType createNewObject() {
-		return new ServiceType();
-	}
-
-	@Override
-    public Class<ServiceType> getCompileTimeClass() {
-		return ServiceType.class;
-	}
-
-	@Override
-	protected Class getRestartResponsePage() {
-		return PageServices.class;
-	}
-
-	@Override
-	protected FocusSummaryPanel<ServiceType> createSummaryPanel() {
-    	return new ServiceSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
+    public PageService() {
+        super();
     }
 
-	@Override
-	protected AbstractObjectMainPanel<ServiceType> createMainPanel(String id) {
-		return new AbstractRoleMainPanel<ServiceType>(id, getObjectModel(),
-				getProjectionModel(), this) {
-			private static final long serialVersionUID = 1L;
+    public PageService(PageParameters parameters) {
+        super(parameters);
+    }
 
-			@Override
-			protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<ServiceType> object, String date){
-				PageService.this.navigateToNext(new PageServiceHistory(object, date));
-			}
+    public PageService(final PrismObject<ServiceType> role) {
+        super(role);
+    }
 
-			@Override
-			protected boolean isFocusHistoryPage(){
-				return PageService.this.isFocusHistoryPage();
-			}
+    public PageService(final PrismObject<ServiceType> userToEdit, boolean isNewObject) {
+        super(userToEdit, isNewObject);
+    }
 
-		};
-	}
+    public PageService(final PrismObject<ServiceType> abstractRole, boolean isNewObject, boolean isReadonly) {
+        super(abstractRole, isNewObject, isReadonly);
+    }
+
+    @Override
+    protected ServiceType createNewObject() {
+        return new ServiceType();
+    }
+
+    @Override
+    public Class<ServiceType> getCompileTimeClass() {
+        return ServiceType.class;
+    }
+
+    @Override
+    protected Class getRestartResponsePage() {
+        return PageServices.class;
+    }
+
+    @Override
+    protected FocusSummaryPanel<ServiceType> createSummaryPanel() {
+        return new ServiceSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
+    }
+
+    @Override
+    protected AbstractObjectMainPanel<ServiceType> createMainPanel(String id) {
+        return new AbstractRoleMainPanel<ServiceType>(id, getObjectModel(),
+                getProjectionModel(), this) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<ServiceType> object, String date){
+                PageService.this.navigateToNext(new PageServiceHistory(object, date));
+            }
+
+            @Override
+            protected boolean isFocusHistoryPage(){
+                return PageService.this.isFocusHistoryPage();
+            }
+
+        };
+    }
 
 }

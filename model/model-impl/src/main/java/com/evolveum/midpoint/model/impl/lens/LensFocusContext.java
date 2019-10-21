@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
@@ -43,107 +43,107 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     private static final Trace LOGGER = TraceManager.getTrace(LensFocusContext.class);
 
-	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<>();
+    private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<>();
 
-	transient private ArchetypePolicyType archetypePolicyType;
-	transient private ArchetypeType archetype;
+    transient private ArchetypePolicyType archetypePolicyType;
+    transient private ArchetypeType archetype;
 
-	// extracted from the template(s)
-	// this is not to be serialized into XML, but let's not mark it as transient
-	@NotNull private Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = new HashMap<>();
+    // extracted from the template(s)
+    // this is not to be serialized into XML, but let's not mark it as transient
+    @NotNull private Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = new HashMap<>();
 
-	public LensFocusContext(Class<O> objectTypeClass, LensContext<O> lensContext) {
-		super(objectTypeClass, lensContext);
-	}
-	
-	private int getProjectionWave() {
-		return getLensContext().getProjectionWave();
-	}
-
-	private int getExecutionWave() {
-		return getLensContext().getProjectionWave();
-	}
-
-	public ArchetypePolicyType getArchetypePolicyType() {
-		return archetypePolicyType;
-	}
-	
-	public void setArchetypePolicyType(ArchetypePolicyType objectPolicyConfigurationType) {
-		this.archetypePolicyType = objectPolicyConfigurationType;
-	}
-	
-	public ArchetypeType getArchetype() {
-		return archetype;
-	}
-	
-	public void setArchetype(ArchetypeType archetype) {
-		this.archetype = archetype;
-	}
-	
-	public LifecycleStateModelType getLifecycleModel() {
-		if (archetypePolicyType == null) {
-			return null;
-		}
-		return archetypePolicyType.getLifecycleStateModel();
-	}
-
-	@Override
-	public void setOid(String oid) {
-		super.setOid(oid);
-		secondaryDeltas.setOid(oid);
-	}
-
-	public ObjectDelta<O> getProjectionWavePrimaryDelta() throws SchemaException {
-    	if (getProjectionWave() == 0) {
-    		return getFixedPrimaryDelta();
-    	} else {
-    		return secondaryDeltas.getMergedDeltas(getFixedPrimaryDelta(), getProjectionWave());
-    	}
+    public LensFocusContext(Class<O> objectTypeClass, LensContext<O> lensContext) {
+        super(objectTypeClass, lensContext);
     }
 
-	public boolean isDelete() {
-		return getPrimaryDelta() != null && getPrimaryDelta().isDelete();
-	}
+    private int getProjectionWave() {
+        return getLensContext().getProjectionWave();
+    }
 
-	public boolean isAdd() {
-		return getPrimaryDelta() != null && getPrimaryDelta().isAdd();
-	}
+    private int getExecutionWave() {
+        return getLensContext().getProjectionWave();
+    }
+
+    public ArchetypePolicyType getArchetypePolicyType() {
+        return archetypePolicyType;
+    }
+
+    public void setArchetypePolicyType(ArchetypePolicyType objectPolicyConfigurationType) {
+        this.archetypePolicyType = objectPolicyConfigurationType;
+    }
+
+    public ArchetypeType getArchetype() {
+        return archetype;
+    }
+
+    public void setArchetype(ArchetypeType archetype) {
+        this.archetype = archetype;
+    }
+
+    public LifecycleStateModelType getLifecycleModel() {
+        if (archetypePolicyType == null) {
+            return null;
+        }
+        return archetypePolicyType.getLifecycleStateModel();
+    }
+
+    @Override
+    public void setOid(String oid) {
+        super.setOid(oid);
+        secondaryDeltas.setOid(oid);
+    }
+
+    public ObjectDelta<O> getProjectionWavePrimaryDelta() throws SchemaException {
+        if (getProjectionWave() == 0) {
+            return getFixedPrimaryDelta();
+        } else {
+            return secondaryDeltas.getMergedDeltas(getFixedPrimaryDelta(), getProjectionWave());
+        }
+    }
+
+    public boolean isDelete() {
+        return getPrimaryDelta() != null && getPrimaryDelta().isDelete();
+    }
+
+    public boolean isAdd() {
+        return getPrimaryDelta() != null && getPrimaryDelta().isAdd();
+    }
 
 
-	@Override
-	public ObjectDelta<O> getSecondaryDelta() {
+    @Override
+    public ObjectDelta<O> getSecondaryDelta() {
         try {
-			return secondaryDeltas.getMergedDeltas();
-		} catch (SchemaException e) {
-			// This should not happen
-			throw new SystemException("Unexpected delta merging problem: "+e.getMessage(), e);
-		}
+            return secondaryDeltas.getMergedDeltas();
+        } catch (SchemaException e) {
+            // This should not happen
+            throw new SystemException("Unexpected delta merging problem: "+e.getMessage(), e);
+        }
     }
 
     public ObjectDelta<O> getSecondaryDelta(int wave) {
-    	return secondaryDeltas.get(wave);
+        return secondaryDeltas.get(wave);
     }
 
     public ObjectDeltaWaves<O> getSecondaryDeltas() {
         return secondaryDeltas;
     }
-    
-    @Override
-	public Collection<ObjectDelta<O>> getAllDeltas() {
-		List<ObjectDelta<O>> deltas = new ArrayList<>(secondaryDeltas.size() + 1);
-		ObjectDelta<O> primaryDelta = getPrimaryDelta();
-		if (primaryDelta != null) {
-			deltas.add(primaryDelta);
-		}
-		for (ObjectDelta<O> secondaryDelta : secondaryDeltas) {
-			if (secondaryDelta != null) {
-				deltas.add(secondaryDelta);
-			}
-		}
-		return deltas;
-	}
 
-	public ObjectDelta<O> getProjectionWaveSecondaryDelta() throws SchemaException {
+    @Override
+    public Collection<ObjectDelta<O>> getAllDeltas() {
+        List<ObjectDelta<O>> deltas = new ArrayList<>(secondaryDeltas.size() + 1);
+        ObjectDelta<O> primaryDelta = getPrimaryDelta();
+        if (primaryDelta != null) {
+            deltas.add(primaryDelta);
+        }
+        for (ObjectDelta<O> secondaryDelta : secondaryDeltas) {
+            if (secondaryDelta != null) {
+                deltas.add(secondaryDelta);
+            }
+        }
+        return deltas;
+    }
+
+    public ObjectDelta<O> getProjectionWaveSecondaryDelta() throws SchemaException {
         return getWaveSecondaryDelta(getProjectionWave());
     }
 
@@ -152,247 +152,247 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     // preliminary implementation - deletes all secondary deltas
-	@Override
-	public void deleteSecondaryDeltas() {
-		secondaryDeltas.deleteDeltas();
-	}
+    @Override
+    public void deleteSecondaryDeltas() {
+        secondaryDeltas.deleteDeltas();
+    }
 
-	@Override
-	public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
-		return new ObjectDeltaObject<>(getObjectOld(), getDelta(), getObjectNew(), getObjectDefinition());
-	}
+    @Override
+    public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
+        return new ObjectDeltaObject<>(getObjectOld(), getDelta(), getObjectNew(), getObjectDefinition());
+    }
 
-	@Override
-	public void setSecondaryDelta(ObjectDelta<O> secondaryDelta) {
-		throw new UnsupportedOperationException("Cannot set secondary delta to focus without a wave number");
-	}
+    @Override
+    public void setSecondaryDelta(ObjectDelta<O> secondaryDelta) {
+        throw new UnsupportedOperationException("Cannot set secondary delta to focus without a wave number");
+    }
 
-	public void setSecondaryDelta(ObjectDelta<O> secondaryDelta, int wave) {
+    public void setSecondaryDelta(ObjectDelta<O> secondaryDelta, int wave) {
         this.secondaryDeltas.set(wave, secondaryDelta);
     }
 
     public void setProjectionWaveSecondaryDelta(ObjectDelta<O> secondaryDelta) {
-    	this.secondaryDeltas.set(getProjectionWave(), secondaryDelta);
+        this.secondaryDeltas.set(getProjectionWave(), secondaryDelta);
     }
 
     public void swallowToProjectionWaveSecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
 
-		ObjectDelta<O> secondaryDelta = getProjectionWaveSecondaryDelta();
+        ObjectDelta<O> secondaryDelta = getProjectionWaveSecondaryDelta();
 
-		if (secondaryDelta == null) {
+        if (secondaryDelta == null) {
             secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
             secondaryDelta.setOid(getOid());
             setProjectionWaveSecondaryDelta(secondaryDelta);
         } else if (secondaryDelta.containsModification(propDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {   // todo why literal?
-			return;
-		}
+            return;
+        }
 
         secondaryDelta.swallow(propDelta);
-	}
+    }
 
-	// TODO is this method ever needed?
+    // TODO is this method ever needed?
     @SuppressWarnings("unused")
     public void swallowToWave0SecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
-      	ObjectDelta<O> secondaryDelta = getSecondaryDelta(0);
-      	if (secondaryDelta == null) {
+          ObjectDelta<O> secondaryDelta = getSecondaryDelta(0);
+          if (secondaryDelta == null) {
             secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
             secondaryDelta.setOid(getOid());
             setSecondaryDelta(secondaryDelta, 0);
         } else if (secondaryDelta.containsModification(propDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {   // todo why literal?
-      		return;
-      	}
+              return;
+          }
 
         secondaryDelta.swallow(propDelta);
-	}
+    }
 
-	@Override
-	public void swallowToSecondaryDelta(ItemDelta<?, ?> itemDelta) throws SchemaException {
-		swallowToProjectionWaveSecondaryDelta(itemDelta);
-	}
+    @Override
+    public void swallowToSecondaryDelta(ItemDelta<?, ?> itemDelta) throws SchemaException {
+        swallowToProjectionWaveSecondaryDelta(itemDelta);
+    }
 
-	public boolean alreadyHasDelta(ItemDelta<?,?> itemDelta) {
-		ObjectDelta<O> primaryDelta = getPrimaryDelta();
-		if (primaryDelta != null && primaryDelta.containsModification(itemDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {    // todo why literal?
-			return true;
-		}
-		if (secondaryDeltas != null) {
-			for (ObjectDelta<O> waveSecondaryDelta: secondaryDeltas) {
-				if (waveSecondaryDelta != null && waveSecondaryDelta.containsModification(itemDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {    // todo why literal?
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+    public boolean alreadyHasDelta(ItemDelta<?,?> itemDelta) {
+        ObjectDelta<O> primaryDelta = getPrimaryDelta();
+        if (primaryDelta != null && primaryDelta.containsModification(itemDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {    // todo why literal?
+            return true;
+        }
+        if (secondaryDeltas != null) {
+            for (ObjectDelta<O> waveSecondaryDelta: secondaryDeltas) {
+                if (waveSecondaryDelta != null && waveSecondaryDelta.containsModification(itemDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {    // todo why literal?
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
-	public boolean hasAnyDelta() {
-		if (getPrimaryDelta() != null && !getPrimaryDelta().isEmpty()) {
-			return true;
-		}
-		if (secondaryDeltas != null) {
-			for (ObjectDelta<O> waveSecondaryDelta: secondaryDeltas) {
-				if (waveSecondaryDelta != null && !waveSecondaryDelta.isEmpty()) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
+    public boolean hasAnyDelta() {
+        if (getPrimaryDelta() != null && !getPrimaryDelta().isEmpty()) {
+            return true;
+        }
+        if (secondaryDeltas != null) {
+            for (ObjectDelta<O> waveSecondaryDelta: secondaryDeltas) {
+                if (waveSecondaryDelta != null && !waveSecondaryDelta.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
-	/**
+    /**
      * Returns user delta, both primary and secondary (merged together) for a current wave.
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      */
     public ObjectDelta<O> getProjectionWaveDelta() throws SchemaException {
-    	return getWaveDelta(getProjectionWave());
+        return getWaveDelta(getProjectionWave());
     }
 
     public ObjectDelta<O> getWaveDelta(int wave) throws SchemaException {
-    	if (wave == 0) {
-    		// Primary delta is executed only in the first wave (wave 0)
-    		return ObjectDeltaCollectionsUtil.union(getFixedPrimaryDelta(), getWaveSecondaryDelta(wave));
-    	} else {
-    		return getWaveSecondaryDelta(wave);
-    	}
+        if (wave == 0) {
+            // Primary delta is executed only in the first wave (wave 0)
+            return ObjectDeltaCollectionsUtil.union(getFixedPrimaryDelta(), getWaveSecondaryDelta(wave));
+        } else {
+            return getWaveSecondaryDelta(wave);
+        }
     }
 
-	// HIGHLY EXPERIMENTAL
-	public ObjectDelta<O> getAggregatedWaveDelta(int wave) throws SchemaException {
-		ObjectDelta<O> result = null;
-		for (int w = 0; w <= wave; w++) {
-			ObjectDelta<O> delta = getWaveDelta(w);
-			if (delta == null) {
-				continue;
-			}
-			if (result == null) {
-				result = delta.clone();
-			} else {
-				result.merge(delta);
-			}
-		}
-		LOGGER.trace("Aggregated wave delta for wave {} = {}", wave, result != null ? result.debugDump() : "(null)");
-		return result;
-	}
+    // HIGHLY EXPERIMENTAL
+    public ObjectDelta<O> getAggregatedWaveDelta(int wave) throws SchemaException {
+        ObjectDelta<O> result = null;
+        for (int w = 0; w <= wave; w++) {
+            ObjectDelta<O> delta = getWaveDelta(w);
+            if (delta == null) {
+                continue;
+            }
+            if (result == null) {
+                result = delta.clone();
+            } else {
+                result.merge(delta);
+            }
+        }
+        LOGGER.trace("Aggregated wave delta for wave {} = {}", wave, result != null ? result.debugDump() : "(null)");
+        return result;
+    }
 
     public ObjectDelta<O> getWaveExecutableDelta(int wave) throws SchemaException {
-    	if (wave == 0) {
-    		if (getFixedPrimaryDelta() != null && getFixedPrimaryDelta().isAdd()) {
-    			ObjectDelta delta = getFixedPrimaryDelta().clone();
-    			for (ObjectDelta<O> secondary : getSecondaryDeltas()) {
-    				if (secondary != null) {
-    					secondary.applyTo(delta.getObjectToAdd());
-    				}
-    			}
-    			return delta;
-    		}
-    	}
-    	return getWaveDelta(wave);
+        if (wave == 0) {
+            if (getFixedPrimaryDelta() != null && getFixedPrimaryDelta().isAdd()) {
+                ObjectDelta delta = getFixedPrimaryDelta().clone();
+                for (ObjectDelta<O> secondary : getSecondaryDeltas()) {
+                    if (secondary != null) {
+                        secondary.applyTo(delta.getObjectToAdd());
+                    }
+                }
+                return delta;
+            }
+        }
+        return getWaveDelta(wave);
     }
-    
-    @Override
-	public void cleanup() {
-		// Clean up only delta in current wave. The deltas in previous waves are already done.
-		// FIXME: this somehow breaks things. don't know why. but don't really care. the waves will be gone soon anyway
-//		if (secondaryDeltas.get(getWave()) != null) {
-//			secondaryDeltas.remove(getWave());
-//		}
-	}
-  
-
-	@Override
-	public void normalize() {
-		super.normalize();
-		if (secondaryDeltas != null) {
-			secondaryDeltas.normalize();
-		}
-	}
-
-//	@Override
-//	public void reset() {
-//		super.reset();
-//		secondaryDeltas = new ObjectDeltaWaves<O>();
-//	}
-
-	@Override
-	public void adopt(PrismContext prismContext) throws SchemaException {
-		super.adopt(prismContext);
-		if (secondaryDeltas != null) {
-			secondaryDeltas.adopt(prismContext);
-		}
-	}
-
-	public void clearIntermediateResults() {
-		// Nothing to do
-	}
-
-	public void applyProjectionWaveSecondaryDeltas(Collection<ItemDelta<?,?>> itemDeltas) throws SchemaException {
-		ObjectDelta<O> wavePrimaryDelta = getProjectionWavePrimaryDelta();
-		ObjectDelta<O> waveSecondaryDelta = getProjectionWaveSecondaryDelta();
-		for (ItemDelta<?,?> itemDelta: itemDeltas) {
-			if (itemDelta != null && !itemDelta.isEmpty()) {
-				if (wavePrimaryDelta == null || !wavePrimaryDelta.containsModification(itemDelta)) {
-					if (waveSecondaryDelta == null) {
-						waveSecondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
-						if (getObjectNew() != null && getObjectNew().getOid() != null){
-							waveSecondaryDelta.setOid(getObjectNew().getOid());
-						}
-						setProjectionWaveSecondaryDelta(waveSecondaryDelta);
-					}
-					waveSecondaryDelta.mergeModification(itemDelta);
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Returns true if there is any change in organization membership.
-	 * I.e. in case that there is a change in parentOrgRef.
-	 */
-	public boolean hasOrganizationalChange() {
-		return hasChangeInItem(SchemaConstants.PATH_PARENT_ORG_REF);
-	}
-	
-	public boolean hasChangeInItem(ItemPath itemPath) {
-		if (isAdd()) {
-			PrismObject<O> objectNew = getObjectNew();
-			if (objectNew == null) {
-				return false;
-			}
-			Item<PrismValue,ItemDefinition> item = objectNew.findItem(itemPath);
-			if (item == null) {
-				return false;
-			}
-			List<PrismValue> values = item.getValues();
-			if (values == null || values.isEmpty()) {
-				return false;
-			}
-			return true;
-		} else if (isDelete()) {
-			// We do not care any more
-			return false;
-		} else {
-			for (ObjectDelta<O> delta : getAllDeltas()) {
-				if (delta.hasItemDelta(itemPath)) {
-					return true;
-				}
-			}
-			return false;
-		}
-	}
 
     @Override
-	public LensFocusContext<O> clone(LensContext lensContext) {
-    	LensFocusContext<O> clone = new LensFocusContext<O>(getObjectTypeClass(), lensContext);
-    	copyValues(clone, lensContext);
-    	return clone;
-	}
+    public void cleanup() {
+        // Clean up only delta in current wave. The deltas in previous waves are already done.
+        // FIXME: this somehow breaks things. don't know why. but don't really care. the waves will be gone soon anyway
+//        if (secondaryDeltas.get(getWave()) != null) {
+//            secondaryDeltas.remove(getWave());
+//        }
+    }
 
-	protected void copyValues(LensFocusContext<O> clone, LensContext lensContext) {
-		super.copyValues(clone, lensContext);
-		if (this.secondaryDeltas != null) {
-			clone.secondaryDeltas = this.secondaryDeltas.clone();
-		}
-	}
+
+    @Override
+    public void normalize() {
+        super.normalize();
+        if (secondaryDeltas != null) {
+            secondaryDeltas.normalize();
+        }
+    }
+
+//    @Override
+//    public void reset() {
+//        super.reset();
+//        secondaryDeltas = new ObjectDeltaWaves<O>();
+//    }
+
+    @Override
+    public void adopt(PrismContext prismContext) throws SchemaException {
+        super.adopt(prismContext);
+        if (secondaryDeltas != null) {
+            secondaryDeltas.adopt(prismContext);
+        }
+    }
+
+    public void clearIntermediateResults() {
+        // Nothing to do
+    }
+
+    public void applyProjectionWaveSecondaryDeltas(Collection<ItemDelta<?,?>> itemDeltas) throws SchemaException {
+        ObjectDelta<O> wavePrimaryDelta = getProjectionWavePrimaryDelta();
+        ObjectDelta<O> waveSecondaryDelta = getProjectionWaveSecondaryDelta();
+        for (ItemDelta<?,?> itemDelta: itemDeltas) {
+            if (itemDelta != null && !itemDelta.isEmpty()) {
+                if (wavePrimaryDelta == null || !wavePrimaryDelta.containsModification(itemDelta)) {
+                    if (waveSecondaryDelta == null) {
+                        waveSecondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
+                        if (getObjectNew() != null && getObjectNew().getOid() != null){
+                            waveSecondaryDelta.setOid(getObjectNew().getOid());
+                        }
+                        setProjectionWaveSecondaryDelta(waveSecondaryDelta);
+                    }
+                    waveSecondaryDelta.mergeModification(itemDelta);
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns true if there is any change in organization membership.
+     * I.e. in case that there is a change in parentOrgRef.
+     */
+    public boolean hasOrganizationalChange() {
+        return hasChangeInItem(SchemaConstants.PATH_PARENT_ORG_REF);
+    }
+
+    public boolean hasChangeInItem(ItemPath itemPath) {
+        if (isAdd()) {
+            PrismObject<O> objectNew = getObjectNew();
+            if (objectNew == null) {
+                return false;
+            }
+            Item<PrismValue,ItemDefinition> item = objectNew.findItem(itemPath);
+            if (item == null) {
+                return false;
+            }
+            List<PrismValue> values = item.getValues();
+            if (values == null || values.isEmpty()) {
+                return false;
+            }
+            return true;
+        } else if (isDelete()) {
+            // We do not care any more
+            return false;
+        } else {
+            for (ObjectDelta<O> delta : getAllDeltas()) {
+                if (delta.hasItemDelta(itemPath)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    @Override
+    public LensFocusContext<O> clone(LensContext lensContext) {
+        LensFocusContext<O> clone = new LensFocusContext<O>(getObjectTypeClass(), lensContext);
+        copyValues(clone, lensContext);
+        return clone;
+    }
+
+    protected void copyValues(LensFocusContext<O> clone, LensContext lensContext) {
+        super.copyValues(clone, lensContext);
+        if (this.secondaryDeltas != null) {
+            clone.secondaryDeltas = this.secondaryDeltas.clone();
+        }
+    }
 
     public String dump(boolean showTriples) {
         return debugDump(0, showTriples);
@@ -400,7 +400,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     @Override
     public String debugDump(int indent) {
-    	return debugDump(indent, true);
+        return debugDump(indent, true);
     }
 
     public String debugDump(int indent, boolean showTriples) {
@@ -408,12 +408,12 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(getDebugDumpTitle());
         if (!isFresh()) {
-        	sb.append(", NOT FRESH");
+            sb.append(", NOT FRESH");
         }
         sb.append(", oid=");
         sb.append(getOid());
         if (getIteration() != 0) {
-        	sb.append(", iteration=").append(getIteration()).append(" (").append(getIterationToken()).append(")");
+            sb.append(", iteration=").append(getIteration()).append(" (").append(getIterationToken()).append(")");
         }
         sb.append(", syncIntent=").append(getSynchronizationIntent());
 
@@ -450,17 +450,17 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             sb.append(DebugUtil.debugDump(getPendingObjectPolicyStateModifications(), indent + 2));
         }
 
-	    for (Map.Entry<AssignmentSpec, List<ItemDelta<?, ?>>> entry : getPendingAssignmentPolicyStateModifications().entrySet()) {
-		    sb.append("\n");
-		    DebugUtil.indentDebugDump(sb, indent + 1);
-		    sb.append(getDebugDumpTitle("pending assignment policy state modifications for ")).append(entry.getKey()).append(":");
-		    if (entry.getValue().isEmpty()) {
-			    sb.append(" empty");
-		    } else {
-			    sb.append("\n");
-			    sb.append(DebugUtil.debugDump(entry.getValue(), indent + 2));
-		    }
-	    }
+        for (Map.Entry<AssignmentSpec, List<ItemDelta<?, ?>>> entry : getPendingAssignmentPolicyStateModifications().entrySet()) {
+            sb.append("\n");
+            DebugUtil.indentDebugDump(sb, indent + 1);
+            sb.append(getDebugDumpTitle("pending assignment policy state modifications for ")).append(entry.getKey()).append(":");
+            if (entry.getValue().isEmpty()) {
+                sb.append(" empty");
+            } else {
+                sb.append("\n");
+                sb.append(DebugUtil.debugDump(entry.getValue(), indent + 2));
+            }
+        }
 
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent+1);
@@ -469,39 +469,39 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         return sb.toString();
     }
 
-	@Override
-	protected String getElementDefaultDesc() {
-		return "focus";
-	}
+    @Override
+    protected String getElementDefaultDesc() {
+        return "focus";
+    }
 
-	@Override
-	public String toString() {
-		return "LensFocusContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
-	}
+    @Override
+    public String toString() {
+        return "LensFocusContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
+    }
 
-	public String getHumanReadableName() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("focus(");
-		PrismObject<O> object = getObjectNew();
-		if (object == null) {
-			object = getObjectOld();
-		}
-		if (object == null) {
-			sb.append(getOid());
-		} else {
-			sb.append(object.toString());
-		}
-		sb.append(")");
-		return sb.toString();
-	}
+    public String getHumanReadableName() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("focus(");
+        PrismObject<O> object = getObjectNew();
+        if (object == null) {
+            object = getObjectOld();
+        }
+        if (object == null) {
+            sb.append(getOid());
+        } else {
+            sb.append(object.toString());
+        }
+        sb.append(")");
+        return sb.toString();
+    }
 
     public LensFocusContextType toLensFocusContextType(PrismContext prismContext, LensContext.ExportType exportType) throws SchemaException {
-	    LensFocusContextType rv = new LensFocusContextType(prismContext);
-	    super.storeIntoLensElementContextType(rv, exportType);
-	    if (exportType != LensContext.ExportType.MINIMAL) {
-		    rv.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
-	    }
-	    return rv;
+        LensFocusContextType rv = new LensFocusContextType(prismContext);
+        super.storeIntoLensElementContextType(rv, exportType);
+        if (exportType != LensContext.ExportType.MINIMAL) {
+            rv.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
+        }
+        return rv;
     }
 
     public static LensFocusContext fromLensFocusContextType(LensFocusContextType focusContextType, LensContext lensContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
@@ -540,10 +540,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     @Override
-	public void checkEncrypted() {
-		super.checkEncrypted();
-		secondaryDeltas.checkEncrypted("secondary delta");
-	}
+    public void checkEncrypted() {
+        super.checkEncrypted();
+        secondaryDeltas.checkEncrypted("secondary delta");
+    }
 
     @Override
     public void checkConsistence(String desc) {
@@ -567,20 +567,20 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
     }
 
-	public void setItemDefinitionsMap(@NotNull Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap) {
-		this.itemDefinitionsMap = itemDefinitionsMap;
-	}
+    public void setItemDefinitionsMap(@NotNull Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap) {
+        this.itemDefinitionsMap = itemDefinitionsMap;
+    }
 
-	@NotNull
-	public Map<UniformItemPath, ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
-		return itemDefinitionsMap;
-	}
+    @NotNull
+    public Map<UniformItemPath, ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
+        return itemDefinitionsMap;
+    }
 
-	@Override
-	public void forEachDelta(Consumer<ObjectDelta<O>> consumer) {
-		super.forEachDelta(consumer);
-		for (ObjectDelta<O> secondaryDelta : secondaryDeltas) {
-			consumer.accept(secondaryDelta);
-		}
-	}
+    @Override
+    public void forEachDelta(Consumer<ObjectDelta<O>> consumer) {
+        super.forEachDelta(consumer);
+        for (ObjectDelta<O> secondaryDelta : secondaryDeltas) {
+            consumer.accept(secondaryDelta);
+        }
+    }
 }

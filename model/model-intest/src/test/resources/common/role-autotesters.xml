@@ -1,7 +1,7 @@
 <!--
   ~ Copyright (c) 2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="be835a70-e3f4-11e6-82cb-9b47ecb57v14"
@@ -11,16 +11,16 @@
     <name>Autotesters</name>
     <roleType>auto</roleType> <!-- may be used for mapping range -->
     <inducement>
-		<construction>
-			<resourceRef oid="10000000-0000-0000-0000-00000000a404" type="ResourceType"/>
-			<kind>account</kind>
-		</construction>
-		<condition>
-			<expression>
-				<script>
-					<code>com.evolveum.midpoint.tools.testng.CurrentTestResultHolder.isTestClassSimpleName("TestMappingAutoInbound")</code>
-				</script>
-			</expression>
-		</condition>
-	</inducement>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-00000000a404" type="ResourceType"/>
+            <kind>account</kind>
+        </construction>
+        <condition>
+            <expression>
+                <script>
+                    <code>com.evolveum.midpoint.tools.testng.CurrentTestResultHolder.isTestClassSimpleName("TestMappingAutoInbound")</code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
 </role>

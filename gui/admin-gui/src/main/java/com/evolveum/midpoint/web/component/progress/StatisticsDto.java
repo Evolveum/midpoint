@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2015 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,9 +22,9 @@ import java.util.List;
  */
 public class StatisticsDto implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	
-	public static final String F_PROVISIONING_LINES = "provisioningLines";
+    private static final long serialVersionUID = 1L;
+
+    public static final String F_PROVISIONING_LINES = "provisioningLines";
     public static final String F_MAPPINGS_LINES = "mappingsLines";
     public static final String F_NOTIFICATIONS_LINES = "notificationsLines";
     public static final String F_LAST_MESSAGE = "lastMessage";

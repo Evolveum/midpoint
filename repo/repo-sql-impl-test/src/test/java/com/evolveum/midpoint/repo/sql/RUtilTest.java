@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2010-2019 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql;
@@ -29,7 +29,7 @@ public class RUtilTest extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(RUtilTest.class);
 
     private static final String USER_BIG = "user-big.xml";
-    
+
     @Test
     public void test100XmlToByteArrayCompressionEnabled() throws Exception {
         String xml = IOUtils.toString(new FileInputStream(

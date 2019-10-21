@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2013 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -49,7 +49,7 @@ public class NotificationHook implements ChangeHook {
 
     private static final Trace LOGGER = TraceManager.getTrace(NotificationHook.class);
 
-	private static final String HOOK_URI = SchemaConstants.NS_MODEL + "/notification-hook-3";
+    private static final String HOOK_URI = SchemaConstants.NS_MODEL + "/notification-hook-3";
 
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private HookRegistry hookRegistry;
@@ -85,97 +85,97 @@ public class NotificationHook implements ChangeHook {
             return HookOperationMode.FOREGROUND;
         }
 
-		emitModelEvent(context, task, result);
-		emitPolicyRulesEvents(context, task, result);
+        emitModelEvent(context, task, result);
+        emitPolicyRulesEvents(context, task, result);
 
         return HookOperationMode.FOREGROUND;
     }
 
-	private void emitPolicyRulesEvents(ModelContext<?> context, Task task, OperationResult result) {
-		LensFocusContext<?> focusContext = (LensFocusContext<?>) context.getFocusContext();
-		for (EvaluatedPolicyRule rule : focusContext.getPolicyRules()) {
-			emitPolicyEventIfPresent(rule, context, task, result);
-		}
-		DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = ((LensContext<?>) context).getEvaluatedAssignmentTriple();
-		if (triple != null) {
-			for (EvaluatedAssignment<?> assignment : triple.getNonNegativeValues()) {
-				for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
-					emitPolicyEventIfPresent(rule, context, task, result);
-				}
-			}
-		}
-	}
+    private void emitPolicyRulesEvents(ModelContext<?> context, Task task, OperationResult result) {
+        LensFocusContext<?> focusContext = (LensFocusContext<?>) context.getFocusContext();
+        for (EvaluatedPolicyRule rule : focusContext.getPolicyRules()) {
+            emitPolicyEventIfPresent(rule, context, task, result);
+        }
+        DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = ((LensContext<?>) context).getEvaluatedAssignmentTriple();
+        if (triple != null) {
+            for (EvaluatedAssignment<?> assignment : triple.getNonNegativeValues()) {
+                for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
+                    emitPolicyEventIfPresent(rule, context, task, result);
+                }
+            }
+        }
+    }
 
-	private void emitPolicyEventIfPresent(EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
-		if (rule.isTriggered()) {
-			for (NotificationPolicyActionType notificationAction : rule.getEnabledActions(NotificationPolicyActionType.class)) {
-				emitPolicyEvent(notificationAction, rule, context, task, result);
-			}
-		}
-	}
+    private void emitPolicyEventIfPresent(EvaluatedPolicyRule rule, ModelContext<?> context, Task task, OperationResult result) {
+        if (rule.isTriggered()) {
+            for (NotificationPolicyActionType notificationAction : rule.getEnabledActions(NotificationPolicyActionType.class)) {
+                emitPolicyEvent(notificationAction, rule, context, task, result);
+            }
+        }
+    }
 
-	private void emitPolicyEvent(@SuppressWarnings("unused") NotificationPolicyActionType action, EvaluatedPolicyRule rule,
-			ModelContext<?> context, Task task, OperationResult result) {
-		PolicyRuleEvent ruleEvent = createRuleEvent(rule, context, task);
-		notificationManager.processEvent(ruleEvent, task, result);
-	}
+    private void emitPolicyEvent(@SuppressWarnings("unused") NotificationPolicyActionType action, EvaluatedPolicyRule rule,
+            ModelContext<?> context, Task task, OperationResult result) {
+        PolicyRuleEvent ruleEvent = createRuleEvent(rule, context, task);
+        notificationManager.processEvent(ruleEvent, task, result);
+    }
 
-	private void emitModelEvent(@NotNull ModelContext<?> context, @NotNull Task task, @NotNull OperationResult result) {
-		PrismObject<?> object = getObject(context);
-		if (object == null) {
-			LOGGER.trace("Focus context object is null, not sending the notification.");
-			return;
-		}
-		ModelEvent event = createModelEvent(object, context, task);
-		notificationManager.processEvent(event, task, result);
-	}
+    private void emitModelEvent(@NotNull ModelContext<?> context, @NotNull Task task, @NotNull OperationResult result) {
+        PrismObject<?> object = getObject(context);
+        if (object == null) {
+            LOGGER.trace("Focus context object is null, not sending the notification.");
+            return;
+        }
+        ModelEvent event = createModelEvent(object, context, task);
+        notificationManager.processEvent(event, task, result);
+    }
 
-	private PrismObject getObject(@NotNull ModelContext context) {
-		PrismObject object = context.getFocusContext().getObjectNew();
-		if (object == null) {
-			object = context.getFocusContext().getObjectOld();
-		}
-		return object;
-	}
+    private PrismObject getObject(@NotNull ModelContext context) {
+        PrismObject object = context.getFocusContext().getObjectNew();
+        if (object == null) {
+            object = context.getFocusContext().getObjectOld();
+        }
+        return object;
+    }
 
-	@Override
+    @Override
     public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
         // todo implement this
     }
 
-	@NotNull
-	private PolicyRuleEvent createRuleEvent(EvaluatedPolicyRule rule, ModelContext<?> context, Task task) {
-		PolicyRuleEvent ruleEvent = new PolicyRuleEvent(lightweightIdentifierGenerator, rule);
-		setCommonEventProperties(getObject(context), task, context, ruleEvent);
-		return ruleEvent;
-	}
-
-
-	@NotNull
-    private ModelEvent createModelEvent(PrismObject<?> object, ModelContext<?> modelContext, Task task) {
-        ModelEvent event = new ModelEvent(lightweightIdentifierGenerator, modelContext);
-		setCommonEventProperties(object, task, modelContext, event);
-		// TODO is this correct? it's not quite clear how we work with channel info in task / modelContext
-		String channel = task.getChannel();
-		if (channel == null) {
-			channel = modelContext.getChannel();
-		}
-		event.setChannel(channel);
-		return event;
+    @NotNull
+    private PolicyRuleEvent createRuleEvent(EvaluatedPolicyRule rule, ModelContext<?> context, Task task) {
+        PolicyRuleEvent ruleEvent = new PolicyRuleEvent(lightweightIdentifierGenerator, rule);
+        setCommonEventProperties(getObject(context), task, context, ruleEvent);
+        return ruleEvent;
     }
 
-	private void setCommonEventProperties(PrismObject<?> object, Task task, ModelContext<?> modelContext, Event event) {
-		if (task.getOwner() != null) {
-			event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));
-		} else {
-			LOGGER.debug("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
-		}
 
-		// if no OID in object (occurs in 'add' operation), we artificially insert it into the object)
-		if (object.getOid() == null && modelContext.getFocusContext() != null && modelContext.getFocusContext().getOid() != null) {
-			object = object.clone();
-			object.setOid(modelContext.getFocusContext().getOid());
-		}
-		event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, (ObjectType) object.asObjectable()));
-	}
+    @NotNull
+    private ModelEvent createModelEvent(PrismObject<?> object, ModelContext<?> modelContext, Task task) {
+        ModelEvent event = new ModelEvent(lightweightIdentifierGenerator, modelContext);
+        setCommonEventProperties(object, task, modelContext, event);
+        // TODO is this correct? it's not quite clear how we work with channel info in task / modelContext
+        String channel = task.getChannel();
+        if (channel == null) {
+            channel = modelContext.getChannel();
+        }
+        event.setChannel(channel);
+        return event;
+    }
+
+    private void setCommonEventProperties(PrismObject<?> object, Task task, ModelContext<?> modelContext, Event event) {
+        if (task.getOwner() != null) {
+            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));
+        } else {
+            LOGGER.debug("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
+        }
+
+        // if no OID in object (occurs in 'add' operation), we artificially insert it into the object)
+        if (object.getOid() == null && modelContext.getFocusContext() != null && modelContext.getFocusContext().getOid() != null) {
+            object = object.clone();
+            object.setOid(modelContext.getFocusContext().getOid());
+        }
+        event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, (ObjectType) object.asObjectable()));
+    }
 }

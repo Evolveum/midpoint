@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl;
@@ -64,7 +64,7 @@ import static org.testng.AssertJUnit.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(TestQuartzTaskManagerContract.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(TestQuartzTaskManagerContract.class);
 
     private static final String TASK_OWNER_FILENAME = "src/test/resources/basic/owner.xml";
     private static final String TASK_OWNER2_FILENAME = "src/test/resources/basic/owner2.xml";
@@ -72,7 +72,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     private static final String NS_WHATEVER = "http://myself.me/schemas/whatever";
 
     private static String taskFilename(String test) {
-    	return "src/test/resources/basic/task-" + test.substring(4) + ".xml";
+        return "src/test/resources/basic/task-" + test.substring(4) + ".xml";
     }
 
     private static String taskOid(String test, String subId) {
@@ -80,14 +80,14 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     }
 
     private static String taskOid(String test) {
-    	return taskOid(test, "0");
+        return taskOid(test, "0");
     }
 
     @BeforeSuite
-	public void setup() throws SchemaException, SAXException, IOException {
-		super.setup();
+    public void setup() throws SchemaException, SAXException, IOException {
+        super.setup();
         ClusterManager.setUpdateNodeExecutionLimitations(false);
-	}
+    }
 
     @PostConstruct
     public void initialize() throws Exception {
@@ -113,7 +113,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
     public void test003GetProgress() throws Exception {
         String TEST_NAME = "test003GetProgress";
         OperationResult result = createResult(TEST_NAME, LOGGER);
-        
+
         addObjectFromFile(taskFilename(TEST_NAME));
 
         LOGGER.trace("Retrieving the task and getting its progress...");
@@ -269,7 +269,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test(enabled = false)
     public void test004TaskProperties() throws Exception {
-    	String TEST_NAME = "test004TaskProperties";
+        String TEST_NAME = "test004TaskProperties";
         OperationResult result = createResult(TEST_NAME, LOGGER);
 
         addObjectFromFile(taskFilename(TEST_NAME));
@@ -330,17 +330,17 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         st1.setInterval(1);
         st1.setMisfireAction(MisfireActionType.RESCHEDULE);
         task.pushHandlerUri("http://no-handler.org/1", st1, TaskBinding.TIGHT, createExtensionDelta(delayDefinition, 1,
-		        prismContext));
+                prismContext));
 
         ScheduleType st2 = new ScheduleType();
         st2.setInterval(2);
         st2.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
         task.pushHandlerUri("http://no-handler.org/2", st2, TaskBinding.LOOSE, createExtensionDelta(delayDefinition, 2,
-		        prismContext));
+                prismContext));
 
         task.setRecurrenceStatus(TaskRecurrence.RECURRING);
 
-        OperationResultType ort = result.createOperationResultType();			// to be compared with later
+        OperationResultType ort = result.createOperationResultType();            // to be compared with later
 
         task.setResult(result);
 
@@ -434,7 +434,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test005Single() throws Exception {
-    	final String TEST_NAME = "test005Single";
+        final String TEST_NAME = "test005Single";
         final OperationResult result = createResult(TEST_NAME, LOGGER);
 
         // reset 'has run' flag on the handler
@@ -446,8 +446,8 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         LOGGER.trace("Retrieving the task...");
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
 
-       	AssertJUnit.assertNotNull(task);
-       	LOGGER.trace("Task retrieval OK.");
+           AssertJUnit.assertNotNull(task);
+           LOGGER.trace("Task retrieval OK.");
 
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
@@ -499,7 +499,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         //AssertJUnit.assertNull("Handler is still present", task1.getHandlerUri());
         AssertJUnit.assertNotNull("Handler is gone", task1.getHandlerUri());
         AssertJUnit.assertTrue("Other handlers are still present",
-        		task1.getOtherHandlersUriStack() == null || task1.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
+                task1.getOtherHandlersUriStack() == null || task1.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
         // Test whether handler has really run
         AssertJUnit.assertTrue("Handler1 has not run", singleHandler1.hasRun());
@@ -511,11 +511,11 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test006Cycle() throws Exception {
-    	final String TEST_NAME = "test006Cycle";
+        final String TEST_NAME = "test006Cycle";
         final OperationResult result = createResult(TEST_NAME, LOGGER);
 
         // But before that check sanity ... a known problem with xsi:type
-    	PrismObject<? extends ObjectType> object = addObjectFromFile(taskFilename(TEST_NAME));
+        PrismObject<? extends ObjectType> object = addObjectFromFile(taskFilename(TEST_NAME));
 
         ObjectType objectType = object.asObjectable();
         TaskType addedTask = (TaskType) objectType;
@@ -592,7 +592,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test008MoreHandlers() throws Exception {
-    	final String TEST_NAME = "test008MoreHandlers";
+        final String TEST_NAME = "test008MoreHandlers";
         final OperationResult result = createResult(TEST_NAME, LOGGER);
 
         // reset 'has run' flag on handlers
@@ -637,7 +637,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         AssertJUnit.assertNotNull("Handler is gone", task.getHandlerUri());
         AssertJUnit.assertTrue("Other handlers are still present",
-        		task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
+                task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
         // Test if all three handlers were run
 
@@ -648,7 +648,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test009CycleLoose() throws Exception {
-    	final String TEST_NAME = "test009CycleLoose";
+        final String TEST_NAME = "test009CycleLoose";
         final OperationResult result = createResult(TEST_NAME, LOGGER);
 
         addObjectFromFile(taskFilename(TEST_NAME));
@@ -693,8 +693,8 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test010CycleCronLoose() throws Exception {
-    	final String TEST_NAME = "test010CycleCronLoose";
-    	final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final String TEST_NAME = "test010CycleCronLoose";
+        final OperationResult result = createResult(TEST_NAME, LOGGER);
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
@@ -799,10 +799,10 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test012Suspend() throws Exception {
-    	final String TEST_NAME = "test012Suspend";
+        final String TEST_NAME = "test012Suspend";
         final OperationResult result = createResult(TEST_NAME, LOGGER);
 
-      	addObjectFromFile(taskFilename(TEST_NAME));
+          addObjectFromFile(taskFilename(TEST_NAME));
 
         // check if we can read the extension (xsi:type issue)
 
@@ -837,7 +837,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         // The progress should be more than 0
         AssertJUnit.assertTrue("Task has not reported any progress", task.getProgress() > 0);
 
-//        Thread.sleep(200);		// give the scheduler a chance to release the task
+//        Thread.sleep(200);        // give the scheduler a chance to release the task
 
 //        task.refresh(result);
 //        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
@@ -845,10 +845,10 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test013ReleaseAndSuspendLooselyBound() throws Exception {
-    	final String TEST_NAME = "test013ReleaseAndSuspendLooselyBound";
+        final String TEST_NAME = "test013ReleaseAndSuspendLooselyBound";
         final OperationResult result = createResult(TEST_NAME, LOGGER);
 
-    	addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename(TEST_NAME));
 
         Task task = getTask(taskOid(TEST_NAME), result);
         System.out.println("After setup: " + task.debugDump());
@@ -869,7 +869,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         System.out.println("After refresh: " + task.debugDump());
 
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
-//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// task cycle is 1000 ms, so it should be released now
+//        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());        // task cycle is 1000 ms, so it should be released now
 
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
         assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp() == 0);
@@ -894,7 +894,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         assertFalse(task.getLastRunFinishTimestamp() == 0);
         AssertJUnit.assertTrue(task.getProgress() > 0);
 
-//        Thread.sleep(200);		// give the scheduler a chance to release the task
+//        Thread.sleep(200);        // give the scheduler a chance to release the task
 //        task.refresh(result);
 //        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
@@ -902,10 +902,10 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
     @Test
     public void test014SuspendLongRunning() throws Exception {
-    	final String TEST_NAME = "test014SuspendLongRunning";
-    	final OperationResult result = createResult(TEST_NAME, LOGGER);
+        final String TEST_NAME = "test014SuspendLongRunning";
+        final OperationResult result = createResult(TEST_NAME, LOGGER);
 
-    	addObjectFromFile(taskFilename(TEST_NAME));
+        addObjectFromFile(taskFilename(TEST_NAME));
 
         Task task = getTask(taskOid(TEST_NAME), result);
         System.out.println("After setup: " + task.debugDump());
@@ -954,7 +954,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         assertFalse("Last run finish time is zero", task.getLastRunStartTimestamp() == 0);
         AssertJUnit.assertTrue("Progress is not reported", task.getProgress() > 0);
 
-//        Thread.sleep(200);		// give the scheduler a chance to release the task
+//        Thread.sleep(200);        // give the scheduler a chance to release the task
 //        task.refresh(result);
 //        AssertJUnit.assertEquals("Task is not released", TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
     }
@@ -1395,24 +1395,24 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         waitForTaskStart(task1.getOid(), result, 10000, 500);
 
         // import second task with the same group (expensive)
-		TaskType task2 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-2")).asObjectable();
+        TaskType task2 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-2")).asObjectable();
 
-		Thread.sleep(10000);
+        Thread.sleep(10000);
         task1 = getTaskType(task1.getOid(), result);
         assertNull("First task should have no retry time", task1.getNextRetryTimestamp());
 
         String task2Oid = task2.getOid();
         task2 = getTaskType(task2Oid, result);
-		assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
+        assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
         assertNextRetryTimeSet(task2, result);
 
         // now finish first task and check the second one is started
-		boolean stopped = taskManager.suspendTasks(Collections.singleton(task1.getOid()), 20000L, result);
-		assertTrue("Task 1 was not suspended successfully", stopped);
+        boolean stopped = taskManager.suspendTasks(Collections.singleton(task1.getOid()), 20000L, result);
+        assertTrue("Task 1 was not suspended successfully", stopped);
 
-		waitForTaskStart(task2Oid, result, 10000, 500);
+        waitForTaskStart(task2Oid, result, 10000, 500);
 
-		// import third task that has another collision (large-ram) with the second one
+        // import third task that has another collision (large-ram) with the second one
         TaskType task3 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-3")).asObjectable();
 
         Thread.sleep(10000);
@@ -1429,7 +1429,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         waitForTaskStart(task3.getOid(), result, 10000, 500);
 
-		taskManager.suspendTasks(Collections.singleton(task3.getOid()), 20000L, result);
+        taskManager.suspendTasks(Collections.singleton(task3.getOid()), 20000L, result);
     }
 
     protected void assertNextRetryTimeSet(TaskType task, OperationResult result)
@@ -1456,23 +1456,23 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         waitForTaskStart(task1.getOid(), result, 10000, 500);
 
         // import second task with the same group
-		TaskType task2 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-2")).asObjectable();
+        TaskType task2 = (TaskType) addObjectFromFile(taskFilename(TEST_NAME + "-2")).asObjectable();
 
-		Thread.sleep(10000);
+        Thread.sleep(10000);
         task1 = getTaskType(task1.getOid(), result);
         assertNull("First task should have no retry time", task1.getNextRetryTimestamp());
 
         String task2Oid = task2.getOid();
         task2 = getTaskType(task2Oid, result);
-		assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
-		assertNextRetryTimeSet(task2, result);
+        assertNull("Second task was started even if it should not be", task2.getLastRunStartTimestamp());
+        assertNextRetryTimeSet(task2, result);
 
-		// now finish first task and check the second one is started
-		boolean stopped = taskManager.suspendTasks(Collections.singleton(task1.getOid()), 20000L, result);
-		assertTrue("Task 1 was not suspended successfully", stopped);
+        // now finish first task and check the second one is started
+        boolean stopped = taskManager.suspendTasks(Collections.singleton(task1.getOid()), 20000L, result);
+        assertTrue("Task 1 was not suspended successfully", stopped);
 
-		waitForTaskStart(task2Oid, result, 10000, 500);
-		taskManager.suspendTasks(Collections.singleton(task2Oid), 20000L, result);
+        waitForTaskStart(task2Oid, result, 10000, 500);
+        taskManager.suspendTasks(Collections.singleton(task2Oid), 20000L, result);
     }
 
     private TaskType getTaskType(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -1501,19 +1501,19 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         assertNotNull("Task was not started even if it should be", task.getLastRunStartTimestamp());
     }
 
-	@Test
-	public void test130NodeNotAllowed() throws Exception {
-		final String TEST_NAME = "test130NodeNotAllowed";
-		final OperationResult result = createResult(TEST_NAME, LOGGER);
+    @Test
+    public void test130NodeNotAllowed() throws Exception {
+        final String TEST_NAME = "test130NodeNotAllowed";
+        final OperationResult result = createResult(TEST_NAME, LOGGER);
 
-		TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
-		Thread.sleep(10000);
-		task = getTaskType(task.getOid(), result);
-		assertNull("Task was started even if it shouldn't be", task.getLastRunStartTimestamp());
-		taskManager.suspendTasks(Collections.singleton(task.getOid()), 1000L, result);
-	}
+        TaskType task = (TaskType) addObjectFromFile(taskFilename(TEST_NAME)).asObjectable();
+        Thread.sleep(10000);
+        task = getTaskType(task.getOid(), result);
+        assertNull("Task was started even if it shouldn't be", task.getLastRunStartTimestamp());
+        taskManager.suspendTasks(Collections.singleton(task.getOid()), 1000L, result);
+    }
 
-	@Test
+    @Test
     public void test999CheckingLeftovers() throws Exception {
         String TEST_NAME = "test999CheckingLeftovers";
         OperationResult result = createResult(TEST_NAME, LOGGER);
@@ -1543,8 +1543,8 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         checkLeftover(leftovers, "test108", "b", result);
         checkLeftover(leftovers, "test110", result);
         checkLeftover(leftovers, "test110", "a", result);
-		checkLeftover(leftovers, "test120", result);
-		checkLeftover(leftovers, "test130", result);
+        checkLeftover(leftovers, "test120", result);
+        checkLeftover(leftovers, "test130", result);
 
         StringBuilder message = new StringBuilder("Leftover task(s) found:");
         for (String leftover : leftovers) {

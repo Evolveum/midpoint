@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -143,15 +143,15 @@ public class StateReporter {
         if (identifier != null) {
             object = " " + identifier;
         }
-		final String stateMessage =
-				finished + " " + operation + " of " + getObjectClassName(objectClassDef) + object + " on " + getResourceName() + durationString;
-		recordState(stateMessage);
+        final String stateMessage =
+                finished + " " + operation + " of " + getObjectClassName(objectClassDef) + object + " on " + getResourceName() + durationString;
+        recordState(stateMessage);
         if (task != null) {
             if (duration >= 0) {
                 task.recordProvisioningOperation(resourceOid, getResourceName(), getObjectClassQName(objectClassDef), lastOperation, ex == null, 1, duration);
             } else {
-				LOGGER.warn("Negative duration while recording provisiong operation: {}", stateMessage);
-			}
+                LOGGER.warn("Negative duration while recording provisiong operation: {}", stateMessage);
+            }
         } else {
             reportNoTask(resourceOid, lastOperation);
         }
@@ -172,17 +172,17 @@ public class StateReporter {
         this.task = task;
     }
 
-	public Task getTask() {
-		return task;
-	}
+    public Task getTask() {
+        return task;
+    }
 
-	public String getResourceOid() {
-		return resourceOid;
-	}
+    public String getResourceOid() {
+        return resourceOid;
+    }
 
-	public void setResourceOid(String resourceOid) {
-		this.resourceOid = resourceOid;
-	}
+    public void setResourceOid(String resourceOid) {
+        this.resourceOid = resourceOid;
+    }
 
     public boolean canRun() {
         return !(task instanceof RunningTask) || ((RunningTask) task).canRun();

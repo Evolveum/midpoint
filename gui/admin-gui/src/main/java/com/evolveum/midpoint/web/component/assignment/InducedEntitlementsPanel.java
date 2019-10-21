@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.assignment;
@@ -62,11 +62,11 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 public class InducedEntitlementsPanel extends InducementsPanel{
 
     private static final long serialVersionUID = 1L;
-    
+
     private static final String ID_ASSIGNMENT_DETAILS = "assignmentDetails";
 
     private static final Trace LOGGER = TraceManager.getTrace(InducedEntitlementsPanel.class);
-    
+
     private static final String DOT_CLASS = InducedEntitlementsPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_SHADOW_DISPLAY_NAME = DOT_CLASS + "loadShadowDisplayName";
     private static final String OPERATION_LOAD_SHADOW_OBJECT = DOT_CLASS + "loadReferencedShadowObject";
@@ -171,13 +171,13 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-        
+
         columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), ColumnType.STRING, getPageBase()));
 
         columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), ColumnType.STRING, getPageBase()));
-        
+
         columns.add(new PrismContainerWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), getPageBase()));
-                
+
         columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("InducedEntitlements.value")){
             private static final long serialVersionUID = 1L;
 
@@ -186,12 +186,12 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                                      final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
 
                     ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
-					List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
-					        expressionType,
-					        InducedEntitlementsPanel.this.getPageBase().getPrismContext()),
-					        OPERATION_LOAD_SHADOW_OBJECT, InducedEntitlementsPanel.this.getPageBase());
-				
-					MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<ShadowType>(componentId,
+                    List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
+                            expressionType,
+                            InducedEntitlementsPanel.this.getPageBase().getPrismContext()),
+                            OPERATION_LOAD_SHADOW_OBJECT, InducedEntitlementsPanel.this.getPageBase());
+
+                    MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<ShadowType>(componentId,
                         Model.ofList(shadowsList), Arrays.asList(ShadowType.class), false){
                     private static final long serialVersionUID = 1L;
 
@@ -228,8 +228,8 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                 };
                 valuesPanel.setOutputMarkupId(true);
                 item.add(valuesPanel);
-				
-                
+
+
             }
         });
 
@@ -245,26 +245,26 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected void addCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-    	specificContainers.add(getConstructionAssociationPanel(modelObject));
+        specificContainers.add(getConstructionAssociationPanel(modelObject));
 
     }
-    
-    
+
+
     @Override
     protected Panel getBasicContainerPanel(String idPanel,
-    		IModel<PrismContainerValueWrapper<AssignmentType>> model) {
-    	Panel panel = super.getBasicContainerPanel(idPanel, model);
-    	panel.add(new VisibleEnableBehaviour() {
-    		@Override
-    		public boolean isVisible() {
-    			return false;
-    		}
-    	});
-    	return panel;
+            IModel<PrismContainerValueWrapper<AssignmentType>> model) {
+        Panel panel = super.getBasicContainerPanel(idPanel, model);
+        panel.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return false;
+            }
+        });
+        return panel;
     }
-    
+
     private ConstructionAssociationPanel getConstructionAssociationPanel(IModel<PrismContainerValueWrapper<AssignmentType>> model) {
-    	IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_CONSTRUCTION);
+        IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_CONSTRUCTION);
         ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, constructionModel);
         constructionDetailsPanel.setOutputMarkupId(true);
         return constructionDetailsPanel;

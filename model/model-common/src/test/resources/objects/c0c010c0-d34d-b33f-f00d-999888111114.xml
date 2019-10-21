@@ -2,30 +2,30 @@
 <!--
   ~ Copyright (c) 2010-2017 Evolveum and contributors
   ~
-  ~ This work is dual-licensed under the Apache License 2.0 
+  ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<valuePolicy oid="c0c010c0-d34d-b33f-f00d-999888111111" version="0" 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	
-	<name>Testing Bad Password Policy</name>
-	<description>This policy is intentionally insane. The limits conflict with overall length limits. This should fail.</description>
-	<lifetime>
-		<expiration>999</expiration>
-		<warnBeforeExpiration>9</warnBeforeExpiration>
-		<lockAfterExpiration>0</lockAfterExpiration>
-		<minPasswordAge>0</minPasswordAge>
-		<passwordHistoryLength>0</passwordHistoryLength>
-	</lifetime>
-	<stringPolicy>
-		<description>Testing string policy</description>
-		<limitations>
-			<minLength>0</minLength>
-			<minUniqueChars>0</minUniqueChars>
-			<checkAgainstDictionary>true</checkAgainstDictionary>
-			<checkPattern />
-		</limitations>
-	</stringPolicy>
+<valuePolicy oid="c0c010c0-d34d-b33f-f00d-999888111111" version="0"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <name>Testing Bad Password Policy</name>
+    <description>This policy is intentionally insane. The limits conflict with overall length limits. This should fail.</description>
+    <lifetime>
+        <expiration>999</expiration>
+        <warnBeforeExpiration>9</warnBeforeExpiration>
+        <lockAfterExpiration>0</lockAfterExpiration>
+        <minPasswordAge>0</minPasswordAge>
+        <passwordHistoryLength>0</passwordHistoryLength>
+    </lifetime>
+    <stringPolicy>
+        <description>Testing string policy</description>
+        <limitations>
+            <minLength>0</minLength>
+            <minUniqueChars>0</minUniqueChars>
+            <checkAgainstDictionary>true</checkAgainstDictionary>
+            <checkPattern />
+        </limitations>
+    </stringPolicy>
 </valuePolicy>

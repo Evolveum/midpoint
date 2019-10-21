@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2014-2018 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema;
@@ -18,140 +18,140 @@ import com.evolveum.midpoint.util.ShortDumpable;
  * @author semancik
  */
 public class SearchResultMetadata implements Serializable, DebugDumpable, ShortDumpable {
-	private static final long serialVersionUID = 1L;
-	
-	private String pagingCookie;
-	private Integer approxNumberOfAllResults;
-	private boolean partialResults = false;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * Returns the paging cookie. The paging cookie is used for optimization of paged searches.
-	 * The presence of the cookie may allow the data store to correlate queries and associate
-	 * them with the same server-side context. This may allow the data store to reuse the same
-	 * pre-computed data. We want this as the sorted and paged searches may be quite expensive.
-	 * It is expected that the cookie returned from the search will be passed back in the options
-	 * when the next page of the same search is requested.
-	 */
-	public String getPagingCookie() {
-		return pagingCookie;
-	}
+    private String pagingCookie;
+    private Integer approxNumberOfAllResults;
+    private boolean partialResults = false;
 
-	/**
-	 * Sets paging cookie. The paging cookie is used for optimization of paged searches.
-	 * The presence of the cookie may allow the data store to correlate queries and associate
-	 * them with the same server-side context. This may allow the data store to reuse the same
-	 * pre-computed data. We want this as the sorted and paged searches may be quite expensive.
-	 * It is expected that the cookie returned from the search will be passed back in the options
-	 * when the next page of the same search is requested.
-	 */
-	public void setPagingCookie(String pagingCookie) {
-		this.pagingCookie = pagingCookie;
-	}
+    /**
+     * Returns the paging cookie. The paging cookie is used for optimization of paged searches.
+     * The presence of the cookie may allow the data store to correlate queries and associate
+     * them with the same server-side context. This may allow the data store to reuse the same
+     * pre-computed data. We want this as the sorted and paged searches may be quite expensive.
+     * It is expected that the cookie returned from the search will be passed back in the options
+     * when the next page of the same search is requested.
+     */
+    public String getPagingCookie() {
+        return pagingCookie;
+    }
 
-	/**
-	 * Returns the approximate number of all results that would be returned for the
-	 * filter if there was no paging limitation. This property is optional and it is
-	 * informational only. The implementation should return it only if it is extremely
-	 * cheap to get the information (e.g. if it is part of the response anyway).
-	 * The number may be approximate. The intended use of this value is to optimize presentation
-	 * of the data (e.g. to set approximate size of scroll bars, page counts, etc.)
-	 */
-	public Integer getApproxNumberOfAllResults() {
-		return approxNumberOfAllResults;
-	}
+    /**
+     * Sets paging cookie. The paging cookie is used for optimization of paged searches.
+     * The presence of the cookie may allow the data store to correlate queries and associate
+     * them with the same server-side context. This may allow the data store to reuse the same
+     * pre-computed data. We want this as the sorted and paged searches may be quite expensive.
+     * It is expected that the cookie returned from the search will be passed back in the options
+     * when the next page of the same search is requested.
+     */
+    public void setPagingCookie(String pagingCookie) {
+        this.pagingCookie = pagingCookie;
+    }
 
-	public void setApproxNumberOfAllResults(Integer approxNumberOfAllResults) {
-		this.approxNumberOfAllResults = approxNumberOfAllResults;
-	}
+    /**
+     * Returns the approximate number of all results that would be returned for the
+     * filter if there was no paging limitation. This property is optional and it is
+     * informational only. The implementation should return it only if it is extremely
+     * cheap to get the information (e.g. if it is part of the response anyway).
+     * The number may be approximate. The intended use of this value is to optimize presentation
+     * of the data (e.g. to set approximate size of scroll bars, page counts, etc.)
+     */
+    public Integer getApproxNumberOfAllResults() {
+        return approxNumberOfAllResults;
+    }
 
-	/**
-	 * Flag indicating whether the search returned partial results.
-	 * If set to false then all the results requested by the query were returned.
-	 * If set to true then only some results requested by the query were returned.
-	 */
-	public boolean isPartialResults() {
-		return partialResults;
-	}
+    public void setApproxNumberOfAllResults(Integer approxNumberOfAllResults) {
+        this.approxNumberOfAllResults = approxNumberOfAllResults;
+    }
 
-	public void setPartialResults(boolean partialResults) {
-		this.partialResults = partialResults;
-	}
+    /**
+     * Flag indicating whether the search returned partial results.
+     * If set to false then all the results requested by the query were returned.
+     * If set to true then only some results requested by the query were returned.
+     */
+    public boolean isPartialResults() {
+        return partialResults;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((approxNumberOfAllResults == null) ? 0 : approxNumberOfAllResults.hashCode());
-		result = prime * result + ((pagingCookie == null) ? 0 : pagingCookie.hashCode());
-		result = prime * result + (partialResults ? 1231 : 1237);
-		return result;
-	}
+    public void setPartialResults(boolean partialResults) {
+        this.partialResults = partialResults;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		SearchResultMetadata other = (SearchResultMetadata) obj;
-		if (approxNumberOfAllResults == null) {
-			if (other.approxNumberOfAllResults != null)
-				return false;
-		} else if (!approxNumberOfAllResults.equals(other.approxNumberOfAllResults))
-			return false;
-		if (pagingCookie == null) {
-			if (other.pagingCookie != null)
-				return false;
-		} else if (!pagingCookie.equals(other.pagingCookie))
-			return false;
-		if (partialResults != other.partialResults)
-			return false;
-		return true;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((approxNumberOfAllResults == null) ? 0 : approxNumberOfAllResults.hashCode());
+        result = prime * result + ((pagingCookie == null) ? 0 : pagingCookie.hashCode());
+        result = prime * result + (partialResults ? 1231 : 1237);
+        return result;
+    }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("SearchResultMetadata(");
-		shortDump(sb);
-		sb.append(")");
-		return sb.toString();
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        SearchResultMetadata other = (SearchResultMetadata) obj;
+        if (approxNumberOfAllResults == null) {
+            if (other.approxNumberOfAllResults != null)
+                return false;
+        } else if (!approxNumberOfAllResults.equals(other.approxNumberOfAllResults))
+            return false;
+        if (pagingCookie == null) {
+            if (other.pagingCookie != null)
+                return false;
+        } else if (!pagingCookie.equals(other.pagingCookie))
+            return false;
+        if (partialResults != other.partialResults)
+            return false;
+        return true;
+    }
 
-	@Override
-	public void shortDump(StringBuilder sb) {
-		if (pagingCookie != null) {
-			sb.append("pagingCookie=").append(pagingCookie).append(",");
-		}
-		if (approxNumberOfAllResults != null) {
-			sb.append("approxNumberOfAllResults=").append(approxNumberOfAllResults).append(",");
-		}
-		if (partialResults) {
-			sb.append("partialResults=true,");
-		}
-		if (pagingCookie != null || approxNumberOfAllResults != null || partialResults) {
-			sb.setLength(sb.length() - 1);
-		}
-	}
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("SearchResultMetadata(");
+        shortDump(sb);
+        sb.append(")");
+        return sb.toString();
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = DebugUtil.createTitleStringBuilder(SearchResultMetadata.class, indent);
-		sb.append("(");
-		shortDump(sb);
-		sb.append(")");
-		return sb.toString();
-	}
+    @Override
+    public void shortDump(StringBuilder sb) {
+        if (pagingCookie != null) {
+            sb.append("pagingCookie=").append(pagingCookie).append(",");
+        }
+        if (approxNumberOfAllResults != null) {
+            sb.append("approxNumberOfAllResults=").append(approxNumberOfAllResults).append(",");
+        }
+        if (partialResults) {
+            sb.append("partialResults=true,");
+        }
+        if (pagingCookie != null || approxNumberOfAllResults != null || partialResults) {
+            sb.setLength(sb.length() - 1);
+        }
+    }
 
-	@SuppressWarnings("MethodDoesntCallSuperMethod")
-	@Override
-	public SearchResultMetadata clone() {
-		SearchResultMetadata clone = new SearchResultMetadata();
-		clone.pagingCookie = pagingCookie;
-		clone.approxNumberOfAllResults = approxNumberOfAllResults;
-		clone.partialResults = partialResults;
-		return clone;
-	}
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilder(SearchResultMetadata.class, indent);
+        sb.append("(");
+        shortDump(sb);
+        sb.append(")");
+        return sb.toString();
+    }
+
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public SearchResultMetadata clone() {
+        SearchResultMetadata clone = new SearchResultMetadata();
+        clone.pagingCookie = pagingCookie;
+        clone.approxNumberOfAllResults = approxNumberOfAllResults;
+        clone.partialResults = partialResults;
+        return clone;
+    }
 }
