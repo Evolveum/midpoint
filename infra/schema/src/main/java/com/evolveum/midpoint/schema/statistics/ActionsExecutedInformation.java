@@ -215,16 +215,16 @@ public class ActionsExecutedInformation {
     }
 
     private static class ObjectActionExecuted {
-        String objectName;
-        String objectDisplayName;
-        QName objectType;
+        final String objectName;
+        final String objectDisplayName;
+        final QName objectType;
         String objectOid;
-        ChangeType changeType;
-        String channel;
-        Throwable exception;
-        XMLGregorianCalendar timestamp;
+        final ChangeType changeType;
+        final String channel;
+        final Throwable exception;
+        final XMLGregorianCalendar timestamp;
 
-        public ObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception, XMLGregorianCalendar timestamp) {
+        ObjectActionExecuted(String objectName, String objectDisplayName, QName objectType, String objectOid, ChangeType changeType, String channel, Throwable exception, XMLGregorianCalendar timestamp) {
             this.objectName = objectName;
             this.objectDisplayName = objectDisplayName;
             this.objectType = objectType;

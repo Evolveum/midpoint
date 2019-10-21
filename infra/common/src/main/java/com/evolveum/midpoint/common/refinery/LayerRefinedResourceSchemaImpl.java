@@ -217,26 +217,17 @@ public class LayerRefinedResourceSchemaImpl implements LayerRefinedResourceSchem
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         LayerRefinedResourceSchemaImpl other = (LayerRefinedResourceSchemaImpl) obj;
-        if (layer != other.layer)
-            return false;
+        if (layer != other.layer) return false;
         if (refinedResourceSchema == null) {
-            if (other.refinedResourceSchema != null)
-                return false;
-        } else if (!refinedResourceSchema.equals(other.refinedResourceSchema))
+            if (other.refinedResourceSchema != null) return false;
+        } else if (!refinedResourceSchema.equals(other.refinedResourceSchema)) {
             return false;
+        }
         return true;
-    }
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
     }
 
     @Override

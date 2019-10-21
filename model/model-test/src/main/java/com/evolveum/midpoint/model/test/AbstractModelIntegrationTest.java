@@ -2398,7 +2398,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 }
                 sb.append("]-> ");
                 Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(assignmentType.getTargetRef().getType()).getClassDefinition();
-                ;
                 PrismObject<? extends ObjectType> target = repositoryService.getObject(targetClass, assignmentType.getTargetRef().getOid(), null, result);
                 sb.append(target);
             }

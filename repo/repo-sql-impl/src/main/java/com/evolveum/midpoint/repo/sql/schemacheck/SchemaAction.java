@@ -41,7 +41,7 @@ abstract class SchemaAction {
         @NotNull final String message;              // what to show
         final Exception cause;                      // what cause to put into the exception thrown
 
-        public Stop(@NotNull String message, Exception cause) {
+        Stop(@NotNull String message, Exception cause) {
             this.message = message;
             this.cause = cause;
         }

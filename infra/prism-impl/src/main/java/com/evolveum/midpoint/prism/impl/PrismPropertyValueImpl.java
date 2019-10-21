@@ -477,14 +477,17 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
         PrismPropertyValue other = (PrismPropertyValue) obj;
         return equals(other, getEqualsHashCodeStrategy());
+    }
+
+    // Just to make checkstyle happy
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
     @Override

@@ -69,10 +69,8 @@ public final class JAXBUtil {
         }
         if (element instanceof Element) {
             return true;
-        } else if (element instanceof JAXBElement) {
-            return true;
         } else {
-            return false;
+            return element instanceof JAXBElement;
         }
     }
 

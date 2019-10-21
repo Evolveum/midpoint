@@ -24,7 +24,7 @@ public enum RSynchronizationSituation implements SchemaEnum<SynchronizationSitua
 
     private SynchronizationSituationType syncType;
 
-    private RSynchronizationSituation(SynchronizationSituationType syncType) {
+    RSynchronizationSituation(SynchronizationSituationType syncType) {
         this.syncType = syncType;
     }
 

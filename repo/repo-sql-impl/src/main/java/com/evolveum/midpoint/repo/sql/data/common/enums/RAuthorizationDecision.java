@@ -22,7 +22,7 @@ public enum RAuthorizationDecision implements SchemaEnum<AuthorizationDecisionTy
 
     private AuthorizationDecisionType decision;
 
-    private RAuthorizationDecision(AuthorizationDecisionType decision) {
+    RAuthorizationDecision(AuthorizationDecisionType decision) {
         this.decision = decision;
     }
 

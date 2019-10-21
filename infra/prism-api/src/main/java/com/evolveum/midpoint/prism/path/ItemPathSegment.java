@@ -34,15 +34,11 @@ public abstract class ItemPathSegment implements Serializable, Cloneable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj)  return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         ItemPathSegment other = (ItemPathSegment) obj;
-        if (wildcard != other.wildcard)
-            return false;
+        if (wildcard != other.wildcard) return false;
         return true;
     }
 

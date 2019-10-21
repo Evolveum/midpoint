@@ -22,7 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  *
  */
-public class OptimisticLockingRunner<O extends ObjectType, R> {
+public final class OptimisticLockingRunner<O extends ObjectType, R> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OptimisticLockingRunner.class);
     protected static final Random RND = new Random();

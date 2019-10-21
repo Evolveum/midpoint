@@ -17,7 +17,7 @@ public enum SimpleFilterType {
 
     private String elementName;
 
-    private SimpleFilterType(String elementName) {
+    SimpleFilterType(String elementName) {
         this.elementName = elementName;
     }
 

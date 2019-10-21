@@ -80,14 +80,16 @@ public class RAExtDate extends RAExtBase<Timestamp> implements RAExtValue<Timest
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RAExtDate))
-            return false;
-        if (!super.equals(o))
-            return false;
-        RAExtDate that = (RAExtDate) o;
-        return Objects.equals(value, that.value);
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        RAExtDate raExtDate = (RAExtDate) o;
+        return Objects.equals(value, raExtDate.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), value);
     }
 
     @Override

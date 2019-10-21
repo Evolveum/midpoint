@@ -41,12 +41,9 @@ public enum RExportType implements SchemaEnum<ExportType> {
 
          JXL(ExportType.JXL);
 
-
-
-
         private ExportType type;
 
-        private RExportType(ExportType type) {
+        RExportType(ExportType type) {
             this.type = type;
         }
 

@@ -227,96 +227,22 @@ public class ModelDiagController implements ModelDiagnosticService {
 
         try {
 
-            {
-                OperationResult subresult = result.createSubresult(result.getOperation()+".getObject");
-
-                PrismObject<UserType> userRetrieved;
-                try {
-                    userRetrieved = repositoryService.getObject(UserType.class, oid, null, subresult);
-                } catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
-                    result.recordFatalError(e);
-                    return;
-                }
-
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Self-test:user getObject:\n{}", userRetrieved.debugDump());
-                }
-
-                checkUser(userRetrieved, name, subresult);
-
-                subresult.recordSuccessIfUnknown();
+            if (repositorySelfTestUserGet(name, oid, result)) {
+                return;
             }
 
-            {
-                OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.fullName");
-                try {
-
-                    ObjectQuery query = prismContext.queryFor(UserType.class)
-                            .item(UserType.F_FULL_NAME).eq(toPolyString(USER_FULL_NAME))
-                            .build();
-                    subresult.addParam("query", query);
-                    List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , null, subresult);
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
-                    }
-                    assertSingleSearchResult("user", foundObjects, subresult);
-
-                    PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
-                    checkUser(userRetrieved, name, subresult);
-
-                    subresult.recordSuccessIfUnknown();
-                } catch (SchemaException | RuntimeException e) {
-                    subresult.recordFatalError(e);
-                    return;
-                }
+            if (repositorySelfTestUserSearch(name, UserType.F_FULL_NAME, toPolyString(USER_FULL_NAME), result)) {
+                return;
             }
 
             // MID-1116
-            {
-                OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.employeeType");
-                try {
-                    ObjectQuery query = prismContext.queryFor(UserType.class)
-                            .item(UserType.F_EMPLOYEE_TYPE).eq(USER_EMPLOYEE_TYPE[0])
-                            .build();
-                    subresult.addParam("query", query);
-                    List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query , null, subresult);
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
-                    }
-                    assertSingleSearchResult("user", foundObjects, subresult);
-
-                    PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
-                    checkUser(userRetrieved, name, subresult);
-
-                    subresult.recordSuccessIfUnknown();
-                } catch (SchemaException | RuntimeException e) {
-                    subresult.recordFatalError(e);
-                    return;
-                }
+            if (repositorySelfTestUserSearch(name, UserType.F_EMPLOYEE_TYPE, toPolyString(USER_EMPLOYEE_TYPE[1]), result)) {
+                return;
             }
 
             // MID-1116
-            {
-                OperationResult subresult = result.createSubresult(result.getOperation()+".searchObjects.organization");
-                try {
-                    ObjectQuery query = prismContext.queryFor(UserType.class)
-                            .item(UserType.F_ORGANIZATION).eq(toPolyString(USER_ORGANIZATION[1]))
-                            .build();
-                    subresult.addParam("query", query);
-                    List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query, null, subresult);
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
-                    }
-                    assertSingleSearchResult("user", foundObjects, subresult);
-
-                    PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
-                    checkUser(userRetrieved, name, subresult);
-
-                    subresult.recordSuccessIfUnknown();
-                } catch (SchemaException | RuntimeException e) {
-                    subresult.recordFatalError(e);
-                    return;
-                }
+            if (repositorySelfTestUserSearch(name, UserType.F_ORGANIZATION, toPolyString(USER_ORGANIZATION[1]), result)) {
+                return;
             }
 
 
@@ -332,6 +258,52 @@ public class ModelDiagController implements ModelDiagnosticService {
             result.computeStatus();
         }
 
+    }
+
+    private boolean repositorySelfTestUserSearch(String userName, ItemName itemName, Object itemValue, OperationResult result) {
+        OperationResult subresult = result.createSubresult(result.getOperation() + ".searchObjects" + itemName.getLocalPart());
+        try {
+
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(itemName).eq(itemValue)
+                    .build();
+            subresult.addParam("query", query);
+            List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query, null, subresult);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Self-test:user searchObjects:\n{}", DebugUtil.debugDump(foundObjects));
+            }
+            assertSingleSearchResult("user", foundObjects, subresult);
+
+            PrismObject<UserType> userRetrieved = foundObjects.iterator().next();
+            checkUser(userRetrieved, userName, subresult);
+
+            subresult.recordSuccessIfUnknown();
+        } catch (SchemaException | RuntimeException e) {
+            subresult.recordFatalError(e);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean repositorySelfTestUserGet(String name, String oid, OperationResult result) {
+        OperationResult subresult = result.createSubresult(result.getOperation()+".getObject");
+
+        PrismObject<UserType> userRetrieved;
+        try {
+            userRetrieved = repositoryService.getObject(UserType.class, oid, null, subresult);
+        } catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
+            result.recordFatalError(e);
+            return true;
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Self-test:user getObject:\n{}", userRetrieved.debugDump());
+        }
+
+        checkUser(userRetrieved, name, subresult);
+
+        subresult.recordSuccessIfUnknown();
+        return false;
     }
 
     private void checkUser(PrismObject<UserType> userRetrieved, String name, OperationResult subresult) {
@@ -378,45 +350,12 @@ public class ModelDiagController implements ModelDiagnosticService {
         }
 
         try {
-            {
-                OperationResult subresult = result.createSubresult(result.getOperation()+".getObject");
-
-                PrismObject<LookupTableType> lookupTableRetrieved;
-                try {
-                    Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-                            .item(LookupTableType.F_ROW).retrieve()
-                            .build();
-                    lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, options, subresult);
-                } catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
-                    result.recordFatalError(e);
-                    return;
-                }
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Self-test:lookupTable getObject:\n{}", lookupTableRetrieved.debugDump());
-                }
-                checkLookupTable(lookupTableRetrieved, name, subresult);
-                subresult.recordSuccessIfUnknown();
+            if (repositorySelfTestLookupTableGet(result, name, oid)) {
+                return;
             }
 
-            {
-                OperationResult subresult = result.createSubresult(result.getOperation()+".getObject.key");
-                try {
-                    GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
-                            .item(LookupTableType.F_ROW)
-                            .retrieveQuery()
-                                    .item(LookupTableRowType.F_KEY)
-                                    .eq(INSANE_NATIONAL_STRING)
-                            .end();
-                    PrismObject<LookupTableType> lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, optionsBuilder.build(), result);
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Self-test:lookupTable getObject by row key:\n{}", DebugUtil.debugDump(lookupTableRetrieved));
-                    }
-                    checkLookupTable(lookupTableRetrieved, name, subresult);
-                    subresult.recordSuccessIfUnknown();
-                } catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
-                    subresult.recordFatalError(e);
-                    return;
-                }
+            if (repositorySelfTestLookupTableGetKey(result, name, oid)) {
+                return;
             }
 
         } finally {
@@ -428,6 +367,49 @@ public class ModelDiagController implements ModelDiagnosticService {
             }
             result.computeStatus();
         }
+    }
+
+    private boolean repositorySelfTestLookupTableGetKey(OperationResult result, String name, String oid) {
+        OperationResult subresult = result.createSubresult(result.getOperation()+".getObject.key");
+        try {
+            GetOperationOptionsBuilder optionsBuilder = schemaHelper.getOperationOptionsBuilder()
+                    .item(LookupTableType.F_ROW)
+                    .retrieveQuery()
+                            .item(LookupTableRowType.F_KEY)
+                            .eq(INSANE_NATIONAL_STRING)
+                    .end();
+            PrismObject<LookupTableType> lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, optionsBuilder.build(), result);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Self-test:lookupTable getObject by row key:\n{}", DebugUtil.debugDump(lookupTableRetrieved));
+            }
+            checkLookupTable(lookupTableRetrieved, name, subresult);
+            subresult.recordSuccessIfUnknown();
+        } catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
+            subresult.recordFatalError(e);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean repositorySelfTestLookupTableGet(OperationResult result, String name, String oid) {
+        OperationResult subresult = result.createSubresult(result.getOperation()+".getObject");
+
+        PrismObject<LookupTableType> lookupTableRetrieved;
+        try {
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+                    .item(LookupTableType.F_ROW).retrieve()
+                    .build();
+            lookupTableRetrieved = repositoryService.getObject(LookupTableType.class, oid, options, subresult);
+        } catch (ObjectNotFoundException | SchemaException | RuntimeException e) {
+            result.recordFatalError(e);
+            return true;
+        }
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Self-test:lookupTable getObject:\n{}", lookupTableRetrieved.debugDump());
+        }
+        checkLookupTable(lookupTableRetrieved, name, subresult);
+        subresult.recordSuccessIfUnknown();
+        return false;
     }
 
     private void checkLookupTable(PrismObject<LookupTableType> lookupTable, String name, OperationResult subresult) {
@@ -458,7 +440,7 @@ public class ModelDiagController implements ModelDiagnosticService {
         result.recordSuccessIfUnknown();
     }
 
-    private <T> void assertMultivalue(String message, T expectedVals[], Collection<T> actualVals, OperationResult result) {
+    private <T> void assertMultivalue(String message, T[] expectedVals, Collection<T> actualVals, OperationResult result) {
         if (expectedVals.length != actualVals.size()) {
             fail(message+": expected "+expectedVals.length+" values but has "+actualVals.size()+" values: "+actualVals, result);
             return;
@@ -488,7 +470,7 @@ public class ModelDiagController implements ModelDiagnosticService {
         result.recordSuccessIfUnknown();
     }
 
-    private void assertMultivaluePolyString(String message, String expectedOrigs[], Collection<PolyString> actualPolyStrings, OperationResult result) {
+    private void assertMultivaluePolyString(String message, String[] expectedOrigs, Collection<PolyString> actualPolyStrings, OperationResult result) {
         if (expectedOrigs.length != actualPolyStrings.size()) {
             fail(message+": expected "+expectedOrigs.length+" values but has "+actualPolyStrings.size()+" values: "+actualPolyStrings, result);
             return;

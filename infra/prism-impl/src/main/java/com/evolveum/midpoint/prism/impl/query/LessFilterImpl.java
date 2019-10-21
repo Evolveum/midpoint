@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
-public class LessFilterImpl<T> extends ComparativeFilterImpl<T> implements LessFilter<T> {
+public final class LessFilterImpl<T> extends ComparativeFilterImpl<T> implements LessFilter<T> {
 
     private LessFilterImpl(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
             @Nullable QName matchingRule,

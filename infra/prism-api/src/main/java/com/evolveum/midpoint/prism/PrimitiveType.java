@@ -36,7 +36,7 @@ public enum PrimitiveType {
     private final String localName;
     private final QName qname;
 
-    private PrimitiveType(String localName) {
+    PrimitiveType(String localName) {
         this.localName = localName;
         this.qname = new QName(W3C_XML_SCHEMA_NS_URI, localName, NS_W3C_XML_SCHEMA_PREFIX);
     }

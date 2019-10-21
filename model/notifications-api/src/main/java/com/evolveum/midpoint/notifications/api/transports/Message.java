@@ -148,7 +148,7 @@ public class Message implements DebugDumpable {
                 sb.append(attachment.getFileName() != null ?
                             ", fileName='" + attachment.getFileName() + "'" : "")
                   .append("]");
-            };
+            }
             sb.append("}");
         }
         return sb.toString();

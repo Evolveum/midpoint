@@ -72,10 +72,12 @@ public class SingleLocalizableMessage implements LocalizableMessage {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (!(o instanceof SingleLocalizableMessage))
+        }
+        if (!(o instanceof SingleLocalizableMessage)) {
             return false;
+        }
         SingleLocalizableMessage that = (SingleLocalizableMessage) o;
         return Objects.equals(key, that.key) &&
                 Arrays.equals(args, that.args) &&

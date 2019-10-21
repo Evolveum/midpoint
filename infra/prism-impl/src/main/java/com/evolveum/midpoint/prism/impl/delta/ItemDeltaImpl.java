@@ -1592,56 +1592,60 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
      */
     public boolean equivalent(ItemDelta other) {
         if (elementName == null) {
-            if (other.getElementName() != null)
-                return false;
-        } else if (!QNameUtil.match(elementName, elementName))
+            if (other.getElementName() != null) return false;
+        } else if (!QNameUtil.match(elementName, elementName)) {
             return false;
+        }
         if (parentPath == null) {
-            if (other.getParentPath() != null)
-                return false;
-        } else if (!parentPath.equivalent(other.getParentPath()))
+            if (other.getParentPath() != null) return false;
+        } else if (!parentPath.equivalent(other.getParentPath())) {
             return false;
-        if (!equivalentSetRealValue(this.valuesToAdd, other.getValuesToAdd(), false))
+        }
+        if (!equivalentSetRealValue(this.valuesToAdd, other.getValuesToAdd(), false)) {
             return false;
-        if (!equivalentSetRealValue(this.valuesToDelete, other.getValuesToDelete(), true))
+        }
+        if (!equivalentSetRealValue(this.valuesToDelete, other.getValuesToDelete(), true)) {
             return false;
-        if (!equivalentSetRealValue(this.valuesToReplace, other.getValuesToReplace(), false))
+        }
+        if (!equivalentSetRealValue(this.valuesToReplace, other.getValuesToReplace(), false)) {
             return false;
+        }
         return true;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         ItemDeltaImpl other = (ItemDeltaImpl) obj;
         if (definition == null) {
-            if (other.definition != null)
-                return false;
-        } else if (!definition.equals(other.definition))
+            if (other.definition != null) return false;
+        } else if (!definition.equals(other.definition)) {
             return false;
+        }
         if (elementName == null) {
-            if (other.elementName != null)
-                return false;
-        } else if (!elementName.equals(other.elementName))
+            if (other.elementName != null) return false;
+        } else if (!elementName.equals(other.elementName)) {
             return false;
+        }
         if (parentPath == null) {
-            if (other.parentPath != null)
-                return false;
-        } else if (!parentPath.equivalent(other.parentPath))                    // or "equals" ?
+            if (other.parentPath != null) return false;
+        } else if (!parentPath.equivalent(other.parentPath)) {                   // or "equals" ?
             return false;
-        if (!equivalentSetRealValue(this.valuesToAdd, other.valuesToAdd, false))
+        }
+        if (!equivalentSetRealValue(this.valuesToAdd, other.valuesToAdd, false)) {
             return false;
-        if (!equivalentSetRealValue(this.valuesToDelete, other.valuesToDelete, true))        // TODO ok?
+        }
+        if (!equivalentSetRealValue(this.valuesToDelete, other.valuesToDelete, true)) {       // TODO ok?
             return false;
-        if (!equivalentSetRealValue(this.valuesToReplace, other.valuesToReplace, false))
+        }
+        if (!equivalentSetRealValue(this.valuesToReplace, other.valuesToReplace, false)) {
             return false;
-        if (!equivalentSetRealValue(this.estimatedOldValues, other.estimatedOldValues, false))
+        }
+        if (!equivalentSetRealValue(this.estimatedOldValues, other.estimatedOldValues, false)) {
             return false;
+        }
         return true;
     }
 

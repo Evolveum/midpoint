@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  *
  * @author semancik
  */
-public class TrivialItemPathParser {
+public final class TrivialItemPathParser {
     // This is using regexp to "parse" the declarations. It is not ideal,
     // it does not check the syntax, does not show reasonable errors, etc.
     // But it was all done in like 20minutes. Good value/price ;-)

@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class FullTextFilterImpl extends ObjectFilterImpl implements FullTextFilter {
+public final class FullTextFilterImpl extends ObjectFilterImpl implements FullTextFilter {
 
     private Collection<String> values;
     private ExpressionWrapper expression;
@@ -119,13 +119,17 @@ public class FullTextFilterImpl extends ObjectFilterImpl implements FullTextFilt
 
     @Override
     public boolean equals(Object o, boolean exact) {
-        if (this == o)
-            return true;
-        if (!(o instanceof FullTextFilterImpl))
-            return false;
+        if (this == o) return true;
+        if (!(o instanceof FullTextFilterImpl)) return false;
         FullTextFilterImpl that = (FullTextFilterImpl) o;
         return Objects.equals(values, that.values) &&
                 Objects.equals(expression, that.expression);
+    }
+
+    // Just to make checkstyle happy
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
     }
 
     @Override

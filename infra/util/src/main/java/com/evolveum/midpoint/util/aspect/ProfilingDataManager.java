@@ -24,7 +24,7 @@ import java.util.*;
  *
  *  @author shood
  * */
-public class ProfilingDataManager {
+public final class ProfilingDataManager {
 
     /*
     *   private instance of ProfilingDataManager
@@ -37,7 +37,7 @@ public class ProfilingDataManager {
 
     private static boolean profilingTest = false;
 
-    public static enum Subsystem {
+    public enum Subsystem {
         REPOSITORY,
         TASK_MANAGER,
         PROVISIONING,
@@ -292,19 +292,19 @@ public class ProfilingDataManager {
         performanceMap.clear();
     }
 
-    private ProfilingDataLog prepareProfilingDataLog(String className, String methodName, long startTime, Object[] args){
+    private ProfilingDataLog prepareProfilingDataLog(String className, String methodName, long startTime, Object[] args) {
         long eTime = calculateTime(startTime);
         long timestamp = System.currentTimeMillis();
 
         return new ProfilingDataLog(className, methodName, eTime, timestamp, args);
     }
 
-    private synchronized static List<ProfilingDataLog> sort(List<ProfilingDataLog> list){
+    private synchronized static List<ProfilingDataLog> sort(List<ProfilingDataLog> list) {
         Collections.sort(list, ARRAY_COMPARATOR);
         return list;
     }
 
-    private static class ArrayComparator implements Comparator<ProfilingDataLog>{
+    private static class ArrayComparator implements Comparator<ProfilingDataLog> {
 
         @Override
         public int compare(ProfilingDataLog o1, ProfilingDataLog o2) {
@@ -327,36 +327,38 @@ public class ProfilingDataManager {
 
     private String[] prepareArguments(Object[] args){
 
-        if(args == null || args.length == 0)
-            return new String[]{ARGS_EMPTY};
+        if(args == null || args.length == 0) {
+            return new String[] { ARGS_EMPTY };
+        }
 
         StringBuilder sb = new StringBuilder();
 
         for(Object o: args){
-            if(o == null)
+            if (o == null) {
                 sb.append(ARGS_NULL);
-            else
+            } else {
                 sb.append(o.toString());
+            }
 
             sb.append(INDENT_STRING);
         }
 
-        return new String[]{sb.toString()};
+        return new String[] { sb.toString() };
     }
 
-    public void appendProfilingToTest(){
+    public void appendProfilingToTest() {
         OperationExecutionLogger.activateSubsystemProfiling();
     }
 
-    public void stopProfilingAfterTest(){
+    public void stopProfilingAfterTest() {
         OperationExecutionLogger.deactivateSubsystemProfiling();
     }
 
-    public void printMapAfterTest(){
+    public void printMapAfterTest() {
         printEverything(true);
     }
 
-    public Map<String, MethodUsageStatistics> getProfilingData(){
+    public Map<String, MethodUsageStatistics> getProfilingData() {
         return performanceMap;
     }
 }

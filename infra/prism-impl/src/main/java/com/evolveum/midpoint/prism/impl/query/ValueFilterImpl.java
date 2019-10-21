@@ -297,10 +297,8 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
 
     @Override
     public boolean equals(Object o, boolean exact) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ValueFilterImpl<?, ?> that = (ValueFilterImpl<?, ?>) o;
         return fullPath.equals(that.fullPath, exact) &&
                 (!exact || Objects.equals(definition, that.definition)) &&

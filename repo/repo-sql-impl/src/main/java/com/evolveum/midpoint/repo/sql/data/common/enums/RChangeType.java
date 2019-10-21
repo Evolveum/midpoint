@@ -22,7 +22,7 @@ public enum RChangeType implements SchemaEnum<ChangeType> {
 
     private ChangeType type;
 
-    private RChangeType(ChangeType type) {
+    RChangeType(ChangeType type) {
         this.type = type;
     }
 

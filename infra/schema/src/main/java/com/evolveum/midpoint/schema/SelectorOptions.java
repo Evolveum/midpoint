@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schema;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -242,34 +243,16 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
 
     //region hashCode, equals, toString
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((options == null) ? 0 : options.hashCode());
-        result = prime * result + ((selector == null) ? 0 : selector.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SelectorOptions<?> that = (SelectorOptions<?>) o;
+        return Objects.equals(selector, that.selector) && Objects.equals(options, that.options);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        SelectorOptions other = (SelectorOptions) obj;
-        if (options == null) {
-            if (other.options != null)
-                return false;
-        } else if (!options.equals(other.options))
-            return false;
-        if (selector == null) {
-            if (other.selector != null)
-                return false;
-        } else if (!selector.equals(other.selector))
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(selector, options);
     }
 
     @Override

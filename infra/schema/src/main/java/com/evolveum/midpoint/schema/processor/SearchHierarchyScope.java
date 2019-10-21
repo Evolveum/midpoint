@@ -15,7 +15,7 @@ public enum SearchHierarchyScope {
 
     private final String scopeString;
 
-    private SearchHierarchyScope(String scopeString) {
+    SearchHierarchyScope(String scopeString) {
         this.scopeString = scopeString;
     }
 

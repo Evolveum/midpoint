@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -221,53 +222,16 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((executionResult == null) ? 0 : executionResult.hashCode());
-        result = prime * result + ((objectDelta == null) ? 0 : objectDelta.hashCode());
-        result = prime * result + ((objectName == null) ? 0 : objectName.hashCode());
-        result = prime * result + ((resourceOid == null) ? 0 : resourceOid.hashCode());
-        result = prime * result + ((resourceName == null) ? 0 : resourceName.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ObjectDeltaOperation<?> that = (ObjectDeltaOperation<?>) o;
+        return Objects.equals(objectDelta, that.objectDelta) && Objects.equals(executionResult, that.executionResult) && Objects.equals(objectName, that.objectName) && Objects.equals(resourceOid, that.resourceOid) && Objects.equals(resourceName, that.resourceName);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ObjectDeltaOperation other = (ObjectDeltaOperation) obj;
-        if (executionResult == null) {
-            if (other.executionResult != null)
-                return false;
-        } else if (!executionResult.equals(other.executionResult))
-            return false;
-        if (objectDelta == null) {
-            if (other.objectDelta != null)
-                return false;
-        } else if (!objectDelta.equals(other.objectDelta))
-            return false;
-        // TODO are the following fields relevant for equality test?
-        if (objectName == null) {
-            if (other.objectName != null)
-                return false;
-        } else if (!objectName.equals(other.objectName))
-            return false;
-        if (resourceOid == null) {
-            if (other.resourceOid != null)
-                return false;
-        } else if (!resourceOid.equals(other.resourceOid))
-            return false;
-        if (resourceName == null) {
-            if (other.resourceName != null)
-                return false;
-        } else if (!resourceName.equals(other.resourceName))
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(objectDelta, executionResult, objectName, resourceOid, resourceName);
     }
 
     @Override

@@ -28,7 +28,7 @@ public enum ROperationResultStatus implements SchemaEnum<OperationResultStatusTy
 
     private OperationResultStatusType status;
 
-    private ROperationResultStatus(OperationResultStatusType status) {
+    ROperationResultStatus(OperationResultStatusType status) {
         this.status = status;
     }
 

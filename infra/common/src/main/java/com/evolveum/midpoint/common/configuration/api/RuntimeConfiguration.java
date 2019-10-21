@@ -22,7 +22,7 @@ public interface RuntimeConfiguration {
      * @return    String name of component
      */
 
-    public String getComponentId();
+    String getComponentId();
 
     /**
      * Returns current component configuration in commons configuration structure
@@ -45,5 +45,5 @@ public interface RuntimeConfiguration {
      *
      * @return    Commons configuration
      */
-    public Configuration getCurrentConfiguration();
+    Configuration getCurrentConfiguration();
 }

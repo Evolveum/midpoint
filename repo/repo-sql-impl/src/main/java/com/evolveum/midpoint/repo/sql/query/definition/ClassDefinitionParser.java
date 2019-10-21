@@ -98,10 +98,6 @@ public class ClassDefinitionParser {
             entityDef.addDefinition(def);
         }
 
-        for (VirtualReference reference : qEntity.references()) {
-
-        }
-
         for (VirtualCollection collection : qEntity.collections()) {
             QName jaxbName = createQName(collection.jaxbName());
 

@@ -13,6 +13,6 @@ package com.evolveum.midpoint.util;
 @FunctionalInterface
 public interface Cloner<T> {
 
-    public T clone(T original);
+    T clone(T original);
 
 }

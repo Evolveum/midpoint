@@ -116,8 +116,9 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
         }
         PropertyDelta<T> delta = new PropertyDeltaImpl<>(ItemName.fromQName(propertyName), propertyDefinition, containerDefinition.getPrismContext());            // hoping the prismContext is there
         Collection<PrismPropertyValue<T>> valuesToReplace = delta.getValuesToReplace();
-        if (valuesToReplace == null)
+        if (valuesToReplace == null) {
             valuesToReplace = new ArrayList<>(realValues.length);
+        }
         for (T realVal: realValues) {
             valuesToReplace.add(new PrismPropertyValueImpl<>(realVal));
         }
@@ -183,10 +184,11 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
     public static <O extends Objectable, T> PropertyDelta<T> createReplaceDeltaOrEmptyDelta(PrismObjectDefinition<O> objectDefinition,
             QName propertyName, T realValue) {
 
-        if (realValue != null)
+        if (realValue != null) {
             return createReplaceDelta(objectDefinition, propertyName, realValue);
-        else
+        } else {
             return createReplaceEmptyDelta(objectDefinition, ItemName.fromQName(propertyName));
+        }
     }
 
 

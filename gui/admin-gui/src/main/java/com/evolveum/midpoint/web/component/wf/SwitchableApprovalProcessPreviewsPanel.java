@@ -121,9 +121,6 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> {
             opTask.getResult().recordFatalError(
                     createStringResource("SwitchableApprovalProcessPreviewsPanel.message.createApprovalProcess.fatalError", t.getMessage()).getString(), t);
         }
-        if (WebComponentUtil.showResultInPage(result)) {
-            ;
-        }
         return rv;
     }
 

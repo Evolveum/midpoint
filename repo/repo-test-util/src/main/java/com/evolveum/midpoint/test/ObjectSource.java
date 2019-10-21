@@ -13,6 +13,6 @@ package com.evolveum.midpoint.test;
 @FunctionalInterface
 public interface ObjectSource<T> {
 
-    public T get();
+    T get();
 
 }

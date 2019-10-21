@@ -32,7 +32,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 /**
  *
  */
-public class CompiledTracingProfile implements Serializable {
+public final class CompiledTracingProfile implements Serializable {
 
     private static final Trace LOGGER = TraceManager.getTrace(CompiledTracingProfile.class);
 

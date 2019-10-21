@@ -120,7 +120,7 @@ public abstract class ChangeDescription {
         }
     }
 
-    static class Any extends ChangeDescription {
+    static final class Any extends ChangeDescription {
         private final boolean safeInvalidation;
 
         private Any(Class<? extends ObjectType> type, String oid, boolean safeInvalidation) {

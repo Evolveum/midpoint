@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schema;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * DTO that contains repository run-time configuration and diagnostic information.
@@ -115,61 +116,16 @@ public class RepositoryDiag implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((additionalDetails == null) ? 0 : additionalDetails.hashCode());
-        result = prime * result + ((driverShortName == null) ? 0 : driverShortName.hashCode());
-        result = prime * result + ((driverVersion == null) ? 0 : driverVersion.hashCode());
-        result = prime * result + ((implementationDescription == null) ? 0 : implementationDescription.hashCode());
-        result = prime * result + ((implementationShortName == null) ? 0 : implementationShortName.hashCode());
-        result = prime * result + (isEmbedded ? 1231 : 1237);
-        result = prime * result + ((repositoryUrl == null) ? 0 : repositoryUrl.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RepositoryDiag that = (RepositoryDiag) o;
+        return isEmbedded == that.isEmbedded && Objects.equals(implementationShortName, that.implementationShortName) && Objects.equals(implementationDescription, that.implementationDescription) && Objects.equals(driverShortName, that.driverShortName) && Objects.equals(driverVersion, that.driverVersion) && Objects.equals(repositoryUrl, that.repositoryUrl) && Objects.equals(additionalDetails, that.additionalDetails);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        RepositoryDiag other = (RepositoryDiag) obj;
-        if (additionalDetails == null) {
-            if (other.additionalDetails != null)
-                return false;
-        } else if (!additionalDetails.equals(other.additionalDetails))
-            return false;
-        if (driverShortName == null) {
-            if (other.driverShortName != null)
-                return false;
-        } else if (!driverShortName.equals(other.driverShortName))
-            return false;
-        if (driverVersion == null) {
-            if (other.driverVersion != null)
-                return false;
-        } else if (!driverVersion.equals(other.driverVersion))
-            return false;
-        if (implementationDescription == null) {
-            if (other.implementationDescription != null)
-                return false;
-        } else if (!implementationDescription.equals(other.implementationDescription))
-            return false;
-        if (implementationShortName == null) {
-            if (other.implementationShortName != null)
-                return false;
-        } else if (!implementationShortName.equals(other.implementationShortName))
-            return false;
-        if (isEmbedded != other.isEmbedded)
-            return false;
-        if (repositoryUrl == null) {
-            if (other.repositoryUrl != null)
-                return false;
-        } else if (!repositoryUrl.equals(other.repositoryUrl))
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(implementationShortName, implementationDescription, isEmbedded, driverShortName, driverVersion, repositoryUrl, additionalDetails);
     }
 
     @Override

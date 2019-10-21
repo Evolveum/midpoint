@@ -68,6 +68,12 @@ public class AllFilterImpl extends ObjectFilterImpl implements AllFilter {
         return obj instanceof AllFilter;
     }
 
+    // Just to make checkstyle happy
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
     @Override
     public int hashCode() {
         return 0;

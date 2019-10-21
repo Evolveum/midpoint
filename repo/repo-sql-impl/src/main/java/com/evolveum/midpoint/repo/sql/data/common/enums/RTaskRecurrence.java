@@ -21,7 +21,7 @@ public enum RTaskRecurrence implements SchemaEnum<TaskRecurrenceType> {
 
     private TaskRecurrenceType recurrence;
 
-    private RTaskRecurrence(TaskRecurrenceType recurrence) {
+    RTaskRecurrence(TaskRecurrenceType recurrence) {
         this.recurrence = recurrence;
     }
 

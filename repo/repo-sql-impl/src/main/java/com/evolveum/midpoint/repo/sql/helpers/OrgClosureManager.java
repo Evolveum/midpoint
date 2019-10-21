@@ -1276,9 +1276,9 @@ public class OrgClosureManager {
         }
     }
 
-    public static enum Operation {ADD, DELETE, MODIFY}
+    public enum Operation {ADD, DELETE, MODIFY}
 
-    public static enum StartupAction {
+    public enum StartupAction {
 
         NONE("none"), CHECK("check"), REBUILD_IF_NEEDED("rebuildIfNeeded"), ALWAYS_REBUILD("alwaysRebuild");
 

@@ -33,11 +33,6 @@ public class UndefinedFilterImpl extends ObjectFilterImpl implements UndefinedFi
     }
 
     @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
@@ -59,6 +54,12 @@ public class UndefinedFilterImpl extends ObjectFilterImpl implements UndefinedFi
     @Override
     public boolean equals(Object obj, boolean exact) {
         return obj instanceof UndefinedFilter;
+    }
+
+    // Just to make checkstyle happy
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
     }
 
     @Override

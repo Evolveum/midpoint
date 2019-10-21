@@ -20,7 +20,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class SubstringFilterImpl<T> extends PropertyValueFilterImpl<T> implements SubstringFilter<T> {
+public final class SubstringFilterImpl<T> extends PropertyValueFilterImpl<T> implements SubstringFilter<T> {
 
     private boolean anchorStart;
     private boolean anchorEnd;
@@ -117,15 +117,18 @@ public class SubstringFilterImpl<T> extends PropertyValueFilterImpl<T> implement
 
     @Override
     public boolean equals(Object o, boolean exact) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        if (!super.equals(o, exact))
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o, exact)) return false;
         SubstringFilterImpl<?> that = (SubstringFilterImpl<?>) o;
         return anchorStart == that.anchorStart &&
                 anchorEnd == that.anchorEnd;
+    }
+
+    // Just to make checkstyle happy
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
     }
 
     @Override

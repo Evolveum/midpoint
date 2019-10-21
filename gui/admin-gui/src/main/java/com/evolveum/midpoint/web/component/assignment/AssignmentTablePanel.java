@@ -146,11 +146,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
                         count++;
                     }
                 }
-                if (count == getModelObject().size()){
-                    return false;
-                } else {
-                    return true;
-                }
+                return count != getModelObject().size();
             }
         });
         assignments.add(checkAll);

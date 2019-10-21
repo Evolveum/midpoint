@@ -1822,11 +1822,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
         }
         OrderConstraintsType autzOrderConstraints = autz.getOrderConstraints();
         if (paramOrderConstraints == null || paramOrderConstraints.isEmpty()) {
-            if (autzOrderConstraints == null) {
-                return true;
-            } else {
-                return false;
-            }
+            return autzOrderConstraints == null;
         }
         for (OrderConstraintsType paramOrderConstraint : paramOrderConstraints) {
             if (!isSubset(paramOrderConstraint, autzOrderConstraints)) {

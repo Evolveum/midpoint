@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schema;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -78,38 +79,16 @@ public class SearchResultMetadata implements Serializable, DebugDumpable, ShortD
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((approxNumberOfAllResults == null) ? 0 : approxNumberOfAllResults.hashCode());
-        result = prime * result + ((pagingCookie == null) ? 0 : pagingCookie.hashCode());
-        result = prime * result + (partialResults ? 1231 : 1237);
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SearchResultMetadata that = (SearchResultMetadata) o;
+        return partialResults == that.partialResults && Objects.equals(pagingCookie, that.pagingCookie) && Objects.equals(approxNumberOfAllResults, that.approxNumberOfAllResults);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        SearchResultMetadata other = (SearchResultMetadata) obj;
-        if (approxNumberOfAllResults == null) {
-            if (other.approxNumberOfAllResults != null)
-                return false;
-        } else if (!approxNumberOfAllResults.equals(other.approxNumberOfAllResults))
-            return false;
-        if (pagingCookie == null) {
-            if (other.pagingCookie != null)
-                return false;
-        } else if (!pagingCookie.equals(other.pagingCookie))
-            return false;
-        if (partialResults != other.partialResults)
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(pagingCookie, approxNumberOfAllResults, partialResults);
     }
 
     @Override

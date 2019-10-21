@@ -39,7 +39,7 @@ import java.util.Map;
 /**
  * @author lazyman
  */
-public class QueryDefinitionRegistry2 implements DebugDumpable {
+public final class QueryDefinitionRegistry2 implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(QueryDefinitionRegistry2.class);
     private static final Map<QName, JpaEntityDefinition> DEFINITIONS;

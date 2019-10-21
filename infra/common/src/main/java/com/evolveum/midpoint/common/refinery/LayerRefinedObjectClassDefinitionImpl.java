@@ -33,11 +33,8 @@ import static java.util.Collections.emptySet;
 /**
  * @author semancik
  * @author mederly
- *
- * Work in-progress.
- *
  */
-public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObjectClassDefinition {
+public final class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObjectClassDefinition {
     private static final long serialVersionUID = 1L;
 
     private RefinedObjectClassDefinition refinedObjectClassDefinition;
@@ -565,26 +562,16 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
     @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-//        if (!super.equals(obj))
-//            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (getClass() != obj.getClass()) return false;
         LayerRefinedObjectClassDefinitionImpl other = (LayerRefinedObjectClassDefinitionImpl) obj;
-        if (layer != other.layer)
-            return false;
+        if (layer != other.layer) return false;
         if (refinedObjectClassDefinition == null) {
-            if (other.refinedObjectClassDefinition != null)
-                return false;
-        } else if (!refinedObjectClassDefinition.equals(other.refinedObjectClassDefinition))
+            if (other.refinedObjectClassDefinition != null) return false;
+        } else if (!refinedObjectClassDefinition.equals(other.refinedObjectClassDefinition)) {
             return false;
+        }
         return true;
-    }
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
     }
 
     @Override

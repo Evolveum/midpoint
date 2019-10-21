@@ -86,7 +86,7 @@ public class MidPointWarLauncher extends WarLauncher {
         runnerThread.setContextClassLoader(classLoader);
         runnerThread.setName(Thread.currentThread().getName());
         runnerThread.start();
-        if (wait == true) {
+        if (wait) {
             runnerThread.join();
         }
 

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.prism.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -483,40 +484,16 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((delta == null) ? 0 : delta.hashCode());
-        result = prime * result + ((itemNew == null) ? 0 : itemNew.hashCode());
-        result = prime * result + ((itemOld == null) ? 0 : itemOld.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ItemDeltaItem<?, ?> that = (ItemDeltaItem<?, ?>) o;
+        return Objects.equals(itemOld, that.itemOld) && Objects.equals(delta, that.delta) && Objects.equals(itemNew, that.itemNew) && Objects.equals(definition, that.definition) && Objects.equals(resolvePath, that.resolvePath) && Objects.equals(residualPath, that.residualPath) && Objects.equals(subItemDeltas, that.subItemDeltas);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ItemDeltaItem other = (ItemDeltaItem) obj;
-        if (delta == null) {
-            if (other.delta != null)
-                return false;
-        } else if (!delta.equals(other.delta))
-            return false;
-        if (itemNew == null) {
-            if (other.itemNew != null)
-                return false;
-        } else if (!itemNew.equals(other.itemNew))
-            return false;
-        if (itemOld == null) {
-            if (other.itemOld != null)
-                return false;
-        } else if (!itemOld.equals(other.itemOld))
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(itemOld, delta, itemNew, definition, resolvePath, residualPath, subItemDeltas);
     }
 
     @Override

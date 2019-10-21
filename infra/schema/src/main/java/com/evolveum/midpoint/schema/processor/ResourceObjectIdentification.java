@@ -153,23 +153,20 @@ public class ResourceObjectIdentification implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         ResourceObjectIdentification other = (ResourceObjectIdentification) obj;
         if (primaryIdentifiers == null) {
-            if (other.primaryIdentifiers != null)
-                return false;
-        } else if (!primaryIdentifiers.equals(other.primaryIdentifiers))
+            if (other.primaryIdentifiers != null) return false;
+        } else if (!primaryIdentifiers.equals(other.primaryIdentifiers)) {
             return false;
+        }
         if (objectClassDefinition == null) {
-            if (other.objectClassDefinition != null)
-                return false;
-        } else if (!objectClassDefinition.equals(other.objectClassDefinition))
+            if (other.objectClassDefinition != null) return false;
+        } else if (!objectClassDefinition.equals(other.objectClassDefinition)) {
             return false;
+        }
         return true;
     }
 

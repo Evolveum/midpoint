@@ -44,15 +44,12 @@ public class ObjectGroupingImpl implements ObjectGrouping {
     }
 
     public boolean equals(Object o, boolean exact) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ObjectGroupingImpl that = (ObjectGroupingImpl) o;
-
-        if (groupBy != null ? !groupBy.equals(that.groupBy, exact) : that.groupBy != null)
+        if (groupBy != null ? !groupBy.equals(that.groupBy, exact) : that.groupBy != null) {
             return false;
+        }
         return true;
     }
 

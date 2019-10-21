@@ -164,6 +164,12 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
         private String systemId;
         private final BufferedInputStream inputStream;
 
+        Input(String publicId, String sysId, InputStream input) {
+            this.publicId = publicId;
+            this.systemId = sysId;
+            this.inputStream = new BufferedInputStream(input);
+        }
+
         public String getPublicId() {
             return publicId;
         }
@@ -237,11 +243,6 @@ public class XmlEntityResolverImpl implements XmlEntityResolver {
             return inputStream;
         }
 
-        public Input(String publicId, String sysId, InputStream input) {
-            this.publicId = publicId;
-            this.systemId = sysId;
-            this.inputStream = new BufferedInputStream(input);
-        }
     }
 
     //endregion

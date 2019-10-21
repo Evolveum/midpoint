@@ -231,10 +231,11 @@ public class ObjectQueryUtil {
         }
         StringBuilder sb = new StringBuilder("Query(");
         sb.append(query.getDescription()).append("):\n");
-        if (query.getFilter() != null && query.getFilter().containsFilterClause())
+        if (query.getFilter() != null && query.getFilter().containsFilterClause()) {
             sb.append(DOMUtil.serializeDOMToString(query.getFilter().getFilterClauseAsElement(prismContext)));
-        else
+        } else {
             sb.append("(no filter)");
+        }
         return sb.toString();
     }
 

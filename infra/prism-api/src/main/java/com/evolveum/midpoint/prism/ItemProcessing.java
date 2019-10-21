@@ -16,7 +16,7 @@ public enum ItemProcessing {
 
     private final String stringValue;
 
-    private ItemProcessing(final String value) {
+    ItemProcessing(final String value) {
         this.stringValue = value;
     }
 

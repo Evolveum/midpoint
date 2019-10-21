@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.util;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -312,40 +313,17 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((delta == null) ? 0 : delta.hashCode());
-        result = prime * result + ((newObject == null) ? 0 : newObject.hashCode());
-        result = prime * result + ((oldObject == null) ? 0 : oldObject.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ObjectDeltaObject<?> that = (ObjectDeltaObject<?>) o;
+        return Objects.equals(oldObject, that.oldObject) && Objects.equals(delta, that.delta) && Objects.equals(newObject, that.newObject) && Objects.equals(definition, that.definition);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ObjectDeltaObject other = (ObjectDeltaObject) obj;
-        if (delta == null) {
-            if (other.delta != null)
-                return false;
-        } else if (!delta.equals(other.delta))
-            return false;
-        if (newObject == null) {
-            if (other.newObject != null)
-                return false;
-        } else if (!newObject.equals(other.newObject))
-            return false;
-        if (oldObject == null) {
-            if (other.oldObject != null)
-                return false;
-        } else if (!oldObject.equals(other.oldObject))
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), oldObject, delta, newObject, definition);
     }
 
     @Override

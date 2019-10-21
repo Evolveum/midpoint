@@ -39,7 +39,6 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -195,9 +194,9 @@ public class ShadowCache {
         if (shouldRefreshOnRead(resource, rootOptions)) {
             LOGGER.trace("Refreshing {} before reading", repositoryShadow);
             ProvisioningOperationOptions refreshOpts = toProvisioningOperationOptions(rootOptions);
-            RefreshShadowOperaton refreshShadowOperaton = refreshShadow(repositoryShadow, refreshOpts, task, parentResult);
-            if (refreshShadowOperaton != null) {
-                repositoryShadow = refreshShadowOperaton.getRefreshedShadow();
+            RefreshShadowOperation refreshShadowOperation = refreshShadow(repositoryShadow, refreshOpts, task, parentResult);
+            if (refreshShadowOperation != null) {
+                repositoryShadow = refreshShadowOperation.getRefreshedShadow();
             }
             LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(repositoryShadow,1));
         }
@@ -971,13 +970,13 @@ public class ShadowCache {
             if (shouldExecuteResourceOperationDirectly(ctx)) {
                 LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}", repoShadow, DebugUtil.debugDumpLazily(modifications));
 
-                RefreshShadowOperaton refreshShadowOperaton = null;
+                RefreshShadowOperation refreshShadowOperation = null;
                 if (shouldRefresh(repoShadow)) {
-                    refreshShadowOperaton = refreshShadow(repoShadow, options, task, parentResult);
+                    refreshShadowOperation = refreshShadow(repoShadow, options, task, parentResult);
                 }
 
-                if (refreshShadowOperaton != null) {
-                    repoShadow = refreshShadowOperaton.getRefreshedShadow();
+                if (refreshShadowOperation != null) {
+                    repoShadow = refreshShadowOperation.getRefreshedShadow();
                 }
 
                 if (repoShadow == null) {
@@ -991,8 +990,8 @@ public class ShadowCache {
                 try {
 
 
-                    if (!shouldExecuteModify(refreshShadowOperaton)) {
-                        ProvisioningUtil.postponeModify(ctx, repoShadow, modifications, opState, refreshShadowOperaton.getRefreshResult(), parentResult);
+                    if (!shouldExecuteModify(refreshShadowOperation)) {
+                        ProvisioningUtil.postponeModify(ctx, repoShadow, modifications, opState, refreshShadowOperation.getRefreshResult(), parentResult);
                         shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, now, parentResult);
                         return repoShadow.getOid();
                     } else {
@@ -1036,23 +1035,23 @@ public class ShadowCache {
         return repoShadow.getOid();
     }
 
-    private boolean shouldExecuteModify(RefreshShadowOperaton refreshShadowOperaton) {
-        if (refreshShadowOperaton == null) {
+    private boolean shouldExecuteModify(RefreshShadowOperation refreshShadowOperation) {
+        if (refreshShadowOperation == null) {
             LOGGER.trace("Nothing refreshed, modify can continue.");
             return true;
         }
 
-        if (refreshShadowOperaton.getExecutedDeltas() == null || refreshShadowOperaton.getExecutedDeltas().isEmpty()) {
+        if (refreshShadowOperation.getExecutedDeltas() == null || refreshShadowOperation.getExecutedDeltas().isEmpty()) {
             LOGGER.trace("No executed deltas after refresh. Continue with modify operation.");
             return true;
         }
 
-        if (refreshShadowOperaton.getRefreshedShadow() == null) {
+        if (refreshShadowOperation.getRefreshedShadow() == null) {
             LOGGER.trace("Shadow is gone. Probably it was deleted during refresh. Finishing modify operation now.");
             return false;
         }
 
-        Collection<ObjectDeltaOperation<ShadowType>> objectDeltaOperations = refreshShadowOperaton.getExecutedDeltas();
+        Collection<ObjectDeltaOperation<ShadowType>> objectDeltaOperations = refreshShadowOperation.getExecutedDeltas();
         for (ObjectDeltaOperation<ShadowType> shadowDelta : objectDeltaOperations) {
             if (!shadowDelta.getExecutionResult().isSuccess()) {
                 LOGGER.trace("Refresh operation not successful. Finishing modify operation now.");
@@ -1343,7 +1342,7 @@ public class ShadowCache {
 
 
     @Nullable
-    public RefreshShadowOperaton refreshShadow(PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    public RefreshShadowOperation refreshShadow(PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
         LOGGER.trace("Refreshing {}", repoShadow);
         ProvisioningContext ctx = ctxFactory.create(repoShadow, task, parentResult);
         ctx.assertDefinition();
@@ -1351,26 +1350,26 @@ public class ShadowCache {
 
         repoShadow = shadowManager.refreshProvisioningIndexes(ctx, repoShadow, task, parentResult);
 
-        RefreshShadowOperaton refreshShadowOperaton = refreshShadowPendingOperations(ctx, repoShadow, options, task, parentResult);
+        RefreshShadowOperation refreshShadowOperation = refreshShadowPendingOperations(ctx, repoShadow, options, task, parentResult);
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         repoShadow = cleanUpDeadShadow(ctx, repoShadow, now, task, parentResult);
         if (repoShadow == null) {
-            refreshShadowOperaton.setRefreshedShadow(null);
+            refreshShadowOperation.setRefreshedShadow(null);
         }
 
-        return refreshShadowOperaton;
+        return refreshShadowOperation;
     }
 
 
 
-    private RefreshShadowOperaton refreshShadowPendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    private RefreshShadowOperation refreshShadowPendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
         ShadowType shadowType = repoShadow.asObjectable();
         List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
         boolean isDead = ShadowUtil.isDead(shadowType);
         if (!isDead && pendingOperations.isEmpty()) {
             LOGGER.trace("Skipping refresh of {} pending operations because shadow is not dead and there are no pending operations", repoShadow);
-            RefreshShadowOperaton rso = new RefreshShadowOperaton();
+            RefreshShadowOperation rso = new RefreshShadowOperation();
             rso.setRefreshedShadow(repoShadow);
             return rso;
         }
@@ -1382,9 +1381,9 @@ public class ShadowCache {
 
         repoShadow = refreshShadowAsyncStatus(ctx, repoShadow, sortedOperations, task, parentResult);
 
-        RefreshShadowOperaton refreshShadowOperaton = refreshShadowRetryOperations(ctx, repoShadow, sortedOperations, options, task, parentResult);
+        RefreshShadowOperation refreshShadowOperation = refreshShadowRetryOperations(ctx, repoShadow, sortedOperations, options, task, parentResult);
 
-        return refreshShadowOperaton;
+        return refreshShadowOperation;
     }
 
     /**
@@ -1574,13 +1573,13 @@ public class ShadowCache {
     }
 
 
-    private RefreshShadowOperaton refreshShadowRetryOperations(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow, List<PendingOperationType> sortedOperations,
-            ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    private RefreshShadowOperation refreshShadowRetryOperations(ProvisioningContext ctx,
+                                                                PrismObject<ShadowType> repoShadow, List<PendingOperationType> sortedOperations,
+                                                                ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
         ShadowType shadowType = repoShadow.asObjectable();
         OperationResult retryResult = new OperationResult(OP_REFRESH_RETRY);
         if (ShadowUtil.isDead(shadowType)) {
-            RefreshShadowOperaton rso = new RefreshShadowOperaton();
+            RefreshShadowOperation rso = new RefreshShadowOperation();
             retryResult.recordSuccess();
             rso.setRefreshedShadow(repoShadow);
             rso.setRefreshResult(retryResult);
@@ -1674,7 +1673,7 @@ public class ShadowCache {
             executedDeltas.add(objectDeltaOperation);
         }
 
-        RefreshShadowOperaton rso = new RefreshShadowOperaton();
+        RefreshShadowOperation rso = new RefreshShadowOperation();
         rso.setExecutedDeltas(executedDeltas);
         rso.setRefreshedShadow(repoShadow);
         parentResult.computeStatus();

@@ -83,13 +83,10 @@ public class WorkItemId implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof WorkItemId))
-            return false;
+        if (this == o) return true;
+        if (!(o instanceof WorkItemId)) return false;
         WorkItemId that = (WorkItemId) o;
-        return id == that.id &&
-                caseOid.equals(that.caseOid);
+        return id == that.id && caseOid.equals(that.caseOid);
     }
 
     @Override

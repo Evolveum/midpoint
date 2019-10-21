@@ -98,16 +98,19 @@ public class RAExtReference extends RAExtBase<String> implements RAExtValue<Stri
         this.relation = relation;
     }
 
+    // TODO: Why value only? Why not targetType and relation?
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RAExtReference))
-            return false;
-        if (!super.equals(o))
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
         RAExtReference that = (RAExtReference) o;
         return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), value);
     }
 
     public static RAExtReference createReference(PrismReferenceValue jaxb) {

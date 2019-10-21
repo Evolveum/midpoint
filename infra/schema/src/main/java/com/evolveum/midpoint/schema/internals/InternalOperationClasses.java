@@ -29,7 +29,7 @@ public enum InternalOperationClasses {
     // Used in logfiles, etc.
     private String label;
 
-    private InternalOperationClasses(String key, String label) {
+    InternalOperationClasses(String key, String label) {
         this.key = key;
         this.label = label;
     }

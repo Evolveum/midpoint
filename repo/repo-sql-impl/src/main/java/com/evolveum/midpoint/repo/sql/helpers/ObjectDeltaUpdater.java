@@ -75,7 +75,7 @@ public class ObjectDeltaUpdater {
     @Autowired private ExtItemDictionary extItemDictionary;
     @Autowired private BaseHelper baseHelper;
 
-    private static class Context {
+    private static final class Context {
         private final RepoModifyOptions options;
         private final PrismIdentifierGenerator<?> idGenerator;
         private final Session session;

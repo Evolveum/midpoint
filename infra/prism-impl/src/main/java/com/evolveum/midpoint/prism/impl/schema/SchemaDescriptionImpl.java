@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class SchemaDescriptionImpl implements SchemaDescription {
+public final class SchemaDescriptionImpl implements SchemaDescription {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaDescription.class);
 
@@ -292,11 +292,6 @@ public class SchemaDescriptionImpl implements SchemaDescription {
     @FunctionalInterface
     private interface InputStreamable {
         InputStream openInputStream();
-    }
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
     }
 
     @Override

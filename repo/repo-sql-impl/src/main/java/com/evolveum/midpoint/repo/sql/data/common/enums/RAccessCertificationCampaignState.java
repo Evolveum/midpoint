@@ -24,7 +24,7 @@ public enum RAccessCertificationCampaignState implements SchemaEnum<AccessCertif
 
     private AccessCertificationCampaignStateType status;
 
-    private RAccessCertificationCampaignState(AccessCertificationCampaignStateType status) {
+    RAccessCertificationCampaignState(AccessCertificationCampaignStateType status) {
         this.status = status;
     }
 

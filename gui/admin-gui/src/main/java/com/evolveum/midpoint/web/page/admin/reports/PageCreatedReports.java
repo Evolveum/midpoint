@@ -171,7 +171,6 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 getObjectListPanel().refreshTable(ReportOutputType.class, target);
-                ;
             }
         });
         reportTypeSelect.setOutputMarkupId(true);

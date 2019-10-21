@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  *
  */
-public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttributeDefinition<T> {
+public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttributeDefinition<T> {
 
     private RefinedAttributeDefinition<T> refinedAttributeDefinition;
     private LayerType layer;
@@ -178,26 +178,16 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
     @SuppressWarnings("RedundantIfStatement")
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-//        if (!super.equals(obj))
-//            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (getClass() != obj.getClass()) return false;
         LayerRefinedAttributeDefinitionImpl other = (LayerRefinedAttributeDefinitionImpl) obj;
-        if (layer != other.layer)
-            return false;
+        if (layer != other.layer) return false;
         if (refinedAttributeDefinition == null) {
-            if (other.refinedAttributeDefinition != null)
-                return false;
-        } else if (!refinedAttributeDefinition.equals(other.refinedAttributeDefinition))
+            if (other.refinedAttributeDefinition != null) return false;
+        } else if (!refinedAttributeDefinition.equals(other.refinedAttributeDefinition)) {
             return false;
+        }
         return true;
-    }
-
-    @Override
-    public String debugDump() {
-        return debugDump(0);
     }
 
     @Override

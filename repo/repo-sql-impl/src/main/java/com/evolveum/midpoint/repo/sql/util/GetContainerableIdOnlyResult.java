@@ -20,7 +20,7 @@ import java.util.List;
  * @author lazyman
  * @author mederly
  */
-public class GetContainerableIdOnlyResult implements Serializable {
+public final class GetContainerableIdOnlyResult implements Serializable {
 
     public static final ResultStyle RESULT_STYLE = new ResultStyle() {
         @Override

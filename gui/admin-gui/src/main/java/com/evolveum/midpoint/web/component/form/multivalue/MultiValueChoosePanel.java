@@ -248,26 +248,25 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
     }
 
     protected void initButtons(ListItem<T> item, WebMarkupContainer parent) {
-        WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP); {
-            buttonGroup.setOutputMarkupId(true);
+        WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
+        buttonGroup.setOutputMarkupId(true);
 
-            AjaxLink<Void> remove = new AjaxLink<Void>(ID_REMOVE) {
+        AjaxLink<Void> remove = new AjaxLink<>(ID_REMOVE) {
 
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    removeValuePerformed(target, item.getModelObject());
-                }
-            };
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                removeValuePerformed(target, item.getModelObject());
+            }
+        };
 
-            remove.add(new VisibleEnableBehaviour() {
+        remove.add(new VisibleEnableBehaviour() {
 
-                @Override
-                public boolean isVisible() {
-                    return isRemoveButtonVisible();
-                }
-            });
-            buttonGroup.add(remove);
-        }
+            @Override
+            public boolean isVisible() {
+                return isRemoveButtonVisible();
+            }
+        });
+        buttonGroup.add(remove);
 
         parent.add(buttonGroup);
 }

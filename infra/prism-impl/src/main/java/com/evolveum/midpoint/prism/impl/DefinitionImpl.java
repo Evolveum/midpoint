@@ -329,20 +329,16 @@ public abstract class DefinitionImpl implements MutableDefinition {
     @SuppressWarnings("ConstantConditions")
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj)  return true;
+        if (obj == null)  return false;
+        if (getClass() != obj.getClass()) return false;
         DefinitionImpl other = (DefinitionImpl) obj;
-        if (processing != other.processing)
-            return false;
+        if (processing != other.processing) return false;
         if (typeName == null) {
-            if (other.typeName != null)
-                return false;
-        } else if (!typeName.equals(other.typeName))
+            if (other.typeName != null) return false;
+        } else if (!typeName.equals(other.typeName)) {
             return false;
+        }
         return true;
     }
 

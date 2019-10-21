@@ -11,16 +11,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrientationType;
 
 @JaxbType(type = OrientationType.class)
 public enum ROrientationType implements SchemaEnum<OrientationType> {
-         LANDSCAPE(OrientationType.LANDSCAPE),
+    LANDSCAPE(OrientationType.LANDSCAPE),
+    PORTRAIT(OrientationType.PORTRAIT);
 
-        PORTRAIT(OrientationType.PORTRAIT);
+    private OrientationType type;
 
-        private OrientationType type;
-
-        private ROrientationType(OrientationType type) {
+    ROrientationType(OrientationType type) {
             this.type = type;
         }
-
 
     @Override
     public OrientationType getSchemaValue() {

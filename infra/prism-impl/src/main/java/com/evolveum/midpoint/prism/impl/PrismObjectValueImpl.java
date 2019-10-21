@@ -104,14 +104,17 @@ public class PrismObjectValueImpl<O extends Objectable> extends PrismContainerVa
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof PrismObjectValueImpl))
-            return false;
-        if (!super.equals(o))
-            return false;
+        if (this == o) return true;
+        if (!(o instanceof PrismObjectValueImpl)) return false;
+        if (!super.equals(o)) return false;
         PrismObjectValueImpl<?> that = (PrismObjectValueImpl<?>) o;
         return Objects.equals(oid, that.oid);
+    }
+
+    // Just to make checkstyle happy
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
     // TODO consider the strategy

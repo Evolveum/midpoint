@@ -270,7 +270,7 @@ public class PolyStringLangType implements Serializable {
 
         Iterator<Entry<String, String>> langIterator;
 
-        public CustomIterator(Iterator<Entry<String, String>> langIterator) {
+        CustomIterator(Iterator<Entry<String, String>> langIterator) {
             this.langIterator = langIterator;
         }
 
