@@ -12,7 +12,6 @@ import java.util.Map;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import jdk.dynalink.Operation;
 
 /**
  * @author semancik
