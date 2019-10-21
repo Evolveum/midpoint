@@ -357,13 +357,13 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save password changes", ex);
             result.recordFatalError(getString("PageAbstractSelfCredentials.save.password.failed", ex.getMessage()), ex);
         } finally {
-            result.computeStatusIfUnknown();;
+            result.computeStatusIfUnknown();
         }
 
         finishChangePassword(result, target);
     }
 
-    protected void setEncryptedPasswordData(EncryptedDataType data){
+    protected void setEncryptedPasswordData(EncryptedDataType data) {
         MyPasswordsDto dto = model.getObject();
         ProtectedStringType password = dto.getPassword();
         if (password != null){

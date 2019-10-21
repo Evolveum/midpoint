@@ -1914,7 +1914,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         NOT_CACHEABLE_TYPE, MULTIPLE_OPTIONS, NON_ROOT_OPTIONS, UNSUPPORTED_OPTION, INCLUDE_OPTION_PRESENT, ZERO_STALENESS_REQUESTED
     }
 
-    private static class PassReason {
+    private static final class PassReason {
         private final PassReasonType type;
         private final String comment;
         private PassReason(PassReasonType type) {
@@ -1933,7 +1933,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         }
     }
 
-    private class CollectingHandler<T extends ObjectType> implements ResultHandler<T> {
+    private final class CollectingHandler<T extends ObjectType> implements ResultHandler<T> {
 
         private boolean overflown = false;
         private final SearchResultList<PrismObject<T>> objects = new SearchResultList<>();
@@ -1962,7 +1962,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
         }
     }
 
-    public static class RepositoryCacheInvalidationDetails implements CacheInvalidationDetails {
+    public static final class RepositoryCacheInvalidationDetails implements CacheInvalidationDetails {
         private final Object details;
 
         private RepositoryCacheInvalidationDetails(Object details) {

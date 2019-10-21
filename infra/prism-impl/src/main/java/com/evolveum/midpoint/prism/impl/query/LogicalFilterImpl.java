@@ -82,6 +82,12 @@ public abstract class LogicalFilterImpl extends ObjectFilterImpl implements Logi
         }
     }
 
+    // Just to make checkstyle happy
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -92,14 +98,10 @@ public abstract class LogicalFilterImpl extends ObjectFilterImpl implements Logi
 
     @Override
     public boolean equals(Object obj, boolean exact) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         LogicalFilterImpl other = (LogicalFilterImpl) obj;
-
         if (conditions != null) {
             if (conditions.size() != other.conditions.size()) {
                 return false;

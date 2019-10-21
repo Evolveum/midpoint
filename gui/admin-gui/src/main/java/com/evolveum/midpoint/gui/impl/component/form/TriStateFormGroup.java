@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.impl.component.form;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -27,7 +26,6 @@ import org.apache.wicket.model.Model;
  * @author skublik
  */
 public class TriStateFormGroup extends BasePanel<Boolean> {
-
     private static final long serialVersionUID = 1L;
 
     private static final String ID_VALUE = "value";
@@ -119,7 +117,7 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
         rowLabel.add(valueWrapper);
         add(propertyLabel);
 
-        TriStateComboPanel triStateCombo = new TriStateComboPanel(ID_VALUE, getModel());;
+        TriStateComboPanel triStateCombo = new TriStateComboPanel(ID_VALUE, getModel());
         valueWrapper.add(triStateCombo);
 
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(triStateCombo.getBaseFormComponent()));
@@ -127,7 +125,7 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
         valueWrapper.add(feedback);
     }
 
-    public TriStateComboPanel getValue(){
+    public TriStateComboPanel getValue() {
         return (TriStateComboPanel) get(createComponentPath(ID_PROPERTY_LABEL, ID_ROW, ID_VALUE_WRAPPER, ID_VALUE));
     }
 }

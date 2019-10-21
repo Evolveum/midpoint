@@ -395,7 +395,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
     }
 
     // changed from anonymous to be able to make it static (serializable independently of DomParser)
-    private static class PrimitiveValueParser<T> implements ValueParser<T>, Serializable {
+    private static final class PrimitiveValueParser<T> implements ValueParser<T>, Serializable {
 
         private Element element;
 
@@ -425,7 +425,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         }
     }
 
-    private static class PrimitiveAttributeParser<T> implements ValueParser<T>, Serializable {
+    private static final class PrimitiveAttributeParser<T> implements ValueParser<T>, Serializable {
 
         private Attr attr;
 

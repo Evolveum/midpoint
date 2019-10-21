@@ -23,7 +23,7 @@ public enum RFailedOperationType implements SchemaEnum<FailedOperationTypeType> 
 
     private FailedOperationTypeType operation;
 
-    private RFailedOperationType(FailedOperationTypeType operation) {
+    RFailedOperationType(FailedOperationTypeType operation) {
         this.operation = operation;
     }
 

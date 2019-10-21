@@ -294,18 +294,15 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 
     @Override
     public boolean equalsOriginalValue(Recomputable obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         PolyString other = (PolyString) obj;
         if (orig == null) {
-            if (other.orig != null)
-                return false;
-        } else if (!orig.equals(other.orig))
+            if (other.orig != null) return false;
+        } else if (!orig.equals(other.orig)) {
             return false;
+        }
         return true;
     }
 
@@ -351,16 +348,13 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 
     @Override
     public boolean match(PolyString other) {
-        if (this == other)
-            return true;
-        if (other == null)
-            return false;
-
+        if (this == other) return true;
+        if (other == null) return false;
         if (norm == null) {
-            if (other.norm != null)
-                return false;
-        } else if (!norm.equals(other.norm))
+            if (other.norm != null) return false;
+        } else if (!norm.equals(other.norm)) {
             return false;
+        }
         return true;
     }
 

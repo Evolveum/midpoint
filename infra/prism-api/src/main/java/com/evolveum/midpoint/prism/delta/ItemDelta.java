@@ -350,9 +350,9 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
     /**
      * Set origin type to all values and subvalues
      */
-    void setOriginTypeRecursive(final OriginType originType);
+    void setOriginTypeRecursive(OriginType originType);
 
-    public boolean isImmutable();
+    boolean isImmutable();
 
     void setImmutable(boolean immutable);
 

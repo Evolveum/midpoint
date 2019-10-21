@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class ObjectPagingImpl implements ObjectPaging {
+public final class ObjectPagingImpl implements ObjectPaging {
 
     private Integer offset;
     private Integer maxSize;
@@ -360,17 +360,17 @@ public class ObjectPagingImpl implements ObjectPaging {
     }
 
     public boolean equals(Object o, boolean exact) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
         ObjectPagingImpl that = (ObjectPagingImpl) o;
 
-        if (offset != null ? !offset.equals(that.offset) : that.offset != null)
+        if (offset != null ? !offset.equals(that.offset) : that.offset != null) {
             return false;
-        if (maxSize != null ? !maxSize.equals(that.maxSize) : that.maxSize != null)
+        }
+        if (maxSize != null ? !maxSize.equals(that.maxSize) : that.maxSize != null) {
             return false;
+        }
         if (ordering.size() != that.ordering.size()) {
             return false;
         }

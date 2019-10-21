@@ -15,8 +15,9 @@ public class Retry implements IRetryAnalyzer {
     private String maxRetryCountEnv = System.getProperty("testsRetryCount");
 
     private boolean initMaxRetry() {
-        if (maxRetryCountEnv == null)
+        if (maxRetryCountEnv == null) {
             return false;
+        }
 
         try {
             maxRetryCount = Integer.parseInt(maxRetryCountEnv);
@@ -37,8 +38,9 @@ public class Retry implements IRetryAnalyzer {
     }
 
     public boolean isOneMoreRetryAvailable() {
-        if (!initMaxRetry())
+        if (!initMaxRetry()) {
             return false;
+        }
 
         return retryCount < maxRetryCount;
     }

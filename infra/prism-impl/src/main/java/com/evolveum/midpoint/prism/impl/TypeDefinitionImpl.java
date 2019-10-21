@@ -92,12 +92,9 @@ public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeD
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof TypeDefinitionImpl))
-            return false;
-        if (!super.equals(o))
-            return false;
+        if (this == o)  return true;
+        if (!(o instanceof TypeDefinitionImpl)) return false;
+        if (!super.equals(o)) return false;
         TypeDefinitionImpl that = (TypeDefinitionImpl) o;
         return Objects.equals(superType, that.superType) &&
                 Objects.equals(compileTimeClass, that.compileTimeClass);

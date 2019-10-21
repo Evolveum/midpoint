@@ -43,7 +43,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
  *
  * @author mederly
  */
-public class QueryBuilder {
+public final class QueryBuilder {
 
     final private Class<? extends Containerable> queryClass;
     final private ComplexTypeDefinition containerCTD;

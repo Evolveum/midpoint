@@ -47,7 +47,7 @@ import static java.util.Collections.emptySet;
 /**
  * @author semancik
  */
-public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefinition {
+public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefinition {
 
     private static final Trace LOGGER = TraceManager.getTrace(RefinedObjectClassDefinition.class);
 

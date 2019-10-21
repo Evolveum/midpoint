@@ -59,29 +59,27 @@ public class Resolver {
     private Visualizer visualizer;
 
     public <O extends ObjectType> void resolve(PrismObject<O> object, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
-        /*if (object.getDefinition() == null) */{
-            if (object == null) {
-                return;
-            }
-            Class<O> clazz = object.getCompileTimeClass();
-            if (clazz == null) {
-                warn(result, "Compile time class for " + toShortString(object) + " is not known");
-            } else {
-                PrismObjectDefinition<O> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-                if (def != null) {
-                    if (ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz)) {
-                        try {
-                            provisioningService.applyDefinition(object, task, result);
-                        } catch (ObjectNotFoundException|CommunicationException|ConfigurationException e) {
-                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e,
-                                    ObjectTypeUtil.toShortString(object));
-                        }
-                    } else {
-                        object.applyDefinition(def);
+        if (object == null) {
+            return;
+        }
+        Class<O> clazz = object.getCompileTimeClass();
+        if (clazz == null) {
+            warn(result, "Compile time class for " + toShortString(object) + " is not known");
+        } else {
+            PrismObjectDefinition<O> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+            if (def != null) {
+                if (ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz)) {
+                    try {
+                        provisioningService.applyDefinition(object, task, result);
+                    } catch (ObjectNotFoundException|CommunicationException|ConfigurationException e) {
+                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e,
+                                ObjectTypeUtil.toShortString(object));
                     }
                 } else {
-                    warn(result, "Definition for " + toShortString(object) + " couldn't be found");
+                    object.applyDefinition(def);
                 }
+            } else {
+                warn(result, "Definition for " + toShortString(object) + " couldn't be found");
             }
         }
     }

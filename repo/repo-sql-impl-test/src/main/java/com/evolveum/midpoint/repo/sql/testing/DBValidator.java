@@ -71,7 +71,7 @@ public class DBValidator {
         }
     }
 
-    private static final void validate(String sql, String message, Session session) {
+    private static void validate(String sql, String message, Session session) {
         Query query = session.createNativeQuery(sql);
         List nullAssignments = query.list();
         if (!nullAssignments.isEmpty()) {

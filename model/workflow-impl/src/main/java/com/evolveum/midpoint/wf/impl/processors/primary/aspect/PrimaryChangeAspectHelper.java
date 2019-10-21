@@ -92,10 +92,8 @@ public class PrimaryChangeAspectHelper {
     private boolean isEnabled(PcpAspectConfigurationType configurationType, boolean enabledByDefault) {
         if (configurationType == null) {
             return enabledByDefault;
-        } else if (Boolean.FALSE.equals(configurationType.isEnabled())) {
-            return false;
         } else {
-            return true;
+            return !Boolean.FALSE.equals(configurationType.isEnabled());
         }
     }
     //endregion

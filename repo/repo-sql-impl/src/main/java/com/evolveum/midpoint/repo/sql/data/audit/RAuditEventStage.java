@@ -20,7 +20,7 @@ public enum RAuditEventStage {
 
     private AuditEventStage stage;
 
-    private RAuditEventStage(AuditEventStage stage) {
+    RAuditEventStage(AuditEventStage stage) {
         this.stage = stage;
     }
 

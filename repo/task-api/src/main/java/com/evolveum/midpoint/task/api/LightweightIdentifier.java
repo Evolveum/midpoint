@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import java.util.Objects;
+
 /**
  * Lightweight identifier is a "reasonable unique" identifier that is very cheap
  * to create. While objects have OID, creating a unique OID means communication
@@ -56,28 +58,16 @@ public class LightweightIdentifier {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((string == null) ? 0 : string.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LightweightIdentifier that = (LightweightIdentifier) o;
+        return Objects.equals(string, that.string);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        LightweightIdentifier other = (LightweightIdentifier) obj;
-        if (string == null) {
-            if (other.string != null)
-                return false;
-        } else if (!string.equals(other.string))
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(string);
     }
 
     @Override

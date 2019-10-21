@@ -64,7 +64,7 @@ import java.util.List;
  * @author semancik
  *
  */
-public class PrismContextImpl implements PrismContext {
+public final class PrismContextImpl implements PrismContext {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismContextImpl.class);
 

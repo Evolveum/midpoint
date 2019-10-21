@@ -168,18 +168,17 @@ public class SearchResultList<T> implements List<T>, Cloneable, Serializable, Sh
     // Do NOT auto-generate -- there are manual changes here
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         SearchResultList other = (SearchResultList) obj;
         if (list == null || list.isEmpty()) {
-            if (other.list != null && !other.list.isEmpty())
+            if (other.list != null && !other.list.isEmpty()) {
                 return false;
-        } else if (!list.equals(other.list))
+            }
+        } else if (!list.equals(other.list)) {
             return false;
+        }
         if (metadata == null) {
             return other.metadata == null;
         } else {

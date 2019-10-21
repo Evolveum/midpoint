@@ -111,11 +111,6 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
     }
 
     @Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
@@ -140,6 +135,12 @@ public class TypeFilterImpl extends ObjectFilterImpl implements TypeFilter {
         if (filter != null ? !filter.equals(that.filter, exact) : that.filter != null) return false;
 
         return true;
+    }
+
+    // Just to make checkstyle happy
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
     }
 
     @Override

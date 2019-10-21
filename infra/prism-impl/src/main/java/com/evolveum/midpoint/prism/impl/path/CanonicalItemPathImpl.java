@@ -42,7 +42,7 @@ public class CanonicalItemPathImpl implements CanonicalItemPath {
     private static final String SHORTCUT_MARKER_END = "}";
 
     // currently we support only named segments in canonical paths
-    public static class Segment implements Serializable {
+    public static final class Segment implements Serializable {
         private final QName name;
         private final Integer index;        // N means this is Nth unique non-empty namespace in the path (starting from 0)
         private final Integer shortcut;        // K means this namespace is the same as the one with index=K (null if 1st occurrence)

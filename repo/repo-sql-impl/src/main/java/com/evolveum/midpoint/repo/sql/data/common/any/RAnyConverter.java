@@ -244,7 +244,7 @@ public class RAnyConverter {
         }
     }
 
-    private static class IndexableStatus {
+    private static final class IndexableStatus {
         final boolean indexedByDefault;
         final ValueType valueType;
 

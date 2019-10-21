@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * @author lazyman
  * @author mederly
  */
-public class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
+public final class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
 
     @NotNull private final ItemPath fullPath;
     private ItemDefinition definition;
@@ -159,20 +159,24 @@ public class ExistsFilterImpl extends ObjectFilterImpl implements ExistsFilter {
 
     @Override
     public boolean equals(Object o, boolean exact) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
         ExistsFilterImpl that = (ExistsFilterImpl) o;
 
-        if (!fullPath.equals(that.fullPath, exact))
-            return false;
+        if (!fullPath.equals(that.fullPath, exact)) return false;
         if (exact) {
-            if (definition != null ? !definition.equals(that.definition) : that.definition != null)
+            if (definition != null ? !definition.equals(that.definition) : that.definition != null) {
                 return false;
+            }
         }
         return filter != null ? filter.equals(that.filter, exact) : that.filter == null;
+    }
+
+    // Just to make checkstyle happy
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
     }
 
     @Override

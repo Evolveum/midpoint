@@ -122,9 +122,12 @@ public class RootXNodeImpl extends XNodeImpl implements RootXNode {
 
         RootXNodeImpl rootXNode = (RootXNodeImpl) o;
 
-        if (rootElementName != null ? !rootElementName.equals(rootXNode.rootElementName) : rootXNode.rootElementName != null)
+        if (rootElementName != null ? !rootElementName.equals(rootXNode.rootElementName) : rootXNode.rootElementName != null) {
             return false;
-        if (subnode != null ? !subnode.equals(rootXNode.subnode) : rootXNode.subnode != null) return false;
+        }
+        if (subnode != null ? !subnode.equals(rootXNode.subnode) : rootXNode.subnode != null) {
+            return false;
+        }
 
         return true;
     }

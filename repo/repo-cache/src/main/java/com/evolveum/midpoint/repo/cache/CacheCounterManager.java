@@ -171,7 +171,7 @@ public class CacheCounterManager implements CounterManager {
         private String oid;
         private String policyRuleId;
 
-        public CounterKey(String oid, String policyRuleId) {
+        CounterKey(String oid, String policyRuleId) {
             this.oid = oid;
             this.policyRuleId = policyRuleId;
         }

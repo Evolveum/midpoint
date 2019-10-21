@@ -17,7 +17,7 @@ class RefinedObjectClassDefinitionKey {
     private QName typeName;
     private String intent;
 
-    public RefinedObjectClassDefinitionKey(RefinedObjectClassDefinition rObjectClassDefinition) {
+    RefinedObjectClassDefinitionKey(RefinedObjectClassDefinition rObjectClassDefinition) {
         typeName = rObjectClassDefinition.getTypeName();
         intent = rObjectClassDefinition.getIntent();
     }

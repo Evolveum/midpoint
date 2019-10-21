@@ -41,10 +41,8 @@ public class ObjectSelector implements Serializable, ShortDumpable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof ObjectSelector))
-            return false;
+        if (this == o) return true;
+        if (!(o instanceof ObjectSelector)) return false;
         ObjectSelector that = (ObjectSelector) o;
         return Objects.equals(path, that.path);
     }

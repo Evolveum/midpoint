@@ -2457,11 +2457,7 @@ public final class WebComponentUtil {
             return true;
         }
         if (UserInterfaceElementVisibilityType.AUTOMATIC.equals(visibilityType)){
-            if (WebComponentUtil.isAuthorized(requiredAuthorizations)){
-                return true;
-            } else {
-                return false;
-            }
+            return WebComponentUtil.isAuthorized(requiredAuthorizations);
         }
         return true;
     }

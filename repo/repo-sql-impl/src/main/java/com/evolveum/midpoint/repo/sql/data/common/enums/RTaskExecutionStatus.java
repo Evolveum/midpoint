@@ -23,7 +23,7 @@ public enum RTaskExecutionStatus implements SchemaEnum<TaskExecutionStatusType> 
 
     private TaskExecutionStatusType status;
 
-    private RTaskExecutionStatus(TaskExecutionStatusType status) {
+    RTaskExecutionStatus(TaskExecutionStatusType status) {
         this.status = status;
     }
 

@@ -252,16 +252,12 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
      * Similar to equals but ignores the order.
      */
     public boolean equivalent(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         ResourceShadowDiscriminator other = (ResourceShadowDiscriminator) obj;
         if (intent == null) {
-            if (other.intent != null)
-                return false;
+            if (other.intent != null) return false;
         } else if (!equalsIntent(this.intent, other.intent)) {
             return false;
         }
@@ -269,12 +265,11 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
             return false;
         }
         if (resourceOid == null) {
-            if (other.resourceOid != null)
-                return false;
-        } else if (!resourceOid.equals(other.resourceOid))
+            if (other.resourceOid != null) return false;
+        } else if (!resourceOid.equals(other.resourceOid)) {
             return false;
-        if (tombstone != other.tombstone)
-            return false;
+        }
+        if (tombstone != other.tombstone) return false;
         return true;
     }
 

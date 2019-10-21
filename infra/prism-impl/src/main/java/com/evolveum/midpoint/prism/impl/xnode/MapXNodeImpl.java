@@ -409,12 +409,12 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         private QName key;
         private XNodeImpl value;
 
-        public Entry(QName key) {
+        Entry(QName key) {
             super();
             this.key = key;
         }
 
-        public Entry(QName key, XNodeImpl value) {
+        Entry(QName key, XNodeImpl value) {
             super();
             this.key = key;
             this.value = value;

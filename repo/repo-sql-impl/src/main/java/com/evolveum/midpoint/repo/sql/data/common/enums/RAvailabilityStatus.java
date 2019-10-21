@@ -22,7 +22,7 @@ public enum RAvailabilityStatus implements SchemaEnum<AvailabilityStatusType> {
 
     private AvailabilityStatusType status;
 
-    private RAvailabilityStatus(AvailabilityStatusType status) {
+    RAvailabilityStatus(AvailabilityStatusType status) {
         this.status = status;
     }
 

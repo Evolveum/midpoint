@@ -131,8 +131,9 @@ public class LoggingConfigurationManager {
             //Parse internal log
             res.recordSuccess();
             for (String internalLogLine : internalLog.split("\n")) {
-                if (internalLogLine.contains("|-ERROR"))
+                if (internalLogLine.contains("|-ERROR")) {
                     res.recordPartialError(internalLogLine);
+                }
                 res.appendDetail(internalLogLine);
             }
             LOGGER.trace("LogBack internal log:\n{}",internalLog);

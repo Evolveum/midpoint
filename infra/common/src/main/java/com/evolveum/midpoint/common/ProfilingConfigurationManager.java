@@ -103,8 +103,9 @@ public class ProfilingConfigurationManager {
         }
 
         //Check the dump interval
-        if(profilingConfig.getDumpInterval() != null)
+        if(profilingConfig.getDumpInterval() != null) {
             dumpInterval = profilingConfig.getDumpInterval();
+        }
 
         performanceProfiling = checkXsdBooleanValue(profilingConfig.isPerformanceStatistics());
         requestProfiling = checkXsdBooleanValue(profilingConfig.isRequestFilter());
@@ -120,9 +121,6 @@ public class ProfilingConfigurationManager {
     }
 
     private static boolean checkXsdBooleanValue(Boolean value){
-        if(value == null || !value)
-            return false;
-        else
-            return true;
+        return value != null && value;
     }
 }

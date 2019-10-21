@@ -375,7 +375,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
     /**
      * Set origin type to all values and subvalues
      */
-    void setOriginTypeRecursive(final OriginType originType);
+    void setOriginTypeRecursive(OriginType originType);
 
     // TODO optimize a bit + test thoroughly
     void keepPaths(List<? extends ItemPath> keep) throws SchemaException;

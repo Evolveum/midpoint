@@ -21,7 +21,7 @@ public enum RTaskBinding implements SchemaEnum<TaskBindingType> {
 
     private TaskBindingType binding;
 
-    private RTaskBinding(TaskBindingType binding) {
+    RTaskBinding(TaskBindingType binding) {
         this.binding = binding;
     }
 

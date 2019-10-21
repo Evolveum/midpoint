@@ -18,7 +18,7 @@ class AddObjectResult<T extends ObjectType> {
 
     @NotNull private final PrismObject<T> object;
 
-    public AddObjectResult(PrismObject<T> object) {
+    AddObjectResult(PrismObject<T> object) {
         this.object = object;
     }
 

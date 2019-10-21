@@ -34,7 +34,7 @@ public interface EventHandler {
      * @param objectResult Operation result for this object
      * @return true if the process should continue, false if it should stop
      */
-    public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult);
+    EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult);
 
     /**
      * Call-back called after the object is unmarshalled.
@@ -47,7 +47,7 @@ public interface EventHandler {
      * @param objectResult Operation result for this object
      * @return true if the process should continue, false if it should stop
      */
-    public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult);
+    <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult);
 
     /**
      * Call-back to handle global errors.
@@ -57,6 +57,6 @@ public interface EventHandler {
      * @param currentResult Operation result pointing to the particular error.
      * @return true if the process should continue, false if it should stop
      */
-    public void handleGlobalError(OperationResult currentResult);
+    void handleGlobalError(OperationResult currentResult);
 
 }

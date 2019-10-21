@@ -33,7 +33,7 @@ public enum AccessDecision {
 
     private final AuthorizationDecisionType authorizationDecisionType;
 
-    private AccessDecision(AuthorizationDecisionType authorizationDecisionType) {
+    AccessDecision(AuthorizationDecisionType authorizationDecisionType) {
         this.authorizationDecisionType = authorizationDecisionType;
     }
 

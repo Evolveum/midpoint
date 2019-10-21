@@ -718,7 +718,7 @@ public class PageTaskAdd extends PageAdminTasks {
             task.setThreadStopAction(dto.getThreadStop());
         } else {
             // fill-in default
-            if (dto.getRunUntilNodeDown() == true) {
+            if (dto.getRunUntilNodeDown()) {
                 task.setThreadStopAction(ThreadStopActionType.CLOSE);
             } else {
                 task.setThreadStopAction(ThreadStopActionType.RESTART);

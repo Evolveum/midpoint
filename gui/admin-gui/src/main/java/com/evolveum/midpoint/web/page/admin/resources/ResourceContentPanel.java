@@ -435,7 +435,6 @@ public abstract class ResourceContentPanel extends Panel {
 
         taskType.setCategory(category);
         setResponsePage(new PageTaskAdd(taskType));
-        ;
     }
 
     private void runTask(List<TaskType> tasks, AjaxRequestTarget target) {

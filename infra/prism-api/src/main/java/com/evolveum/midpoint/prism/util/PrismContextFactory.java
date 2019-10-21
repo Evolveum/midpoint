@@ -21,6 +21,6 @@ public interface PrismContextFactory {
     /**
      * Returns UNINITIALIZED prism context.
      */
-    public PrismContext createPrismContext() throws SchemaException, FileNotFoundException;
+    PrismContext createPrismContext() throws SchemaException, FileNotFoundException;
 
 }

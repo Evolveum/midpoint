@@ -561,7 +561,6 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
         if (orgRef != null && AssignmentEditorDtoType.ROLE.equals(this.type)) {
             if (orgRef.getOid() == null) {
                 newAssignment.setOrgRef(null);
-                ;
             } else {
                 ObjectReferenceType ref = new ObjectReferenceType();
                 ref.setOid(this.orgRef.getOid());

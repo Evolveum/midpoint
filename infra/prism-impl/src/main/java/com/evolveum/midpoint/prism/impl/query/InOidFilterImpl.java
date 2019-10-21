@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class InOidFilterImpl extends ObjectFilterImpl implements InOidFilter {
+public final class InOidFilterImpl extends ObjectFilterImpl implements InOidFilter {
 
     private List<String> oids;
     private ExpressionWrapper expression;
@@ -172,19 +172,23 @@ public class InOidFilterImpl extends ObjectFilterImpl implements InOidFilter {
 
     @Override
     public boolean equals(Object o, boolean exact) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
         InOidFilterImpl that = (InOidFilterImpl) o;
 
-        if (considerOwner != that.considerOwner)
+        if (considerOwner != that.considerOwner) return false;
+        if (oids != null ? !oids.equals(that.oids) : that.oids != null) {
             return false;
-        if (oids != null ? !oids.equals(that.oids) : that.oids != null)
-            return false;
+        }
         return expression != null ? expression.equals(that.expression) : that.expression == null;
 
+    }
+
+    // Just to make checkstyle happy
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
     }
 
     @Override

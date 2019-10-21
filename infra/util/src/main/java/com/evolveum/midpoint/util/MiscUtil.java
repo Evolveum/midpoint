@@ -411,30 +411,38 @@ public class MiscUtil {
     }
 
     public static boolean isNoValue(Collection<?> collection) {
-        if (collection == null)
+        if (collection == null) {
             return true;
-        if (collection.isEmpty())
+        }
+        if (collection.isEmpty()) {
             return true;
+        }
         for (Object val : collection) {
-            if (val == null)
+            if (val == null) {
                 continue;
-            if (val instanceof String && ((String) val).isEmpty())
+            }
+            if (val instanceof String && ((String) val).isEmpty()) {
                 continue;
+            }
             return false;
         }
         return true;
     }
 
     public static boolean hasNoValue(Collection<?> collection) {
-        if (collection == null)
+        if (collection == null) {
             return true;
-        if (collection.isEmpty())
+        }
+        if (collection.isEmpty()) {
             return true;
+        }
         for (Object val : collection) {
-            if (val == null)
+            if (val == null) {
                 return true;
-            if (val instanceof String && ((String) val).isEmpty())
+            }
+            if (val instanceof String && ((String) val).isEmpty()) {
                 return true;
+            }
         }
         return false;
     }

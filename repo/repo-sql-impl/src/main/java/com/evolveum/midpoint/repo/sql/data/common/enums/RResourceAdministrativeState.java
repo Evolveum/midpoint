@@ -21,7 +21,7 @@ public enum RResourceAdministrativeState implements SchemaEnum<ResourceAdministr
 
     private ResourceAdministrativeStateType administrativeState;
 
-    private RResourceAdministrativeState(ResourceAdministrativeStateType administrativeState) {
+    RResourceAdministrativeState(ResourceAdministrativeStateType administrativeState) {
         this.administrativeState = administrativeState;
     }
 

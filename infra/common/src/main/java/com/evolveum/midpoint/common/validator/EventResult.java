@@ -10,7 +10,7 @@ package com.evolveum.midpoint.common.validator;
  * @author semancik
  *
  */
-public class  EventResult {
+public final class  EventResult {
 
     public enum EventResultStatus {
 

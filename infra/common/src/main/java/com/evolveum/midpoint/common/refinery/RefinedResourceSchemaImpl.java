@@ -34,7 +34,7 @@ import java.util.*;
  * @author semancik
  * @author mederly
  */
-public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
+public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 
     private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = RefinedResourceSchema.class.getName()+".parsedResourceSchema";
     private static final String USER_DATA_KEY_REFINED_SCHEMA = RefinedResourceSchema.class.getName()+".refinedSchema";

@@ -75,10 +75,10 @@ public interface PropertyDelta<T extends Object> extends ItemDelta<PrismProperty
     @Override
     PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems);
 
-    PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule,
+    PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, MatchingRule<T> matchingRule,
             boolean assumeMissingItems);
 
-    boolean isRedundant(PrismObject<? extends Objectable> object, final MatchingRule<T> matchingRule, boolean assumeMissingItems);
+    boolean isRedundant(PrismObject<? extends Objectable> object, MatchingRule<T> matchingRule, boolean assumeMissingItems);
 
     // convenience method
     void setRealValuesToReplace(T... newValues);

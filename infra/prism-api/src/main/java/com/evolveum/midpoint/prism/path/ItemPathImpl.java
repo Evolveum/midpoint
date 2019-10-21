@@ -14,7 +14,7 @@ import java.util.*;
 /**
  *
  */
-public class ItemPathImpl implements ItemPath {
+public final class ItemPathImpl implements ItemPath {
 
     public static final ItemPath EMPTY_PATH = new ItemPathImpl(Collections.emptyList());
 
@@ -127,10 +127,8 @@ public class ItemPathImpl implements ItemPath {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof ItemPathImpl))
-            return false;
+        if (this == o) return true;
+        if (!(o instanceof ItemPathImpl)) return false;
         ItemPathImpl itemPath = (ItemPathImpl) o;
         return segments.equals(itemPath.segments);
     }

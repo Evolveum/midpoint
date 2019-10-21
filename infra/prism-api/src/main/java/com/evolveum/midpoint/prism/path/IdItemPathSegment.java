@@ -43,18 +43,15 @@ public class IdItemPathSegment extends ItemPathSegment {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
         IdItemPathSegment other = (IdItemPathSegment) obj;
         if (id == null) {
-            if (other.id != null)
-                return false;
-        } else if (!id.equals(other.id))
+            if (other.id != null) return false;
+        } else if (!id.equals(other.id)) {
             return false;
+        }
         return true;
     }
 

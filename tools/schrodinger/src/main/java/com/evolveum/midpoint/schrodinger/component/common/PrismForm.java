@@ -103,17 +103,9 @@ public class PrismForm<T> extends Component<T> {
         String valueElement = value.getValue();
 
         if (!valueElement.isEmpty()) {
-
             return valueElement.equals(expectedValue);
-
-        } else if (!expectedValue.isEmpty()) {
-
-            return false;
-
         } else {
-
-            return true;
-
+            return expectedValue.isEmpty();
         }
 
     }
@@ -124,17 +116,9 @@ public class PrismForm<T> extends Component<T> {
         String selectedOptionText = value.getSelectedText();
 
         if (!selectedOptionText.isEmpty()) {
-
             return selectedOptionText.equals(expectedValue);
-
-        } else if (!expectedValue.isEmpty()) {
-
-            return false;
-
         } else {
-
-            return true;
-
+            return expectedValue.isEmpty();
         }
 
     }

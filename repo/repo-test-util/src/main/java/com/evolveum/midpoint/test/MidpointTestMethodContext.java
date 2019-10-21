@@ -13,7 +13,7 @@ import com.evolveum.midpoint.task.api.Task;
 /**
  *  Thread-local context for midPoint test method.
  */
-public class MidpointTestMethodContext {
+public final class MidpointTestMethodContext {
 
     private static final ThreadLocal<MidpointTestMethodContext> TEST_CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
 

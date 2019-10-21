@@ -23,7 +23,7 @@ public enum RShadowKind implements SchemaEnum<ShadowKindType> {
 
     private ShadowKindType kind;
 
-    private RShadowKind(ShadowKindType kind) {
+    RShadowKind(ShadowKindType kind) {
         this.kind = kind;
     }
 

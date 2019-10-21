@@ -579,10 +579,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
         List<WorkBucketType> buckets = taskType.getWorkState().getBucket();
         if (buckets.size() > 1) {
             return true;
-        } else if (buckets.size() == 1 && buckets.get(0).getContent() != null) {
-            return true;
         } else {
-            return false;
+            return buckets.size() == 1 && buckets.get(0).getContent() != null;
         }
     }
 

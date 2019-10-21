@@ -47,23 +47,20 @@ public class LabeledString implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         LabeledString other = (LabeledString) obj;
         if (data == null) {
-            if (other.data != null)
-                return false;
-        } else if (!data.equals(other.data))
+            if (other.data != null) return false;
+        } else if (!data.equals(other.data)) {
             return false;
+        }
         if (label == null) {
-            if (other.label != null)
-                return false;
-        } else if (!label.equals(other.label))
+            if (other.label != null) return false;
+        } else if (!label.equals(other.label)) {
             return false;
+        }
         return true;
     }
 

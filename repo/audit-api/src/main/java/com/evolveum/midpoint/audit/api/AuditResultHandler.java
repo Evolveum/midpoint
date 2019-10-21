@@ -8,8 +8,7 @@ package com.evolveum.midpoint.audit.api;
 
 public interface AuditResultHandler {
 
+    boolean handle(AuditEventRecord auditRecord);
 
-    public boolean handle(AuditEventRecord auditRecord);
-
-    public int getProgress();
+    int getProgress();
 }

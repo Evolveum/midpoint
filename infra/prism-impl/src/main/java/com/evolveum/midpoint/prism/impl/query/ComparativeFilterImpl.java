@@ -59,14 +59,17 @@ public abstract class ComparativeFilterImpl<T> extends PropertyValueFilterImpl<T
 
     @Override
     public boolean equals(Object o, boolean exact) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        if (!super.equals(o, exact))
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o, exact)) return false;
         ComparativeFilterImpl<?> that = (ComparativeFilterImpl<?>) o;
         return equals == that.equals;
+    }
+
+    // Just to make checkstyle happy
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
     }
 
     @Override

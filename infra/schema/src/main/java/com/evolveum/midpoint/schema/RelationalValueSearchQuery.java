@@ -11,6 +11,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author semancik
@@ -81,43 +82,16 @@ public class RelationalValueSearchQuery implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((column == null) ? 0 : column.hashCode());
-        result = prime * result + ((paging == null) ? 0 : paging.hashCode());
-        result = prime * result + ((searchType == null) ? 0 : searchType.hashCode());
-        result = prime * result + ((searchValue == null) ? 0 : searchValue.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RelationalValueSearchQuery that = (RelationalValueSearchQuery) o;
+        return Objects.equals(column, that.column) && Objects.equals(searchValue, that.searchValue) && searchType == that.searchType && Objects.equals(paging, that.paging);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        RelationalValueSearchQuery other = (RelationalValueSearchQuery) obj;
-        if (column == null) {
-            if (other.column != null)
-                return false;
-        } else if (!column.equals(other.column))
-            return false;
-        if (paging == null) {
-            if (other.paging != null)
-                return false;
-        } else if (!paging.equals(other.paging))
-            return false;
-        if (searchType != other.searchType)
-            return false;
-        if (searchValue == null) {
-            if (other.searchValue != null)
-                return false;
-        } else if (!searchValue.equals(other.searchValue))
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(column, searchValue, searchType, paging);
     }
 
     @Override

@@ -16,7 +16,7 @@ public enum NAryLogicalFilterType {
 
     private String elementName;
 
-    private NAryLogicalFilterType(String elementName) {
+    NAryLogicalFilterType(String elementName) {
         this.elementName = elementName;
     }
 

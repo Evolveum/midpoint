@@ -23,7 +23,6 @@ import java.util.Objects;
  * @author mederly
  */
 public class AuditReferenceValue implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     private String oid;
@@ -78,10 +77,8 @@ public class AuditReferenceValue implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof AuditReferenceValue))
-            return false;
+        if (this == o) return true;
+        if (!(o instanceof AuditReferenceValue)) return false;
         AuditReferenceValue that = (AuditReferenceValue) o;
         return Objects.equals(oid, that.oid) &&
                 QNameUtil.match(type, that.type) &&

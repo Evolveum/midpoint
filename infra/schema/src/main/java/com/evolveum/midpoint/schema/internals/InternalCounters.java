@@ -68,7 +68,7 @@ public enum InternalCounters {
 
     private InternalOperationClasses operationClass;
 
-    private InternalCounters(String key, String label, InternalOperationClasses operationClass) {
+    InternalCounters(String key, String label, InternalOperationClasses operationClass) {
         this.key = key;
         this.label = label;
         this.operationClass = operationClass;

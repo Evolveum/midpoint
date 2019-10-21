@@ -334,11 +334,7 @@ public class MiscSchemaUtil {
 
     private static boolean contains(List<LayerType> layers, LayerType layer) {
         if (layers == null || layers.isEmpty()) {
-            if (layer == null) {
-                return true;
-            } else {
-                return false;
-            }
+            return layer == null;
         }
         return layers.contains(layer);
     }

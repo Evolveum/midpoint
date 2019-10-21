@@ -134,23 +134,17 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
     @Override
     public boolean supports(ConfigAttribute attribute) {
-        if (attribute instanceof SecurityConfig
+        return attribute instanceof SecurityConfig
                 // class name equals, because WebExpressionConfigAttribute is non public class
-                || "org.springframework.security.web.access.expression.WebExpressionConfigAttribute".equals(attribute.getClass().getName())) {
-            return true;
-        } else {
-            return false;
-        }
+                || "org.springframework.security.web.access.expression.WebExpressionConfigAttribute".equals(attribute.getClass().getName());
     }
 
     @Override
     public boolean supports(Class<?> clazz) {
         if (MethodInvocation.class.isAssignableFrom(clazz)) {
             return true;
-        } else if (FilterInvocation.class.isAssignableFrom(clazz)) {
-            return true;
         } else {
-            return false;
+            return FilterInvocation.class.isAssignableFrom(clazz);
         }
     }
 

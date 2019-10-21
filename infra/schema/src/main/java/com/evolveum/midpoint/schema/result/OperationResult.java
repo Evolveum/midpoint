@@ -975,7 +975,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
                         .flatMap(stream -> stream));
     }
 
-    public static class PreviewResult {
+    public static final class PreviewResult {
         public final OperationResultStatus status;
         public final String message;
 
@@ -2149,7 +2149,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 //        return CloneUtil.clone(this);
 //    }
 
-    private static class OperationStatusKey {
+    private static final class OperationStatusKey {
 
         private String operation;
         private OperationResultStatus status;
@@ -2318,10 +2318,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof OperationResult))
-            return false;
+        if (this == o) return true;
+        if (!(o instanceof OperationResult)) return false;
         OperationResult result = (OperationResult) o;
         return token == result.token &&
                 count == result.count &&

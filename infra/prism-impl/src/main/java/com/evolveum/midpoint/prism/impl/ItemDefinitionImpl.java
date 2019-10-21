@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.impl;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
@@ -388,43 +389,17 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((itemName == null) ? 0 : itemName.hashCode());
-        result = prime * result + maxOccurs;
-        result = prime * result + minOccurs;
-        result = prime * result + (canAdd ? 1231 : 1237);
-        result = prime * result + (canRead ? 1231 : 1237);
-        result = prime * result + (canModify ? 1231 : 1237);
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ItemDefinitionImpl<?> that = (ItemDefinitionImpl<?>) o;
+        return minOccurs == that.minOccurs && maxOccurs == that.maxOccurs && operational == that.operational && dynamic == that.dynamic && canAdd == that.canAdd && canRead == that.canRead && canModify == that.canModify && inherited == that.inherited && heterogeneousListItem == that.heterogeneousListItem && indexOnly == that.indexOnly && itemName.equals(that.itemName) && Objects.equals(substitutionHead, that.substitutionHead) && Objects.equals(valueEnumerationRef, that.valueEnumerationRef);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ItemDefinitionImpl other = (ItemDefinitionImpl) obj;
-        if (itemName == null) {
-            if (other.itemName != null)
-                return false;
-        } else if (!itemName.equals(other.itemName))
-            return false;
-        if (maxOccurs != other.maxOccurs)
-            return false;
-        if (minOccurs != other.minOccurs)
-            return false;
-        if (canAdd != other.canAdd)
-            return false;
-        if (canRead != other.canRead)
-            return false;
-        if (canModify != other.canModify)
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), itemName, minOccurs, maxOccurs, operational, dynamic, canAdd, canRead, canModify, inherited, substitutionHead, heterogeneousListItem, valueEnumerationRef, indexOnly);
     }
 
     @Override

@@ -37,7 +37,7 @@ import java.util.Map.Entry;
  * @author semancik
  * @author mederly
  */
-public class ItemPathHolder {
+public final class ItemPathHolder {
 
 //    private static final Trace LOGGER = TraceManager.getTrace(ItemPathHolder.class);
 //    public static final String DEFAULT_PREFIX = "c";
@@ -486,10 +486,8 @@ public class ItemPathHolder {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
 
         // Special case
         if (obj instanceof QName) {
@@ -500,16 +498,14 @@ public class ItemPathHolder {
             return segment.getQName().equals(obj);
         }
 
-        if (getClass() != obj.getClass())
-            return false;
+        if (getClass() != obj.getClass()) return false;
         ItemPathHolder other = (ItemPathHolder) obj;
-        if (absolute != other.absolute)
-            return false;
+        if (absolute != other.absolute) return false;
         if (segments == null) {
-            if (other.segments != null)
-                return false;
-        } else if (!segments.equals(other.segments))
+            if (other.segments != null) return false;
+        } else if (!segments.equals(other.segments)) {
             return false;
+        }
         return true;
     }
 

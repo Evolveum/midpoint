@@ -895,10 +895,8 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof GetOperationOptions))
-            return false;
+        if (this == o) return true;
+        if (!(o instanceof GetOperationOptions)) return false;
         GetOperationOptions that = (GetOperationOptions) o;
         return retrieve == that.retrieve &&
                 Objects.equals(resolve, that.resolve) &&

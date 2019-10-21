@@ -120,10 +120,8 @@ public class TaskRunResult implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof TaskRunResult))
-            return false;
+        if (this == o) return true;
+        if (!(o instanceof TaskRunResult)) return false;
         TaskRunResult that = (TaskRunResult) o;
         return Objects.equals(progress, that.progress) &&
                 runResultStatus == that.runResultStatus &&

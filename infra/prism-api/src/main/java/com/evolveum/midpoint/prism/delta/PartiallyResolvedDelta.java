@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import java.util.Objects;
+
 /**
  * @author semancik
  *
@@ -44,34 +46,16 @@ public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinitio
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((delta == null) ? 0 : delta.hashCode());
-        result = prime * result + ((residualPath == null) ? 0 : residualPath.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PartiallyResolvedDelta<?, ?> that = (PartiallyResolvedDelta<?, ?>) o;
+        return Objects.equals(delta, that.delta) && Objects.equals(residualPath, that.residualPath);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        PartiallyResolvedDelta other = (PartiallyResolvedDelta) obj;
-        if (delta == null) {
-            if (other.delta != null)
-                return false;
-        } else if (!delta.equals(other.delta))
-            return false;
-        if (residualPath == null) {
-            if (other.residualPath != null)
-                return false;
-        } else if (!residualPath.equivalent(other.residualPath))     // TODO: ok?
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(delta, residualPath);
     }
 
     @Override

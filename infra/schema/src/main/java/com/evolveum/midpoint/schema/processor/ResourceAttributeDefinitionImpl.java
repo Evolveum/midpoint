@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
+import java.util.Objects;
+
 import static com.evolveum.midpoint.prism.util.DefinitionUtil.addNamespaceIfApplicable;
 
 /**
@@ -35,8 +37,8 @@ import static com.evolveum.midpoint.prism.util.DefinitionUtil.addNamespaceIfAppl
  *
  */
 public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionImpl<T> implements MutableResourceAttributeDefinition<T> {
-
     private static final long serialVersionUID = -1756347754109326906L;
+
     private String nativeAttributeName;
     private String frameworkAttributeName;
     private Boolean returnedByDefault;
@@ -170,40 +172,17 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((frameworkAttributeName == null) ? 0 : frameworkAttributeName.hashCode());
-        result = prime * result + ((nativeAttributeName == null) ? 0 : nativeAttributeName.hashCode());
-        result = prime * result + ((returnedByDefault == null) ? 0 : returnedByDefault.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ResourceAttributeDefinitionImpl<?> that = (ResourceAttributeDefinitionImpl<?>) o;
+        return Objects.equals(nativeAttributeName, that.nativeAttributeName) && Objects.equals(frameworkAttributeName, that.frameworkAttributeName) && Objects.equals(returnedByDefault, that.returnedByDefault);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        ResourceAttributeDefinitionImpl other = (ResourceAttributeDefinitionImpl) obj;
-        if (frameworkAttributeName == null) {
-            if (other.frameworkAttributeName != null)
-                return false;
-        } else if (!frameworkAttributeName.equals(other.frameworkAttributeName))
-            return false;
-        if (nativeAttributeName == null) {
-            if (other.nativeAttributeName != null)
-                return false;
-        } else if (!nativeAttributeName.equals(other.nativeAttributeName))
-            return false;
-        if (returnedByDefault == null) {
-            if (other.returnedByDefault != null)
-                return false;
-        } else if (!returnedByDefault.equals(other.returnedByDefault))
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), nativeAttributeName, frameworkAttributeName, returnedByDefault);
     }
 
     protected void extendToString(StringBuilder sb) {

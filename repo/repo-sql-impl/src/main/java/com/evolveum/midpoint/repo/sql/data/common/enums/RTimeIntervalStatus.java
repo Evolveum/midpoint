@@ -22,7 +22,7 @@ public enum RTimeIntervalStatus implements SchemaEnum<TimeIntervalStatusType> {
 
     private TimeIntervalStatusType status;
 
-    private RTimeIntervalStatus(TimeIntervalStatusType status) {
+    RTimeIntervalStatus(TimeIntervalStatusType status) {
         this.status = status;
     }
 

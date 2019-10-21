@@ -192,17 +192,17 @@ public class ObjectQueryImpl implements ObjectQuery {
     }
 
     public boolean equals(Object o, boolean exact) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
         ObjectQueryImpl that = (ObjectQueryImpl) o;
 
-        if (allowPartialResults != that.allowPartialResults)
+        if (allowPartialResults != that.allowPartialResults) {
             return false;
-        if (filter != null ? !filter.equals(that.filter, exact) : that.filter != null)
+        }
+        if (filter != null ? !filter.equals(that.filter, exact) : that.filter != null) {
             return false;
+        }
         return paging != null ? paging.equals(that.paging, exact) : that.paging == null;
 
     }

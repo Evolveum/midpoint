@@ -230,11 +230,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
             @Override
             public boolean isVisible(){
                 if (SchemaConstants.OBJECT_COLLECTION_ROLE_CATALOG_URI.equals(viewType)){
-                    if (StringUtils.isEmpty(getRoleCatalogOid())){
-                        return false;
-                    } else {
-                        return true;
-                    }
+                    return !StringUtils.isEmpty(getRoleCatalogOid());
                 }
 
                 RoleManagementConfigurationType config = roleManagementConfigModel.getObject();

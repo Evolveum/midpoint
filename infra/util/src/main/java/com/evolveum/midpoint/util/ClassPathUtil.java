@@ -131,7 +131,7 @@ public class ClassPathUtil {
     }
 
     public static boolean copyFile(InputStream srcStream, String srcName, OutputStream dstStream, String dstName) {
-        byte buf[] = new byte[655360];
+        byte[] buf = new byte[655360];
         int len;
         try {
             while ((len = srcStream.read(buf)) > 0) {

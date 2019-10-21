@@ -376,15 +376,11 @@ public class UniformItemPathImpl implements UniformItemPath {
      */
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         UniformItemPathImpl other = (UniformItemPathImpl) obj;
-        if (!segments.equals(other.segments))
-            return false;
+        if (!segments.equals(other.segments)) return false;
         return true;
     }
 

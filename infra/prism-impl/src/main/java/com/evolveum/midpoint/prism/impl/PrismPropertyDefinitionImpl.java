@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.prism.impl;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -193,46 +194,17 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((allowedValues == null) ? 0 : allowedValues.hashCode());
-        result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
-        result = prime * result + ((indexed == null) ? 0 : indexed.hashCode());
-        result = prime * result + ((valueType == null) ? 0 : valueType.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        PrismPropertyDefinitionImpl<?> that = (PrismPropertyDefinitionImpl<?>) o;
+        return Objects.equals(valueType, that.valueType) && Objects.equals(allowedValues, that.allowedValues) && Objects.equals(indexed, that.indexed) && Objects.equals(defaultValue, that.defaultValue) && Objects.equals(matchingRuleQName, that.matchingRuleQName);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        PrismPropertyDefinitionImpl other = (PrismPropertyDefinitionImpl) obj;
-        if (allowedValues == null) {
-            if (other.allowedValues != null)
-                return false;
-        } else if (!allowedValues.equals(other.allowedValues))
-            return false;
-        if (defaultValue == null) {
-            if (other.defaultValue != null)
-                return false;
-        } else if (!defaultValue.equals(other.defaultValue))
-            return false;
-        if (indexed == null) {
-            if (other.indexed != null)
-                return false;
-        } else if (!indexed.equals(other.indexed))
-            return false;
-        if (valueType == null) {
-            if (other.valueType != null)
-                return false;
-        } else if (!valueType.equals(other.valueType))
-            return false;
-        return true;
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), valueType, allowedValues, indexed, defaultValue, matchingRuleQName);
     }
 
     /**

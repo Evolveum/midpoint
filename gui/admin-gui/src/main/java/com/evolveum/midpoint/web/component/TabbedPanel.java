@@ -240,7 +240,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
     protected void onBeforeRender() {
         int index = getSelectedTab();
 
-        if (index == -1 || getVisiblityCache().isVisible(index) == false) {
+        if (index == -1 || !getVisiblityCache().isVisible(index)) {
             // find first visible tab
             index = -1;
             for (int i = 0; i < tabs.getObject().size(); i++) {

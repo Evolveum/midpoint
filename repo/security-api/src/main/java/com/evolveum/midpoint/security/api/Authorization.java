@@ -185,13 +185,10 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof Authorization))
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         Authorization that = (Authorization) o;
-        return Objects.equals(authorizationType, that.authorizationType) &&
-                Objects.equals(sourceDescription, that.sourceDescription);
+        return Objects.equals(authorizationType, that.authorizationType) && Objects.equals(sourceDescription, that.sourceDescription);
     }
 
     @Override

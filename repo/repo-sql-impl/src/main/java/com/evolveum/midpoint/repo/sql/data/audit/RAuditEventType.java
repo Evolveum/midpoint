@@ -38,7 +38,7 @@ public enum RAuditEventType {
 
     private AuditEventType type;
 
-    private RAuditEventType(AuditEventType type) {
+    RAuditEventType(AuditEventType type) {
         this.type = type;
     }
 

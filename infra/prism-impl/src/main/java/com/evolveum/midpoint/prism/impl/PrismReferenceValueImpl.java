@@ -396,10 +396,12 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
             return false;
         }
         if (this.getOid() == null) {
-            if (other.getOid() != null)
+            if (other.getOid() != null) {
                 return false;
-        } else if (!this.getOid().equals(other.getOid()))
+            }
+        } else if (!this.getOid().equals(other.getOid())) {
             return false;
+        }
         // Special handling: if both oids are null we need to compare embedded objects
         boolean bothOidsNull = this.oid == null && other.getOid() == null;
         if (bothOidsNull) {
@@ -424,6 +426,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         }
         return true;
     }
+
 
     private boolean filtersEquivalent(SearchFilterType filter1, SearchFilterType filter2) {
         if (filter1 == null && filter2 == null) {
@@ -465,14 +468,17 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (getClass() != obj.getClass()) return false;
         PrismReferenceValue other = (PrismReferenceValue) obj;
         return equals(other, getEqualsHashCodeStrategy());
+    }
+
+    // Just to make checkstyle happy
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
     // TODO take strategy into account

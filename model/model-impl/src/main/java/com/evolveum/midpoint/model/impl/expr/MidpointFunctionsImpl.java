@@ -322,19 +322,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         SynchronizationIntent synchronizationIntent = projectionContext.getSynchronizationIntent();
         if (scriptContext == null) {
             if (synchronizationPolicyDecision == null) {
-                if (synchronizationIntent == SynchronizationIntent.DELETE
-                        || synchronizationIntent == SynchronizationIntent.UNLINK) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return synchronizationIntent != SynchronizationIntent.DELETE && synchronizationIntent != SynchronizationIntent.UNLINK;
             } else {
-                if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE
-                        || synchronizationPolicyDecision == SynchronizationPolicyDecision.UNLINK) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return synchronizationPolicyDecision != SynchronizationPolicyDecision.DELETE && synchronizationPolicyDecision != SynchronizationPolicyDecision.UNLINK;
             }
         } else if (scriptContext.isEvaluateNew()) {
             // Evaluating new state
@@ -342,19 +332,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 return false;
             }
             if (synchronizationPolicyDecision == null) {
-                if (synchronizationIntent == SynchronizationIntent.DELETE
-                        || synchronizationIntent == SynchronizationIntent.UNLINK) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return synchronizationIntent != SynchronizationIntent.DELETE && synchronizationIntent != SynchronizationIntent.UNLINK;
             } else {
-                if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE
-                        || synchronizationPolicyDecision == SynchronizationPolicyDecision.UNLINK) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return synchronizationPolicyDecision != SynchronizationPolicyDecision.DELETE && synchronizationPolicyDecision != SynchronizationPolicyDecision.UNLINK;
             }
         } else {
             // Evaluating old state
@@ -362,17 +342,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 return false;
             }
             if (synchronizationPolicyDecision == null) {
-                if (synchronizationIntent == SynchronizationIntent.ADD) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return synchronizationIntent != SynchronizationIntent.ADD;
             } else {
-                if (synchronizationPolicyDecision == SynchronizationPolicyDecision.ADD) {
-                    return false;
-                } else {
-                    return true;
-                }
+                return synchronizationPolicyDecision != SynchronizationPolicyDecision.ADD;
             }
         }
     }

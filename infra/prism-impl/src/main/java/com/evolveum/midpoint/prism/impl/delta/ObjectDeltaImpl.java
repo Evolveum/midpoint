@@ -963,50 +963,44 @@ public class ObjectDeltaImpl<O extends Objectable> implements ObjectDelta<O> {
     @Override
     public boolean equivalent(ObjectDelta o) {
         ObjectDeltaImpl other = (ObjectDeltaImpl) o;
-        if (changeType != other.changeType)
-            return false;
+        if (changeType != other.changeType) return false;
         if (objectToAdd == null) {
-            if (other.objectToAdd != null)
-                return false;
-        } else if (!objectToAdd.equivalent(other.objectToAdd))
-            return false;
-        if (!MiscUtil.unorderedCollectionEquals(this.modifications, other.modifications,
-                (o1, o2) -> o1.equivalent((ItemDelta)o2))) {
+            if (other.objectToAdd != null) return false;
+        } else if (!objectToAdd.equivalent(other.objectToAdd)) {
             return false;
         }
-        return Objects.equals(objectTypeClass, other.objectTypeClass)
-                && Objects.equals(oid, other.oid);
+        if (!MiscUtil.unorderedCollectionEquals(this.modifications, other.modifications, (o1, o2) -> o1.equivalent((ItemDelta)o2))) {
+            return false;
+        }
+        return Objects.equals(objectTypeClass, other.objectTypeClass) && Objects.equals(oid, other.oid);
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         ObjectDeltaImpl<?> other = (ObjectDeltaImpl<?>) obj;
-        if (changeType != other.changeType)
-            return false;
+        if (changeType != other.changeType) return false;
         //noinspection RedundantCast,unchecked
-        if (!MiscUtil.unorderedCollectionEquals((Collection) this.modifications, (Collection) other.modifications))
+        if (!MiscUtil.unorderedCollectionEquals((Collection) this.modifications, (Collection) other.modifications)) {
             return false;
+        }
         if (objectToAdd == null) {
-            if (other.objectToAdd != null)
-                return false;
-        } else if (!objectToAdd.equals(other.objectToAdd))
+            if (other.objectToAdd != null) return false;
+        } else if (!objectToAdd.equals(other.objectToAdd)) {
             return false;
+        }
         if (objectTypeClass == null) {
-            if (other.objectTypeClass != null)
-                return false;
-        } else if (!objectTypeClass.equals(other.objectTypeClass))
+            if (other.objectTypeClass != null) return false;
+        } else if (!objectTypeClass.equals(other.objectTypeClass)) {
             return false;
+        }
         if (oid == null) {
-            if (other.oid != null)
-                return false;
-        } else if (!oid.equals(other.oid))
+            if (other.oid != null) return false;
+        } else if (!oid.equals(other.oid)) {
             return false;
+        }
         return true;
     }
 

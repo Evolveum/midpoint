@@ -23,7 +23,7 @@ public enum RThreadStopAction implements SchemaEnum<ThreadStopActionType> {
 
     private ThreadStopActionType action;
 
-    private RThreadStopAction(ThreadStopActionType action) {
+    RThreadStopAction(ThreadStopActionType action) {
         this.action = action;
     }
 

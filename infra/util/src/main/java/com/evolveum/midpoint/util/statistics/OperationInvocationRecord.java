@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * EXPERIMENTAL.
  */
-public class OperationInvocationRecord {
+public final class OperationInvocationRecord {
 
     private static AtomicInteger idCounter = new AtomicInteger(0);
 

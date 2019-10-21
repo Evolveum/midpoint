@@ -262,7 +262,7 @@ public class OpenDJController extends AbstractResourceController {
             Enumeration<JarEntry> entries = jar.entries();
 
             JarEntry e;
-            byte buf[] = new byte[655360];
+            byte[] buf = new byte[655360];
             while (entries.hasMoreElements()) {
                 e = entries.nextElement();
 

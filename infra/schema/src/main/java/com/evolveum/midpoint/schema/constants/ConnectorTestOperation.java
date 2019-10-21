@@ -57,7 +57,7 @@ public enum ConnectorTestOperation {
 
     private String operation;
 
-    private ConnectorTestOperation(String operation) {
+    ConnectorTestOperation(String operation) {
         this.operation = operation;
     }
 

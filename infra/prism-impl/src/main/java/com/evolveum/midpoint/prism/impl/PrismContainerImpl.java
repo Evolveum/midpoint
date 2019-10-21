@@ -218,11 +218,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         if (getDefinition() != null) {
             return getDefinition().isSingleValue();
         } else {
-            if (getValues().size() <= 1) {
-                return true;
-            } else {
-                return false;
-            }
+            return getValues().size() <= 1;
         }
     }
 

@@ -59,8 +59,6 @@ public class MetadataFactory {
             if (!refs.isEmpty()) {
                 jaxb.getModifyApproverRef().addAll(refs);
             }
-        } else {
-
         }
 
         return jaxb;
