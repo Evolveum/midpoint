@@ -69,6 +69,7 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -2006,6 +2007,9 @@ public final class WebComponentUtil {
     }
 
     public static String createErrorIcon(OperationResult result) {
+        if (result == null){
+            return "";
+        }
         OperationResultStatus status = result.getStatus();
         OperationResultStatusPresentationProperties icon = OperationResultStatusPresentationProperties
                 .parseOperationalResultStatus(status);
@@ -3180,6 +3184,28 @@ public final class WebComponentUtil {
             return null;
         }
         return displayType.getTooltip().getOrig();
+    }
+
+    public static <O extends ObjectType> DisplayType getDisplayTypeForObject(O obj, OperationResult result, PageBase pageBase){
+        if (obj instanceof ArchetypeType && ((ArchetypeType)obj).getArchetypePolicy() != null) {
+            return ((ArchetypeType)obj).getArchetypePolicy().getDisplay();
+        }
+        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(obj, pageBase);
+        if (displayType != null){
+            String disabledStyle = "";
+            if (obj instanceof FocusType) {
+                disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType)obj).asPrismObject());
+                if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
+                        disabledStyle != null){
+                    displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
+                    displayType.getIcon().setColor("");
+                }
+            }
+        } else {
+            displayType = WebComponentUtil.createDisplayType(ColumnUtils.getIconColumnValue(obj, result),
+                    "", ColumnUtils.getIconColumnTitle(obj, result));
+        }
+        return displayType;
     }
 
     public static DisplayType createDisplayType(String iconCssClass){

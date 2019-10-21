@@ -125,24 +125,11 @@ public class ColumnUtils {
 
             @Override
             protected DisplayType getIconDisplayType(IModel<SelectableBean<O>> rowModel){
-                if (rowModel.getObject().getValue() instanceof ArchetypeType && ((ArchetypeType)rowModel.getObject().getValue()).getArchetypePolicy() != null) {
-                    return ((ArchetypeType)rowModel.getObject().getValue()).getArchetypePolicy().getDisplay();
+                if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
+                    return new DisplayType();
                 }
-                DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(rowModel.getObject().getValue(), pageBase);
-                if (displayType != null){
-                    String disabledStyle = "";
-                    if (rowModel.getObject().getValue() instanceof FocusType) {
-                        disabledStyle = WebComponentUtil.getIconEnabledDisabled(((FocusType)rowModel.getObject().getValue()).asPrismObject());
-                        if (displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass()) &&
-                                disabledStyle != null){
-                            displayType.getIcon().setCssClass(displayType.getIcon().getCssClass() + " " + disabledStyle);
-                            displayType.getIcon().setColor("");
-                        }
-                    }
-                } else {
-                    displayType = WebComponentUtil.createDisplayType(getIconColumnValue(rowModel), "", getIconColumnTitle(rowModel));
-                }
-                return displayType;
+                return WebComponentUtil.getDisplayTypeForObject(rowModel.getObject().getValue(),
+                        rowModel.getObject().getResult(), pageBase);
             }
 
 //            @Override
@@ -153,13 +140,16 @@ public class ColumnUtils {
 
     }
 
-    private static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel) {
+    public static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel) {
         if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
             return "";
         }
 
-        T object = rowModel.getObject().getValue();
+        return getIconColumnValue(rowModel.getObject().getValue(), rowModel.getObject().getResult());
 
+    }
+
+    public static <T extends ObjectType> String getIconColumnValue(T object, OperationResult result) {
         Class<T> type = (Class<T>) object.getClass();
         if (type.equals(ObjectType.class)) {
             return WebComponentUtil.createDefaultIcon(object.asPrismObject());
@@ -173,7 +163,7 @@ public class ColumnUtils {
             return WebComponentUtil.createServiceIcon(object.asPrismContainer());
         } else if (ShadowType.class.equals(type)) {
             if (object == null) {
-                return WebComponentUtil.createErrorIcon(rowModel.getObject().getResult());
+                return WebComponentUtil.createErrorIcon(result);
             } else {
                 return WebComponentUtil.createShadowIcon(object.asPrismContainer());
             }
@@ -208,17 +198,22 @@ public class ColumnUtils {
         return Model.of();
     }
 
-    private static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){
+    public static <T extends ObjectType> String getIconColumnTitle(IModel<SelectableBean<T>> rowModel){
         if (rowModel == null || rowModel.getObject() == null){
             return null;
         }
-        if (rowModel.getObject().getResult() != null && rowModel.getObject().getResult().isFatalError()){
-            OperationResult result = rowModel.getObject().getResult();
+        return getIconColumnTitle(rowModel.getObject().getValue(), rowModel.getObject().getResult());
+    }
+
+    public static <T extends ObjectType> String getIconColumnTitle(T object, OperationResult result){
+        if (object == null){
+            return null;
+        }
+        if (result != null && result.isFatalError()){
             return result.getUserFriendlyMessage() != null ?
                     result.getUserFriendlyMessage().getFallbackMessage() : result.getMessage();
         }
-        Class<T> type = (Class<T>)rowModel.getObject().getValue().getClass();
-        T object = rowModel.getObject().getValue();
+        Class<T> type = (Class<T>)object.getClass();
         if (object == null && !ShadowType.class.equals(type)){
             return null;
         } else if (type.equals(UserType.class)) {
