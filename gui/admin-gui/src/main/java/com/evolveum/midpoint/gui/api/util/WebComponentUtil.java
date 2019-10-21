@@ -3187,6 +3187,9 @@ public final class WebComponentUtil {
     }
 
     public static <O extends ObjectType> DisplayType getDisplayTypeForObject(O obj, OperationResult result, PageBase pageBase){
+        if (obj == null){
+            return null;
+        }
         if (obj instanceof ArchetypeType && ((ArchetypeType)obj).getArchetypePolicy() != null) {
             return ((ArchetypeType)obj).getArchetypePolicy().getDisplay();
         }
