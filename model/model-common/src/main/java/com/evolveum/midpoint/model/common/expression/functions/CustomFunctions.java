@@ -194,9 +194,12 @@ public class CustomFunctions {
             valueClass = value.getClass();
         }
 
-        ItemDefinition def = ExpressionUtil.determineDefinitionFromValueClass(prismContext, entry.getKey(), valueClass, paramType);
+        //ItemDefinition def = ExpressionUtil.determineDefinitionFromValueClass(prismContext, entry.getKey(), valueClass, paramType);
 
-        return new TypedValue<>(value, def);
+        // It is sometimes not possible to derive an item definition from the value class alone: more items can share the same
+        // class (e.g. both objectStatePolicyConstraintType and assignmentStatePolicyConstraintType are of
+        // StatePolicyConstraintType class). So let's provide valueClass here only.
+        return new TypedValue<>(value, valueClass);
     }
 
 }

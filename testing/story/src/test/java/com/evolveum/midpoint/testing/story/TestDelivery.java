@@ -159,7 +159,7 @@ public class TestDelivery extends AbstractStoryTest {
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 
-        setGlobalTracingOverride(createModelAndWorkflowLoggingTracingProfile());
+//        setGlobalTracingOverride(createModelAndWorkflowLoggingTracingProfile());
     }
 
     @Override
@@ -167,11 +167,11 @@ public class TestDelivery extends AbstractStoryTest {
         return true;
     }
 
-    @Override
-    protected TracingProfileType getTestMethodTracingProfile() {
-        return createModelAndWorkflowLoggingTracingProfile()
-                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-    }
+//    @Override
+//    protected TracingProfileType getTestMethodTracingProfile() {
+//        return createModelAndWorkflowLoggingTracingProfile()
+//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+//    }
 
     @Override
     protected PrismObject<UserType> getDefaultActor() {
