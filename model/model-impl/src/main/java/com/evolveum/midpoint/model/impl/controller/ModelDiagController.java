@@ -236,7 +236,7 @@ public class ModelDiagController implements ModelDiagnosticService {
             }
 
             // MID-1116
-            if (repositorySelfTestUserSearch(name, UserType.F_EMPLOYEE_TYPE, toPolyString(USER_EMPLOYEE_TYPE[1]), result)) {
+            if (repositorySelfTestUserSearch(name, UserType.F_EMPLOYEE_TYPE, USER_EMPLOYEE_TYPE[1], result)) {
                 return;
             }
 
