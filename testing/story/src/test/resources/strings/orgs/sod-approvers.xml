@@ -9,8 +9,8 @@
 <org oid="cb73377a-da8d-4fbe-b174-19879bae9032"
      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>SoD Approvers</name>
-    <parentOrgRef oid="b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54" type="OrgType"></parentOrgRef>
+    <parentOrgRef oid="b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54" type="OrgType"/>
     <assignment>
-        <targetRef oid="b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54" type="OrgType"></targetRef>
+        <targetRef oid="b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54" type="OrgType"/>
     </assignment>
 </org>

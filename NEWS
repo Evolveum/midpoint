@@ -1,10 +1,9 @@
-midPoint 4.0 "Gutenberg"
-----------------------------------
+midPoint 4.0.1 "Gutenberg" Update 1
+-----------------------------------
 
-Release 4.0 is a twenty eight midPoint release code-named Gutenberg. The 4.0 release in a major milestone in midPoint development. It brings long-awaited features such as archetypes and support for multiple equivalent accounts. Many internal mechanisms were significantly improved. There is also a number of exciting experimental features. However, perhaps the most important aspect of midPoint 4.0 is the long-term support (LTS). Gutenberg will be supported for many years to come.
+Release 4.0.1 is a twenty ninth midPoint release. It is the fist maintenance update for 4.0.x version family code-named code-named Gutenberg. The 4.0.x is a long-term support (LTS) version family. The 4.0.1 release brings bugfixes and minor improvements.
 
-Release date: 8th September 2019
+Release date: 22nd October 2019
 
 Please see the release notes for detailed list of changes:
-https://wiki.evolveum.com/display/midPoint/Release+4.0
-
+https://wiki.evolveum.com/display/midPoint/Release+4.0.1

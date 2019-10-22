@@ -530,7 +530,7 @@ public class CertCampaignTypeUtil {
         }
     }
 
-    // see WfContextUtil.getEscalationLevelInfo
+    // see ApprovalContextUtil.getEscalationLevelInfo
     @Nullable
     public static String getEscalationLevelInfo(AccessCertificationCampaignType campaign) {
         if (campaign == null) {

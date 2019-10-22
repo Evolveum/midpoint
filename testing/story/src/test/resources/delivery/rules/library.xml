@@ -184,8 +184,8 @@
             <code>
                 import com.evolveum.midpoint.schema.util.*
                 import com.evolveum.midpoint.xml.ns._public.common.common_3.*
-                log.debug('### workflow context:\n{}', approvalContext.asPrismContainerValue().debugDump())
-                def rules = WfContextUtil.getRulesForStage(approvalContext, stageDefinition.number)
+                log.debug('### approval context:\n{}', approvalContext.asPrismContainerValue().debugDump())
+                def rules = ApprovalContextUtil.getRulesForStage(approvalContext, stageDefinition.number)
                 log.debug('rules found: {}', rules)
                 def approvers = rules.collectMany { rule ->
                     def ext = midpoint.collectExtensions(rule.assignmentPath, 1)

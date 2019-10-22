@@ -25,9 +25,9 @@
                         <mergeIntoOrder>40</mergeIntoOrder>
                     </compositionStrategy>
                     <approvalSchema>
-                        <level>
+                        <stage>
                             <formRef oid="6a1874a7-1e60-43b3-8d67-7f76484dead5" type="FormType"/>
-                        </level>
+                        </stage>
                     </approvalSchema>
                 </approval>
             </policyActions>

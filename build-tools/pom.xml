@@ -15,7 +15,7 @@
 
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>build-tools</artifactId>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>4.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>midPoint build tools</name>
@@ -32,6 +32,19 @@
             <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
         </repository>
     </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>evolveum-nexus</id>
+            <name>Internal Releases</name>
+            <url>https://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>evolveum-nexus</id>
+            <name>Internal Snapshots</name>
+            <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <build>
     </build>
