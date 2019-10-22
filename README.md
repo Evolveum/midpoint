@@ -1,5 +1,5 @@
-MidPoint 4.0.1 "Gutenberg" Update 1
------------------------------------
+MidPoint 4.0.x "Gutenberg" Support Branch
+-----------------------------------------
 
 General information:
 
