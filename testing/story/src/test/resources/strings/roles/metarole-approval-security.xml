@@ -24,7 +24,7 @@
                         <order>20</order>
                     </compositionStrategy>
                     <approvalSchema>
-                        <level>
+                        <stage>
                             <name>Security</name>
                             <approverRef type="OrgType">
                                 <filter>
@@ -38,7 +38,7 @@
                             <evaluationStrategy>firstDecides</evaluationStrategy>
                             <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
                             <groupExpansion>onWorkItemCreation</groupExpansion>
-                        </level>
+                        </stage>
                     </approvalSchema>
                 </approval>
             </policyActions>

@@ -29,12 +29,12 @@
                         <mergePriority>2</mergePriority>
                     </compositionStrategy>
                     <approvalSchema>
-                        <level>
+                        <stage>
                             <name>Role approvers (first)</name>
                             <approverRelation>approver</approverRelation>
                             <evaluationStrategy>firstDecides</evaluationStrategy>
                             <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
-                        </level>
+                        </stage>
                     </approvalSchema>
                 </approval>
             </policyActions>

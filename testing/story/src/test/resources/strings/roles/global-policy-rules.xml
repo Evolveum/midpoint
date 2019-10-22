@@ -25,7 +25,7 @@
                     <order>30</order>
                 </compositionStrategy>
                 <approvalSchema>
-                    <level>
+                    <stage>
                         <name>SoD</name>
                         <approverRef type="OrgType">
                             <filter>
@@ -38,7 +38,7 @@
                         </approverRef>
                         <evaluationStrategy>firstDecides</evaluationStrategy>
                         <groupExpansion>onWorkItemCreation</groupExpansion>
-                    </level>
+                    </stage>
                 </approvalSchema>
             </approval>
         </policyActions>
@@ -66,12 +66,12 @@
                     <mergePriority>1</mergePriority>
                 </compositionStrategy>
                 <approvalSchema>
-                    <level>
+                    <stage>
                         <name>Role approvers (all)</name>
                         <approverRelation>approver</approverRelation>
                         <evaluationStrategy>allMustApprove</evaluationStrategy>
                         <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
-                    </level>
+                    </stage>
                 </approvalSchema>
             </approval>
         </policyActions>
@@ -104,7 +104,7 @@
                     <exclusive>true</exclusive>
                 </compositionStrategy>
                 <approvalSchema>
-                    <level>
+                    <stage>
                         <name>Line managers</name>
                         <approverExpression>
                             <script>
@@ -113,7 +113,7 @@
                         </approverExpression>
                         <evaluationStrategy>allMustApprove</evaluationStrategy>
                         <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
-                    </level>
+                    </stage>
                 </approvalSchema>
             </approval>
         </policyActions>
@@ -148,7 +148,7 @@
                     <mergeIntoOrder>40</mergeIntoOrder>
                 </compositionStrategy>
                 <approvalSchema>
-                    <level>
+                    <stage>
                         <duration>P5D</duration>
                         <timedActions>
                             <actions>
@@ -179,7 +179,7 @@
                             <escalationLevelFrom>1</escalationLevelFrom>
                             <escalationLevelTo>1</escalationLevelTo>
                         </timedActions>
-                    </level>
+                    </stage>
                 </approvalSchema>
             </approval>
         </policyActions>
@@ -207,7 +207,7 @@
                     <mergeIntoOrder>30</mergeIntoOrder>
                 </compositionStrategy>
                 <approvalSchema>
-                    <level>
+                    <stage>
                         <duration>P7D</duration>
                         <timedActions>
                             <!-- no time set - executes at deadline -->
@@ -218,7 +218,7 @@
                                 </complete>
                             </actions>
                         </timedActions>
-                    </level>
+                    </stage>
                 </approvalSchema>
             </approval>
         </policyActions>

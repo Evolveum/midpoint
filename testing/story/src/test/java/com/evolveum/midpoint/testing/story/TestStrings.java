@@ -20,10 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
-import com.evolveum.midpoint.wf.api.WorkflowConstants;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
@@ -70,32 +69,23 @@ public class TestStrings extends AbstractStoryTest {
     @Autowired private WorkflowService workflowService;
     @Autowired private DummyTransport dummyTransport;
 
-    private static final String TEST_DIR = "src/test/resources/strings";
-    private static final String ORG_DIR = TEST_DIR + "/orgs";
-    private static final String ROLES_DIR = TEST_DIR + "/roles";
-    private static final String ROLES_SPECIFIC_DIR = TEST_DIR + "/roles-specific";
-    private static final String USERS_DIR = TEST_DIR + "/users";
+    private static final File TEST_DIR = new File("src/test/resources/strings");
+    private static final File ORG_DIR = new File(TEST_DIR, "orgs");
+    private static final File ROLES_DIR = new File(TEST_DIR, "roles");
+    private static final File ROLES_SPECIFIC_DIR = new File(TEST_DIR, "roles-specific");
+    private static final File USERS_DIR = new File(TEST_DIR, "users");
 
     private static final File ORG_MONKEY_ISLAND_FILE = new File(ORG_DIR, "0-org-monkey-island-modified.xml");
-    private static final File ORG_TEAMS_FILE = new File(ORG_DIR, "1-teams.xml");
-    private static String orgTeamsOid;
-    private static final File ORG_ROLE_CATALOG_FILE = new File(ORG_DIR, "2-role-catalog.xml");
-    private static String orgRoleCatalogOid;
-    private static final File ORG_SECURITY_APPROVERS_FILE = new File(ORG_DIR, "security-approvers.xml");
-    private static String orgSecurityApproversOid;
-    private static final File ORG_SOD_APPROVERS_FILE = new File(ORG_DIR, "sod-approvers.xml");
-    private static String orgSodApproversOid;
+    private static final TestResource ORG_TEAMS = new TestResource(ORG_DIR, "1-teams.xml", "b7cbed1f-5e73-4455-b88a-b5b3ac2a0f54");
+    private static final TestResource ORG_ROLE_CATALOG = new TestResource(ORG_DIR, "2-role-catalog.xml", "b77c512a-85b9-470e-a7ab-a55b8f187674");
+    private static final TestResource ORG_SECURITY_APPROVERS = new TestResource(ORG_DIR, "security-approvers.xml", "a14afc10-e4a2-48a4-abfd-e8a2399f98d3");
+    private static final TestResource ORG_SOD_APPROVERS = new TestResource(ORG_DIR, "sod-approvers.xml", "cb73377a-da8d-4fbe-b174-19879bae9032");
 
-    private static final File ROLE_END_USER_FILE = new File(ROLES_DIR, "role-end-user.xml");
-    private static String roleEndUserOid;
-    private static final File FORM_USER_DETAILS_FILE = new File(ROLES_DIR, "form-user-details.xml");
-    private static String formUserDetailsOid;
-    private static final File METAROLE_APPROVAL_ROLE_APPROVERS_FIRST_FILE = new File(ROLES_DIR, "metarole-approval-role-approvers-first.xml");
-    private static String metaroleApprovalRoleApproversFirstOid;
-    private static final File METAROLE_APPROVAL_ROLE_APPROVERS_FORM_FILE = new File(ROLES_DIR, "metarole-approval-role-approvers-form.xml");
-    private static String metaroleApprovalRoleApproversFormOid;
-    private static final File METAROLE_APPROVAL_SECURITY_FILE = new File(ROLES_DIR, "metarole-approval-security.xml");
-    private static String metaroleApprovalSecurityOid;
+    private static final TestResource ROLE_END_USER = new TestResource(ROLES_DIR, "role-end-user.xml", "00000000-0000-0000-0000-000000000008");
+    private static final TestResource FORM_USER_DETAILS = new TestResource(ROLES_DIR, "form-user-details.xml", "6a1874a7-1e60-43b3-8d67-7f76484dead5");
+    private static final TestResource METAROLE_APPROVAL_ROLE_APPROVERS_FIRST = new TestResource(ROLES_DIR, "metarole-approval-role-approvers-first.xml", "e3c28c94-798a-4f93-85f8-de7cbe37315b");
+    private static final TestResource METAROLE_APPROVAL_ROLE_APPROVERS_FORM = new TestResource(ROLES_DIR, "metarole-approval-role-approvers-form.xml", "df092a19-68f0-4056-adf8-482f8fd26410");
+    private static final TestResource METAROLE_APPROVAL_SECURITY = new TestResource(ROLES_DIR, "metarole-approval-security.xml", "9c0c224f-f279-44b5-b906-8e8418a651a2");
 
     private static final File ROLE_A_TEST_1 = new File(ROLES_SPECIFIC_DIR, "a-test-1.xml");
     private static String roleATest1Oid;
@@ -164,16 +154,16 @@ public class TestStrings extends AbstractStoryTest {
 
         // import of story objects
         repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILE, OrgType.class, initResult);
-        orgTeamsOid = repoAddObjectFromFile(ORG_TEAMS_FILE, initResult).getOid();
-        orgRoleCatalogOid = repoAddObjectFromFile(ORG_ROLE_CATALOG_FILE, initResult).getOid();
-        orgSecurityApproversOid = repoAddObjectFromFile(ORG_SECURITY_APPROVERS_FILE, initResult).getOid();
-        orgSodApproversOid = repoAddObjectFromFile(ORG_SOD_APPROVERS_FILE, initResult).getOid();
+        repoAdd(ORG_TEAMS, initResult);
+        repoAdd(ORG_ROLE_CATALOG, initResult);
+        repoAdd(ORG_SECURITY_APPROVERS, initResult);
+        repoAdd(ORG_SOD_APPROVERS, initResult);
 
-        roleEndUserOid = repoAddObjectFromFile(ROLE_END_USER_FILE, initResult).getOid();
-        formUserDetailsOid = repoAddObjectFromFile(FORM_USER_DETAILS_FILE, initResult).getOid();
-        metaroleApprovalRoleApproversFirstOid = repoAddObjectFromFile(METAROLE_APPROVAL_ROLE_APPROVERS_FIRST_FILE, initResult).getOid();
-        metaroleApprovalRoleApproversFormOid = repoAddObjectFromFile(METAROLE_APPROVAL_ROLE_APPROVERS_FORM_FILE, initResult).getOid();
-        metaroleApprovalSecurityOid = repoAddObjectFromFile(METAROLE_APPROVAL_SECURITY_FILE, initResult).getOid();
+        repoAdd(ROLE_END_USER, initResult);
+        repoAdd(FORM_USER_DETAILS, initResult);
+        repoAdd(METAROLE_APPROVAL_ROLE_APPROVERS_FIRST, initResult);
+        repoAdd(METAROLE_APPROVAL_ROLE_APPROVERS_FORM, initResult);
+        repoAdd(METAROLE_APPROVAL_SECURITY, initResult);
 
         roleATest1Oid = addAndRecompute(ROLE_A_TEST_1, initTask, initResult);
         roleATest2aOid = addAndRecompute(ROLE_A_TEST_2A, initTask, initResult);
