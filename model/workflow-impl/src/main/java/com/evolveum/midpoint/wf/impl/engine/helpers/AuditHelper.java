@@ -190,7 +190,6 @@ public class AuditHelper {
         record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME, ApprovalContextUtil.getEscalationLevelName(workItem));
         record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, ApprovalContextUtil.getEscalationLevelDisplayName(workItem));
         record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, WorkItemId.create(aCase.getOid(), workItem.getId()).asString());
-        //record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, WfContextUtil.getProcessInstanceId(workItem));
         return record;
     }
 

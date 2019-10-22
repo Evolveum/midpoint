@@ -208,7 +208,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 //            CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 //        WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? ApprovalUtils.fromUri(completeAction.getOutcome()) : WorkItemOutcomeType.REJECT;
 //        workItemManager.completeWorkItem(WorkItemId.of(workItem), ApprovalUtils.toUri(outcome),
-//                null, null, WfContextUtil.createCause(completeAction), result);
+//                null, null, ApprovalContextUtil.createCause(completeAction), result);
 //    }
 
     private void executeDelegateAction(CaseWorkItemType workItem, DelegateWorkItemActionType delegateAction, boolean escalate,

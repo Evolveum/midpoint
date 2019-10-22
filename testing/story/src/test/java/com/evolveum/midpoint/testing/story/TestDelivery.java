@@ -158,6 +158,19 @@ public class TestDelivery extends AbstractStoryTest {
         userLechuckOid = addAndRecomputeUser(USER_LECHUCK_FILE, initTask, initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+
+        setGlobalTracingOverride(createModelAndWorkflowLoggingTracingProfile());
+    }
+
+    @Override
+    protected boolean isAutoTaskManagementEnabled() {
+        return true;
+    }
+
+    @Override
+    protected TracingProfileType getTestMethodTracingProfile() {
+        return createModelAndWorkflowLoggingTracingProfile()
+                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
     }
 
     @Override
@@ -167,11 +180,8 @@ public class TestDelivery extends AbstractStoryTest {
 
     @Test
     public void test100Assign_IT_2_failure() throws Exception {
-        final String TEST_NAME = "test100Assign_IT_2_failure";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TestDelivery.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         try {
             assignRole(userBobOid, roleIt2Oid, task, result);         // hard constraint
@@ -183,11 +193,8 @@ public class TestDelivery extends AbstractStoryTest {
 
     @Test
     public void test110Assign_IT_2_success() throws Exception {
-        final String TEST_NAME = "test110Assign_IT_2_success";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TestDelivery.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         assignRole(userBarkeeperOid, roleIt2Oid, task, result);         // hard constraint
         result.computeStatus();
@@ -198,11 +205,8 @@ public class TestDelivery extends AbstractStoryTest {
 
     @Test
     public void test120Assign_IT_1() throws Exception {
-        final String TEST_NAME = "test120Assign_IT_1";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TestDelivery.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         assignRole(userBobOid, roleIt1Oid, task, result);         // approval constraint
 
@@ -227,11 +231,8 @@ public class TestDelivery extends AbstractStoryTest {
      */
     @Test
     public void test130Assign_IT_3() throws Exception {
-        final String TEST_NAME = "test130Assign_IT_3";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TestDelivery.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         assignRole(userCarlaOid, roleIt3Oid, task, result);         // two approval constraints
 
@@ -265,11 +266,8 @@ public class TestDelivery extends AbstractStoryTest {
      */
     @Test
     public void test140Assign_IT_4() throws Exception {
-        final String TEST_NAME = "test140Assign_IT_4";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TestDelivery.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         assignRole(userBarkeeperOid, roleIt4Oid, task, result);         // approval constraint
 
@@ -294,11 +292,8 @@ public class TestDelivery extends AbstractStoryTest {
      */
     @Test
     public void test150Assign_IT_5() throws Exception {
-        final String TEST_NAME = "test150Assign_IT_5";
-        TestUtil.displayTestTitle(TEST_NAME);
-
-        Task task = createTask(TestDelivery.class.getName() + "." + TEST_NAME);
-        OperationResult result = task.getResult();
+        Task task = getTask();
+        OperationResult result = getResult();
 
         assignRole(userBarkeeperOid, roleIt5Oid, task, result);         // approval constraint
 
