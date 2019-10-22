@@ -26,6 +26,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -294,7 +295,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                     // TODO what if a complex path is provided here?
                     column = createNameColumn(columnDisplayModel, customColumn.getPath().toString());
                 } else {
-                    column = new AbstractColumn<SelectableBean<O>, String>(columnDisplayModel, null) {
+                    column = new AbstractExportableColumn<SelectableBean<O>, String>(columnDisplayModel, null) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -303,7 +304,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                             item.add(new Label(componentId, getDataModel(rowModel)));
                         }
 
-                        private IModel<?> getDataModel(IModel<SelectableBean<O>> rowModel) {
+                        @Override
+                        public IModel<?> getDataModel(IModel<SelectableBean<O>> rowModel) {
                             Item<?, ?> item = rowModel.getObject().getValue().asPrismContainerValue().findItem(columnPath);
                             if (item != null) {
                                 if (item.getDefinition() != null && item.getDefinition().getValueEnumerationRef() != null &&
