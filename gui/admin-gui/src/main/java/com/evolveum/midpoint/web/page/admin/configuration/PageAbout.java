@@ -91,6 +91,7 @@ public class PageAbout extends PageAdminConfiguration {
 
     private static final String ID_BUILD_TIMESTAMP = "buildTimestamp";
     private static final String ID_BUILD = "build";
+    private static final String ID_BRANCH = "branch";
     private static final String ID_PROPERTY = "property";
     private static final String ID_VALUE = "value";
     private static final String ID_LIST_SYSTEM_ITEMS = "listSystemItems";
@@ -144,6 +145,10 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private void initLayout() {
+        Label branch = new Label(ID_BRANCH, createStringResource("midpoint.system.branch"));
+        branch.setRenderBodyOnly(true);
+        add(branch);
+
         Label revision = new Label(ID_BUILD, createStringResource("midpoint.system.build"));
         revision.setRenderBodyOnly(true);
         add(revision);
