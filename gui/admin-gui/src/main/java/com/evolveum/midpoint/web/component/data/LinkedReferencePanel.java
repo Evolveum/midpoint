@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
 /**
  * Created by honchar
  */
-public class LinkedReferencePanel<AHT extends AssignmentHolderType> extends BasePanel<ObjectReferenceType> {
+public class LinkedReferencePanel<O extends ObjectType> extends BasePanel<ObjectReferenceType> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
@@ -40,7 +40,7 @@ public class LinkedReferencePanel<AHT extends AssignmentHolderType> extends Base
     private static final String DOT_CLASS = LinkedReferencePanel.class.getName() + ".";
     private static final String OPERATION_LOAD_REFERENCED_OBJECT = DOT_CLASS + "loadReferencedObject";
 
-    IModel<AHT> referencedObjectModel = null;
+    IModel<ObjectType> referencedObjectModel = null;
 
     public LinkedReferencePanel(String id, IModel<ObjectReferenceType> objectReferenceModel){
         super(id, objectReferenceModel);
@@ -54,22 +54,22 @@ public class LinkedReferencePanel<AHT extends AssignmentHolderType> extends Base
     }
 
     public void initReferencedObjectModel() {
-            referencedObjectModel = new LoadableModel<AHT>() {
+            referencedObjectModel = new LoadableModel<ObjectType>() {
                 @Override
-                protected AHT load() {
+                protected ObjectType load() {
                     if (getModelObject() == null || getModelObject().getType() == null){
                         return null;
                     }
                     if (getModelObject().asReferenceValue() != null && getModelObject().asReferenceValue().getObject() != null
-                            && getModelObject().asReferenceValue().getObject().asObjectable() instanceof AssignmentHolderType ){
-                        return (AHT)getModelObject().asReferenceValue().getObject().asObjectable();
+                            && getModelObject().asReferenceValue().getObject().asObjectable() instanceof ObjectType ){
+                        return (ObjectType)getModelObject().asReferenceValue().getObject().asObjectable();
                     }
                     if (StringUtils.isNotEmpty(getModelObject().getOid()) && getModelObject().getType() != null) {
                         PageBase pageBase = LinkedReferencePanel.this.getPageBase();
                         OperationResult result = new OperationResult(OPERATION_LOAD_REFERENCED_OBJECT);
-                        PrismObject<AHT> assignmentHolder = WebModelServiceUtils.loadObject(getModelObject(), pageBase,
+                        PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject(getModelObject(), pageBase,
                                 pageBase.createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT), result);
-                        return assignmentHolder != null ? assignmentHolder.asObjectable() : null;
+                        return referencedObject != null ? referencedObject.asObjectable() : null;
                     }
                     return null;
                 }
@@ -79,7 +79,7 @@ public class LinkedReferencePanel<AHT extends AssignmentHolderType> extends Base
     private void initLayout(){
         setOutputMarkupId(true);
 
-        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(referencedObjectModel.getObject(), getPageBase());
+        DisplayType displayType = WebComponentUtil.getDisplayTypeForObject(referencedObjectModel.getObject(), null, getPageBase());
         if (displayType == null){
             displayType = new DisplayType();
         }
@@ -92,7 +92,7 @@ public class LinkedReferencePanel<AHT extends AssignmentHolderType> extends Base
 //        imagePanel.add(new VisibleBehaviour(() -> displayType != null && displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass())));
         add(imagePanel);
 
-        AjaxLink<AHT> nameLink = new AjaxLink<AHT>(ID_NAME, referencedObjectModel) {
+        AjaxLink<ObjectType> nameLink = new AjaxLink<ObjectType>(ID_NAME, referencedObjectModel) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 if (referencedObjectModel != null && referencedObjectModel.getObject() != null) {

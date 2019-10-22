@@ -7,7 +7,8 @@
   -->
 <role oid="00000000-0000-0000-0000-000000000008"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
     <name>End user</name>
     <description>Role authorizing end users to log in, change their passwords and review assigned accounts. Note: This role definition is just an example. It should be tailored for each specific deployment.</description>
     <!--
@@ -141,6 +142,7 @@
                 </q:equal>
             </filter>
         </target>
+        <relation>org:default</relation>        <!-- only assignments with the default (member) relation can be requested -->
     </authorization>
     <authorization>
         <name>self-execution-modify</name>
@@ -238,11 +240,16 @@
         <object>
             <type>TaskType</type>
             <filter>
-                <q:equal>
-                    <q:path>handlerUri</q:path>
-                    <q:value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/execute/handler-3</q:value>
-                    <q:value>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</q:value>    <!-- members-related operations -->
-                </q:equal>
+                <q:or>
+                    <q:equal>
+                        <q:path>handlerUri</q:path>
+                        <q:value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/execute/handler-3</q:value>
+                    </q:equal>
+                    <q:equal>
+                        <q:path>handlerUri</q:path>
+                        <q:value>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</q:value>    <!-- members-related operations -->
+                    </q:equal>
+                </q:or>
             </filter>
             <owner>
                 <special>self</special>
