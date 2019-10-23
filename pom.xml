@@ -154,6 +154,11 @@
 			<name>Evolveum Snapshots</name>
 			<url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
 		</repository>
+		<repository>
+			<id>repository.spring.milestone</id>
+			<name>Spring Milestone Repository</name>
+			<url>http://repo.spring.io/milestone</url>
+		</repository>
 	</repositories>
 	<properties>
 		<!-- Build system options - more options in build-system/pom.xml -->

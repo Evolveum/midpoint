@@ -33,10 +33,10 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 /**
  * @author skublik
  */
-@Order(SecurityProperties.BASIC_AUTH_ORDER - 2)
-@Configuration
-@EnableWebSecurity
-@Profile("!test")
+//@Order(SecurityProperties.BASIC_AUTH_ORDER - 2)
+//@Configuration
+//@EnableWebSecurity
+//@Profile("!test")
 public class ActuatorWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired

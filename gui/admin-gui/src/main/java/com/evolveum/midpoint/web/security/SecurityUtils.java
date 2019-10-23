@@ -9,8 +9,10 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -24,8 +26,12 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.saml.saml2.attribute.Attribute;
+import org.springframework.security.saml.spi.DefaultSamlAuthentication;
 import org.springframework.security.web.csrf.CsrfToken;
 
 import javax.servlet.http.HttpServletRequest;

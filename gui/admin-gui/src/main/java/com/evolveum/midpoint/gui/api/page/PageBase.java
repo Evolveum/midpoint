@@ -34,6 +34,7 @@ import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;

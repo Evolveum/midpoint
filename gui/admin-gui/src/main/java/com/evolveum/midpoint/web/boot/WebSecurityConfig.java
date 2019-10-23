@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2017 Evolveum and contributors
  *
- * This work is dual-licensed under the Apache License 2.0 
+ * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
@@ -22,6 +22,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.cas.web.CasAuthenticationFilter;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -42,17 +43,22 @@ import java.util.Arrays;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@Order(SecurityProperties.BASIC_AUTH_ORDER - 1)
-@Configuration
-@EnableWebSecurity
+//@Order(SecurityProperties.BASIC_AUTH_ORDER - 1)
+//@Configuration
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private Environment environment;
+//    @Autowired
+//    private AuthenticationProvider authenticationProvider;
+//    @Autowired
+//    private AuthenticationManager authenticationManager;
+
     @Autowired
-    private AuthenticationProvider authenticationProvider;
+    private MidPointAuthenticationSuccessHandler authenticationSuccessHandler;
+
     @Autowired
-    private AuthenticationManager authenticationManager;
+    private AuditedLogoutHandler auditedLogoutHandler;
 
     @Autowired
     private MidPointGuiAuthorizationEvaluator accessDecisionManager;
@@ -69,9 +75,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
-    
-    @Value("${auth.logout.url:/}")
-    private String authLogoutUrl;
+
+//    @Value("${auth.logout.url:/}")
+//    private String authLogoutUrl;
+
+    private ObjectPostProcessor<Object> objectPostProcessor;
+
+    @Override
+    public void setObjectPostProcessor(ObjectPostProcessor<Object> objectPostProcessor) {
+        this.objectPostProcessor = objectPostProcessor;
+        super.setObjectPostProcessor(objectPostProcessor);
+    }
 
     @Profile("!cas")
     @Bean
@@ -79,12 +93,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new WicketLoginUrlAuthenticationEntryPoint("/login");
     }
 
-    @Bean
-    public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer,
-                                                                   SecurityContextManager securityContextManager,
-                                                                   TaskManager taskManager) {
-        return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager);
-    }
+//    @Bean
+//    public MidPointGuiAuthorizationEvaluator accessDecisionManager(SecurityEnforcer securityEnforcer,
+//                                                                   SecurityContextManager securityContextManager,
+//                                                                   TaskManager taskManager) {
+//        return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager);
+//    }
 
     @Override
     public void configure(WebSecurity web) throws Exception {
@@ -108,7 +122,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/less/**");
 
         web.ignoring().antMatchers("/wicket/resource/**");
-        
+
         web.ignoring().antMatchers("/actuator");
         web.ignoring().antMatchers("/actuator/health");
     }
@@ -133,7 +147,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutUrl("/logout")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
-                .logoutSuccessHandler(logoutHandler());
+                .logoutSuccessHandler(auditedLogoutHandler);
 
         http.sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.NEVER)
@@ -144,7 +158,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.formLogin()
                 .loginPage("/login")
                 .loginProcessingUrl("/spring_security_login")
-                .successHandler(authenticationSuccessHandler()).permitAll();
+                .successHandler(authenticationSuccessHandler).permitAll();
 
         http.exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint())
@@ -157,21 +171,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.headers().disable();
         http.headers().frameOptions().sameOrigin();
 
-        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("cas"))) {
-            http.addFilterAt(casFilter(), CasAuthenticationFilter.class);
-            http.addFilterBefore(requestSingleLogoutFilter(), LogoutFilter.class);
-//            http.addFilterBefore(singleSignOutFilter(), CasAuthenticationFilter.class);
-        }
-
-        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("sso"))) {
-            http.addFilterBefore(requestHeaderAuthenticationFilter(), LogoutFilter.class);
-        }
-
-        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("ssoenv"))) {
-            http.addFilterBefore(requestAttributeAuthenticationFilter(), LogoutFilter.class);
-        }
+//        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("cas"))) {
+//            http.addFilterAt(casFilter(), CasAuthenticationFilter.class);
+//            http.addFilterBefore(requestSingleLogoutFilter(), LogoutFilter.class);
+////            http.addFilterBefore(singleSignOutFilter(), CasAuthenticationFilter.class);
+//        }
+//
+//        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("sso"))) {
+//            http.addFilterBefore(requestHeaderAuthenticationFilter(), LogoutFilter.class);
+//        }
+//
+//        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("ssoenv"))) {
+//            http.addFilterBefore(requestAttributeAuthenticationFilter(), LogoutFilter.class);
+//        }
     }
-    
+
     @Bean
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {
@@ -186,61 +200,61 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @ConditionalOnMissingBean(name = "midPointAuthenticationProvider")
     @Bean
     public AuthenticationProvider midPointAuthenticationProvider() throws Exception {
-        return new MidPointAuthenticationProvider();
+        return objectPostProcessor.postProcess( new MidPointAuthenticationProvider());
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(authenticationProvider);
+        auth.authenticationProvider(midPointAuthenticationProvider());
     }
 
-    @Bean
-    public MidPointAuthenticationSuccessHandler authenticationSuccessHandler() {
-        MidPointAuthenticationSuccessHandler handler = new MidPointAuthenticationSuccessHandler();
-        handler.setUseReferer(true);
-        handler.setDefaultTargetUrl("/login");
+//    @Bean
+//    public MidPointAuthenticationSuccessHandler authenticationSuccessHandler() {
+//        MidPointAuthenticationSuccessHandler handler = new MidPointAuthenticationSuccessHandler();
+//        handler.setUseReferer(true);
+//        handler.setDefaultTargetUrl("/login");
+//
+//        return handler;
+//    }
 
-        return handler;
-    }
+//    @Bean
+//    public AuditedLogoutHandler logoutHandler() {
+//        AuditedLogoutHandler handler = new AuditedLogoutHandler();
+//        handler.setDefaultTargetUrl(authLogoutUrl);
+//
+//        return handler;
+//    }
 
-    @Bean
-    public AuditedLogoutHandler logoutHandler() {
-        AuditedLogoutHandler handler = new AuditedLogoutHandler();
-        handler.setDefaultTargetUrl(authLogoutUrl);
+//    @Profile("sso")
+//    @Bean
+//    public RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() {
+//        RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
+//        filter.setPrincipalRequestHeader(principalRequestHeader);
+//        filter.setExceptionIfHeaderMissing(false);
+//        filter.setAuthenticationManager(authenticationManager);
+//
+//        return filter;
+//    }
 
-        return handler;
-    }
+//    @Profile("ssoenv")
+//    @Bean
+//    public RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter() {
+//        RequestAttributeAuthenticationFilter filter = new RequestAttributeAuthenticationFilter();
+//        filter.setPrincipalEnvironmentVariable(principalRequestEnvVariable);
+//        filter.setExceptionIfVariableMissing(false);
+//        filter.setAuthenticationManager(authenticationManager);
+//
+//        return filter;
+//    }
 
-    @Profile("sso")
-    @Bean
-    public RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() {
-        RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
-        filter.setPrincipalRequestHeader(principalRequestHeader);
-        filter.setExceptionIfHeaderMissing(false);
-        filter.setAuthenticationManager(authenticationManager);
-
-        return filter;
-    }
-
-    @Profile("ssoenv")
-    @Bean
-    public RequestAttributeAuthenticationFilter requestAttributeAuthenticationFilter() {
-        RequestAttributeAuthenticationFilter filter = new RequestAttributeAuthenticationFilter();
-        filter.setPrincipalEnvironmentVariable(principalRequestEnvVariable);
-        filter.setExceptionIfVariableMissing(false);
-        filter.setAuthenticationManager(authenticationManager);
-
-        return filter;
-    }
-
-    @Profile("cas")
-    @Bean
-    public CasAuthenticationFilter casFilter() {
-        CasAuthenticationFilter filter = new CasAuthenticationFilter();
-        filter.setAuthenticationManager(authenticationManager);
-
-        return filter;
-    }
+//    @Profile("cas")
+//    @Bean
+//    public CasAuthenticationFilter casFilter() {
+//        CasAuthenticationFilter filter = new CasAuthenticationFilter();
+//        filter.setAuthenticationManager(authenticationManager);
+//
+//        return filter;
+//    }
 
     @Profile("cas")
     @Bean
@@ -265,6 +279,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //        return filter;
 //    }
 
+    public HttpSecurity getNewHttp() throws Exception {
+        return getHttp();
+    }
 
 }
 
